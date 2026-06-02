@@ -111,7 +111,8 @@ class UserRoleTest extends PostgresIntegrationTestBase {
     Object principal = authentication.getPrincipal();
     assertEquals(dhisOidcUser, principal);
 
-    Collection<? extends GrantedAuthority> authorities = oidc.getAuthorities();
+    Collection<? extends GrantedAuthority> authorities =
+        oidc.getLoginCredentials().getAuthorities();
 
     for (GrantedAuthority authority : authorities) {
       assertTrue(oidc.isAuthorized(authority.getAuthority()));

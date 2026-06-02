@@ -128,7 +128,7 @@ class DataItemServiceFacadeTest {
   public static void injectSecurityContext(UserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
-            currentUserDetails, "", currentUserDetails.getAuthorities());
+            currentUserDetails, "", currentUserDetails.getLoginCredentials().getAuthorities());
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);

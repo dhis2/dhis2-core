@@ -67,7 +67,7 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
       Map<String, Object> attributes,
       String nameAttributeKey,
       OidcIdToken idToken) {
-    super(user.getAuthorities(), attributes, nameAttributeKey);
+    super(user.getLoginCredentials().getAuthorities(), attributes, nameAttributeKey);
     this.oidcIdToken = idToken;
     this.user = user;
   }
@@ -87,38 +87,14 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
     return oidcIdToken;
   }
 
-  public org.springframework.security.core.userdetails.UserDetails getUser() {
-    return user;
+  @Nonnull
+  public LoginCredentials getLoginCredentials() {
+    return user.getLoginCredentials();
   }
 
   @Override
   public String getUsername() {
     return user.getUsername();
-  }
-
-  @Override
-  public String getPassword() {
-    return user.getPassword();
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return user.isAccountNonExpired();
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return user.isAccountNonLocked();
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return user.isCredentialsNonExpired();
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return user.isEnabled();
   }
 
   @Override

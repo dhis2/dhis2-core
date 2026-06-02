@@ -231,7 +231,7 @@ public class Dhis2JwtAuthenticationManagerResolver
       }
 
       Collection<GrantedAuthority> grantedAuthorities =
-          List.copyOf(currentUserDetails.getAuthorities());
+          List.copyOf(currentUserDetails.getLoginCredentials().getAuthorities());
 
       return new DhisJwtAuthenticationToken(
           jwt, grantedAuthorities, mappingValue, currentUserDetails);

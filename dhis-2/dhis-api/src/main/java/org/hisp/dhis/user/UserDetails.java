@@ -30,17 +30,13 @@
 package org.hisp.dhis.user;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.security.Authorities;
@@ -48,8 +44,32 @@ import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
-public interface UserDetails
-    extends org.springframework.security.core.userdetails.UserDetails, UidObject {
+public interface UserDetails extends UidObject {
+
+  /**
+   * Spring level user details as required by {@link
+   * org.springframework.security.core.userdetails.UserDetails}.
+   */
+  record LoginCredentials(
+      @Nonnull Collection<? extends GrantedAuthority> getAuthorities,
+      String getPassword,
+      String getUsername,
+      boolean isAccountNonExpired,
+      boolean isAccountNonLocked,
+      boolean isCredentialsNonExpired,
+      boolean isEnabled)
+      implements org.springframework.security.core.userdetails.UserDetails {
+
+    @Override
+    public int hashCode() {
+      return getUsername.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof LoginCredentials other && getUsername.equals(other.getUsername);
+    }
+  }
 
   /**
    * @return a {@link UserDetails} object that is all initialized to empty (no anything) but which
@@ -84,7 +104,7 @@ public interface UserDetails
     if (user == null) {
       return null;
     }
-    return createUserDetails(
+    return UserDetailsImpl.createUserDetails(
         user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, null, null, true);
   }
 
@@ -99,7 +119,7 @@ public interface UserDetails
     if (user == null) {
       return null;
     }
-    return createUserDetails(
+    return UserDetailsImpl.createUserDetails(
         user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, null, null, false);
   }
 
@@ -111,128 +131,26 @@ public interface UserDetails
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids) {
-    return createUserDetails(
+    return UserDetailsImpl.createUserDetails(
         user,
         accountNonLocked,
         credentialsNonExpired,
         orgUnitUids,
         searchOrgUnitUids,
-        dataViewUnitUids,
-        true);
-  }
-
-  @CheckForNull
-  static UserDetails createUserDetails(
-      @CheckForNull User user,
-      boolean accountNonLocked,
-      boolean credentialsNonExpired,
-      @CheckForNull Set<String> orgUnitUids,
-      @CheckForNull Set<String> searchOrgUnitUids,
-      @CheckForNull Set<String> dataViewUnitUids,
-      boolean loadOrgUnits) {
-
-    if (user == null) {
-      return null;
-    }
-
-    UserDetailsImplBuilder userDetailsImplBuilder =
-        UserDetailsImpl.builder()
-            .id(user.getId())
-            .uid(user.getUid())
-            .code(user.getCode())
-            .username(user.getUsername())
-            .password(user.getPassword())
-            .externalAuth(user.isExternalAuth())
-            .isTwoFactorEnabled(user.isTwoFactorEnabled())
-            .twoFactorType(user.getTwoFactorType())
-            .secret(user.getSecret())
-            .email(user.getEmail())
-            .isEmailVerified(user.isEmailVerified())
-            .firstName(user.getFirstName())
-            .surname(user.getSurname())
-            .enabled(user.isEnabled())
-            .accountNonExpired(user.isAccountNonExpired())
-            .accountNonLocked(accountNonLocked)
-            .credentialsNonExpired(credentialsNonExpired)
-            .dataViewMaxOrganisationUnitLevel(user.getDataViewMaxOrganisationUnitLevel())
-            .authorities(user.getAuthorities())
-            .allAuthorities(
-                new HashSet<>(
-                    Set.copyOf(
-                        user.getAuthorities().stream()
-                            .map(GrantedAuthority::getAuthority)
-                            .toList())))
-            .isSuper(user.isSuper())
-            .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
-            .userGroupIds(
-                new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
-            .managedGroupLongIds(
-                new HashSet<>(
-                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups())))
-            .userRoleLongIds(
-                new HashSet<>(
-                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
-
-    if (loadOrgUnits) {
-      Set<String> userOrgUnitIds =
-          (orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids;
-
-      Set<String> userSearchOrgUnitIds =
-          (searchOrgUnitUids == null)
-              ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
-              : (searchOrgUnitUids.isEmpty() ? orgUnitUids : searchOrgUnitUids);
-
-      Set<String> userEffectiveSearchOrgUnitIds =
-          Stream.of(userOrgUnitIds, userSearchOrgUnitIds)
-              .filter(Objects::nonNull)
-              .flatMap(Collection::stream)
-              .collect(Collectors.toSet());
-
-      Set<String> userDataOrgUnitIds =
-          (dataViewUnitUids == null)
-              ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
-              : (dataViewUnitUids.isEmpty() ? orgUnitUids : dataViewUnitUids);
-
-      userDetailsImplBuilder
-          .userOrgUnitIds(new HashSet<>(userOrgUnitIds))
-          .userSearchOrgUnitIds(new HashSet<>(userSearchOrgUnitIds))
-          .userEffectiveSearchOrgUnitIds(new HashSet<>(userEffectiveSearchOrgUnitIds))
-          .userDataOrgUnitIds(new HashSet<>(userDataOrgUnitIds))
-          .allRestrictions(new HashSet<>(user.getAllRestrictions()));
-
-    } else {
-      userDetailsImplBuilder
-          .userOrgUnitIds(new HashSet<>())
-          .userSearchOrgUnitIds(new HashSet<>())
-          .userEffectiveSearchOrgUnitIds(new HashSet<>())
-          .userDataOrgUnitIds(new HashSet<>())
-          .allRestrictions(new HashSet<>());
-    }
-
-    return userDetailsImplBuilder.build();
+        dataViewUnitUids);
   }
 
   @Nonnull
-  @Override
-  Collection<? extends GrantedAuthority> getAuthorities();
+  LoginCredentials getLoginCredentials();
 
-  @Override
-  String getPassword();
-
-  @Override
-  String getUsername();
-
-  @Override
-  boolean isAccountNonExpired();
-
-  @Override
-  boolean isAccountNonLocked();
-
-  @Override
-  boolean isCredentialsNonExpired();
-
-  @Override
-  boolean isEnabled();
+  /**
+   * For convenience as this is a much used property
+   *
+   * @return the username as defined by {@link #getLoginCredentials()}
+   */
+  default String getUsername() {
+    return getLoginCredentials().getUsername();
+  }
 
   boolean isSuper();
 
@@ -358,21 +276,5 @@ public interface UserDetails
       }
     }
     return false;
-  }
-
-  @Nonnull
-  private static Set<String> setOfIds(
-      @CheckForNull Collection<? extends IdentifiableObject> objects) {
-    return objects == null || objects.isEmpty()
-        ? Set.of()
-        : Set.copyOf(objects.stream().map(IdentifiableObject::getUid).toList());
-  }
-
-  @Nonnull
-  private static Set<Long> setOfPrimaryKeys(
-      @CheckForNull Collection<? extends IdentifiableObject> objects) {
-    return objects == null || objects.isEmpty()
-        ? Set.of()
-        : Set.copyOf(objects.stream().map(IdentifiableObject::getId).toList());
   }
 }

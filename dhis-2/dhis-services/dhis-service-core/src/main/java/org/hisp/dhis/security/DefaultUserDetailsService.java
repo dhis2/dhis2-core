@@ -60,6 +60,7 @@ public class DefaultUserDetailsService implements UserDetailsService {
           String.format("User with username '%s' not found", username));
     }
 
-    return userService.createUserDetails(user);
+    // TODO maybe there can be a slimmer version of just loading the LoginCredentials here
+    return userService.createUserDetails(user).getLoginCredentials();
   }
 }

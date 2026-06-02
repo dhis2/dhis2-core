@@ -80,7 +80,7 @@ public class AuthenticationListener {
       DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
 
       if (principal != null) {
-        username = principal.getUser().getUsername();
+        username = principal.getLoginCredentials().getUsername();
       }
 
       WebAuthenticationDetails tokenDetails =
@@ -119,7 +119,7 @@ public class AuthenticationListener {
     if (OAuth2LoginAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
       OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
       DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-      username = principal.getUser().getUsername();
+      username = principal.getLoginCredentials().getUsername();
 
       WebAuthenticationDetails tokenDetails =
           (WebAuthenticationDetails) authenticationToken.getDetails();

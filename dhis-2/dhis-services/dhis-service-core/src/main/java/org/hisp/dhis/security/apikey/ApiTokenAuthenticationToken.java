@@ -50,7 +50,7 @@ public final class ApiTokenAuthenticationToken extends AbstractAuthenticationTok
   }
 
   public ApiTokenAuthenticationToken(ApiToken token, UserDetails user) {
-    super(user.getAuthorities());
+    super(user.getLoginCredentials().getAuthorities());
     this.tokenRef = token;
     this.user = user;
   }

@@ -2551,7 +2551,7 @@ public abstract class TestBase {
   public static void injectSecurityContextNoSettings(UserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
-            currentUserDetails, "", currentUserDetails.getAuthorities());
+            currentUserDetails, "", currentUserDetails.getLoginCredentials().getAuthorities());
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);

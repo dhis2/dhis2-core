@@ -114,7 +114,7 @@ public class CurrentUserUtil {
     }
 
     UserDetails currentUserDetails = getCurrentUserDetails();
-    return currentUserDetails.getAuthorities().stream()
+    return currentUserDetails.getLoginCredentials().getAuthorities().stream()
         .map(GrantedAuthority::getAuthority)
         .toList();
   }
@@ -141,7 +141,8 @@ public class CurrentUserUtil {
 
   public static void injectUserInSecurityContext(UserDetails actingUser) {
     Authentication authentication =
-        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+        new UsernamePasswordAuthenticationToken(
+            actingUser, "", actingUser.getLoginCredentials().getAuthorities());
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);

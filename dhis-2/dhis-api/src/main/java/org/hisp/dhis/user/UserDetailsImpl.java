@@ -34,13 +34,19 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.springframework.security.core.GrantedAuthority;
@@ -84,23 +90,27 @@ public class UserDetailsImpl implements UserDetails {
       @JsonProperty("userRoleIds") Set<String> userRoleIds,
       @JsonProperty("managedGroupLongIds") Set<Long> managedGroupLongIds,
       @JsonProperty("userRoleLongIds") Set<Long> userRoleLongIds) {
+    LoginCredentials credentials =
+        new LoginCredentials(
+            authorities,
+            password,
+            username,
+            accountNonExpired,
+            accountNonLocked,
+            credentialsNonExpired,
+            enabled);
     return UserDetailsImpl.builder()
         .uid(uid)
         .code(code)
-        .username(username)
+        .loginCredentials(credentials)
         .firstName(firstName)
         .surname(surname)
-        .password(password)
         .externalAuth(externalAuth)
         .isTwoFactorEnabled(isTwoFactorEnabled)
         .twoFactorType(twoFactorType)
         .secret(secret)
         .email(email)
         .isEmailVerified(isEmailVerified)
-        .enabled(enabled)
-        .accountNonExpired(accountNonExpired)
-        .accountNonLocked(accountNonLocked)
-        .credentialsNonExpired(credentialsNonExpired)
         .dataViewMaxOrganisationUnitLevel(dataViewMaxOrganisationUnitLevel)
         .authorities(authorities)
         .allAuthorities(allAuthorities)
@@ -120,20 +130,15 @@ public class UserDetailsImpl implements UserDetails {
   private final String uid;
   @Setter private Long id;
   private final String code;
-  @EqualsAndHashCode.Include private final String username;
+  @EqualsAndHashCode.Include private final LoginCredentials loginCredentials;
   private final String firstName;
   private final String surname;
-  private final String password;
   private final boolean externalAuth;
   private final boolean isTwoFactorEnabled;
   private final TwoFactorType twoFactorType;
   private final String secret;
   private final String email;
   private final boolean isEmailVerified;
-  private final boolean enabled;
-  private final boolean accountNonExpired;
-  private final boolean accountNonLocked;
-  private final boolean credentialsNonExpired;
   private final boolean isSuper;
   private final Integer dataViewMaxOrganisationUnitLevel;
   @Nonnull private final Collection<GrantedAuthority> authorities;
@@ -194,5 +199,134 @@ public class UserDetailsImpl implements UserDetails {
   @Override
   public boolean isAuthorized(@Nonnull Authorities auth) {
     return isAuthorized(auth.toString());
+  }
+
+  @CheckForNull
+  static UserDetails createUserDetails(
+      @CheckForNull User user,
+      boolean accountNonLocked,
+      boolean credentialsNonExpired,
+      @CheckForNull Set<String> orgUnitUids,
+      @CheckForNull Set<String> searchOrgUnitUids,
+      @CheckForNull Set<String> dataViewUnitUids) {
+    return createUserDetails(
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        orgUnitUids,
+        searchOrgUnitUids,
+        dataViewUnitUids,
+        true);
+  }
+
+  @CheckForNull
+  static UserDetails createUserDetails(
+      @CheckForNull User user,
+      boolean accountNonLocked,
+      boolean credentialsNonExpired,
+      @CheckForNull Set<String> orgUnitUids,
+      @CheckForNull Set<String> searchOrgUnitUids,
+      @CheckForNull Set<String> dataViewUnitUids,
+      boolean loadOrgUnits) {
+
+    if (user == null) {
+      return null;
+    }
+
+    LoginCredentials credentials =
+        new LoginCredentials(
+            user.getAuthorities(),
+            user.getPassword(),
+            user.getUsername(),
+            user.isAccountNonExpired(),
+            accountNonLocked,
+            credentialsNonExpired,
+            user.isEnabled());
+    UserDetailsImplBuilder userDetailsImplBuilder =
+        UserDetailsImpl.builder()
+            .id(user.getId())
+            .uid(user.getUid())
+            .code(user.getCode())
+            .loginCredentials(credentials)
+            .externalAuth(user.isExternalAuth())
+            .isTwoFactorEnabled(user.isTwoFactorEnabled())
+            .twoFactorType(user.getTwoFactorType())
+            .secret(user.getSecret())
+            .email(user.getEmail())
+            .isEmailVerified(user.isEmailVerified())
+            .firstName(user.getFirstName())
+            .surname(user.getSurname())
+            .dataViewMaxOrganisationUnitLevel(user.getDataViewMaxOrganisationUnitLevel())
+            .authorities(user.getAuthorities())
+            .allAuthorities(
+                new HashSet<>(
+                    Set.copyOf(
+                        user.getAuthorities().stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .toList())))
+            .isSuper(user.isSuper())
+            .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
+            .userGroupIds(
+                new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
+            .managedGroupLongIds(
+                new HashSet<>(
+                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups())))
+            .userRoleLongIds(
+                new HashSet<>(
+                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
+
+    if (loadOrgUnits) {
+      Set<String> userOrgUnitIds =
+          (orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids;
+
+      Set<String> userSearchOrgUnitIds =
+          (searchOrgUnitUids == null)
+              ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
+              : (searchOrgUnitUids.isEmpty() ? orgUnitUids : searchOrgUnitUids);
+
+      Set<String> userEffectiveSearchOrgUnitIds =
+          Stream.of(userOrgUnitIds, userSearchOrgUnitIds)
+              .filter(Objects::nonNull)
+              .flatMap(Collection::stream)
+              .collect(Collectors.toSet());
+
+      Set<String> userDataOrgUnitIds =
+          (dataViewUnitUids == null)
+              ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
+              : (dataViewUnitUids.isEmpty() ? orgUnitUids : dataViewUnitUids);
+
+      userDetailsImplBuilder
+          .userOrgUnitIds(new HashSet<>(userOrgUnitIds))
+          .userSearchOrgUnitIds(new HashSet<>(userSearchOrgUnitIds))
+          .userEffectiveSearchOrgUnitIds(new HashSet<>(userEffectiveSearchOrgUnitIds))
+          .userDataOrgUnitIds(new HashSet<>(userDataOrgUnitIds))
+          .allRestrictions(new HashSet<>(user.getAllRestrictions()));
+
+    } else {
+      userDetailsImplBuilder
+          .userOrgUnitIds(new HashSet<>())
+          .userSearchOrgUnitIds(new HashSet<>())
+          .userEffectiveSearchOrgUnitIds(new HashSet<>())
+          .userDataOrgUnitIds(new HashSet<>())
+          .allRestrictions(new HashSet<>());
+    }
+
+    return userDetailsImplBuilder.build();
+  }
+
+  @Nonnull
+  private static Set<String> setOfIds(
+      @CheckForNull Collection<? extends IdentifiableObject> objects) {
+    return objects == null || objects.isEmpty()
+        ? Set.of()
+        : Set.copyOf(objects.stream().map(IdentifiableObject::getUid).toList());
+  }
+
+  @Nonnull
+  private static Set<Long> setOfPrimaryKeys(
+      @CheckForNull Collection<? extends IdentifiableObject> objects) {
+    return objects == null || objects.isEmpty()
+        ? Set.of()
+        : Set.copyOf(objects.stream().map(IdentifiableObject::getId).toList());
   }
 }

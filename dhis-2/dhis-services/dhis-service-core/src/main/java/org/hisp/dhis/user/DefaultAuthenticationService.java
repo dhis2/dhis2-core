@@ -66,7 +66,8 @@ public class DefaultAuthenticationService implements AuthenticationService {
   private static void setupInContext(UserDetails principal) {
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(
-        new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
+        new UsernamePasswordAuthenticationToken(
+            principal, null, principal.getLoginCredentials().getAuthorities()));
     SecurityContextHolder.setContext(context);
   }
 

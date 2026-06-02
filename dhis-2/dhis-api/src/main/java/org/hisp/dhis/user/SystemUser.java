@@ -43,47 +43,27 @@ import org.springframework.security.core.GrantedAuthority;
  */
 public class SystemUser implements UserDetails {
 
+  static final LoginCredentials SUPER =
+      new LoginCredentials(
+          List.of((GrantedAuthority) Authorities.ALL::name),
+          null,
+          // Never rely on this method to get the username of the system user for identification.
+          "system-process_" + CodeGenerator.generateUid(),
+          true,
+          true,
+          true,
+          true);
+
   @Nonnull
   @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of((GrantedAuthority) Authorities.ALL::name);
+  public LoginCredentials getLoginCredentials() {
+    return SUPER;
   }
 
   @Nonnull
   @Override
   public Set<String> getAllAuthorities() {
     return Set.of(Authorities.ALL.name());
-  }
-
-  @Override
-  public String getPassword() {
-    return null;
-  }
-
-  @Override
-  public String getUsername() {
-    // Never rely on this method to get the username of the system user for identification.
-    return "system-process_" + CodeGenerator.generateUid();
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return true;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return true;
   }
 
   @Override
