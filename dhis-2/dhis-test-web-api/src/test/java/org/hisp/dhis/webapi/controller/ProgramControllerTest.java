@@ -32,6 +32,7 @@ import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -390,6 +392,8 @@ class ProgramControllerTest extends DhisControllerConvenienceTest {
 
     assertStatus(HttpStatus.OK, DELETE("/programs/%s".formatted(PROGRAM_UID)));
     assertStatus(HttpStatus.NOT_FOUND, GET("/programs/%s".formatted(PROGRAM_UID)));
-    assertStatus(HttpStatus.NOT_FOUND, GET("/mapViews/%s".formatted("mVIVRd23Jm9")));
+    JsonMixed mapview = GET("/mapViews/mVIVRd23Jm9").content().as(JsonMixed.class);
+    assertFalse(mapview.has("program"));
+    assertFalse(mapview.has("programStage"));
   }
 }
