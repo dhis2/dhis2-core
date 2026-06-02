@@ -47,12 +47,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
@@ -90,8 +92,13 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  *       {@code enrollment_notes} / {@code trackerevent_notes} / {@code singleevent_notes} join),
  *       replacing Hibernate's {@code @OneToMany(cascade=ALL)} behaviour. Notes are append-only on
  *       UPDATE.
- *   <li>Relationship is the only remaining top-level entity type still delegating to {@link
- *       EntityManager}; its Phase 6 JDBC replacement follows.
+ *   <li>Relationship inserts are flushed via three JDBC statements -- a multi-row INSERT into
+ *       {@code relationship} with {@code from/to_relationshipitemid} left NULL, a multi-row INSERT
+ *       into {@code relationshipitem} for the (from + to) items, and an unnest UPDATE on {@code
+ *       relationship} to set the from/to FKs. The three-step shape breaks the circular FK between
+ *       the two tables, which is not deferrable in the live schema. Both tables use the shared
+ *       {@code hibernate_sequence}. Relationship is INSERT-only -- the persister rejects UPDATE
+ *       strategy upstream.
  *   <li>TEAVs continue to delegate to {@link EntityManager} until their Phase 6 turn.
  * </ul>
  *
@@ -357,6 +364,43 @@ class EntityWriteBatch {
       "insert into singleevent_notes (eventid, noteid, sort_order) values ";
   private static final String SINGLE_EVENT_NOTES_INSERT_ROW = "(?, ?, ?)";
 
+  // Relationship is INSERT-only in tracker imports (RelationshipPersister.convert returns null on
+  // UPDATE strategy). Both relationship and relationshipitem use `hibernate_sequence` (no
+  // dedicated sequence was provisioned in any Flyway migration -- the hbm.xml `<generator
+  // class="native"/>` resolves to the shared global counter).
+  //
+  // The two tables form a circular FK (relationship.from/to_relationshipitemid <->
+  // relationshipitem.relationshipid) with non-deferrable constraints. We break the cycle by
+  // inserting the relationship row first with from/to as NULL, then the items pointing at the
+  // pre-allocated relationshipid, then an unnest UPDATE to set the from/to FKs.
+  private static final String RELATIONSHIP_INSERT_PREFIX =
+      "insert into relationship ("
+          + "relationshipid, uid, code, created, lastupdated, lastupdatedby,"
+          + " style, relationshiptypeid,"
+          + " from_relationshipitemid, to_relationshipitemid,"
+          + " key, inverted_key, deleted, createdatclient) values ";
+
+  // from/to_relationshipitemid are written as NULL on the parent INSERT and filled in by
+  // updateRelationshipFromTo after the items are inserted.
+  private static final String RELATIONSHIP_INSERT_ROW =
+      "(?, ?, ?, ?, ?, ?, ?::jsonb, ?, NULL, NULL, ?, ?, ?, ?)";
+
+  private static final String RELATIONSHIP_ITEM_INSERT_PREFIX =
+      "insert into relationshipitem ("
+          + "relationshipitemid, relationshipid,"
+          + " trackedentityid, enrollmentid, trackereventid, singleeventid) values ";
+  private static final String RELATIONSHIP_ITEM_INSERT_ROW = "(?, ?, ?, ?, ?, ?)";
+
+  private static final String RELATIONSHIP_UPDATE_FROM_TO_SQL =
+      "update relationship r set"
+          + " from_relationshipitemid = v.from_id,"
+          + " to_relationshipitemid = v.to_id"
+          + " from ( select"
+          + " unnest(?::bigint[]) as relationshipid,"
+          + " unnest(?::bigint[]) as from_id,"
+          + " unnest(?::bigint[]) as to_id"
+          + " ) v where r.relationshipid = v.relationshipid";
+
   private final ObjectMapper objectMapper;
 
   private final List<TrackedEntity> teInserts = new ArrayList<>();
@@ -504,7 +548,9 @@ class EntityWriteBatch {
     updateSingleEvents(conn);
     insertSingleEventNotes(conn);
     refreshUpdatedSingleEvents(entityManager);
-    persistAll(entityManager, relationshipInserts);
+    insertRelationships(conn);
+    insertRelationshipItems(conn);
+    updateRelationshipFromTo(conn);
 
     for (TrackedEntityAttributeValue v : teavInserts) {
       entityManager.persist(v);
@@ -1309,6 +1355,170 @@ class EntityWriteBatch {
   }
 
   /**
+   * Inserts the parent {@code relationship} rows. {@code from_relationshipitemid} and {@code
+   * to_relationshipitemid} are written as NULL here -- they're filled in by {@link
+   * #updateRelationshipFromTo} after the item rows have been inserted, since neither the parent nor
+   * the child FK constraints are deferrable. Relationship is INSERT-only in tracker imports, so no
+   * L1 detach/refresh is needed.
+   */
+  private void insertRelationships(Connection conn) throws SQLException {
+    if (relationshipInserts.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < relationshipInserts.size(); from += INSERT_BATCH_SIZE) {
+      int to = Math.min(from + INSERT_BATCH_SIZE, relationshipInserts.size());
+      List<Relationship> chunk = relationshipInserts.subList(from, to);
+      String sql =
+          buildMultiRowInsertSql(RELATIONSHIP_INSERT_PREFIX, RELATIONSHIP_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (Relationship r : chunk) {
+          p = bindRelationshipRow(ps, p, r);
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private int bindRelationshipRow(PreparedStatement ps, int p, Relationship r) throws SQLException {
+    if (r.getId() == 0) {
+      throw new SQLException(
+          "Relationship "
+              + r.getUid()
+              + " has no pre-allocated id; AbstractTrackerPersister"
+              + " must pre-allocate ids when sequenceName() is non-null.");
+    }
+    ps.setLong(p++, r.getId());
+    ps.setString(p++, r.getUid());
+    if (r.getCode() != null) {
+      ps.setString(p++, r.getCode());
+    } else {
+      ps.setNull(p++, Types.VARCHAR);
+    }
+    ps.setTimestamp(p++, toTimestamp(r.getCreated()));
+    ps.setTimestamp(p++, toTimestamp(r.getLastUpdated()));
+    if (r.getLastUpdatedBy() != null) {
+      ps.setLong(p++, r.getLastUpdatedBy().getId());
+    } else {
+      ps.setNull(p++, Types.BIGINT);
+    }
+    ps.setString(p++, toObjectStyleJson(r.getStyle()));
+    ps.setLong(p++, r.getRelationshipType().getId());
+    ps.setString(p++, r.getKey());
+    ps.setString(p++, r.getInvertedKey());
+    ps.setBoolean(p++, r.isDeleted());
+    setNullableTimestamp(ps, p++, r.getCreatedAtClient());
+    return p;
+  }
+
+  /**
+   * Inserts the {@code relationshipitem} rows. Each Relationship has exactly two items (from + to);
+   * we allocate {@code 2 * relationships.size()} ids from {@code hibernate_sequence} in one
+   * round-trip, assign them to the in-memory items (so the subsequent unnest UPDATE can read them
+   * back), then flatten the from/to items into a single multi-row INSERT.
+   */
+  private void insertRelationshipItems(Connection conn) throws SQLException {
+    if (relationshipInserts.isEmpty()) {
+      return;
+    }
+    long[] itemIds = allocateIds(conn, "hibernate_sequence", 2 * relationshipInserts.size());
+    int cursor = 0;
+    for (Relationship r : relationshipInserts) {
+      r.getFrom().setId((int) itemIds[cursor++]);
+      r.getTo().setId((int) itemIds[cursor++]);
+    }
+
+    // Flatten (from + to) per relationship into a single list to drive one multi-row INSERT.
+    record ItemRow(long itemId, long relationshipId, RelationshipItem item) {}
+    List<ItemRow> rows = new ArrayList<>(2 * relationshipInserts.size());
+    for (Relationship r : relationshipInserts) {
+      rows.add(new ItemRow(r.getFrom().getId(), r.getId(), r.getFrom()));
+      rows.add(new ItemRow(r.getTo().getId(), r.getId(), r.getTo()));
+    }
+
+    for (int from = 0; from < rows.size(); from += INSERT_BATCH_SIZE) {
+      int to = Math.min(from + INSERT_BATCH_SIZE, rows.size());
+      List<ItemRow> chunk = rows.subList(from, to);
+      String sql =
+          buildMultiRowInsertSql(
+              RELATIONSHIP_ITEM_INSERT_PREFIX, RELATIONSHIP_ITEM_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (ItemRow row : chunk) {
+          p = bindRelationshipItemRow(ps, p, row.itemId(), row.relationshipId(), row.item());
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private int bindRelationshipItemRow(
+      PreparedStatement ps, int p, long itemId, long relationshipId, RelationshipItem item)
+      throws SQLException {
+    ps.setLong(p++, itemId);
+    ps.setLong(p++, relationshipId);
+    if (item.getTrackedEntity() != null) {
+      ps.setLong(p++, item.getTrackedEntity().getId());
+    } else {
+      ps.setNull(p++, Types.BIGINT);
+    }
+    if (item.getEnrollment() != null) {
+      ps.setLong(p++, item.getEnrollment().getId());
+    } else {
+      ps.setNull(p++, Types.BIGINT);
+    }
+    // For PROGRAM_STAGE_INSTANCE endpoints the mapper sets BOTH trackerEvent and singleEvent from
+    // preheat (TrackerObjectsMapper.java:350-353,366-369), but only the matching one resolves to
+    // non-null because a given UID exists in exactly one of the two event tables.
+    if (item.getTrackerEvent() != null) {
+      ps.setLong(p++, item.getTrackerEvent().getId());
+    } else {
+      ps.setNull(p++, Types.BIGINT);
+    }
+    if (item.getSingleEvent() != null) {
+      ps.setLong(p++, item.getSingleEvent().getId());
+    } else {
+      ps.setNull(p++, Types.BIGINT);
+    }
+    return p;
+  }
+
+  /**
+   * Sets {@code relationship.from_relationshipitemid} and {@code to_relationshipitemid} once the
+   * item rows have been inserted by {@link #insertRelationshipItems}. Required because the circular
+   * FK between {@code relationship} and {@code relationshipitem} is not deferrable, so we had to
+   * leave the parent's from/to columns NULL on the initial INSERT.
+   */
+  private void updateRelationshipFromTo(Connection conn) throws SQLException {
+    if (relationshipInserts.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < relationshipInserts.size(); from += UPDATE_BATCH_SIZE) {
+      int to = Math.min(from + UPDATE_BATCH_SIZE, relationshipInserts.size());
+      List<Relationship> chunk = relationshipInserts.subList(from, to);
+      int n = chunk.size();
+
+      Long[] ids = new Long[n];
+      Long[] fromIds = new Long[n];
+      Long[] toIds = new Long[n];
+
+      for (int i = 0; i < n; i++) {
+        Relationship r = chunk.get(i);
+        ids[i] = r.getId();
+        fromIds[i] = (long) r.getFrom().getId();
+        toIds[i] = (long) r.getTo().getId();
+      }
+
+      try (PreparedStatement ps = conn.prepareStatement(RELATIONSHIP_UPDATE_FROM_TO_SQL)) {
+        ps.setArray(1, conn.createArrayOf("bigint", ids));
+        ps.setArray(2, conn.createArrayOf("bigint", fromIds));
+        ps.setArray(3, conn.createArrayOf("bigint", toIds));
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  /**
    * Fetches {@code count} ids from {@code sequenceName} in a single round-trip. The sequence name
    * is interpolated into the SQL (not a bind parameter) because PostgreSQL's {@code nextval} takes
    * a {@code regclass}; the value is always a static literal controlled by us. Mirrors the helper
@@ -1403,6 +1613,22 @@ class EntityWriteBatch {
     }
   }
 
+  /**
+   * Serializes the relationship's {@link ObjectStyle} via {@link JsonBinaryType#MAPPER} to match
+   * the Hibernate {@code jbObjectStyle} UserType. Returns {@code null} for a null style so the
+   * caller can pass it straight to a {@code ?::jsonb} parameter as SQL NULL.
+   */
+  private String toObjectStyleJson(ObjectStyle style) throws SQLException {
+    if (style == null) {
+      return null;
+    }
+    try {
+      return JsonBinaryType.MAPPER.writeValueAsString(style);
+    } catch (JsonProcessingException e) {
+      throw new SQLException("Failed to serialize ObjectStyle to JSON", e);
+    }
+  }
+
   private boolean isEmpty() {
     return teInserts.isEmpty()
         && teUpdates.isEmpty()
@@ -1416,12 +1642,6 @@ class EntityWriteBatch {
         && teavInserts.isEmpty()
         && teavUpdates.isEmpty()
         && teavDeletes.isEmpty();
-  }
-
-  private static <T> void persistAll(EntityManager entityManager, List<T> entities) {
-    for (T entity : entities) {
-      entityManager.persist(entity);
-    }
   }
 
   private static <T> void truncate(List<T> list, int size) {

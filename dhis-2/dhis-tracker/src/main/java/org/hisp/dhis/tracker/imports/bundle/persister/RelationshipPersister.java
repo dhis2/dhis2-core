@@ -62,7 +62,12 @@ public class RelationshipPersister
 
   @Override
   protected String sequenceName() {
-    return null;
+    // Shared with every other entity that uses Hibernate's `<generator class="native"/>`. No
+    // dedicated relationship_sequence was provisioned in any Flyway migration. The 2
+    // RelationshipItem
+    // ids per Relationship are allocated separately inside
+    // EntityWriteBatch.insertRelationshipItems.
+    return "hibernate_sequence";
   }
 
   @Override
