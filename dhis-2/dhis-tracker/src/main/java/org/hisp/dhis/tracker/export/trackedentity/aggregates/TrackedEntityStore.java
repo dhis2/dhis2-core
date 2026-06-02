@@ -82,7 +82,7 @@ class TrackedEntityStore {
   // language=SQL
   private static final String GET_TE_ATTRIBUTES_WITHOUT_PROGRAM =
       """
-      select te.uid as te_uid, teav.created, teav.lastupdated, teav.storedby, teav.value,
+      select te.uid as te_uid, teav.created, teav.lastupdated, teav.updatedby, teav.value,
              tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
              tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype
       from trackedentityattributevalue teav
@@ -96,7 +96,7 @@ class TrackedEntityStore {
   // language=SQL
   private static final String GET_TE_ATTRIBUTES_WITH_PROGRAM =
       """
-      select te.uid as te_uid, teav.created, teav.lastupdated, teav.storedby, teav.value,
+      select te.uid as te_uid, teav.created, teav.lastupdated, teav.updatedby, teav.value,
              tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
              tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype
       from trackedentityattributevalue teav
@@ -203,7 +203,7 @@ class TrackedEntityStore {
     attributeValue.setCreated(rs.getTimestamp("created"));
     attributeValue.setLastUpdated(rs.getTimestamp("lastupdated"));
     attributeValue.setValue(rs.getString("value"));
-    attributeValue.setStoredBy(rs.getString("storedby"));
+    attributeValue.setUpdatedBy(rs.getString("updatedby"));
 
     TrackedEntityAttribute attribute = new TrackedEntityAttribute();
     attribute.setUid(rs.getString("tea_uid"));

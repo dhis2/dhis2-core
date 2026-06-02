@@ -33,6 +33,7 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -79,8 +80,14 @@ public class TrackerEventPersister
   public TrackerEventPersister(
       ReservedValueService reservedValueService,
       DataSource dataSource,
-      FileResourceStore fileResourceStore) {
-    super(reservedValueService, dataSource, fileResourceStore);
+      FileResourceStore fileResourceStore,
+      ObjectMapper objectMapper) {
+    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
+  }
+
+  @Override
+  protected String sequenceName() {
+    return null;
   }
 
   @Override
