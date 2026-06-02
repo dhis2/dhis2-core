@@ -65,7 +65,7 @@ public class TrackedEntityAttributeValue implements Serializable {
   @Setter @ToString.Include @AuditAttribute private TrackedEntity trackedEntity;
   @Setter @ToString.Include private Date created;
   @Setter @ToString.Include private Date lastUpdated;
-  @Setter @ToString.Include private String storedBy;
+  @Setter @ToString.Include private String updatedBy;
   @ToString.Include private String value;
 
   private transient boolean auditValueIsSet = false;
@@ -131,8 +131,8 @@ public class TrackedEntityAttributeValue implements Serializable {
   }
 
   @JsonProperty
-  public String getStoredBy() {
-    return storedBy;
+  public String getUpdatedBy() {
+    return updatedBy;
   }
 
   @JsonProperty("trackedEntityAttribute")
