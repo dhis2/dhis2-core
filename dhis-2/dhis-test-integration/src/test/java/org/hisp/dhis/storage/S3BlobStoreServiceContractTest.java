@@ -70,9 +70,6 @@ class S3BlobStoreServiceContractTest extends BlobStoreServiceContractTest {
     lenient()
         .when(config.getProperty(ConfigurationKey.FILESTORE_SECRET))
         .thenReturn(MinIOTestExtension.MINIO_PASSWORD);
-    lenient()
-        .when(config.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES))
-        .thenReturn(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue());
 
     store = new S3BlobStoreService(config);
     store.init();

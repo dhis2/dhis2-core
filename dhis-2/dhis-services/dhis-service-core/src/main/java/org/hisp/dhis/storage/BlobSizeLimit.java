@@ -36,17 +36,15 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
  * BlobStoreService} implementations so an oversized payload is rejected at the blob layer rather
  * than only at controller boundaries.
  */
-final class BlobSizeLimit {
+public final class BlobSizeLimit {
 
   private BlobSizeLimit() {}
 
   /**
    * Throws {@link IllegalArgumentException} when {@code contentLength} exceeds {@code
-   * maxFileUploadSizeBytes} — a precondition violation on the {@code contentLength} parameter of
-   * {@link BlobStoreService#putBlob}. Negative {@code contentLength} is left to the underlying
-   * backend to reject.
+   * maxFileUploadSizeBytes}. Negative {@code contentLength} is left to the caller to reject.
    */
-  static void check(long contentLength, long maxFileUploadSizeBytes) {
+  public static void check(long contentLength, long maxFileUploadSizeBytes) {
     if (contentLength > maxFileUploadSizeBytes) {
       throw new IllegalArgumentException(
           String.format(

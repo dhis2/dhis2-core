@@ -42,10 +42,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.storage.BlobKey;
+import org.hisp.dhis.storage.BlobSizeLimit;
 import org.hisp.dhis.storage.BlobStoreService;
 import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
 import org.hisp.dhis.storage.ContentHash;
@@ -55,12 +57,20 @@ import org.springframework.stereotype.Service;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.fileresource.FileResourceContentStore")
+@Service
 public class BlobStoreFileResourceContentStore implements FileResourceContentStore {
   private static final long FIVE_MINUTES_IN_SECONDS = 300L;
 
   private final BlobStoreService blobStore;
+  private final long maxFileUploadSizeBytes;
+
+  public BlobStoreFileResourceContentStore(
+      BlobStoreService blobStore, DhisConfigurationProvider configurationProvider) {
+    this.blobStore = blobStore;
+    this.maxFileUploadSizeBytes =
+        Long.parseLong(
+            configurationProvider.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES));
+  }
 
   @Override
   public InputStream getFileResourceContent(BlobKey key) {
@@ -75,6 +85,7 @@ public class BlobStoreFileResourceContentStore implements FileResourceContentSto
   @Override
   @CheckForNull
   public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull byte[] bytes) {
+    BlobSizeLimit.check(bytes.length, maxFileUploadSizeBytes);
     try (InputStream is = new ByteArrayInputStream(bytes)) {
       blobStore.putBlob(
           fr.asBlobKey(),
@@ -95,6 +106,7 @@ public class BlobStoreFileResourceContentStore implements FileResourceContentSto
   @Override
   @CheckForNull
   public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull File file) {
+    BlobSizeLimit.check(file.length(), maxFileUploadSizeBytes);
     try (InputStream is = new FileInputStream(file)) {
       blobStore.putBlob(
           fr.asBlobKey(),
@@ -129,6 +141,8 @@ public class BlobStoreFileResourceContentStore implements FileResourceContentSto
     for (Map.Entry<ImageFileDimension, File> entry : imageFiles.entrySet()) {
       File file = entry.getValue();
       String dimension = entry.getKey().getDimension();
+
+      BlobSizeLimit.check(file.length(), maxFileUploadSizeBytes);
 
       ContentHash contentHash;
       try {

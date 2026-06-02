@@ -55,15 +55,11 @@ public class TransientBlobStoreService implements BlobStoreService {
 
   private final BlobContainerName container;
   private final Map<String, byte[]> blobs = new ConcurrentHashMap<>();
-  private final long maxFileUploadSizeBytes;
 
   public TransientBlobStoreService(DhisConfigurationProvider configurationProvider) {
     this.container =
         new BlobContainerName(
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER));
-    this.maxFileUploadSizeBytes =
-        Long.parseLong(
-            configurationProvider.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES));
   }
 
   @Override
@@ -89,10 +85,8 @@ public class TransientBlobStoreService implements BlobStoreService {
    *     {@code apps/my-app/index.html})
    * @param content the data to store; must be open and positioned at the start when passed in;
    *     exactly {@code contentLength} bytes will be read
-   * @param contentLength the number of bytes in {@code content}; must not exceed {@link
-   *     ConfigurationKey#MAX_FILE_UPLOAD_SIZE_BYTES} (enforced by the base contract) and is further
-   *     rejected if larger than {@code Integer.MAX_VALUE} since this in-memory backend stores
-   *     payloads as a {@code byte[]}
+   * @param contentLength the number of bytes in {@code content}; rejected if larger than {@code
+   *     Integer.MAX_VALUE} since this in-memory backend stores payloads as a {@code byte[]}
    * @param contentType MIME type of the blob (e.g. {@code "image/png"}); unused in this
    *     implementation.
    * @param contentDisposition how the blob should be presented when downloaded (e.g. {@code
@@ -108,7 +102,6 @@ public class TransientBlobStoreService implements BlobStoreService {
       @CheckForNull String contentType,
       @CheckForNull ContentDisposition contentDisposition,
       @CheckForNull ContentHash contentHash) {
-    BlobSizeLimit.check(contentLength, maxFileUploadSizeBytes);
     // Read exactly contentLength bytes per BlobStoreService.putBlob's contract (the SDK-backed
     // impls rely on the same guarantee for Content-Length). Math.toIntExact rejects anything
     // larger than Integer.MAX_VALUE up-front — Transient is in-memory, so capping at int is the

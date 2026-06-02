@@ -257,6 +257,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
 
     try {
       ZipFileUtils.validateZip(file, folder.path(), topLevelFolder);
+      log.info("Unzipping app {}", app.getName());
       unzipFile(file, folder, topLevelFolder);
 
       removeOtherAppsWithSameKey(app);

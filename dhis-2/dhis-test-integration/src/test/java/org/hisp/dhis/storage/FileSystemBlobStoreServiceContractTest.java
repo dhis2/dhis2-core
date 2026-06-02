@@ -62,9 +62,6 @@ class FileSystemBlobStoreServiceContractTest extends BlobStoreServiceContractTes
 
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
-    lenient()
-        .when(config.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES))
-        .thenReturn(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue());
 
     LocationManager locationManager = mock(LocationManager.class);
     when(locationManager.externalDirectorySet()).thenReturn(true);

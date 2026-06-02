@@ -86,27 +86,19 @@ public interface BlobStoreService {
    * implementations buffer internally if their backend requires re-reads (e.g. SDK retries on the
    * S3 backend).
    *
-   * <p>{@code contentLength} is checked against the system-wide upload cap configured via {@link
-   * org.hisp.dhis.external.conf.ConfigurationKey#MAX_FILE_UPLOAD_SIZE_BYTES} (default 10MB) before
-   * any bytes are read. Oversized payloads are rejected with {@link IllegalArgumentException} —
-   * raise {@code max.file_upload_size} in {@code dhis.conf} to permit larger uploads.
-   *
    * @param key identifies the blob within the container; acts as a path-like object-store key (e.g.
    *     {@code apps/my-app/index.html})
    * @param content the data to store; must be open and positioned at the start when passed in;
    *     exactly {@code contentLength} bytes will be read
    * @param contentLength the number of bytes in {@code content}; required by some backends (e.g.
    *     S3) to set the {@code Content-Length} header — pass the file size, array length, or zip
-   *     entry size as appropriate. Must not exceed {@link
-   *     org.hisp.dhis.external.conf.ConfigurationKey#MAX_FILE_UPLOAD_SIZE_BYTES}.
+   *     entry size as appropriate
    * @param contentType MIME type of the blob (e.g. {@code "image/png"}); pass {@code null} when
    *     unknown and the backend will use a default
    * @param contentDisposition how the blob should be presented when downloaded (e.g. {@code
    *     attachment; filename="report.pdf"}); pass {@code null} when no disposition header is needed
    * @param contentHash MD5 hash of the blob content used for integrity verification; pass {@code
    *     null} when the hash is unavailable or verification is not required
-   * @throws IllegalArgumentException if {@code contentLength} exceeds {@link
-   *     org.hisp.dhis.external.conf.ConfigurationKey#MAX_FILE_UPLOAD_SIZE_BYTES}
    */
   void putBlob(
       BlobKey key,

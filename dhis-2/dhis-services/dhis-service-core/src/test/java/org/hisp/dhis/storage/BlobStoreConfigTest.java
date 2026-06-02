@@ -99,9 +99,6 @@ class BlobStoreConfigTest {
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT)).thenReturn("");
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_IDENTITY)).thenReturn("");
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_SECRET)).thenReturn("");
-    lenient()
-        .when(config.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES))
-        .thenReturn(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue());
     return config;
   }
 }

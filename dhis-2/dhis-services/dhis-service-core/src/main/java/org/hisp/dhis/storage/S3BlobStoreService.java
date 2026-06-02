@@ -96,16 +96,13 @@ public class S3BlobStoreService implements BlobStoreService {
   private final BlobContainerName container;
   private final S3Client s3;
   private final S3Presigner presigner;
-  private final long maxFileUploadSizeBytes;
 
   public S3BlobStoreService(DhisConfigurationProvider configurationProvider) {
     this(
         new BlobContainerName(
             configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER)),
         buildClient(configurationProvider),
-        buildPresigner(configurationProvider),
-        Long.parseLong(
-            configurationProvider.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
+        buildPresigner(configurationProvider));
   }
 
   /**
@@ -113,15 +110,10 @@ public class S3BlobStoreService implements BlobStoreService {
    * {@link S3Presigner} without spinning up MinIO. The public constructor builds real clients from
    * the {@link DhisConfigurationProvider}.
    */
-  S3BlobStoreService(
-      BlobContainerName container,
-      S3Client s3,
-      S3Presigner presigner,
-      long maxFileUploadSizeBytes) {
+  S3BlobStoreService(BlobContainerName container, S3Client s3, S3Presigner presigner) {
     this.container = container;
     this.s3 = s3;
     this.presigner = presigner;
-    this.maxFileUploadSizeBytes = maxFileUploadSizeBytes;
   }
 
   private static S3Client buildClient(DhisConfigurationProvider config) {
@@ -243,7 +235,6 @@ public class S3BlobStoreService implements BlobStoreService {
       @CheckForNull String contentType,
       @CheckForNull ContentDisposition contentDisposition,
       @CheckForNull ContentHash contentHash) {
-    BlobSizeLimit.check(contentLength, maxFileUploadSizeBytes);
     PutObjectRequest.Builder put =
         PutObjectRequest.builder()
             .bucket(container.value())
