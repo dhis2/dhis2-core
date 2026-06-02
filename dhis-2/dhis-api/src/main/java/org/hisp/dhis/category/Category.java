@@ -186,7 +186,6 @@ public class Category extends BaseMetadataObject
   @Transient private DimensionItemKeywords dimensionItemKeywords;
   @Transient private boolean fixed;
   @Transient private UUID groupUUID;
-  @Transient private List<DimensionalItemObject> items = new ArrayList<>();
 
   public Category() {}
 
@@ -197,9 +196,9 @@ public class Category extends BaseMetadataObject
   }
 
   public Category(
-      String name, DataDimensionType dataDimensionType, List<DimensionalItemObject> items) {
+      String name, DataDimensionType dataDimensionType, List<CategoryOption> categoryOptions) {
     this(name, dataDimensionType);
-    this.items = items;
+    this.categoryOptions = categoryOptions;
   }
 
   @Override
@@ -328,12 +327,13 @@ public class Category extends BaseMetadataObject
   @JacksonXmlElementWrapper(localName = "items", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "item", namespace = DxfNamespaces.DXF_2_0)
   public List<DimensionalItemObject> getItems() {
-    return items;
+    return new ArrayList<>(categoryOptions);
   }
 
   @Override
   public void setItems(List<DimensionalItemObject> items) {
-    this.items = items;
+    this.categoryOptions =
+        items.stream().map(CategoryOption.class::cast).collect(Collectors.toList());
   }
 
   @Override
@@ -621,7 +621,7 @@ public class Category extends BaseMetadataObject
   @Override
   public String toString() {
     List<String> itemStr =
-        items.stream()
+        categoryOptions.stream()
             .map(
                 item ->
                     MoreObjects.toStringHelper(DimensionalItemObject.class)

@@ -128,8 +128,7 @@ class CategoryStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName(
-      "CategoryOption order is preserved on reload and sort_order is 1-based in the DB")
+  @DisplayName("CategoryOption order is preserved on reload and sort_order is 1-based in the DB")
   void categoryOptionOrderIsPreservedAndOneBased() {
     CategoryOption coA = createCategoryOption('A');
     CategoryOption coB = createCategoryOption('B');
