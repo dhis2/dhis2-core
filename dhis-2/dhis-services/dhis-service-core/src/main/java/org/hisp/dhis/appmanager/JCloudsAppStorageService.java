@@ -37,8 +37,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -47,6 +49,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -84,6 +91,9 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";
   public static final String MANIFEST_WEBAPP_FILENAME = "manifest.webapp";
+
+  /** Max concurrent file uploads per app when unzipping into blob storage. */
+  private static final int APP_UPLOAD_PARALLELISM = 1;
 
   private final BlobStoreService blobStore;
   private final LocationManager locationManager;
@@ -288,16 +298,83 @@ public class JCloudsAppStorageService implements AppStorageService {
   private void unzipFile(File file, AppFolderName folder, String topLevelFolder)
       throws IOException, ZipSlipException {
     try (ZipFile zipFile = new ZipFile(file)) {
-      Enumeration<? extends ZipEntry> entries = zipFile.entries();
-      while (entries.hasMoreElements()) {
-        ZipEntry zipEntry = entries.nextElement();
+      List<ZipEntry> entries = new ArrayList<>();
+      List<String> filePaths = new ArrayList<>();
+      Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+      while (zipEntries.hasMoreElements()) {
+        ZipEntry zipEntry = zipEntries.nextElement();
         String filePath = getFilePath(folder.path(), topLevelFolder, zipEntry);
-        // If it's the root folder, skip
-        if (filePath == null) continue;
-        try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
-          blobStore.putBlob(
-              new BlobKey(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+        // Skip the root folder, and ZIP directory entries — they're redundant: on
+        // the filesystem backend parent dirs are auto-created when a file is put,
+        // and on object stores "directory blobs" are meaningless. Skipping them
+        // also avoids a race in the JClouds filesystem backend between
+        // putDirectoryBlob (mkdirs) and concurrent putBlob calls in the same dir.
+        if (filePath == null || zipEntry.isDirectory()) continue;
+        entries.add(zipEntry);
+        filePaths.add(filePath);
+      }
+      if (entries.isEmpty()) return;
+
+      // Pre-create unique parent directories serially on the filesystem backend.
+      // The JClouds filesystem strategy uses a racy `parent.exists() && !parent.mkdirs()`
+      // check when writing each file; two parallel uploads targeting the same
+      // as-yet-uncreated parent dir would both call mkdirs() and one would lose.
+      // Pre-creating ensures `parent.exists()` is true during the parallel upload.
+      if (blobStore.isFilesystem()) {
+        precreateParentDirectories(filePaths, folder.path());
+      }
+
+      int parallelism = Math.min(APP_UPLOAD_PARALLELISM, entries.size());
+      ExecutorService executor = Executors.newFixedThreadPool(parallelism);
+      try {
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[entries.size()];
+        for (int i = 0; i < entries.size(); i++) {
+          ZipEntry zipEntry = entries.get(i);
+          String filePath = filePaths.get(i);
+          futures[i] =
+              CompletableFuture.runAsync(
+                  () -> uploadZipEntry(zipFile, zipEntry, filePath), executor);
         }
+        CompletableFuture.allOf(futures).join();
+      } catch (CompletionException e) {
+        Throwable cause = e.getCause() != null ? e.getCause() : e;
+        if (cause instanceof UncheckedIOException uioe) throw uioe.getCause();
+        if (cause instanceof IOException ioe) throw ioe;
+        if (cause instanceof RuntimeException re) throw re;
+        throw new IOException("Failed to upload app files", cause);
+      } finally {
+        executor.shutdown();
+      }
+    }
+  }
+
+  private void uploadZipEntry(ZipFile zipFile, ZipEntry zipEntry, String filePath) {
+    try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+      blobStore.putBlob(
+          new BlobKey(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private void precreateParentDirectories(List<String> filePaths, String appFolderPath) {
+    // Collect each file's parent dirs transitively, up to but not including the
+    // app folder root. TreeSet gives lexicographic order, which (because '/' sorts
+    // before any name char) creates shallower dirs before their children.
+    Set<String> parents = new TreeSet<>();
+    int rootLen = appFolderPath.length();
+    for (String filePath : filePaths) {
+      int idx = filePath.lastIndexOf('/');
+      while (idx > rootLen) {
+        parents.add(filePath.substring(0, idx));
+        idx = filePath.lastIndexOf('/', idx - 1);
+      }
+    }
+    for (String dir : parents) {
+      try (InputStream empty = InputStream.nullInputStream()) {
+        blobStore.putBlob(new BlobKey(dir + "/"), empty, 0L, null, null, null);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
       }
     }
   }
