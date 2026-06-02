@@ -209,6 +209,51 @@ class CsvEventServiceTest {
             });
   }
 
+  @Test
+  void shouldProduceNoDataValuesWhenReadingEventWithEmptyDataValueColumns()
+      throws IOException, ParseException {
+    String csv =
+        """
+        event,status,program,programStage,enrollment,orgUnit,occurredAt,scheduledAt,\
+        geometry,latitude,longitude,followUp,deleted,createdAt,createdAtClient,updatedAt,\
+        updatedAtClient,completedBy,completedAt,updatedBy,attributeOptionCombo,\
+        attributeCategoryOptions,assignedUser,dataElement,value,storedBy,\
+        providedElsewhere,storedByDataValue,updatedAtDataValue,createdAtDataValue
+        BuA2R2Gr4vt,ACTIVE,programId,programStageId,,orgUnitId,,,,,,false,false,,,,,,,,,,,,,,,,,
+        """;
+
+    List<Event> events =
+        service.read(new ByteArrayInputStream(csv.getBytes(StandardCharsets.UTF_8)), true);
+
+    assertEquals(1, events.size());
+    assertTrue(
+        events.get(0).getDataValues().isEmpty(),
+        "Event without data values must not produce phantom DataValues on import");
+  }
+
+  @Test
+  void shouldProduceNoDataValuesWhenWritingAndReadingBackEventWithoutDataValues()
+      throws IOException, ParseException {
+    Event event =
+        Event.builder()
+            .event(UID.of("BuA2R2Gr4vt"))
+            .status(EventStatus.ACTIVE)
+            .program("programId")
+            .programStage("programStageId")
+            .orgUnit("orgUnitId")
+            .build();
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    service.write(out, List.of(event), true);
+
+    List<Event> imported = service.read(new ByteArrayInputStream(out.toByteArray()), true);
+
+    assertEquals(1, imported.size());
+    assertTrue(
+        imported.get(0).getDataValues().isEmpty(),
+        "Round-tripped event without data values must not produce phantom DataValues");
+  }
+
   @ValueSource(
       strings = {
         ",,,,,,,,POINT (-11.4283223849698 8.06311527044516)",
