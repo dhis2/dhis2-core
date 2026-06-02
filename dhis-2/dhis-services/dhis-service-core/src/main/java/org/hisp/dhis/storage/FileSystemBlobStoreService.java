@@ -65,6 +65,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
 
   private final BlobContainerName container;
   private final Path baseDir;
+  private final long maxFileUploadSizeBytes;
 
   public FileSystemBlobStoreService(
       DhisConfigurationProvider configurationProvider, LocationManager locationManager) {
@@ -75,6 +76,9 @@ public class FileSystemBlobStoreService implements BlobStoreService {
     String containerName = configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER);
     this.container = new BlobContainerName(containerName);
     this.baseDir = Paths.get(locationManager.getExternalDirectoryPath(), containerName);
+    this.maxFileUploadSizeBytes =
+        Long.parseLong(
+            configurationProvider.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES));
   }
 
   @PostConstruct
@@ -126,6 +130,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
       @CheckForNull String contentType,
       @CheckForNull ContentDisposition contentDisposition,
       @CheckForNull ContentHash contentHash) {
+    BlobSizeLimit.check(contentLength, maxFileUploadSizeBytes);
     Path target = resolve(key);
     try {
       Files.createDirectories(target.getParent());

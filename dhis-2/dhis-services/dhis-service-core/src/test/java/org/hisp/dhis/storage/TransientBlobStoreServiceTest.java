@@ -64,16 +64,39 @@ class TransientBlobStoreServiceTest {
 
   @Test
   void putBlob_contentLengthAboveInt_throws() {
-    BlobStoreService svc = newService();
+    // Use Long.MAX_VALUE so the size-limit check passes and the Integer.MAX_VALUE guard fires.
+    BlobStoreService svc = newServiceWithMaxBytes(Long.MAX_VALUE);
     long tooBig = (long) Integer.MAX_VALUE + 1;
     BlobKey key = BlobKey.of("k");
     ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);
     assertThrows(ArithmeticException.class, () -> svc.putBlob(key, bais, tooBig, null, null, null));
   }
 
+  @Test
+  void putBlob_exceedsMaxFileUploadSize_throws() {
+    long maxBytes = 100L;
+    BlobStoreService svc = newServiceWithMaxBytes(maxBytes);
+    BlobKey key = BlobKey.of("k");
+    ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> svc.putBlob(key, bais, maxBytes + 1, null, null, null));
+    assertTrue(
+        ex.getMessage().contains("File size can't be bigger than"), "got: " + ex.getMessage());
+  }
+
   private static TransientBlobStoreService newService() {
+    return newServiceWithMaxBytes(
+        Long.parseLong(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue()));
+  }
+
+  private static TransientBlobStoreService newServiceWithMaxBytes(long maxBytes) {
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("dhis2");
+    lenient()
+        .when(config.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES))
+        .thenReturn(Long.toString(maxBytes));
     return new TransientBlobStoreService(config);
   }
 }

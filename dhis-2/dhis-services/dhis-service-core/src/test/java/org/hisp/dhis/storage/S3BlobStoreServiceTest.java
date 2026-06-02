@@ -32,22 +32,28 @@ package org.hisp.dhis.storage;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Error;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -60,6 +66,9 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  */
 class S3BlobStoreServiceTest {
 
+  private static final long DEFAULT_MAX_BYTES =
+      Long.parseLong(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue());
+
   private final BlobContainerName container = new BlobContainerName("dhis2");
 
   @Test
@@ -69,7 +78,8 @@ class S3BlobStoreServiceTest {
         .thenReturn(page(List.of("apps/a", "apps/b"), true, "tok-1"))
         .thenReturn(page(List.of("apps/c"), false, null));
 
-    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc =
+        new S3BlobStoreService(container, s3, mock(S3Presigner.class), DEFAULT_MAX_BYTES);
 
     List<String> keys = new ArrayList<>();
     svc.listKeys(BlobKeyPrefix.of("apps")).forEach(k -> keys.add(k.value()));
@@ -94,7 +104,8 @@ class S3BlobStoreServiceTest {
         .thenReturn(commonPrefixPage(List.of("apps/foo/", "apps/bar/"), true, "tok-1"))
         .thenReturn(commonPrefixPage(List.of("apps/baz/"), false, null));
 
-    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc =
+        new S3BlobStoreService(container, s3, mock(S3Presigner.class), DEFAULT_MAX_BYTES);
 
     List<String> folders = new ArrayList<>();
     svc.listFolders(BlobKeyPrefix.of("apps")).forEach(p -> folders.add(p.value()));
@@ -112,7 +123,8 @@ class S3BlobStoreServiceTest {
     when(s3.deleteObjects(any(DeleteObjectsRequest.class)))
         .thenReturn(DeleteObjectsResponse.builder().build());
 
-    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc =
+        new S3BlobStoreService(container, s3, mock(S3Presigner.class), DEFAULT_MAX_BYTES);
     svc.deleteDirectory(BlobKeyPrefix.of("apps"));
 
     // Two list calls (paginated), two delete calls (one per page since each page had <BATCH_SIZE).
@@ -132,11 +144,29 @@ class S3BlobStoreServiceTest {
                     S3Error.builder().key("apps/a").code("AccessDenied").message("nope").build())
                 .build());
 
-    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc =
+        new S3BlobStoreService(container, s3, mock(S3Presigner.class), DEFAULT_MAX_BYTES);
 
     // Per the bulkDelete policy this must not throw — the WARN summary is the contract.
     assertDoesNotThrow(() -> svc.deleteDirectory(BlobKeyPrefix.of("apps")));
     verify(s3, times(1)).deleteObjects(any(DeleteObjectsRequest.class));
+  }
+
+  @Test
+  void putBlob_exceedsMaxFileUploadSize_throwsAndDoesNotCallS3() {
+    S3Client s3 = mock(S3Client.class);
+    long maxBytes = 100L;
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class), maxBytes);
+    BlobKey blobKey = BlobKey.of("k");
+    ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);
+
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> svc.putBlob(blobKey, bais, maxBytes + 1, null, null, null));
+    assertTrue(
+        ex.getMessage().contains("File size can't be bigger than"), "got: " + ex.getMessage());
+    verify(s3, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
   }
 
   @Test
@@ -145,7 +175,8 @@ class S3BlobStoreServiceTest {
     when(s3.listObjectsV2(any(ListObjectsV2Request.class)))
         .thenReturn(page(List.of("apps/", "apps/a", "apps/b/", "apps/b/c"), false, null));
 
-    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc =
+        new S3BlobStoreService(container, s3, mock(S3Presigner.class), DEFAULT_MAX_BYTES);
 
     List<String> keys = new ArrayList<>();
     svc.listKeys(BlobKeyPrefix.of("apps")).forEach(k -> keys.add(k.value()));

@@ -29,40 +29,29 @@
  */
 package org.hisp.dhis.storage;
 
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
 
 /**
- * Runs the {@link BlobStoreServiceContractTest} suite against the in-memory {@link
- * TransientBlobStoreService} — the backend used by H2 and Postgres integration tests today.
+ * Enforces the {@link ConfigurationKey#MAX_FILE_UPLOAD_SIZE_BYTES} limit across {@link
+ * BlobStoreService} implementations so an oversized payload is rejected at the blob layer rather
+ * than only at controller boundaries.
  */
-@Tag("integration")
-class TransientBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
+final class BlobSizeLimit {
 
-  private TransientBlobStoreService store;
+  private BlobSizeLimit() {}
 
-  @BeforeAll
-  void start() {
-    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
-    lenient()
-        .when(config.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES))
-        .thenReturn(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue());
-    store = new TransientBlobStoreService(config);
-  }
-
-  @Override
-  protected BlobStoreService service() {
-    return store;
-  }
-
-  @Override
-  protected boolean supportsRequestSigning() {
-    return false;
+  /**
+   * Throws {@link IllegalArgumentException} when {@code contentLength} exceeds {@code
+   * maxFileUploadSizeBytes} — a precondition violation on the {@code contentLength} parameter of
+   * {@link BlobStoreService#putBlob}. Negative {@code contentLength} is left to the underlying
+   * backend to reject.
+   */
+  static void check(long contentLength, long maxFileUploadSizeBytes) {
+    if (contentLength > maxFileUploadSizeBytes) {
+      throw new IllegalArgumentException(
+          String.format(
+              "File size can't be bigger than %d bytes, current file size is %d bytes",
+              maxFileUploadSizeBytes, contentLength));
+    }
   }
 }

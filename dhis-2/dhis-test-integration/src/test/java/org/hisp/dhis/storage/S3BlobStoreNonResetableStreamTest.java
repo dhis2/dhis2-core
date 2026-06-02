@@ -42,6 +42,7 @@ import java.net.URI;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.test.junit.MinIOTestExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -112,7 +113,12 @@ class S3BlobStoreNonResetableStreamTest {
             .serviceConfiguration(s3Config)
             .build();
 
-    store = new S3BlobStoreService(new BlobContainerName("repro"), s3, presigner);
+    store =
+        new S3BlobStoreService(
+            new BlobContainerName("repro"),
+            s3,
+            presigner,
+            Long.parseLong(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue()));
     store.init();
     // Arm only after init() so the bucket-create call isn't the one we force-retry.
     failFirstPutObject.armed.set(true);

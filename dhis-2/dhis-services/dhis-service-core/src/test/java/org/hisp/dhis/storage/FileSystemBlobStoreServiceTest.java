@@ -78,16 +78,44 @@ class FileSystemBlobStoreServiceTest {
     assertEquals(payload.length, svc.contentLength(BlobKey.of("nested/file.txt")));
   }
 
+  @Test
+  void putBlob_exceedsMaxFileUploadSize_throws(@TempDir Path tempDir) {
+    long maxBytes = 100L;
+    FileSystemBlobStoreService svc = newServiceWithMaxBytes(tempDir, maxBytes);
+    svc.init();
+    ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);
+    BlobKey blobKey = BlobKey.of("too-big.txt");
+
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> svc.putBlob(blobKey, bais, maxBytes + 1, null, null, null));
+    assertTrue(
+        ex.getMessage().contains("File size can't be bigger than"), "got: " + ex.getMessage());
+  }
+
   private static FileSystemBlobStoreService newService(Path tempDir) {
+    return newServiceWithMaxBytes(
+        tempDir, Long.parseLong(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue()));
+  }
+
+  private static FileSystemBlobStoreService newServiceWithMaxBytes(Path tempDir, long maxBytes) {
     LocationManager lm = mock(LocationManager.class);
     when(lm.externalDirectorySet()).thenReturn(true);
     when(lm.getExternalDirectoryPath()).thenReturn(tempDir.toString());
-    return new FileSystemBlobStoreService(config(), lm);
+    return new FileSystemBlobStoreService(config(maxBytes), lm);
   }
 
   private static DhisConfigurationProvider config() {
+    return config(Long.parseLong(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES.getDefaultValue()));
+  }
+
+  private static DhisConfigurationProvider config(long maxBytes) {
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("dhis2");
+    lenient()
+        .when(config.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES))
+        .thenReturn(Long.toString(maxBytes));
     return config;
   }
 }
