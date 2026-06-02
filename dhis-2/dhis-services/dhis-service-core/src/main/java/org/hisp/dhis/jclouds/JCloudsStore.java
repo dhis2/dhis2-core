@@ -33,6 +33,8 @@ import static org.jclouds.Constants.PROPERTY_ENDPOINT;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import com.google.common.hash.HashCode;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -40,8 +42,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 import javax.annotation.CheckForNull;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;

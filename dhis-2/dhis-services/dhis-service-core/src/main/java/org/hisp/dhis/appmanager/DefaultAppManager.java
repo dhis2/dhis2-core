@@ -36,6 +36,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import java.io.*;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -57,7 +58,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;

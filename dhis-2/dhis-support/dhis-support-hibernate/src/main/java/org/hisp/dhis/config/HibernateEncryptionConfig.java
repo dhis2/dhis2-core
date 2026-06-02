@@ -30,7 +30,6 @@
 package org.hisp.dhis.config;
 
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -39,7 +38,6 @@ import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.jasypt.salt.RandomSaltGenerator;
 import org.jasypt.salt.StringFixedSaltGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,13 +51,19 @@ public class HibernateEncryptionConfig {
 
   public static final String AES_128_STRING_ENCRYPTOR = "aes128StringEncryptor";
 
-  @Autowired private DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-  private String password;
+  private final String password;
 
-  @PostConstruct
-  public void init() {
-    password =
+  /**
+   * Resolves the encryption password from configuration at construction time. Spring Framework 7.0
+   * may invoke {@code @Bean} factory methods before a {@code @Configuration} class's
+   * {@code @PostConstruct} callback, so the password must be initialised in the constructor (rather
+   * than in {@code @PostConstruct}) to guarantee it is available to the encryptor beans below.
+   */
+  public HibernateEncryptionConfig(DhisConfigurationProvider config) {
+    this.config = config;
+    this.password =
         (String) getConnectionProperty(ConfigurationKey.ENCRYPTION_PASSWORD, "J7GhAs287hsSQlKd9g5");
   }
 

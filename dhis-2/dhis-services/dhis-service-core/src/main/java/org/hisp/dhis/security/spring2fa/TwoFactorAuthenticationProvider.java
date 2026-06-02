@@ -78,11 +78,12 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       @Lazy UserService userService,
       @Lazy TwoFactorAuthService twoFactorAuthService,
       DhisConfigurationProvider configurationProvider) {
-
+    // Spring Security 7.0 removed the no-arg DaoAuthenticationProvider constructor and
+    // setUserDetailsService(); the UserDetailsService is now supplied via the constructor.
+    super(detailsService);
     this.userService = userService;
     this.twoFactorAuthService = twoFactorAuthService;
     this.configurationProvider = configurationProvider;
-    setUserDetailsService(detailsService);
     setPasswordEncoder(passwordEncoder);
   }
 

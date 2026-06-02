@@ -29,53 +29,47 @@
  */
 package org.hisp.dhis.sms.config;
 
+import java.util.function.BiConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
+ * Completion callbacks for asynchronous (batch) message sending. Returns {@link BiConsumer}s
+ * suitable for {@link java.util.concurrent.CompletableFuture#whenComplete} — Spring 7.0 removed
+ * {@code ListenableFutureCallback} in favour of {@code CompletableFuture}.
+ *
  * @author Zubair Asghar.
  */
 @Slf4j
 @Component("org.hisp.dhis.sms.config.SMSSendingCallback")
 public class MessageSendingCallback {
-  public ListenableFutureCallback<OutboundMessageResponse> getCallBack() {
-    return new ListenableFutureCallback<OutboundMessageResponse>() {
-      @Override
-      public void onFailure(Throwable ex) {
+  public BiConsumer<OutboundMessageResponse, Throwable> getCallBack() {
+    return (result, ex) -> {
+      if (ex != null) {
         log.error("Message sending failed", ex);
-      }
-
-      @Override
-      public void onSuccess(OutboundMessageResponse result) {
-        if (result.isOk()) {
-          log.info("Message sending successful: " + result.getDescription());
-        } else {
-          log.error("Message sending failed: " + result.getDescription());
-        }
+      } else if (result.isOk()) {
+        log.info("Message sending successful: " + result.getDescription());
+      } else {
+        log.error("Message sending failed: " + result.getDescription());
       }
     };
   }
 
-  public ListenableFutureCallback<OutboundMessageResponseSummary> getBatchCallBack() {
-    return new ListenableFutureCallback<OutboundMessageResponseSummary>() {
-      @Override
-      public void onFailure(Throwable ex) {
+  public BiConsumer<OutboundMessageResponseSummary, Throwable> getBatchCallBack() {
+    return (result, ex) -> {
+      if (ex != null) {
         log.error("Message sending failed", ex);
+        return;
       }
+      int successful = result.getSent();
+      int failed = result.getFailed();
 
-      @Override
-      public void onSuccess(OutboundMessageResponseSummary result) {
-        int successful = result.getSent();
-        int failed = result.getFailed();
-
-        log.info(
-            String.format(
-                "%s Message sending status: Successful: %d Failed: %d",
-                result.getChannel().name(), successful, failed));
-      }
+      log.info(
+          String.format(
+              "%s Message sending status: Successful: %d Failed: %d",
+              result.getChannel().name(), successful, failed));
     };
   }
 }

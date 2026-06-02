@@ -188,8 +188,8 @@ class GenericSmsGatewayTest {
         .filter(p -> p.isEncode() && p.isConfidential() && p.isHeader())
         .forEach(
             p -> {
-              assertTrue(httpHeaders.containsKey(p.getKey()));
-              assertEquals(" Basic ZGVjcnlwdGVkVGV4dA==", httpHeaders.get(p.getKey()).get(0));
+              assertTrue(httpHeaders.containsHeader(p.getKey()));
+              assertEquals(" Basic ZGVjcnlwdGVkVGV4dA==", httpHeaders.getFirst(p.getKey()));
             });
   }
 

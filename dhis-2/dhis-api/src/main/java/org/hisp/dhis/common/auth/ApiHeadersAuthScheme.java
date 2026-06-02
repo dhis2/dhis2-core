@@ -32,7 +32,6 @@ package org.hisp.dhis.common.auth;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.AbstractMap;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -45,6 +44,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
 
 @Getter
 @Setter
@@ -61,10 +61,10 @@ public class ApiHeadersAuthScheme implements AuthScheme {
   @Override
   public void apply(
       ApplicationContext applicationContext,
-      Map<String, List<String>> headers,
+      HttpHeaders headers,
       Map<String, List<String>> queryParams) {
     for (Map.Entry<String, String> header : this.headers.entrySet()) {
-      headers.computeIfAbsent(header.getKey(), v -> new LinkedList<>()).add(header.getValue());
+      headers.add(header.getKey(), header.getValue());
     }
   }
 
