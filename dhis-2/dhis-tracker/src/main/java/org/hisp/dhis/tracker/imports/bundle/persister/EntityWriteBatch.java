@@ -33,7 +33,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.Connection;
@@ -99,14 +98,20 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  *       the two tables, which is not deferrable in the live schema. Both tables use the shared
  *       {@code hibernate_sequence}. Relationship is INSERT-only -- the persister rejects UPDATE
  *       strategy upstream.
- *   <li>TEAVs continue to delegate to {@link EntityManager} until their Phase 6 turn.
+ *   <li>TrackedEntityAttributeValues are flushed via JDBC against {@code
+ *       trackedentityattributevalue} -- a multi-row INSERT, a single unnest UPDATE keyed on the
+ *       composite ({@code trackedentityid}, {@code trackedentityattributeid}) PK, and a single
+ *       unnest DELETE on the same key. Confidential attributes and the {@code encryptedvalue}
+ *       column were removed in DHIS2-21518, so the value is written as plain text in {@code value}.
  * </ul>
  *
- * <p>Top-level entities are flushed before TEAVs so that ids are set (and rows present in the DB or
- * in the Hibernate persistence context) before any TEAV that references them. Within top-level
- * entities the order (TE inserts, TE updates, Enrollment, TrackerEvent, SingleEvent, Relationship)
- * matches the persister call order enforced by {@code DefaultTrackerBundleService.commit()} and is
- * FK-safe.
+ * <p>All reads and writes in the import path are JDBC, so no Hibernate-managed entities of these
+ * types are loaded during commit and there is no L1 cache to reconcile after the writes.
+ *
+ * <p>Top-level entities are flushed before TEAVs so that ids are set and rows are present in the DB
+ * before any TEAV that references them. Within top-level entities the order (TE inserts, TE
+ * updates, Enrollment, TrackerEvent, SingleEvent, Relationship) matches the persister call order
+ * enforced by {@code DefaultTrackerBundleService.commit()} and is FK-safe.
  *
  * <p>Each {@link AbstractTrackerPersister#persist} call creates its own batch, so in practice only
  * one top-level entity type list is populated per batch (the persister's own type) alongside any
@@ -401,6 +406,40 @@ class EntityWriteBatch {
           + " unnest(?::bigint[]) as to_id"
           + " ) v where r.relationshipid = v.relationshipid";
 
+  // TrackedEntityAttributeValue has a composite PK (trackedentityid, trackedentityattributeid) and
+  // no sequence, so no id pre-allocation is needed. Confidential attributes (and the encrypted
+  // value column) were removed in DHIS2-21518, so the value is stored as plain text in `value`.
+  private static final String TEAV_INSERT_PREFIX =
+      "insert into trackedentityattributevalue ("
+          + "trackedentityid, trackedentityattributeid, created, lastupdated,"
+          + " value, updatedby) values ";
+  private static final String TEAV_INSERT_ROW = "(?, ?, ?, ?, ?, ?)";
+
+  // `created` is insert-only and deliberately excluded from the UPDATE column set.
+  private static final String TEAV_UPDATE_SQL =
+      "update trackedentityattributevalue teav set"
+          + " lastupdated = v.lastupdated,"
+          + " value = v.value,"
+          + " updatedby = v.updatedby"
+          + " from ( select"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::bigint[]) as trackedentityattributeid,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::text[]) as value,"
+          + " unnest(?::text[]) as updatedby"
+          + " ) v where teav.trackedentityid = v.trackedentityid"
+          + " and teav.trackedentityattributeid = v.trackedentityattributeid";
+
+  // Unnest DELETE on the composite key, mirroring the unnest UPDATE shape rather than the plan's
+  // IN (VALUES ...) form, to stay consistent with the other batch statements and avoid dynamic SQL.
+  private static final String TEAV_DELETE_SQL =
+      "delete from trackedentityattributevalue teav"
+          + " using ( select"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::bigint[]) as trackedentityattributeid"
+          + " ) v where teav.trackedentityid = v.trackedentityid"
+          + " and teav.trackedentityattributeid = v.trackedentityattributeid";
+
   private final ObjectMapper objectMapper;
 
   private final List<TrackedEntity> teInserts = new ArrayList<>();
@@ -524,43 +563,35 @@ class EntityWriteBatch {
   }
 
   /**
-   * Applies all staged writes. TrackedEntity and Enrollment writes go through JDBC on {@code conn}
-   * (including cascade INSERTs into {@code note} / {@code enrollment_notes}); TrackerEvent,
-   * SingleEvent, Relationship and TEAV writes still delegate to {@code entityManager}. The
-   * connection must be the one bound to the current Spring-managed transaction so that the JDBC
-   * statements and any subsequent Hibernate flush execute under the same commit.
+   * Applies all staged writes via JDBC on {@code conn} (including cascade INSERTs into {@code note}
+   * and the per-entity notes join tables). The connection must be the one bound to the current
+   * Spring-managed transaction so the JDBC statements execute under the same commit. All reads and
+   * writes in the import path are JDBC, so no Hibernate-managed entities of these types are loaded
+   * during commit and there is no L1 cache to reconcile.
    */
-  void flush(EntityManager entityManager, Connection conn) throws SQLException {
+  void flush(Connection conn) throws SQLException {
     if (isEmpty()) {
       return;
     }
 
     insertTrackedEntities(conn);
-    updateTrackedEntities(entityManager, conn);
+    updateTrackedEntities(conn);
     insertEnrollments(conn);
-    updateEnrollments(entityManager, conn);
+    updateEnrollments(conn);
     insertEnrollmentNotes(conn);
     insertTrackerEvents(conn);
     updateTrackerEvents(conn);
     insertTrackerEventNotes(conn);
-    refreshUpdatedTrackerEvents(entityManager);
     insertSingleEvents(conn);
     updateSingleEvents(conn);
     insertSingleEventNotes(conn);
-    refreshUpdatedSingleEvents(entityManager);
     insertRelationships(conn);
     insertRelationshipItems(conn);
     updateRelationshipFromTo(conn);
 
-    for (TrackedEntityAttributeValue v : teavInserts) {
-      entityManager.persist(v);
-    }
-    for (TrackedEntityAttributeValue v : teavUpdates) {
-      entityManager.merge(v);
-    }
-    for (TrackedEntityAttributeValue v : teavDeletes) {
-      entityManager.remove(entityManager.contains(v) ? v : entityManager.merge(v));
-    }
+    insertTeavs(conn);
+    updateTeavs(conn);
+    deleteTeavs(conn);
 
     teInserts.clear();
     teUpdates.clear();
@@ -576,8 +607,7 @@ class EntityWriteBatch {
     teavDeletes.clear();
   }
 
-  private void updateTrackedEntities(EntityManager entityManager, Connection conn)
-      throws SQLException {
+  private void updateTrackedEntities(Connection conn) throws SQLException {
     if (teUpdates.isEmpty()) {
       return;
     }
@@ -623,17 +653,6 @@ class EntityWriteBatch {
         ps.setArray(9, conn.createArrayOf("text", lastUpdatedByUserInfo));
         ps.setArray(10, conn.createArrayOf("text", geometry));
         ps.executeUpdate();
-      }
-    }
-    // The TrackedEntity entities passed in here are detached copies from the preheat. The
-    // Hibernate persistence context separately holds the entities loaded by the preheat's queries
-    // (M_managed), and they still carry their pre-update state. Detach them so any subsequent
-    // JPQL read in this session reloads the fresh DB row instead of returning the stale L1
-    // instance.
-    for (TrackedEntity te : teUpdates) {
-      TrackedEntity managed = entityManager.find(TrackedEntity.class, te.getId());
-      if (managed != null) {
-        entityManager.detach(managed);
       }
     }
   }
@@ -751,7 +770,7 @@ class EntityWriteBatch {
     return p;
   }
 
-  private void updateEnrollments(EntityManager entityManager, Connection conn) throws SQLException {
+  private void updateEnrollments(Connection conn) throws SQLException {
     if (enrollmentUpdates.isEmpty()) {
       return;
     }
@@ -815,15 +834,6 @@ class EntityWriteBatch {
         ps.setArray(15, conn.createArrayOf("boolean", followup));
         ps.setArray(16, conn.createArrayOf("text", geometry));
         ps.executeUpdate();
-      }
-    }
-    // Same L1 staleness fix as updateTrackedEntities -- the JDBC UPDATE bypasses Hibernate, so the
-    // preheat-loaded managed Enrollment in the persistence context still carries the pre-update
-    // state. Detach it so any subsequent JPQL read reloads the fresh DB row.
-    for (Enrollment e : enrollmentUpdates) {
-      Enrollment managed = entityManager.find(Enrollment.class, e.getId());
-      if (managed != null) {
-        entityManager.detach(managed);
       }
     }
   }
@@ -960,23 +970,6 @@ class EntityWriteBatch {
         ps.setArray(16, conn.createArrayOf("text", eventDataValues));
         ps.setArray(17, conn.createArrayOf("text", geometry));
         ps.executeUpdate();
-      }
-    }
-    // L1 staleness is fixed by refreshUpdatedTrackerEvents() called from flush() AFTER
-    // insertTrackerEventNotes so the refreshed entity sees the just-written notes join rows.
-  }
-
-  /**
-   * Reload the L1-cached TrackerEvent entities affected by {@link #updateTrackerEvents} from DB.
-   * Must run AFTER {@link #insertTrackerEventNotes} so the refreshed entity's eager-fetched notes
-   * collection picks up the newly-appended notes. Mirrors the side effect of the pre-migration
-   * {@code em.merge(detachedDto)} path that updated the L1-managed instance in place.
-   */
-  private void refreshUpdatedTrackerEvents(EntityManager entityManager) {
-    for (TrackerEvent e : trackerEventUpdates) {
-      TrackerEvent managed = entityManager.find(TrackerEvent.class, e.getId());
-      if (managed != null) {
-        entityManager.refresh(managed);
       }
     }
   }
@@ -1279,17 +1272,6 @@ class EntityWriteBatch {
         ps.executeUpdate();
       }
     }
-    // L1 staleness is fixed by refreshUpdatedSingleEvents() called from flush() AFTER
-    // insertSingleEventNotes -- same reasoning as refreshUpdatedTrackerEvents.
-  }
-
-  private void refreshUpdatedSingleEvents(EntityManager entityManager) {
-    for (SingleEvent e : singleEventUpdates) {
-      SingleEvent managed = entityManager.find(SingleEvent.class, e.getId());
-      if (managed != null) {
-        entityManager.refresh(managed);
-      }
-    }
   }
 
   /** Parallel of {@link EnrollmentNoteToInsert} for the {@code singleevent_notes} join table. */
@@ -1518,6 +1500,89 @@ class EntityWriteBatch {
     }
   }
 
+  private void insertTeavs(Connection conn) throws SQLException {
+    if (teavInserts.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < teavInserts.size(); from += INSERT_BATCH_SIZE) {
+      int to = Math.min(from + INSERT_BATCH_SIZE, teavInserts.size());
+      List<TrackedEntityAttributeValue> chunk = teavInserts.subList(from, to);
+      String sql = buildMultiRowInsertSql(TEAV_INSERT_PREFIX, TEAV_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (TrackedEntityAttributeValue v : chunk) {
+          ps.setLong(p++, v.getTrackedEntity().getId());
+          ps.setLong(p++, v.getAttribute().getId());
+          ps.setTimestamp(p++, toTimestamp(v.getCreated()));
+          ps.setTimestamp(p++, toTimestamp(v.getLastUpdated()));
+          setNullableString(ps, p++, v.getValue());
+          setNullableString(ps, p++, v.getUpdatedBy());
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private void updateTeavs(Connection conn) throws SQLException {
+    if (teavUpdates.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < teavUpdates.size(); from += UPDATE_BATCH_SIZE) {
+      int to = Math.min(from + UPDATE_BATCH_SIZE, teavUpdates.size());
+      List<TrackedEntityAttributeValue> chunk = teavUpdates.subList(from, to);
+      int n = chunk.size();
+
+      Long[] trackedEntityIds = new Long[n];
+      Long[] attributeIds = new Long[n];
+      Timestamp[] lastUpdated = new Timestamp[n];
+      String[] value = new String[n];
+      String[] updatedBy = new String[n];
+
+      for (int i = 0; i < n; i++) {
+        TrackedEntityAttributeValue v = chunk.get(i);
+        trackedEntityIds[i] = v.getTrackedEntity().getId();
+        attributeIds[i] = v.getAttribute().getId();
+        lastUpdated[i] = toTimestamp(v.getLastUpdated());
+        value[i] = v.getValue();
+        updatedBy[i] = v.getUpdatedBy();
+      }
+
+      try (PreparedStatement ps = conn.prepareStatement(TEAV_UPDATE_SQL)) {
+        ps.setArray(1, conn.createArrayOf("bigint", trackedEntityIds));
+        ps.setArray(2, conn.createArrayOf("bigint", attributeIds));
+        ps.setArray(3, conn.createArrayOf("timestamptz", lastUpdated));
+        ps.setArray(4, conn.createArrayOf("text", value));
+        ps.setArray(5, conn.createArrayOf("text", updatedBy));
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private void deleteTeavs(Connection conn) throws SQLException {
+    if (teavDeletes.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < teavDeletes.size(); from += UPDATE_BATCH_SIZE) {
+      int to = Math.min(from + UPDATE_BATCH_SIZE, teavDeletes.size());
+      List<TrackedEntityAttributeValue> chunk = teavDeletes.subList(from, to);
+      int n = chunk.size();
+
+      Long[] trackedEntityIds = new Long[n];
+      Long[] attributeIds = new Long[n];
+      for (int i = 0; i < n; i++) {
+        TrackedEntityAttributeValue v = chunk.get(i);
+        trackedEntityIds[i] = v.getTrackedEntity().getId();
+        attributeIds[i] = v.getAttribute().getId();
+      }
+
+      try (PreparedStatement ps = conn.prepareStatement(TEAV_DELETE_SQL)) {
+        ps.setArray(1, conn.createArrayOf("bigint", trackedEntityIds));
+        ps.setArray(2, conn.createArrayOf("bigint", attributeIds));
+        ps.executeUpdate();
+      }
+    }
+  }
+
   /**
    * Fetches {@code count} ids from {@code sequenceName} in a single round-trip. The sequence name
    * is interpolated into the SQL (not a bind parameter) because PostgreSQL's {@code nextval} takes
@@ -1568,6 +1633,15 @@ class EntityWriteBatch {
       ps.setTimestamp(index, new Timestamp(date.getTime()));
     } else {
       ps.setNull(index, Types.TIMESTAMP);
+    }
+  }
+
+  private static void setNullableString(PreparedStatement ps, int index, String value)
+      throws SQLException {
+    if (value != null) {
+      ps.setString(index, value);
+    } else {
+      ps.setNull(index, Types.VARCHAR);
     }
   }
 
