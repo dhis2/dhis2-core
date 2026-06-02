@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Set;
 import javax.sql.DataSource;
@@ -50,8 +51,14 @@ import org.springframework.stereotype.Component;
 public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.tracker.model.Relationship> {
 
-  public RelationshipPersister(DataSource dataSource, FileResourceStore fileResourceStore) {
-    super(dataSource, fileResourceStore);
+  public RelationshipPersister(
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
+  }
+
+  @Override
+  protected String sequenceName() {
+    return null;
   }
 
   @Override

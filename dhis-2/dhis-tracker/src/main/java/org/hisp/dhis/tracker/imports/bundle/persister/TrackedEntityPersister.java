@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -51,8 +52,14 @@ public class TrackedEntityPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
 
-  public TrackedEntityPersister(DataSource dataSource, FileResourceStore fileResourceStore) {
-    super(dataSource, fileResourceStore);
+  public TrackedEntityPersister(
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
+  }
+
+  @Override
+  protected String sequenceName() {
+    return "trackedentityinstance_sequence";
   }
 
   @Override
