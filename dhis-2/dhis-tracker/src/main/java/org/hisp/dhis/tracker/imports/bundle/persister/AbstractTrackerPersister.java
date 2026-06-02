@@ -34,9 +34,12 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -108,6 +111,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   protected final FileResourceStore fileResourceStore;
 
+  protected final ObjectMapper objectMapper;
+
   /**
    * Template method that can be used by classes extending this class to execute the persistence
    * flow of Tracker entities
@@ -124,7 +129,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     List<EntityNotifications> notifications = new ArrayList<>();
     ChangeLogAccumulator changeLogs = new ChangeLogAccumulator();
-    EntityWriteBatch batch = new EntityWriteBatch();
+    EntityWriteBatch batch = new EntityWriteBatch(objectMapper);
 
     //
     // Extract the entities to persist from the Bundle
@@ -133,6 +138,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     Connection conn = DataSourceUtils.getConnection(dataSource);
     try {
+      // Pre-allocate primary keys in a single round-trip for entity types that opt in.
+      // The cursor advances only on isNew branches inside the loop below.
+      long[] preAllocatedIds = preAllocateIds(conn, bundle, dtos);
+      int preAllocatedIdsCursor = 0;
+
       for (T trackerDto : dtos) {
 
         Entity objectReport = new Entity(getType(), trackerDto.getUID());
@@ -150,6 +160,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           // Convert the TrackerDto into an Hibernate-managed entity
           //
           V convertedDto = convert(bundle, trackerDto);
+
+          //
+          // Assign the pre-allocated id (if any) before staging so the flush path can emit it
+          // unchanged, and so any TEAV/changelog code that reads convertedDto.getId() sees the
+          // final value.
+          //
+          if (preAllocatedIds != null && isNew(bundle, trackerDto)) {
+            assignId(convertedDto, preAllocatedIds[preAllocatedIdsCursor++]);
+          }
 
           //
           // Handle ownership records, if required
@@ -215,7 +234,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           if (FlushMode.OBJECT == bundle.getFlushMode()) {
             // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
             // (trackedentityid, eventid) exist before changelog rows reference them.
-            batch.flush(entityManager);
+            batch.flush(entityManager, conn);
             entityManager.flush();
             changeLogs.flushAll(conn);
           }
@@ -253,7 +272,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       if (FlushMode.AUTO == bundle.getFlushMode()) {
         // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
         // (trackedentityid, eventid) exist before changelog rows reference them.
-        batch.flush(entityManager);
+        batch.flush(entityManager, conn);
         entityManager.flush();
         changeLogs.flushAll(conn);
       }
@@ -263,6 +282,35 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       DataSourceUtils.releaseConnection(conn, dataSource);
     }
     return new PersistResult(typeReport, notifications);
+  }
+
+  private long[] preAllocateIds(Connection conn, TrackerBundle bundle, List<T> dtos)
+      throws SQLException {
+    String sequenceName = sequenceName();
+    if (sequenceName == null) {
+      return null;
+    }
+    int createCount = 0;
+    for (T dto : dtos) {
+      if (isNew(bundle, dto)) {
+        createCount++;
+      }
+    }
+    if (createCount == 0) {
+      return null;
+    }
+    return allocateIds(conn, sequenceName, createCount);
+  }
+
+  private void assignId(V convertedDto, long id) {
+    if (convertedDto instanceof TrackedEntity te) {
+      te.setId(id);
+    } else {
+      throw new IllegalStateException(
+          "Pre-allocated id assignment not implemented for "
+              + convertedDto.getClass().getName()
+              + " -- sequenceName() returned non-null but assignId does not handle this type.");
+    }
   }
 
   private void stageInsert(V convertedDto, EntityWriteBatch batch) {
@@ -397,6 +445,40 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   @SuppressWarnings("unchecked")
   protected abstract List<T> getByType(TrackerBundle bundle);
 
+  /**
+   * Returns the PostgreSQL sequence used to allocate primary keys for this entity type, or {@code
+   * null} if id allocation should be left to Hibernate. When non-null, {@link #persist} pre-fetches
+   * one id per CREATE entity in a single round-trip and assigns the id before staging so the flush
+   * path can emit a multi-row INSERT.
+   */
+  protected abstract String sequenceName();
+
+  /**
+   * Fetches {@code count} ids from {@code sequenceName} in a single round-trip. The sequence name
+   * is interpolated into the SQL (not a bind parameter) because PostgreSQL's {@code nextval} takes
+   * a {@code regclass}, and the value comes from {@link #sequenceName()} — controlled by us, not
+   * user input.
+   */
+  private static long[] allocateIds(Connection conn, String sequenceName, int count)
+      throws SQLException {
+    long[] ids = new long[count];
+    String sql = "select nextval('" + sequenceName + "') from generate_series(1, ?)";
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setInt(1, count);
+      try (ResultSet rs = ps.executeQuery()) {
+        int i = 0;
+        while (rs.next()) {
+          ids[i++] = rs.getLong(1);
+        }
+        if (i != count) {
+          throw new SQLException(
+              "Allocated " + i + " ids from " + sequenceName + ", expected " + count);
+        }
+      }
+    }
+    return ids;
+  }
+
   // // // // // // // //
   // // // // // // // //
   // SHARED METHODS //
@@ -447,12 +529,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     // already attached to the session, preventing a duplicate em.persist that would throw
     // EntityExistsException. The batch overlay catches the within-persister case (e.g. two
     // enrollments under the same TE both carrying the same attribute) where the second occurrence
-    // would otherwise produce a fresh instance with the same composite key. A transient TE
-    // (id == 0) has no DB rows yet -- the insert is still staged in the batch -- so binding it as
-    // a query parameter would throw TransientObjectException; skip the JPQL in that case and rely
-    // on the batch overlay alone.
+    // would otherwise produce a fresh instance with the same composite key. A TE staged for
+    // insert in this batch has no DB row yet -- whether or not its id is set (Phase 4a pre-
+    // allocates the id from the sequence) -- so the JPQL would always return empty and the lookup
+    // can be skipped.
     Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById =
-        trackedEntity.getId() == 0
+        batch.isStagedAsInsert(trackedEntity)
             ? new HashMap<>()
             : entityManager
                 .createQuery(

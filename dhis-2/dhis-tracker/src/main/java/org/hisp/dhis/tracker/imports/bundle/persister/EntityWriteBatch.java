@@ -29,10 +29,19 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -45,19 +54,49 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  * point. Mirrors {@link ChangeLogAccumulator} and shares the same mark/rollback contract for
  * per-entity error isolation in non-atomic mode.
  *
- * <p>Current scope: inserts and updates for TrackedEntity, Enrollment, TrackerEvent, SingleEvent;
- * inserts only for Relationship (updates are rejected upstream by {@link
- * AbstractTrackerPersister}); inserts, updates, and deletes for TEAVs. The flush implementation
- * delegates back to {@link EntityManager} so that Hibernate continues to drive persistence while
- * the staging shape is in place. Phase 6 replaces {@link #flush(EntityManager)} with a
- * connection-based implementation that emits multi-row INSERT / unnest UPDATE / tuple DELETE
- * statements.
+ * <p>Scope:
+ *
+ * <ul>
+ *   <li>TrackedEntity inserts are flushed via a multi-row JDBC INSERT against {@code trackedentity}
+ *       -- ids are pre-allocated by {@link AbstractTrackerPersister} from {@code
+ *       trackedentityinstance_sequence} in one round-trip.
+ *   <li>TrackedEntity updates and all other entity types (Enrollment, TrackerEvent, SingleEvent,
+ *       Relationship) still delegate to {@link EntityManager}; their Phase 6 JDBC replacements
+ *       follow.
+ *   <li>TEAVs continue to delegate to {@link EntityManager} until their Phase 6 turn.
+ * </ul>
+ *
+ * <p>Top-level entities are flushed before TEAVs so that ids are set (and rows present in the DB or
+ * in the Hibernate persistence context) before any TEAV that references them. Within top-level
+ * entities the order (TE inserts, TE updates, Enrollment, TrackerEvent, SingleEvent, Relationship)
+ * matches the persister call order enforced by {@code DefaultTrackerBundleService.commit()} and is
+ * FK-safe.
  *
  * <p>Each {@link AbstractTrackerPersister#persist} call creates its own batch, so in practice only
  * one top-level entity type list is populated per batch (the persister's own type) alongside any
  * TEAVs staged by its attribute-handling code.
  */
 class EntityWriteBatch {
+
+  /** Cap on rows per multi-row INSERT statement, to keep query text manageable. */
+  private static final int INSERT_BATCH_SIZE = 128;
+
+  private static final int TRACKED_ENTITY_SRID = 4326;
+
+  private static final String TRACKED_ENTITY_INSERT_PREFIX =
+      "insert into trackedentity ("
+          + "trackedentityid, uid, created, lastupdated,"
+          + " createdatclient, lastupdatedatclient,"
+          + " inactive, deleted, lastsynchronized, potentialduplicate,"
+          + " organisationunitid, trackedentitytypeid,"
+          + " geometry, createdbyuserinfo, lastupdatedbyuserinfo) values ";
+
+  private static final String TRACKED_ENTITY_INSERT_ROW =
+      "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, "
+          + TRACKED_ENTITY_SRID
+          + "), ?::jsonb, ?::jsonb)";
+
+  private final ObjectMapper objectMapper;
 
   private final List<TrackedEntity> teInserts = new ArrayList<>();
   private final List<TrackedEntity> teUpdates = new ArrayList<>();
@@ -76,6 +115,10 @@ class EntityWriteBatch {
   private final List<TrackedEntityAttributeValue> teavInserts = new ArrayList<>();
   private final List<TrackedEntityAttributeValue> teavUpdates = new ArrayList<>();
   private final List<TrackedEntityAttributeValue> teavDeletes = new ArrayList<>();
+
+  EntityWriteBatch(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   void stageInsert(TrackedEntity trackedEntity) {
     teInserts.add(trackedEntity);
@@ -141,6 +184,15 @@ class EntityWriteBatch {
         .filter(v -> v.getTrackedEntity() == trackedEntity);
   }
 
+  /**
+   * Whether the given TrackedEntity is being inserted in this batch (no DB row yet). Used by the
+   * attribute-handling code to skip the "load existing TEAVs" JPQL query, which would always return
+   * empty for a fresh insert.
+   */
+  boolean isStagedAsInsert(TrackedEntity trackedEntity) {
+    return teInserts.contains(trackedEntity);
+  }
+
   Mark mark() {
     return new Mark(
         new Mark.EntityCounts(teInserts.size(), teUpdates.size()),
@@ -167,21 +219,17 @@ class EntityWriteBatch {
   }
 
   /**
-   * Applies all staged writes through the provided {@link EntityManager}. Temporary delegating
-   * implementation; Phase 6 swaps this for JDBC multi-row statements that take a {@link
-   * java.sql.Connection}.
-   *
-   * <p>Top-level entities are flushed before TEAVs so that Hibernate assigns ids (and inserts the
-   * rows, when {@code em.flush()} runs) before any TEAV that references them. The top-level order
-   * (TE, Enrollment, TrackerEvent, SingleEvent, Relationship) matches the persister call order
-   * enforced by {@code DefaultTrackerBundleService.commit()} and is FK-safe.
+   * Applies all staged writes. TrackedEntity inserts go through a JDBC multi-row INSERT on {@code
+   * conn}; everything else still delegates to {@code entityManager}. The connection must be the one
+   * bound to the current Spring-managed transaction so that the JDBC INSERT and any subsequent
+   * Hibernate flush execute under the same commit.
    */
-  void flush(EntityManager entityManager) {
+  void flush(EntityManager entityManager, Connection conn) throws SQLException {
     if (isEmpty()) {
       return;
     }
 
-    persistAll(entityManager, teInserts);
+    insertTrackedEntities(conn);
     mergeAll(entityManager, teUpdates);
     persistAll(entityManager, enrollmentInserts);
     mergeAll(entityManager, enrollmentUpdates);
@@ -213,6 +261,95 @@ class EntityWriteBatch {
     teavInserts.clear();
     teavUpdates.clear();
     teavDeletes.clear();
+  }
+
+  private void insertTrackedEntities(Connection conn) throws SQLException {
+    if (teInserts.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < teInserts.size(); from += INSERT_BATCH_SIZE) {
+      int to = Math.min(from + INSERT_BATCH_SIZE, teInserts.size());
+      List<TrackedEntity> chunk = teInserts.subList(from, to);
+      String sql =
+          buildMultiRowInsertSql(
+              TRACKED_ENTITY_INSERT_PREFIX, TRACKED_ENTITY_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (TrackedEntity te : chunk) {
+          p = bindTrackedEntityRow(ps, p, te);
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private int bindTrackedEntityRow(PreparedStatement ps, int p, TrackedEntity te)
+      throws SQLException {
+    if (te.getId() == 0) {
+      throw new SQLException(
+          "TrackedEntity "
+              + te.getUid()
+              + " has no pre-allocated id; AbstractTrackerPersister"
+              + " must pre-allocate ids when sequenceName() is non-null.");
+    }
+    ps.setLong(p++, te.getId());
+    ps.setString(p++, te.getUid());
+    ps.setTimestamp(p++, toTimestamp(te.getCreated()));
+    ps.setTimestamp(p++, toTimestamp(te.getLastUpdated()));
+    setNullableTimestamp(ps, p++, te.getCreatedAtClient());
+    setNullableTimestamp(ps, p++, te.getLastUpdatedAtClient());
+    ps.setBoolean(p++, te.isInactive());
+    ps.setBoolean(p++, te.isDeleted());
+    ps.setTimestamp(p++, toTimestamp(te.getLastSynchronized()));
+    ps.setBoolean(p++, te.isPotentialDuplicate());
+    ps.setLong(p++, te.getOrganisationUnit().getId());
+    ps.setLong(p++, te.getTrackedEntityType().getId());
+    if (te.getGeometry() != null) {
+      ps.setString(p++, te.getGeometry().toText());
+    } else {
+      ps.setNull(p++, Types.VARCHAR);
+    }
+    ps.setString(p++, toJson(te.getCreatedByUserInfo()));
+    ps.setString(p++, toJson(te.getLastUpdatedByUserInfo()));
+    return p;
+  }
+
+  private static String buildMultiRowInsertSql(
+      String prefix, String rowPlaceholders, int rowCount) {
+    StringBuilder sb =
+        new StringBuilder(prefix.length() + rowPlaceholders.length() * rowCount + 16);
+    sb.append(prefix);
+    for (int i = 0; i < rowCount; i++) {
+      if (i > 0) {
+        sb.append(", ");
+      }
+      sb.append(rowPlaceholders);
+    }
+    return sb.toString();
+  }
+
+  private static Timestamp toTimestamp(Date date) {
+    return date != null ? new Timestamp(date.getTime()) : null;
+  }
+
+  private static void setNullableTimestamp(PreparedStatement ps, int index, Date date)
+      throws SQLException {
+    if (date != null) {
+      ps.setTimestamp(index, new Timestamp(date.getTime()));
+    } else {
+      ps.setNull(index, Types.TIMESTAMP);
+    }
+  }
+
+  private String toJson(UserInfoSnapshot info) throws SQLException {
+    if (info == null) {
+      return null;
+    }
+    try {
+      return objectMapper.writeValueAsString(info);
+    } catch (JsonProcessingException e) {
+      throw new SQLException("Failed to serialize UserInfoSnapshot to JSON", e);
+    }
   }
 
   private boolean isEmpty() {
