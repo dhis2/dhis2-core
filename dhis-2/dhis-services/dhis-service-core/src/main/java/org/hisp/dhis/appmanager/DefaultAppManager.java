@@ -86,7 +86,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -106,7 +105,7 @@ public class DefaultAppManager implements AppManager {
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
   private final AppHubService appHubService;
-  private final AppStorageService jCloudsAppStorageService;
+  private final AppStorageService blobStoreAppStorageService;
   private final DatastoreService datastoreService;
   private final BundledAppManager bundledAppManager;
   private final I18nManager i18nManager;
@@ -120,8 +119,7 @@ public class DefaultAppManager implements AppManager {
   public DefaultAppManager(
       DhisConfigurationProvider dhisConfigurationProvider,
       AppHubService appHubService,
-      @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
-          AppStorageService jCloudsAppStorageService,
+      AppStorageService blobStoreAppStorageService,
       DatastoreService datastoreService,
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,
@@ -129,7 +127,7 @@ public class DefaultAppManager implements AppManager {
       BundledAppManager bundledAppManager) {
 
     checkNotNull(dhisConfigurationProvider);
-    checkNotNull(jCloudsAppStorageService);
+    checkNotNull(blobStoreAppStorageService);
     checkNotNull(datastoreService);
     checkNotNull(cacheBuilderProvider);
     checkNotNull(i18nManager);
@@ -138,7 +136,7 @@ public class DefaultAppManager implements AppManager {
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
-    this.jCloudsAppStorageService = jCloudsAppStorageService;
+    this.blobStoreAppStorageService = blobStoreAppStorageService;
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
     this.i18nManager = i18nManager;
@@ -154,7 +152,7 @@ public class DefaultAppManager implements AppManager {
   @PostConstruct
   public void reloadApps() {
     Map<String, Pair<App, BundledAppInfo>> installedApps =
-        jCloudsAppStorageService.discoverInstalledApps();
+        blobStoreAppStorageService.discoverInstalledApps();
 
     installBundledApps(installedApps);
     // Invalidate the previous app cache
@@ -441,7 +439,7 @@ public class DefaultAppManager implements AppManager {
 
   @Nonnull
   private App installAppZipFile(@Nonnull File file, @CheckForNull BundledAppInfo bundledAppInfo) {
-    App app = jCloudsAppStorageService.installApp(file, appCache, bundledAppInfo);
+    App app = blobStoreAppStorageService.installApp(file, appCache, bundledAppInfo);
     log.debug(
         String.format(
             "Installed App with AppHub ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
@@ -526,7 +524,7 @@ public class DefaultAppManager implements AppManager {
     App appFromCache = appOpt.get();
     appCache.put(app.getKey(), appFromCache);
 
-    jCloudsAppStorageService.deleteApp(app);
+    blobStoreAppStorageService.deleteApp(app);
     reloadApps();
 
     // If a bundled version exists it will replace the deleted override.
@@ -565,7 +563,7 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public ResourceResult getRawAppResource(App app, String pageName) throws IOException {
-    return jCloudsAppStorageService.getAppResource(app, pageName);
+    return blobStoreAppStorageService.getAppResource(app, pageName);
   }
 
   @Override
@@ -632,10 +630,9 @@ public class DefaultAppManager implements AppManager {
     try {
       if (resource.isFile()) {
         return (int) resource.contentLength();
-      } else {
-        URLConnection urlConnection = resource.getURL().openConnection();
-        return urlConnection.getContentLength();
       }
+      URLConnection urlConnection = resource.getURL().openConnection();
+      return urlConnection.getContentLength();
     } catch (IOException e) {
       log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
       return -1;

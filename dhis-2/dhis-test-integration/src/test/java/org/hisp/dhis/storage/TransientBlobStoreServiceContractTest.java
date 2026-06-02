@@ -27,41 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
+package org.hisp.dhis.storage;
 
-import java.util.Arrays;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
-/** The set of JClouds blob-store providers supported by DHIS2. */
-public enum FileStoreProvider {
-  FILESYSTEM("filesystem"),
-  AWS_S3("aws-s3"),
-  S3("s3"),
-  TRANSIENT("transient");
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 
-  private final String key;
+/**
+ * Runs the {@link BlobStoreServiceContractTest} suite against the in-memory {@link
+ * TransientBlobStoreService} — the backend used by H2 and Postgres integration tests today.
+ */
+@Tag("integration")
+class TransientBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
 
-  FileStoreProvider(String key) {
-    this.key = key;
+  private TransientBlobStoreService store;
+
+  @BeforeAll
+  void start() {
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
+    store = new TransientBlobStoreService(config);
   }
 
-  /** The configuration key used in {@code dhis.conf}. */
-  public String key() {
-    return key;
+  @Override
+  protected BlobStoreService service() {
+    return store;
   }
 
-  /**
-   * Returns the provider matching {@code key}, or throws {@link IllegalArgumentException} if the
-   * key is not recognised.
-   */
-  public static FileStoreProvider of(String key) {
-    return Arrays.stream(values())
-        .filter(p -> p.key.equals(key))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "Unsupported file store provider '"
-                        + key
-                        + "'. Supported values are: filesystem, aws-s3, s3, transient."));
+  @Override
+  protected boolean supportsRequestSigning() {
+    return false;
   }
 }
