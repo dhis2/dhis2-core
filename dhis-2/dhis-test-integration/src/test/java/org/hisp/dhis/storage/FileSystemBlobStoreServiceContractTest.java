@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
+package org.hisp.dhis.storage;
 
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -40,53 +40,39 @@ import java.util.Comparator;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.storage.BlobStoreService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 
 /**
- * Runs the {@link BlobStoreServiceContractTest} suite against the JClouds {@code filesystem}
- * provider, rooted at a temporary directory created in {@code @BeforeAll}.
+ * Runs the {@link BlobStoreServiceContractTest} suite against {@link FileSystemBlobStoreService},
+ * rooted at a temporary directory created in {@code @BeforeAll}.
  *
  * <p>Tagged {@code integration}: writes real files to disk on every test method.
- *
- * <p>The temp dir is created manually rather than via JUnit's {@code @TempDir} because non-static
- * {@code @TempDir} fields are injected too late to be visible inside {@code @BeforeAll}, which left
- * {@code tempDir} null at startup and corrupted Mockito's stubbing state for downstream tests in
- * the same suite.
  */
 @Tag("integration")
-class FilesystemBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
+class FileSystemBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
 
   private Path tempDir;
-  private JCloudsStore store;
+  private FileSystemBlobStoreService store;
 
   @BeforeAll
   void start() throws IOException {
     tempDir = Files.createTempDirectory("dhis-fs-contract-");
 
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
-    lenient()
-        .when(config.getProperty(ConfigurationKey.FILESTORE_PROVIDER))
-        .thenReturn("filesystem");
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_LOCATION)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_IDENTITY)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_SECRET)).thenReturn("");
 
     LocationManager locationManager = mock(LocationManager.class);
     when(locationManager.externalDirectorySet()).thenReturn(true);
     when(locationManager.getExternalDirectoryPath()).thenReturn(tempDir.toString());
 
-    store = new JCloudsStore(config, locationManager);
+    store = new FileSystemBlobStoreService(config, locationManager);
     store.init();
   }
 
   @AfterAll
   void stop() throws IOException {
-    if (store != null) store.cleanUp();
     if (tempDir != null && Files.exists(tempDir)) {
       try (var paths = Files.walk(tempDir)) {
         paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(java.io.File::delete);
@@ -102,13 +88,5 @@ class FilesystemBlobStoreServiceContractTest extends BlobStoreServiceContractTes
   @Override
   protected boolean supportsRequestSigning() {
     return false;
-  }
-
-  @Override
-  protected boolean listKeysIncludesDirectoryMarkers() {
-    // TODO(DHIS2-20648) jclouds-filesystem returns synthetic entries for parent directories
-    // alongside real blobs. Drop this override once the replacement implementation
-    // filters these out so listKeys returns blob keys only.
-    return true;
   }
 }
