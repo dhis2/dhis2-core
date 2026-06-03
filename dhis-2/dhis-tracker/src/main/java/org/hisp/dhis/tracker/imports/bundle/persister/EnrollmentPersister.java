@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -62,9 +63,15 @@ public class EnrollmentPersister
       ReservedValueService reservedValueService,
       DataSource dataSource,
       FileResourceStore fileResourceStore,
+      ObjectMapper objectMapper,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService, dataSource, fileResourceStore);
+    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
+  }
+
+  @Override
+  protected String sequenceName() {
+    return null;
   }
 
   @Override
