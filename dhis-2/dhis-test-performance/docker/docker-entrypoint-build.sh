@@ -145,6 +145,15 @@ build_init() {
 		echo "Restoring database dump..."
 		gunzip -c /tmp/dump.sql.gz | docker_process_sql -d "$POSTGRES_DB"
 		echo "Database dump restored successfully"
+
+		# Interim fix: advance hibernate_sequence past the dump's seeded ids so write
+		# operations don't collide with existing primary keys. Forward-only and harmless on
+		# dumps that don't need it. See fix-hibernate-sequence.sql. Remove once the dump is fixed.
+		if [ -f /tmp/fix-hibernate-sequence.sql ]; then
+			echo "Applying hibernate_sequence fix..."
+			docker_process_sql -d "$POSTGRES_DB" -f /tmp/fix-hibernate-sequence.sql
+			echo "hibernate_sequence fix applied"
+		fi
 	fi
 
 	docker_temp_server_stop

@@ -55,7 +55,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Performance test for single-user CRUD operations on {@code /api/users}.
  *
- * <p>Five scenarios, all running against the Sierra Leone demo DB by default:
+ * <p>Five scenarios, all running against the platform-perf DB (~250k users / ~250k org units) by
+ * default:
  *
  * <ol>
  *   <li><b>POST</b> — creates a new user (with optional group assignment)
@@ -71,7 +72,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * itself — no existing database users are touched.
  *
  * <p>Run with {@code -DuserGroupUid=<uid>} pointing at a group with large membership to expose N+1
- * problems in POST and DELETE. The default points at "Administrators" on the SL demo DB.
+ * problems in POST and DELETE. The default points at a ~83k-member group on the platform-perf DB.
  *
  * <p>Configuration can be provided via a {@code .properties} file instead of individual {@code -D}
  * flags:
@@ -82,16 +83,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * Individual {@code -D} flags always override values from the config file.
  *
- * <p>Available properties (with SL demo DB defaults):
+ * <p>Available properties (with platform-perf DB defaults):
  *
  * <ul>
  *   <li>{@code configFile} — path to a {@code .properties} file (optional)
  *   <li>{@code baseUrl} (default: {@code http://localhost:8080})
  *   <li>{@code username} (default: {@code admin})
  *   <li>{@code password} (default: {@code district})
- *   <li>{@code userRoleUid} (default: {@code Euq3XfEIEbx} — "Data entry clerk")
- *   <li>{@code orgUnitUid} (default: {@code ImspTQPwCqd} — "Sierra Leone" root)
- *   <li>{@code userGroupUid} (default: {@code wl5cDMuUhmF} — "Administrators")
+ *   <li>{@code userRoleUid} (default: {@code MoRvPzDH7lc} — generic role with ~83k users)
+ *   <li>{@code orgUnitUid} (default: {@code VCCdfC9pvMA} — root org unit)
+ *   <li>{@code userGroupUid} (default: {@code KOvR9SAEeEZ} — group with ~83k members)
  *   <li>{@code iterations} (default: {@code 3})
  *   <li>{@code mode} (default: {@code sequential}; runs each scenario in isolation so timings
  *       reflect single-endpoint latency. Use {@code parallel} to run all scenarios concurrently as
@@ -142,9 +143,13 @@ public class UsersPerformanceTest extends Simulation {
   private static final String BASIC_AUTH =
       Base64.getEncoder()
           .encodeToString((USERNAME + ":" + PASSWORD).getBytes(StandardCharsets.UTF_8));
-  private static final String USER_ROLE_UID = prop("userRoleUid", "Euq3XfEIEbx");
-  private static final String ORG_UNIT_UID = prop("orgUnitUid", "ImspTQPwCqd");
-  private static final String USER_GROUP_UID = prop("userGroupUid", "wl5cDMuUhmF");
+  // Defaults target the platform-perf DB (~250k users / ~250k org units). Role and group are the
+  // largest available (~83k each) to expose user create/delete N+1s; org unit is the hierarchy
+  // root.
+  // Override via -D or a configFile to run against a different instance.
+  private static final String USER_ROLE_UID = prop("userRoleUid", "MoRvPzDH7lc");
+  private static final String ORG_UNIT_UID = prop("orgUnitUid", "VCCdfC9pvMA");
+  private static final String USER_GROUP_UID = prop("userGroupUid", "KOvR9SAEeEZ");
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
   // Default to sequential so each scenario is measured in isolation (single-endpoint latency).
   // Set -Dmode=parallel for a mixed-load stress test where all scenarios run concurrently.
@@ -175,14 +180,13 @@ public class UsersPerformanceTest extends Simulation {
 
   // Thresholds per profile, slack 1.5× observed p95/max, rounded to nearest 50ms.
   //
-  // STALE — PENDING RECALIBRATION. The values below were calibrated under the OLD regime: all
-  // scenarios run in parallel, which on the shared CI runner caused CPU contention that inflated
-  // the
-  // tail (GET p95 reached 783ms on CI vs ~81ms in isolation). As of 2026-06-03 the test runs
-  // scenarios sequentially (in isolation) and authenticates once per virtual user, moving the
-  // one-time session-establishing bcrypt out of the measured requests, so measured times dropped
-  // sharply. These thresholds are now far too loose and provide little regression protection until
-  // recalibrated from fresh nightly baselines (~1 week of runs).
+  // STALE — PENDING RECALIBRATION on the platform-perf DB. These values were calibrated against the
+  // Sierra Leone demo DB under the old parallel regime. As of 2026-06-03 the test (a) runs
+  // scenarios
+  // sequentially and authenticates once per virtual user, and (b) targets the platform-perf DB
+  // (~250k users / ~250k org units), where operations are materially slower (e.g. GET ~6× SL). The
+  // numbers below reflect neither change and must be recalibrated from fresh nightly baselines on
+  // platform-perf (~1 week of runs) before they provide meaningful regression protection.
   // Old baselines: LOAD 10 nightly × 10 iter (2026-04-02–04-11); SMOKE 14 nightly × 3 iter.
   // Recalibrate with: scripts/download-user-perf-results.sh --test-name users-smoke
   //                   scripts/analyze-user-perf-results.py --profile smoke
