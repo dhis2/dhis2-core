@@ -39,6 +39,7 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataExportStore;
+import org.hisp.dhis.http.HttpClientAdapter.HttpResponse;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -105,6 +106,24 @@ class DataValueFileResourceControllerTest extends PostgresControllerIntegrationT
             assertStatus(
                 HttpStatus.CREATED,
                 POST(format("/dataValues?de=%s&pe=%s&ou=%s&co=%s&value=", de, pe, ou, coc))));
+  }
+
+  @Test
+  void testSaveFileDataValue_TooBigFileSize() {
+    int frCountBefore = GET("/fileResources/gist").content().getArray("fileResources").size();
+    int dvCountBefore = dataExportStore.getAllDataValues().size();
+    String url = format("/api/dataValues/file?ds=%s&de=%s&pe=%s&ou=%s&co=%s", ds, de, pe, ou, coc);
+    // 10MB + 1 byte exceeds the default max.file_upload_size (10MB).
+    MockMultipartFile image =
+        new MockMultipartFile("file", "OU_profile_image.png", "image/png", new byte[10_000_001]);
+    HttpResponse response = POST_MULTIPART(url, image);
+    assertEquals(
+        "File size can't be bigger than 10000000, current file size 10000001",
+        response.content(HttpStatus.CONFLICT).getString("message").string());
+    int frCountAfter = GET("/fileResources/gist").content().getArray("fileResources").size();
+    int dvCountAfter = dataExportStore.getAllDataValues().size();
+    assertEquals(frCountBefore, frCountAfter, "Rejected upload left behind a file resource");
+    assertEquals(dvCountBefore, dvCountAfter, "Rejected upload left behind a data value");
   }
 
   @Test
