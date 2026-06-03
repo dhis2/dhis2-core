@@ -96,7 +96,6 @@ public final class SystemInfo {
   @JsonProperty private final Integer readReplicaCount;
   @JsonProperty private final String memoryInfo;
   @JsonProperty private final Integer cpuCores;
-  @JsonProperty private final boolean encryption;
   @JsonProperty private final boolean emailConfigured;
   @JsonProperty private final boolean redisEnabled;
   @JsonProperty private final String redisHostname;
@@ -109,6 +108,7 @@ public final class SystemInfo {
   @JsonProperty private final Boolean isMetadataVersionEnabled;
   @JsonProperty private final Date lastMetadataVersionSyncAttempt;
   @JsonProperty private final Boolean isMetadataSyncEnabled;
+  @JsonProperty private final boolean encryption;
 
   /**
    * Clears sensitive system info properties.
@@ -134,10 +134,10 @@ public final class SystemInfo {
         .memoryInfo(null)
         .cpuCores(null)
         .systemMonitoringUrl(null)
-        .encryption(false)
         .redisEnabled(false)
         .redisHostname(null)
         .clusterHostname(null)
+        .encryption(false)
         .databaseInfo(databaseInfo.withoutSensitiveInfo())
         .build();
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import java.util.Arrays;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** The set of JClouds blob-store providers supported by DHIS2. */
-public enum FileStoreProvider {
-  FILESYSTEM("filesystem"),
-  AWS_S3("aws-s3"),
-  S3("s3"),
-  TRANSIENT("transient");
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
+import org.junit.jupiter.api.Test;
 
-  private final String key;
+class DataIntegrityUserRolesNoUsersTest extends AbstractDataIntegrityIntegrationTest {
+  private static final String CHECK_NAME = "user_roles_with_no_users";
 
-  FileStoreProvider(String key) {
-    this.key = key;
-  }
+  private static final String DETAILS_ID_TYPE = "userRoles";
 
-  /** The configuration key used in {@code dhis.conf}. */
-  public String key() {
-    return key;
-  }
+  private String userRoleUid;
 
-  /**
-   * Returns the provider matching {@code key}, or throws {@link IllegalArgumentException} if the
-   * key is not recognised.
-   */
-  public static FileStoreProvider of(String key) {
-    return Arrays.stream(values())
-        .filter(p -> p.key.equals(key))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "Unsupported file store provider '"
-                        + key
-                        + "'. Supported values are: filesystem, aws-s3, s3, transient."));
+  @Test
+  void testUserRolesNoUsers() {
+    userRoleUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+    // Note that two user roles already exist as part of the setup in the
+    // AbstractDataIntegrityIntegrationTest class
+    // Thus, there should be three roles in total, two of which are valid since they already have
+    // users associated with them.
+    postSummary(CHECK_NAME);
+
+    JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
+    assertEquals(1, summary.getCount());
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, CHECK_NAME, 50, userRoleUid, "Test role", null, true);
   }
 }

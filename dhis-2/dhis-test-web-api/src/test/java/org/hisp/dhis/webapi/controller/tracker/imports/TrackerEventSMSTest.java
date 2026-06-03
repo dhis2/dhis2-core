@@ -222,7 +222,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     trackedEntityType = trackedEntityTypeAccessible();
 
     teaA = createTrackedEntityAttribute('A', ValueType.PHONE_NUMBER);
-    teaA.setConfidential(false);
     teaA.getSharing().setOwner(user1);
     teaA.getSharing().addUserAccess(fullAccess(user1));
     manager.save(teaA, false);

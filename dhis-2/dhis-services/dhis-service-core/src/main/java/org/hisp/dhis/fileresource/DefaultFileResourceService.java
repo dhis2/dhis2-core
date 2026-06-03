@@ -374,7 +374,7 @@ public class DefaultFileResourceService implements FileResourceService {
   }
 
   private static BlobKey imageKey(FileResource fileResource, ImageFileDimension imageDimension) {
-    return new BlobKey(fileResource.getStorageKey() + imageDimension.getDimension());
+    return BlobKey.of(fileResource.getStorageKey() + imageDimension.getDimension());
   }
 
   @Override

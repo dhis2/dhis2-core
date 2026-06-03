@@ -37,10 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -49,11 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -76,6 +68,7 @@ import org.hisp.dhis.storage.BlobStoreService;
 import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.hisp.dhis.util.ZipSlipException;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -86,14 +79,11 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.appmanager.JCloudsAppStorageService")
-public class JCloudsAppStorageService implements AppStorageService {
+@Service
+public class BlobStoreAppStorageService implements AppStorageService {
 
   private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";
   public static final String MANIFEST_WEBAPP_FILENAME = "manifest.webapp";
-
-  /** Max concurrent file uploads per app when unzipping into blob storage. */
-  private static final int APP_UPLOAD_PARALLELISM = 1;
 
   private final BlobStoreService blobStore;
   private final LocationManager locationManager;
@@ -128,7 +118,6 @@ public class JCloudsAppStorageService implements AppStorageService {
       BiConsumer<App, BundledAppInfo> handler, BlobKeyPrefix folder, InputStream manifestStream) {
     try (InputStream inputStream = manifestStream) {
       App app = App.MAPPER.readValue(inputStream, App.class);
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
       app.setFolderName(folder.value());
       app.setManifestTranslations(
           readAppManifestTranslations(
@@ -244,7 +233,6 @@ public class JCloudsAppStorageService implements AppStorageService {
       app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
       folder = AppFolderName.ofKey(app.getKey());
       app.setFolderName(folder.path());
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
       log.error("Failed to install app: Failure during reading manifest from zip file", e);
       app = new App();
@@ -298,83 +286,22 @@ public class JCloudsAppStorageService implements AppStorageService {
   private void unzipFile(File file, AppFolderName folder, String topLevelFolder)
       throws IOException, ZipSlipException {
     try (ZipFile zipFile = new ZipFile(file)) {
-      List<ZipEntry> entries = new ArrayList<>();
-      List<String> filePaths = new ArrayList<>();
-      Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
-      while (zipEntries.hasMoreElements()) {
-        ZipEntry zipEntry = zipEntries.nextElement();
+      Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      while (entries.hasMoreElements()) {
+        ZipEntry zipEntry = entries.nextElement();
         String filePath = getFilePath(folder.path(), topLevelFolder, zipEntry);
-        // Skip the root folder, and ZIP directory entries — they're redundant: on
-        // the filesystem backend parent dirs are auto-created when a file is put,
-        // and on object stores "directory blobs" are meaningless. Skipping them
-        // also avoids a race in the JClouds filesystem backend between
-        // putDirectoryBlob (mkdirs) and concurrent putBlob calls in the same dir.
-        if (filePath == null || zipEntry.isDirectory()) continue;
-        entries.add(zipEntry);
-        filePaths.add(filePath);
-      }
-      if (entries.isEmpty()) return;
-
-      // Pre-create unique parent directories serially on the filesystem backend.
-      // The JClouds filesystem strategy uses a racy `parent.exists() && !parent.mkdirs()`
-      // check when writing each file; two parallel uploads targeting the same
-      // as-yet-uncreated parent dir would both call mkdirs() and one would lose.
-      // Pre-creating ensures `parent.exists()` is true during the parallel upload.
-      if (blobStore.isFilesystem()) {
-        precreateParentDirectories(filePaths, folder.path());
-      }
-
-      int parallelism = Math.min(APP_UPLOAD_PARALLELISM, entries.size());
-      ExecutorService executor = Executors.newFixedThreadPool(parallelism);
-      try {
-        CompletableFuture<?>[] futures = new CompletableFuture<?>[entries.size()];
-        for (int i = 0; i < entries.size(); i++) {
-          ZipEntry zipEntry = entries.get(i);
-          String filePath = filePaths.get(i);
-          futures[i] =
-              CompletableFuture.runAsync(
-                  () -> uploadZipEntry(zipFile, zipEntry, filePath), executor);
+        // If it's the root folder, skip
+        if (filePath == null) continue;
+        if (zipEntry.isDirectory()) {
+          // Materialise empty directories so the /api/apps/<app>/<dir> → /<dir>/ redirect
+          // contract holds even when the zip contains a directory with no files inside.
+          blobStore.createDirectory(BlobKeyPrefix.of(filePath));
+          continue;
         }
-        CompletableFuture.allOf(futures).join();
-      } catch (CompletionException e) {
-        Throwable cause = e.getCause() != null ? e.getCause() : e;
-        if (cause instanceof UncheckedIOException uioe) throw uioe.getCause();
-        if (cause instanceof IOException ioe) throw ioe;
-        if (cause instanceof RuntimeException re) throw re;
-        throw new IOException("Failed to upload app files", cause);
-      } finally {
-        executor.shutdown();
-      }
-    }
-  }
-
-  private void uploadZipEntry(ZipFile zipFile, ZipEntry zipEntry, String filePath) {
-    try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
-      blobStore.putBlob(
-          new BlobKey(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  private void precreateParentDirectories(List<String> filePaths, String appFolderPath) {
-    // Collect each file's parent dirs transitively, up to but not including the
-    // app folder root. TreeSet gives lexicographic order, which (because '/' sorts
-    // before any name char) creates shallower dirs before their children.
-    Set<String> parents = new TreeSet<>();
-    int rootLen = appFolderPath.length();
-    for (String filePath : filePaths) {
-      int idx = filePath.lastIndexOf('/');
-      while (idx > rootLen) {
-        parents.add(filePath.substring(0, idx));
-        idx = filePath.lastIndexOf('/', idx - 1);
-      }
-    }
-    for (String dir : parents) {
-      try (InputStream empty = InputStream.nullInputStream()) {
-        blobStore.putBlob(new BlobKey(dir + "/"), empty, 0L, null, null, null);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
+        try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+          blobStore.putBlob(
+              BlobKey.of(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+        }
       }
     }
   }
@@ -415,19 +342,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     AppFolderName folder = app.appFolder();
     blobStore.deleteBlob(folder.resolve(MANIFEST_WEBAPP_FILENAME));
 
-    // TODO(DHIS2-20648) Once the replacement BlobStoreService implementation does recursive
-    // deleteDirectory on every backend (see contract test), this branch can collapse to a
-    // single blobStore.deleteDirectory(folder.asPrefix()) call.
-    if (blobStore.isFilesystem()) {
-      // Delete all files related to app (works for local filestore)
-      blobStore.deleteDirectory(folder.asPrefix());
-    } else {
-      // S3: deleteDirectory is not recursive, so enumerate and delete individually
-      for (BlobKey key : blobStore.listKeys(folder.asPrefix())) {
-        log.debug("Deleting app file: {}", key);
-        blobStore.deleteBlob(key);
-      }
-    }
+    blobStore.deleteDirectory(folder.asPrefix());
     log.info("Deleted app {}", app.getName());
   }
 
@@ -435,10 +350,9 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Nonnull
   public ResourceResult getAppResource(@CheckForNull App app, @Nonnull String resource)
       throws IOException {
-    if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
+    if (app == null) {
       log.warn(
-          "Can't look up resource {}. The specified app was not found in JClouds storage.",
-          resource);
+          "Can't look up resource {}. The specified app was not found in blob storage.", resource);
       return new ResourceNotFound(resource);
     }
     if (resource.isBlank()) {
@@ -451,24 +365,27 @@ public class JCloudsAppStorageService implements AppStorageService {
     if (blobStore.blobExists(key)) {
       return new ResourceFound(getResource(key));
     }
-    if (keyExistsAsDirectory(key)) {
+    if (blobStore.directoryExists(BlobKeyPrefix.of(key.value()))) {
       return new Redirect(resource + "/");
     }
     log.debug("ResourceNotFound {} for App {}", key, app.getName());
     return new ResourceNotFound(resource);
   }
 
-  private boolean keyExistsAsDirectory(BlobKey key) {
-    return blobStore.listKeys(BlobKeyPrefix.of(key.value())).iterator().hasNext();
-  }
-
-  private Resource getResource(@Nonnull BlobKey key) throws MalformedURLException {
+  private Resource getResource(@Nonnull BlobKey key) throws IOException {
     if (blobStore.isFilesystem()) {
       return new FileSystemResource(
           locationManager.getFileForReading(blobStore.container().resolve(key)));
-    } else {
-      URI uri = fileResourceContentStore.getSignedGetContentUri(key);
+    }
+    URI uri = fileResourceContentStore.getSignedGetContentUri(key);
+    if (uri != null) {
       return new UrlResource(uri);
+    }
+    // When backend supports neither filesystem access nor signed URLs (e.g. transient): buffer
+    // the blob bytes so Spring can serve them directly.
+    try (InputStream in = blobStore.openStream(key)) {
+      if (in == null) throw new IOException("Blob not found: " + key);
+      return new ByteArrayResource(in.readAllBytes());
     }
   }
 
@@ -506,12 +423,11 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   private static void logDiscoveredApps(Map<String, Pair<App, BundledAppInfo>> apps) {
     if (apps.isEmpty()) {
-      log.info("No apps found during JClouds discovery.");
+      log.info("No apps found during blob store discovery");
     } else {
       apps.values()
           .forEach(
-              pair ->
-                  log.info("Discovered app '{}' from JClouds storage ", pair.getLeft().getName()));
+              pair -> log.info("Discovered app '{}' from blob storage ", pair.getLeft().getName()));
     }
   }
 }
