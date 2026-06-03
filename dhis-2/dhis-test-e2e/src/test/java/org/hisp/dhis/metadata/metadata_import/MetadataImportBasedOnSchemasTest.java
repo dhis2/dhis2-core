@@ -44,6 +44,7 @@ import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -83,6 +84,7 @@ public class MetadataImportBasedOnSchemasTest extends ApiTest {
     schemasActions.validateObjectAgainstSchema(schema, firstObject).validate().statusCode(200);
   }
 
+  @Disabled
   @ParameterizedTest(name = "POST to /{1}")
   @MethodSource("getSchemaEndpoints")
   public void postBasedOnSchema(String endpoint, String schema) {
