@@ -39,7 +39,6 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataExportStore;
-import org.hisp.dhis.http.HttpClientAdapter.HttpResponse;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
