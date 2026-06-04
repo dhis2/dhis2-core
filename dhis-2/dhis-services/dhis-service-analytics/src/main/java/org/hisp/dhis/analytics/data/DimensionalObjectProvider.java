@@ -458,8 +458,9 @@ public class DimensionalObjectProvider {
    * @param items the list of items that might be included into the resulting organisation unit and
    *     its keywords.
    * @param userOrgUnits the list of organisation units associated with the current user.
-   * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
-   *     This is needed for SQL filtering but should be false for metadata generation.
+   * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units;
+   *     explicit org units are then treated as boundaries for the expansion and are not included in
+   *     the result. This is needed for SQL filtering but should be false for metadata generation.
    * @return a list of {@link OrganisationUnit} UIDs.
    */
   public List<String> getOrgUnitDimensionUid(
@@ -470,7 +471,14 @@ public class DimensionalObjectProvider {
     List<DimensionalItemObject> ous =
         getOrgUnitDimensionItems(items, userOrgUnits, IdScheme.UID, levels, groups);
 
-    List<String> result = new ArrayList<>(ous.stream().map(DimensionalItemObject::getUid).toList());
+    boolean hasLevelsOrGroups = !levels.isEmpty() || !groups.isEmpty();
+
+    List<String> result = new ArrayList<>();
+
+    // When levels / groups are present, OUs are considered boundaries
+    if (!(expandGroupsAndLevels && hasLevelsOrGroups)) {
+      result.addAll(ous.stream().map(DimensionalItemObject::getUid).toList());
+    }
 
     if (expandGroupsAndLevels) {
       List<OrganisationUnit> ousList = asTypedList(ous);

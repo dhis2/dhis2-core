@@ -224,9 +224,12 @@ public class OrganisationUnitResolver {
   public DimensionalItemObject loadOrgUnitDimensionalItem(
       @Nonnull String dimensionUid, @Nonnull IdScheme idScheme) {
     if (dimensionUid.startsWith(KEY_LEVEL)) {
+      String levelToken = substringAfterLast(dimensionUid, SEPARATOR);
       OrganisationUnitLevel level =
-          idObjectManager.getObject(
-              OrganisationUnitLevel.class, idScheme, substringAfterLast(dimensionUid, SEPARATOR));
+          StringUtils.isNumeric(levelToken)
+              ? organisationUnitService.getOrganisationUnitLevelByLevel(
+                  Integer.parseInt(levelToken))
+              : idObjectManager.getObject(OrganisationUnitLevel.class, idScheme, levelToken);
 
       if (level != null) {
         BaseDimensionalItemObject dim = new BaseDimensionalItemObject();

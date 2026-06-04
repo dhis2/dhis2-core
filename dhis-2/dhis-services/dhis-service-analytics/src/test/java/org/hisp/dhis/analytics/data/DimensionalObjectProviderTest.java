@@ -358,6 +358,70 @@ class DimensionalObjectProviderTest {
   }
 
   @Test
+  void testGetOrgUnitDimensionUidWithLevelTreatsExplicitOrgUnitsAsBoundaries() {
+    // Given
+    OrganisationUnit boundary = createOrganisationUnit('A');
+    OrganisationUnit level2Ou1 = createOrganisationUnit('B');
+    OrganisationUnit level2Ou2 = createOrganisationUnit('C');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, boundary.getUid()))
+        .thenReturn(boundary);
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
+    when(organisationUnitService.getOrganisationUnitsAtLevels(List.of(2), List.of(boundary)))
+        .thenReturn(new ArrayList<>(asList(level2Ou1, level2Ou2)));
+
+    List<String> itemsUid = List.of("LEVEL-2", boundary.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true);
+
+    // Then
+    assertEquals(List.of(level2Ou1.getUid(), level2Ou2.getUid()), result);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionUidWithGroupTreatsExplicitOrgUnitsAsBoundaries() {
+    // Given
+    OrganisationUnitGroup group = createOrganisationUnitGroup('A');
+    OrganisationUnit boundary = createOrganisationUnit('A');
+    OrganisationUnit member1 = createOrganisationUnit('B');
+    OrganisationUnit member2 = createOrganisationUnit('C');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, boundary.getUid()))
+        .thenReturn(boundary);
+    when(idObjectManager.getObject(OrganisationUnitGroup.class, UID, group.getUid()))
+        .thenReturn(group);
+    when(organisationUnitService.getOrganisationUnits(List.of(group), List.of(boundary)))
+        .thenReturn(new ArrayList<>(asList(member1, member2)));
+
+    List<String> itemsUid = List.of("OU_GROUP-" + group.getUid(), boundary.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true);
+
+    // Then
+    assertEquals(List.of(member1.getUid(), member2.getUid()), result);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionUidWithoutLevelsOrGroupsReturnsExplicitOrgUnits() {
+    // Given
+    OrganisationUnit ou1 = createOrganisationUnit('A');
+    OrganisationUnit ou2 = createOrganisationUnit('B');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, ou1.getUid())).thenReturn(ou1);
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, ou2.getUid())).thenReturn(ou2);
+
+    List<String> itemsUid = List.of(ou1.getUid(), ou2.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true);
+
+    // Then
+    assertEquals(List.of(ou1.getUid(), ou2.getUid()), result);
+  }
+
+  @Test
   void testGetDimensionWhenOrgUnitsAreNotFound() {
     List<String> nonExistingItemsUid = List.of("LEVEL-Achv9EO3hR1", "OU_GROUP-Blhv9EO3hR1");
 
