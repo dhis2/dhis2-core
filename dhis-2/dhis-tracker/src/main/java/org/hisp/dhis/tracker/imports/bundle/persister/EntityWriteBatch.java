@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -92,6 +92,9 @@ class EntityWriteBatch {
 
   /** Cap on rows per multi-row INSERT/UPDATE statement, to bound peak array memory per chunk. */
   private static final int INSERT_BATCH_SIZE = 128;
+
+  /** Cap on rows per unnest UPDATE statement, to bound peak array memory per chunk. */
+  private static final int UPDATE_BATCH_SIZE = 128;
 
   private static final int TRACKED_ENTITY_SRID = 4326;
 
