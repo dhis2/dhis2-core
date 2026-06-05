@@ -90,11 +90,8 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  */
 class EntityWriteBatch {
 
-  /** Cap on rows per multi-row INSERT statement, to keep query text manageable. */
+  /** Cap on rows per multi-row INSERT/UPDATE statement, to bound peak array memory per chunk. */
   private static final int INSERT_BATCH_SIZE = 128;
-
-  /** Cap on rows per unnest UPDATE statement, to bound peak array memory per chunk. */
-  private static final int UPDATE_BATCH_SIZE = 128;
 
   private static final int TRACKED_ENTITY_SRID = 4326;
 
@@ -385,8 +382,8 @@ class EntityWriteBatch {
     if (teUpdates.isEmpty()) {
       return;
     }
-    for (int from = 0; from < teUpdates.size(); from += UPDATE_BATCH_SIZE) {
-      int to = Math.min(from + UPDATE_BATCH_SIZE, teUpdates.size());
+    for (int from = 0; from < teUpdates.size(); from += INSERT_BATCH_SIZE) {
+      int to = Math.min(from + INSERT_BATCH_SIZE, teUpdates.size());
       List<TrackedEntity> chunk = teUpdates.subList(from, to);
       int n = chunk.size();
 
@@ -560,8 +557,8 @@ class EntityWriteBatch {
     if (enrollmentUpdates.isEmpty()) {
       return;
     }
-    for (int from = 0; from < enrollmentUpdates.size(); from += UPDATE_BATCH_SIZE) {
-      int to = Math.min(from + UPDATE_BATCH_SIZE, enrollmentUpdates.size());
+    for (int from = 0; from < enrollmentUpdates.size(); from += INSERT_BATCH_SIZE) {
+      int to = Math.min(from + INSERT_BATCH_SIZE, enrollmentUpdates.size());
       List<Enrollment> chunk = enrollmentUpdates.subList(from, to);
       int n = chunk.size();
 
