@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -91,10 +91,7 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
 class EntityWriteBatch {
 
   /** Cap on rows per multi-row INSERT/UPDATE statement, to bound peak array memory per chunk. */
-  private static final int INSERT_BATCH_SIZE = 128;
-
-  /** Cap on rows per unnest UPDATE statement, to bound peak array memory per chunk. */
-  private static final int UPDATE_BATCH_SIZE = 128;
+  private static final int BATCH_SIZE = 128;
 
   private static final int TRACKED_ENTITY_SRID = 4326;
 
@@ -385,8 +382,8 @@ class EntityWriteBatch {
     if (teUpdates.isEmpty()) {
       return;
     }
-    for (int from = 0; from < teUpdates.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, teUpdates.size());
+    for (int from = 0; from < teUpdates.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, teUpdates.size());
       List<TrackedEntity> chunk = teUpdates.subList(from, to);
       int n = chunk.size();
 
@@ -447,8 +444,8 @@ class EntityWriteBatch {
     if (teInserts.isEmpty()) {
       return;
     }
-    for (int from = 0; from < teInserts.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, teInserts.size());
+    for (int from = 0; from < teInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, teInserts.size());
       List<TrackedEntity> chunk = teInserts.subList(from, to);
       String sql =
           buildMultiRowInsertSql(
@@ -498,8 +495,8 @@ class EntityWriteBatch {
     if (enrollmentInserts.isEmpty()) {
       return;
     }
-    for (int from = 0; from < enrollmentInserts.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, enrollmentInserts.size());
+    for (int from = 0; from < enrollmentInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, enrollmentInserts.size());
       List<Enrollment> chunk = enrollmentInserts.subList(from, to);
       String sql =
           buildMultiRowInsertSql(ENROLLMENT_INSERT_PREFIX, ENROLLMENT_INSERT_ROW, chunk.size());
@@ -560,8 +557,8 @@ class EntityWriteBatch {
     if (enrollmentUpdates.isEmpty()) {
       return;
     }
-    for (int from = 0; from < enrollmentUpdates.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, enrollmentUpdates.size());
+    for (int from = 0; from < enrollmentUpdates.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, enrollmentUpdates.size());
       List<Enrollment> chunk = enrollmentUpdates.subList(from, to);
       int n = chunk.size();
 
@@ -691,8 +688,8 @@ class EntityWriteBatch {
 
   private void insertNoteRows(Connection conn, List<EnrollmentNoteToInsert> newNotes)
       throws SQLException {
-    for (int from = 0; from < newNotes.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, newNotes.size());
+    for (int from = 0; from < newNotes.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, newNotes.size());
       List<EnrollmentNoteToInsert> chunk = newNotes.subList(from, to);
       String sql = buildMultiRowInsertSql(NOTE_INSERT_PREFIX, NOTE_INSERT_ROW, chunk.size());
       try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -720,8 +717,8 @@ class EntityWriteBatch {
 
   private void insertEnrollmentNotesJoinRows(Connection conn, List<EnrollmentNoteToInsert> newNotes)
       throws SQLException {
-    for (int from = 0; from < newNotes.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, newNotes.size());
+    for (int from = 0; from < newNotes.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, newNotes.size());
       List<EnrollmentNoteToInsert> chunk = newNotes.subList(from, to);
       String sql =
           buildMultiRowInsertSql(
