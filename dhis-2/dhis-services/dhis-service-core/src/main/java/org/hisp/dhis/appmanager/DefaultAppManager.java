@@ -36,6 +36,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.*;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -177,9 +178,12 @@ public class DefaultAppManager implements AppManager {
     log.info("Loaded {} apps.", installedApps.size());
   }
 
-  /** A bundled app that needs to be (re)installed, together with its zip resource. */
+  /**
+   * A bundled app that needs to be (re)installed, together with its zip resource and the zip's
+   * compressed size in bytes (computed once; used to order installs largest-first).
+   */
   private record BundledAppInstall(
-      String appKey, BundledAppInfo bundledAppInfo, Resource zipFileResource) {}
+      String appKey, BundledAppInfo bundledAppInfo, Resource zipFileResource, long zipSize) {}
 
   /**
    * Installs bundled apps, by looking in the classpath for app .zip files. If the bundled app is
@@ -206,28 +210,32 @@ public class DefaultAppManager implements AppManager {
     List<BundledAppInstall> appsToInstall = new ArrayList<>();
     bundledAppManager.installBundledApps(
         (app, bundledAppInfo, zipFileResource) -> {
-          if (needsInstall(installedApps.get(app.getKey()), bundledAppInfo)) {
-            appsToInstall.add(new BundledAppInstall(app.getKey(), bundledAppInfo, zipFileResource));
+          Pair<App, BundledAppInfo> existing = installedApps.get(app.getKey());
+          if (needsInstall(existing, bundledAppInfo)) {
+            if (existing != null) {
+              log.info(
+                  "Bundled app '{}' has a different Etag than the installed one and will replace it",
+                  bundledAppInfo.getName());
+            }
+            appsToInstall.add(
+                new BundledAppInstall(
+                    app.getKey(), bundledAppInfo, zipFileResource, zipSize(zipFileResource)));
           }
         });
 
     if (appsToInstall.isEmpty()) return;
 
-    // Install the largest apps first. A few apps (e.g. Maintenance) are far bigger than the rest;
+    // Install the largest apps first. A few apps (e.g. Maintenance) are far bigger than the rest,
     // if they start last they end up running alone at the tail with no smaller apps left to overlap
     // them. Starting them first lets the many small apps install in their shadow, so total time
     // approaches the largest app's runtime rather than largest + the rest.
-    appsToInstall.sort(Comparator.comparingLong(DefaultAppManager::zipSize).reversed());
+    appsToInstall.sort(Comparator.comparingLong(BundledAppInstall::zipSize).reversed());
 
     // Install in parallel, then merge results into the map on this thread (single-writer).
     ExecutorService appExecutor =
         Executors.newFixedThreadPool(
             Math.min(APP_INSTALL_PARALLELISM, appsToInstall.size()),
-            runnable -> {
-              Thread thread = new Thread(runnable, "app-install");
-              thread.setDaemon(true);
-              return thread;
-            });
+            new ThreadFactoryBuilder().setNameFormat("app-install-%d").setDaemon(true).build());
     try {
       List<CompletableFuture<Map.Entry<String, Pair<App, BundledAppInfo>>>> futures =
           new ArrayList<>(appsToInstall.size());
@@ -268,10 +276,10 @@ public class DefaultAppManager implements AppManager {
         && !installedAppInfo.getEtag().equals(bundledAppInfo.getEtag());
   }
 
-  /** Compressed size of the app's zip in bytes, used to order installs largest-first. */
-  private static long zipSize(BundledAppInstall item) {
+  /** Compressed size of the app's zip in bytes, or {@code 0} when it cannot be determined. */
+  private static long zipSize(Resource zipFileResource) {
     try {
-      return item.zipFileResource().contentLength();
+      return zipFileResource.contentLength();
     } catch (IOException e) {
       return 0L;
     }

@@ -32,6 +32,7 @@ package org.hisp.dhis.appmanager;
 import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -98,8 +99,13 @@ public class BlobStoreAppStorageService implements AppStorageService {
    * may install in parallel (see {@code DefaultAppManager}); this is a single shared pool so the
    * total number of in-flight uploads (and buffered file payloads) stays bounded regardless of how
    * many apps install concurrently.
+   *
+   * <p>Note this value also bounds transient memory: the S3 backend buffers each non-resetable zip
+   * entry stream fully in memory, so worst case is this many file payloads on the heap at once.
+   * Benchmarks against AWS S3 showed no install-time gain from 64 over 32, so 32 is used to halve
+   * the worst-case memory footprint.
    */
-  private static final int APP_UPLOAD_PARALLELISM = 64;
+  private static final int APP_UPLOAD_PARALLELISM = 32;
 
   private final BlobStoreService blobStore;
   private final LocationManager locationManager;
@@ -120,11 +126,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
             60L,
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(),
-            runnable -> {
-              Thread thread = new Thread(runnable, "app-upload");
-              thread.setDaemon(true);
-              return thread;
-            });
+            new ThreadFactoryBuilder().setNameFormat("app-upload-%d").setDaemon(true).build());
     executor.allowCoreThreadTimeOut(true);
     return executor;
   }
