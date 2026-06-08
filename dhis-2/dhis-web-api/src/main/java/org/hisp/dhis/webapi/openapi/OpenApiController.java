@@ -57,6 +57,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.openapi.JsonGenerator.Format;
 import org.hisp.dhis.webapi.openapi.JsonGenerator.Language;
 import org.hisp.dhis.webapi.openapi.OpenApiGenerator.Info;
+import org.hisp.dhis.webapi.security.csp.CspOpenApiDocs;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -112,6 +113,7 @@ public class OpenApiController {
     The HTML to browse (view) the DHIS2 API specification based on OpenAPI JSON
     either in its entirety or scoped to the path(s) or domain(s) requested.""")
   @OpenApi.Response(status = Status.OK, value = String.class)
+  @CspOpenApiDocs
   @GetMapping(
       value = {"/openapi.html", "/openapi/openapi.html"},
       produces = TEXT_HTML_VALUE)
@@ -133,6 +135,7 @@ public class OpenApiController {
       """
     The HTML to browse (view) the DHIS2 API specification based on OpenAPI JSON for the path""")
   @OpenApi.Response(String.class)
+  @CspOpenApiDocs
   @GetMapping(value = "/{path}/openapi.html", produces = TEXT_HTML_VALUE)
   public void getPathOpenApiHtml(
       @PathVariable String path,

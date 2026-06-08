@@ -83,6 +83,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
@@ -916,6 +917,7 @@ public class MessageConversationController
     return responseNode;
   }
 
+  @CspUserUploadedContent
   @GetMapping("/{mcUid}/{msgUid}/attachments/{fileUid}")
   public void getAttachment(
       @PathVariable(value = "mcUid") String mcUid,
@@ -941,7 +943,7 @@ public class MessageConversationController
       throw new WebMessageException(conflict("Invalid messageattachment."));
     }
 
-    fileResourceUtils.configureFileResourceResponse(response, fr, dhisConfig);
+    fileResourceUtils.configureFileResourceResponse(response, fr);
   }
 
   // --------------------------------------------------------------------------

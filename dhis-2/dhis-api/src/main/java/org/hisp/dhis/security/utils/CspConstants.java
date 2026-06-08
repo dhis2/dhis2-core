@@ -29,26 +29,83 @@
  */
 package org.hisp.dhis.security.utils;
 
-import java.util.List;
-import java.util.regex.Pattern;
-
 public class CspConstants {
   private CspConstants() {}
 
   public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
 
-  public static final Pattern P_1 = Pattern.compile("^.+/dataValues/files$");
+  public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
+  public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 
-  public static final Pattern P_2 =
-      Pattern.compile(
-          "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$");
+  /**
+   * Directives applied to every emitted policy. Each one is a policy-level directive that does NOT
+   * fall back to {@code default-src} per the CSP spec, so it has to be declared explicitly:
+   *
+   * <ul>
+   *   <li>{@code base-uri 'self'} — locks down {@code <base href>} rewriting.
+   *   <li>{@code form-action 'self'} — prevents off-origin form submission (incl. via the {@code
+   *       formaction} button attribute); also a partial CSRF defense layer.
+   *   <li>{@code object-src 'none'} — kills the legacy plugin attack surface (Flash / Java applet /
+   *       PDF plugin) — DHIS2 doesn't use any of these.
+   * </ul>
+   *
+   * <p>{@code upgrade-insecure-requests} is appended at runtime by {@link
+   * org.hisp.dhis.webapi.security.csp.CspPolicyService} based on {@link
+   * org.hisp.dhis.external.conf.ConfigurationKey#CSP_UPGRADE_INSECURE_ENABLED} (default ON).
+   */
+  private static final String COMMON_HARDENING =
+      "base-uri 'self'; form-action 'self'; object-src 'none';";
 
-  public static final Pattern P_3 = Pattern.compile("^.+fileResources/[a-zA-Z\\d]+/data$");
+  /**
+   * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
+   * same origin.
+   */
+  public static final String DEFAULT_CSP_POLICY =
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; " + COMMON_HARDENING;
 
-  public static final Pattern P_4 = Pattern.compile("^.+audits/files/[a-zA-Z\\d]+$");
+  /**
+   * CSP policy for endpoints serving user-uploaded content. This policy disables all unsafe sources
+   * to prevent injection attacks on potentially untrusted content.
+   */
+  public static final String USER_UPLOADED_CONTENT_CSP_POLICY =
+      "default-src 'none'; " + COMMON_HARDENING;
 
-  public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS =
-      List.of(P_1, P_2, P_2, P_4);
+  /**
+   * CartoDB tile-server origins (Fastly CDN, round-robin across {@code a/b/c} subdomains) used by
+   * the bundled Maps app. HTTPS variant — always allowed in the app-host policy.
+   */
+  public static final String CARTODB_BASEMAP_ORIGINS =
+      "https://cartodb-basemaps-a.global.ssl.fastly.net"
+          + " https://cartodb-basemaps-b.global.ssl.fastly.net"
+          + " https://cartodb-basemaps-c.global.ssl.fastly.net";
 
-  public static final Pattern LOGIN_PATTERN = Pattern.compile("^.+/dhis-web-commons/security/.+$");
+  /**
+   * CartoDB origins served over plain HTTP. To keep the bundled Maps app working in dev, {@link
+   * org.hisp.dhis.webapi.security.csp.CspPolicyService#constructAppHostCspPolicy} appends these
+   * origins to the app-host policy only when {@code server.https} is OFF in {@code dhis.conf} (i.e.
+   * dev / non-TLS deployments). Production (HTTPS on) gets the strict https-only policy.
+   */
+  public static final String CARTODB_BASEMAP_HTTP_ORIGINS =
+      "http://cartodb-basemaps-a.global.ssl.fastly.net"
+          + " http://cartodb-basemaps-b.global.ssl.fastly.net"
+          + " http://cartodb-basemaps-c.global.ssl.fastly.net";
+
+  public static final String APP_HOST_CSP_POLICY =
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"
+          + " img-src 'self' data: "
+          + CARTODB_BASEMAP_ORIGINS
+          + "; connect-src 'self' "
+          + CARTODB_BASEMAP_ORIGINS
+          + "; "
+          + COMMON_HARDENING;
+
+  /**
+   * CSP policy for the rendered OpenAPI HTML documentation pages, which emit inline {@code onclick}
+   * handlers from {@code OpenApiRenderer}. Allows {@code script-src 'self' 'unsafe-inline'} so the
+   * interactive doc page works under the default-deny baseline. Scoped to the OpenAPI HTML
+   * endpoints only via {@link org.hisp.dhis.webapi.security.csp.CspOpenApiDocs @CspOpenApiDocs}.
+   */
+  public static final String OPENAPI_DOCS_CSP_POLICY =
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+          + COMMON_HARDENING;
 }

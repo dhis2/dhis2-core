@@ -68,6 +68,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.util.AppHtmlTemplate;
+import org.hisp.dhis.webapi.security.csp.CspAppHost;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
 import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
@@ -172,6 +173,7 @@ public class AppController {
     htmlCacheBustingService.invalidateAll();
   }
 
+  @CspAppHost
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
