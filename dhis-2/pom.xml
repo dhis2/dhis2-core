@@ -202,7 +202,7 @@
     <commons-text.version>1.15.0</commons-text.version>
     <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
-    <commons-validator.version>1.10.0</commons-validator.version>
+    <commons-validator.version>1.10.1</commons-validator.version>
     <commons-io.version>2.21.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
@@ -223,7 +223,7 @@
 
     <!-- Test -->
     <junit.version>5.12.2</junit.version>
-    <mockito.version>5.18.0</mockito.version>
+    <mockito.version>5.23.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
     <testcontainers.version>1.21.4</testcontainers.version>
