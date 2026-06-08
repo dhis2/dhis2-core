@@ -89,16 +89,38 @@ public class OrganisationUnitResolver {
   /**
    * Resolve organisation units like ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;LEVEL-XXX;OUGROUP-XXX
    * into a list of organisation unit dimension uids. Groups and levels are expanded to their member
-   * org units for SQL filtering purposes.
+   * org units for SQL filtering purposes. Explicit org units are kept in the result (union
+   * semantics, used by org unit typed data element filters).
    *
    * @param queryFilter the query filter containing the organisation unit filter
    * @param userOrgUnits the user organisation units
    * @return the organisation unit dimension uids
    */
   public String resolveOrgUnits(QueryFilter queryFilter, List<OrganisationUnit> userOrgUnits) {
+    return resolveOrgUnits(queryFilter, userOrgUnits, false);
+  }
+
+  /**
+   * Resolve organisation units from the given query filter, applying boundary semantics when the
+   * item is a stage.ou dimension (explicit org units only scope the LEVEL-/OU_GROUP- expansion) and
+   * union semantics otherwise.
+   *
+   * @param queryFilter the query filter containing the organisation unit filter
+   * @param userOrgUnits the user organisation units
+   * @param item the query item the filter belongs to
+   * @return the organisation unit dimension uids
+   */
+  public String resolveOrgUnits(
+      QueryFilter queryFilter, List<OrganisationUnit> userOrgUnits, QueryItem item) {
+    return resolveOrgUnits(queryFilter, userOrgUnits, isStageOuDimension(item));
+  }
+
+  private String resolveOrgUnits(
+      QueryFilter queryFilter, List<OrganisationUnit> userOrgUnits, boolean orgUnitsAsBoundaries) {
     List<String> filterItem = QueryFilter.getFilterItems(queryFilter.getFilter());
     List<String> orgUnitDimensionUid =
-        dimensionalObjectProducer.getOrgUnitDimensionUid(filterItem, userOrgUnits, true);
+        dimensionalObjectProducer.getOrgUnitDimensionUid(
+            filterItem, userOrgUnits, true, orgUnitsAsBoundaries);
 
     // Throw E7143 if no valid org units were resolved (mirrors standard ou: dimension behavior)
     if (orgUnitDimensionUid.isEmpty()) {
@@ -120,7 +142,8 @@ public class OrganisationUnitResolver {
     for (QueryItem queryItem : params.getItems()) {
       if (queryItem.getValueType().isOrganisationUnit()) {
         for (QueryFilter queryFilter : queryItem.getFilters()) {
-          String resolveOrgUnits = resolveOrgUnits(queryFilter, params.getUserOrgUnits());
+          String resolveOrgUnits =
+              resolveOrgUnits(queryFilter, params.getUserOrgUnits(), queryItem);
           if (StringUtils.isNotBlank(resolveOrgUnits)) {
             orgUnitIds.addAll(Arrays.asList(resolveOrgUnits.split(OPTION_SEP)));
           }
@@ -162,7 +185,7 @@ public class OrganisationUnitResolver {
    */
   public List<String> resolveOrgUnits(EventQueryParams params, QueryItem item) {
     return item.getFilters().stream()
-        .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
+        .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits(), item))
         .map(s -> s.split(DimensionConstants.OPTION_SEP))
         .flatMap(Arrays::stream)
         .distinct()

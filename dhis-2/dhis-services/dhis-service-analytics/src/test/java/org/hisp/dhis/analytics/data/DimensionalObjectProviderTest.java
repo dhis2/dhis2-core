@@ -373,10 +373,50 @@ class DimensionalObjectProviderTest {
     List<String> itemsUid = List.of("LEVEL-2", boundary.getUid());
 
     // When
-    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true);
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, true);
 
     // Then
     assertEquals(List.of(level2Ou1.getUid(), level2Ou2.getUid()), result);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionUidWithLevelKeepsExplicitOrgUnitsWithUnionSemantics() {
+    // Given
+    OrganisationUnit ou = createOrganisationUnit('A');
+    OrganisationUnit level2Ou1 = createOrganisationUnit('B');
+    OrganisationUnit level2Ou2 = createOrganisationUnit('C');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, ou.getUid())).thenReturn(ou);
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
+    when(organisationUnitService.getOrganisationUnitsAtLevels(List.of(2), List.of(ou)))
+        .thenReturn(new ArrayList<>(asList(level2Ou1, level2Ou2)));
+
+    List<String> itemsUid = List.of("LEVEL-2", ou.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, false);
+
+    // Then
+    assertEquals(List.of(ou.getUid(), level2Ou1.getUid(), level2Ou2.getUid()), result);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionUidWithUnionSemanticsIsNotEmptyWhenLevelYieldsNoMembers() {
+    // Given an org unit below the requested level, so the level expansion yields nothing
+    OrganisationUnit ou = createOrganisationUnit('A');
+
+    when(idObjectManager.getObject(OrganisationUnit.class, UID, ou.getUid())).thenReturn(ou);
+    when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("1")).thenReturn(1);
+    when(organisationUnitService.getOrganisationUnitsAtLevels(List.of(1), List.of(ou)))
+        .thenReturn(new ArrayList<>());
+
+    List<String> itemsUid = List.of("LEVEL-1", ou.getUid());
+
+    // When
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, false);
+
+    // Then
+    assertEquals(List.of(ou.getUid()), result);
   }
 
   @Test
@@ -397,7 +437,7 @@ class DimensionalObjectProviderTest {
     List<String> itemsUid = List.of("OU_GROUP-" + group.getUid(), boundary.getUid());
 
     // When
-    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true);
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, true);
 
     // Then
     assertEquals(List.of(member1.getUid(), member2.getUid()), result);
@@ -415,7 +455,7 @@ class DimensionalObjectProviderTest {
     List<String> itemsUid = List.of(ou1.getUid(), ou2.getUid());
 
     // When
-    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true);
+    List<String> result = target.getOrgUnitDimensionUid(itemsUid, List.of(), true, true);
 
     // Then
     assertEquals(List.of(ou1.getUid(), ou2.getUid()), result);

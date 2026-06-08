@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,6 +51,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -107,7 +109,7 @@ class OrganisationUnitResolverTest {
     EventQueryParams params = new EventQueryParams.Builder().withUserOrgUnits(List.of()).build();
 
     when(dimensionalObjectProducer.getOrgUnitDimensionUid(
-            List.of("LEVEL-wjP19dkFeIk", "ImspTQPwCqd"), List.of(), true))
+            List.of("LEVEL-wjP19dkFeIk", "ImspTQPwCqd"), List.of(), true, true))
         .thenReturn(List.of(resolvedDistrict.getUid()));
     when(organisationUnitService.getOrganisationUnitsByUid(List.of(resolvedDistrict.getUid())))
         .thenReturn(List.of(resolvedDistrict));
@@ -122,6 +124,58 @@ class OrganisationUnitResolverTest {
     assertFalse(context.filterCondition().contains("ImspTQPwCqd"));
     assertFalse(context.filterCondition().contains("uidlevel1"));
     assertTrue(context.additionalSelectColumns().contains("\"ouname\" as ev_ouname"));
+  }
+
+  @Test
+  void resolveOrgUnitsAppliesUnionSemanticsForOrgUnitDataElementFilters() {
+    // Given
+    DataElement orgUnitDataElement = createDataElement('B');
+    orgUnitDataElement.setValueType(ValueType.ORGANISATION_UNIT);
+    QueryItem dataElementItem =
+        new QueryItem(
+            orgUnitDataElement,
+            null,
+            orgUnitDataElement.getValueType(),
+            orgUnitDataElement.getAggregationType(),
+            null);
+    QueryFilter filter = new QueryFilter(QueryOperator.IN, "OI0BQUurVFS;LEVEL-H1KlN4QIauv");
+
+    when(dimensionalObjectProducer.getOrgUnitDimensionUid(
+            List.of("OI0BQUurVFS", "LEVEL-H1KlN4QIauv"), List.of(), true, false))
+        .thenReturn(List.of("OI0BQUurVFS"));
+
+    // When
+    String result = resolver.resolveOrgUnits(filter, List.of(), dataElementItem);
+
+    // Then
+    assertEquals("OI0BQUurVFS", result);
+  }
+
+  @Test
+  void resolveOrgUnitsAppliesBoundarySemanticsForStageOuDimension() {
+    // Given
+    Program program = createProgram('A');
+    ProgramStage programStage = createProgramStage('S', program);
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject("ou"),
+            program,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(programStage);
+    QueryFilter filter = new QueryFilter(QueryOperator.IN, "LEVEL-wjP19dkFeIk;ImspTQPwCqd");
+
+    when(dimensionalObjectProducer.getOrgUnitDimensionUid(
+            List.of("LEVEL-wjP19dkFeIk", "ImspTQPwCqd"), List.of(), true, true))
+        .thenReturn(List.of("O6uvpzGd5pu"));
+
+    // When
+    String result = resolver.resolveOrgUnits(filter, List.of(), stageOuItem);
+
+    // Then
+    assertEquals("O6uvpzGd5pu", result);
   }
 
   @Test

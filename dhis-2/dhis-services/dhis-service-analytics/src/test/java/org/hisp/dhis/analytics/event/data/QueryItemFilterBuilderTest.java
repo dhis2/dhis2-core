@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
@@ -67,7 +66,7 @@ class QueryItemFilterBuilderTest {
   }
 
   @Test
-  void extractFiltersAsSqlAppliesResolverBoundarySemanticsForOrgUnitDataElementFilters() {
+  void extractFiltersAsSqlKeepsExplicitOrgUnitsForOrgUnitDataElementFilters() {
     // Given
     OrganisationUnit userOrgUnit = createOrganisationUnit('A');
     DataElement orgUnitDataElement = createDataElement('B');
@@ -86,15 +85,15 @@ class QueryItemFilterBuilderTest {
     EventQueryParams params =
         new EventQueryParams.Builder().withUserOrgUnits(List.of(userOrgUnit)).build();
 
-    when(organisationUnitResolver.resolveOrgUnits(same(filter), anyList()))
-        .thenReturn("O6uvpzGd5pu;fdc6uOvgoji");
+    // Union semantics: group members plus the explicit org unit
+    when(organisationUnitResolver.resolveOrgUnits(same(filter), anyList(), same(item)))
+        .thenReturn("ImspTQPwCqd;O6uvpzGd5pu;fdc6uOvgoji");
 
     // When
     String sql = target.extractFiltersAsSql(item, "event_ou", params);
 
     // Then
-    assertEquals("event_ou in ('O6uvpzGd5pu','fdc6uOvgoji')", sql);
-    assertFalse(sql.contains("ImspTQPwCqd"));
-    verify(organisationUnitResolver).resolveOrgUnits(filter, List.of(userOrgUnit));
+    assertEquals("event_ou in ('ImspTQPwCqd','O6uvpzGd5pu','fdc6uOvgoji')", sql);
+    verify(organisationUnitResolver).resolveOrgUnits(filter, List.of(userOrgUnit), item);
   }
 }

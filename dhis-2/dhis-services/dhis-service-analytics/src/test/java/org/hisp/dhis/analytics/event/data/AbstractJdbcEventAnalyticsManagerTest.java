@@ -1107,7 +1107,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("A;B;C");
 
     // When
@@ -1133,7 +1134,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndpointAction(AGGREGATE)
             .withEndpointItem(ENROLLMENT)
             .build();
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("A;B;C");
 
     // When
@@ -1209,7 +1211,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndDate(new Date())
             .build();
 
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("ouA;ouB");
 
     String sql = eventSubject.toSql(queryItem, filter, params).trim();
