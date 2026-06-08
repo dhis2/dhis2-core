@@ -78,7 +78,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.8.0</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.8.1</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -167,7 +167,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.2</jsmpp.version>
     <json-path.version>2.10.0</json-path.version>
-    <jsoup.version>1.22.1</jsoup.version>
+    <jsoup.version>1.22.2</jsoup.version>
     <jetty.version>10.0.24</jetty.version>
 
     <!-- Div. utils -->
