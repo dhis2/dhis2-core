@@ -210,7 +210,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   @Override
   @Transactional(readOnly = true)
   public void decideAccessEventAnalyticsAuthority() {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetailsOrNull();
 
     boolean notAuthorized =
         currentUser != null && !currentUser.isAuthorized(F_VIEW_EVENT_ANALYTICS);
