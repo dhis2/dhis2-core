@@ -56,7 +56,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.fileresource.FileResourceContentStore")
+@Service
 public class BlobStoreFileResourceContentStore implements FileResourceContentStore {
   private static final long FIVE_MINUTES_IN_SECONDS = 300L;
 
