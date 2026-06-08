@@ -27,28 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.variable;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.program.AnalyticsType;
-
-/**
- * Program indicator variable: enrollment status
- *
- * @author Jim Grace
- */
-public class vEnrollmentStatus implements ProgramVariable {
-  @Override
-  public final Object defaultVariableValue() {
-    return "COMPLETED";
-  }
-
-  @Override
-  public Object getSql(CommonExpressionVisitor visitor) {
-    if (AnalyticsType.EVENT == visitor.getProgParams().getProgramIndicator().getAnalyticsType()) {
-      return "enrollmentstatus";
-    }
-
-    return "enrollmentstatus";
-  }
-}
+/** Wraps a raw JSON string so that serializers can emit it as inline JSON rather than a string. */
+public record RawJsonValue(String value) {}
