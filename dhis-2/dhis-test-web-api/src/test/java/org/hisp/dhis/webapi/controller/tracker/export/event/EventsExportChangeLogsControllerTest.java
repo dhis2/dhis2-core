@@ -383,21 +383,39 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
   }
 
   private void updateDataValue(String value) {
+    String body = createDataValueJson(event, value);
+    startNewRequestSession();
     JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createDataValueJson(event, value))
+        POST("/tracker?async=false&importStrategy=UPDATE", body)
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
   }
 
   private void updateScheduledAtEventField(String value) {
+    String body = createScheduledAtEventFieldJson(event, value);
+    startNewRequestSession();
     JsonWebMessage importResponse =
-        POST(
-                "/tracker?async=false&importStrategy=UPDATE",
-                createScheduledAtEventFieldJson(event, value))
+        POST("/tracker?async=false&importStrategy=UPDATE", body)
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+  }
+
+  /**
+   * Simulates a fresh per-request {@code EntityManager}. {@code /api/tracker/**} is excluded from
+   * the {@code ConditionalOpenEntityManagerInViewFilter} (OSIV is deliberately off for tracker), so
+   * its Hibernate session is transaction-scoped: it is opened for the import's
+   * {@code @Transactional} boundary and closed when that transaction completes, so each {@code
+   * /tracker} request starts with a fresh persistence context. These MockMvc tests otherwise share
+   * one thread-bound session across imports; since the tracker importer writes via JDBC (bypassing
+   * Hibernate), a previous import's now-stale managed entity would linger in the L1 cache and be
+   * returned to the next import's preheat. Flushing then clearing the session between imports
+   * reproduces the production per-request isolation.
+   */
+  private void startNewRequestSession() {
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
   }
 
   private TrackedEntity trackedEntity() {
