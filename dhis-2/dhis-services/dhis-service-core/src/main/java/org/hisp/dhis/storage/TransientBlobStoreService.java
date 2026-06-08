@@ -85,8 +85,8 @@ public class TransientBlobStoreService implements BlobStoreService {
    *     {@code apps/my-app/index.html})
    * @param content the data to store; must be open and positioned at the start when passed in;
    *     exactly {@code contentLength} bytes will be read
-   * @param contentLength the number of bytes in {@code content}; rejects anything larger than
-   *     Integer.MAX_VALUE up-front
+   * @param contentLength the number of bytes in {@code content}; rejected if larger than {@code
+   *     Integer.MAX_VALUE} since this in-memory backend stores payloads as a {@code byte[]}
    * @param contentType MIME type of the blob (e.g. {@code "image/png"}); unused in this
    *     implementation.
    * @param contentDisposition how the blob should be presented when downloaded (e.g. {@code
