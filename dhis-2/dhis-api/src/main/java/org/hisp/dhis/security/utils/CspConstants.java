@@ -50,10 +50,8 @@ public class CspConstants {
 
   public static final Pattern P_6 = Pattern.compile("^.+audits/files/[a-zA-Z\\d]+$");
 
-  public static final Pattern P_7 = Pattern.compile("^.+externalFileResources/[a-zA-Z\\d]+$");
-
   public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS =
-      List.of(P_1, P_2, P_3, P_4, P_5, P_6, P_7);
+      List.of(P_1, P_2, P_3, P_4, P_5, P_6);
 
   public static final Pattern LOGIN_PATTERN = Pattern.compile("^.+/dhis-web-commons/security/.+$");
 }

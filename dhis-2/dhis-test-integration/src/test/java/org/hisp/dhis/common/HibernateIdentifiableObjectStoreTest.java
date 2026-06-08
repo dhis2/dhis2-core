@@ -124,7 +124,6 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
     dataElement.setCreatedBy(admin);
     dataElement.setSharing(
         Sharing.builder()
-            .external(false)
             .publicAccess(AccessStringHelper.DEFAULT)
             .owner("testOwner")
             .userGroups(userGroupSharing)
@@ -182,7 +181,6 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
         userGroup2.getUid(), new UserGroupAccess(userGroup2, AccessStringHelper.DEFAULT));
     Sharing sharing =
         Sharing.builder()
-            .external(false)
             .publicAccess(AccessStringHelper.DEFAULT)
             .owner("testOwner")
             .userGroups(userGroupSharing)

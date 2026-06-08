@@ -45,6 +45,5 @@ public interface CategoryOptionMapper extends PreheatMapper<CategoryOption> {
   @Mapping(target = "publicAccess", ignore = true)
   @Mapping(target = "userAccesses", ignore = true)
   @Mapping(target = "userGroupAccesses", ignore = true)
-  @Mapping(target = "externalAccess", ignore = true)
   CategoryOption map(CategoryOption categoryOption);
 }

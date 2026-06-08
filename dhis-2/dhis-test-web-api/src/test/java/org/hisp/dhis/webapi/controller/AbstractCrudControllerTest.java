@@ -925,7 +925,6 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
         GET("/programs/{id}", programId).content().as(JsonIdentifiableObject.class);
     assertTrue(program.exists());
     assertEquals("rwrw----", program.getSharing().getPublic().string());
-    assertFalse(program.getSharing().isExternal(), "programs cannot be external");
   }
 
   @Test

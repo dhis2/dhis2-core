@@ -55,8 +55,6 @@ import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.fileresource.ExternalFileResourceService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -99,8 +97,6 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
   private final SystemSettingManager systemSettingManager;
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
-
-  private final ExternalFileResourceService externalFileResourceService;
 
   private final FileResourceService fileResourceService;
 
@@ -401,11 +397,11 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
   }
 
   /**
-   * Uploads a byte array using FileResource and ExternalFileResource
+   * Persists the given image as a {@link FileResource} and returns an absolute URL pointing to it.
    *
    * @param name name of the file to be stored
    * @param bytes the byte array representing the file to be stored
-   * @return url pointing to the uploaded resource
+   * @return url pointing to the stored file resource
    */
   private String uploadImage(String name, byte[] bytes) throws IOException {
     FileResource fileResource =
@@ -416,34 +412,10 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
             bytes.length,
             ByteSource.wrap(bytes).hash(Hashing.md5()).toString(),
             FileResourceDomain.PUSH_ANALYSIS);
-
-    String accessToken = saveFileResource(fileResource, bytes);
-
-    return dhisConfigurationProvider.getServerBaseUrl()
-        + "/api/externalFileResources/"
-        + accessToken;
-  }
-
-  /**
-   * Helper method for asynchronous file resource saving. Done to force a new session for each file
-   * resource. Adding all the file resources in the same session caused problems with the upload
-   * callback.
-   *
-   * @param fileResource file resource to save
-   * @param bytes file data
-   * @return access token of the external file resource
-   */
-  private String saveFileResource(FileResource fileResource, byte[] bytes) {
-    ExternalFileResource externalFileResource = new ExternalFileResource();
-
-    externalFileResource.setExpires(null);
-
     fileResource.setAssigned(true);
 
     String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, bytes);
 
-    externalFileResource.setFileResource(fileResourceService.getFileResource(fileResourceUid));
-
-    return externalFileResourceService.saveExternalFileResource(externalFileResource);
+    return dhisConfigurationProvider.getServerBaseUrl() + "/api/fileResources/" + fileResourceUid;
   }
 }

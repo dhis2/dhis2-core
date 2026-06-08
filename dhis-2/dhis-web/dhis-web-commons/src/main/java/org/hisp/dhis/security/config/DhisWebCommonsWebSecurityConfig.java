@@ -49,7 +49,6 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
-import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
@@ -112,8 +111,6 @@ public class DhisWebCommonsWebSecurityConfig {
     private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
 
     @Autowired private DhisConfigurationProvider dhisConfig;
-
-    @Autowired private ExternalAccessVoter externalAccessVoter;
 
     @Autowired TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
@@ -373,7 +370,6 @@ public class DhisWebCommonsWebSecurityConfig {
               new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
               new UnanimousBased(List.of(actionAccessVoter(), moduleAccessVoter())),
               new UnanimousBased(List.of(webExpressionVoter())),
-              new UnanimousBased(List.of(externalAccessVoter)),
               new UnanimousBased(List.of(new AuthenticatedVoter())));
       return new LogicalOrAccessDecisionManager(decisionVoters);
     }

@@ -36,13 +36,7 @@ import org.hisp.dhis.node.types.ComplexNode;
  */
 public interface FieldFilterService {
   List<String> SHARING_FIELDS =
-      List.of(
-          "!user",
-          "!publicAccess",
-          "!userGroupAccesses",
-          "!userAccesses",
-          "!externalAccess",
-          "!sharing");
+      List.of("!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!sharing");
 
   /** Perform inclusion/exclusion on a list of objects. */
   ComplexNode toComplexNode(FieldFilterParams params);

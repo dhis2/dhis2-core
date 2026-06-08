@@ -195,7 +195,6 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
     userGroupSharing.put(userGroup.getUid(), new UserGroupAccess(userGroup, accessStringHelper));
     return Sharing.builder()
-        .external(false)
         .publicAccess(AccessStringHelper.DEFAULT)
         .owner("testOwner")
         .userGroups(userGroupSharing)

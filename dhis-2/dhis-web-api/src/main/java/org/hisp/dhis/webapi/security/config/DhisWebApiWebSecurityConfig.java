@@ -56,7 +56,6 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
-import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
@@ -356,8 +355,6 @@ public class DhisWebApiWebSecurityConfig {
 
     @Autowired private CacheProvider cacheProvider;
 
-    @Autowired private ExternalAccessVoter externalAccessVoter;
-
     @Autowired
     private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
 
@@ -424,7 +421,6 @@ public class DhisWebApiWebSecurityConfig {
           Arrays.asList(
               new UnanimousBased(List.of(new SimpleAccessVoter("ALL"))),
               new UnanimousBased(List.of(apiWebExpressionVoter())),
-              new UnanimousBased(List.of(externalAccessVoter)),
               new UnanimousBased(List.of(new AuthenticatedVoter())));
 
       return new LogicalOrAccessDecisionManager(decisionVoters);
@@ -472,8 +468,6 @@ public class DhisWebApiWebSecurityConfig {
           .antMatchers(apiContextPath + "/**/account")
           .permitAll()
           .antMatchers(apiContextPath + "/**/staticContent/**")
-          .permitAll()
-          .antMatchers(apiContextPath + "/**/externalFileResources/**")
           .permitAll()
           .antMatchers(apiContextPath + "/**/icons/*/icon.svg")
           .permitAll()

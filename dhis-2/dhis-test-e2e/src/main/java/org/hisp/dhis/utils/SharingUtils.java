@@ -53,8 +53,6 @@ public class SharingUtils {
       sharing.addProperty("owner", owner);
     }
 
-    sharing.addProperty("external", false);
-
     if (!MapUtils.isEmpty(userGroups)) {
       JsonObject userGroupObject = new JsonObject();
       userGroups

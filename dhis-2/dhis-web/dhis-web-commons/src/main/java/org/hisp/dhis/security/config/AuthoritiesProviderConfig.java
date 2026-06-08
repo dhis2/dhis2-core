@@ -51,7 +51,6 @@ import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.security.intercept.XWorkSecurityInterceptor;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webportal.module.ModuleManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -81,8 +80,6 @@ public class AuthoritiesProviderConfig {
   @Autowired
   @Qualifier("org.hisp.dhis.organisationunit.OrganisationUnitService")
   public OrganisationUnitService organisationUnitService;
-
-  @Autowired private ExternalAccessVoter externalAccessVoter;
 
   @Autowired
   @Qualifier("accessDecisionManager")

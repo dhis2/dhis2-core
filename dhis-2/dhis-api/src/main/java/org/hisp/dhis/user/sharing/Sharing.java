@@ -66,10 +66,6 @@ public class Sharing implements Serializable {
   @JacksonXmlProperty(localName = "public", namespace = DxfNamespaces.DXF_2_0)
   private String publicAccess;
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private boolean external;
-
   /** Map of user access. Key is user UID. */
   @JsonProperty
   @Builder.Default
@@ -153,7 +149,6 @@ public class Sharing implements Serializable {
 
   public Sharing copy() {
     return builder()
-        .external(this.external)
         .publicAccess(this.publicAccess)
         .owner(this.owner)
         .users(new HashMap<>(users))
@@ -173,7 +168,6 @@ public class Sharing implements Serializable {
    */
   public Sharing withAccess(UnaryOperator<String> accessTransformation) {
     return builder()
-        .external(external)
         .publicAccess(accessTransformation.apply(publicAccess))
         .owner(owner)
         .users(
@@ -202,7 +196,6 @@ public class Sharing implements Serializable {
    */
   public Sharing withUserAndUserGroupAccess(UnaryOperator<String> accessTransformation) {
     return builder()
-        .external(external)
         .publicAccess(publicAccess)
         .owner(owner)
         .users(
