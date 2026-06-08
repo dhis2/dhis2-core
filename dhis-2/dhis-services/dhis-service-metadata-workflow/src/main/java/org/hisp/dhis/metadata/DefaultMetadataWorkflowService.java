@@ -60,6 +60,7 @@ import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -308,10 +309,8 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService {
   }
 
   private void validateSameUser(MetadataProposal proposal) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (currentUser != null
-        && !currentUser.isSuper()
-        && currentUser.getUid().equals(proposal.getCreatedBy().getUid())) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (!currentUser.isSuper() && !currentUser.getUid().equals(proposal.getCreatedBy().getUid())) {
       throw new IllegalStateException("Only the user created the proposal can adjust it later.");
     }
   }

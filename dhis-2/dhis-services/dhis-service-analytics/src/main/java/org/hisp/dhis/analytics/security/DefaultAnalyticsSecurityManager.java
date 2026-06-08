@@ -210,7 +210,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   @Override
   @Transactional(readOnly = true)
   public void decideAccessEventAnalyticsAuthority() {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     boolean notAuthorized =
         currentUser != null && !currentUser.isAuthorized(F_VIEW_EVENT_ANALYTICS);
@@ -235,7 +235,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   public DataQueryParams withDataApprovalConstraints(DataQueryParams params) {
     DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder(params);
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     boolean hideUnapprovedData =
         settingsProvider.getCurrentSettings().isHideUnapprovedDataInAnalytics();

@@ -625,7 +625,7 @@ public class DefaultUserService implements UserService {
     User user = userStore.getUserByOpenId(openId);
 
     if (user != null) {
-      user.getAllAuthorities();
+      user.getAuthorities();
     }
 
     return user;

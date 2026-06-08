@@ -29,12 +29,10 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Collection;
-import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -68,19 +66,9 @@ public class CurrentUserUtil {
    */
   @Nonnull
   public static String getCurrentUsername() {
-    Authentication authentication = getAuthentication();
-
-    Object principal = authentication.getPrincipal();
-
-    if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-      org.springframework.security.core.userdetails.UserDetails userDetails =
-          (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
-      return userDetails.getUsername();
-
-    } else {
-      throw new IllegalStateException(
-          "Authentication principal is not supported; principal:" + principal);
-    }
+    UserDetails details = getCurrentUserDetailsOrNull();
+    if (details != null) return details.getUsername();
+    throw noUserDetailsPrincipal();
   }
 
   /**
@@ -90,53 +78,28 @@ public class CurrentUserUtil {
    */
   @Nonnull
   public static UserDetails getCurrentUserDetails() {
-    Authentication authentication = getAuthentication();
-
-    Object principal = authentication.getPrincipal();
-
-    if (principal instanceof UserDetails) {
-      return (UserDetails) authentication.getPrincipal();
-    } else {
-      throw new IllegalStateException(
-          "Authentication principal is not supported; principal:" + principal);
-    }
+    UserDetails res = getCurrentUserDetailsOrNull();
+    if (res != null) return res;
+    throw noUserDetailsPrincipal();
   }
 
-  /**
-   * Get all authorities assigned to the current user Return an empty list if the current session is
-   * anonymous
-   *
-   * @return list of authority names
-   */
-  public static List<String> getCurrentUserAuthorities() {
-    if (!CurrentUserUtil.hasCurrentUser()) {
-      return List.of();
-    }
-
-    UserDetails currentUserDetails = getCurrentUserDetails();
-    return currentUserDetails.getAuthorities().stream()
-        .map(GrantedAuthority::getAuthority)
-        .toList();
+  private static IllegalStateException noUserDetailsPrincipal() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Object principal = authentication == null ? null : authentication.getPrincipal();
+    return new IllegalStateException(
+        "Authentication principal is not supported; principal:" + principal);
   }
 
-  /**
-   * Check if the current user has any of the passed candidate authorities
-   *
-   * @param candidateAuthorities a list of possible authorities to check against
-   * @return true if the user has one or more of the candidateAuthorities
-   */
-  public static Boolean hasAnyAuthority(Collection<String> candidateAuthorities) {
-    List<String> currentUserAuthorities = getCurrentUserAuthorities();
-    return candidateAuthorities.stream().anyMatch(currentUserAuthorities::contains);
+  @CheckForNull
+  public static UserDetails getCurrentUserDetailsOrNull() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null) return null;
+    if ((authentication.getPrincipal() instanceof UserDetails details)) return details;
+    return null;
   }
 
   public static boolean hasCurrentUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return authentication != null
-        && authentication.isAuthenticated()
-        && authentication.getPrincipal() != null
-        && authentication.getPrincipal()
-            instanceof org.springframework.security.core.userdetails.UserDetails;
+    return getCurrentUserDetailsOrNull() != null;
   }
 
   public static void injectUserInSecurityContext(UserDetails actingUser) {

@@ -46,6 +46,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -225,7 +226,7 @@ public class MessageConversation extends BaseIdentifiableObject {
 
   public void markReplied(User sender, Message message) {
     for (UserMessage userMessage : userMessages) {
-      User user = userMessage.getUser();
+      UserDetails user = UserDetails.fromUser(userMessage.getUser());
       if (user != null
           && !user.equals(sender)
           && (!message.isInternal()

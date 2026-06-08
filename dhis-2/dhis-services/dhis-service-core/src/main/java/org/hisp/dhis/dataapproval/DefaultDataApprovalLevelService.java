@@ -53,6 +53,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -403,7 +404,8 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
   public Map<OrganisationUnit, Integer> getUserReadApprovalLevels() {
     Map<OrganisationUnit, Integer> map = new HashMap<>();
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    User user = userService.getUserByUsername(currentUser.getUsername());
 
     List<DataApprovalLevel> approvalLevels = getAllDataApprovalLevels();
 
@@ -412,12 +414,12 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
     // ---------------------------------------------------------------------
 
     if (currentUser.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS)) {
-      for (OrganisationUnit orgUnit : currentUser.getOrganisationUnits()) {
+      for (OrganisationUnit orgUnit : user.getOrganisationUnits()) {
         map.put(orgUnit, APPROVAL_LEVEL_UNAPPROVED);
       }
     } else {
-      for (OrganisationUnit orgUnit : currentUser.getOrganisationUnits()) {
-        int level = requiredApprovalLevel(orgUnit, currentUser, approvalLevels);
+      for (OrganisationUnit orgUnit : user.getOrganisationUnits()) {
+        int level = requiredApprovalLevel(orgUnit, user, approvalLevels);
 
         map.put(orgUnit, level);
       }
@@ -427,7 +429,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
     // Add data view organisation units with approval levels
     // ---------------------------------------------------------------------
 
-    Collection<OrganisationUnit> dataViewOrgUnits = currentUser.getDataViewOrganisationUnits();
+    Collection<OrganisationUnit> dataViewOrgUnits = user.getDataViewOrganisationUnits();
 
     if (dataViewOrgUnits == null || dataViewOrgUnits.isEmpty()) {
       dataViewOrgUnits = organisationUnitService.getRootOrganisationUnits();
@@ -435,7 +437,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
 
     for (OrganisationUnit orgUnit : dataViewOrgUnits) {
       if (!map.containsKey(orgUnit)) {
-        int level = requiredApprovalLevel(orgUnit, currentUser, approvalLevels);
+        int level = requiredApprovalLevel(orgUnit, user, approvalLevels);
 
         map.put(orgUnit, level);
       }

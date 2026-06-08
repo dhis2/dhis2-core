@@ -30,24 +30,17 @@
 package org.hisp.dhis.user;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
-import org.springframework.security.core.GrantedAuthority;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class SystemUser implements UserDetails {
-
-  @Nonnull
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of((GrantedAuthority) Authorities.ALL::name);
-  }
 
   @Nonnull
   @Override
@@ -124,6 +117,11 @@ public class SystemUser implements UserDetails {
   @Override
   public String getEmail() {
     return "";
+  }
+
+  @Override
+  public UID getAvatar() {
+    return null;
   }
 
   @Nonnull

@@ -41,9 +41,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
-import org.springframework.security.core.GrantedAuthority;
 
 @Getter
 @Builder
@@ -72,7 +72,6 @@ public class UserDetailsImpl implements UserDetails {
       @JsonProperty("accountNonLocked") boolean accountNonLocked,
       @JsonProperty("credentialsNonExpired") boolean credentialsNonExpired,
       @JsonProperty("dataViewMaxOrganisationUnitLevel") int dataViewMaxOrganisationUnitLevel,
-      @JsonProperty("authorities") Collection<GrantedAuthority> authorities,
       @JsonProperty("allAuthorities") Set<String> allAuthorities,
       @JsonProperty("allRestrictions") Set<String> allRestrictions,
       @JsonProperty("userGroupIds") Set<String> userGroupIds,
@@ -102,7 +101,6 @@ public class UserDetailsImpl implements UserDetails {
         .accountNonLocked(accountNonLocked)
         .credentialsNonExpired(credentialsNonExpired)
         .dataViewMaxOrganisationUnitLevel(dataViewMaxOrganisationUnitLevel)
-        .authorities(authorities)
         .allAuthorities(allAuthorities)
         .allRestrictions(allRestrictions)
         .userGroupIds(userGroupIds)
@@ -129,6 +127,7 @@ public class UserDetailsImpl implements UserDetails {
   private final TwoFactorType twoFactorType;
   private final String secret;
   private final String email;
+  private final UID avatar;
   private final boolean isEmailVerified;
   private final boolean enabled;
   private final boolean accountNonExpired;
@@ -136,7 +135,6 @@ public class UserDetailsImpl implements UserDetails {
   private final boolean credentialsNonExpired;
   private final boolean isSuper;
   private final Integer dataViewMaxOrganisationUnitLevel;
-  @Nonnull private final Collection<GrantedAuthority> authorities;
   @Nonnull private final Set<String> allAuthorities;
   @Nonnull private final Set<String> allRestrictions;
   @Nonnull private final Set<String> userGroupIds;
@@ -159,7 +157,7 @@ public class UserDetailsImpl implements UserDetails {
       return true;
     }
 
-    return auths.containsAll(other.getAllAuthorities());
+    return auths.containsAll(other.getAuthorities());
   }
 
   @Override

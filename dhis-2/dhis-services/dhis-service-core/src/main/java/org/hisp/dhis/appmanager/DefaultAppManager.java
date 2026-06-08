@@ -84,6 +84,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -553,12 +554,12 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public boolean isAccessible(App app) {
-    return ALWAYS_ACCESSIBLE_APPS.contains(app.getKey())
-        || CurrentUserUtil.hasAnyAuthority(
-            List.of(
-                Authorities.ALL.toString(),
-                Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(),
-                app.getSeeAppAuthority()));
+    if (ALWAYS_ACCESSIBLE_APPS.contains(app.getKey())) return true;
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetailsOrNull();
+    if (currentUser == null) return false;
+    if (currentUser.isSuper()) return true;
+    return currentUser.hasAnyAuthority(
+        Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(), app.getSeeAppAuthority());
   }
 
   @Override

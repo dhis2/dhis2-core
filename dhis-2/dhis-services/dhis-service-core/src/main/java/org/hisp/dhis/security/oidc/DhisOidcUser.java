@@ -33,7 +33,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.User;
@@ -159,6 +161,12 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   @Override
   public String getEmail() {
     return user.getEmail();
+  }
+
+  @CheckForNull
+  @Override
+  public UID getAvatar() {
+    return user.getAvatar();
   }
 
   @Nonnull

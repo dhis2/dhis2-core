@@ -194,7 +194,7 @@ public class MeController {
         settingKeys.isEmpty() ? settings.toJson(false) : settings.toJson(true, settingKeys);
     MeDto meDto =
         new MeDto(user, s, programs, dataSets, patTokens, filteredUserGroups, filteredUserRoles);
-    determineUserImpersonation(meDto, user.getAllAuthorities(), request);
+    determineUserImpersonation(meDto, user.getAuthorities(), request);
 
     ObjectNode jsonNodes = fieldFilterService.toObjectNodes(of(meDto, fields)).get(0);
 
@@ -318,14 +318,14 @@ public class MeController {
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<String>> getAuthorities(
       @CurrentUser(required = true) User currentUser) {
-    return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.getAllAuthorities());
+    return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.getAuthorities());
   }
 
   @GetMapping(
       value = {"/authorization/{authority}", "/authorities/{authority}"},
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> hasAuthority(
-      @PathVariable String authority, @CurrentUser(required = true) User currentUser) {
+      @PathVariable String authority, @CurrentUser(required = true) UserDetails currentUser) {
     return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.isAuthorized(authority));
   }
 
