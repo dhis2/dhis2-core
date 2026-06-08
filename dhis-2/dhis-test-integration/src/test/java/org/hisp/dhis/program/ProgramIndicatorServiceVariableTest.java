@@ -173,7 +173,7 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @Test
   void testEnrollmentStatus() {
-    assertEquals("pistatus", getSql("V{enrollment_status}"));
+    assertEquals("enrollmentstatus", getSql("V{enrollment_status}"));
     assertEquals("enrollmentstatus", getSqlEnrollment("V{enrollment_status}"));
   }
 
