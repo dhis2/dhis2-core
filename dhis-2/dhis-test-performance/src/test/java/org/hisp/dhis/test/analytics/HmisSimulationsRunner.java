@@ -46,7 +46,7 @@ public class HmisSimulationsRunner extends Simulation {
 
   public HmisSimulationsRunner() {
     // How users should enter the scenarios.
-    OpenInjectionStep defaultInjectionStep = simpleUsersRumpUp(1, 10);
+    OpenInjectionStep defaultInjectionStep = simpleUsersRumpUp(5, 40);
 
     // Discover and instantiate every AnalyticsSimulation under the hmis package.
     List<AnalyticsSimulation> simulations = discoverSimulations(SIMULATIONS_PACKAGE);
