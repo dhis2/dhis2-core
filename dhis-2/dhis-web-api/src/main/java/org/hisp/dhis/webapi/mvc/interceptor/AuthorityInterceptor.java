@@ -87,7 +87,6 @@ public class AuthorityInterceptor implements HandlerInterceptor {
     if (currentUser == null) throw accessDenied(requires);
     if (currentUser.isSuper()) return;
     if (!currentUser.hasAnyAuthority(requires.anyOf())) throw accessDenied(requires);
-    throw accessDenied(requires);
   }
 
   private static AccessDeniedException accessDenied(RequiresAuthority requires) {
