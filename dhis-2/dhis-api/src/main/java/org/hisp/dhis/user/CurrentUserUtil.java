@@ -85,9 +85,9 @@ public class CurrentUserUtil {
 
   private static IllegalStateException noUserDetailsPrincipal() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Object principal = authentication == null ? null : authentication.getPrincipal();
+    if (authentication == null) return new IllegalStateException("No authentication found");
     return new IllegalStateException(
-        "Authentication principal is not supported; principal:" + principal);
+        "Authentication principal is not supported; principal:" + authentication.getPrincipal());
   }
 
   @CheckForNull
