@@ -199,6 +199,15 @@ class StaticContentControllerTest extends WebSpringTestBase {
   }
 
   @Test
+  void verifyErrorWhenStoringOversizeFile() throws Exception {
+    // 10MB + 1 byte exceeds the default max.file_upload_size (10MB).
+    MockMultipartFile oversize =
+        new MockMultipartFile("file", "huge.png", MIME_PNG, new byte[10_000_001]);
+    mvc.perform(multipart(URL + LOGO_BANNER).file(oversize).session(session))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
   void verifyErrorWhenStoringInvalidKey() throws Exception {
     final String error = buildResponse("Bad Request", 400, "ERROR", "This key is not supported.");
     mvc.perform(multipart(URL + "idontexist").file(mockMultipartFile).session(session))

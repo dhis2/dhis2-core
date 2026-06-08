@@ -29,42 +29,55 @@
  */
 package org.hisp.dhis.common.adapter;
 
-import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.StringWriter;
 import java.util.List;
 import org.hisp.dhis.common.RawJsonValue;
+import org.junit.jupiter.api.Test;
 
-/**
- * TODO switch to <code>jgen.writeObject( field )</code>
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class JacksonRowDataSerializer extends JsonSerializer<List<List<Object>>> {
-  private static final String EMPTY = "";
+class JacksonRowDataSerializerTest {
 
-  @Override
-  public void serialize(List<List<Object>> values, JsonGenerator jgen, SerializerProvider provider)
-      throws IOException {
-    jgen.writeStartArray();
+  private final JacksonRowDataSerializer serializer = new JacksonRowDataSerializer();
 
-    for (List<Object> row : values) {
-      jgen.writeStartArray();
+  @Test
+  void regularStringValuesAreWrappedInJsonStrings() throws Exception {
+    List<List<Object>> rows = List.of(List.of("hello", "world"));
 
-      for (Object field : row) {
-        if (field instanceof RawJsonValue json) {
-          jgen.writeRawValue(json.value());
-        } else {
-          jgen.writeString(field != null ? String.valueOf(maybeFormat(field)) : EMPTY);
-        }
-      }
+    assertEquals("[[\"hello\",\"world\"]]", serialize(rows));
+  }
 
-      jgen.writeEndArray();
-    }
+  @Test
+  void rawJsonValueIsEmittedAsInlineJson() throws Exception {
+    List<List<Object>> rows = List.of(List.of("Alice", new RawJsonValue("{\"key\":\"value\"}")));
 
-    jgen.writeEndArray();
+    assertEquals("[[\"Alice\",{\"key\":\"value\"}]]", serialize(rows));
+  }
+
+  @Test
+  void rawJsonArrayIsEmittedAsInlineJsonArray() throws Exception {
+    List<List<Object>> rows = List.of(List.of(new RawJsonValue("[1,2,3]")));
+
+    assertEquals("[[[1,2,3]]]", serialize(rows));
+  }
+
+  @Test
+  void nullRawJsonValueIsEmittedAsEmptyString() throws Exception {
+    List<Object> row = new java.util.ArrayList<>();
+    row.add(null);
+    List<List<Object>> rows = List.of(row);
+
+    assertEquals("[[\"\"]]", serialize(rows));
+  }
+
+  private String serialize(List<List<Object>> rows) throws Exception {
+    StringWriter writer = new StringWriter();
+    JsonGenerator generator = new JsonFactory().createGenerator(writer);
+    serializer.serialize(rows, generator, new ObjectMapper().getSerializerProvider());
+    generator.flush();
+    return writer.toString();
   }
 }
