@@ -27,44 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import java.io.IOException;
-import java.util.List;
-import org.hisp.dhis.common.RawJsonValue;
-
-/**
- * TODO switch to <code>jgen.writeObject( field )</code>
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class JacksonRowDataSerializer extends JsonSerializer<List<List<Object>>> {
-  private static final String EMPTY = "";
-
-  @Override
-  public void serialize(List<List<Object>> values, JsonGenerator jgen, SerializerProvider provider)
-      throws IOException {
-    jgen.writeStartArray();
-
-    for (List<Object> row : values) {
-      jgen.writeStartArray();
-
-      for (Object field : row) {
-        if (field instanceof RawJsonValue json) {
-          jgen.writeRawValue(json.value());
-        } else {
-          jgen.writeString(field != null ? String.valueOf(maybeFormat(field)) : EMPTY);
-        }
-      }
-
-      jgen.writeEndArray();
-    }
-
-    jgen.writeEndArray();
-  }
-}
+/** Wraps a raw JSON string so that serializers can emit it as inline JSON rather than a string. */
+public record RawJsonValue(String value) {}
