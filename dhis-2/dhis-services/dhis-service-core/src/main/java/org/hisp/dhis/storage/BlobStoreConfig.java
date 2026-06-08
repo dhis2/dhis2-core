@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
-
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+package org.hisp.dhis.storage;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@ExtendWith(MockitoExtension.class)
-class JCloudsStoreTest {
-  @Mock private DhisConfigurationProvider configurationProvider;
-  @Mock private LocationManager locationManager;
+/**
+ * Selects the {@link BlobStoreService} implementation at startup based on {@link
+ * ConfigurationKey#FILESTORE_PROVIDER}:
+ *
+ * <ul>
+ *   <li>{@link FileStoreProvider#S3} / {@link FileStoreProvider#AWS_S3} → {@link
+ *       S3BlobStoreService}
+ *   <li>{@link FileStoreProvider#FILESYSTEM} → {@link FileSystemBlobStoreService}
+ *   <li>{@link FileStoreProvider#TRANSIENT} → {@link TransientBlobStoreService}
+ * </ul>
+ */
+@Configuration
+public class BlobStoreConfig {
 
-  @Test
-  void failIfUnsupportedProviderIsConfigured() {
-    when(configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER))
-        .thenReturn("rackspace-cloudfiles-us");
-
-    IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> new JCloudsStore(configurationProvider, locationManager));
-
-    assertContains(
-        "Unsupported file store provider 'rackspace-cloudfiles-us'", exception.getMessage());
-  }
-
-  @Test
-  void failIfFilesystemProviderIsConfiguredButNoExternalDirectoryIsSet() {
-    when(configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER))
-        .thenReturn("filesystem");
-    when(locationManager.externalDirectorySet()).thenReturn(false);
-
-    IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> new JCloudsStore(configurationProvider, locationManager));
-
-    assertContains("external directory is not set", exception.getMessage());
+  @Bean
+  public BlobStoreService blobStoreService(
+      DhisConfigurationProvider configurationProvider, LocationManager locationManager) {
+    FileStoreProvider provider =
+        FileStoreProvider.of(
+            configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER));
+    return switch (provider) {
+      case S3, AWS_S3 -> new S3BlobStoreService(configurationProvider);
+      case FILESYSTEM -> new FileSystemBlobStoreService(configurationProvider, locationManager);
+      case TRANSIENT -> new TransientBlobStoreService(configurationProvider);
+    };
   }
 }

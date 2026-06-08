@@ -27,45 +27,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
+package org.hisp.dhis.storage;
 
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.storage.BlobStoreService;
+import org.hisp.dhis.test.junit.MinIOTestExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Runs the {@link BlobStoreServiceContractTest} suite against the JClouds {@code transient}
- * (in-memory) provider — the backend used by H2 and Postgres integration tests today.
+ * Runs the {@link BlobStoreServiceContractTest} suite against {@link S3BlobStoreService}, pointed
+ * at the MinIO container managed by {@link MinIOTestExtension}. Validates the S3-shaped behaviours
+ * (presigned URLs, server-side MD5 validation, custom endpoint + path-style addressing, recursive
+ * deleteDirectory).
  *
- * <p>Tagged {@code integration}: although it uses an in-memory backend, it exercises full jclouds
- * machinery and runs ~25 real I/O round-trips per class — too heavy for the unit-test run. Belongs
- * alongside the other contract subclasses that validate cross-backend conformance.
+ * <p>Tagged {@code integration} because it requires Docker.
  */
 @Tag("integration")
-class TransientBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
+@ExtendWith(MinIOTestExtension.class)
+class S3BlobStoreServiceContractTest extends BlobStoreServiceContractTest {
 
-  private JCloudsStore store;
+  private S3BlobStoreService store;
 
   @BeforeAll
   void start() {
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_PROVIDER)).thenReturn("transient");
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_LOCATION)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_IDENTITY)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_SECRET)).thenReturn("");
+    // FILESTORE_LOCATION intentionally not stubbed (mock returns null). S3BlobStoreService falls
+    // back to us-east-1, which sends no LocationConstraint on bucket creation — newer MinIO
+    // releases (>= RELEASE.2025-04-22) reject mismatched regions.
+    lenient()
+        .when(config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT))
+        .thenReturn(MinIOTestExtension.s3Url());
+    lenient()
+        .when(config.getProperty(ConfigurationKey.FILESTORE_IDENTITY))
+        .thenReturn(MinIOTestExtension.MINIO_USER);
+    lenient()
+        .when(config.getProperty(ConfigurationKey.FILESTORE_SECRET))
+        .thenReturn(MinIOTestExtension.MINIO_PASSWORD);
 
-    LocationManager locationManager = mock(LocationManager.class);
-
-    store = new JCloudsStore(config, locationManager);
+    store = new S3BlobStoreService(config);
     store.init();
   }
 
@@ -81,14 +87,11 @@ class TransientBlobStoreServiceContractTest extends BlobStoreServiceContractTest
 
   @Override
   protected boolean supportsRequestSigning() {
-    return false;
+    return true;
   }
 
   @Override
-  protected boolean supportsRecursiveDirectoryDelete() {
-    // TODO(DHIS2-20648) jclouds-transient deleteDirectory is non-recursive in practice; same
-    // limitation as jclouds-S3. Drop this override once the replacement BlobStoreService
-    // implementation does recursive deleteDirectory on every backend.
-    return false;
+  protected boolean validatesContentMd5() {
+    return true;
   }
 }

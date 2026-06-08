@@ -56,8 +56,8 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.fileresource.FileResourceContentStore")
-public class JCloudsFileResourceContentStore implements FileResourceContentStore {
+@Service
+public class BlobStoreFileResourceContentStore implements FileResourceContentStore {
   private static final long FIVE_MINUTES_IN_SECONDS = 300L;
 
   private final BlobStoreService blobStore;
@@ -141,7 +141,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
 
       try (InputStream is = new FileInputStream(file)) {
         blobStore.putBlob(
-            new BlobKey(fr.getStorageKey() + dimension),
+            BlobKey.of(fr.getStorageKey() + dimension),
             is,
             file.length(),
             fr.getContentType(),

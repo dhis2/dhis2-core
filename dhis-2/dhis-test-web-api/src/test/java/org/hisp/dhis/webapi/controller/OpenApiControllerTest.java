@@ -144,6 +144,17 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertContains("#DataElement", html);
   }
 
+  /**
+   * Regression: the full HTML document (no scope filter) must render without error. It previously
+   * failed with HTTP 500 because resolving a schema/parameter shared name stringified a JSON path
+   * containing an operation path that cannot be escaped (e.g. {@code .../{trackedEntityType}.csv}).
+   */
+  @Test
+  void testGetOpenApiDocumentHtml_FullDocument() {
+    String html = GET("/openapi/openapi.html", Accept(TEXT_HTML_VALUE)).content(TEXT_HTML_VALUE);
+    assertContains("DHIS2 Full API", html);
+  }
+
   @Test
   void testGetOpenApiDocument_DefaultValue() {
     // defaults in parameter objects (from Property analysis)

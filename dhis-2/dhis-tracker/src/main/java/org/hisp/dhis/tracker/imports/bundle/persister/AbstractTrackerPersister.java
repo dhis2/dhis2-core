@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -89,6 +89,7 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
@@ -550,15 +551,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     payloadAttributes.forEach(
         attribute -> {
-          // We cannot get the value from attributeToStore because it uses
-          // encryption logic, so we need to use the one from payload
           boolean isDelete = StringUtils.isEmpty(attribute.getValue());
 
           TrackedEntityAttributeValue currentValue =
               attributeValueById.get(attribute.getAttribute());
 
           boolean isNew = Objects.isNull(currentValue);
-          String previousValue = isNew ? null : currentValue.getPlainValue();
+          String previousValue = isNew ? null : currentValue.getValue();
           boolean valueChanged = isNew || !Objects.equals(previousValue, attribute.getValue());
 
           if (isDelete && !isNew) {
@@ -596,7 +595,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                         .setAttribute(
                             getTrackedEntityAttributeFromPreheat(preheat, attribute.getAttribute()))
                         .setTrackedEntity(trackedEntity))
-            .setStoredBy(attribute.getStoredBy())
+            .setUpdatedBy(CurrentUserUtil.getCurrentUsername())
             .setValue(attribute.getValue())
             .setLastUpdated(new Date());
 
@@ -622,7 +621,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     changeLogs.addTrackedEntityChangeLog(
         trackedEntity,
         trackedEntityAttributeValue.getAttribute(),
-        trackedEntityAttributeValue.getPlainValue(),
+        trackedEntityAttributeValue.getValue(),
         null,
         DELETE,
         user.getUsername());
@@ -654,7 +653,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
         trackedEntity,
         trackedEntityAttributeValue.getAttribute(),
         previousValue,
-        trackedEntityAttributeValue.getPlainValue(),
+        trackedEntityAttributeValue.getValue(),
         changeLogType,
         user.getUsername());
   }
