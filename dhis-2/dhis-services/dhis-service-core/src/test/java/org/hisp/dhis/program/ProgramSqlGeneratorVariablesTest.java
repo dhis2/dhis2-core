@@ -176,7 +176,7 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
   @Test
   void testEnrollmentStatus() {
     String sql = castString(test("V{enrollment_status}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("pistatus"));
+    assertThat(sql, is("enrollmentstatus"));
   }
 
   @Test
