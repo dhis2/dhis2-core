@@ -35,10 +35,6 @@ ENV POSTGRES_USER=dhis \
 
 COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
 
-# Interim post-restore fix: advance hibernate_sequence past the platform-perf dump's seeded ids
-# (see fix-hibernate-sequence.sql). Forward-only, so it is a no-op on other dumps.
-COPY fix-hibernate-sequence.sql /tmp/fix-hibernate-sequence.sql
-
 COPY docker-entrypoint-build.sh /usr/local/bin/
 # Initialize the database and restore the dump at build time
 # Uses a modified version of the official PostgreSQL docker-entrypoint.sh
