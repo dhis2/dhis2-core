@@ -30,13 +30,10 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
-import static org.hisp.dhis.security.Authorities.F_PREVIOUS_IMPERSONATOR_AUTHORITY;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
@@ -56,7 +53,6 @@ import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
@@ -66,8 +62,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.switchuser.AuthenticationSwitchUserEvent;
-import org.springframework.security.web.authentication.switchuser.SwitchUserAuthorityChanger;
-import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -103,21 +97,39 @@ public class ImpersonateUserController {
   private final SecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
 
-  private SwitchUserAuthorityChanger switchUserAuthorityChanger;
-
   @RequiresAuthority(anyOf = F_IMPERSONATE_USER)
   @PostMapping("/impersonate")
   public ImpersonateUserResponse impersonateUser(
       HttpServletRequest request, HttpServletResponse response, @RequestParam String username)
       throws ForbiddenException, NotFoundException {
 
-    validateReq(request);
+    validateAllowed(request);
 
     try {
-      Authentication targetUser = attemptSwitchUser(request, username);
+      username = (username != null) ? username : "";
+      UserDetails targetUser = this.userDetailsService.loadUserByUsername(username);
+      this.userDetailsChecker.check(targetUser);
+
+      // remember the impersonator Authentication object in session
+      // which will be used to 'exit' from the current switched user.
+      Authentication impersonator = getEffectiveImpersonatorUserAuth(request);
+      request.getSession().setAttribute("ORIGINAL_AUTH", impersonator);
+
+      // create the new authentication token
+      UsernamePasswordAuthenticationToken targetUserRequest =
+          UsernamePasswordAuthenticationToken.authenticated(
+              targetUser, targetUser.getPassword(), targetUser.getAuthorities());
+
+      targetUserRequest.setDetails(authenticationDetailsSource.buildDetails(request));
+
+      if (this.eventPublisher != null) {
+        this.eventPublisher.publishEvent(
+            new AuthenticationSwitchUserEvent(
+                this.securityContextHolderStrategy.getContext().getAuthentication(), targetUser));
+      }
 
       SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
-      context.setAuthentication(targetUser);
+      context.setAuthentication(targetUserRequest);
       this.securityContextHolderStrategy.setContext(context);
       this.securityContextRepository.saveContext(context, request, response);
 
@@ -134,13 +146,13 @@ public class ImpersonateUserController {
     }
   }
 
-  private void validateReq(HttpServletRequest request) throws ForbiddenException {
+  private void validateAllowed(HttpServletRequest request) throws ForbiddenException {
     String remoteAddr = request.getRemoteAddr();
     boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
     if (!enabled) {
       log.error(
           "Impersonation attempt when feature is disabled, from username: {}, IP address: {}",
-          getCurrentAuthentication().getName(),
+          getEffectiveImpersonatorUserAuth(request).getName(),
           remoteAddr);
       throw new ForbiddenException(
           "Forbidden, user not allowed to impersonate user, feature disabled");
@@ -149,13 +161,12 @@ public class ImpersonateUserController {
       log.error(
           "Impersonation attempt from non allow-listed IP address: {}, username: {}",
           remoteAddr,
-          getCurrentAuthentication().getName());
+          getEffectiveImpersonatorUserAuth(request).getName());
       throw new ForbiddenException(
           "Forbidden, user not allowed to impersonate user from IP: %s".formatted(remoteAddr));
     }
   }
 
-  @RequiresAuthority(anyOf = {F_IMPERSONATE_USER, F_PREVIOUS_IMPERSONATOR_AUTHORITY})
   @PostMapping("/impersonateExit")
   public ImpersonateUserResponse impersonateExit(
       HttpServletRequest request,
@@ -163,125 +174,47 @@ public class ImpersonateUserController {
       @CurrentUser org.hisp.dhis.user.UserDetails userDetails)
       throws ForbiddenException, BadRequestException {
 
-    validateReq(request);
+    validateAllowed(request);
 
-    Authentication originalUser = null;
-    try {
-      originalUser = attemptExitUser();
-    } catch (AuthenticationCredentialsNotFoundException e) {
+    Authentication impersonator = getImpersonatorUserAuth(request);
+    if (impersonator == null)
       throw new BadRequestException(
           "User not impersonating anyone, user: %s".formatted(userDetails.getUsername()));
+
+    request.getSession().removeAttribute("ORIGINAL_AUTH");
+    // publish event
+    if (this.eventPublisher != null) {
+      Authentication impersonated = securityContextHolderStrategy.getContext().getAuthentication();
+      this.eventPublisher.publishEvent(
+          new AuthenticationSwitchUserEvent(
+              impersonated, (UserDetails) impersonator.getPrincipal()));
     }
 
     // update the current context back to the original user
     SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
-    context.setAuthentication(originalUser);
+    context.setAuthentication(impersonator);
     this.securityContextHolderStrategy.setContext(context);
     this.securityContextRepository.saveContext(context, request, response);
 
     return ImpersonateUserResponse.builder()
         .status(ImpersonateUserResponse.STATUS.IMPERSONATION_EXIT_SUCCESS)
-        .username(originalUser.getName())
+        .username(impersonator.getName())
         .build();
   }
 
-  private Authentication attemptSwitchUser(HttpServletRequest request, String username)
-      throws AuthenticationException {
-
-    UsernamePasswordAuthenticationToken targetUserRequest;
-    username = (username != null) ? username : "";
-    UserDetails targetUser = this.userDetailsService.loadUserByUsername(username);
-    this.userDetailsChecker.check(targetUser);
-
-    targetUserRequest = createSwitchUserToken(request, targetUser);
-
-    if (this.eventPublisher != null) {
-      this.eventPublisher.publishEvent(
-          new AuthenticationSwitchUserEvent(
-              this.securityContextHolderStrategy.getContext().getAuthentication(), targetUser));
-    }
-
-    return targetUserRequest;
-  }
-
-  private UsernamePasswordAuthenticationToken createSwitchUserToken(
-      HttpServletRequest request, UserDetails targetUser) {
-
-    UsernamePasswordAuthenticationToken targetUserRequest;
-
-    // grant an additional authority that contains the original Authentication object
-    // which will be used to 'exit' from the current switched user.
-    Authentication currentAuthentication = getCurrentAuthentication();
-    GrantedAuthority switchAuthority =
-        new SwitchUserGrantedAuthority(
-            F_PREVIOUS_IMPERSONATOR_AUTHORITY.name(), currentAuthentication);
-
-    // add the new switch user authority
-    List<GrantedAuthority> newAuths = new ArrayList<>(targetUser.getAuthorities());
-    newAuths.add(switchAuthority);
-
-    // create the new authentication token
-    targetUserRequest =
-        UsernamePasswordAuthenticationToken.authenticated(
-            targetUser, targetUser.getPassword(), newAuths);
-
-    targetUserRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
-
-    return targetUserRequest;
-  }
-
-  private Authentication getCurrentAuthentication() {
-    try {
-      // SEC-1763. Check first if we are already switched.
-      return attemptExitUser();
-    } catch (AuthenticationCredentialsNotFoundException ex) {
-      return this.securityContextHolderStrategy.getContext().getAuthentication();
-    }
-  }
-
-  protected Authentication attemptExitUser() throws AuthenticationCredentialsNotFoundException {
-    // need to check to see if the current user has a SwitchUserGrantedAuthority
-    Authentication current = this.securityContextHolderStrategy.getContext().getAuthentication();
-    if (current == null) {
+  @Nonnull
+  private Authentication getEffectiveImpersonatorUserAuth(HttpServletRequest request) {
+    Authentication impersonator = getImpersonatorUserAuth(request);
+    if (impersonator != null) return impersonator;
+    Authentication current = securityContextHolderStrategy.getContext().getAuthentication();
+    if (current == null)
       throw new AuthenticationCredentialsNotFoundException(
           "No current user associated with this request");
-    }
-
-    // check to see if the current user did actual switch to another user
-    // if so, get the original source user, so we can switch back
-    Authentication original = getSourceAuthentication(current);
-    if (original == null) {
-      throw new AuthenticationCredentialsNotFoundException("Failed to find original user");
-    }
-
-    // get the source user details
-    UserDetails originalUser = null;
-
-    Object obj = original.getPrincipal();
-    if (obj instanceof UserDetails userDetails) {
-      originalUser = userDetails;
-    }
-
-    // publish event
-    if (this.eventPublisher != null) {
-      this.eventPublisher.publishEvent(new AuthenticationSwitchUserEvent(current, originalUser));
-    }
-
-    return original;
+    return current;
   }
 
-  private Authentication getSourceAuthentication(Authentication current) {
-    Authentication original = null;
-
-    // iterate over granted authorities and find the 'switch user' authority
-    Collection<? extends GrantedAuthority> authorities = current.getAuthorities();
-    for (GrantedAuthority auth : authorities) {
-      // check for switch user type of authority
-      if (auth instanceof SwitchUserGrantedAuthority switchUserGrantedAuthority) {
-        original = switchUserGrantedAuthority.getSource();
-      }
-    }
-    return original;
+  private static Authentication getImpersonatorUserAuth(HttpServletRequest request) {
+    return (Authentication) request.getSession().getAttribute("ORIGINAL_AUTH");
   }
 
   public static boolean hasAllowListedIp(String remoteAddr, DhisConfigurationProvider config) {
