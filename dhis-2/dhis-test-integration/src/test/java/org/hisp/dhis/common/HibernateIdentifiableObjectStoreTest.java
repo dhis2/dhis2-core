@@ -117,7 +117,6 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
     dataElement.setCreatedBy(getAdminUser());
     dataElement.setSharing(
         Sharing.builder()
-            .external(false)
             .publicAccess(AccessStringHelper.DEFAULT)
             .owner("testOwner")
             .userGroups(userGroupSharing)
@@ -175,7 +174,6 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
         userGroup2.getUid(), new UserGroupAccess(userGroup2, AccessStringHelper.DEFAULT));
     Sharing sharing =
         Sharing.builder()
-            .external(false)
             .publicAccess(AccessStringHelper.DEFAULT)
             .owner("testOwner")
             .userGroups(userGroupSharing)

@@ -85,11 +85,6 @@ public interface JsonIdentifiableObject extends JsonObject {
     return get("created", JsonDate.class).date();
   }
 
-  @Validation(required = YesNo.NO)
-  default boolean getExternalAccess() {
-    return getBoolean("externalAccess").booleanValue(false);
-  }
-
   default List<String> getFavorites() {
     return getArray("favorites").stringValues();
   }

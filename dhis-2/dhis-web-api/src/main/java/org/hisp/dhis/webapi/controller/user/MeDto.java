@@ -164,8 +164,6 @@ public class MeDto {
   @JsonProperty
   private Set<OrganisationUnit> organisationUnits;
 
-  @JsonProperty private Boolean externalAccess;
-
   @JsonProperty private String displayName;
 
   @JsonProperty private Access access;

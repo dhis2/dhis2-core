@@ -76,7 +76,6 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
       Set.of(
           "categoryOptionCombo", // can't POST/create a new COC, should use /metadata. PUT & PATCH
           // also have custom impl
-          "externalFileResource", // can't POST files
           "identifiableObject", // depends on files
           "dashboard", // uses JSONB functions (improve test setup)
           "pushanalysis", // uses dashboards (see above)

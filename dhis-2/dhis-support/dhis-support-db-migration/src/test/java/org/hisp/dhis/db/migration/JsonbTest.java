@@ -53,10 +53,10 @@ class JsonbTest {
   void updateSharing() throws Exception {
     String actual =
         SharingUtils.withAccess(
-            "{\"owner\": \"Rbh43X53NBP\", \"users\": {}, \"public\": \"rw------\", \"external\": false, \"userGroups\": {}}",
+            "{\"owner\": \"Rbh43X53NBP\", \"users\": {}, \"public\": \"rw------\", \"userGroups\": {}}",
             Sharing::copyMetadataToData);
     assertEquals(
-        "{\"external\":false,\"owner\":\"Rbh43X53NBP\",\"public\":\"rwrw----\",\"userGroups\":{},\"users\":{}}",
+        "{\"owner\":\"Rbh43X53NBP\",\"public\":\"rwrw----\",\"userGroups\":{},\"users\":{}}",
         actual);
   }
 }
