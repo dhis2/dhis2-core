@@ -29,10 +29,21 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -45,19 +56,159 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  * point. Mirrors {@link ChangeLogAccumulator} and shares the same mark/rollback contract for
  * per-entity error isolation in non-atomic mode.
  *
- * <p>Current scope: inserts and updates for TrackedEntity, Enrollment, TrackerEvent, SingleEvent;
- * inserts only for Relationship (updates are rejected upstream by {@link
- * AbstractTrackerPersister}); inserts, updates, and deletes for TEAVs. The flush implementation
- * delegates back to {@link EntityManager} so that Hibernate continues to drive persistence while
- * the staging shape is in place. Phase 6 replaces {@link #flush(EntityManager)} with a
- * connection-based implementation that emits multi-row INSERT / unnest UPDATE / tuple DELETE
- * statements.
+ * <p>Scope:
+ *
+ * <ul>
+ *   <li>TrackedEntity inserts are flushed via a multi-row JDBC INSERT against {@code trackedentity}
+ *       -- ids are pre-allocated by {@link AbstractTrackerPersister} from {@code
+ *       trackedentityinstance_sequence} in one round-trip.
+ *   <li>TrackedEntity updates are flushed via a single JDBC unnest UPDATE against {@code
+ *       trackedentity}, writing only the columns mutated by {@code TrackerObjectsMapper.map} on the
+ *       update branch.
+ *   <li>Enrollment inserts are flushed via a multi-row JDBC INSERT against {@code enrollment} --
+ *       ids are pre-allocated by {@link AbstractTrackerPersister} from {@code
+ *       programinstance_sequence}.
+ *   <li>Enrollment updates are flushed via a single JDBC unnest UPDATE against {@code enrollment},
+ *       writing the columns mutated by {@code TrackerObjectsMapper.map} on the update branch.
+ *   <li>Any new {@code note}s on either inserted or updated enrollments are cascade-inserted in two
+ *       further multi-row INSERTs (into {@code note} and {@code enrollment_notes}), replacing
+ *       Hibernate's {@code @OneToMany(cascade=ALL)} behaviour. Notes are append-only on UPDATE.
+ *   <li>All remaining entity types (TrackerEvent, SingleEvent, Relationship) still delegate to
+ *       {@link EntityManager}; their Phase 6 JDBC replacements follow.
+ *   <li>TEAVs continue to delegate to {@link EntityManager} until their Phase 6 turn.
+ * </ul>
+ *
+ * <p>Top-level entities are flushed before TEAVs so that ids are set (and rows present in the DB or
+ * in the Hibernate persistence context) before any TEAV that references them. Within top-level
+ * entities the order (TE inserts, TE updates, Enrollment, TrackerEvent, SingleEvent, Relationship)
+ * matches the persister call order enforced by {@code DefaultTrackerBundleService.commit()} and is
+ * FK-safe.
  *
  * <p>Each {@link AbstractTrackerPersister#persist} call creates its own batch, so in practice only
  * one top-level entity type list is populated per batch (the persister's own type) alongside any
  * TEAVs staged by its attribute-handling code.
  */
 class EntityWriteBatch {
+
+  /** Cap on rows per multi-row INSERT/UPDATE statement, to bound peak array memory per chunk. */
+  private static final int BATCH_SIZE = 128;
+
+  private static final int TRACKED_ENTITY_SRID = 4326;
+
+  private static final String TRACKED_ENTITY_INSERT_PREFIX =
+      "insert into trackedentity ("
+          + "trackedentityid, uid, created, lastupdated,"
+          + " createdatclient, lastupdatedatclient,"
+          + " inactive, deleted, lastsynchronized, potentialduplicate,"
+          + " organisationunitid, trackedentitytypeid,"
+          + " geometry, createdbyuserinfo, lastupdatedbyuserinfo) values ";
+
+  private static final String TRACKED_ENTITY_INSERT_ROW =
+      "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, "
+          + TRACKED_ENTITY_SRID
+          + "), ?::jsonb, ?::jsonb)";
+
+  // Columns mutated by TrackerObjectsMapper.map() on the UPDATE branch (see lines 90-104). Insert-
+  // only columns (uid, created, createdbyuserinfo) and columns owned by other code paths
+  // (deleted, lastsynchronized -- the latter is bulk-updated by
+  // DefaultTrackerBundleService.postCommit) are deliberately excluded.
+  private static final String TRACKED_ENTITY_UPDATE_SQL =
+      "update trackedentity te set"
+          + " lastupdated = v.lastupdated,"
+          + " createdatclient = v.createdatclient,"
+          + " lastupdatedatclient = v.lastupdatedatclient,"
+          + " organisationunitid = v.organisationunitid,"
+          + " trackedentitytypeid = v.trackedentitytypeid,"
+          + " potentialduplicate = v.potentialduplicate,"
+          + " inactive = v.inactive,"
+          + " lastupdatedbyuserinfo = v.lastupdatedbyuserinfo::jsonb,"
+          + " geometry = case when v.geometry is null then null"
+          + " else ST_GeomFromText(v.geometry, "
+          + TRACKED_ENTITY_SRID
+          + ") end"
+          + " from ( select"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::timestamptz[]) as createdatclient,"
+          + " unnest(?::timestamptz[]) as lastupdatedatclient,"
+          + " unnest(?::bigint[]) as organisationunitid,"
+          + " unnest(?::bigint[]) as trackedentitytypeid,"
+          + " unnest(?::boolean[]) as potentialduplicate,"
+          + " unnest(?::boolean[]) as inactive,"
+          + " unnest(?::text[]) as lastupdatedbyuserinfo,"
+          + " unnest(?::text[]) as geometry"
+          + " ) v where te.trackedentityid = v.trackedentityid";
+
+  private static final String ENROLLMENT_INSERT_PREFIX =
+      "insert into enrollment ("
+          + "enrollmentid, uid, created, lastupdated,"
+          + " createdatclient, lastupdatedatclient,"
+          + " createdbyuserinfo, lastupdatedbyuserinfo,"
+          + " enrollmentdate, occurreddate, completeddate, completedby,"
+          + " status, followup, deleted,"
+          + " trackedentityid, programid, organisationunitid, attributeoptioncomboid,"
+          + " geometry) values ";
+
+  private static final String ENROLLMENT_INSERT_ROW =
+      "(?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+          + "ST_GeomFromText(?, "
+          + TRACKED_ENTITY_SRID
+          + "))";
+
+  // Columns mutated by TrackerObjectsMapper.map(Enrollment) outside the new-entity branch (see
+  // lines 124-180). Insert-only columns (uid, created, createdbyuserinfo) and columns owned by
+  // other code paths (deleted) are deliberately excluded. status, completeddate, completedby are
+  // included even though the mapper only touches them on a status change -- writing the unchanged
+  // values back is a no-op against the existing row.
+  private static final String ENROLLMENT_UPDATE_SQL =
+      "update enrollment e set"
+          + " lastupdated = v.lastupdated,"
+          + " createdatclient = v.createdatclient,"
+          + " lastupdatedatclient = v.lastupdatedatclient,"
+          + " lastupdatedbyuserinfo = v.lastupdatedbyuserinfo::jsonb,"
+          + " trackedentityid = v.trackedentityid,"
+          + " programid = v.programid,"
+          + " organisationunitid = v.organisationunitid,"
+          + " attributeoptioncomboid = v.attributeoptioncomboid,"
+          + " enrollmentdate = v.enrollmentdate,"
+          + " occurreddate = v.occurreddate,"
+          + " completeddate = v.completeddate,"
+          + " completedby = v.completedby,"
+          + " status = v.status,"
+          + " followup = v.followup,"
+          + " geometry = case when v.geometry is null then null"
+          + " else ST_GeomFromText(v.geometry, "
+          + TRACKED_ENTITY_SRID
+          + ") end"
+          + " from ( select"
+          + " unnest(?::bigint[]) as enrollmentid,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::timestamptz[]) as createdatclient,"
+          + " unnest(?::timestamptz[]) as lastupdatedatclient,"
+          + " unnest(?::text[]) as lastupdatedbyuserinfo,"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::bigint[]) as programid,"
+          + " unnest(?::bigint[]) as organisationunitid,"
+          + " unnest(?::bigint[]) as attributeoptioncomboid,"
+          + " unnest(?::timestamptz[]) as enrollmentdate,"
+          + " unnest(?::timestamptz[]) as occurreddate,"
+          + " unnest(?::timestamptz[]) as completeddate,"
+          + " unnest(?::text[]) as completedby,"
+          + " unnest(?::text[]) as status,"
+          + " unnest(?::boolean[]) as followup,"
+          + " unnest(?::text[]) as geometry"
+          + " ) v where e.enrollmentid = v.enrollmentid";
+
+  // Cascade-INSERT targets for new enrollments that carry notes. See Enrollment.java:192-199.
+  private static final String NOTE_INSERT_PREFIX =
+      "insert into note (noteid, uid, created, lastupdatedby, notetext) values ";
+  private static final String NOTE_INSERT_ROW = "(?, ?, ?, ?, ?)";
+
+  private static final String ENROLLMENT_NOTES_INSERT_PREFIX =
+      "insert into enrollment_notes (enrollmentid, noteid, sort_order) values ";
+  private static final String ENROLLMENT_NOTES_INSERT_ROW = "(?, ?, ?)";
+
+  private final ObjectMapper objectMapper;
 
   private final List<TrackedEntity> teInserts = new ArrayList<>();
   private final List<TrackedEntity> teUpdates = new ArrayList<>();
@@ -76,6 +227,10 @@ class EntityWriteBatch {
   private final List<TrackedEntityAttributeValue> teavInserts = new ArrayList<>();
   private final List<TrackedEntityAttributeValue> teavUpdates = new ArrayList<>();
   private final List<TrackedEntityAttributeValue> teavDeletes = new ArrayList<>();
+
+  EntityWriteBatch(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   void stageInsert(TrackedEntity trackedEntity) {
     teInserts.add(trackedEntity);
@@ -141,6 +296,15 @@ class EntityWriteBatch {
         .filter(v -> v.getTrackedEntity() == trackedEntity);
   }
 
+  /**
+   * Whether the given TrackedEntity is being inserted in this batch (no DB row yet). Used by the
+   * attribute-handling code to skip the "load existing TEAVs" JPQL query, which would always return
+   * empty for a fresh insert.
+   */
+  boolean isStagedAsInsert(TrackedEntity trackedEntity) {
+    return teInserts.contains(trackedEntity);
+  }
+
   Mark mark() {
     return new Mark(
         new Mark.EntityCounts(teInserts.size(), teUpdates.size()),
@@ -167,24 +331,22 @@ class EntityWriteBatch {
   }
 
   /**
-   * Applies all staged writes through the provided {@link EntityManager}. Temporary delegating
-   * implementation; Phase 6 swaps this for JDBC multi-row statements that take a {@link
-   * java.sql.Connection}.
-   *
-   * <p>Top-level entities are flushed before TEAVs so that Hibernate assigns ids (and inserts the
-   * rows, when {@code em.flush()} runs) before any TEAV that references them. The top-level order
-   * (TE, Enrollment, TrackerEvent, SingleEvent, Relationship) matches the persister call order
-   * enforced by {@code DefaultTrackerBundleService.commit()} and is FK-safe.
+   * Applies all staged writes. TrackedEntity and Enrollment writes go through JDBC on {@code conn}
+   * (including cascade INSERTs into {@code note} / {@code enrollment_notes}); TrackerEvent,
+   * SingleEvent, Relationship and TEAV writes still delegate to {@code entityManager}. The
+   * connection must be the one bound to the current Spring-managed transaction so that the JDBC
+   * statements and any subsequent Hibernate flush execute under the same commit.
    */
-  void flush(EntityManager entityManager) {
+  void flush(EntityManager entityManager, Connection conn) throws SQLException {
     if (isEmpty()) {
       return;
     }
 
-    persistAll(entityManager, teInserts);
-    mergeAll(entityManager, teUpdates);
-    persistAll(entityManager, enrollmentInserts);
-    mergeAll(entityManager, enrollmentUpdates);
+    insertTrackedEntities(conn);
+    updateTrackedEntities(entityManager, conn);
+    insertEnrollments(conn);
+    updateEnrollments(entityManager, conn);
+    insertEnrollmentNotes(conn);
     persistAll(entityManager, trackerEventInserts);
     mergeAll(entityManager, trackerEventUpdates);
     persistAll(entityManager, singleEventInserts);
@@ -213,6 +375,428 @@ class EntityWriteBatch {
     teavInserts.clear();
     teavUpdates.clear();
     teavDeletes.clear();
+  }
+
+  private void updateTrackedEntities(EntityManager entityManager, Connection conn)
+      throws SQLException {
+    if (teUpdates.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < teUpdates.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, teUpdates.size());
+      List<TrackedEntity> chunk = teUpdates.subList(from, to);
+      int n = chunk.size();
+
+      Long[] ids = new Long[n];
+      Timestamp[] lastUpdated = new Timestamp[n];
+      Timestamp[] createdAtClient = new Timestamp[n];
+      Timestamp[] lastUpdatedAtClient = new Timestamp[n];
+      Long[] organisationUnitIds = new Long[n];
+      Long[] trackedEntityTypeIds = new Long[n];
+      Boolean[] potentialDuplicate = new Boolean[n];
+      Boolean[] inactive = new Boolean[n];
+      String[] lastUpdatedByUserInfo = new String[n];
+      String[] geometry = new String[n];
+
+      for (int i = 0; i < n; i++) {
+        TrackedEntity te = chunk.get(i);
+        ids[i] = te.getId();
+        lastUpdated[i] = toTimestamp(te.getLastUpdated());
+        createdAtClient[i] = toTimestamp(te.getCreatedAtClient());
+        lastUpdatedAtClient[i] = toTimestamp(te.getLastUpdatedAtClient());
+        organisationUnitIds[i] = te.getOrganisationUnit().getId();
+        trackedEntityTypeIds[i] = te.getTrackedEntityType().getId();
+        potentialDuplicate[i] = te.isPotentialDuplicate();
+        inactive[i] = te.isInactive();
+        lastUpdatedByUserInfo[i] = toJson(te.getLastUpdatedByUserInfo());
+        geometry[i] = te.getGeometry() != null ? te.getGeometry().toText() : null;
+      }
+
+      try (PreparedStatement ps = conn.prepareStatement(TRACKED_ENTITY_UPDATE_SQL)) {
+        ps.setArray(1, conn.createArrayOf("bigint", ids));
+        ps.setArray(2, conn.createArrayOf("timestamptz", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("timestamptz", createdAtClient));
+        ps.setArray(4, conn.createArrayOf("timestamptz", lastUpdatedAtClient));
+        ps.setArray(5, conn.createArrayOf("bigint", organisationUnitIds));
+        ps.setArray(6, conn.createArrayOf("bigint", trackedEntityTypeIds));
+        ps.setArray(7, conn.createArrayOf("boolean", potentialDuplicate));
+        ps.setArray(8, conn.createArrayOf("boolean", inactive));
+        ps.setArray(9, conn.createArrayOf("text", lastUpdatedByUserInfo));
+        ps.setArray(10, conn.createArrayOf("text", geometry));
+        ps.executeUpdate();
+      }
+    }
+    // The TrackedEntity entities passed in here are detached copies from the preheat. The
+    // Hibernate persistence context separately holds the entities loaded by the preheat's queries
+    // (M_managed), and they still carry their pre-update state. Detach them so any subsequent
+    // JPQL read in this session reloads the fresh DB row instead of returning the stale L1
+    // instance. This detaching will be removed once all entity types are migrated to JDBC and
+    // entityManager is no longer needed.
+    for (TrackedEntity te : teUpdates) {
+      TrackedEntity managed = entityManager.find(TrackedEntity.class, te.getId());
+      if (managed != null) {
+        entityManager.detach(managed);
+      }
+    }
+  }
+
+  private void insertTrackedEntities(Connection conn) throws SQLException {
+    if (teInserts.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < teInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, teInserts.size());
+      List<TrackedEntity> chunk = teInserts.subList(from, to);
+      String sql =
+          buildMultiRowInsertSql(
+              TRACKED_ENTITY_INSERT_PREFIX, TRACKED_ENTITY_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (TrackedEntity te : chunk) {
+          p = bindTrackedEntityRow(ps, p, te);
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private int bindTrackedEntityRow(PreparedStatement ps, int p, TrackedEntity te)
+      throws SQLException {
+    if (te.getId() == 0) {
+      throw new SQLException(
+          "TrackedEntity "
+              + te.getUid()
+              + " has no pre-allocated id; AbstractTrackerPersister"
+              + " must pre-allocate ids when sequenceName() is non-null.");
+    }
+    ps.setLong(p++, te.getId());
+    ps.setString(p++, te.getUid());
+    ps.setTimestamp(p++, toTimestamp(te.getCreated()));
+    ps.setTimestamp(p++, toTimestamp(te.getLastUpdated()));
+    setNullableTimestamp(ps, p++, te.getCreatedAtClient());
+    setNullableTimestamp(ps, p++, te.getLastUpdatedAtClient());
+    ps.setBoolean(p++, te.isInactive());
+    ps.setBoolean(p++, te.isDeleted());
+    ps.setTimestamp(p++, toTimestamp(te.getLastSynchronized()));
+    ps.setBoolean(p++, te.isPotentialDuplicate());
+    ps.setLong(p++, te.getOrganisationUnit().getId());
+    ps.setLong(p++, te.getTrackedEntityType().getId());
+    if (te.getGeometry() != null) {
+      ps.setString(p++, te.getGeometry().toText());
+    } else {
+      ps.setNull(p++, Types.VARCHAR);
+    }
+    ps.setString(p++, toJson(te.getCreatedByUserInfo()));
+    ps.setString(p++, toJson(te.getLastUpdatedByUserInfo()));
+    return p;
+  }
+
+  private void insertEnrollments(Connection conn) throws SQLException {
+    if (enrollmentInserts.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < enrollmentInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, enrollmentInserts.size());
+      List<Enrollment> chunk = enrollmentInserts.subList(from, to);
+      String sql =
+          buildMultiRowInsertSql(ENROLLMENT_INSERT_PREFIX, ENROLLMENT_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (Enrollment e : chunk) {
+          p = bindEnrollmentRow(ps, p, e);
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private int bindEnrollmentRow(PreparedStatement ps, int p, Enrollment e) throws SQLException {
+    if (e.getId() == 0) {
+      throw new SQLException(
+          "Enrollment "
+              + e.getUid()
+              + " has no pre-allocated id; AbstractTrackerPersister"
+              + " must pre-allocate ids when sequenceName() is non-null.");
+    }
+    ps.setLong(p++, e.getId());
+    ps.setString(p++, e.getUid());
+    ps.setTimestamp(p++, toTimestamp(e.getCreated()));
+    ps.setTimestamp(p++, toTimestamp(e.getLastUpdated()));
+    setNullableTimestamp(ps, p++, e.getCreatedAtClient());
+    setNullableTimestamp(ps, p++, e.getLastUpdatedAtClient());
+    ps.setString(p++, toJson(e.getCreatedByUserInfo()));
+    ps.setString(p++, toJson(e.getLastUpdatedByUserInfo()));
+    ps.setTimestamp(p++, toTimestamp(e.getEnrollmentDate()));
+    setNullableTimestamp(ps, p++, e.getOccurredDate());
+    setNullableTimestamp(ps, p++, e.getCompletedDate());
+    if (e.getCompletedBy() != null) {
+      ps.setString(p++, e.getCompletedBy());
+    } else {
+      ps.setNull(p++, Types.VARCHAR);
+    }
+    ps.setString(p++, e.getStatus().name());
+    if (e.getFollowup() != null) {
+      ps.setBoolean(p++, e.getFollowup());
+    } else {
+      ps.setNull(p++, Types.BOOLEAN);
+    }
+    ps.setBoolean(p++, e.isDeleted());
+    ps.setLong(p++, e.getTrackedEntity().getId());
+    ps.setLong(p++, e.getProgram().getId());
+    ps.setLong(p++, e.getOrganisationUnit().getId());
+    ps.setLong(p++, e.getAttributeOptionCombo().getId());
+    if (e.getGeometry() != null) {
+      ps.setString(p++, e.getGeometry().toText());
+    } else {
+      ps.setNull(p++, Types.VARCHAR);
+    }
+    return p;
+  }
+
+  private void updateEnrollments(EntityManager entityManager, Connection conn) throws SQLException {
+    if (enrollmentUpdates.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < enrollmentUpdates.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, enrollmentUpdates.size());
+      List<Enrollment> chunk = enrollmentUpdates.subList(from, to);
+      int n = chunk.size();
+
+      Long[] ids = new Long[n];
+      Timestamp[] lastUpdated = new Timestamp[n];
+      Timestamp[] createdAtClient = new Timestamp[n];
+      Timestamp[] lastUpdatedAtClient = new Timestamp[n];
+      String[] lastUpdatedByUserInfo = new String[n];
+      Long[] trackedEntityIds = new Long[n];
+      Long[] programIds = new Long[n];
+      Long[] organisationUnitIds = new Long[n];
+      Long[] attributeOptionComboIds = new Long[n];
+      Timestamp[] enrollmentDate = new Timestamp[n];
+      Timestamp[] occurredDate = new Timestamp[n];
+      Timestamp[] completedDate = new Timestamp[n];
+      String[] completedBy = new String[n];
+      String[] status = new String[n];
+      Boolean[] followup = new Boolean[n];
+      String[] geometry = new String[n];
+
+      for (int i = 0; i < n; i++) {
+        Enrollment e = chunk.get(i);
+        ids[i] = e.getId();
+        lastUpdated[i] = toTimestamp(e.getLastUpdated());
+        createdAtClient[i] = toTimestamp(e.getCreatedAtClient());
+        lastUpdatedAtClient[i] = toTimestamp(e.getLastUpdatedAtClient());
+        lastUpdatedByUserInfo[i] = toJson(e.getLastUpdatedByUserInfo());
+        trackedEntityIds[i] = e.getTrackedEntity().getId();
+        programIds[i] = e.getProgram().getId();
+        organisationUnitIds[i] = e.getOrganisationUnit().getId();
+        attributeOptionComboIds[i] = e.getAttributeOptionCombo().getId();
+        enrollmentDate[i] = toTimestamp(e.getEnrollmentDate());
+        occurredDate[i] = toTimestamp(e.getOccurredDate());
+        completedDate[i] = toTimestamp(e.getCompletedDate());
+        completedBy[i] = e.getCompletedBy();
+        status[i] = e.getStatus().name();
+        followup[i] = e.getFollowup();
+        geometry[i] = e.getGeometry() != null ? e.getGeometry().toText() : null;
+      }
+
+      try (PreparedStatement ps = conn.prepareStatement(ENROLLMENT_UPDATE_SQL)) {
+        ps.setArray(1, conn.createArrayOf("bigint", ids));
+        ps.setArray(2, conn.createArrayOf("timestamptz", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("timestamptz", createdAtClient));
+        ps.setArray(4, conn.createArrayOf("timestamptz", lastUpdatedAtClient));
+        ps.setArray(5, conn.createArrayOf("text", lastUpdatedByUserInfo));
+        ps.setArray(6, conn.createArrayOf("bigint", trackedEntityIds));
+        ps.setArray(7, conn.createArrayOf("bigint", programIds));
+        ps.setArray(8, conn.createArrayOf("bigint", organisationUnitIds));
+        ps.setArray(9, conn.createArrayOf("bigint", attributeOptionComboIds));
+        ps.setArray(10, conn.createArrayOf("timestamptz", enrollmentDate));
+        ps.setArray(11, conn.createArrayOf("timestamptz", occurredDate));
+        ps.setArray(12, conn.createArrayOf("timestamptz", completedDate));
+        ps.setArray(13, conn.createArrayOf("text", completedBy));
+        ps.setArray(14, conn.createArrayOf("text", status));
+        ps.setArray(15, conn.createArrayOf("boolean", followup));
+        ps.setArray(16, conn.createArrayOf("text", geometry));
+        ps.executeUpdate();
+      }
+    }
+    // Same L1 staleness fix as updateTrackedEntities -- the JDBC UPDATE bypasses Hibernate, so the
+    // preheat-loaded managed Enrollment in the persistence context still carries the pre-update
+    // state. Detach it so any subsequent JPQL read reloads the fresh DB row.
+    for (Enrollment e : enrollmentUpdates) {
+      Enrollment managed = entityManager.find(Enrollment.class, e.getId());
+      if (managed != null) {
+        entityManager.detach(managed);
+      }
+    }
+  }
+
+  /**
+   * Cascade-insert any notes attached to enrollments that were just inserted by {@link
+   * #insertEnrollments} or appended to existing enrollments by {@link #updateEnrollments}. Mirrors
+   * what Hibernate did via {@code @OneToMany(cascade=ALL)} on {@code Enrollment.notes} (see {@code
+   * Enrollment.java:192-199}): allocate ids for the new {@code note} rows from {@code
+   * note_sequence}, insert the {@code note} rows, then insert the join rows in {@code
+   * enrollment_notes} with {@code sort_order} taken from the list position (1-based, per
+   * {@code @ListIndexBase(1)}). On INSERT every Note is new; on UPDATE only Notes with {@code id ==
+   * 0} are new (existing ones were loaded by the preheat).
+   */
+  private record EnrollmentNoteToInsert(long enrollmentId, Note note, int sortOrder) {}
+
+  private void insertEnrollmentNotes(Connection conn) throws SQLException {
+    List<EnrollmentNoteToInsert> newNotes = collectNewEnrollmentNotes();
+    if (newNotes.isEmpty()) {
+      return;
+    }
+
+    long[] noteIds = allocateIds(conn, "note_sequence", newNotes.size());
+    for (int i = 0; i < newNotes.size(); i++) {
+      newNotes.get(i).note().setId(noteIds[i]);
+    }
+
+    insertNoteRows(conn, newNotes);
+    insertEnrollmentNotesJoinRows(conn, newNotes);
+  }
+
+  /**
+   * For each enrollment being inserted or updated, collect the {@link Note}s that are new (no DB
+   * id) along with their 1-based sort order, which is the position in the {@code getNotes()} list.
+   * For inserts every note is new; for updates the preheat-loaded list already contains existing
+   * notes with non-zero ids, so we skip those.
+   */
+  private List<EnrollmentNoteToInsert> collectNewEnrollmentNotes() {
+    List<EnrollmentNoteToInsert> newNotes = new ArrayList<>();
+    collectNewNotesFrom(enrollmentInserts, newNotes);
+    collectNewNotesFrom(enrollmentUpdates, newNotes);
+    return newNotes;
+  }
+
+  private static void collectNewNotesFrom(
+      List<Enrollment> enrollments, List<EnrollmentNoteToInsert> out) {
+    for (Enrollment e : enrollments) {
+      if (e.getNotes() == null) {
+        continue;
+      }
+      List<Note> notes = e.getNotes();
+      for (int i = 0; i < notes.size(); i++) {
+        Note n = notes.get(i);
+        if (n.getId() == 0) {
+          out.add(new EnrollmentNoteToInsert(e.getId(), n, i + 1));
+        }
+      }
+    }
+  }
+
+  private void insertNoteRows(Connection conn, List<EnrollmentNoteToInsert> newNotes)
+      throws SQLException {
+    for (int from = 0; from < newNotes.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, newNotes.size());
+      List<EnrollmentNoteToInsert> chunk = newNotes.subList(from, to);
+      String sql = buildMultiRowInsertSql(NOTE_INSERT_PREFIX, NOTE_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (EnrollmentNoteToInsert item : chunk) {
+          Note n = item.note();
+          ps.setLong(p++, n.getId());
+          ps.setString(p++, n.getUid());
+          ps.setTimestamp(p++, toTimestamp(n.getCreated()));
+          if (n.getLastUpdatedBy() != null) {
+            ps.setLong(p++, n.getLastUpdatedBy().getId());
+          } else {
+            ps.setNull(p++, Types.BIGINT);
+          }
+          if (n.getNoteText() != null) {
+            ps.setString(p++, n.getNoteText());
+          } else {
+            ps.setNull(p++, Types.VARCHAR);
+          }
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private void insertEnrollmentNotesJoinRows(Connection conn, List<EnrollmentNoteToInsert> newNotes)
+      throws SQLException {
+    for (int from = 0; from < newNotes.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, newNotes.size());
+      List<EnrollmentNoteToInsert> chunk = newNotes.subList(from, to);
+      String sql =
+          buildMultiRowInsertSql(
+              ENROLLMENT_NOTES_INSERT_PREFIX, ENROLLMENT_NOTES_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (EnrollmentNoteToInsert item : chunk) {
+          ps.setLong(p++, item.enrollmentId());
+          ps.setLong(p++, item.note().getId());
+          ps.setInt(p++, item.sortOrder());
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  /**
+   * Fetches {@code count} ids from {@code sequenceName} in a single round-trip. The sequence name
+   * is interpolated into the SQL (not a bind parameter) because PostgreSQL's {@code nextval} takes
+   * a {@code regclass}; the value is always a static literal controlled by us. Mirrors the helper
+   * in {@code AbstractTrackerPersister}.
+   */
+  private static long[] allocateIds(Connection conn, String sequenceName, int count)
+      throws SQLException {
+    long[] ids = new long[count];
+    String sql = "select nextval('" + sequenceName + "') from generate_series(1, ?)";
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setInt(1, count);
+      try (ResultSet rs = ps.executeQuery()) {
+        int i = 0;
+        while (rs.next()) {
+          ids[i++] = rs.getLong(1);
+        }
+        if (i != count) {
+          throw new SQLException(
+              "Allocated " + i + " ids from " + sequenceName + ", expected " + count);
+        }
+      }
+    }
+    return ids;
+  }
+
+  private static String buildMultiRowInsertSql(
+      String prefix, String rowPlaceholders, int rowCount) {
+    StringBuilder sb =
+        new StringBuilder(prefix.length() + rowPlaceholders.length() * rowCount + 16);
+    sb.append(prefix);
+    for (int i = 0; i < rowCount; i++) {
+      if (i > 0) {
+        sb.append(", ");
+      }
+      sb.append(rowPlaceholders);
+    }
+    return sb.toString();
+  }
+
+  private static Timestamp toTimestamp(Date date) {
+    return date != null ? new Timestamp(date.getTime()) : null;
+  }
+
+  private static void setNullableTimestamp(PreparedStatement ps, int index, Date date)
+      throws SQLException {
+    if (date != null) {
+      ps.setTimestamp(index, new Timestamp(date.getTime()));
+    } else {
+      ps.setNull(index, Types.TIMESTAMP);
+    }
+  }
+
+  private String toJson(UserInfoSnapshot info) throws SQLException {
+    if (info == null) {
+      return null;
+    }
+    try {
+      return objectMapper.writeValueAsString(info);
+    } catch (JsonProcessingException e) {
+      throw new SQLException("Failed to serialize UserInfoSnapshot to JSON", e);
+    }
   }
 
   private boolean isEmpty() {

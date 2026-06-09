@@ -288,8 +288,15 @@ public class EventQueryService {
     }
 
     if (isGeospatialSupport()) {
-      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
-          .addHeader(
+      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true));
+
+      if (params.hasGeometrySources()) {
+        grid.addHeader(
+            new GridHeader(
+                GEOMETRY_SOURCE.getItem(), GEOMETRY_SOURCE.getName(), TEXT, false, true));
+      }
+
+      grid.addHeader(
               new GridHeader(
                   ENROLLMENT_GEOMETRY.getItem(), ENROLLMENT_GEOMETRY.getName(), TEXT, false, true))
           .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))

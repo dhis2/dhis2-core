@@ -309,9 +309,9 @@ class JdbcEnrollmentStore {
           """
           left join lateral (
               select json_agg(json_build_object('uid', tea.uid, 'name', tea.name,
-              'code', tea.code, 'value', teav.value, 'encryptedValue', teav.encryptedvalue,
-              'valueType', tea.valuetype, 'confidential', tea.confidential, 'created', teav.created,
-              'lastUpdated', teav.lastupdated, 'storedBy', teav.storedby)) as jsonattributes
+              'code', tea.code, 'value', teav.value,
+              'valueType', tea.valuetype, 'created', teav.created,
+              'lastUpdated', teav.lastupdated, 'updatedBy', teav.updatedby)) as jsonattributes
               from trackedentityattributevalue teav
               join trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
               where teav.trackedentityid = e.trackedentityid
@@ -760,13 +760,11 @@ class JdbcEnrollmentStore {
         tea.setValueType(ValueType.valueOf(attribute.getValueType()));
         tea.setName(attribute.getName());
         tea.setCode(attribute.getCode());
-        tea.setConfidential(attribute.isConfidential());
         teav.setAttribute(tea);
-        teav.setStoredBy(attribute.getStoredBy());
+        teav.setUpdatedBy(attribute.getUpdatedBy());
         teav.setCreated(DateUtils.safeParseDate(attribute.getCreated()));
         teav.setLastUpdated(DateUtils.safeParseDate(attribute.getLastUpdated()));
-        teav.setEncryptedValue(attribute.getEncryptedValue());
-        teav.setPlainValue(attribute.getValue());
+        teav.setValue(attribute.getValue());
         teav.setTrackedEntity(trackedEntity);
 
         trackedEntityAttributeValues.add(teav);
@@ -804,11 +802,9 @@ class JdbcEnrollmentStore {
     private String name;
     private String code;
     private String value;
-    private String encryptedValue;
     private String valueType;
-    private boolean confidential;
     private String created;
     private String lastUpdated;
-    private String storedBy;
+    private String updatedBy;
   }
 }

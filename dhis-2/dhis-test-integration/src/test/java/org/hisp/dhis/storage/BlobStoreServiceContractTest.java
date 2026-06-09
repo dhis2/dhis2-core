@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
+package org.hisp.dhis.storage;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -50,17 +50,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.awaitility.Awaitility;
-import org.hisp.dhis.storage.BlobContainerName;
-import org.hisp.dhis.storage.BlobKey;
-import org.hisp.dhis.storage.BlobKeyPrefix;
-import org.hisp.dhis.storage.BlobStoreService;
 import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
-import org.hisp.dhis.storage.ContentHash;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -68,22 +61,18 @@ import org.junit.jupiter.api.TestInstance;
 /**
  * Behavioural contract every {@link BlobStoreService} implementation must satisfy.
  *
- * <p>Subclasses provide a wired {@link BlobStoreService} (e.g. JClouds + transient, JClouds +
- * filesystem, JClouds + S3) and the contract tests run unchanged. Intent: lock the behavioural
- * surface in place before replacing JClouds, so that the new implementation can be validated
- * against the same suite.
+ * <p>Subclasses wire a concrete {@link BlobStoreService} (e.g. {@code S3BlobStoreService}, {@code
+ * FileSystemBlobStoreService}, {@code TransientBlobStoreService}) and the contract tests run
+ * unchanged.
  *
  * <p>Tests that don't apply to a given backend are skipped via {@link
  * org.junit.jupiter.api.Assumptions} on capability hooks subclasses override:
  *
  * <ul>
- *   <li>{@link #supportsRequestSigning()} — backend can produce presigned GET URLs (false on
- *       filesystem and transient JClouds providers).
+ *   <li>{@link #supportsRequestSigning()} — backend can produce presigned GET URLs (false on the
+ *       filesystem and transient backends).
  *   <li>{@link #validatesContentMd5()} — backend rejects an upload whose payload disagrees with the
  *       supplied {@link ContentHash} (true on real S3, false on local backends).
- *   <li>{@link #supportsRecursiveDirectoryDelete()} — backend implements {@link
- *       BlobStoreService#deleteDirectory} as a true recursive delete (false on the current jclouds
- *       S3 path, which is non-recursive — see {@code JCloudsAppStorageService#deleteApp}).
  * </ul>
  *
  * <p>Lifecycle: subclasses use {@code @BeforeAll}/{@code @AfterAll} to start and stop the backend
@@ -91,7 +80,7 @@ import org.junit.jupiter.api.TestInstance;
  * {@link #cleanUpTestData()}.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-abstract class BlobStoreServiceContractTest {
+public abstract class BlobStoreServiceContractTest {
 
   /** Implementation under test. Lifecycle is owned by the subclass. */
   protected abstract BlobStoreService service();
@@ -102,33 +91,14 @@ abstract class BlobStoreServiceContractTest {
     return false;
   }
 
-  protected boolean supportsRecursiveDirectoryDelete() {
-    return true;
-  }
-
-  /**
-   * {@code true} if {@link BlobStoreService#listKeys} may return synthetic "directory marker" keys
-   * (values ending with {@code /}) alongside real blobs. The current jclouds-filesystem provider
-   * does this; S3 does not. Backends that expose markers see assertions augmented to tolerate them.
-   */
-  protected boolean listKeysIncludesDirectoryMarkers() {
-    return false;
-  }
-
   private final BlobKeyPrefix testPrefix = BlobKeyPrefix.of("blobStoreContract");
 
   @AfterEach
   void cleanUpTestData() {
-    List<BlobKey> keys = new ArrayList<>();
-    service().listKeys(testPrefix).forEach(keys::add);
-    // Skip directory-marker entries (values ending with "/"). jclouds-filesystem emits these
-    // alongside real blobs; calling deleteBlob on them maps to a directory delete which is
-    // slow and may fail when the directory still holds children — and the markers are
-    // harmless between tests because contract assertions filter them via
-    // withoutDirectoryMarkers().
-    keys.stream()
-        .filter(k -> !k.value().endsWith("/"))
-        .forEach(k -> assertDoesNotThrow(() -> service().deleteBlob(k)));
+    // deleteDirectory removes both real blobs and any synthetic directory markers (which
+    // listKeys deliberately excludes) so tests that exercise createDirectory leave no
+    // residue for subsequent tests.
+    assertDoesNotThrow(() -> service().deleteDirectory(testPrefix));
   }
 
   // -------------------------------------------------------------------- existence + read
@@ -242,10 +212,6 @@ abstract class BlobStoreServiceContractTest {
 
   @Test
   void deleteDirectory_removesEverythingUnderPrefix_butLeavesSiblings() {
-    assumeTrue(
-        supportsRecursiveDirectoryDelete(),
-        "backend does not implement recursive deleteDirectory (callers are expected to enumerate"
-            + " and delete individually)");
     putString(key("trash/a"), "a");
     putString(key("trash/sub/b"), "b");
     putString(key("trash/sub/c"), "c");
@@ -297,9 +263,7 @@ abstract class BlobStoreServiceContractTest {
     Set<String> keys = new HashSet<>();
     service().listKeys(BlobKeyPrefix.of(key("a").value())).forEach(k -> keys.add(k.value()));
 
-    Set<String> blobKeys = withoutDirectoryMarkers(keys);
-    assertEquals(
-        Set.of(key("a/1").value(), key("a/b/2").value(), key("a/b/c/3").value()), blobKeys);
+    assertEquals(Set.of(key("a/1").value(), key("a/b/2").value(), key("a/b/c/3").value()), keys);
   }
 
   @Test
@@ -310,8 +274,47 @@ abstract class BlobStoreServiceContractTest {
     Set<String> keys = new HashSet<>();
     service().listKeys(BlobKeyPrefix.of(key("p1").value())).forEach(k -> keys.add(k.value()));
 
-    Set<String> blobKeys = withoutDirectoryMarkers(keys);
-    assertEquals(Set.of(key("p1/x").value()), blobKeys);
+    assertEquals(Set.of(key("p1/x").value()), keys);
+  }
+
+  // -------------------------------------------------------------------- directories
+
+  @Test
+  void directoryExists_unknown_returnsFalse() {
+    assertFalse(service().directoryExists(BlobKeyPrefix.of(key("never-existed").value())));
+  }
+
+  @Test
+  void createDirectory_then_directoryExists_returnsTrue() {
+    BlobKeyPrefix dir = BlobKeyPrefix.of(key("empty-dir").value());
+    service().createDirectory(dir);
+    assertTrue(service().directoryExists(dir));
+  }
+
+  @Test
+  void directoryExists_returnsTrue_whenBlobStoredUnderPrefix() {
+    putString(key("populated/inside"), "x");
+    assertTrue(service().directoryExists(BlobKeyPrefix.of(key("populated").value())));
+  }
+
+  @Test
+  void createDirectory_isIdempotent() {
+    BlobKeyPrefix dir = BlobKeyPrefix.of(key("repeat").value());
+    service().createDirectory(dir);
+    assertDoesNotThrow(() -> service().createDirectory(dir));
+    assertTrue(service().directoryExists(dir));
+  }
+
+  @Test
+  void listKeys_excludesDirectoryMarkers() {
+    BlobKeyPrefix dir = BlobKeyPrefix.of(key("filtered").value());
+    service().createDirectory(dir);
+    putString(key("filtered/file"), "x");
+
+    Set<String> keys = new HashSet<>();
+    service().listKeys(dir).forEach(k -> keys.add(k.value()));
+
+    assertEquals(Set.of(key("filtered/file").value()), keys);
   }
 
   /**
@@ -331,7 +334,7 @@ abstract class BlobStoreServiceContractTest {
 
     assertEquals(
         total,
-        withoutDirectoryMarkers(keys).size(),
+        keys.size(),
         "listKeys must return every blob across all pages, not just the first page");
   }
 
@@ -396,30 +399,6 @@ abstract class BlobStoreServiceContractTest {
 
   private BlobKey key(String tail) {
     return BlobKey.of(testPrefix.value(), tail);
-  }
-
-  /**
-   * Strips synthetic directory-marker keys (values ending in {@code /}) when the backend is known
-   * to emit them, asserting along the way that markers don't appear on backends that shouldn't emit
-   * them. This keeps the strict contract for new implementations while tolerating the
-   * jclouds-filesystem quirk.
-   */
-  private Set<String> withoutDirectoryMarkers(Set<String> keys) {
-    Set<String> markers = new HashSet<>();
-    Set<String> blobs = new HashSet<>();
-    for (String k : keys) {
-      if (k.endsWith("/")) {
-        markers.add(k);
-      } else {
-        blobs.add(k);
-      }
-    }
-    if (!listKeysIncludesDirectoryMarkers()) {
-      assertTrue(
-          markers.isEmpty(),
-          "backend reports it does not emit directory markers, but listKeys returned: " + markers);
-    }
-    return blobs;
   }
 
   private void putString(BlobKey key, String value) {

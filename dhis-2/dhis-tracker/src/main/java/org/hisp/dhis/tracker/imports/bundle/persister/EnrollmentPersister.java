@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -62,9 +63,15 @@ public class EnrollmentPersister
       ReservedValueService reservedValueService,
       DataSource dataSource,
       FileResourceStore fileResourceStore,
+      ObjectMapper objectMapper,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService, dataSource, fileResourceStore);
+    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
+  }
+
+  @Override
+  protected String sequenceName() {
+    return "programinstance_sequence";
   }
 
   @Override
@@ -148,14 +155,13 @@ public class EnrollmentPersister
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment entity) {
-    if (isNew(bundle, trackerDto)
-        && (bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
-            || bundle
-                    .getPreheat()
-                    .getProgramOwner()
-                    .get(entity.getTrackedEntity().getUID())
-                    .get(entity.getProgram().getUid())
-                == null)) {
+    if ((bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
+        || bundle
+                .getPreheat()
+                .getProgramOwner()
+                .get(entity.getTrackedEntity().getUID())
+                .get(entity.getProgram().getUid())
+            == null)) {
       trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
           entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
     }
