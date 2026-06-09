@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import jakarta.persistence.EntityManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -39,6 +40,7 @@ import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -183,15 +185,15 @@ class ChangeLogAccumulator {
     truncate(singleEventChangeLogs, mark.singleEventSize);
   }
 
-  void flushAll(Connection connection) throws SQLException {
+  void flushAll(EntityManager entityManager) {
     if (teChangeLogs.isEmpty()
         && trackerEventChangeLogs.isEmpty()
         && singleEventChangeLogs.isEmpty()) {
       return;
     }
 
-    insertAll(connection);
-
+    Session session = entityManager.unwrap(Session.class);
+    session.doWork(this::insertAll);
     teChangeLogs.clear();
     trackerEventChangeLogs.clear();
     singleEventChangeLogs.clear();

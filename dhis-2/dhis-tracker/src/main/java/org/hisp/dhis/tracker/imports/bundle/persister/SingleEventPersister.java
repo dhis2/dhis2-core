@@ -44,7 +44,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
@@ -74,8 +73,8 @@ import org.springframework.stereotype.Component;
 public class SingleEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.SingleEvent, SingleEvent> {
-  public SingleEventPersister(ReservedValueService reservedValueService, DataSource dataSource) {
-    super(reservedValueService, dataSource);
+  public SingleEventPersister(ReservedValueService reservedValueService) {
+    super(reservedValueService);
   }
 
   @Override

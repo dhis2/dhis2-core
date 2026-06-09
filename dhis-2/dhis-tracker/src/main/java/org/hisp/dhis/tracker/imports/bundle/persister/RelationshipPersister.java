@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.List;
 import java.util.Set;
-import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -50,8 +49,8 @@ import org.springframework.stereotype.Component;
 public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.tracker.model.Relationship> {
 
-  public RelationshipPersister(ReservedValueService reservedValueService, DataSource dataSource) {
-    super(reservedValueService, dataSource);
+  public RelationshipPersister(ReservedValueService reservedValueService) {
+    super(reservedValueService);
   }
 
   @Override

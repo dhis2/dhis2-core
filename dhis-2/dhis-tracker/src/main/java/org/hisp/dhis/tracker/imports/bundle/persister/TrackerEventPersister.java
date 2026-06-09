@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
@@ -75,8 +74,8 @@ import org.springframework.stereotype.Component;
 public class TrackerEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackerEvent, TrackerEvent> {
-  public TrackerEventPersister(ReservedValueService reservedValueService, DataSource dataSource) {
-    super(reservedValueService, dataSource);
+  public TrackerEventPersister(ReservedValueService reservedValueService) {
+    super(reservedValueService);
   }
 
   @Override
