@@ -42,6 +42,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
@@ -213,7 +214,7 @@ public class ImpersonateUserController {
     return current;
   }
 
-  private static Authentication getImpersonatorUserAuth(HttpServletRequest request) {
+  public static Authentication getImpersonatorUserAuth(HttpServletRequest request) {
     return (Authentication) request.getSession().getAttribute("ORIGINAL_AUTH");
   }
 
@@ -225,5 +226,14 @@ public class ImpersonateUserController {
       }
     }
     return false;
+  }
+
+  public static boolean canImpersonate(
+      org.hisp.dhis.user.UserDetails currentUser,
+      HttpServletRequest request,
+      DhisConfigurationProvider config) {
+    return config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED)
+        && hasAllowListedIp(request.getRemoteAddr(), config)
+        && currentUser.hasAnyAuthority(Authorities.ALL, Authorities.F_IMPERSONATE_USER);
   }
 }
