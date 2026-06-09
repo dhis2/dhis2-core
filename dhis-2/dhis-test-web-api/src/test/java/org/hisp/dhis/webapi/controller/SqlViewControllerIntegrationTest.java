@@ -100,7 +100,7 @@ class SqlViewControllerIntegrationTest extends DhisControllerIntegrationTest {
     String injection = "1=1 UNION SELECT password, '', '', 0 FROM userinfo WHERE 'a'";
     HttpResponse response = GET(QUERY_PATH + "?filter=" + injection + ":neq:x");
 
-    JsonMixed body = response.contentUnchecked();
+    String body = response.contentUnchecked().toString();
     assertFalse(
         body.toString().contains("$2a$"),
         "Filter column-name slot is injectable: response leaked a bcrypt hash. Body: " + body);
@@ -117,7 +117,7 @@ class SqlViewControllerIntegrationTest extends DhisControllerIntegrationTest {
     String injection = "CAST((SELECT password FROM userinfo WHERE username='admin') AS int)";
     HttpResponse response = GET(QUERY_PATH + "?filter=" + injection + ":eq:1");
 
-    JsonMixed body = response.contentUnchecked();
+    String body = response.contentUnchecked().toString();
     String s = body.toString();
     assertFalse(
         s.contains("$2a$"),
