@@ -27,43 +27,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.common.adapter;
 
-import static org.jclouds.ContextBuilder.newBuilder;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.NoSuchElementException;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.StringWriter;
+import java.util.List;
+import org.hisp.dhis.common.RawJsonValue;
 import org.junit.jupiter.api.Test;
 
-/**
- * Verify that the supported jclouds providers can be selected.
- *
- * @author Jim Grace
- */
-class JCloudsProviderTest {
+class JacksonRowDataSerializerTest {
+
+  private final JacksonRowDataSerializer serializer = new JacksonRowDataSerializer();
+
   @Test
-  void verifyFilesystem() {
-    assertDoesNotThrow(() -> newBuilder("filesystem"));
+  void regularStringValuesAreWrappedInJsonStrings() throws Exception {
+    List<List<Object>> rows = List.of(List.of("hello", "world"));
+
+    assertEquals("[[\"hello\",\"world\"]]", serialize(rows));
   }
 
   @Test
-  void verifyAwsS3() {
-    assertDoesNotThrow(() -> newBuilder("aws-s3"));
+  void rawJsonValueIsEmittedAsInlineJson() throws Exception {
+    List<List<Object>> rows = List.of(List.of("Alice", new RawJsonValue("{\"key\":\"value\"}")));
+
+    assertEquals("[[\"Alice\",{\"key\":\"value\"}]]", serialize(rows));
   }
 
   @Test
-  void verifyS3() {
-    assertDoesNotThrow(() -> newBuilder("s3"));
+  void rawJsonArrayIsEmittedAsInlineJsonArray() throws Exception {
+    List<List<Object>> rows = List.of(List.of(new RawJsonValue("[1,2,3]")));
+
+    assertEquals("[[[1,2,3]]]", serialize(rows));
   }
 
   @Test
-  void verifyInvalidProvider() {
-    assertThrows(NoSuchElementException.class, () -> newBuilder("s4"));
+  void nullRawJsonValueIsEmittedAsEmptyString() throws Exception {
+    List<Object> row = new java.util.ArrayList<>();
+    row.add(null);
+    List<List<Object>> rows = List.of(row);
+
+    assertEquals("[[\"\"]]", serialize(rows));
   }
 
-  @Test
-  void verifyTransient() {
-    assertDoesNotThrow(() -> newBuilder("transient"));
+  private String serialize(List<List<Object>> rows) throws Exception {
+    StringWriter writer = new StringWriter();
+    JsonGenerator generator = new JsonFactory().createGenerator(writer);
+    serializer.serialize(rows, generator, new ObjectMapper().getSerializerProvider());
+    generator.flush();
+    return writer.toString();
   }
 }

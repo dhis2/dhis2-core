@@ -69,7 +69,7 @@ public class DefaultTrackedEntityAttributeValueService
     trackedEntityChangeLogService.addTrackedEntityChangeLog(
         attributeValue.getTrackedEntity(),
         attributeValue.getAttribute(),
-        attributeValue.getPlainValue(),
+        attributeValue.getValue(),
         null,
         DELETE,
         getCurrentUsername());
@@ -92,12 +92,6 @@ public class DefaultTrackedEntityAttributeValueService
         || attributeValue.getAttribute() == null
         || attributeValue.getAttribute().getValueType() == null) {
       throw new IllegalQueryException("Attribute or type is null or empty");
-    }
-
-    if (attributeValue.getAttribute().isConfidentialBool()
-        && !config.getEncryptionStatus().isOk()) {
-      throw new IllegalStateException(
-          "Unable to encrypt data, encryption is not correctly configured");
     }
 
     String result =

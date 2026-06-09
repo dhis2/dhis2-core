@@ -66,4 +66,26 @@ class BlobKeyTest {
   void ofJoinsSegmentsWithSlash() {
     assertEquals("apps/my-app/index.html", BlobKey.of("apps", "my-app", "index.html").value());
   }
+
+  @Test
+  void leadingDotDotSegmentIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobKey("../escape.txt"));
+  }
+
+  @Test
+  void interiorDotDotSegmentIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobKey("a/../b/c"));
+  }
+
+  @Test
+  void trailingDotDotSegmentIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobKey("a/b/.."));
+  }
+
+  @Test
+  void dotDotAsSubstringWithinSegmentIsAccepted() {
+    // "a..b" is a perfectly legitimate filename — only `..` as a *segment* is rejected.
+    BlobKey key = new BlobKey("apps/my..app/index.html");
+    assertEquals("apps/my..app/index.html", key.value());
+  }
 }

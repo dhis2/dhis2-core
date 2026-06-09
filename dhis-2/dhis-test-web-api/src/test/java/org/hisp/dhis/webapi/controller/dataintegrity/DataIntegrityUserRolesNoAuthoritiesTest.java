@@ -43,7 +43,7 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.webapi.json.domain.JsonUserRole;
 import org.junit.jupiter.api.Test;
 
-class DataIntegrityUserRolesNoAuthorities extends AbstractDataIntegrityIntegrationTest {
+class DataIntegrityUserRolesNoAuthoritiesTest extends AbstractDataIntegrityIntegrationTest {
 
   private static final String CHECK_NAME = "user_roles_no_authorities";
 

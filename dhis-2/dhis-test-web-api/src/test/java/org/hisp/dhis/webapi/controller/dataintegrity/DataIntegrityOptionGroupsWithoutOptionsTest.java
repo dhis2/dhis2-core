@@ -34,7 +34,7 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-class DataIntegrityOptionGroupsWithoutOptions extends AbstractDataIntegrityIntegrationTest {
+class DataIntegrityOptionGroupsWithoutOptionsTest extends AbstractDataIntegrityIntegrationTest {
   private static final String CHECK_NAME = "option_groups_empty";
 
   private static final String DETAILS_ID_TYPE = "optionGroups";

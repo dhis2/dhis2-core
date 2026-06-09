@@ -49,10 +49,12 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
+@Transactional
 class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
@@ -182,6 +184,8 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
     programStageDataElementService.addProgramStageDataElement(stageDataElementA);
     stageA.getProgramStageDataElements().addAll(Set.of(stageDataElementA));
     programStageService.updateProgramStage(stageA);
+    // flush so the raw-SQL deletion-veto query sees the program-stage-data-element link
+    entityManager.flush();
     assertThrows(
         DeleteNotAllowedException.class, () -> dataElementService.deleteDataElement(dataElementA));
   }
@@ -197,6 +201,8 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
     programStageDataElementService.addProgramStageDataElement(stageDataElementB);
     programStageDataElementService.addProgramStageDataElement(stageDataElementC);
     programStageDataElementService.addProgramStageDataElement(stageDataElementD);
+    // flush so the raw-SQL store read sees the newly added program-stage-data-elements
+    entityManager.flush();
 
     Map<String, Set<String>> result =
         programStageDataElementService

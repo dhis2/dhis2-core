@@ -32,13 +32,11 @@ package org.hisp.dhis.tracker.imports.bundle;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -58,6 +56,8 @@ import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerPreheatService trackerPreheatService;
 
-  private final EntityManager entityManager;
+  private final NamedParameterJdbcTemplate jdbcTemplate;
 
   private final CommitService commitService;
 
@@ -146,31 +146,30 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return;
     }
 
-    List<List<UID>> uidsPartitions =
-        Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000);
-
-    try (Session session = entityManager.unwrap(Session.class)) {
-      for (List<UID> trackedEntities : uidsPartitions) {
-        if (trackedEntities.isEmpty()) {
-          continue;
-        }
-        executeLastUpdatedQuery(session, UID.toValueList(trackedEntities), bundle.getUser());
-      }
-    }
-  }
-
-  private void executeLastUpdatedQuery(
-      Session session, List<String> trackedEntities, UserDetails user) {
+    String userInfoJson;
     try {
-      UserInfoSnapshot userInfo = UserInfoSnapshot.from(user);
-      session
-          .getNamedQuery("updateTrackedEntitiesLastUpdated")
-          .setParameter("trackedEntities", trackedEntities)
-          .setParameter("lastUpdated", new Date())
-          .setParameter("lastupdatedbyuserinfo", mapper.writeValueAsString(userInfo))
-          .executeUpdate();
+      userInfoJson = mapper.writeValueAsString(UserInfoSnapshot.from(bundle.getUser()));
     } catch (JsonProcessingException e) {
       throw new PersistenceException(e);
+    }
+
+    Date lastUpdated = new Date();
+    String sql =
+        "update trackedentity set lastUpdated = :lastUpdated,"
+            + " lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
+            + " where uid in (:trackedEntities)";
+
+    for (List<UID> partition :
+        Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000)) {
+      if (partition.isEmpty()) {
+        continue;
+      }
+      MapSqlParameterSource params =
+          new MapSqlParameterSource()
+              .addValue("trackedEntities", UID.toValueList(partition))
+              .addValue("lastUpdated", lastUpdated)
+              .addValue("lastupdatedbyuserinfo", userInfoJson);
+      jdbcTemplate.update(sql, params);
     }
   }
 
