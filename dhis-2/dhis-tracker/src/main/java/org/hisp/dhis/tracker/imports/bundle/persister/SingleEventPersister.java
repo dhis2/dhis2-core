@@ -157,8 +157,7 @@ public class SingleEventPersister
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent hibernateEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch) {
+      ChangeLogAccumulator changeLogs) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 

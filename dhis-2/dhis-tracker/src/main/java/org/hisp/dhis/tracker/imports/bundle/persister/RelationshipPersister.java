@@ -74,8 +74,7 @@ public class RelationshipPersister
       Relationship trackerDto,
       org.hisp.dhis.tracker.model.Relationship hibernateEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch) {
+      ChangeLogAccumulator changeLogs) {
     // NOTHING TO DO
   }
 

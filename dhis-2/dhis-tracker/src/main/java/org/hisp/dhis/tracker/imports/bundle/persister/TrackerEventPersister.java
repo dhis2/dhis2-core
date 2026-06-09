@@ -160,8 +160,7 @@ public class TrackerEventPersister
       org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
       TrackerEvent hibernateEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch) {
+      ChangeLogAccumulator changeLogs) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
