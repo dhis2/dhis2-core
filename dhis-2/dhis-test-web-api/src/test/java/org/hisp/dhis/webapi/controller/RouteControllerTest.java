@@ -190,7 +190,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   @BeforeAll
   static void beforeAll() {
     tokenMockServerContainer =
-        new GenericContainer<>("mockserver/mockserver")
+        new GenericContainer<>("mockserver/mockserver:5.15.0")
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
     tokenMockServerContainer.start();
@@ -219,7 +219,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @BeforeAll
     public static void beforeAll() {
       upstreamMockServerContainer =
-          new GenericContainer<>("mockserver/mockserver")
+          new GenericContainer<>("mockserver/mockserver:5.15.0")
               .waitingFor(new HttpWaitStrategy().forStatusCode(404))
               .withExposedPorts(1080);
       upstreamMockServerContainer.start();
