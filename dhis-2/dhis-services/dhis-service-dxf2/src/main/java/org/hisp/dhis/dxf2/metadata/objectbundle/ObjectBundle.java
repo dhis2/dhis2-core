@@ -67,8 +67,8 @@ public class ObjectBundle implements ObjectIndexProvider
     private final User user;
 
     /**
-    * Should import be imported or just validated.
-    */
+     * Should import be imported or just validated.
+     */
     private final ObjectBundleMode objectBundleMode;
 
     /**
