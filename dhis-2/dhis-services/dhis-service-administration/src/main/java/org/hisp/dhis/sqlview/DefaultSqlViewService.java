@@ -59,6 +59,7 @@ import org.hisp.dhis.query.QueryUtils.OperatorWithPlaceHolderAndArg;
 import org.hisp.dhis.query.QueryUtils.PlaceholderQueryWithArgs;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
