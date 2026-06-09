@@ -220,7 +220,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
-            session.save(object);
+            session.save( object );
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), object );
 
@@ -291,7 +291,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     .setSkipTranslation( bundle.isSkipTranslation() ) );
             }
 
-            session.update(persistedObject);
+            session.update( persistedObject );
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
 
