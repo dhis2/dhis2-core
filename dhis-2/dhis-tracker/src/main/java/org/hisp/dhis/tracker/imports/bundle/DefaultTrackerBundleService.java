@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.bundle;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
@@ -78,6 +79,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerObjectDeletionService deletionService;
 
   private final ObjectMapper mapper;
+
+  private final EntityManager entityManager;
 
   @Nonnull
   @Override
