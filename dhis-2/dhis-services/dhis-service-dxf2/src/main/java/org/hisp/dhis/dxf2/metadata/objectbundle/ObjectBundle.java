@@ -195,8 +195,6 @@ public class ObjectBundle implements ObjectIndexProvider
         return user;
     }
 
-
-
     public String getUsername()
     {
         return user != null ? user.getUsername() : "system-process";
