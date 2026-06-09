@@ -41,6 +41,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -227,7 +228,8 @@ public final class QueryUtils
     }
 
     /**
-     * Parses the provided string value to return either null, a number or a string value
+     * Parses the provided string value to return either null, a number or a
+     * string value
      *
      * @param value string value to parse
      * @return null,number or string
@@ -566,7 +568,8 @@ public final class QueryUtils
     @AllArgsConstructor
     public static class OperatorWithPlaceHolderAndArg
     {
-        // operatorWithPlaceholder SQL operator with a '?' placeholder (e.g. 'like ?', '> ?')
+        // operatorWithPlaceholder SQL operator with a '?' placeholder (e.g.
+        // 'like ?', '> ?')
         private String operatorWithPlaceholder;
 
         // the arg to be supplied to the placeholder

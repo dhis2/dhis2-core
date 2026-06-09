@@ -223,7 +223,8 @@ public class DefaultSqlViewService
                     filter.substring( index ) );
                 query.append( filterQuery.getOperatorWithPlaceholder() );
 
-                // this arg could be a collection, so need to add each (not the collection)
+                // this arg could be a collection, so need to add each (not the
+                // collection)
                 if ( filterQuery.getArg() instanceof Collection<?> )
                 {
                     Collection<?> collection = (Collection<?>) filterQuery.getArg();

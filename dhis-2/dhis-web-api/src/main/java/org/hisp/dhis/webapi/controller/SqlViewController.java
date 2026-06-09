@@ -261,7 +261,8 @@ public class SqlViewController
 
     private List<String> getFields()
     {
-        // handle comma-separated fields so each field is quoted individually downstream
+        // handle comma-separated fields so each field is quoted individually
+        // downstream
         return Lists.newArrayList( contextService.getParameterValues( "fields" ) ).stream()
             .map( s -> Arrays.asList( s.split( "," ) ) )
             .flatMap( Collection::stream )
