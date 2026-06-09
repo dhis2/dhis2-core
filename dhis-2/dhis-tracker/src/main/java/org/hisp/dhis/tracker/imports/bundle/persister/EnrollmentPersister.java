@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -61,9 +60,8 @@ public class EnrollmentPersister
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
       DataSource dataSource,
-      FileResourceStore fileResourceStore,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService, dataSource, fileResourceStore);
+    super(reservedValueService, dataSource);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 

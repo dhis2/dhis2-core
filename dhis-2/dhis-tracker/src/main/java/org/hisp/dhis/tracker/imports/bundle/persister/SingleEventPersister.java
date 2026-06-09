@@ -51,7 +51,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -75,11 +74,8 @@ import org.springframework.stereotype.Component;
 public class SingleEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.SingleEvent, SingleEvent> {
-  public SingleEventPersister(
-      ReservedValueService reservedValueService,
-      DataSource dataSource,
-      FileResourceStore fileResourceStore) {
-    super(reservedValueService, dataSource, fileResourceStore);
+  public SingleEventPersister(ReservedValueService reservedValueService, DataSource dataSource) {
+    super(reservedValueService, dataSource);
   }
 
   @Override

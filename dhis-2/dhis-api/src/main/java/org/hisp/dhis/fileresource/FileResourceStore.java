@@ -120,10 +120,4 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 
   List<FileResource> getUnassignedPassedGracePeriod(
       Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime minus);
-
-  /**
-   * Updates the assignment state and owner of the file resource with the given uid via a single
-   * JDBC UPDATE. No-op if no file resource with that uid exists.
-   */
-  void updateAssignment(@Nonnull String uid, boolean assigned, @Nonnull String fileResourceOwner);
 }
