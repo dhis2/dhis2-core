@@ -459,28 +459,22 @@ public class Program extends BaseMetadataObject
   }
 
   /**
-   * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
-   * getAttributes() to access the persisted attribute list. Skipped attributes are also considered
-   * confidential.
+   * Returns non-skipped TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
+   * getAttributes() to access the persisted attribute list.
    */
-  public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes() {
+  public List<TrackedEntityAttribute> getAnalyzableTrackedEntityAttributes() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool() && !a.isSkipAnalytics())
+        .filter(a -> !a.getSkipAnalytics())
         .collect(Collectors.toList());
   }
 
   /**
-   * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set and
-   * is of numeric value type. Skipped attributes are also considered confidential.
+   * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set,
+   * are of numeric value type and are not skipped.
    */
-  public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet() {
+  public List<TrackedEntityAttribute> getAnalyzableTrackedEntityAttributesWithLegendSet() {
     return getTrackedEntityAttributes().stream()
-        .filter(
-            a ->
-                !a.isConfidentialBool()
-                    && !a.isSkipAnalytics()
-                    && a.hasLegendSet()
-                    && a.isNumericType())
+        .filter(a -> !a.getSkipAnalytics() && a.hasLegendSet() && a.isNumericType())
         .collect(Collectors.toList());
   }
 

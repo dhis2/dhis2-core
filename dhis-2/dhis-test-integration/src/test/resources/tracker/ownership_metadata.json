@@ -951,7 +951,6 @@
       "valueType": "TEXT",
       "formName": "to-update-tei-attribute",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -986,7 +985,6 @@
       "valueType": "TEXT",
       "formName": "to-delete-tei-attribute",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -1021,7 +1019,6 @@
       "valueType": "TEXT",
       "formName": "not-updated-tei-attribute",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {

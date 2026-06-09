@@ -48,10 +48,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen
  */
+@Transactional
 class JsonPatchManagerTest extends PostgresIntegrationTestBase {
 
   private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
