@@ -178,7 +178,7 @@ public class QueryUtilsTest
         fields.add( "ABC" );
         fields.add( "DEF" );
 
-        assertEquals( "ABC,DEF", QueryUtils.parseSelectFields( fields ) );
+        assertEquals( "\"ABC\",\"DEF\"", QueryUtils.parseSelectFields( fields ) );
     }
 
     @Test
@@ -198,19 +198,28 @@ public class QueryUtilsTest
     @Test
     public void testParseFilterOperator()
     {
-        assertEquals( "= 5", QueryUtils.parseFilterOperator( "eq", "5" ) );
+        assertOperator( " = ? ", 5, QueryUtils.parseFilterOperator( "eq", "5" ) );
 
-        assertEquals( "= 'ABC'", QueryUtils.parseFilterOperator( "eq", "ABC" ) );
+        assertOperator( " = ? ", "ABC", QueryUtils.parseFilterOperator( "eq", "ABC" ) );
 
-        assertEquals( "like '%abc%'", QueryUtils.parseFilterOperator( "like", "abc" ) );
+        assertOperator( " ilike ? ", "abc", QueryUtils.parseFilterOperator( "ieq", "abc" ) );
 
-        assertEquals( " like '%abc'", QueryUtils.parseFilterOperator( "$like", "abc" ) );
+        assertOperator( " like ? ", "%abc%", QueryUtils.parseFilterOperator( "like", "abc" ) );
 
-        assertEquals( "in ('a','b','c')", QueryUtils.parseFilterOperator( "in", "[a,b,c]" ) );
+        assertOperator( " like ? ", "%abc", QueryUtils.parseFilterOperator( "$like", "abc" ) );
 
-        assertEquals( "in (1,2,3)", QueryUtils.parseFilterOperator( "in", "[1,2,3]" ) );
+        assertOperator( " in (?,?,?) ", List.of( "a", "b", "c" ), QueryUtils.parseFilterOperator( "in", "[a,b,c]" ) );
 
-        assertEquals( "is not null", QueryUtils.parseFilterOperator( "!null", null ) );
+        assertOperator( " in (?,?,?) ", List.of( 1, 2, 3 ), QueryUtils.parseFilterOperator( "in", "[1,2,3]" ) );
+
+        assertOperator( "is not null ", null, QueryUtils.parseFilterOperator( "!null", null ) );
+    }
+
+    private void assertOperator( String expectedOperator, Object expectedArg,
+        QueryUtils.OperatorWithPlaceHolderAndArg actual )
+    {
+        assertEquals( expectedOperator, actual.getOperatorWithPlaceholder() );
+        assertEquals( expectedArg, actual.getArg() );
     }
 
     @Test

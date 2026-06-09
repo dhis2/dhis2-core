@@ -44,7 +44,7 @@ public interface SqlViewStore
 
     void dropViewTable( SqlView sqlView );
 
-    void populateSqlViewGrid( Grid grid, String sql );
+    void populateSqlViewGrid( Grid grid, String sql, Object[] args );
 
     /**
      * Tests the given SQL for validity.

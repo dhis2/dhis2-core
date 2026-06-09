@@ -135,9 +135,9 @@ public class HibernateSqlViewStore
     }
 
     @Override
-    public void populateSqlViewGrid( Grid grid, String sql )
+    public void populateSqlViewGrid( Grid grid, String sql, Object[] args )
     {
-        SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql, args );
 
         int maxLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
