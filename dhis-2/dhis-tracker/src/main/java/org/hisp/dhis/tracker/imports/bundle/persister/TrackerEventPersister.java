@@ -83,7 +83,7 @@ public class TrackerEventPersister
 
   @Override
   protected String sequenceName() {
-    return null;
+    return "trackerevent_sequence";
   }
 
   @Override
