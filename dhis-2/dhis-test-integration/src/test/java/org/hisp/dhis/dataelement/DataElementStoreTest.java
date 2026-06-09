@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -66,6 +67,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class DataElementStoreTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private DataElementStore dataElementStore;
 
@@ -335,7 +337,7 @@ class DataElementStoreTest extends PostgresIntegrationTestBase {
     dataElementStore.save(dataElementB);
     assertEquals(2, dataElementStore.getCountLikeName("dataelement"));
     assertEquals(2, dataElementStore.getCount());
-    assertEquals(0, dataElementStore.getCountGeCreated(new Date()));
+    assertEquals(0, dataElementStore.getCountGeCreated(Date.from(TEST_NOW)));
     assertEquals(2, dataElementStore.getCountGeCreated(dataElementA.getCreated()));
     assertEquals(2, dataElementStore.getCountGeLastUpdated(dataElementA.getLastUpdated()));
   }

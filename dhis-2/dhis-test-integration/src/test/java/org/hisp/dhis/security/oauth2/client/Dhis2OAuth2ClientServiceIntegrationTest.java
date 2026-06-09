@@ -191,7 +191,7 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
   @Test
   void testTimestampConversion() {
     // Given
-    Instant now = Instant.now();
+    Instant now = Instant.parse("2026-06-15T10:00:00Z");
     Instant future = now.plusSeconds(3600);
 
     RegisteredClient registeredClient =

@@ -52,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -69,6 +70,7 @@ import org.junit.jupiter.api.Test;
 class DateUtilsTest {
   private static final String NULL_STRING = null;
   private static final Date NULL_DATE = null;
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Test
   void testDateIsValid() {
@@ -330,28 +332,28 @@ class DateUtilsTest {
 
   @Test
   void testCalculateDateFromUsingPositiveDays() {
-    Date anyInitialDate = new Date();
+    Date anyInitialDate = Date.from(TEST_NOW);
     Date theNewDate = DateUtils.calculateDateFrom(anyInitialDate, 1, DATE);
     assertThat(theNewDate, is(greaterThan(anyInitialDate)));
   }
 
   @Test
   void testCalculateDateFromUsingNegativeDays() {
-    Date anyInitialDate = new Date();
+    Date anyInitialDate = Date.from(TEST_NOW);
     Date theNewDate = DateUtils.calculateDateFrom(anyInitialDate, -1, DATE);
     assertThat(theNewDate, is(lessThan(anyInitialDate)));
   }
 
   @Test
   void testCalculateDateFromUsingPositiveMilis() {
-    Date anyInitialDate = new Date();
+    Date anyInitialDate = Date.from(TEST_NOW);
     Date theNewDate = DateUtils.calculateDateFrom(anyInitialDate, 1, MILLISECOND);
     assertThat(theNewDate, is(greaterThan(anyInitialDate)));
   }
 
   @Test
   void testCalculateDateFromUsingNegativeMilis() {
-    Date anyInitialDate = new Date();
+    Date anyInitialDate = Date.from(TEST_NOW);
     Date theNewDate = DateUtils.calculateDateFrom(anyInitialDate, -1, MILLISECOND);
     assertThat(theNewDate, is(lessThan(anyInitialDate)));
   }

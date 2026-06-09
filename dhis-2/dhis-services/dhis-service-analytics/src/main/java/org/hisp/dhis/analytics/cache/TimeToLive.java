@@ -31,11 +31,11 @@ package org.hisp.dhis.analytics.cache;
 
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.ofInstant;
-import static java.time.ZoneId.systemDefault;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.springframework.util.Assert.isTrue;
 import static org.springframework.util.Assert.notNull;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 
@@ -51,14 +51,27 @@ public class TimeToLive implements Computable {
 
   private final int ttlFactor;
 
+  private final Clock clock;
+
   public TimeToLive(Date dateBeforeToday, int ttlFactor) {
+    this(dateBeforeToday, ttlFactor, Clock.systemDefaultZone());
+  }
+
+  /**
+   * @param clock the clock used to read "now" when computing the TTL. In production this is {@link
+   *     Clock#systemDefaultZone()}; tests pass a fixed clock so the computed diff does not depend
+   *     on when or where the test runs.
+   */
+  public TimeToLive(Date dateBeforeToday, int ttlFactor, Clock clock) {
     notNull(dateBeforeToday, "Param dateBeforeToday must not be null");
     isTrue(ttlFactor > 0, "Param ttlFactor must be greater than zero");
+    notNull(clock, "Param clock must not be null");
 
     // This ensures we always work with java.util.Date type, avoiding issues
     // with java.sql.Date.
     this.dateBeforeToday = new Date(dateBeforeToday.getTime());
     this.ttlFactor = ttlFactor;
+    this.clock = clock;
   }
 
   /**
@@ -93,7 +106,7 @@ public class TimeToLive implements Computable {
    * @return the difference of days
    */
   private long daysBetweenDateBeforeTodayAndNow(Instant dateBeforeToday) {
-    long diff = DAYS.between(ofInstant(dateBeforeToday, systemDefault()), now());
+    long diff = DAYS.between(ofInstant(dateBeforeToday, clock.getZone()), now(clock));
     return diff >= 0 ? diff : 0;
   }
 }

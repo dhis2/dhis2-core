@@ -44,6 +44,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Autowired private Dhis2OAuth2AuthorizationStore oauth2AuthorizationStore;
 
   @Test
@@ -118,8 +120,8 @@ class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     authorization.setPrincipalName("user-2");
     authorization.setAuthorizationGrantType("authorization_code");
     authorization.setAuthorizationCodeValue("test-auth-code");
-    authorization.setAuthorizationCodeIssuedAt(new Date());
-    authorization.setAuthorizationCodeExpiresAt(Date.from(Instant.now().plusSeconds(600)));
+    authorization.setAuthorizationCodeIssuedAt(Date.from(TEST_NOW));
+    authorization.setAuthorizationCodeExpiresAt(Date.from(TEST_NOW.plusSeconds(600)));
 
     // Save the authorization
     oauth2AuthorizationStore.save(authorization);
@@ -144,8 +146,8 @@ class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     authorization.setPrincipalName("user-3");
     authorization.setAuthorizationGrantType("authorization_code");
     authorization.setAccessTokenValue("test-access-token");
-    authorization.setAccessTokenIssuedAt(new Date());
-    authorization.setAccessTokenExpiresAt(Date.from(Instant.now().plusSeconds(3600)));
+    authorization.setAccessTokenIssuedAt(Date.from(TEST_NOW));
+    authorization.setAccessTokenExpiresAt(Date.from(TEST_NOW.plusSeconds(3600)));
 
     // Save the authorization
     oauth2AuthorizationStore.save(authorization);
@@ -170,8 +172,8 @@ class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     authorization.setPrincipalName("user-4");
     authorization.setAuthorizationGrantType("authorization_code");
     authorization.setRefreshTokenValue("test-refresh-token");
-    authorization.setRefreshTokenIssuedAt(new Date());
-    authorization.setRefreshTokenExpiresAt(Date.from(Instant.now().plusSeconds(86400)));
+    authorization.setRefreshTokenIssuedAt(Date.from(TEST_NOW));
+    authorization.setRefreshTokenExpiresAt(Date.from(TEST_NOW.plusSeconds(86400)));
 
     // Save the authorization
     oauth2AuthorizationStore.save(authorization);

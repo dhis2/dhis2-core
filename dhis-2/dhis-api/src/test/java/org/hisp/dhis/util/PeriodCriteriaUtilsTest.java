@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,6 +48,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link PeriodCriteriaUtils}. */
 class PeriodCriteriaUtilsTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Test
   void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forRelativePeriod() {
     // given
@@ -117,7 +120,8 @@ class PeriodCriteriaUtilsTest {
   void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forStartAndEndDate() {
     // given
     EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria =
-        configureEventsAnalyticsQueryCriteriaWithDateRange(new Date(), new Date());
+        configureEventsAnalyticsQueryCriteriaWithDateRange(
+            Date.from(TEST_NOW), Date.from(TEST_NOW));
 
     // when
     PeriodCriteriaUtils.addDefaultPeriodIfAbsent(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
@@ -179,7 +183,8 @@ class PeriodCriteriaUtilsTest {
   void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forStartAndEndDate() {
     // given
     EnrollmentAnalyticsQueryCriteria enrollmentAnalyticsQueryCriteria =
-        configureEnrollmentsAnalyticsQueryCriteriaWithDateRange(new Date(), new Date());
+        configureEnrollmentsAnalyticsQueryCriteriaWithDateRange(
+            Date.from(TEST_NOW), Date.from(TEST_NOW));
 
     // when
     PeriodCriteriaUtils.addDefaultPeriodIfAbsent(enrollmentAnalyticsQueryCriteria, LAST_5_YEARS);
@@ -249,22 +254,22 @@ class PeriodCriteriaUtilsTest {
   @Test
   void testHasPeriodEnrollment_whenStartAndEndDateAreSet() {
     EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
-    c.setStartDate(new Date());
-    c.setEndDate(new Date());
+    c.setStartDate(Date.from(TEST_NOW));
+    c.setEndDate(Date.from(TEST_NOW));
     assertTrue(PeriodCriteriaUtils.hasPeriod(c));
   }
 
   @Test
   void testHasPeriodEnrollment_false_whenOnlyStartDateIsSet() {
     EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
-    c.setStartDate(new Date());
+    c.setStartDate(Date.from(TEST_NOW));
     assertFalse(PeriodCriteriaUtils.hasPeriod(c));
   }
 
   @Test
   void testHasPeriodEnrollment_false_whenOnlyEndDateIsSet() {
     EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
-    c.setEndDate(new Date());
+    c.setEndDate(Date.from(TEST_NOW));
     assertFalse(PeriodCriteriaUtils.hasPeriod(c));
   }
 
@@ -292,7 +297,7 @@ class PeriodCriteriaUtilsTest {
   @Test
   void testHasPeriodEnrollment_whenRelativePeriodDateIsSet() {
     EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
-    c.setRelativePeriodDate(new Date());
+    c.setRelativePeriodDate(Date.from(TEST_NOW));
     assertTrue(PeriodCriteriaUtils.hasPeriod(c));
   }
 

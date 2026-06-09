@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.function.Consumer;
@@ -73,6 +74,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private static final String DATA_ELEMENT_UID = CodeGenerator.generateUid();
   private static final String DE_NOT_IN_STAGE_UID = CodeGenerator.generateUid();
@@ -242,7 +245,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
 
   private void createEvent() {
     event = createSingleEvent(programStage, organisationUnit);
-    event.setOccurredDate(new Date());
+    event.setOccurredDate(Date.from(TEST_NOW));
     event.setUid(EVENT_UID);
 
     event.setEventDataValues(

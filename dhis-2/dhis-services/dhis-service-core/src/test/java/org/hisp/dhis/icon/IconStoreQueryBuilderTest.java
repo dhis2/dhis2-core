@@ -31,6 +31,7 @@ package org.hisp.dhis.icon;
 
 import static org.hisp.dhis.icon.JdbcIconStore.createQuery;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,8 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Test
   void testGetIcons_FilterKeys() {
@@ -143,7 +146,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testGetIcons_FilterCreatedStartDate() {
-    Date now = new Date();
+    Date now = Date.from(TEST_NOW);
     IconQueryParams params = new IconQueryParams().setCreatedStartDate(now);
     assertSQL(
         """
@@ -164,7 +167,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testGetIcons_FilterCreatedEndDate() {
-    Date now = new Date();
+    Date now = Date.from(TEST_NOW);
     IconQueryParams params = new IconQueryParams().setCreatedEndDate(now);
     assertSQL(
         """
@@ -185,7 +188,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testGetIcons_FilterLastUpdatedStartDate() {
-    Date now = new Date();
+    Date now = Date.from(TEST_NOW);
     IconQueryParams params = new IconQueryParams().setLastUpdatedStartDate(now);
     assertSQL(
         """
@@ -206,7 +209,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testGetIcons_FilterLastUpdatedEndDate() {
-    Date now = new Date();
+    Date now = Date.from(TEST_NOW);
     IconQueryParams params = new IconQueryParams().setLastUpdatedEndDate(now);
     assertSQL(
         """

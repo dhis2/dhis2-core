@@ -38,6 +38,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -67,6 +68,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Disabled
 class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private SynchronizationManager synchronizationManager;
 
@@ -132,12 +135,12 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     MetadataVersion currentVersion = new MetadataVersion();
     currentVersion.setType(VersionType.BEST_EFFORT);
     currentVersion.setName("test_version1");
-    currentVersion.setCreated(new Date());
+    currentVersion.setCreated(Date.from(TEST_NOW));
     currentVersion.setHashCode("samplehashcode1");
     MetadataVersion newVersion = new MetadataVersion();
     newVersion.setType(VersionType.ATOMIC);
     newVersion.setName("test_version2");
-    newVersion.setCreated(new Date());
+    newVersion.setCreated(Date.from(TEST_NOW));
     newVersion.setHashCode("samplehashcode2");
     List<MetadataVersion> listOfVersions = new ArrayList<>();
     listOfVersions.add(newVersion);
@@ -157,7 +160,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     MetadataVersion currentVersion = new MetadataVersion();
     currentVersion.setType(VersionType.BEST_EFFORT);
     currentVersion.setName("test_version");
-    currentVersion.setCreated(new Date());
+    currentVersion.setCreated(Date.from(TEST_NOW));
     currentVersion.setHashCode("samplehashcode");
     when(metadataVersionDelegate.getMetaDataDifference(currentVersion))
         .thenReturn(new ArrayList<>());
@@ -175,7 +178,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     MetadataVersion currentVersion = new MetadataVersion();
     currentVersion.setType(VersionType.BEST_EFFORT);
     currentVersion.setName("test_version");
-    currentVersion.setCreated(new Date());
+    currentVersion.setCreated(Date.from(TEST_NOW));
     currentVersion.setHashCode("samplehashcode");
     List<MetadataVersion> listOfVersions = new ArrayList<>();
     when(metadataVersionDelegate.getMetaDataDifference(currentVersion)).thenReturn(listOfVersions);
@@ -193,7 +196,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     MetadataVersion currentVersion = new MetadataVersion();
     currentVersion.setType(VersionType.BEST_EFFORT);
     currentVersion.setName("test_version");
-    currentVersion.setCreated(new Date());
+    currentVersion.setCreated(Date.from(TEST_NOW));
     currentVersion.setHashCode("samplehashcode");
     List<MetadataVersion> listOfVersions = new ArrayList<>();
     listOfVersions.add(currentVersion);
@@ -212,7 +215,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     MetadataVersion currentVersion = new MetadataVersion();
     currentVersion.setType(VersionType.BEST_EFFORT);
     currentVersion.setName("test_version");
-    currentVersion.setCreated(new Date());
+    currentVersion.setCreated(Date.from(TEST_NOW));
     currentVersion.setHashCode("samplehashcode");
     when(metadataVersionService.getCurrentVersion()).thenReturn(currentVersion);
     MetadataVersion actualVersion =
@@ -227,7 +230,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     MetadataVersion currentVersion = new MetadataVersion();
     currentVersion.setType(VersionType.BEST_EFFORT);
     currentVersion.setName("test_version1");
-    currentVersion.setCreated(new Date());
+    currentVersion.setCreated(Date.from(TEST_NOW));
     currentVersion.setHashCode("samplehashcode1");
     MetadataVersion version2 = new MetadataVersion("Version2", VersionType.ATOMIC);
     DateTime dateTime = dateTimeFormatter.parseDateTime("2016-06-21 10:45:50Z");

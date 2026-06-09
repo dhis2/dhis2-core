@@ -44,6 +44,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Date;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -88,6 +89,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class DataValueListenerTest extends TestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private static final String FETCHED_DATA_VALUE = "fetchedDataValue";
 
   private static final String STORED_BY = "CGhost";
@@ -211,7 +214,7 @@ class DataValueListenerTest extends TestBase {
     dataSetB = createDataSet('B');
     dataSet.addOrganisationUnit(organisationUnitA);
     dataSet.addOrganisationUnit(organisationUnitB);
-    period = createPeriod(new Date(), new Date());
+    period = createPeriod(Date.from(TEST_NOW), Date.from(TEST_NOW));
 
     user = makeUser("U");
     user.setPhoneNumber(ORIGINATOR);
@@ -251,9 +254,9 @@ class DataValueListenerTest extends TestBase {
             period,
             organisationUnitA,
             categoryOptionCombo,
-            new Date(),
+            Date.from(TEST_NOW),
             STORED_BY,
-            new Date(),
+            Date.from(TEST_NOW),
             LAST_UPDATED_BY,
             true);
 

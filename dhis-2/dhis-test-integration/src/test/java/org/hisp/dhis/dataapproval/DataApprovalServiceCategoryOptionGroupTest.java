@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -81,6 +82,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private static final String ACCESS_NONE = "--------";
 
   private static final String ACCESS_READ = "r-------";
@@ -291,7 +294,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     // Users
     userA = makeUser("A");
     userService.addUser(userA);
-    dateA = new Date();
+    dateA = Date.from(TEST_NOW);
     superUser = createAndAddUser(true, "SuperUser", global, Authorities.ALL.toString());
     globalConsultant =
         createAndAddUser(

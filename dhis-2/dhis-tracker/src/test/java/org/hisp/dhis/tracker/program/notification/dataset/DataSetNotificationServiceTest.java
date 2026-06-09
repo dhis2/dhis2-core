@@ -40,6 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -95,6 +96,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class DataSetNotificationServiceTest extends TrackerTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   public static final String TEMPALTE_A_UID = "smsTemplateA";
 
   public static final String TEMPALTE_B_UID = "emailTemplateB";
@@ -240,9 +243,9 @@ class DataSetNotificationServiceTest extends TrackerTestBase {
             periodA,
             organisationUnitA,
             categoryOptionCombo,
-            new Date(),
+            Date.from(TEST_NOW),
             "",
-            new Date(),
+            Date.from(TEST_NOW),
             "",
             true);
 
@@ -252,9 +255,9 @@ class DataSetNotificationServiceTest extends TrackerTestBase {
             periodA,
             organisationUnitC,
             categoryOptionCombo,
-            new Date(),
+            Date.from(TEST_NOW),
             "",
-            new Date(),
+            Date.from(TEST_NOW),
             "",
             true);
 

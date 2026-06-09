@@ -35,6 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import org.hisp.dhis.common.UID;
@@ -57,6 +58,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationSenderTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   private static final String TEMPLATE_UID = "h4w96yEMlzO";
   private static final String ENROLLMENT_UID = "enrollmentUid";
 
@@ -249,6 +251,6 @@ class NotificationSenderTest {
   }
 
   private Notification scheduleMessage() {
-    return new Notification(UID.of(TEMPLATE_UID), new Date());
+    return new Notification(UID.of(TEMPLATE_UID), Date.from(TEST_NOW));
   }
 }

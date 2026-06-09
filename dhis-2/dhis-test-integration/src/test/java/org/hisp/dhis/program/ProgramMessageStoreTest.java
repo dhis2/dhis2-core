@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -68,6 +69,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   private static final String MSISDN = "4740332255";
   private static final String MESSAGE_TEXT = "Hi";
 
@@ -134,7 +137,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     enrollmentA = createEnrollment(programA, trackedEntityB, orgUnitA);
 
     eventA = createEvent(stageA, enrollmentA, orgUnitA);
-    eventA.setScheduledDate(new Date());
+    eventA.setScheduledDate(Date.from(TEST_NOW));
     eventA.setUid(CodeGenerator.generateUid());
 
     singleEvent = createSingleEvent(stageB, orgUnitB);

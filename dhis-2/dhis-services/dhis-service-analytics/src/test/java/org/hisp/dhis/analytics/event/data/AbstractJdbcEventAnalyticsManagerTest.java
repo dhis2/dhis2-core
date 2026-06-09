@@ -73,6 +73,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -152,6 +153,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 @ExtendWith(MockitoExtension.class)
 class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Mock private JdbcTemplate jdbcTemplate;
 
   @Mock private ProgramIndicatorService programIndicatorService;
@@ -769,8 +772,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withCoordinateFields(List.of(deA.getUid()))
             .withSkipData(true)
             .withSkipMeta(false)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
+            .withStartDate(Date.from(TEST_NOW))
+            .withEndDate(Date.from(TEST_NOW))
             // the not null condition is only triggered by this flag (or
             // withGeometry) being true
             .withCoordinatesOnly(true)
@@ -806,8 +809,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .addDimension(multipleOrgUnitsSameLevel)
             .withSkipData(true)
             .withSkipMeta(false)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
+            .withStartDate(Date.from(TEST_NOW))
+            .withEndDate(Date.from(TEST_NOW))
             .build();
 
     String whereClause = this.eventSubject.getWhereClause(params);
@@ -1104,7 +1107,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     QueryItem queryItem = mock(QueryItem.class);
     QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
     EventQueryParams params =
-        new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
+        new EventQueryParams.Builder()
+            .withStartDate(Date.from(TEST_NOW))
+            .withEndDate(Date.from(TEST_NOW))
+            .build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
     when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
@@ -1128,8 +1134,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
     EventQueryParams params =
         new EventQueryParams.Builder()
-            .withStartDate(new Date())
-            .withEndDate(new Date())
+            .withStartDate(Date.from(TEST_NOW))
+            .withEndDate(Date.from(TEST_NOW))
             .withEndpointAction(AGGREGATE)
             .withEndpointItem(ENROLLMENT)
             .build();
@@ -1205,8 +1211,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
+            .withStartDate(Date.from(TEST_NOW))
+            .withEndDate(Date.from(TEST_NOW))
             .build();
 
     when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
@@ -1234,8 +1240,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
+            .withStartDate(Date.from(TEST_NOW))
+            .withEndDate(Date.from(TEST_NOW))
             .build();
 
     String sql = eventSubject.toSql(queryItem, filter, params).trim();
@@ -1259,8 +1265,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
+            .withStartDate(Date.from(TEST_NOW))
+            .withEndDate(Date.from(TEST_NOW))
             .build();
 
     String sql = eventSubject.toSql(queryItem, filter, params).trim();
@@ -1284,8 +1290,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
+            .withStartDate(Date.from(TEST_NOW))
+            .withEndDate(Date.from(TEST_NOW))
             .build();
 
     String sql = eventSubject.toSql(queryItem, filter, params).trim();
@@ -1685,8 +1691,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         .withOrganisationUnits(List.of(createOrganisationUnit('A')))
         .addItem(qiA)
         .withProgram(program)
-        .withStartDate(new Date())
-        .withEndDate(new Date())
+        .withStartDate(Date.from(TEST_NOW))
+        .withEndDate(Date.from(TEST_NOW))
         .withCoordinatesOnly(true)
         .withGeometryOnly(true)
         .withCoordinateFields(coordinateFields)

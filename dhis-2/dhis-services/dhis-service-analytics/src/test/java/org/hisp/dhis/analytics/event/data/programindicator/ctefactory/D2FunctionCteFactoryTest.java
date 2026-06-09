@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data.programindicator.ctefactory;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,6 +52,8 @@ import org.junit.jupiter.api.Test;
 
 class D2FunctionCteFactoryTest extends TestBase {
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private ProgramIndicator pi;
   private SqlBuilder qb;
   private CteContext ctx;
@@ -69,9 +72,9 @@ class D2FunctionCteFactoryTest extends TestBase {
     factory = new D2FunctionCteFactory();
     alias = new HashMap<>();
     start = new Date(0);
-    end = new Date();
+    end = Date.from(TEST_NOW);
     from = new Date(0);
-    to = new Date();
+    to = Date.from(TEST_NOW);
   }
 
   /* helper */

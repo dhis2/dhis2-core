@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -67,6 +68,8 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class QueryServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private QueryService queryService;
 
@@ -669,7 +672,7 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDefaultSortOrder() {
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     OrganisationUnit organisationUnitC = createOrganisationUnit("C");
     organisationUnitC.setUid("ccccccccccc");
     organisationUnitC.setName("orgunit");

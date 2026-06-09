@@ -50,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -102,6 +103,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
@@ -112,7 +115,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  private final Date occurredDate = new Date();
+  private final Date occurredDate = Date.from(TEST_NOW);
 
   private User admin;
 

@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
@@ -63,6 +64,8 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class DataApprovalStoreTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private DataApprovalStore dataApprovalStore;
 
@@ -154,7 +157,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   @Test
   @Disabled("DHIS2-19679 loading DAs causes conflict because of Period same ID different instances")
   void testAddAndGetDataApproval() {
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
@@ -222,7 +225,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   void testDeleteDataApproval() {
     dataApprovalLevelService.addDataApprovalLevel(level1);
     dataApprovalLevelService.addDataApprovalLevel(level2);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
@@ -275,7 +278,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
     coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
     categoryService.addCategoryOptionCombo(coc3);
 
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(level1, workflowA12, periodA, sourceA, coc1, false, date, userA);
     DataApproval dataApprovalB =
@@ -306,7 +309,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   @DisplayName("All ManyToOne associations are properly persisted and loaded")
   void testAllAssociationsPersistedAndLoaded() {
     // given
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval approval =
         new DataApproval(
             level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
@@ -347,7 +350,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   @DisplayName("Required associations enforce not-null constraint")
   void testRequiredAssociationsNotNull() {
     // given
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval approval =
         new DataApproval(
             level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
@@ -372,7 +375,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   @DisplayName("Optional associations can be null")
   void testOptionalAssociationsCanBeNull() {
     // given
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval approval =
         new DataApproval(
             level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
@@ -394,7 +397,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   @DisplayName("Update operation preserves all associations")
   void testUpdatePreservesAssociations() {
     // given
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval approval =
         new DataApproval(
             level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
@@ -431,7 +434,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   @DisplayName("ID is properly generated and can be retrieved")
   void testIdGeneration() {
     // given
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval approval =
         new DataApproval(
             level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);

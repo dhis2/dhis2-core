@@ -59,6 +59,7 @@ public class AggregateDataExportPerformanceTest extends Simulation {
 
   private static final String BASE_URL = "http://localhost:8080";
   private static final String EXPORT_REQUEST = "GET dataValueSets - root OU with descendants";
+  private static final LocalDate TEST_DATE = LocalDate.parse("2026-06-15");
 
   @Override
   public void before() {
@@ -67,8 +68,8 @@ public class AggregateDataExportPerformanceTest extends Simulation {
 
   public AggregateDataExportPerformanceTest() {
     DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
-    String endDate = LocalDate.now().format(fmt);
-    String startDate = LocalDate.now().minusYears(2).format(fmt);
+    String endDate = TEST_DATE.format(fmt);
+    String startDate = TEST_DATE.minusYears(2).format(fmt);
 
     HttpProtocolBuilder httpProtocol =
         http.baseUrl(BASE_URL)

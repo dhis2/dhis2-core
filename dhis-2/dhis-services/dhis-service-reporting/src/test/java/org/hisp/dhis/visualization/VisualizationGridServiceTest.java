@@ -39,6 +39,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -62,6 +63,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class VisualizationGridServiceTest {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Mock private VisualizationService visualizationService;
 
   @Mock private AnalyticsService analyticsService;
@@ -89,7 +92,7 @@ class VisualizationGridServiceTest {
   void getVisualizationGridByUserWhenItHasOrganisationUnitLevels() {
     // Given
     final String anyVisualizationUid = "adbet5RTs";
-    final Date anyRelativePeriodDate = new Date();
+    final Date anyRelativePeriodDate = Date.from(TEST_NOW);
     final String anyOrganisationUnitUid = "ouiRzW5e";
     final User userStub = userStub();
     final List<Integer> orgUnitLevels = asList(1, 2);
@@ -124,7 +127,7 @@ class VisualizationGridServiceTest {
   void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups() {
     // Given
     final String anyVisualizationUid = "adbet5RTs";
-    final Date anyRelativePeriodDate = new Date();
+    final Date anyRelativePeriodDate = Date.from(TEST_NOW);
     final String anyOrganisationUnitUid = "ouiRzW5e";
     final User userStub = userStub();
     final List<OrganisationUnit> orgUnits = asList(createOrganisationUnit('A'));

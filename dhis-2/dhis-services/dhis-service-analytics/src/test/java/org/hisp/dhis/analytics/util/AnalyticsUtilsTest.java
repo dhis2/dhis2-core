@@ -51,7 +51,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Lists;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -684,12 +683,10 @@ class AnalyticsUtilsTest extends TestBase {
 
   @Test
   void testIsPeriodOverApprovalThreshold() {
-    java.util.Calendar calendar = java.util.Calendar.getInstance();
-    int currentYear = calendar.get(Calendar.YEAR);
-    Integer thisYear = currentYear;
-    Integer oneYearAgo = currentYear - 1;
-    Integer twoYearsAgo = currentYear - 2;
-    Integer threeYearsAgo = currentYear - 3;
+    Integer thisYear = 2026;
+    Integer oneYearAgo = 2025;
+    Integer twoYearsAgo = 2024;
+    Integer threeYearsAgo = 2023;
     // maxYears = 0 should always return false
     assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 0));
     assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 0));

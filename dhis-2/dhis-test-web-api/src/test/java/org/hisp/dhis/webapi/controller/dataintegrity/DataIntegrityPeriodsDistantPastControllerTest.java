@@ -29,7 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -52,15 +53,18 @@ class DataIntegrityPeriodsDistantPastControllerTest extends AbstractDataIntegrit
 
   private static final String check = "periods_distant_past";
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Test
   void testPeriodsInFarFutureExist() {
 
     PeriodType periodType = new MonthlyPeriodType();
-    Date date_past = Date.from(ZonedDateTime.now().minusYears(30).minusMonths(3).toInstant());
-    Period periodA = periodType.createPeriod(date_past);
+    Date datePast =
+        Date.from(TEST_NOW.atZone(ZoneOffset.UTC).minusYears(30).minusMonths(3).toInstant());
+    Period periodA = periodType.createPeriod(datePast);
 
-    Date date_now = Date.from(ZonedDateTime.now().toInstant());
-    Period periodB = periodType.createPeriod(date_now);
+    Date dateNow = Date.from(TEST_NOW);
+    Period periodB = periodType.createPeriod(dateNow);
 
     periodService.addPeriod(periodA);
     periodService.addPeriod(periodB);
@@ -73,11 +77,12 @@ class DataIntegrityPeriodsDistantPastControllerTest extends AbstractDataIntegrit
   void testPeriodsInFarFutureDoNotExist() {
 
     PeriodType periodType = new MonthlyPeriodType();
-    Date date_future = Date.from(ZonedDateTime.now().minusYears(10).minusDays(1).toInstant());
-    Period periodA = periodType.createPeriod(date_future);
+    Date dateFuture =
+        Date.from(TEST_NOW.atZone(ZoneOffset.UTC).minusYears(10).minusDays(1).toInstant());
+    Period periodA = periodType.createPeriod(dateFuture);
 
-    Date date_now = Date.from(ZonedDateTime.now().toInstant());
-    Period periodB = periodType.createPeriod(date_now);
+    Date dateNow = Date.from(TEST_NOW);
+    Period periodB = periodType.createPeriod(dateNow);
 
     periodService.addPeriod(periodA);
     periodService.addPeriod(periodB);

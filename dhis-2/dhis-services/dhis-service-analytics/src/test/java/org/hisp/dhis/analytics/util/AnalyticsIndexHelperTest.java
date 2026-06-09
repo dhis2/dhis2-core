@@ -41,6 +41,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.IndexType.BTREE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -55,6 +56,8 @@ import org.junit.jupiter.api.Test;
  * @author maikel arabori
  */
 class AnalyticsIndexHelperTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Test
   void testGetIndexes() {
     List<AnalyticsTablePartition> stubPartitions = List.of(stubAnalyticsTablePartition());
@@ -89,10 +92,8 @@ class AnalyticsIndexHelperTest {
   }
 
   private AnalyticsTablePartition stubAnalyticsTablePartition() {
-    AnalyticsTablePartition analyticsTablePartitionStub =
-        new AnalyticsTablePartition(stubAnalyticsTable(), List.of(), 2022, new Date(), new Date());
-
-    return analyticsTablePartitionStub;
+    return new AnalyticsTablePartition(
+        stubAnalyticsTable(), List.of(), 2022, Date.from(TEST_NOW), Date.from(TEST_NOW));
   }
 
   private AnalyticsTable stubAnalyticsTable() {

@@ -29,7 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -50,15 +51,18 @@ class DataIntegrityPeriodsThreeYearFutureControllerTest
 
   private static final String check = "periods_3y_future";
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Test
   void testPeriodsInFarFutureExist() {
 
     PeriodType periodType = new MonthlyPeriodType();
-    Date threeYearsFromNow = Date.from(ZonedDateTime.now().plusYears(3).plusDays(1).toInstant());
+    Date threeYearsFromNow =
+        Date.from(TEST_NOW.atZone(ZoneOffset.UTC).plusYears(3).plusDays(1).toInstant());
     Period periodA = periodType.createPeriod(threeYearsFromNow);
 
-    Date date_now = Date.from(ZonedDateTime.now().toInstant());
-    Period periodB = periodType.createPeriod(date_now);
+    Date dateNow = Date.from(TEST_NOW);
+    Period periodB = periodType.createPeriod(dateNow);
 
     periodService.addPeriod(periodA);
     periodService.addPeriod(periodB);
@@ -71,11 +75,12 @@ class DataIntegrityPeriodsThreeYearFutureControllerTest
   void testPeriodsInFarFutureDoNotExist() {
 
     PeriodType periodType = new MonthlyPeriodType();
-    Date oneYearFromNow = Date.from(ZonedDateTime.now().plusYears(1).plusDays(1).toInstant());
+    Date oneYearFromNow =
+        Date.from(TEST_NOW.atZone(ZoneOffset.UTC).plusYears(1).plusDays(1).toInstant());
     Period periodA = periodType.createPeriod(oneYearFromNow);
 
-    Date date_now = Date.from(ZonedDateTime.now().toInstant());
-    Period periodB = periodType.createPeriod(date_now);
+    Date dateNow = Date.from(TEST_NOW);
+    Period periodB = periodType.createPeriod(dateNow);
 
     periodService.addPeriod(periodA);
     periodService.addPeriod(periodB);

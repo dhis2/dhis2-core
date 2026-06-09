@@ -39,6 +39,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.DataType;
@@ -64,6 +65,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class D2CountIfConditionTest {
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Mock private CommonExpressionVisitor visitor;
   @Mock private ProgramIndicatorService programIndicatorService;
   @Mock private ExpressionParser.ExprContext ctx;
@@ -77,8 +80,8 @@ class D2CountIfConditionTest {
   void setUp() {
     lenient().when(visitor.getProgramIndicatorService()).thenReturn(programIndicatorService);
     lenient().when(visitor.getProgParams()).thenReturn(programExpressionParams);
-    lenient().when(programExpressionParams.getReportingStartDate()).thenReturn(new Date());
-    lenient().when(programExpressionParams.getReportingEndDate()).thenReturn(new Date());
+    lenient().when(programExpressionParams.getReportingStartDate()).thenReturn(Date.from(TEST_NOW));
+    lenient().when(programExpressionParams.getReportingEndDate()).thenReturn(Date.from(TEST_NOW));
   }
 
   static Stream<Arguments> sqlConditionProvider() {

@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -70,7 +71,8 @@ import org.junit.jupiter.api.Test;
 class RuleEngineMapperTest extends TrackerTestBase {
   private static final String SAMPLE_VALUE_A = "textValueA";
 
-  private static final Date NOW = new Date();
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+  private static final Date NOW = Date.from(TEST_NOW);
   private static final Date TOMORROW = DateUtils.addDays(NOW, 1);
   private static final Date YESTERDAY = DateUtils.addDays(NOW, -1);
   private static final Date AFTER_TOMORROW = DateUtils.addDays(NOW, 2);

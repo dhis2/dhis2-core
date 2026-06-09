@@ -125,6 +125,10 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   public static final List<String> TE_UID_NULL =
       List.of("mHWCacsGYYn", "dUE514NMOlo", "QS6w44flWAf"); // no value or null as multi text value
 
+  // A fixed sentinel date far enough in the future that nothing matches. Using a constant rather
+  // than LocalDate.now().plusYears(1) keeps the request reproducible across runs.
+  private static final LocalDate FAR_FUTURE = LocalDate.parse("2999-01-01");
+
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
@@ -228,14 +232,13 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
   @Test
   void shouldReturnEmptyListWhenGettingTrackedEntitiesWithNoMatchingParams() {
-    LocalDate futureDate = LocalDate.now().plusYears(1);
     JsonList<JsonTrackedEntity> trackedEntities =
         GET("/tracker/trackedEntities?trackedEntityType="
                 + trackedEntityType.getUid()
                 + "&ouMode=ALL"
                 + "&trackedEntities=AbjwFr5o9IT"
                 + "&updatedAfter="
-                + futureDate)
+                + FAR_FUTURE)
             .content(HttpStatus.OK)
             .getList("trackedEntities", JsonTrackedEntity.class);
 

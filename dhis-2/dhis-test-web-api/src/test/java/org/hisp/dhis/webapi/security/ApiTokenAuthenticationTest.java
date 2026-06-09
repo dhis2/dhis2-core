@@ -34,7 +34,7 @@ import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Instant;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
@@ -54,6 +54,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @ActiveProfiles("cache-test")
 class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
+
   public static final String URI = "/me?fields=settings,id";
 
   public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
@@ -176,7 +177,7 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
     final String plaintext = new String(wrapper.getPlaintextToken());
     final ApiToken token = wrapper.getApiToken();
 
-    token.setExpire(System.currentTimeMillis() - 36000);
+    token.setExpire(Instant.parse("1970-01-01T00:00:01Z").toEpochMilli());
 
     assertEquals(
         "Failed to authenticate API token, token has expired.",
@@ -234,9 +235,9 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
   }
 
   private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
-    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    long farFutureExpiry = Instant.parse("2999-01-01T00:00:00Z").toEpochMilli();
     ApiKeyTokenGenerator.TokenWrapper wrapper =
-        generatePersonalAccessToken(null, thirtyDaysInTheFuture, null);
+        generatePersonalAccessToken(null, farFutureExpiry, null);
     apiTokenService.save(wrapper.getApiToken());
     return wrapper;
   }

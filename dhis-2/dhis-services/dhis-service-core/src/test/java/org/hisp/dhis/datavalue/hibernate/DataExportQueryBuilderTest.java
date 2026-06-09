@@ -35,6 +35,7 @@ import static org.hisp.dhis.period.Period.of;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +55,7 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Test
   void testFilter_All() {
@@ -479,7 +481,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
   void testFilter_LastUpdated() {
     DataExportParams params =
         DataExportParams.builder()
-            .lastUpdated(new Date())
+            .lastUpdated(Date.from(TEST_NOW))
             .includeDeleted(true)
             .orders(List.of(PE, CREATED, DE))
             .build();

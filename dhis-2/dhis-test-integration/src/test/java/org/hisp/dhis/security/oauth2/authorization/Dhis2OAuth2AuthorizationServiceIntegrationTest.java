@@ -59,6 +59,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Autowired private Dhis2OAuth2AuthorizationService authorizationService;
 
   @Autowired private Dhis2OAuth2AuthorizationStore authorizationStore;
@@ -154,7 +156,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   @Test
   void testFindByAuthorizationCode() {
     // Given
-    Instant now = Instant.now();
+    Instant now = TEST_NOW;
     Instant expiresAt = now.plusSeconds(300);
 
     OAuth2AuthorizationCode authorizationCode =
@@ -187,7 +189,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   @Test
   void testFindByAccessToken() {
     // Given
-    Instant now = Instant.now();
+    Instant now = TEST_NOW;
     Instant expiresAt = now.plusSeconds(3600);
 
     OAuth2AccessToken accessToken =
@@ -226,7 +228,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   @Test
   void testFindByRefreshToken() {
     // Given
-    Instant now = Instant.now();
+    Instant now = TEST_NOW;
     Instant expiresAt = now.plusSeconds(86400);
 
     OAuth2RefreshToken refreshToken = new OAuth2RefreshToken("refresh-token-value", now, expiresAt);
@@ -279,7 +281,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   @Test
   void testTokenMetadataPersistence() {
     // Given
-    Instant now = Instant.now();
+    Instant now = TEST_NOW;
     Instant expiresAt = now.plusSeconds(3600);
 
     OAuth2AccessToken accessToken =

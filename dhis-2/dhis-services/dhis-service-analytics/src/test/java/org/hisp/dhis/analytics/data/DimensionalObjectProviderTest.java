@@ -63,6 +63,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -117,6 +118,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class DimensionalObjectProviderTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
+  private static final LocalDate TEST_DATE = LocalDate.parse("2026-06-15");
 
   @Mock private IdentifiableObjectManager idObjectManager;
 
@@ -399,7 +403,7 @@ class DimensionalObjectProviderTest {
     when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
     when(i18nManager.getI18n()).thenReturn(i18n);
 
-    DimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, new Date());
+    DimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, Date.from(TEST_NOW));
 
     assertEquals("pe", dimensionalObject.getDimension());
     assertEquals("pe", dimensionalObject.getUid());
@@ -410,7 +414,7 @@ class DimensionalObjectProviderTest {
     assertEquals("LAST_YEAR", refDimensionKeywords.getKeywords().get(0).getKey());
     assertEquals("LAST_5_YEARS", refDimensionKeywords.getKeywords().get(1).getKey());
 
-    int currentYear = LocalDate.now().getYear();
+    int currentYear = TEST_DATE.getYear();
 
     String lastYear = Integer.toString(currentYear - 1);
     String twoYearsAgo = Integer.toString(currentYear - 2);
@@ -442,7 +446,7 @@ class DimensionalObjectProviderTest {
     when(settings.getAnalyticsFinancialYearStart()).thenReturn(FINANCIAL_YEAR_APRIL);
     when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
 
-    DimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, new Date());
+    DimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, Date.from(TEST_NOW));
 
     assertEquals("pe", dimensionalObject.getDimension());
     assertEquals("pe", dimensionalObject.getUid());

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.sms;
 
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -40,6 +41,8 @@ import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 
 abstract class CompressionSMSListenerTest extends TrackerTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
 
   protected static final String NOVALUES_MESSAGE =
@@ -55,7 +58,7 @@ abstract class CompressionSMSListenerTest extends TrackerTestBase {
   protected IncomingSms createSMSFromSubmission(SmsSubmission subm) throws SmsCompressionException {
     User user = makeUser("U");
     SmsMetadata meta = new SmsMetadata();
-    meta.lastSyncDate = new Date();
+    meta.lastSyncDate = Date.from(TEST_NOW);
     SmsSubmissionWriter writer = new SmsSubmissionWriter(meta);
     String smsText = Base64.getEncoder().encodeToString(writer.compress(subm));
 

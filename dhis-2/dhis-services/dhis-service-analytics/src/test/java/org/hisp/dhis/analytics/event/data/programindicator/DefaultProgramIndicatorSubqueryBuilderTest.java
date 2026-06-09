@@ -48,6 +48,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collections;
@@ -92,9 +93,11 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
   @InjectMocks private DefaultProgramIndicatorSubqueryBuilder builder;
 
   private ProgramIndicator programIndicator;
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private CteContext cteContext;
-  private final Date startDate = new Date();
-  private final Date endDate = new Date();
+  private final Date startDate = Date.from(TEST_NOW);
+  private final Date endDate = Date.from(TEST_NOW);
   private final String piUid = "TestPiUid1";
   private final String psUid1 = "PgmStgUid1";
   private final String progUid = "programUid1";

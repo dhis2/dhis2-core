@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,6 +84,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private ProgramIndicatorService programIndicatorService;
 
@@ -494,7 +497,7 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         expected,
         programIndicatorService.getAnalyticsSql(
-            indicatorE.getFilter(), BOOLEAN, indicatorE, new Date(), new Date()));
+            indicatorE.getFilter(), BOOLEAN, indicatorE, Date.from(TEST_NOW), Date.from(TEST_NOW)));
   }
 
   @Test
@@ -503,7 +506,11 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         expected,
         programIndicatorService.getAnalyticsSql(
-            indicatorA.getExpression(), NUMERIC, indicatorA, new Date(), new Date()));
+            indicatorA.getExpression(),
+            NUMERIC,
+            indicatorA,
+            Date.from(TEST_NOW),
+            Date.from(TEST_NOW)));
   }
 
   @Test
@@ -598,7 +605,7 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         expected,
         programIndicatorService.getAnalyticsSql(
-            expression, NUMERIC, indicatorE, new Date(), new Date()));
+            expression, NUMERIC, indicatorE, Date.from(TEST_NOW), Date.from(TEST_NOW)));
   }
 
   @Test
@@ -609,7 +616,7 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         expected,
         programIndicatorService.getAnalyticsSql(
-            expression, NUMERIC, indicatorA, new Date(), new Date()));
+            expression, NUMERIC, indicatorA, Date.from(TEST_NOW), Date.from(TEST_NOW)));
   }
 
   @Test
@@ -636,12 +643,12 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   /** Test as expression within Program A returning numeric. */
   private String sql(String expression) {
     return programIndicatorService.getAnalyticsSql(
-        expression, NUMERIC, indicatorA, new Date(), new Date());
+        expression, NUMERIC, indicatorA, Date.from(TEST_NOW), Date.from(TEST_NOW));
   }
 
   /** Test as filter within Program A returning boolean. */
   private String filter(String expression) {
     return programIndicatorService.getAnalyticsSql(
-        expression, BOOLEAN, indicatorA, new Date(), new Date());
+        expression, BOOLEAN, indicatorA, Date.from(TEST_NOW), Date.from(TEST_NOW));
   }
 }

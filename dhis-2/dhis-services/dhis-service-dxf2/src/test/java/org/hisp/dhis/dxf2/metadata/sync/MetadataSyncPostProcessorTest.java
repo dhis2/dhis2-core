@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Date;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
@@ -54,6 +55,7 @@ import org.springframework.retry.RetryContext;
  */
 @ExtendWith(MockitoExtension.class)
 class MetadataSyncPostProcessorTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Mock private EmailService emailService;
 
   @Mock private MetadataRetryContext metadataRetryContext;
@@ -70,7 +72,7 @@ class MetadataSyncPostProcessorTest {
     dataVersion = new MetadataVersion();
     dataVersion.setType(VersionType.BEST_EFFORT);
     dataVersion.setName("testVersion");
-    dataVersion.setCreated(new Date());
+    dataVersion.setCreated(Date.from(TEST_NOW));
     dataVersion.setHashCode("samplehashcode");
     metadataSyncSummary = new MetadataSyncSummary();
   }

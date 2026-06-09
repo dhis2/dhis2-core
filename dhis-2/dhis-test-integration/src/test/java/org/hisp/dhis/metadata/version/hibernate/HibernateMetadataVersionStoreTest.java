@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -53,6 +54,8 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class HibernateMetadataVersionStoreTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private MetadataVersionStore metadataVersionStore;
 
@@ -98,7 +101,11 @@ class HibernateMetadataVersionStoreTest extends PostgresIntegrationTestBase {
     org.joda.time.DateTime dateTime1 = dateTimeFormatter.parseDateTime("2016-06-20 10:45:50Z");
     org.joda.time.DateTime dateTime2 = dateTimeFormatter.parseDateTime("2016-06-21 10:45:50Z");
     org.joda.time.DateTime dateTime3 = dateTimeFormatter.parseDateTime("2016-06-22 10:45:50Z");
-    assertEquals(0, metadataVersionStore.getAllVersionsInBetween(new Date(), new Date()).size());
+    assertEquals(
+        0,
+        metadataVersionStore
+            .getAllVersionsInBetween(Date.from(TEST_NOW), Date.from(TEST_NOW))
+            .size());
     MetadataVersion metadataVersion2 = new MetadataVersion("version2", VersionType.ATOMIC);
     metadataVersion2.setHashCode("12222");
     metadataVersion2.setCreated(dateTime1.toDate());
@@ -116,7 +123,11 @@ class HibernateMetadataVersionStoreTest extends PostgresIntegrationTestBase {
     assertEquals(2, allVersionsInBetween.size());
     assertEquals(metadataVersion2, allVersionsInBetween.get(0));
     assertEquals(metadataVersion3, allVersionsInBetween.get(1));
-    assertEquals(0, metadataVersionStore.getAllVersionsInBetween(new Date(), new Date()).size());
+    assertEquals(
+        0,
+        metadataVersionStore
+            .getAllVersionsInBetween(Date.from(TEST_NOW), Date.from(TEST_NOW))
+            .size());
     metadataVersionStore.delete(metadataVersion2);
     metadataVersionStore.delete(metadataVersion3);
     metadataVersionStore.delete(metadataVersion4);

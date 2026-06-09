@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -43,6 +44,8 @@ import org.springframework.transaction.annotation.Transactional;
 /** Tests for the OAuth2ClientStore implementation. */
 @Transactional
 class Dhis2OAuth2ClientStoreTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private Dhis2OAuth2ClientStore oauth2ClientStore;
 
@@ -57,8 +60,8 @@ class Dhis2OAuth2ClientStoreTest extends PostgresIntegrationTestBase {
     client.setName("Test OAuth2 Client");
     client.setClientId("test-client-id");
     client.setClientSecret("test-client-secret");
-    client.setClientIdIssuedAt(new Date());
-    client.setClientSecretExpiresAt(Date.from(Instant.now().plusSeconds(3600)));
+    client.setClientIdIssuedAt(Date.from(TEST_NOW));
+    client.setClientSecretExpiresAt(Date.from(TEST_NOW.plus(Duration.ofSeconds(3600))));
     client.setClientAuthenticationMethods("client_secret_basic,client_secret_post");
     client.setAuthorizationGrantTypes("authorization_code,refresh_token");
     client.setRedirectUris("https://example.com/callback");
@@ -96,8 +99,8 @@ class Dhis2OAuth2ClientStoreTest extends PostgresIntegrationTestBase {
     client.setName("Client By ID Test");
     client.setClientId("specific-client-id");
     client.setClientSecret("test-client-secret");
-    client.setClientIdIssuedAt(new Date());
-    client.setClientSecretExpiresAt(Date.from(Instant.now().plusSeconds(3600)));
+    client.setClientIdIssuedAt(Date.from(TEST_NOW));
+    client.setClientSecretExpiresAt(Date.from(TEST_NOW.plus(Duration.ofSeconds(3600))));
     client.setClientAuthenticationMethods("client_secret_basic");
     client.setAuthorizationGrantTypes("authorization_code");
     client.setRedirectUris("https://example.org/callback");

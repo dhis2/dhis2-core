@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +50,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class CategoryComboMergeServiceTest {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Test
   @DisplayName("When source and target CategoryCombos have identical Categories, no error reported")
@@ -250,7 +253,8 @@ class CategoryComboMergeServiceTest {
     DataIntegrityIssue issue2 =
         new DataIntegrityIssue("id2", "co1, co2", "comment", List.of("cc1"));
     DataIntegrityDetails details =
-        new DataIntegrityDetails(check, new Date(), new Date(), "Error", List.of(issue1, issue2));
+        new DataIntegrityDetails(
+            check, Date.from(TEST_NOW), Date.from(TEST_NOW), "Error", List.of(issue1, issue2));
 
     MergeReport mergeReport = new MergeReport();
 

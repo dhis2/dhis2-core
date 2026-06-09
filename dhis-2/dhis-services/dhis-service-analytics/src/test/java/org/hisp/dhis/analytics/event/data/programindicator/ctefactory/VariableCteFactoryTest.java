@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +59,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class VariableCteFactoryTest extends TestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private VariableCteFactory factory;
 
@@ -106,7 +108,13 @@ class VariableCteFactoryTest extends TestBase {
 
       String result =
           factory.process(
-              rawSql, programIndicator, new Date(), new Date(), cteContext, aliasMap, sqlBuilder);
+              rawSql,
+              programIndicator,
+              Date.from(TEST_NOW),
+              Date.from(TEST_NOW),
+              cteContext,
+              aliasMap,
+              sqlBuilder);
 
       assertEquals("select v1.value as col", result.trim());
       assertEquals("v1", aliasMap.get(placeholder));
@@ -127,7 +135,13 @@ class VariableCteFactoryTest extends TestBase {
 
       String result =
           factory.process(
-              rawSql, programIndicator, new Date(), new Date(), cteContext, aliasMap, sqlBuilder);
+              rawSql,
+              programIndicator,
+              Date.from(TEST_NOW),
+              Date.from(TEST_NOW),
+              cteContext,
+              aliasMap,
+              sqlBuilder);
 
       assertTrue(result.contains("coalesce(v1.value, '')"));
     }
@@ -147,7 +161,13 @@ class VariableCteFactoryTest extends TestBase {
 
       String result =
           factory.process(
-              rawSql, programIndicator, new Date(), new Date(), cteContext, aliasMap, sqlBuilder);
+              rawSql,
+              programIndicator,
+              Date.from(TEST_NOW),
+              Date.from(TEST_NOW),
+              cteContext,
+              aliasMap,
+              sqlBuilder);
 
       assertTrue(result.contains("coalesce(v1.value, 0)"));
     }
@@ -166,7 +186,13 @@ class VariableCteFactoryTest extends TestBase {
 
     String out =
         factory.process(
-            sql, programIndicator, new Date(), new Date(), cteContext, aliasMap, sqlBuilder);
+            sql,
+            programIndicator,
+            Date.from(TEST_NOW),
+            Date.from(TEST_NOW),
+            cteContext,
+            aliasMap,
+            sqlBuilder);
 
     assertEquals(sql, out);
     assertTrue(aliasMap.isEmpty());

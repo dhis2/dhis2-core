@@ -51,6 +51,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
 
+import java.time.Instant;
 import java.util.Date;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -66,6 +67,7 @@ import org.springframework.http.CacheControl;
 
 @ExtendWith(MockitoExtension.class)
 class WebCacheTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Mock private SystemSettingsProvider settingsProvider;
   @Mock private SystemSettings settings;
@@ -111,7 +113,7 @@ class WebCacheTest {
   void testGetAnalyticsCacheControlForWhenTimeToLiveIsZero() {
     // Given
     final long zeroTimeToLive = 0;
-    final Date aDate = new Date();
+    final Date aDate = Date.from(TEST_NOW);
     final CacheControl expectedCacheControl = noCache();
 
     // When
@@ -127,7 +129,7 @@ class WebCacheTest {
   void testGetAnalyticsCacheControlForWhenTimeToLiveIsNegative() {
     // Given
     final long zeroTimeToLive = -1;
-    final Date aDate = new Date();
+    final Date aDate = Date.from(TEST_NOW);
     final CacheControl expectedCacheControl = noCache();
 
     // When
@@ -143,7 +145,7 @@ class WebCacheTest {
   void testGetAnalyticsCacheControlForWhenTimeToLiveIsPositive() {
     // Given
     final long positiveTimeToLive = 60;
-    final Date aDate = new Date();
+    final Date aDate = Date.from(TEST_NOW);
     final CacheControl expectedCacheControl = stubPublicCacheControl(positiveTimeToLive);
     givenCacheability(PUBLIC);
     when(analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDate))
