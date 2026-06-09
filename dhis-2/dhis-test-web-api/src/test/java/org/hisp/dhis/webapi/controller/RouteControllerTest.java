@@ -75,6 +75,7 @@ import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.ArgumentCaptor;
 import org.mockserver.client.MockServerClient;
 import org.postgresql.util.PGobject;
@@ -122,6 +123,10 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   }
 
   @BeforeAll
+  // Starting the Testcontainers upstream mock server pulls the Docker image on a cold runner,
+  // which can exceed the global 1m junit timeout and abort the whole class (flaky). Allow more
+  // time for container startup specifically for this lifecycle method.
+  @Timeout(value = 5, unit = TimeUnit.MINUTES)
   public static void beforeAll() {
     upstreamMockServerContainer =
         new GenericContainer<>("mockserver/mockserver")
