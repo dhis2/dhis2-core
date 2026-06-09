@@ -110,7 +110,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     SqlView sqlView = validateView(uid);
 
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> fields = getFields();
 
     Grid grid =
         sqlViewService.getSqlViewGrid(
@@ -134,7 +134,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     SqlView sqlView = validateView(uid);
 
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> fields = getFields();
 
     Grid grid =
         sqlViewService.getSqlViewGrid(
@@ -158,7 +158,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     SqlView sqlView = validateView(uid);
 
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> fields = getFields();
 
     Grid grid =
         sqlViewService.getSqlViewGrid(
@@ -180,7 +180,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     SqlView sqlView = validateView(uid);
 
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> fields = getFields();
 
     Grid grid =
         sqlViewService.getSqlViewGrid(
@@ -202,13 +202,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     SqlView sqlView = validateView(uid);
 
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> paramFields = contextService.getParameterValues("fields");
-    // handle comma-separated fields
-    List<String> fields =
-        paramFields.stream()
-            .map(s -> Arrays.asList(s.split(",")))
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+    List<String> fields = getFields();
 
     Grid grid =
         sqlViewService.getSqlViewGrid(
@@ -262,6 +256,14 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     return ok("Materialized view refreshed");
   }
 
+  private List<String> getFields() {
+    // handle comma-separated fields so each field is quoted individually downstream
+    return Lists.newArrayList(contextService.getParameterValues("fields")).stream()
+        .map(s -> Arrays.asList(s.split(",")))
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+  }
+
   private SqlView validateView(String uid) throws WebMessageException {
     SqlView sqlView = sqlViewService.getSqlViewByUid(uid);
 
@@ -274,7 +276,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
 
   private GridResponse buildResponse(SqlView sqlView, SqlViewQuery query) {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> fields = getFields();
 
     Grid grid =
         sqlViewService.getSqlViewGrid(
