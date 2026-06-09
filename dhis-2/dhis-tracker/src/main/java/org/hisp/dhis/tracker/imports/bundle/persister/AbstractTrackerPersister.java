@@ -162,23 +162,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           V convertedDto = convert(bundle, trackerDto);
 
           //
-          // Assign the pre-allocated id (if any) before staging so the flush path can emit it
-          // unchanged, and so any TEAV/changelog code that reads convertedDto.getId() sees the
-          // final value.
-          //
-          if (preAllocatedIds != null && isNew(bundle, trackerDto)) {
-            assignId(convertedDto, preAllocatedIds[preAllocatedIdsCursor++]);
-          }
-
-          //
-          // Handle ownership records, if required
-          //
-          persistOwnership(bundle, trackerDto, convertedDto);
-
-          //
           // Save or update the entity
           //
           if (isNew(bundle, trackerDto)) {
+            if (preAllocatedIds != null) {
+              assignId(convertedDto, preAllocatedIds[preAllocatedIdsCursor++]);
+            }
+            persistOwnership(bundle, trackerDto, convertedDto);
             stageInsert(convertedDto, batch);
             updateDataValues(
                 bundle.getPreheat(),
@@ -305,6 +295,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   private void assignId(V convertedDto, long id) {
     if (convertedDto instanceof TrackedEntity te) {
       te.setId(id);
+    } else if (convertedDto instanceof Enrollment e) {
+      e.setId(id);
     } else {
       throw new IllegalStateException(
           "Pre-allocated id assignment not implemented for "
