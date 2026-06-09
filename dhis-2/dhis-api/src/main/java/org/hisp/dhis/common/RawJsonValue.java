@@ -27,44 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.ValueType;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@OpenApi.Shared(name = "TrackerAttribute")
-@OpenApi.Identifiable(as = org.hisp.dhis.attribute.Attribute.class)
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Attribute {
-
-  @OpenApi.Property({UID.class, org.hisp.dhis.attribute.Attribute.class})
-  @JsonProperty
-  private String attribute;
-
-  @JsonProperty private String code;
-
-  @JsonProperty private String displayName;
-
-  @JsonProperty private Instant createdAt;
-
-  @JsonProperty private Instant updatedAt;
-
-  @JsonProperty private String updatedBy;
-
-  @JsonProperty private ValueType valueType;
-
-  @JsonProperty private String value;
-}
+/** Wraps a raw JSON string so that serializers can emit it as inline JSON rather than a string. */
+public record RawJsonValue(String value) {}

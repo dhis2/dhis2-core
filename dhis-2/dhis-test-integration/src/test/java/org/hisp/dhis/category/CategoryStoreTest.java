@@ -42,12 +42,14 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class CategoryStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryStore categoryStore;
   @Autowired private DbmsManager dbmsManager;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Test
   @DisplayName("Retrieving Categories by CategoryOptions returns the expected objects")
@@ -123,5 +125,51 @@ class CategoryStoreTest extends PostgresIntegrationTestBase {
 
   private int getCategoryCatOptions(Category c) {
     return Objects.requireNonNull(categoryStore.getByUid(c.getUid())).getCategoryOptions().size();
+  }
+
+  @Test
+  @DisplayName("CategoryOption order is preserved on reload and sort_order is 1-based in the DB")
+  void categoryOptionOrderIsPreservedAndOneBased() {
+    CategoryOption coA = createCategoryOption('A');
+    CategoryOption coB = createCategoryOption('B');
+    CategoryOption coC = createCategoryOption('C');
+    CategoryOption coD = createCategoryOption('D');
+    categoryService.addCategoryOption(coA);
+    categoryService.addCategoryOption(coB);
+    categoryService.addCategoryOption(coC);
+    categoryService.addCategoryOption(coD);
+
+    // Add options in a deliberately non-alphabetic, non-creation order.
+    Category c = createCategory('Z');
+    c.addCategoryOption(coC);
+    c.addCategoryOption(coA);
+    c.addCategoryOption(coD);
+    c.addCategoryOption(coB);
+    categoryService.addCategory(c);
+
+    // Force the next read to hit the database, not the session cache.
+    dbmsManager.clearSession();
+
+    Category reloaded = Objects.requireNonNull(categoryStore.getByUid(c.getUid()));
+    List<String> reloadedOptionUids =
+        reloaded.getCategoryOptions().stream().map(IdentifiableObject::getUid).toList();
+    assertEquals(
+        List.of(coC.getUid(), coA.getUid(), coD.getUid(), coB.getUid()),
+        reloadedOptionUids,
+        "Reloaded category options must preserve insertion order");
+
+    // The HBM mapping declared base="1" for sort_order. Without @ListIndexBase(1)
+    // on the JPA mapping, Hibernate writes 0-based indices, which would silently
+    // corrupt data co-located with rows written by the previous HBM mapping.
+    List<Integer> sortOrders =
+        jdbcTemplate.queryForList(
+            "select sort_order from categories_categoryoptions where categoryid = ? order by sort_order",
+            Integer.class,
+            reloaded.getId());
+    assertEquals(
+        List.of(1, 2, 3, 4),
+        sortOrders,
+        "sort_order column must be 1-based to match the HBM-era convention "
+            + "(add @ListIndexBase(1) on Category.categoryOptions if this fails)");
   }
 }
