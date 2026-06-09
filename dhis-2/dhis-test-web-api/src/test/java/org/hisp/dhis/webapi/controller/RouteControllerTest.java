@@ -129,7 +129,7 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   @Timeout(value = 5, unit = TimeUnit.MINUTES)
   public static void beforeAll() {
     upstreamMockServerContainer =
-        new GenericContainer<>("mockserver/mockserver")
+        new GenericContainer<>("mockserver/mockserver:5.15.0")
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
     upstreamMockServerContainer.start();
