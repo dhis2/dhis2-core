@@ -76,6 +76,7 @@ import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.DefaultSchemaService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -376,7 +377,7 @@ public abstract class AbstractFullReadOnlyController<
           schemaBuilder.addColumn(property.getName());
           obj2valueByProperty.put(
               property.getName(),
-              obj -> ReflectionUtils.invokeMethod(obj, property.getGetterMethod()));
+              obj -> DefaultSchemaService.safeInvoke(obj, property.getGetterMethod()));
         }
       }
     }

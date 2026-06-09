@@ -213,4 +213,127 @@ class CategoryControllerTest extends H2ControllerIntegrationTestBase {
   void v44ApiTest() {
     assertStatus(HttpStatus.OK, GET("/44/categories"));
   }
+
+  @Test
+  @DisplayName("All mapped Category fields are persisted and read back unchanged")
+  void categoryRoundTripsAllMappedFieldsTest() {
+    List<String> optionIds = postCategoryOptions(List.of("rtA", "rtB"));
+    String body =
+        """
+        {
+          'name': 'RoundTrip',
+          'shortName': 'RT',
+          'code': 'RT_CODE',
+          'description': 'round trip description',
+          'dataDimensionType': 'DISAGGREGATION',
+          'categoryOptions': [{'id':'%s'},{'id':'%s'}]
+        }"""
+            .formatted(optionIds.get(0), optionIds.get(1));
+    String catId = assertStatus(CREATED, POST("/categories", body));
+
+    JsonCategory cat =
+        GET(
+                "/categories/{id}?fields=name,shortName,code,description,dataDimensionType,categoryOptions[id,name]",
+                catId)
+            .content(HttpStatus.OK)
+            .as(JsonCategory.class);
+
+    assertEquals("RoundTrip", cat.getName());
+    assertEquals("RT", cat.getShortName());
+    assertEquals("RT_CODE", cat.getCode());
+    assertEquals("round trip description", cat.getString("description").string());
+    assertEquals("DISAGGREGATION", cat.getString("dataDimensionType").string());
+    assertEquals(
+        Set.of("rtA", "rtB"),
+        cat.getCategoryOptions().stream()
+            .map(JsonIdentifiableObject::getName)
+            .collect(Collectors.toSet()),
+        "both mapped category options are persisted via the join table");
+  }
+
+  @Test
+  @DisplayName("CategoryOption order is preserved by the @OrderColumn mapping")
+  void categoryOptionOrderIsPreservedTest() {
+    List<String> optionIds = postCategoryOptions(List.of("ord1", "ord2", "ord3"));
+    String body =
+        """
+        {
+          'name': 'Ordered',
+          'shortName': 'Ordered',
+          'dataDimensionType': 'DISAGGREGATION',
+          'categoryOptions': [{'id':'%s'},{'id':'%s'},{'id':'%s'}]
+        }"""
+            .formatted(optionIds.get(0), optionIds.get(1), optionIds.get(2));
+    String catId = assertStatus(CREATED, POST("/categories", body));
+
+    JsonCategory cat =
+        GET("/categories/{id}?fields=categoryOptions[name]", catId)
+            .content(HttpStatus.OK)
+            .as(JsonCategory.class);
+
+    assertEquals(
+        List.of("ord1", "ord2", "ord3"),
+        cat.getCategoryOptions().stream().map(JsonIdentifiableObject::getName).toList(),
+        "category options are returned in the order they were assigned");
+  }
+
+  @Test
+  @DisplayName("Updating a Category replaces the mapped CategoryOptions")
+  void categoryOptionsCanBeReplacedViaUpdateTest() {
+    List<String> optionIds = postCategoryOptions(List.of("upA", "upB", "upC"));
+    String body =
+        """
+        {
+          'name': 'Updatable',
+          'shortName': 'Updatable',
+          'dataDimensionType': 'DISAGGREGATION',
+          'categoryOptions': [{'id':'%s'},{'id':'%s'}]
+        }"""
+            .formatted(optionIds.get(0), optionIds.get(1));
+    String catId = assertStatus(CREATED, POST("/categories", body));
+
+    String updated =
+        """
+        {
+          'name': 'Updatable',
+          'shortName': 'Updatable',
+          'dataDimensionType': 'DISAGGREGATION',
+          'categoryOptions': [{'id':'%s'}]
+        }"""
+            .formatted(optionIds.get(2));
+    assertStatus(HttpStatus.OK, PUT("/categories/" + catId, updated));
+
+    JsonCategory cat =
+        GET("/categories/{id}?fields=categoryOptions[name]", catId)
+            .content(HttpStatus.OK)
+            .as(JsonCategory.class);
+
+    assertEquals(
+        Set.of("upC"),
+        cat.getCategoryOptions().stream()
+            .map(JsonIdentifiableObject::getName)
+            .collect(Collectors.toSet()),
+        "the join table reflects the replaced category options after update");
+  }
+
+  @Test
+  @DisplayName("The categoryCombos inverse (mappedBy) association is populated")
+  void categoryComboInverseAssociationIsMappedTest() {
+    String catId =
+        assertStatus(CREATED, postCategory("comboMember", DISAGGREGATION, List.of("ccA", "ccB")));
+    String comboId =
+        assertStatus(CREATED, postCategoryCombo("ownerCombo", DISAGGREGATION, List.of(catId)));
+
+    JsonCategory cat =
+        GET("/categories/{id}?fields=categoryCombos[id,name]", catId)
+            .content(HttpStatus.OK)
+            .as(JsonCategory.class);
+
+    assertEquals(
+        Set.of(comboId),
+        cat.getCategoryCombos().stream()
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()),
+        "the category sees the combo through the mappedBy inverse side");
+  }
 }
