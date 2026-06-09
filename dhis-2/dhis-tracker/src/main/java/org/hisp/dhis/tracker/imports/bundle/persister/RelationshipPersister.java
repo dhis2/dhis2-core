@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
@@ -65,6 +66,7 @@ public class RelationshipPersister
 
   @Override
   protected void updateAttributes(
+      EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.tracker.model.Relationship hibernateEntity,
@@ -100,6 +102,7 @@ public class RelationshipPersister
 
   @Override
   protected void updateDataValues(
+      EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.tracker.model.Relationship payloadEntity,

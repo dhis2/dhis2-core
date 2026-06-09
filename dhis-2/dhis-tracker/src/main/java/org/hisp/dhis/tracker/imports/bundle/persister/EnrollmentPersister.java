@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import jakarta.persistence.EntityManager;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -65,12 +66,14 @@ public class EnrollmentPersister
 
   @Override
   protected void updateAttributes(
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist,
       UserDetails user,
       ChangeLogAccumulator changeLogs) {
     handleTrackedEntityAttributeValues(
+        entityManager,
         preheat,
         enrollment.getAttributes(),
         enrollmentToPersist.getTrackedEntity(),
@@ -157,6 +160,7 @@ public class EnrollmentPersister
 
   @Override
   protected void updateDataValues(
+      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment payloadEntity,
