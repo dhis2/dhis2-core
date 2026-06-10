@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SortDirection;
@@ -175,7 +176,14 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))""";
     List<String> relationshipKeysAsString =
         relationshipKeys.stream().map(RelationshipKey::asString).toList();
-    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString).list();
+    // Query cache must be off here: the tracker importer writes relationships through JDBC, which
+    // bypasses Hibernate's query-cache invalidation. Leaving the cache on would let an earlier
+    // empty result for a key linger across imports and silently disable duplicate detection.
+    return getQuery(hql, Relationship.class)
+        .setParameter("keys", relationshipKeysAsString)
+        .setCacheable(false)
+        .setHint(QueryHints.CACHEABLE, false)
+        .list();
   }
 
   public List<RelationshipItem> getRelationshipItemsByTrackedEntity(

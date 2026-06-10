@@ -144,4 +144,24 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
     assertHasError(importReport, ValidationCode.E4017);
     assertThat(importReport.getStats().getIgnored(), is(2));
   }
+
+  @Test
+  void shouldRejectDuplicateRelationships() throws IOException {
+    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
+    TrackerImportParams params = TrackerImportParams.builder().build();
+
+    ImportReport first =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/relationships.json"));
+    assertThat(first.getStatus(), is(Status.OK));
+    assertThat(first.getStats().getCreated(), is(2));
+
+    ImportReport second =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/relationships_duplicate.json"));
+
+    assertHasError(second, ValidationCode.E4018);
+    assertThat(second.getStats().getIgnored(), is(2));
+    assertThat(second.getStats().getCreated(), is(0));
+  }
 }
