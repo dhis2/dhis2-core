@@ -32,13 +32,15 @@ package org.hisp.dhis.appmanager;
 import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -47,6 +49,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -69,6 +77,7 @@ import org.hisp.dhis.storage.BlobStoreService;
 import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.hisp.dhis.util.ZipSlipException;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -79,16 +88,48 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.appmanager.JCloudsAppStorageService")
-public class JCloudsAppStorageService implements AppStorageService {
+@Service
+public class BlobStoreAppStorageService implements AppStorageService {
 
   private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";
   public static final String MANIFEST_WEBAPP_FILENAME = "manifest.webapp";
+
+  /**
+   * Max concurrent file uploads to blob storage across <em>all</em> apps installing at once. Apps
+   * may install in parallel (see {@code DefaultAppManager}); this is a single shared pool so the
+   * total number of in-flight uploads (and buffered file payloads) stays bounded regardless of how
+   * many apps install concurrently.
+   *
+   * <p>Note this value also bounds transient memory: the S3 backend buffers each non-resetable zip
+   * entry stream fully in memory, so worst case is this many file payloads on the heap at once.
+   * Benchmarks against AWS S3 showed no install-time gain from 64 over 32, so 32 is used to halve
+   * the worst-case memory footprint.
+   */
+  private static final int APP_UPLOAD_PARALLELISM = 32;
 
   private final BlobStoreService blobStore;
   private final LocationManager locationManager;
   private final ObjectMapper jsonMapper;
   private final FileResourceContentStore fileResourceContentStore;
+
+  /**
+   * Shared, lazily-populated pool for concurrent file uploads. Core threads time out when idle so
+   * the pool holds no threads outside of (re)install activity, e.g. after startup.
+   */
+  private final ExecutorService uploadExecutor = newUploadExecutor();
+
+  private static ExecutorService newUploadExecutor() {
+    ThreadPoolExecutor executor =
+        new ThreadPoolExecutor(
+            APP_UPLOAD_PARALLELISM,
+            APP_UPLOAD_PARALLELISM,
+            60L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            new ThreadFactoryBuilder().setNameFormat("app-upload-%d").setDaemon(true).build());
+    executor.allowCoreThreadTimeOut(true);
+    return executor;
+  }
 
   @Override
   @Nonnull
@@ -118,7 +159,6 @@ public class JCloudsAppStorageService implements AppStorageService {
       BiConsumer<App, BundledAppInfo> handler, BlobKeyPrefix folder, InputStream manifestStream) {
     try (InputStream inputStream = manifestStream) {
       App app = App.MAPPER.readValue(inputStream, App.class);
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
       app.setFolderName(folder.value());
       app.setManifestTranslations(
           readAppManifestTranslations(
@@ -225,7 +265,8 @@ public class JCloudsAppStorageService implements AppStorageService {
   public App installApp(
       @Nonnull File file,
       @Nonnull Cache<App> appCache,
-      @CheckForNull BundledAppInfo bundledAppInfo) {
+      @CheckForNull BundledAppInfo bundledAppInfo,
+      boolean removeExisting) {
     App app;
     AppFolderName folder;
     String topLevelFolder;
@@ -234,7 +275,6 @@ public class JCloudsAppStorageService implements AppStorageService {
       app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
       folder = AppFolderName.ofKey(app.getKey());
       app.setFolderName(folder.path());
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
       log.error("Failed to install app: Failure during reading manifest from zip file", e);
       app = new App();
@@ -261,7 +301,9 @@ public class JCloudsAppStorageService implements AppStorageService {
       ZipFileUtils.validateZip(file, folder.path(), topLevelFolder);
       unzipFile(file, folder, topLevelFolder);
 
-      removeOtherAppsWithSameKey(app);
+      if (removeExisting) {
+        removeOtherAppsWithSameKey(app);
+      }
 
       app.setAppState(AppStatus.OK);
       logInstallSuccess(app, folder.path());
@@ -288,17 +330,62 @@ public class JCloudsAppStorageService implements AppStorageService {
   private void unzipFile(File file, AppFolderName folder, String topLevelFolder)
       throws IOException, ZipSlipException {
     try (ZipFile zipFile = new ZipFile(file)) {
+      List<ZipEntry> fileEntries = new ArrayList<>();
+      List<String> filePaths = new ArrayList<>();
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
         String filePath = getFilePath(folder.path(), topLevelFolder, zipEntry);
         // If it's the root folder, skip
         if (filePath == null) continue;
-        try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
-          blobStore.putBlob(
-              new BlobKey(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+        if (zipEntry.isDirectory()) {
+          // Materialise empty directories so the /api/apps/<app>/<dir> → /<dir>/ redirect
+          // contract holds even when the zip contains a directory with no files inside.
+          blobStore.createDirectory(BlobKeyPrefix.of(filePath));
+          continue;
         }
+        fileEntries.add(zipEntry);
+        filePaths.add(filePath);
       }
+      uploadEntriesInParallel(zipFile, fileEntries, filePaths);
+    }
+  }
+
+  /**
+   * Uploads the given zip file entries to blob storage concurrently via the shared {@link
+   * #uploadExecutor}. App zips contain many small files and each upload is dominated by per-request
+   * latency (network round-trip on object stores), so uploading them in parallel rather than
+   * one-at-a-time substantially reduces install time. The pool is shared across concurrently
+   * installing apps so total in-flight uploads stay bounded; this call only waits on its own files.
+   */
+  private void uploadEntriesInParallel(
+      ZipFile zipFile, List<ZipEntry> fileEntries, List<String> filePaths) throws IOException {
+    if (fileEntries.isEmpty()) return;
+
+    try {
+      CompletableFuture<?>[] futures = new CompletableFuture<?>[fileEntries.size()];
+      for (int i = 0; i < fileEntries.size(); i++) {
+        ZipEntry zipEntry = fileEntries.get(i);
+        String filePath = filePaths.get(i);
+        futures[i] =
+            CompletableFuture.runAsync(
+                () -> uploadZipEntry(zipFile, zipEntry, filePath), uploadExecutor);
+      }
+      CompletableFuture.allOf(futures).join();
+    } catch (CompletionException e) {
+      Throwable cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof UncheckedIOException uioe) throw uioe.getCause();
+      if (cause instanceof IOException ioe) throw ioe;
+      if (cause instanceof RuntimeException re) throw re;
+      throw new IOException("Failed to upload app files", cause);
+    }
+  }
+
+  private void uploadZipEntry(ZipFile zipFile, ZipEntry zipEntry, String filePath) {
+    try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+      blobStore.putBlob(BlobKey.of(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 
@@ -338,19 +425,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     AppFolderName folder = app.appFolder();
     blobStore.deleteBlob(folder.resolve(MANIFEST_WEBAPP_FILENAME));
 
-    // TODO(DHIS2-20648) Once the replacement BlobStoreService implementation does recursive
-    // deleteDirectory on every backend (see contract test), this branch can collapse to a
-    // single blobStore.deleteDirectory(folder.asPrefix()) call.
-    if (blobStore.isFilesystem()) {
-      // Delete all files related to app (works for local filestore)
-      blobStore.deleteDirectory(folder.asPrefix());
-    } else {
-      // S3: deleteDirectory is not recursive, so enumerate and delete individually
-      for (BlobKey key : blobStore.listKeys(folder.asPrefix())) {
-        log.debug("Deleting app file: {}", key);
-        blobStore.deleteBlob(key);
-      }
-    }
+    blobStore.deleteDirectory(folder.asPrefix());
     log.info("Deleted app {}", app.getName());
   }
 
@@ -358,10 +433,9 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Nonnull
   public ResourceResult getAppResource(@CheckForNull App app, @Nonnull String resource)
       throws IOException {
-    if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
+    if (app == null) {
       log.warn(
-          "Can't look up resource {}. The specified app was not found in JClouds storage.",
-          resource);
+          "Can't look up resource {}. The specified app was not found in blob storage.", resource);
       return new ResourceNotFound(resource);
     }
     if (resource.isBlank()) {
@@ -374,24 +448,27 @@ public class JCloudsAppStorageService implements AppStorageService {
     if (blobStore.blobExists(key)) {
       return new ResourceFound(getResource(key));
     }
-    if (keyExistsAsDirectory(key)) {
+    if (blobStore.directoryExists(BlobKeyPrefix.of(key.value()))) {
       return new Redirect(resource + "/");
     }
     log.debug("ResourceNotFound {} for App {}", key, app.getName());
     return new ResourceNotFound(resource);
   }
 
-  private boolean keyExistsAsDirectory(BlobKey key) {
-    return blobStore.listKeys(BlobKeyPrefix.of(key.value())).iterator().hasNext();
-  }
-
-  private Resource getResource(@Nonnull BlobKey key) throws MalformedURLException {
+  private Resource getResource(@Nonnull BlobKey key) throws IOException {
     if (blobStore.isFilesystem()) {
       return new FileSystemResource(
           locationManager.getFileForReading(blobStore.container().resolve(key)));
-    } else {
-      URI uri = fileResourceContentStore.getSignedGetContentUri(key);
+    }
+    URI uri = fileResourceContentStore.getSignedGetContentUri(key);
+    if (uri != null) {
       return new UrlResource(uri);
+    }
+    // When backend supports neither filesystem access nor signed URLs (e.g. transient): buffer
+    // the blob bytes so Spring can serve them directly.
+    try (InputStream in = blobStore.openStream(key)) {
+      if (in == null) throw new IOException("Blob not found: " + key);
+      return new ByteArrayResource(in.readAllBytes());
     }
   }
 
@@ -429,12 +506,11 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   private static void logDiscoveredApps(Map<String, Pair<App, BundledAppInfo>> apps) {
     if (apps.isEmpty()) {
-      log.info("No apps found during JClouds discovery.");
+      log.info("No apps found during blob store discovery");
     } else {
       apps.values()
           .forEach(
-              pair ->
-                  log.info("Discovered app '{}' from JClouds storage ", pair.getLeft().getName()));
+              pair -> log.info("Discovered app '{}' from blob storage ", pair.getLeft().getName()));
     }
   }
 }

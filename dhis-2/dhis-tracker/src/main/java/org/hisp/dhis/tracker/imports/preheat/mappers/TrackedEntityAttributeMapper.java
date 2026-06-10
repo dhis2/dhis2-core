@@ -46,7 +46,6 @@ public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntit
   @Mapping(target = "code")
   @Mapping(target = "name")
   @Mapping(target = "attributeValues")
-  @Mapping(target = "confidential")
   @Mapping(target = "unique")
   @Mapping(target = "generated")
   @Mapping(target = "pattern")

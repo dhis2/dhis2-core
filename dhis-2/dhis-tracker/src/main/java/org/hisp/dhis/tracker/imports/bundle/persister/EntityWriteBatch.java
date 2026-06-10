@@ -114,11 +114,8 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  */
 class EntityWriteBatch {
 
-  /** Cap on rows per multi-row INSERT statement, to keep query text manageable. */
-  private static final int INSERT_BATCH_SIZE = 128;
-
-  /** Cap on rows per unnest UPDATE statement, to bound peak array memory per chunk. */
-  private static final int UPDATE_BATCH_SIZE = 128;
+  /** Cap on rows per multi-row INSERT/UPDATE statement, to bound peak array memory per chunk. */
+  private static final int BATCH_SIZE = 128;
 
   private static final int TRACKED_ENTITY_SRID = 4326;
 
@@ -581,8 +578,8 @@ class EntityWriteBatch {
     if (teUpdates.isEmpty()) {
       return;
     }
-    for (int from = 0; from < teUpdates.size(); from += UPDATE_BATCH_SIZE) {
-      int to = Math.min(from + UPDATE_BATCH_SIZE, teUpdates.size());
+    for (int from = 0; from < teUpdates.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, teUpdates.size());
       List<TrackedEntity> chunk = teUpdates.subList(from, to);
       int n = chunk.size();
 
@@ -642,8 +639,8 @@ class EntityWriteBatch {
     if (teInserts.isEmpty()) {
       return;
     }
-    for (int from = 0; from < teInserts.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, teInserts.size());
+    for (int from = 0; from < teInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, teInserts.size());
       List<TrackedEntity> chunk = teInserts.subList(from, to);
       String sql =
           buildMultiRowInsertSql(
@@ -693,8 +690,8 @@ class EntityWriteBatch {
     if (enrollmentInserts.isEmpty()) {
       return;
     }
-    for (int from = 0; from < enrollmentInserts.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, enrollmentInserts.size());
+    for (int from = 0; from < enrollmentInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, enrollmentInserts.size());
       List<Enrollment> chunk = enrollmentInserts.subList(from, to);
       String sql =
           buildMultiRowInsertSql(ENROLLMENT_INSERT_PREFIX, ENROLLMENT_INSERT_ROW, chunk.size());
@@ -755,8 +752,8 @@ class EntityWriteBatch {
     if (enrollmentUpdates.isEmpty()) {
       return;
     }
-    for (int from = 0; from < enrollmentUpdates.size(); from += UPDATE_BATCH_SIZE) {
-      int to = Math.min(from + UPDATE_BATCH_SIZE, enrollmentUpdates.size());
+    for (int from = 0; from < enrollmentUpdates.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, enrollmentUpdates.size());
       List<Enrollment> chunk = enrollmentUpdates.subList(from, to);
       int n = chunk.size();
 
@@ -832,8 +829,8 @@ class EntityWriteBatch {
     if (trackerEventInserts.isEmpty()) {
       return;
     }
-    for (int from = 0; from < trackerEventInserts.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, trackerEventInserts.size());
+    for (int from = 0; from < trackerEventInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, trackerEventInserts.size());
       List<TrackerEvent> chunk = trackerEventInserts.subList(from, to);
       String sql =
           buildMultiRowInsertSql(
@@ -897,8 +894,8 @@ class EntityWriteBatch {
     if (trackerEventUpdates.isEmpty()) {
       return;
     }
-    for (int from = 0; from < trackerEventUpdates.size(); from += UPDATE_BATCH_SIZE) {
-      int to = Math.min(from + UPDATE_BATCH_SIZE, trackerEventUpdates.size());
+    for (int from = 0; from < trackerEventUpdates.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, trackerEventUpdates.size());
       List<TrackerEvent> chunk = trackerEventUpdates.subList(from, to);
       int n = chunk.size();
 
@@ -1045,8 +1042,8 @@ class EntityWriteBatch {
 
   private void insertNoteRows(Connection conn, List<? extends NoteToInsert> newNotes)
       throws SQLException {
-    for (int from = 0; from < newNotes.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, newNotes.size());
+    for (int from = 0; from < newNotes.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, newNotes.size());
       List<? extends NoteToInsert> chunk = newNotes.subList(from, to);
       String sql = buildMultiRowInsertSql(NOTE_INSERT_PREFIX, NOTE_INSERT_ROW, chunk.size());
       try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -1074,8 +1071,8 @@ class EntityWriteBatch {
 
   private void insertEnrollmentNotesJoinRows(Connection conn, List<EnrollmentNoteToInsert> newNotes)
       throws SQLException {
-    for (int from = 0; from < newNotes.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, newNotes.size());
+    for (int from = 0; from < newNotes.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, newNotes.size());
       List<EnrollmentNoteToInsert> chunk = newNotes.subList(from, to);
       String sql =
           buildMultiRowInsertSql(
@@ -1136,8 +1133,8 @@ class EntityWriteBatch {
 
   private void insertTrackerEventNotesJoinRows(
       Connection conn, List<TrackerEventNoteToInsert> newNotes) throws SQLException {
-    for (int from = 0; from < newNotes.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, newNotes.size());
+    for (int from = 0; from < newNotes.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, newNotes.size());
       List<TrackerEventNoteToInsert> chunk = newNotes.subList(from, to);
       String sql =
           buildMultiRowInsertSql(
@@ -1158,8 +1155,8 @@ class EntityWriteBatch {
     if (singleEventInserts.isEmpty()) {
       return;
     }
-    for (int from = 0; from < singleEventInserts.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, singleEventInserts.size());
+    for (int from = 0; from < singleEventInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, singleEventInserts.size());
       List<SingleEvent> chunk = singleEventInserts.subList(from, to);
       String sql =
           buildMultiRowInsertSql(SINGLE_EVENT_INSERT_PREFIX, SINGLE_EVENT_INSERT_ROW, chunk.size());
@@ -1220,8 +1217,8 @@ class EntityWriteBatch {
     if (singleEventUpdates.isEmpty()) {
       return;
     }
-    for (int from = 0; from < singleEventUpdates.size(); from += UPDATE_BATCH_SIZE) {
-      int to = Math.min(from + UPDATE_BATCH_SIZE, singleEventUpdates.size());
+    for (int from = 0; from < singleEventUpdates.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, singleEventUpdates.size());
       List<SingleEvent> chunk = singleEventUpdates.subList(from, to);
       int n = chunk.size();
 
@@ -1336,8 +1333,8 @@ class EntityWriteBatch {
 
   private void insertSingleEventNotesJoinRows(
       Connection conn, List<SingleEventNoteToInsert> newNotes) throws SQLException {
-    for (int from = 0; from < newNotes.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, newNotes.size());
+    for (int from = 0; from < newNotes.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, newNotes.size());
       List<SingleEventNoteToInsert> chunk = newNotes.subList(from, to);
       String sql =
           buildMultiRowInsertSql(
@@ -1365,8 +1362,8 @@ class EntityWriteBatch {
     if (relationshipInserts.isEmpty()) {
       return;
     }
-    for (int from = 0; from < relationshipInserts.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, relationshipInserts.size());
+    for (int from = 0; from < relationshipInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, relationshipInserts.size());
       List<Relationship> chunk = relationshipInserts.subList(from, to);
       String sql =
           buildMultiRowInsertSql(RELATIONSHIP_INSERT_PREFIX, RELATIONSHIP_INSERT_ROW, chunk.size());
@@ -1436,8 +1433,8 @@ class EntityWriteBatch {
       rows.add(new ItemRow(r.getTo().getId(), r.getId(), r.getTo()));
     }
 
-    for (int from = 0; from < rows.size(); from += INSERT_BATCH_SIZE) {
-      int to = Math.min(from + INSERT_BATCH_SIZE, rows.size());
+    for (int from = 0; from < rows.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, rows.size());
       List<ItemRow> chunk = rows.subList(from, to);
       String sql =
           buildMultiRowInsertSql(
@@ -1493,8 +1490,8 @@ class EntityWriteBatch {
     if (relationshipInserts.isEmpty()) {
       return;
     }
-    for (int from = 0; from < relationshipInserts.size(); from += UPDATE_BATCH_SIZE) {
-      int to = Math.min(from + UPDATE_BATCH_SIZE, relationshipInserts.size());
+    for (int from = 0; from < relationshipInserts.size(); from += BATCH_SIZE) {
+      int to = Math.min(from + BATCH_SIZE, relationshipInserts.size());
       List<Relationship> chunk = relationshipInserts.subList(from, to);
       int n = chunk.size();
 
