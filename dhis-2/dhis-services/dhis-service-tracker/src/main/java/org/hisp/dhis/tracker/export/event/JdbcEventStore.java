@@ -810,8 +810,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
           .append("inner join program p on p.programid=ps.programid ")
           .append("left join enrollment en on en.enrollmentid=ev.enrollmentid ")
-          .append(
-              "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
+          .append("inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
     } else {
       fromBuilder
           .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
@@ -1128,62 +1127,19 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    // WITHOUT_REGISTRATION — three access patterns depending on query shape:
-    //   1. Date range present: push ev.organisationunitid IN (subquery) so the planner drives
-    //      the scan from idx_event_ou_ps_occurreddate(ou, ps, date) — best case.
-    //   2. No date range, ORDER BY lastupdated DESC (typical Android sync): fall back to path
-    //      LIKE so the planner uses idx_psi_lastupdated_desc, scanning newest-first and stopping
-    //      early at LIMIT — acceptable. Adding the IN subquery here forces a full seq scan + sort.
-    //   3. No date range, no ORDER BY lastupdated: path LIKE fallback, no efficient access path.
-    // WITH_REGISTRATION: filter on ou.path resolved via the TPO INNER JOIN —
-    //   ev.organisationunitid is provenance, not ownership.
-    String directDescendantsPredicate =
-        isWithoutRegistrationQuery(params) && hasDateRange(params)
-            ? " ev.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit "
-                + "WHERE path LIKE CONCAT(:"
-                + COLUMN_ORG_UNIT_PATH
-                + ", '%'))"
-                + AND
-            : CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
-
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return directDescendantsPredicate
-          + createCaptureScopeQuery(
-              user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+      return createCaptureScopeQuery(
+          user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return directDescendantsPredicate
-        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
-
-    // WITHOUT_REGISTRATION: filter directly on ev.organisationunitid so the planner can
-    // drive the scan from idx_event_ou_occurreddate.
-    // WITH_REGISTRATION: filter on ou.organisationunitid which resolves to po.organisationunitid
-    // via the sargable INNER JOIN on TPO — ev.organisationunitid is provenance, not ownership.
-    String directChildrenPredicate =
-        isWithoutRegistrationQuery(params)
-            ? " (ev.organisationunitid = :"
-                + COLUMN_ORG_UNIT_ID
-                + " OR ev.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
-                + COLUMN_ORG_UNIT_ID
-                + "))"
-                + AND
-            : " (ou.organisationunitid = :"
-                + COLUMN_ORG_UNIT_ID
-                + " OR ou.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
-                + COLUMN_ORG_UNIT_ID
-                + "))"
-                + AND;
 
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
@@ -1193,18 +1149,16 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + " ) ";
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return directChildrenPredicate
-          + createCaptureScopeQuery(
-              user,
-              params,
-              mapSqlParameterSource,
-              AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+      return createCaptureScopeQuery(
+          user,
+          params,
+          mapSqlParameterSource,
+          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return directChildrenPredicate
-        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
@@ -1323,10 +1277,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private boolean isWithoutRegistrationQuery(EventQueryParams params) {
     return params.hasEnrolledInProgram()
         && params.getEnrolledInProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
-  }
-
-  private boolean hasDateRange(EventQueryParams params) {
-    return params.getOccurredStartDate() != null || params.getOccurredEndDate() != null;
   }
 
   private boolean isProgramRestricted(Program program) {
