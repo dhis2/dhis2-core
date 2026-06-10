@@ -344,7 +344,11 @@ public final class GistQuery {
     }
 
     public Field(String propertyPath, Transform transformation) {
-      this(propertyPath, "", transformation, null, false, false);
+      this(propertyPath, transformation, null);
+    }
+
+    public Field(String propertyPath, Transform transformation, String transformationArgument) {
+      this(propertyPath, "", transformation, transformationArgument, false, false);
     }
 
     @Nonnull
@@ -445,16 +449,18 @@ public final class GistQuery {
         List<Expression> res = new ArrayList<>();
         while (s < len) {
           int nextComma = fields.indexOf(',', s);
-          int nextOpen = fields.indexOf('[', s);
-          if (nextComma > 0 && (nextComma < nextOpen || nextOpen < 0)) {
-            // until , (no [...])
+          int nextSquare = fields.indexOf('[', s);
+          int nextRound = fields.indexOf('(', s);
+          if (nextRound < nextComma) nextComma = fields.indexOf(',', fields.indexOf(')', s));
+          if (nextComma > 0 && (nextSquare < 0 || nextComma < nextSquare)) {
+            // until comma; (no [...] but maybe transform)
             res.add(new Expression(fields.subSequence(s, nextComma), List.of()));
             s = nextComma + 1;
-          } else if (nextOpen > 0) {
+          } else if (nextSquare > 0) {
             // until [ with children
-            Text field = fields.subSequence(s, nextOpen);
-            s = skipToClosingBracket(fields, nextOpen + 1);
-            res.add(new Expression(field, split(fields.subSequence(nextOpen + 1, s))));
+            Text field = fields.subSequence(s, nextSquare);
+            s = skipToClosingBracket(fields, nextSquare + 1);
+            res.add(new Expression(field, split(fields.subSequence(nextSquare + 1, s))));
             s++; // now skip the ]
             if (s < len && fields.charAt(s) == ',') s++; // skip , after [...]
           } else {

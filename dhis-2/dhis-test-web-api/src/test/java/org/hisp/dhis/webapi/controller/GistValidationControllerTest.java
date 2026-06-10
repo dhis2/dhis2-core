@@ -123,8 +123,8 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
   @Test
   void testValidation_Field_NonPersistentPluck() {
     assertEquals(
-        "Property `displayName` cannot be plucked as it is not a persistent field.",
-        GET("/users/gist?fields=id,userGroups~pluck(displayName)")
+        "Property `user` cannot be plucked as it is not a persistent field.",
+        GET("/users/gist?fields=id,userGroups~pluck(user)")
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }

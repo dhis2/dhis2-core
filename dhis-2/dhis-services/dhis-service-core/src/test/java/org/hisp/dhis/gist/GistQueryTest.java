@@ -36,6 +36,7 @@ import java.util.List;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
+import org.hisp.dhis.schema.annotation.Gist;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -131,6 +132,13 @@ class GistQueryTest {
             new Field("foo.bar.ho").withPropertyName("x.bar.ho"),
             new Field("foo.baz.que").withPropertyName("x.baz.que")),
         Field.of("foo~rename(x)[bar[hey~rename(y),ho],baz[que]]"));
+  }
+
+  @Test
+  void testFieldsOf_Pluck() {
+    assertEquals(
+        List.of(new Field("id"), new Field("userGroups", Gist.Transform.PLUCK, "name,foo")),
+        Field.of("id,userGroups~pluck(name,foo)"));
   }
 
   private void assertFilterEquals(
