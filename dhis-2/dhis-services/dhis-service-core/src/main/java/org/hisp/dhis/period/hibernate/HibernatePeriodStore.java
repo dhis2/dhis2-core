@@ -30,7 +30,6 @@
 package org.hisp.dhis.period.hibernate;
 
 import jakarta.persistence.EntityManager;
-import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
@@ -50,9 +48,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Persistence for {@link Period} and {@link PeriodType}.
@@ -78,15 +74,11 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
 
   private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
 
-  private final DataSource dataSource;
-
   public HibernatePeriodStore(
       EntityManager entityManager,
-      DataSource dataSource,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, Period.class, false);
-    this.dataSource = dataSource;
   }
 
   @Override
@@ -307,18 +299,17 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   }
 
   private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
-    boolean active = TransactionSynchronizationManager.isActualTransactionActive();
-    boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
-
-    if (active && !readOnly) {
-      // run in existing TX (for visibility)
-      Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
-      StatelessSession session =
-          getSession().getSessionFactory().openStatelessSession(borrowedConnection);
-      return query.apply(session);
-    }
-
-    // run in new TX
+    // The implicit period/period-type mapping (iso/name -> PK) must be persisted and committed
+    // "right away" in its own session/transaction, independently of any transaction that is
+    // active on the calling thread (see DHIS2-7539, DHIS2-21617). Callers such as the complete
+    // data set registration and data value set importers reference the freshly created period
+    // through a SEPARATE JDBC connection (the `quick` BatchHandler, which inserts with autoCommit
+    // on its own pooled connection). If the period were only inserted into the caller's still-open
+    // transaction, that separate connection cannot see it and the dependent insert fails with a
+    // foreign key violation - so the registrations/values are silently not persisted even though
+    // the import reports success. Always committing here makes the period visible to every
+    // connection immediately; periods are an append-only id mapping, so committing them even when
+    // an outer transaction later rolls back is safe.
     StatelessSession session = getSession().getSessionFactory().openStatelessSession();
 
     Transaction transaction = null;
