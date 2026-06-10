@@ -86,7 +86,7 @@ public class SingleEventPersister
 
   @Override
   protected String sequenceName() {
-    return null;
+    return "singleevent_sequence";
   }
 
   @Override
