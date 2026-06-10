@@ -208,14 +208,17 @@ final class GistPlanner {
   }
 
   private Field withEffectiveTransformation(Field field) {
-    return field.attribute()
-        ? field.withTransformation(
-            field.transformation() == Transform.PLUCK ? Transform.PLUCK : Transform.NONE)
-        : field.withTransformation(
-            effectiveTransform(
-                context.resolveMandatory(field.propertyPath()),
-                query.getDefaultTransformation(),
-                field.transformation()));
+    if (field.attribute())
+      return field.transformation() == Transform.PLUCK
+          ? field
+          : field.withTransformation(Transform.NONE);
+    Transform transform =
+        effectiveTransform(
+            context.resolveMandatory(field.propertyPath()),
+            query.getDefaultTransformation(),
+            field.transformation());
+    if (transform == field.transformation()) return field;
+    return field.withTransformation(transform);
   }
 
   /**
