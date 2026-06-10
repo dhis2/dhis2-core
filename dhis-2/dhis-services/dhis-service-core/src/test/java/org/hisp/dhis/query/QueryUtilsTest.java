@@ -208,9 +208,10 @@ public class QueryUtilsTest
 
         assertOperator( " like ? ", "%abc", QueryUtils.parseFilterOperator( "$like", "abc" ) );
 
-        assertOperator( " in (?,?,?) ", List.of( "a", "b", "c" ), QueryUtils.parseFilterOperator( "in", "[a,b,c]" ) );
+        assertOperator( " in (?,?,?) ", Arrays.asList( "a", "b", "c" ),
+            QueryUtils.parseFilterOperator( "in", "[a,b,c]" ) );
 
-        assertOperator( " in (?,?,?) ", List.of( 1, 2, 3 ), QueryUtils.parseFilterOperator( "in", "[1,2,3]" ) );
+        assertOperator( " in (?,?,?) ", Arrays.asList( 1, 2, 3 ), QueryUtils.parseFilterOperator( "in", "[1,2,3]" ) );
 
         assertOperator( "is not null ", null, QueryUtils.parseFilterOperator( "!null", null ) );
     }
