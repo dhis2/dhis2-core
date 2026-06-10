@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -51,8 +53,17 @@ public class TrackedEntityPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
 
-  public TrackedEntityPersister(ReservedValueService reservedValueService, DataSource dataSource) {
-    super(reservedValueService, dataSource);
+  public TrackedEntityPersister(
+      ReservedValueService reservedValueService,
+      DataSource dataSource,
+      FileResourceStore fileResourceStore,
+      ObjectMapper objectMapper) {
+    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
+  }
+
+  @Override
+  protected String sequenceName() {
+    return "trackedentityinstance_sequence";
   }
 
   @Override
@@ -61,8 +72,10 @@ public class TrackedEntityPersister
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity te,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
-    handleTrackedEntityAttributeValues(preheat, trackerDto.getAttributes(), te, user, changeLogs);
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
+    handleTrackedEntityAttributeValues(
+        preheat, trackerDto.getAttributes(), te, user, changeLogs, batch);
   }
 
   @Override

@@ -34,15 +34,19 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +65,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -78,8 +83,13 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
@@ -99,6 +109,10 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   protected final DataSource dataSource;
 
+  protected final FileResourceStore fileResourceStore;
+
+  protected final ObjectMapper objectMapper;
+
   /**
    * Template method that can be used by classes extending this class to execute the persistence
    * flow of Tracker entities
@@ -115,6 +129,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     List<EntityNotifications> notifications = new ArrayList<>();
     ChangeLogAccumulator changeLogs = new ChangeLogAccumulator();
+    EntityWriteBatch batch = new EntityWriteBatch(objectMapper);
 
     //
     // Extract the entities to persist from the Bundle
@@ -123,6 +138,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     Connection conn = DataSourceUtils.getConnection(dataSource);
     try {
+      // Pre-allocate primary keys in a single round-trip for entity types that opt in.
+      // The cursor advances only on isNew branches inside the loop below.
+      long[] preAllocatedIds = preAllocateIds(conn, bundle, dtos);
+      int preAllocatedIdsCursor = 0;
+
       for (T trackerDto : dtos) {
 
         Entity objectReport = new Entity(getType(), trackerDto.getUID());
@@ -131,7 +151,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
         boolean completedInThisImport =
             !bundle.isSkipSideEffects()
                 && isBeingCompleted(bundle.getPreheat(), trackerDto, isNewEntity);
-        ChangeLogAccumulator.Mark mark = changeLogs.mark();
+        ChangeLogAccumulator.Mark changeLogMark = changeLogs.mark();
+        EntityWriteBatch.Mark batchMark = batch.mark();
         try {
           V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
 
@@ -141,15 +162,14 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           V convertedDto = convert(bundle, trackerDto);
 
           //
-          // Handle ownership records, if required
-          //
-          persistOwnership(bundle, trackerDto, convertedDto);
-
-          //
           // Save or update the entity
           //
           if (isNew(bundle, trackerDto)) {
-            entityManager.persist(convertedDto);
+            if (preAllocatedIds != null) {
+              assignId(convertedDto, preAllocatedIds[preAllocatedIdsCursor++]);
+            }
+            persistOwnership(bundle, trackerDto, convertedDto);
+            stageInsert(convertedDto, batch);
             updateDataValues(
                 bundle.getPreheat(),
                 trackerDto,
@@ -160,7 +180,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             typeReport.getStats().incCreated();
             typeReport.addEntity(objectReport);
             updateAttributes(
-                bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser(), changeLogs);
+                bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser(), changeLogs, batch);
             bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
           } else {
             if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
@@ -175,8 +195,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                   bundle.getUser(),
                   changeLogs);
               updateAttributes(
-                  bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser(), changeLogs);
-              entityManager.merge(convertedDto);
+                  bundle.getPreheat(),
+                  trackerDto,
+                  convertedDto,
+                  bundle.getUser(),
+                  changeLogs,
+                  batch);
+              stageUpdate(convertedDto, batch);
               typeReport.getStats().incUpdated();
               typeReport.addEntity(objectReport);
               bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
@@ -199,11 +224,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           if (FlushMode.OBJECT == bundle.getFlushMode()) {
             // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
             // (trackedentityid, eventid) exist before changelog rows reference them.
+            batch.flush(entityManager, conn);
             entityManager.flush();
             changeLogs.flushAll(conn);
           }
         } catch (Exception e) {
-          changeLogs.rollbackTo(mark);
+          batch.rollbackTo(batchMark);
+          changeLogs.rollbackTo(changeLogMark);
 
           final String msg =
               "A Tracker Entity of type '"
@@ -235,6 +262,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       if (FlushMode.AUTO == bundle.getFlushMode()) {
         // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
         // (trackedentityid, eventid) exist before changelog rows reference them.
+        batch.flush(entityManager, conn);
         entityManager.flush();
         changeLogs.flushAll(conn);
       }
@@ -244,6 +272,73 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       DataSourceUtils.releaseConnection(conn, dataSource);
     }
     return new PersistResult(typeReport, notifications);
+  }
+
+  private long[] preAllocateIds(Connection conn, TrackerBundle bundle, List<T> dtos)
+      throws SQLException {
+    String sequenceName = sequenceName();
+    if (sequenceName == null) {
+      return null;
+    }
+    int createCount = 0;
+    for (T dto : dtos) {
+      if (isNew(bundle, dto)) {
+        createCount++;
+      }
+    }
+    if (createCount == 0) {
+      return null;
+    }
+    return allocateIds(conn, sequenceName, createCount);
+  }
+
+  private void assignId(V convertedDto, long id) {
+    if (convertedDto instanceof TrackedEntity te) {
+      te.setId(id);
+    } else if (convertedDto instanceof Enrollment e) {
+      e.setId(id);
+    } else if (convertedDto instanceof TrackerEvent ev) {
+      ev.setId(id);
+    } else {
+      throw new IllegalStateException(
+          "Pre-allocated id assignment not implemented for "
+              + convertedDto.getClass().getName()
+              + " -- sequenceName() returned non-null but assignId does not handle this type.");
+    }
+  }
+
+  private void stageInsert(V convertedDto, EntityWriteBatch batch) {
+    if (convertedDto instanceof TrackedEntity te) {
+      batch.stageInsert(te);
+    } else if (convertedDto instanceof Enrollment e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof TrackerEvent e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof SingleEvent e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof Relationship r) {
+      batch.stageInsert(r);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported entity type: " + convertedDto.getClass().getName());
+    }
+  }
+
+  // Relationships are not updated -- the persister branch above ignores update payloads before
+  // this is called -- so no Relationship case is needed here.
+  private void stageUpdate(V convertedDto, EntityWriteBatch batch) {
+    if (convertedDto instanceof TrackedEntity te) {
+      batch.stageUpdate(te);
+    } else if (convertedDto instanceof Enrollment e) {
+      batch.stageUpdate(e);
+    } else if (convertedDto instanceof TrackerEvent e) {
+      batch.stageUpdate(e);
+    } else if (convertedDto instanceof SingleEvent e) {
+      batch.stageUpdate(e);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported entity type for update: " + convertedDto.getClass().getName());
+    }
   }
 
   // // // // // // // //
@@ -284,7 +379,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       T trackerDto,
       V hibernateEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs);
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch);
 
   /** Updates the {@link TrackerPreheat} object with the entity that has been persisted */
   protected abstract void updatePreheat(TrackerPreheat preheat, V convertedDto);
@@ -343,6 +439,40 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   @SuppressWarnings("unchecked")
   protected abstract List<T> getByType(TrackerBundle bundle);
 
+  /**
+   * Returns the PostgreSQL sequence used to allocate primary keys for this entity type, or {@code
+   * null} if id allocation should be left to Hibernate. When non-null, {@link #persist} pre-fetches
+   * one id per CREATE entity in a single round-trip and assigns the id before staging so the flush
+   * path can emit a multi-row INSERT.
+   */
+  protected abstract String sequenceName();
+
+  /**
+   * Fetches {@code count} ids from {@code sequenceName} in a single round-trip. The sequence name
+   * is interpolated into the SQL (not a bind parameter) because PostgreSQL's {@code nextval} takes
+   * a {@code regclass}, and the value comes from {@link #sequenceName()} — controlled by us, not
+   * user input.
+   */
+  private static long[] allocateIds(Connection conn, String sequenceName, int count)
+      throws SQLException {
+    long[] ids = new long[count];
+    String sql = "select nextval('" + sequenceName + "') from generate_series(1, ?)";
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setInt(1, count);
+      try (ResultSet rs = ps.executeQuery()) {
+        int i = 0;
+        while (rs.next()) {
+          ids[i++] = rs.getLong(1);
+        }
+        if (i != count) {
+          throw new SQLException(
+              "Allocated " + i + " ids from " + sequenceName + ", expected " + count);
+        }
+      }
+    }
+    return ids;
+  }
+
   // // // // // // // //
   // // // // // // // //
   // SHARED METHODS //
@@ -365,9 +495,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       return;
     }
 
-    fileResource.setAssigned(isAssign);
-    fileResource.setFileResourceOwner(fileResourceOwner);
-    entityManager.merge(fileResource);
+    fileResourceStore.updateAssignment(fileResource.getUid(), isAssign, fileResourceOwner);
   }
 
   protected void handleTrackedEntityAttributeValues(
@@ -375,34 +503,63 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       List<Attribute> payloadAttributes,
       TrackedEntity trackedEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     if (payloadAttributes.isEmpty()) {
       return;
     }
 
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+    // TODO [Phase 6 / DHIS2-21378]: drop this JPQL query and the batch overlay below once
+    // EntityWriteBatch is shared across persisters and writes go through JDBC instead of the
+    // EntityManager. At that point the batch itself is the source of truth for "what has already
+    // been staged for this TE", and DB rows can be loaded eagerly by the preheat -- no per-call
+    // round-trip needed here. Until then: build the lookup from the EntityManager rather than
+    // the lazy TE collection. The collection is a Hibernate PersistentSet whose in-memory state
+    // diverges from the persistence context once a write to a TE attribute has been deferred
+    // (staged in EntityWriteBatch) and flushed by a prior persister -- the same logical TEAV
+    // (composite key trackedentityid + trackedentityattributeid) can appear on a TrackedEntity
+    // payload and on an Enrollment payload, and querying the EM here sees both DB rows and TEAVs
+    // already attached to the session, preventing a duplicate em.persist that would throw
+    // EntityExistsException. The batch overlay catches the within-persister case (e.g. two
+    // enrollments under the same TE both carrying the same attribute) where the second occurrence
+    // would otherwise produce a fresh instance with the same composite key. A TE staged for
+    // insert in this batch has no DB row yet -- whether or not its id is set (Phase 4a pre-
+    // allocates the id from the sequence) -- so the JPQL would always return empty and the lookup
+    // can be skipped.
     Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById =
-        trackedEntity.getTrackedEntityAttributeValues().stream()
-            .collect(
-                Collectors.toMap(
-                    teav -> idSchemes.toMetadataIdentifier(teav.getAttribute()),
-                    Function.identity()));
+        batch.isStagedAsInsert(trackedEntity)
+            ? new HashMap<>()
+            : entityManager
+                .createQuery(
+                    "select v from TrackedEntityAttributeValue v where v.trackedEntity = :te",
+                    TrackedEntityAttributeValue.class)
+                .setParameter("te", trackedEntity)
+                .getResultList()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        teav -> idSchemes.toMetadataIdentifier(teav.getAttribute()),
+                        Function.identity()));
+    batch
+        .stagedFor(trackedEntity)
+        .forEach(
+            teav ->
+                attributeValueById.put(idSchemes.toMetadataIdentifier(teav.getAttribute()), teav));
 
     payloadAttributes.forEach(
         attribute -> {
-          // We cannot get the value from attributeToStore because it uses
-          // encryption logic, so we need to use the one from payload
           boolean isDelete = StringUtils.isEmpty(attribute.getValue());
 
           TrackedEntityAttributeValue currentValue =
               attributeValueById.get(attribute.getAttribute());
 
           boolean isNew = Objects.isNull(currentValue);
-          String previousValue = isNew ? null : currentValue.getPlainValue();
+          String previousValue = isNew ? null : currentValue.getValue();
           boolean valueChanged = isNew || !Objects.equals(previousValue, attribute.getValue());
 
           if (isDelete && !isNew) {
-            delete(preheat, currentValue, trackedEntity, user, changeLogs);
+            delete(preheat, currentValue, trackedEntity, user, changeLogs, batch);
           } else if (valueChanged) {
             saveOrUpdateAttributeValue(
                 preheat,
@@ -412,7 +569,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                 isNew,
                 previousValue,
                 user,
-                changeLogs);
+                changeLogs,
+                batch);
           }
         });
   }
@@ -425,7 +583,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       boolean isNew,
       String previousValue,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     TrackedEntityAttributeValue attributeToPersist =
         Optional.ofNullable(currentValue)
             .orElseGet(
@@ -434,12 +593,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                         .setAttribute(
                             getTrackedEntityAttributeFromPreheat(preheat, attribute.getAttribute()))
                         .setTrackedEntity(trackedEntity))
-            .setStoredBy(attribute.getStoredBy())
+            .setUpdatedBy(CurrentUserUtil.getCurrentUsername())
             .setValue(attribute.getValue())
             .setLastUpdated(new Date());
 
     saveOrUpdate(
-        preheat, isNew, trackedEntity, attributeToPersist, previousValue, user, changeLogs);
+        preheat, isNew, trackedEntity, attributeToPersist, previousValue, user, changeLogs, batch);
 
     handleReservedValue(attributeToPersist);
   }
@@ -449,20 +608,18 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       TrackedEntity trackedEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     if (isFileResource(trackedEntityAttributeValue)) {
       unassignFileResource(preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
     }
 
-    entityManager.remove(
-        entityManager.contains(trackedEntityAttributeValue)
-            ? trackedEntityAttributeValue
-            : entityManager.merge(trackedEntityAttributeValue));
+    batch.stageTeavDelete(trackedEntityAttributeValue);
 
     changeLogs.addTrackedEntityChangeLog(
         trackedEntity,
         trackedEntityAttributeValue.getAttribute(),
-        trackedEntityAttributeValue.getPlainValue(),
+        trackedEntityAttributeValue.getValue(),
         null,
         DELETE,
         user.getUsername());
@@ -475,20 +632,18 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       String previousValue,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     if (isFileResource(trackedEntityAttributeValue)) {
       assignFileResource(preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
     }
 
     ChangeLogType changeLogType;
     if (isNew) {
-      entityManager.persist(trackedEntityAttributeValue);
-      // In case it's a newly created attribute we'll add it back to TE,
-      // so it can end up in preheat
-      trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
+      batch.stageTeavInsert(trackedEntityAttributeValue);
       changeLogType = CREATE;
     } else {
-      entityManager.merge(trackedEntityAttributeValue);
+      batch.stageTeavUpdate(trackedEntityAttributeValue);
       changeLogType = UPDATE;
     }
 
@@ -496,7 +651,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
         trackedEntity,
         trackedEntityAttributeValue.getAttribute(),
         previousValue,
-        trackedEntityAttributeValue.getPlainValue(),
+        trackedEntityAttributeValue.getValue(),
         changeLogType,
         user.getUsername());
   }

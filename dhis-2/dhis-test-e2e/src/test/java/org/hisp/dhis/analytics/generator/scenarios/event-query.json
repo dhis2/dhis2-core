@@ -328,6 +328,13 @@
       "version": {
         "min": 41
       }
+    },
+    {
+      "name": "eventsWithFallbackCoordinateFieldReturnsGeometrySource",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?filter=pe:2022&coordinatesOnly=true&stage=Zj7UnCAulEk&coordinateField=EVENT&fallbackCoordinateField=F3ogKBuviRA&headers=geometry,geometrySource&dimension=ou:ImspTQPwCqd&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

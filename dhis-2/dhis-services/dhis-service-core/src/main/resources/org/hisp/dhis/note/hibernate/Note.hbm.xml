@@ -21,7 +21,5 @@
 
     <property name="noteText" column="notetext" type="text" />
 
-    <property name="creator" column="creator" />
-
   </class>
 </hibernate-mapping>

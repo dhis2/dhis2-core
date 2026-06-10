@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -60,9 +62,16 @@ public class EnrollmentPersister
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
       DataSource dataSource,
+      FileResourceStore fileResourceStore,
+      ObjectMapper objectMapper,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService, dataSource);
+    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
+  }
+
+  @Override
+  protected String sequenceName() {
+    return "programinstance_sequence";
   }
 
   @Override
@@ -71,13 +80,15 @@ public class EnrollmentPersister
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     handleTrackedEntityAttributeValues(
         preheat,
         enrollment.getAttributes(),
         enrollmentToPersist.getTrackedEntity(),
         user,
-        changeLogs);
+        changeLogs,
+        batch);
   }
 
   @Override
@@ -144,14 +155,13 @@ public class EnrollmentPersister
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment entity) {
-    if (isNew(bundle, trackerDto)
-        && (bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
-            || bundle
-                    .getPreheat()
-                    .getProgramOwner()
-                    .get(entity.getTrackedEntity().getUID())
-                    .get(entity.getProgram().getUid())
-                == null)) {
+    if ((bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
+        || bundle
+                .getPreheat()
+                .getProgramOwner()
+                .get(entity.getTrackedEntity().getUID())
+                .get(entity.getProgram().getUid())
+            == null)) {
       trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
           entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
     }

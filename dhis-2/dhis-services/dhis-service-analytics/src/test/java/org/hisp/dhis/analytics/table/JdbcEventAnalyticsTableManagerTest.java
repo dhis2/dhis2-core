@@ -299,7 +299,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
-        .withColumnSize(60 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, true))
         .addColumns(periodColumns)
         .addColumn(
@@ -473,7 +473,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(67 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(66 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
             d1.getUid(),
@@ -580,7 +580,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(62 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(61 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP)
         .addColumn(tea1.getUid(), TEXT, String.format(aliasTeaUid, quote(tea1.getUid())))
@@ -642,7 +642,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, true))
