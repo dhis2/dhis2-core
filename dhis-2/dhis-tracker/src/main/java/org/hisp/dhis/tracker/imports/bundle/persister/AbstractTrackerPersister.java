@@ -295,6 +295,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       e.setId(id);
     } else if (convertedDto instanceof TrackerEvent ev) {
       ev.setId(id);
+    } else if (convertedDto instanceof SingleEvent sev) {
+      sev.setId(id);
     } else {
       throw new IllegalStateException(
           "Pre-allocated id assignment not implemented for "
