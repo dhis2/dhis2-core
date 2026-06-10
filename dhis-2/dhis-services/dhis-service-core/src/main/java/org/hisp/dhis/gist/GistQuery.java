@@ -451,7 +451,8 @@ public final class GistQuery {
           int nextComma = fields.indexOf(',', s);
           int nextSquare = fields.indexOf('[', s);
           int nextRound = fields.indexOf('(', s);
-          if (nextRound < nextComma) nextComma = fields.indexOf(',', fields.indexOf(')', s));
+          if (nextRound >= 0 && nextRound < nextComma)
+            nextComma = fields.indexOf(',', fields.indexOf(')', s));
           if (nextComma > 0 && (nextSquare < 0 || nextComma < nextSquare)) {
             // until comma; (no [...] but maybe transform)
             res.add(new Expression(fields.subSequence(s, nextComma), List.of()));
