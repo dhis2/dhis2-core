@@ -190,6 +190,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     manager.flush();
+    manager.clear();
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getUpdated());
     enrollments = manager.getAll(Enrollment.class);

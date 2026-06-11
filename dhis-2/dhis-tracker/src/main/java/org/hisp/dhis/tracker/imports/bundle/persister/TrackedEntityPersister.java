@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +65,7 @@ public class TrackedEntityPersister
 
   @Override
   protected void updateAttributes(
+      Connection connection,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity te,
@@ -71,7 +73,7 @@ public class TrackedEntityPersister
       ChangeLogAccumulator changeLogs,
       EntityWriteBatch batch) {
     handleTrackedEntityAttributeValues(
-        preheat, trackerDto.getAttributes(), te, user, changeLogs, batch);
+        connection, preheat, trackerDto.getAttributes(), te, user, changeLogs, batch);
   }
 
   @Override

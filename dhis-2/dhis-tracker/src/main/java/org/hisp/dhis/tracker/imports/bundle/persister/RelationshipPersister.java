@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Set;
 import javax.sql.DataSource;
@@ -78,6 +79,7 @@ public class RelationshipPersister
 
   @Override
   protected void updateAttributes(
+      Connection connection,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.tracker.model.Relationship hibernateEntity,

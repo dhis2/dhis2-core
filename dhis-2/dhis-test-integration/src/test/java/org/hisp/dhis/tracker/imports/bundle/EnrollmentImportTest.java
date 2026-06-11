@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -79,6 +80,7 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
 
   private User importUser;
+  @Autowired private DbmsManager dbmsManager;
 
   @BeforeAll
   void setUp() throws IOException {
@@ -91,12 +93,14 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
   @ParameterizedTest
   @MethodSource("statuses")
   void shouldCorrectlyPopulateCompletedDataWhenCreatingAnEnrollment(EnrollmentStatus status)
-      throws IOException, ForbiddenException, NotFoundException {
+      throws IOException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEnrollments().get(0).setStatus(status);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    dbmsManager.clearSession();
 
     assertNoErrors(importReport);
 
