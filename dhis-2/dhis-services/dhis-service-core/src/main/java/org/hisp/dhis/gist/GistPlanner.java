@@ -331,7 +331,7 @@ final class GistPlanner {
           mapped.add(
               f.withPropertyPath(parentPath)
                   .withPropertyName(f.name())
-                  .withTransformation(Transform.PLUCK, propertyName));
+                  .withTransformation(Transform.PLUCK, List.of(propertyName)));
         }
       } else {
         mapped.add(f);

@@ -33,12 +33,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.annotation.Gist;
 
 /**
  * Parsing and working with the URL-parameter {@code fields} as used in Gist and metadata API.
+ *
+ * <p>Fields BNF
+ *
+ * <pre>
+ *   fields = field ( ',' field )*
+ *   field = name transform* ( '[' fields ']' )?
+ *   transform = marker marker? ( '(' name ( ',' name )* ')' )?
+ *   marker = ':' | '~' | '@'
+ *   name = 'a'-'z' | 'A'-'Z' | '_' | '$'
+ * </pre>
  *
  * @author Jan Bernitt
  * @param fields
@@ -50,9 +61,9 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
   @Nonnull
   public static Fields of(String fields) {
     if (fields == null || fields.isEmpty()) return DEFAULT;
-    List<Field> res = new ArrayList<>();
-    for (Field.Expression e : Field.Expression.split(Text.of(fields))) e.addFields(res, "", "");
-    return new Fields(List.copyOf(res));
+    List<FieldExp> res = new ArrayList<>();
+    parseFields(Text.of(fields), 0, res);
+    return new Fields(res.stream().flatMap(e -> e.toFields("", "")).toList());
   }
 
   public List<String> names() {
@@ -82,15 +93,15 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
    * @param propertyName the name (also nested) as it should be rendered in the response (if
    *     different to the {@link #propertyPath()}) or empty if same as {@link #propertyPath()}
    * @param transformation
-   * @param transformationArgument
+   * @param args transformation arguments
    * @param attribute when true, the property is an attribute UID
    */
   public record Field(
-      @JsonProperty String propertyPath,
-      @JsonProperty String propertyName,
-      @JsonProperty Gist.Transform transformation,
-      @JsonProperty String transformationArgument,
-      @JsonProperty boolean attribute) {
+      String propertyPath,
+      String propertyName,
+      Gist.Transform transformation,
+      List<String> args,
+      boolean attribute) {
 
     public static final String REFS_PATH = "__refs__";
     public static final String ALL_PATH = "*";
@@ -104,31 +115,12 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       this(propertyPath, transformation, null);
     }
 
-    public Field(
-        String propertyPath, Gist.Transform transformation, String transformationArgument) {
-      this(propertyPath, "", transformation, transformationArgument, false);
+    public Field(String propertyPath, Gist.Transform transformation, List<String> args) {
+      this(propertyPath, "", transformation, args, false);
     }
 
     static Field of(String field) {
-      String[] parts = field.split("(?:::|~|@)(?![^\\[\\]]*])");
-      if (parts.length == 1) {
-        return new Field(field, Gist.Transform.AUTO);
-      }
-      Gist.Transform transform = Gist.Transform.AUTO;
-      String alias = "";
-      String arg = null;
-      for (int i = 1; i < parts.length; i++) {
-        String part = parts[i];
-        if (part.startsWith("rename")) {
-          alias = parseArgument(part);
-        } else {
-          transform = Gist.Transform.parse(part);
-          if (part.indexOf('(') >= 0) {
-            arg = parseArgument(part);
-          }
-        }
-      }
-      return new Field(parts[0], alias, transform, arg, false);
+      return Fields.of(field).fields.get(0);
     }
 
     @JsonProperty
@@ -140,94 +132,163 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       return withTransformation(transform, null);
     }
 
-    public Field withTransformation(Gist.Transform transform, String argument) {
-      return new Field(propertyPath, propertyName, transform, argument, attribute);
+    public Field withTransformation(Gist.Transform transform, List<String> args) {
+      return new Field(propertyPath, propertyName, transform, args, attribute);
     }
 
     public Field withPropertyPath(String path) {
-      return new Field(path, propertyName, transformation, transformationArgument, attribute);
+      return new Field(path, propertyName, transformation, args, attribute);
     }
 
     public Field withPropertyName(String name) {
-      return new Field(propertyPath, name, transformation, transformationArgument, attribute);
+      return new Field(propertyPath, name, transformation, args, attribute);
     }
 
     public Field asAttribute() {
-      return new Field(propertyPath, propertyName, transformation, transformationArgument, true);
+      return new Field(propertyPath, propertyName, transformation, args, true);
     }
 
     public boolean isMultiPluck() {
-      return transformation == Gist.Transform.PLUCK
-          && transformationArgument != null
-          && transformationArgument.contains(",");
+      return transformation == Gist.Transform.PLUCK && args.size() > 1;
     }
+  }
 
-    private static String parseArgument(String part) {
-      return part.substring(part.indexOf('(') + 1, part.lastIndexOf(')'));
-    }
+  private record TransformExp(Text type, List<Text> args) {}
 
-    private record Expression(Text field, List<Expression> children) {
+  private record FieldExp(Text name, List<TransformExp> transforms, List<FieldExp> children) {
 
-      void addFields(List<Field> res, String parentPath, String parentName) {
-        Field f = of(field.toString());
-        String path = f.propertyPath();
-        if (!parentPath.isEmpty()) f = f.withPropertyPath(chain(parentPath, path));
-        if (!parentPath.equals(parentName) && !parentName.isEmpty())
+    Stream<Field> toFields(String parentPath, String parentName) {
+      Field f = new Field(name.toString());
+      for (TransformExp t : transforms) {
+        if (t.type.contentEquals("rename")) {
+          f = f.withPropertyName(t.args.get(0).toString());
+        } else {
           f =
-              f.withPropertyName(
-                  chain(parentName, !f.propertyName().isEmpty() ? f.propertyName() : path));
-        if (children.isEmpty()) {
-          res.add(f);
-        } else for (Expression e : children) e.addFields(res, f.propertyPath(), f.name());
-      }
-
-      static String chain(String parent, String child) {
-        return parent.isEmpty() ? child : parent + "." + child;
-      }
-
-      static List<Expression> split(Text fields) {
-        int s = 0;
-        int len = fields.length();
-        List<Expression> res = new ArrayList<>();
-        while (s < len) {
-          int nextComma = fields.indexOf(',', s);
-          int nextSquare = fields.indexOf('[', s);
-          int nextRound = fields.indexOf('(', s);
-          if (nextRound >= 0 && nextRound < nextComma)
-            nextComma = fields.indexOf(',', fields.indexOf(')', s));
-          if (nextComma > 0 && (nextSquare < 0 || nextComma < nextSquare)) {
-            // until comma; (no [...] but maybe transform)
-            res.add(new Expression(fields.subSequence(s, nextComma), List.of()));
-            s = nextComma + 1;
-          } else if (nextSquare > 0) {
-            // until [ with children
-            Text field = fields.subSequence(s, nextSquare);
-            s = skipToClosingBracket(fields, nextSquare + 1);
-            res.add(new Expression(field, split(fields.subSequence(nextSquare + 1, s))));
-            s++; // now skip the ]
-            if (s < len && fields.charAt(s) == ',') s++; // skip , after [...]
-          } else {
-            // until end of input...
-            res.add(new Expression(fields.subSequence(s, len), List.of()));
-            s = len;
-          }
+              f.withTransformation(
+                  Gist.Transform.valueOf(t.type.toString().toUpperCase()),
+                  t.args.stream().map(Text::toString).toList());
         }
-        return res;
       }
+      String path = f.propertyPath();
+      if (!parentPath.isEmpty()) f = f.withPropertyPath(chain(parentPath, path));
+      if (!parentPath.equals(parentName) && !parentName.isEmpty())
+        f =
+            f.withPropertyName(
+                chain(parentName, !f.propertyName().isEmpty() ? f.propertyName() : path));
+      if (children.isEmpty()) return Stream.of(f);
+      Field parent = f;
+      return children.stream().flatMap(e -> e.toFields(parent.propertyPath(), parent.name()));
+    }
 
-      private static int skipToClosingBracket(Text fields, int from) {
-        int open = 0;
-        int i = from;
-        int len = fields.length();
-        while (i < len) {
-          char c = fields.charAt(i++);
-          if (c == ']') {
-            if (open == 0) return i - 1;
-            open--;
-          } else if (c == '[') open++;
-        }
-        return len; // treat end as ]
+    static String chain(String parent, String child) {
+      return parent.isEmpty() ? child : parent + "." + child;
+    }
+  }
+
+  private static int parseFields(Text fields, int offset, List<FieldExp> res) {
+    int i = offset;
+    int len = fields.length();
+    while (i < len) {
+      i = parseField(fields, i, res);
+      if (i >= len) return i;
+      char c = fields.charAt(i);
+      if (c == ']') return i;
+      if (c != ',') throw expectedCharacter(',', fields, i);
+      i++; // skip ,
+    }
+    return i;
+  }
+
+  private static int parseField(Text fields, int offset, List<FieldExp> res) {
+    int i = offset;
+    int len = fields.length();
+    int e = parseName(fields, i);
+    if (e == i) throw expectedNameCharacter(fields, i);
+    Text name = fields.subSequence(i, e);
+    FieldExp f = new FieldExp(name, new ArrayList<>(0), new ArrayList<>(0));
+    res.add(f);
+    i = e;
+    if (i >= len || fields.charAt(i) == ',') return i;
+    i = parseTransforms(fields, i, f.transforms);
+    return parseChildren(fields, i, f.children);
+  }
+
+  private static int parseName(Text fields, int offset) {
+    int i = offset;
+    int len = fields.length();
+    while (i < len && isNameCharacter(fields.charAt(i))) i++;
+    return i;
+  }
+
+  private static int parseTransforms(Text fields, int offset, List<TransformExp> res) {
+    int len = fields.length();
+    int i = offset;
+    while (i < len && isTransformMarker(fields.charAt(i))) {
+      char c = fields.charAt(i);
+      i++; // skip 1st marker
+      if (fields.charAt(i) == c) i++; // allow 2nd marker
+      int e = parseName(fields, i);
+      if (e == i) throw expectedNameCharacter(fields, i);
+      Text name = fields.subSequence(i, e);
+      TransformExp t = new TransformExp(name, new ArrayList<>(0));
+      res.add(t);
+      i = e;
+      if (i < len && fields.charAt(i) == '(') {
+        i++; // skip (
+        do {
+          e = parseName(fields, i);
+          if (e == i) throw expectedNameCharacter(fields, i);
+          Text arg = fields.subSequence(i, e);
+          t.args.add(arg);
+          i = e;
+          if (i >= len) return i;
+          c = fields.charAt(i);
+          if (c == ')') return i + 1;
+          if (c != ',') throw expectedCharacter(',', fields, i);
+          i++; // skip ,
+        } while (i < len && fields.charAt(i) != ')');
+        if (i >= len) throw expectedCharacter(')', fields, i);
+        i++; // skip )
       }
     }
+    return i;
+  }
+
+  private static int parseChildren(Text fields, int offset, List<FieldExp> res) {
+    int len = fields.length();
+    int i = offset;
+    if (i >= len) return i;
+    if (fields.charAt(i) != '[') return i;
+    i++; // skip [
+    i = parseFields(fields, i, res);
+    if (i >= len || fields.charAt(i) != ']') throw expectedCharacter(']', fields, i);
+    return i + 1; // skip ]
+  }
+
+  private static boolean isNameCharacter(char c) {
+    return c >= 'a' && c <= 'z'
+        || c >= 'A' && c <= 'Z'
+        || c >= '0' && c <= '9'
+        || c == '_'
+        || c == '$';
+  }
+
+  private static boolean isTransformMarker(char c) {
+    return c == ':' || c == '~' || c == '@';
+  }
+
+  private static IllegalArgumentException expectedNameCharacter(Text fields, int offset) {
+    return new IllegalArgumentException(
+        "Expected a name character at position %d but found: %s"
+            .formatted(offset, butFound(fields, offset)));
+  }
+
+  private static IllegalArgumentException expectedCharacter(char ch, Text fields, int offset) {
+    return new IllegalArgumentException(
+        "Expected %s at position %d but found: %s".formatted(ch, offset, butFound(fields, offset)));
+  }
+
+  private static String butFound(Text fields, int offset) {
+    return offset >= fields.length() ? "EOF" : "" + fields.charAt(offset);
   }
 }

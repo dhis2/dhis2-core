@@ -143,7 +143,7 @@ public @interface Gist {
 
     /**
      * Without argument same as {@link #IDS}, argument can be used to extract any other {@link
-     * String} field.
+     * String} field, for example: {@code pluck(id,name)}.
      */
     PLUCK,
 

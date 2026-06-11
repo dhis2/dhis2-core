@@ -113,9 +113,9 @@ final class GistValidator {
       }
     }
     Transform transformation = f.transformation();
-    String transArgs = f.transformationArgument();
-    if (transformation == Transform.PLUCK && transArgs != null) {
-      for (String arg : transArgs.split(",")) {
+    List<String> transArgs = f.args();
+    if (transformation == Transform.PLUCK && !transArgs.isEmpty()) {
+      for (String arg : transArgs) {
         Property plucked = context.switchedTo(getBaseType(field)).resolveMandatory(arg);
         if (!plucked.isPersisted()) {
           throw createIllegalProperty(
@@ -133,7 +133,7 @@ final class GistValidator {
   }
 
   private void validateFromTransformation(
-      RelativePropertyContext context, Property field, String transArgs) {
+      RelativePropertyContext context, Property field, List<String> transArgs) {
     if (stream(query.getElementType().getConstructors())
         .noneMatch(c -> c.getParameterCount() == 0)) {
       throw createIllegalProperty(
@@ -144,12 +144,12 @@ final class GistValidator {
       throw createIllegalProperty(
           field, "Property `%s` is persistent an cannot be computed using transformation from.");
     }
-    if (transArgs == null || transArgs.isEmpty()) {
+    if (transArgs.isEmpty()) {
       throw createIllegalProperty(
           field,
           "Property `%s` requires one or more source fields when used with transformation from.");
     }
-    for (String fromPropertyName : transArgs.split(",")) {
+    for (String fromPropertyName : transArgs) {
       Property fromField = context.resolve(fromPropertyName);
       if (fromField == null) {
         throw createIllegalProperty(

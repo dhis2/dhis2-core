@@ -228,7 +228,7 @@ final class GistBuilder {
 
   private static GistQuery addFromTransformationSupportFields(GistQuery query, Field f) {
     if (f.transformation() == Transform.FROM) {
-      for (String propertyName : f.transformationArgument().split(",")) {
+      for (String propertyName : f.args()) {
         if (!existsSameParentField(query, f, propertyName)) {
           query = query.addField(pathOnSameParent(f.propertyPath(), propertyName));
         }
@@ -474,13 +474,12 @@ final class GistBuilder {
   private boolean isFieldTranslated(Field field, Property property) {
     return (field.transformation() == Transform.TRANSLATE)
         && property.canBeTranslated()
-        && (query.hasTranslationContext() || field.transformationArgument() != null);
+        && (query.hasTranslationContext() || !field.args().isEmpty());
   }
 
   private String createTranslatedFieldHQL(Field field, Property property) {
     String locale = query.getTranslationLocale().toString();
-    if (field.transformationArgument() != null)
-      locale = Locale.of(field.transformationArgument()).toString();
+    if (!field.args().isEmpty()) locale = Locale.of(field.args().get(0)).toString();
     return replace(
         "coalesce(jsonb_get_translated_value(e.translations, '${key}', '${locale}'), e.${property})",
         Map.of(
@@ -498,11 +497,11 @@ final class GistBuilder {
     if (bean == null) {
       return;
     }
-    String[] sources = field.transformationArgument().split(",");
+    List<String> sources = field.args();
     List<Method> setters =
-        stream(sources).map(context::resolveMandatory).map(Property::getSetterMethod).toList();
+        sources.stream().map(context::resolveMandatory).map(Property::getSetterMethod).toList();
     int[] indexes =
-        stream(sources)
+        sources.stream()
             .mapToInt(srcProperty -> getSameParentFieldIndex(path, srcProperty))
             .toArray();
     Method getter = property.getGetterMethod();
@@ -612,15 +611,10 @@ final class GistBuilder {
   }
 
   private String createPluckTransformerHQL(int index, Field field, Property property) {
-    String plucked = field.transformationArgument();
+    List<String> plucked = field.args();
     Class<?> table = property.getItemKlass();
     RelativePropertyContext itemContext = context.switchedTo(table);
-    List<Property> pluckedProperties =
-        plucked == null || plucked.isEmpty()
-            ? List.of()
-            : Stream.of(field.transformationArgument().split(","))
-                .map(itemContext::resolveMandatory)
-                .toList();
+    List<Property> pluckedProperties = plucked.stream().map(itemContext::resolveMandatory).toList();
     if (pluckedProperties.size() > 1
         || pluckedProperties.stream().anyMatch(p -> p.getKlass() != String.class)) {
       return createMultiPluckTransformerHQL(index, field, property);
@@ -646,10 +640,7 @@ final class GistBuilder {
   private String createMultiPluckTransformerHQL(int index, Field field, Property property) {
     Class<?> table = property.getItemKlass();
     RelativePropertyContext itemContext = context.switchedTo(table);
-    List<Property> plucked =
-        Stream.of(field.transformationArgument().split(","))
-            .map(itemContext::resolveMandatory)
-            .toList();
+    List<Property> plucked = field.args().stream().map(itemContext::resolveMandatory).toList();
 
     Function<Property, String> path =
         p ->
@@ -683,7 +674,7 @@ final class GistBuilder {
   private String determineReferenceProperty(
       Field field, RelativePropertyContext fieldContext, boolean forceTextual) {
     Class<?> fieldType = fieldContext.getHome().getKlass();
-    if (field.transformationArgument() != null) {
+    if (!field.args().isEmpty()) {
       return getPluckPropertyName(field, fieldType, forceTextual);
     }
     if (fieldType == Period.class) return "isoDate";
@@ -709,7 +700,7 @@ final class GistBuilder {
   }
 
   private String getPluckPropertyName(Field field, Class<?> ownerType, boolean forceTextual) {
-    return getPluckPropertyName(field.transformationArgument(), ownerType, forceTextual);
+    return getPluckPropertyName(field.args().get(0), ownerType, forceTextual);
   }
 
   private String getPluckPropertyName(
@@ -1057,12 +1048,9 @@ final class GistBuilder {
   public void addFetchParameters(
       BiConsumer<String, Object> dest, BiFunction<String, Class<?>, Object> argumentParser) {
     for (Field field : query.getFields()) {
-      Transform transformation = field.transformation();
-      if (field.transformationArgument() != null
-          && transformation != Transform.PLUCK
-          && transformation != Transform.FROM
-          && transformation != Transform.TRANSLATE) {
-        dest.accept("p_" + field.propertyPath(), field.transformationArgument());
+      Transform t = field.transformation();
+      if (t == Transform.MEMBER || t == Transform.NOT_MEMBER) {
+        dest.accept("p_" + field.propertyPath(), field.args().get(0));
       }
     }
     addCountParameters(dest, argumentParser);
