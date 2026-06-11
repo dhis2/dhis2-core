@@ -48,7 +48,7 @@ import org.hisp.dhis.schema.annotation.Gist;
  *   field = name transform* ( '[' fields ']' )?
  *   transform = marker marker? ( '(' name ( ',' name )* ')' )?
  *   marker = ':' | '~' | '@'
- *   name = 'a'-'z' | 'A'-'Z' | '_' | '$'
+ *   name = 'a'-'z' | 'A'-'Z' | '_' | '-' | '*'
  * </pre>
  *
  * @author Jan Bernitt
@@ -165,7 +165,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
         } else {
           f =
               f.withTransformation(
-                  Gist.Transform.valueOf(t.type.toString().toUpperCase()),
+                  Gist.Transform.valueOf(t.type.toString().toUpperCase().replace('-', '_')),
                   t.args.stream().map(Text::toString).toList());
         }
       }
@@ -270,7 +270,8 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
         || c >= 'A' && c <= 'Z'
         || c >= '0' && c <= '9'
         || c == '_'
-        || c == '$';
+        || c == '-'
+        || c == '*';
   }
 
   private static boolean isTransformMarker(char c) {

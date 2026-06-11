@@ -153,20 +153,6 @@ public @interface Gist {
      */
     FROM;
 
-    public static Transform parse(String transform) {
-      int startOfArgument = transform.indexOf('(');
-      String name =
-          (startOfArgument < 0 ? transform : transform.substring(0, startOfArgument))
-              .replace("-", "")
-              .replace("+", "");
-      for (Transform p : Transform.values()) {
-        if (p.name().replace("_", "").equalsIgnoreCase(name)) {
-          return p;
-        }
-      }
-      return AUTO;
-    }
-
     public boolean isArrayAggregate() {
       return this == IDS || this == PLUCK || this == ID_OBJECTS;
     }
