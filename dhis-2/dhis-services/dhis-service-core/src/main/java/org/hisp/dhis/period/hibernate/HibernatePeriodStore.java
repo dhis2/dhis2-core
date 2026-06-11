@@ -30,6 +30,7 @@
 package org.hisp.dhis.period.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
@@ -48,7 +50,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Persistence for {@link Period} and {@link PeriodType}.
@@ -74,11 +78,15 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
 
   private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
 
+  private final DataSource dataSource;
+
   public HibernatePeriodStore(
       EntityManager entityManager,
+      DataSource dataSource,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, Period.class, false);
+    this.dataSource = dataSource;
   }
 
   @Override
@@ -101,6 +109,10 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
    */
   @Override
   public void save(Period period) {
+    save(period, false);
+  }
+
+  private void save(Period period, boolean forceNewTransaction) {
     String sql1 = "SELECT periodid FROM period WHERE iso = :iso";
     String sql2 =
         """
@@ -124,7 +136,8 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
                   .setParameter("iso", isoDate)
                   .executeUpdate();
               return session.createNativeQuery("SELECT lastval()").uniqueResult();
-            });
+            },
+            forceNewTransaction);
     if (id instanceof Number n) {
       long periodId = n.longValue();
       periodIdByIsoPeriod.putIfAbsent(isoDate, periodId);
@@ -232,6 +245,12 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
     return period;
   }
 
+  @Override
+  public Period reloadForceAddPeriodInNewTransaction(Period period) {
+    save(period, true);
+    return period;
+  }
+
   // -------------------------------------------------------------------------
   // PeriodType (do not use generic store which is linked to Period)
   // -------------------------------------------------------------------------
@@ -255,7 +274,8 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
               }
               session.createNativeQuery(sql2).setParameter("name", name).executeUpdate();
               return session.createNativeQuery("SELECT lastval()").uniqueResult();
-            });
+            },
+            false);
     if (id instanceof Number n) {
       int periodTypeId = n.intValue();
       periodType.setId(periodTypeId);
@@ -280,7 +300,8 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
                 .createNativeQuery(sql)
                 .setParameter("name", name)
                 .setParameter("label", label)
-                .executeUpdate());
+                .executeUpdate(),
+        false);
   }
 
   @Override
@@ -298,18 +319,33 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         .uniqueResult();
   }
 
-  private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
-    // The implicit period/period-type mapping (iso/name -> PK) must be persisted and committed
-    // "right away" in its own session/transaction, independently of any transaction that is
-    // active on the calling thread (see DHIS2-7539, DHIS2-21617). Callers such as the complete
-    // data set registration and data value set importers reference the freshly created period
-    // through a SEPARATE JDBC connection (the `quick` BatchHandler, which inserts with autoCommit
-    // on its own pooled connection). If the period were only inserted into the caller's still-open
-    // transaction, that separate connection cannot see it and the dependent insert fails with a
-    // foreign key violation - so the registrations/values are silently not persisted even though
-    // the import reports success. Always committing here makes the period visible to every
-    // connection immediately; periods are an append-only id mapping, so committing them even when
-    // an outer transaction later rolls back is safe.
+  private <R> R runAutoJoinTransaction(
+      Function<StatelessSession, R> query, boolean forceNewTransaction) {
+    boolean active = TransactionSynchronizationManager.isActualTransactionActive();
+    boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+
+    if (!forceNewTransaction && active && !readOnly) {
+      // Join the caller's active read-write transaction (no independent commit) by borrowing its
+      // transaction-bound connection. The implicit period/period-type mapping is then visible
+      // within - and rolls back with - that transaction. This is the right behaviour for ordinary
+      // period creation, where the caller persists everything it references on the same
+      // transaction-bound connection.
+      Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
+      StatelessSession session =
+          getSession().getSessionFactory().openStatelessSession(borrowedConnection);
+      return query.apply(session);
+    }
+
+    // Run in - and commit - a new, independent transaction. Reached either when there is no active
+    // read-write transaction, or when the caller explicitly requires the mapping to be committed
+    // right away (forceNewTransaction). The latter is needed by importers that reference the
+    // freshly created period through a SEPARATE JDBC connection (the `quick` BatchHandler, which
+    // inserts with autoCommit on its own pooled connection): a period that only lives in the
+    // caller's still-open transaction is invisible to that connection, so the dependent insert
+    // fails with a foreign key violation while the import still reports success (DHIS2-7539,
+    // DHIS2-21617). Committing here makes the period visible to every connection immediately;
+    // periods are an append-only iso -> PK mapping, so committing them even when an outer
+    // transaction later rolls back is safe.
     StatelessSession session = getSession().getSessionFactory().openStatelessSession();
 
     Transaction transaction = null;

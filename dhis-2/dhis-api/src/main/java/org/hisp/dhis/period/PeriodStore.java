@@ -117,6 +117,24 @@ public interface PeriodStore {
    */
   Period reloadForceAddPeriod(Period period);
 
+  /**
+   * Like {@link #reloadForceAddPeriod(Period)} but, when the period has to be created, persists the
+   * iso&rarr;PK mapping in its <em>own</em> session and commits it immediately, independently of any
+   * transaction active on the calling thread.
+   *
+   * <p>This is required by importers (complete data set registrations, data value sets) that
+   * reference the period through a <em>separate</em> JDBC connection: the {@code quick} BatchHandler
+   * inserts with autoCommit on its own pooled connection and therefore cannot see a period that
+   * only lives in the caller's still-open transaction. Without an immediate commit the dependent
+   * insert fails with a foreign key violation while the import still reports success (see
+   * DHIS2-7539, DHIS2-21617). Periods are an append-only iso&rarr;PK mapping, so committing them
+   * even when the surrounding transaction later rolls back is safe.
+   *
+   * @param period the Period.
+   * @return the persisted Period.
+   */
+  Period reloadForceAddPeriodInNewTransaction(Period period);
+
   // -------------------------------------------------------------------------
   // PeriodType
   // -------------------------------------------------------------------------
