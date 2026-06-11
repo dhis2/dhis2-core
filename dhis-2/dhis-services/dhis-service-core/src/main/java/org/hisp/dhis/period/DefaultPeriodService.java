@@ -174,11 +174,11 @@ public class DefaultPeriodService implements PeriodService {
    * constraint error in subsequence calls of batch.flush()
    *
    * <p>Unlike {@link #reloadIsoPeriod(String)}, the period is committed in its own transaction even
-   * when the caller is already inside an active read-write transaction (e.g. the {@code
-   * @Transactional} async complete data set registration / data value set import). This is required
-   * so the {@code quick} BatchHandler, which inserts on its own separate autoCommit connection, can
-   * see the freshly created period; otherwise the dependent insert fails with a foreign key
-   * violation while the import still reports success (DHIS2-21617).
+   * when the caller is already inside an active read-write transaction (e.g. the
+   * {@code @Transactional} async complete data set registration / data value set import). This is
+   * required so the {@code quick} BatchHandler, which inserts on its own separate autoCommit
+   * connection, can see the freshly created period; otherwise the dependent insert fails with a
+   * foreign key violation while the import still reports success (DHIS2-21617).
    */
   @Override
   @IndirectTransactional
