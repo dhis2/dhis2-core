@@ -97,10 +97,10 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
    * @param attribute when true, the property is an attribute UID
    */
   public record Field(
-      String propertyPath,
-      String propertyName,
-      Gist.Transform transformation,
-      List<String> args,
+      @Nonnull String propertyPath,
+      @Nonnull String propertyName,
+      @Nonnull Gist.Transform transformation,
+      @Nonnull List<String> args,
       boolean attribute) {
 
     public static final String REFS_PATH = "__refs__";
@@ -112,7 +112,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     public Field(String propertyPath, Gist.Transform transformation) {
-      this(propertyPath, transformation, null);
+      this(propertyPath, transformation, List.of());
     }
 
     public Field(String propertyPath, Gist.Transform transformation, List<String> args) {
@@ -128,11 +128,11 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       return propertyName.isEmpty() ? propertyPath : propertyName;
     }
 
-    public Field withTransformation(Gist.Transform transform) {
-      return withTransformation(transform, null);
+    public Field withTransformation(@Nonnull Gist.Transform transform) {
+      return withTransformation(transform, List.of());
     }
 
-    public Field withTransformation(Gist.Transform transform, List<String> args) {
+    public Field withTransformation(@Nonnull Gist.Transform transform, @Nonnull List<String> args) {
       return new Field(propertyPath, propertyName, transform, args, attribute);
     }
 
