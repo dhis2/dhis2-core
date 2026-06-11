@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.event.data;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
@@ -99,7 +98,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -332,12 +330,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public long getEnrollmentCount(EventQueryParams params) {
+    Optional<ProgramIndicatorCteSql> programIndicatorCte = getProgramIndicatorCteSql(params);
     String sql = "select count(pi) ";
 
     sql += getFromClause(params);
+    sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
 
     sql += getWhereClause(params);
     sql += addFiltersToWhereClause(params);
+
+    if (programIndicatorCte.isPresent()) {
+      sql = programIndicatorCte.get().withClause() + sql;
+    }
 
     long count = 0;
 
@@ -509,24 +513,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     if (params.hasProgramStage()) {
       sql += "and ps = '" + params.getProgramStage().getUid() + "' ";
-    }
-
-    // ---------------------------------------------------------------------
-    // Filter expression
-    // ---------------------------------------------------------------------
-
-    if (params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter()) {
-      String filter =
-          programIndicatorService.getAnalyticsSqlAllowingNulls(
-              params.getProgramIndicator().getFilter(),
-              BOOLEAN,
-              params.getProgramIndicator(),
-              params.getEarliestStartDate(),
-              params.getLatestEndDate());
-
-      String sqlFilter = ExpressionUtils.asSql(filter);
-
-      sql += "and (" + sqlFilter + ") ";
     }
 
     // ---------------------------------------------------------------------

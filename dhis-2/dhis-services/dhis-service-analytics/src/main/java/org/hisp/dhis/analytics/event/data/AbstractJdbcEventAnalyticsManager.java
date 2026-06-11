@@ -786,7 +786,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   @Transactional(readOnly = true, propagation = REQUIRES_NEW)
   public Grid getAggregatedEventData(EventQueryParams passedParams, Grid grid, int maxLimit) {
     EventQueryParams params = piDisagInfoInitializer.getParamsWithDisaggregationInfo(passedParams);
-    AggregateClause aggregateClause = getAggregateClause(params);
+    Optional<ProgramIndicatorCteSql> programIndicatorCte = getProgramIndicatorCteSql(params);
+    AggregateClause aggregateClause =
+        getAggregateClause(
+            params, programIndicatorCte.map(ProgramIndicatorCteSql::valueColumn).orElse(null));
     List<String> columns =
         union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
 
@@ -803,6 +806,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     sql += getFromClause(params);
+    sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
 
     String whereClause = getWhereClause(params);
     sql += whereClause;
@@ -833,6 +837,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       sql += LIMIT + " " + params.getLimit();
     } else if (maxLimit > 0) {
       sql += LIMIT + " " + (maxLimit + 1);
+    }
+
+    if (programIndicatorCte.isPresent()) {
+      sql = programIndicatorCte.get().withClause() + sql;
     }
 
     // ---------------------------------------------------------------------
@@ -950,6 +958,22 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return an {@link AggregateClause} containing the SQL and metadata
    */
   protected AggregateClause getAggregateClause(EventQueryParams params) {
+    return getAggregateClause(params, null);
+  }
+
+  /**
+   * Returns the aggregate clause based on value dimension and output type. When {@code
+   * programIndicatorValueColumn} is given, a program indicator dimension is aggregated over that
+   * column (the per-enrollment value of the joined program indicator CTE) instead of inlining the
+   * program indicator expression SQL.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param programIndicatorValueColumn the column holding the per-enrollment program indicator
+   *     value, or null when no program indicator CTE is joined.
+   * @return an {@link AggregateClause} containing the SQL and metadata
+   */
+  private AggregateClause getAggregateClause(
+      EventQueryParams params, String programIndicatorValueColumn) {
     // TODO include output type if aggregation type is count
 
     // If no aggregation type is set for this event data item and no override aggregation type is
@@ -979,12 +1003,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return AggregateClause.of(sql, aggregationType, expression);
     } else if (params.hasProgramIndicatorDimension()) {
       String expression =
-          programIndicatorService.getAnalyticsSql(
-              params.getProgramIndicator().getExpression(),
-              NUMERIC,
-              params.getProgramIndicator(),
-              params.getEarliestStartDate(),
-              params.getLatestEndDate());
+          programIndicatorValueColumn != null
+              ? programIndicatorValueColumn
+              : programIndicatorService.getAnalyticsSql(
+                  params.getProgramIndicator().getExpression(),
+                  NUMERIC,
+                  params.getProgramIndicator(),
+                  params.getEarliestStartDate(),
+                  params.getLatestEndDate());
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
     } else {
@@ -1015,6 +1041,53 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
+  }
+
+  /**
+   * SQL fragments for joining a program indicator CTE into an aggregate query: the {@code with}
+   * clause defining the CTEs, the inner join of the main program indicator CTE on enrollment, and
+   * the column holding the per-enrollment program indicator value.
+   */
+  protected record ProgramIndicatorCteSql(
+      String withClause, String joinClause, String valueColumn) {}
+
+  /**
+   * Builds the CTE definitions for an enrollment program indicator dimension. The program indicator
+   * expression and filter are processed by the placeholder-to-CTE pipeline, so stage element,
+   * variable and d2 function references become CTE references instead of placeholder tokens. The
+   * returned inner join applies the program indicator filter semantics: enrollments not satisfying
+   * the filter have no row in the program indicator CTE.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return the SQL fragments, or empty when the query has no enrollment program indicator
+   *     dimension.
+   */
+  protected Optional<ProgramIndicatorCteSql> getProgramIndicatorCteSql(EventQueryParams params) {
+    if (!params.hasEnrollmentProgramIndicatorDimension()) {
+      return Optional.empty();
+    }
+    ProgramIndicator programIndicator = params.getProgramIndicator();
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    programIndicatorSubqueryBuilder.addCte(
+        programIndicator,
+        getAnalyticsType(),
+        params.getEarliestStartDate(),
+        params.getLatestEndDate(),
+        cteContext);
+    CteDefinition definition = cteContext.getDefinitionByItemUid(programIndicator.getUid());
+    String alias = definition.getAlias();
+    String withClause =
+        cteContext.getAliasAndDefinitionSqlMap().entrySet().stream()
+            .map(entry -> entry.getKey() + " as (" + entry.getValue().cteDefinitionSql() + ")")
+            .collect(Collectors.joining(", ", "with ", " "));
+    String joinClause =
+        "inner join %s %s on %s.enrollment = %s.enrollment "
+            .formatted(programIndicator.getUid(), alias, alias, ANALYTICS_TBL_ALIAS);
+    String valueColumn =
+        definition.isRequiresCoalesce()
+            ? "coalesce(%s.value, 0)".formatted(alias)
+            : "%s.value".formatted(alias);
+    return Optional.of(new ProgramIndicatorCteSql(withClause, joinClause, valueColumn));
   }
 
   /**
