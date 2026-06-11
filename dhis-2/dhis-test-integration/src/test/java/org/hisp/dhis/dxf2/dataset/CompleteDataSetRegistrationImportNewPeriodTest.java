@@ -65,6 +65,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  * org.hisp.dhis.period.hibernate.HibernatePeriodStore}); otherwise the registration insert hits a
  * foreign key violation / is not persisted while the import still reports success.
  *
+ * <p>The bug is reproduced through the <em>synchronous</em> {@code
+ * saveCompleteDataSetRegistrationsJson} entry point rather than the async job path: the defect is
+ * transactional, not async, so the synchronous path exercises it deterministically (no scheduler
+ * involved) while running the same import/BatchHandler code.
+ *
  * @author Claude
  */
 class CompleteDataSetRegistrationImportNewPeriodTest extends PostgresIntegrationTestBase {
