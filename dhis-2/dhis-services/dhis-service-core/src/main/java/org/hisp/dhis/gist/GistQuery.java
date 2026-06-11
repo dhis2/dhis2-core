@@ -183,7 +183,7 @@ public final class GistQuery {
   }
 
   public GistQuery addField(String path) {
-    return GistQuery.builder().fields(fields.add(Fields.Field.of(path))).build();
+    return toBuilder().fields(fields.add(Fields.Field.of(path))).build();
   }
 
   public GistQuery withFields(List<Fields.Field> fields) {
