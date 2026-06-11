@@ -55,7 +55,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Performance test for single-user CRUD operations on {@code /api/users}.
  *
- * <p>Five scenarios, all running against the Sierra Leone demo DB by default:
+ * <p>Five scenarios, all running against the platform-perf DB (~250k users / ~250k org units) by
+ * default:
  *
  * <ol>
  *   <li><b>POST</b> — creates a new user (with optional group assignment)
@@ -71,7 +72,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * itself — no existing database users are touched.
  *
  * <p>Run with {@code -DuserGroupUid=<uid>} pointing at a group with large membership to expose N+1
- * problems in POST and DELETE. The default points at "Administrators" on the SL demo DB.
+ * problems in POST and DELETE. The default points at a ~83k-member group on the platform-perf DB.
  *
  * <p>Configuration can be provided via a {@code .properties} file instead of individual {@code -D}
  * flags:
@@ -82,16 +83,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * Individual {@code -D} flags always override values from the config file.
  *
- * <p>Available properties (with SL demo DB defaults):
+ * <p>Available properties (with platform-perf DB defaults):
  *
  * <ul>
  *   <li>{@code configFile} — path to a {@code .properties} file (optional)
  *   <li>{@code baseUrl} (default: {@code http://localhost:8080})
  *   <li>{@code username} (default: {@code admin})
  *   <li>{@code password} (default: {@code district})
- *   <li>{@code userRoleUid} (default: {@code Euq3XfEIEbx} — "Data entry clerk")
- *   <li>{@code orgUnitUid} (default: {@code ImspTQPwCqd} — "Sierra Leone" root)
- *   <li>{@code userGroupUid} (default: {@code wl5cDMuUhmF} — "Administrators")
+ *   <li>{@code userRoleUid} (default: {@code MoRvPzDH7lc} — generic role with ~83k users)
+ *   <li>{@code orgUnitUid} (default: {@code VCCdfC9pvMA} — root org unit)
+ *   <li>{@code userGroupUid} (default: {@code KOvR9SAEeEZ} — group with ~83k members)
  *   <li>{@code iterations} (default: {@code 3})
  *   <li>{@code mode} (default: {@code sequential}; runs each scenario in isolation so timings
  *       reflect single-endpoint latency. Use {@code parallel} to run all scenarios concurrently as

@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Connection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -76,6 +77,7 @@ public class EnrollmentPersister
 
   @Override
   protected void updateAttributes(
+      Connection connection,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist,
@@ -83,6 +85,7 @@ public class EnrollmentPersister
       ChangeLogAccumulator changeLogs,
       EntityWriteBatch batch) {
     handleTrackedEntityAttributeValues(
+        connection,
         preheat,
         enrollment.getAttributes(),
         enrollmentToPersist.getTrackedEntity(),

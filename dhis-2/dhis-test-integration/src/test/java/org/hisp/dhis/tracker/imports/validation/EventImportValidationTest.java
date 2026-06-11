@@ -368,6 +368,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     // When -> Update the event and adds 3 more notes
     ImportReport importReport =
         createEvent("tracker/validations/events-with-notes-update-data.json");
+    manager.clear();
     // Then
     final TrackerEvent event = getEventFromReport(importReport);
     assertThat(event.getNotes(), hasSize(6));

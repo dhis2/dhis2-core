@@ -34,6 +34,7 @@ import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Connection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -86,7 +87,7 @@ public class SingleEventPersister
 
   @Override
   protected String sequenceName() {
-    return null;
+    return "singleevent_sequence";
   }
 
   @Override
@@ -160,6 +161,7 @@ public class SingleEventPersister
 
   @Override
   protected void updateAttributes(
+      Connection connection,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent hibernateEntity,
