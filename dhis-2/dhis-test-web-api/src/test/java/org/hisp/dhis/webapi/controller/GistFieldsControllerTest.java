@@ -168,8 +168,8 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
         PUT(
             "/organisationUnits/" + orgUnitId + "/translations",
             "{'translations': ["
-                + "{'locale':'sv', 'property':'name', 'value':'enhet A'}, "
-                + "{'locale':'de', 'property':'name', 'value':'Einheit A'}]}"));
+                + "{'locale':'sv', 'property':'NAME', 'value':'enhet A'}, "
+                + "{'locale':'de', 'property':'NAME', 'value':'Einheit A'}]}"));
     JsonString displayName =
         GET("/organisationUnits/{id}/gist?fields=displayName&locale=de&headless=true", orgUnitId)
             .content();
