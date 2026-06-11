@@ -9,8 +9,13 @@ echo "Starting test reports processing..."
 apt-get update && apt-get install -y git gnupg2
 
 if [ -n "$GPG_PRIVATE_KEY" ]; then
-    echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import
-    echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --sign-key "$GPG_KEY_ID"
+    echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+
+    # unlock the secret key once so gpg-agent caches the passphrase, letting the
+    # later commit sign non-interactively without prompting inside the container.
+    echo "prime" | gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+        --local-user "$GPG_KEY_ID" --detach-sign -o /dev/null
+
     git config --global user.signingkey "$GPG_KEY_ID"
     git config --global commit.gpgsign true
     git config --global gpg.program gpg
