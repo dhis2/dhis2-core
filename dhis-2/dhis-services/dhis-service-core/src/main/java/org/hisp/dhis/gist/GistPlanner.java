@@ -404,14 +404,6 @@ final class GistPlanner {
     return Field.ALL_PATH.equals(path) || ":*".equals(path) || ":all".equals(path);
   }
 
-  private boolean isDisplayShortName(String path) {
-    return path.equals("displayShortName") || path.endsWith(".displayShortName");
-  }
-
-  private boolean isDisplayNameField(String path) {
-    return path.equals("displayName") || path.endsWith(".displayName");
-  }
-
   private static <T> List<T> map1to1(List<T> from, Predicate<T> when, UnaryOperator<T> then) {
     List<T> mapped = new ArrayList<>(from.size());
     for (T e : from) {

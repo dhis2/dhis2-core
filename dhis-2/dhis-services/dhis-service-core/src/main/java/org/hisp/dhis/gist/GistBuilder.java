@@ -562,7 +562,6 @@ final class GistBuilder {
     Property property = context.resolveMandatory(field.propertyPath());
     Transform transform = field.transformation();
     return switch (transform) {
-      default -> HQL_NULL;
       case SIZE -> createSizeTransformerHQL(index, field, property);
       case IS_EMPTY -> createIsEmptyTransformerHQL(field);
       case IS_NOT_EMPTY -> createIsNotEmptyTransformerHQL(field);
@@ -574,6 +573,7 @@ final class GistBuilder {
         addTransformer(row -> row[index] = toIdObjects(row[index]));
         yield createIdsTransformerHQL(index, field, property);
       }
+      default -> HQL_NULL;
     };
   }
 
@@ -787,10 +787,6 @@ final class GistBuilder {
 
   private String getSameParentEndpointRoot(String path) {
     return getEndpointRoot(context.switchedTo(path).getHome());
-  }
-
-  private String getEndpointRoot(Property property) {
-    return getEndpointRoot(context.switchedTo(property.getKlass()).getHome());
   }
 
   private String getEndpointRoot(Schema schema) {

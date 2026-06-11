@@ -32,7 +32,6 @@ package org.hisp.dhis.gist;
 import static java.lang.Integer.parseInt;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
@@ -158,7 +157,7 @@ public final class GistQuery {
   @JsonProperty @Builder.Default private final List<Order> orders = emptyList();
 
   public List<String> getFieldNames() {
-    return fields.stream().map(Field::name).collect(toList());
+    return fields.stream().map(Field::name).toList();
   }
 
   public Transform getDefaultTransformation() {
