@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import org.hisp.dhis.gist.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
-import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.junit.jupiter.api.Test;
@@ -93,52 +93,56 @@ class GistQueryTest {
 
   @Test
   void testFieldsOf_Simple() {
-    assertEquals(List.of(new Field("foo"), new Field("bar")), Field.of("foo,bar"));
+    assertFieldsEquals(List.of(new Field("foo"), new Field("bar")), Fields.of("foo,bar"));
   }
 
   @Test
   void testFieldsOf_Nest1() {
-    assertEquals(List.of(new Field("foo.bar")), Field.of("foo[bar]"));
+    assertFieldsEquals(List.of(new Field("foo.bar")), Fields.of("foo[bar]"));
   }
 
   @Test
   void testFieldsOf_Nest2() {
-    assertEquals(
-        List.of(new Field("foo.bar"), new Field("foo.baz.que")), Field.of("foo[bar,baz[que]]"));
+    assertFieldsEquals(
+        List.of(new Field("foo.bar"), new Field("foo.baz.que")), Fields.of("foo[bar,baz[que]]"));
   }
 
   @Test
   void testFieldsOf_Nest3() {
-    assertEquals(
+    assertFieldsEquals(
         List.of(new Field("foo.bar.hey"), new Field("foo.bar.ho"), new Field("foo.baz.que")),
-        Field.of("foo[bar[hey,ho],baz[que]]"));
+        Fields.of("foo[bar[hey,ho],baz[que]]"));
   }
 
   @Test
   void testFieldsOf_Nest3Rename1() {
-    assertEquals(
+    assertFieldsEquals(
         List.of(
             new Field("foo.bar.hey").withPropertyName("x.bar.hey"),
             new Field("foo.bar.ho").withPropertyName("x.bar.ho"),
             new Field("foo.baz.que").withPropertyName("x.baz.que")),
-        Field.of("foo~rename(x)[bar[hey,ho],baz[que]]"));
+        Fields.of("foo~rename(x)[bar[hey,ho],baz[que]]"));
   }
 
   @Test
   void testFieldsOf_Nest3Rename2() {
-    assertEquals(
+    assertFieldsEquals(
         List.of(
             new Field("foo.bar.hey").withPropertyName("x.bar.y"),
             new Field("foo.bar.ho").withPropertyName("x.bar.ho"),
             new Field("foo.baz.que").withPropertyName("x.baz.que")),
-        Field.of("foo~rename(x)[bar[hey~rename(y),ho],baz[que]]"));
+        Fields.of("foo~rename(x)[bar[hey~rename(y),ho],baz[que]]"));
   }
 
   @Test
   void testFieldsOf_Pluck() {
-    assertEquals(
+    assertFieldsEquals(
         List.of(new Field("id"), new Field("userGroups", Gist.Transform.PLUCK, "name,foo")),
-        Field.of("id,userGroups~pluck(name,foo)"));
+        Fields.of("id,userGroups~pluck(name,foo)"));
+  }
+
+  private void assertFieldsEquals(List<Field> expected, Fields actual) {
+    assertEquals(expected, actual.fields());
   }
 
   private void assertFilterEquals(

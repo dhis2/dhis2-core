@@ -39,8 +39,8 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.gist.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
-import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.schema.Property;
@@ -99,7 +99,7 @@ final class GistValidator {
 
   private void validateField(Field f, RelativePropertyContext context) {
     String path = f.propertyPath();
-    if (Field.REFS_PATH.equals(path) || f.attribute()) {
+    if (Fields.Field.REFS_PATH.equals(path) || f.attribute()) {
       return;
     }
     Property field = context.resolveMandatory(path);

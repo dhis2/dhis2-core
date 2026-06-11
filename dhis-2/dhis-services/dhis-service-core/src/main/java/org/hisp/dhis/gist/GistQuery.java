@@ -34,10 +34,8 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -48,7 +46,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -146,7 +143,7 @@ public final class GistQuery {
   private final GistAutoType autoType;
 
   /** Names of those properties that should be included in the response. */
-  @JsonProperty @Builder.Default private final List<Field> fields = emptyList();
+  @JsonProperty @Builder.Default private final Fields fields = Fields.DEFAULT;
 
   /**
    * List of filter property expressions. An expression has the format {@code
@@ -157,7 +154,7 @@ public final class GistQuery {
   @JsonProperty @Builder.Default private final List<Order> orders = emptyList();
 
   public List<String> getFieldNames() {
-    return fields.stream().map(Field::name).toList();
+    return fields.names();
   }
 
   public Transform getDefaultTransformation() {
@@ -186,23 +183,15 @@ public final class GistQuery {
   }
 
   public GistQuery addField(String path) {
-    return withAddedItem(
-        new Field(path, getDefaultTransformation()), getFields(), GistQueryBuilder::fields);
+    return GistQuery.builder().fields(fields.add(Fields.Field.of(path))).build();
   }
 
-  public GistQuery withFields(List<Field> fields) {
-    return toBuilder().fields(fields).build();
+  public GistQuery withFields(List<Fields.Field> fields) {
+    return toBuilder().fields(new Fields(fields)).build();
   }
 
   public GistQuery withFilters(List<Filter> filters) {
     return toBuilder().filters(filters).build();
-  }
-
-  private <E> GistQuery withAddedItem(
-      E e, List<E> collection, BiFunction<GistQueryBuilder, List<E>, GistQueryBuilder> setter) {
-    List<E> plus1 = new ArrayList<>(collection);
-    plus1.add(e);
-    return setter.apply(toBuilder(), plus1).build();
   }
 
   public enum Direction {
@@ -311,168 +300,6 @@ public final class GistQuery {
 
     public boolean isCaseInsensitive() {
       return this == IEQ || ordinal() >= ILIKE.ordinal() && ordinal() <= NOT_ENDS_WITH.ordinal();
-    }
-  }
-
-  /**
-   * @param propertyPath the path as found in the schema model
-   * @param propertyName the name (also nested) as it should be rendered in the response (if
-   *     different to the {@link #propertyPath()}) or empty if same as {@link #propertyPath()}
-   * @param transformation
-   * @param transformationArgument
-   * @param translate when true, translations should be considered
-   * @param attribute when true, the property is an attribute UID
-   */
-  public record Field(
-      @JsonProperty String propertyPath,
-      @JsonProperty String propertyName,
-      @JsonProperty Transform transformation,
-      @JsonProperty String transformationArgument,
-      @JsonProperty boolean attribute) {
-
-    public static final String REFS_PATH = "__refs__";
-    public static final String ALL_PATH = "*";
-    public static final Field ALL = new Field(ALL_PATH, Transform.NONE);
-
-    public Field(String propertyPath) {
-      this(propertyPath, Transform.AUTO);
-    }
-
-    public Field(String propertyPath, Transform transformation) {
-      this(propertyPath, transformation, null);
-    }
-
-    public Field(String propertyPath, Transform transformation, String transformationArgument) {
-      this(propertyPath, "", transformation, transformationArgument, false);
-    }
-
-    @Nonnull
-    public static List<Field> of(String fields) {
-      if (fields == null || fields.isEmpty()) return List.of();
-      List<Field> res = new ArrayList<>();
-      for (Expression e : Expression.split(Text.of(fields))) e.addFields(res, "", "");
-      return res;
-    }
-
-    @JsonProperty
-    public String name() {
-      return propertyName.isEmpty() ? propertyPath : propertyName;
-    }
-
-    public Field withTransformation(Transform transform) {
-      return withTransformation(transform, null);
-    }
-
-    public Field withTransformation(Transform transform, String argument) {
-      return new Field(propertyPath, propertyName, transform, argument, attribute);
-    }
-
-    public Field withPropertyPath(String path) {
-      return new Field(path, propertyName, transformation, transformationArgument, attribute);
-    }
-
-    public Field withPropertyName(String name) {
-      return new Field(propertyPath, name, transformation, transformationArgument, attribute);
-    }
-
-    public Field asAttribute() {
-      return new Field(propertyPath, propertyName, transformation, transformationArgument, true);
-    }
-
-    public boolean isMultiPluck() {
-      return transformation == Transform.PLUCK
-          && transformationArgument != null
-          && transformationArgument.contains(",");
-    }
-
-    private static String parseArgument(String part) {
-      return part.substring(part.indexOf('(') + 1, part.lastIndexOf(')'));
-    }
-
-    private record Expression(Text field, List<Expression> children) {
-
-      void addFields(List<Field> res, String parentPath, String parentName) {
-        Field f = parse(field.toString());
-        String path = f.propertyPath();
-        if (!parentPath.isEmpty()) f = f.withPropertyPath(chain(parentPath, path));
-        if (!parentPath.equals(parentName) && !parentName.isEmpty())
-          f =
-              f.withPropertyName(
-                  chain(parentName, !f.propertyName().isEmpty() ? f.propertyName() : path));
-        if (children.isEmpty()) {
-          res.add(f);
-        } else for (Expression e : children) e.addFields(res, f.propertyPath(), f.name());
-      }
-
-      private static Field parse(String field) {
-        String[] parts = field.split("(?:::|~|@)(?![^\\[\\]]*])");
-        if (parts.length == 1) {
-          return new Field(field, Transform.AUTO);
-        }
-        Transform transform = Transform.AUTO;
-        String alias = "";
-        String arg = null;
-        for (int i = 1; i < parts.length; i++) {
-          String part = parts[i];
-          if (part.startsWith("rename")) {
-            alias = parseArgument(part);
-          } else {
-            transform = Transform.parse(part);
-            if (part.indexOf('(') >= 0) {
-              arg = parseArgument(part);
-            }
-          }
-        }
-        return new Field(parts[0], alias, transform, arg, false);
-      }
-
-      static String chain(String parent, String child) {
-        return parent.isEmpty() ? child : parent + "." + child;
-      }
-
-      static List<Expression> split(Text fields) {
-        int s = 0;
-        int len = fields.length();
-        List<Expression> res = new ArrayList<>();
-        while (s < len) {
-          int nextComma = fields.indexOf(',', s);
-          int nextSquare = fields.indexOf('[', s);
-          int nextRound = fields.indexOf('(', s);
-          if (nextRound >= 0 && nextRound < nextComma)
-            nextComma = fields.indexOf(',', fields.indexOf(')', s));
-          if (nextComma > 0 && (nextSquare < 0 || nextComma < nextSquare)) {
-            // until comma; (no [...] but maybe transform)
-            res.add(new Expression(fields.subSequence(s, nextComma), List.of()));
-            s = nextComma + 1;
-          } else if (nextSquare > 0) {
-            // until [ with children
-            Text field = fields.subSequence(s, nextSquare);
-            s = skipToClosingBracket(fields, nextSquare + 1);
-            res.add(new Expression(field, split(fields.subSequence(nextSquare + 1, s))));
-            s++; // now skip the ]
-            if (s < len && fields.charAt(s) == ',') s++; // skip , after [...]
-          } else {
-            // until end of input...
-            res.add(new Expression(fields.subSequence(s, len), List.of()));
-            s = len;
-          }
-        }
-        return res;
-      }
-
-      private static int skipToClosingBracket(Text fields, int from) {
-        int open = 0;
-        int i = from;
-        int len = fields.length();
-        while (i < len) {
-          char c = fields.charAt(i++);
-          if (c == ']') {
-            if (open == 0) return i - 1;
-            open--;
-          } else if (c == '[') open++;
-        }
-        return len; // treat end as ]
-      }
     }
   }
 

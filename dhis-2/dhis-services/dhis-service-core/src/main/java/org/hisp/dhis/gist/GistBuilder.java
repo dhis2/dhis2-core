@@ -77,8 +77,8 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.gist.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
-import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.jsontree.JsonBuilder;
@@ -102,7 +102,7 @@ import org.hisp.dhis.user.sharing.Sharing;
  *
  * <ol>
  *   <li>Use {@link #buildFetchHQL()} to create the HQL query
- *   <li>Use {@link #transform(List)} on the result rows when querying selected columns
+ *   <li>Use {@link #transform(Stream)} on the result rows when querying selected columns
  * </ol>
  *
  * <p>Within the HQL naming conventions are:
@@ -192,7 +192,7 @@ final class GistBuilder {
 
   private static GistQuery addSupportFields(
       GistQuery query, RelativePropertyContext context, Field f) {
-    if (Field.REFS_PATH.equals(f.propertyPath())) {
+    if (Fields.Field.REFS_PATH.equals(f.propertyPath())) {
       return query;
     }
 
@@ -240,7 +240,7 @@ final class GistBuilder {
   private static boolean existsSameParentField(GistQuery query, Field field, String property) {
     String parentPath = parentPath(field.propertyPath());
     String requiredPath = parentPath.isEmpty() ? property : parentPath + "." + property;
-    return query.getFields().stream().anyMatch(f -> f.propertyPath().equals(requiredPath));
+    return query.getFields().fields().stream().anyMatch(f -> f.propertyPath().equals(requiredPath));
   }
 
   private String getMemberPath(String property) {
@@ -286,7 +286,7 @@ final class GistBuilder {
     String endpointRoot = getSameParentEndpointRoot(path);
     if (endpointRoot == null) return;
     int idFieldIndex = getSameParentFieldIndex(path, ID_PROPERTY);
-    int refIndex = fieldIndexByPath.get(Field.REFS_PATH);
+    int refIndex = fieldIndexByPath.get(Fields.Field.REFS_PATH);
     addTransformer(
         row ->
             addEndpointURL(
@@ -395,12 +395,12 @@ final class GistBuilder {
     for (Field f : query.getFields()) {
       fieldIndexByPath.put(f.propertyPath(), i++);
     }
-    return join(query.getFields(), ", ", "e", this::createFieldHQL);
+    return join(query.getFields().fields(), ", ", "e", this::createFieldHQL);
   }
 
   private String createFieldHQL(int index, Field field) {
     String path = field.propertyPath();
-    if (Field.REFS_PATH.equals(path)) {
+    if (Fields.Field.REFS_PATH.equals(path)) {
       return HQL_NULL;
     }
     if (field.attribute()) {

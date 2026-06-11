@@ -194,7 +194,7 @@ public class GistPipeline {
         .typedAttributeValues(true)
         .references(params.isReferences())
         .absoluteUrls(params.isAbsoluteUrls())
-        .fields(GistQuery.Field.of(input.params().fields))
+        .fields(Fields.of(input.params().fields))
         .filters(List.of(new GistQuery.Filter("id", EQ, input.id().getValue())))
         .build();
   }
@@ -221,7 +221,7 @@ public class GistPipeline {
         .references(params.isReferences())
         .inverse(params.isInverse())
         .filters(GistQuery.Filter.ofList(params.getFilter()))
-        .fields(GistQuery.Field.of(input.params().getFields()))
+        .fields(Fields.of(input.params().getFields()))
         .owner(
             GistQuery.Owner.builder()
                 .id(input.id().getValue())
@@ -263,7 +263,7 @@ public class GistPipeline {
         .headless(params.isHeadless())
         .references(!tree && !offline && params.isReferences())
         .anyFilter(params.getRootJunction() == Junction.Type.OR)
-        .fields(GistQuery.Field.of(fields))
+        .fields(Fields.of(fields))
         .filters(GistQuery.Filter.ofList(params.getFilter()))
         .orders(GistQuery.Order.ofList(order))
         .build();

@@ -123,11 +123,11 @@ public class DefaultGistService implements GistService {
   private List<ObjectOutput.Property> properties(GistQuery query) {
     RelativePropertyContext context = createPropertyContext(query);
     List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
-    for (GistQuery.Field f : query.getFields()) {
+    for (Fields.Field f : query.getFields()) {
       String name = f.name();
       if (f.attribute()) {
         res.add(new ObjectOutput.Property(name, ObjectOutput.Type.STRING, false));
-      } else if (GistQuery.Field.REFS_PATH.equals(f.propertyPath())) {
+      } else if (Fields.Field.REFS_PATH.equals(f.propertyPath())) {
         res.add(
             new ObjectOutput.Property(
                 "apiEndpoints", new ObjectOutput.Type(Map.class, String.class), false));

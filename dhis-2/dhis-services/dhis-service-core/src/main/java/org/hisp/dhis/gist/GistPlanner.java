@@ -58,8 +58,8 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.gist.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
-import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -86,9 +86,9 @@ final class GistPlanner {
   }
 
   private List<Field> planFields() {
-    List<Field> fields = query.getFields();
+    List<Field> fields = query.getFields().fields();
     if (fields.isEmpty()) {
-      fields = singletonList(Field.ALL);
+      fields = singletonList(Fields.Field.ALL);
     }
     fields = withPresetFields(fields); // 1:n
     fields = withAttributeFields(fields); // 1:1
@@ -228,7 +228,7 @@ final class GistPlanner {
    * account.
    */
   private List<Field> withPresetFields(List<Field> fields) {
-    Set<String> explicit = fields.stream().map(Field::propertyPath).collect(toSet());
+    Set<String> explicit = fields.stream().map(Fields.Field::propertyPath).collect(toSet());
     List<Field> expanded = new ArrayList<>();
     for (Field f : fields) {
       String path = f.propertyPath();
@@ -291,7 +291,7 @@ final class GistPlanner {
     return map1to1(
         fields,
         f -> isAttributePath(f.propertyPath()) && context.resolve(f.propertyPath()) == null,
-        Field::asAttribute);
+        Fields.Field::asAttribute);
   }
 
   private List<Field> withTranslatedFields(List<Field> fields) {
@@ -359,7 +359,8 @@ final class GistPlanner {
       return fields;
     }
     ArrayList<Field> extended = new ArrayList<>(fields);
-    extended.add(new Field(Field.REFS_PATH, Transform.NONE).withPropertyName("apiEndpoints"));
+    extended.add(
+        new Field(Fields.Field.REFS_PATH, Transform.NONE).withPropertyName("apiEndpoints"));
     return extended;
   }
 
@@ -393,7 +394,7 @@ final class GistPlanner {
   }
 
   private static boolean isPresetField(String path) {
-    return path.startsWith(":") || Field.ALL_PATH.equals(path);
+    return path.startsWith(":") || Fields.Field.ALL_PATH.equals(path);
   }
 
   private static boolean isExcludeField(String path) {
@@ -401,7 +402,7 @@ final class GistPlanner {
   }
 
   private static boolean isAllField(String path) {
-    return Field.ALL_PATH.equals(path) || ":*".equals(path) || ":all".equals(path);
+    return Fields.Field.ALL_PATH.equals(path) || ":*".equals(path) || ":all".equals(path);
   }
 
   private static <T> List<T> map1to1(List<T> from, Predicate<T> when, UnaryOperator<T> then) {

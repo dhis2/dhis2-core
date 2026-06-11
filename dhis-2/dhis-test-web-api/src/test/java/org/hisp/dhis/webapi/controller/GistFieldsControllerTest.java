@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import org.hisp.dhis.gist.Fields;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -46,7 +47,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonUserGroup;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.gist.GistQuery.Field} related features of the Gist API.
+ * Tests the {@link Fields.Field} related features of the Gist API.
  *
  * @author Jan Bernitt
  */
