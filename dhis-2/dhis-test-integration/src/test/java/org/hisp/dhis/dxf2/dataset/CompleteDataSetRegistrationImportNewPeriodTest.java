@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -46,7 +46,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -126,13 +125,11 @@ class CompleteDataSetRegistrationImportNewPeriodTest extends PostgresIntegration
             }
           ]
         }"""
-            .formatted(
-                dataSetA.getUid(), NEW_PERIOD_ISO, orgUnitA.getUid(), defaultAoc.getUid());
+            .formatted(dataSetA.getUid(), NEW_PERIOD_ISO, orgUnitA.getUid(), defaultAoc.getUid());
 
     ImportSummary summary =
         exchangeService.saveCompleteDataSetRegistrationsJson(
-            new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)),
-            new ImportOptions());
+            new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), new ImportOptions());
 
     assertEquals(
         ImportStatus.SUCCESS,
@@ -141,9 +138,12 @@ class CompleteDataSetRegistrationImportNewPeriodTest extends PostgresIntegration
     assertEquals(1, summary.getImportCount().getImported(), "One registration should be imported");
 
     // The registration must be durably persisted (this is the actual DHIS2-21617 failure).
-    List<CompleteDataSetRegistration> all = registrationService.getAllCompleteDataSetRegistrations();
+    List<CompleteDataSetRegistration> all =
+        registrationService.getAllCompleteDataSetRegistrations();
     assertEquals(
-        1, all.size(), "The imported registration must be persisted in completedatasetregistration");
+        1,
+        all.size(),
+        "The imported registration must be persisted in completedatasetregistration");
 
     // The period must have been created as part of the import.
     assertTrue(
