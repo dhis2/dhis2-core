@@ -301,10 +301,13 @@ final class GistPlanner {
         f -> {
           String path = f.propertyPath();
           Property p = context.resolve(path);
-          if (p == null || !p.isTranslatable()) return f;
+          if (p == null) return f;
           String name = Property.resolveTranslationBasePropertyName(p.getName());
+          String basePath = pathOnSameParent(path, name);
+          Property b = context.resolve(basePath);
+          if (b == null || !b.isTranslatable()) return f;
           if (name.equals(p.getName())) return f;
-          return f.withPropertyPath(pathOnSameParent(path, name))
+          return f.withPropertyPath(basePath)
               .withPropertyName(f.name())
               .withTransformation(Transform.TRANSLATE);
         });
