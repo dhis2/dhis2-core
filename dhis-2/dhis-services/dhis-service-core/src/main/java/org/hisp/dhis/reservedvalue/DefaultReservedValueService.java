@@ -99,7 +99,7 @@ public class DefaultReservedValueService implements ReservedValueService {
     TextPatternSegment segment =
         textPattern.getSegments().stream()
             .filter(
-                (tps) ->
+                tps ->
                     tps.getMethod().isGenerated()
                         && Boolean.TRUE.equals(trackedEntityAttribute.isGenerated()))
             .findFirst()
