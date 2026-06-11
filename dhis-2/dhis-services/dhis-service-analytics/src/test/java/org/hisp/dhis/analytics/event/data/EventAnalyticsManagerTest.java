@@ -96,6 +96,7 @@ import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.AnalyticsType;
@@ -679,6 +680,38 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         List.of(
             (capturedSql) -> assertThat(capturedSql, containsString(expected)),
             (capturedSql) -> assertThat(capturedSql, not(containsString(unexpected)))));
+  }
+
+  @Test
+  void verifyGetEventsWithOptionSetNoValueFilter() {
+    mockEmptyRowSet();
+
+    DataElement dataElement = createDataElement('a');
+    QueryItem queryItem =
+        new QueryItem(
+            dataElement, programA, null, ValueType.TEXT, AggregationType.NONE, new OptionSet());
+    queryItem.addFilter(new QueryFilter(QueryOperator.EQ, "D2__NOVALUE"));
+
+    subject.getEvents(createRequestParams(queryItem), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    assertThat(sql.getValue(), containsString("\"" + dataElement.getUid() + "\" is null"));
+  }
+
+  @Test
+  void verifyGetEventsWithOptionSetNvFilterIsLiteral() {
+    mockEmptyRowSet();
+
+    DataElement dataElement = createDataElement('a');
+    QueryItem queryItem =
+        new QueryItem(
+            dataElement, programA, null, ValueType.TEXT, AggregationType.NONE, new OptionSet());
+    queryItem.addFilter(new QueryFilter(QueryOperator.EQ, "NV"));
+
+    subject.getEvents(createRequestParams(queryItem), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    assertThat(sql.getValue(), containsString("= 'NV'"));
   }
 
   private void testIt(
