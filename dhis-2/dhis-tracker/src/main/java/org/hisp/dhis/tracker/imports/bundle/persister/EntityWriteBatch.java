@@ -41,6 +41,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -105,8 +107,23 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  *       column were removed in DHIS2-21518, so the value is written as plain text in {@code value}.
  * </ul>
  *
- * <p>All reads and writes in the import path are JDBC, so no Hibernate-managed entities of these
- * types are loaded during commit and there is no L1 cache to reconcile after the writes.
+ * <p>All reads and writes in the import path go through JDBC, bypassing the Hibernate persistence
+ * context. Two consequences:
+ *
+ * <ul>
+ *   <li>L1 cache: the import itself never reads these entities back through Hibernate after the
+ *       writes, so nothing reconciles the persistence context at flush time. This is safe for
+ *       transaction-scoped sessions, but it is NOT a guarantee that the session is empty: preheat
+ *       strategies leave managed originals in the persistence context (DetachUtils maps detached
+ *       copies, it does not evict), so code holding a session open across the import transaction
+ *       (e.g. an SMS listener whose class-level {@code @Transactional} spans preheat, commit and
+ *       post-import reads) would observe stale pre-import state through that session.
+ *   <li>Auditing: the entity types written here are {@code @Auditable} (TEAV at scope TRACKER), and
+ *       JDBC writes skip Hibernate's Post{Insert,Update,Delete}AuditListener, so no audit events
+ *       are emitted for them. Deliberate trade-off: TRACKER-scope auditing is off by default, and
+ *       attribute-value history -- the sensitive payload -- is covered by the {@code
+ *       trackedentitychangelog} rows written by {@link ChangeLogAccumulator}.
+ * </ul>
  *
  * <p>Top-level entities are flushed before TEAVs so that ids are set and rows are present in the DB
  * before any TEAV that references them. Within top-level entities the order (TE inserts, TE
@@ -517,8 +534,8 @@ class EntityWriteBatch {
    * attribute-handling code to detect when the same logical TEAV (composite key {@code te + attr})
    * is being processed twice within one persister run -- e.g. two enrollments under the same TE
    * each carrying the same attribute value -- so it can fold the second occurrence into the first
-   * staged instance instead of producing a duplicate {@code em.persist} that would throw {@code
-   * EntityExistsException}.
+   * staged instance instead of staging a second INSERT for the same composite key, which would
+   * violate the primary key at flush.
    */
   Stream<TrackedEntityAttributeValue> stagedFor(TrackedEntity trackedEntity) {
     return Stream.concat(teavInserts.stream(), teavUpdates.stream())
@@ -527,7 +544,7 @@ class EntityWriteBatch {
 
   /**
    * Whether the given TrackedEntity is being inserted in this batch (no DB row yet). Used by the
-   * attribute-handling code to skip the "load existing TEAVs" JPQL query, which would always return
+   * attribute-handling code to skip the JDBC read of existing TEAVs, which would always return
    * empty for a fresh insert.
    */
   boolean isStagedAsInsert(TrackedEntity trackedEntity) {
@@ -562,9 +579,9 @@ class EntityWriteBatch {
   /**
    * Applies all staged writes via JDBC on {@code conn} (including cascade INSERTs into {@code note}
    * and the per-entity notes join tables). The connection must be the one bound to the current
-   * Spring-managed transaction so the JDBC statements execute under the same commit. All reads and
-   * writes in the import path are JDBC, so no Hibernate-managed entities of these types are loaded
-   * during commit and there is no L1 cache to reconcile.
+   * Spring-managed transaction so the JDBC statements execute under the same commit. The writes
+   * bypass the Hibernate persistence context and audit listeners -- see the class javadoc for the
+   * scope of that trade-off.
    */
   void flush(Connection conn) throws SQLException {
     if (isEmpty()) {
@@ -614,9 +631,9 @@ class EntityWriteBatch {
       int n = chunk.size();
 
       Long[] ids = new Long[n];
-      Timestamp[] lastUpdated = new Timestamp[n];
-      Timestamp[] createdAtClient = new Timestamp[n];
-      Timestamp[] lastUpdatedAtClient = new Timestamp[n];
+      String[] lastUpdated = new String[n];
+      String[] createdAtClient = new String[n];
+      String[] lastUpdatedAtClient = new String[n];
       Long[] organisationUnitIds = new Long[n];
       Long[] trackedEntityTypeIds = new Long[n];
       Boolean[] potentialDuplicate = new Boolean[n];
@@ -627,9 +644,9 @@ class EntityWriteBatch {
       for (int i = 0; i < n; i++) {
         TrackedEntity te = chunk.get(i);
         ids[i] = te.getId();
-        lastUpdated[i] = toTimestamp(te.getLastUpdated());
-        createdAtClient[i] = toTimestamp(te.getCreatedAtClient());
-        lastUpdatedAtClient[i] = toTimestamp(te.getLastUpdatedAtClient());
+        lastUpdated[i] = toTimestamptz(te.getLastUpdated());
+        createdAtClient[i] = toTimestamptz(te.getCreatedAtClient());
+        lastUpdatedAtClient[i] = toTimestamptz(te.getLastUpdatedAtClient());
         organisationUnitIds[i] = te.getOrganisationUnit().getId();
         trackedEntityTypeIds[i] = te.getTrackedEntityType().getId();
         potentialDuplicate[i] = te.isPotentialDuplicate();
@@ -640,9 +657,9 @@ class EntityWriteBatch {
 
       try (PreparedStatement ps = conn.prepareStatement(TRACKED_ENTITY_UPDATE_SQL)) {
         ps.setArray(1, conn.createArrayOf("bigint", ids));
-        ps.setArray(2, conn.createArrayOf("timestamptz", lastUpdated));
-        ps.setArray(3, conn.createArrayOf("timestamptz", createdAtClient));
-        ps.setArray(4, conn.createArrayOf("timestamptz", lastUpdatedAtClient));
+        ps.setArray(2, conn.createArrayOf("text", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("text", createdAtClient));
+        ps.setArray(4, conn.createArrayOf("text", lastUpdatedAtClient));
         ps.setArray(5, conn.createArrayOf("bigint", organisationUnitIds));
         ps.setArray(6, conn.createArrayOf("bigint", trackedEntityTypeIds));
         ps.setArray(7, conn.createArrayOf("boolean", potentialDuplicate));
@@ -777,17 +794,17 @@ class EntityWriteBatch {
       int n = chunk.size();
 
       Long[] ids = new Long[n];
-      Timestamp[] lastUpdated = new Timestamp[n];
-      Timestamp[] createdAtClient = new Timestamp[n];
-      Timestamp[] lastUpdatedAtClient = new Timestamp[n];
+      String[] lastUpdated = new String[n];
+      String[] createdAtClient = new String[n];
+      String[] lastUpdatedAtClient = new String[n];
       String[] lastUpdatedByUserInfo = new String[n];
       Long[] trackedEntityIds = new Long[n];
       Long[] programIds = new Long[n];
       Long[] organisationUnitIds = new Long[n];
       Long[] attributeOptionComboIds = new Long[n];
-      Timestamp[] enrollmentDate = new Timestamp[n];
-      Timestamp[] occurredDate = new Timestamp[n];
-      Timestamp[] completedDate = new Timestamp[n];
+      String[] enrollmentDate = new String[n];
+      String[] occurredDate = new String[n];
+      String[] completedDate = new String[n];
       String[] completedBy = new String[n];
       String[] status = new String[n];
       Boolean[] followup = new Boolean[n];
@@ -796,17 +813,17 @@ class EntityWriteBatch {
       for (int i = 0; i < n; i++) {
         Enrollment e = chunk.get(i);
         ids[i] = e.getId();
-        lastUpdated[i] = toTimestamp(e.getLastUpdated());
-        createdAtClient[i] = toTimestamp(e.getCreatedAtClient());
-        lastUpdatedAtClient[i] = toTimestamp(e.getLastUpdatedAtClient());
+        lastUpdated[i] = toTimestamptz(e.getLastUpdated());
+        createdAtClient[i] = toTimestamptz(e.getCreatedAtClient());
+        lastUpdatedAtClient[i] = toTimestamptz(e.getLastUpdatedAtClient());
         lastUpdatedByUserInfo[i] = toJson(e.getLastUpdatedByUserInfo());
         trackedEntityIds[i] = e.getTrackedEntity().getId();
         programIds[i] = e.getProgram().getId();
         organisationUnitIds[i] = e.getOrganisationUnit().getId();
         attributeOptionComboIds[i] = e.getAttributeOptionCombo().getId();
-        enrollmentDate[i] = toTimestamp(e.getEnrollmentDate());
-        occurredDate[i] = toTimestamp(e.getOccurredDate());
-        completedDate[i] = toTimestamp(e.getCompletedDate());
+        enrollmentDate[i] = toTimestamptz(e.getEnrollmentDate());
+        occurredDate[i] = toTimestamptz(e.getOccurredDate());
+        completedDate[i] = toTimestamptz(e.getCompletedDate());
         completedBy[i] = e.getCompletedBy();
         status[i] = e.getStatus().name();
         followup[i] = e.getFollowup();
@@ -815,17 +832,17 @@ class EntityWriteBatch {
 
       try (PreparedStatement ps = conn.prepareStatement(ENROLLMENT_UPDATE_SQL)) {
         ps.setArray(1, conn.createArrayOf("bigint", ids));
-        ps.setArray(2, conn.createArrayOf("timestamptz", lastUpdated));
-        ps.setArray(3, conn.createArrayOf("timestamptz", createdAtClient));
-        ps.setArray(4, conn.createArrayOf("timestamptz", lastUpdatedAtClient));
+        ps.setArray(2, conn.createArrayOf("text", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("text", createdAtClient));
+        ps.setArray(4, conn.createArrayOf("text", lastUpdatedAtClient));
         ps.setArray(5, conn.createArrayOf("text", lastUpdatedByUserInfo));
         ps.setArray(6, conn.createArrayOf("bigint", trackedEntityIds));
         ps.setArray(7, conn.createArrayOf("bigint", programIds));
         ps.setArray(8, conn.createArrayOf("bigint", organisationUnitIds));
         ps.setArray(9, conn.createArrayOf("bigint", attributeOptionComboIds));
-        ps.setArray(10, conn.createArrayOf("timestamptz", enrollmentDate));
-        ps.setArray(11, conn.createArrayOf("timestamptz", occurredDate));
-        ps.setArray(12, conn.createArrayOf("timestamptz", completedDate));
+        ps.setArray(10, conn.createArrayOf("text", enrollmentDate));
+        ps.setArray(11, conn.createArrayOf("text", occurredDate));
+        ps.setArray(12, conn.createArrayOf("text", completedDate));
         ps.setArray(13, conn.createArrayOf("text", completedBy));
         ps.setArray(14, conn.createArrayOf("text", status));
         ps.setArray(15, conn.createArrayOf("boolean", followup));
@@ -910,18 +927,18 @@ class EntityWriteBatch {
       int n = chunk.size();
 
       Long[] ids = new Long[n];
-      Timestamp[] lastUpdated = new Timestamp[n];
-      Timestamp[] createdAtClient = new Timestamp[n];
-      Timestamp[] lastUpdatedAtClient = new Timestamp[n];
+      String[] lastUpdated = new String[n];
+      String[] createdAtClient = new String[n];
+      String[] lastUpdatedAtClient = new String[n];
       String[] lastUpdatedByUserInfo = new String[n];
       Long[] enrollmentIds = new Long[n];
       Long[] programStageIds = new Long[n];
       Long[] organisationUnitIds = new Long[n];
       Long[] attributeOptionComboIds = new Long[n];
       String[] status = new String[n];
-      Timestamp[] occurredDate = new Timestamp[n];
-      Timestamp[] scheduledDate = new Timestamp[n];
-      Timestamp[] completedDate = new Timestamp[n];
+      String[] occurredDate = new String[n];
+      String[] scheduledDate = new String[n];
+      String[] completedDate = new String[n];
       String[] completedBy = new String[n];
       Long[] assignedUserIds = new Long[n];
       String[] eventDataValues = new String[n];
@@ -930,18 +947,18 @@ class EntityWriteBatch {
       for (int i = 0; i < n; i++) {
         TrackerEvent e = chunk.get(i);
         ids[i] = e.getId();
-        lastUpdated[i] = toTimestamp(e.getLastUpdated());
-        createdAtClient[i] = toTimestamp(e.getCreatedAtClient());
-        lastUpdatedAtClient[i] = toTimestamp(e.getLastUpdatedAtClient());
+        lastUpdated[i] = toTimestamptz(e.getLastUpdated());
+        createdAtClient[i] = toTimestamptz(e.getCreatedAtClient());
+        lastUpdatedAtClient[i] = toTimestamptz(e.getLastUpdatedAtClient());
         lastUpdatedByUserInfo[i] = toJson(e.getLastUpdatedByUserInfo());
         enrollmentIds[i] = e.getEnrollment().getId();
         programStageIds[i] = e.getProgramStage().getId();
         organisationUnitIds[i] = e.getOrganisationUnit().getId();
         attributeOptionComboIds[i] = e.getAttributeOptionCombo().getId();
         status[i] = e.getStatus().name();
-        occurredDate[i] = toTimestamp(e.getOccurredDate());
-        scheduledDate[i] = toTimestamp(e.getScheduledDate());
-        completedDate[i] = toTimestamp(e.getCompletedDate());
+        occurredDate[i] = toTimestamptz(e.getOccurredDate());
+        scheduledDate[i] = toTimestamptz(e.getScheduledDate());
+        completedDate[i] = toTimestamptz(e.getCompletedDate());
         completedBy[i] = e.getCompletedBy();
         assignedUserIds[i] = e.getAssignedUser() != null ? e.getAssignedUser().getId() : null;
         eventDataValues[i] = toEventDataValuesJson(e.getEventDataValues());
@@ -950,18 +967,18 @@ class EntityWriteBatch {
 
       try (PreparedStatement ps = conn.prepareStatement(TRACKER_EVENT_UPDATE_SQL)) {
         ps.setArray(1, conn.createArrayOf("bigint", ids));
-        ps.setArray(2, conn.createArrayOf("timestamptz", lastUpdated));
-        ps.setArray(3, conn.createArrayOf("timestamptz", createdAtClient));
-        ps.setArray(4, conn.createArrayOf("timestamptz", lastUpdatedAtClient));
+        ps.setArray(2, conn.createArrayOf("text", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("text", createdAtClient));
+        ps.setArray(4, conn.createArrayOf("text", lastUpdatedAtClient));
         ps.setArray(5, conn.createArrayOf("text", lastUpdatedByUserInfo));
         ps.setArray(6, conn.createArrayOf("bigint", enrollmentIds));
         ps.setArray(7, conn.createArrayOf("bigint", programStageIds));
         ps.setArray(8, conn.createArrayOf("bigint", organisationUnitIds));
         ps.setArray(9, conn.createArrayOf("bigint", attributeOptionComboIds));
         ps.setArray(10, conn.createArrayOf("text", status));
-        ps.setArray(11, conn.createArrayOf("timestamptz", occurredDate));
-        ps.setArray(12, conn.createArrayOf("timestamptz", scheduledDate));
-        ps.setArray(13, conn.createArrayOf("timestamptz", completedDate));
+        ps.setArray(11, conn.createArrayOf("text", occurredDate));
+        ps.setArray(12, conn.createArrayOf("text", scheduledDate));
+        ps.setArray(13, conn.createArrayOf("text", completedDate));
         ps.setArray(14, conn.createArrayOf("text", completedBy));
         ps.setArray(15, conn.createArrayOf("bigint", assignedUserIds));
         ps.setArray(16, conn.createArrayOf("text", eventDataValues));
@@ -1216,16 +1233,16 @@ class EntityWriteBatch {
       int n = chunk.size();
 
       Long[] ids = new Long[n];
-      Timestamp[] lastUpdated = new Timestamp[n];
-      Timestamp[] createdAtClient = new Timestamp[n];
-      Timestamp[] lastUpdatedAtClient = new Timestamp[n];
+      String[] lastUpdated = new String[n];
+      String[] createdAtClient = new String[n];
+      String[] lastUpdatedAtClient = new String[n];
       String[] lastUpdatedByUserInfo = new String[n];
       Long[] programStageIds = new Long[n];
       Long[] organisationUnitIds = new Long[n];
       Long[] attributeOptionComboIds = new Long[n];
       String[] status = new String[n];
-      Timestamp[] occurredDate = new Timestamp[n];
-      Timestamp[] completedDate = new Timestamp[n];
+      String[] occurredDate = new String[n];
+      String[] completedDate = new String[n];
       String[] completedBy = new String[n];
       Long[] assignedUserIds = new Long[n];
       String[] eventDataValues = new String[n];
@@ -1234,16 +1251,16 @@ class EntityWriteBatch {
       for (int i = 0; i < n; i++) {
         SingleEvent e = chunk.get(i);
         ids[i] = e.getId();
-        lastUpdated[i] = toTimestamp(e.getLastUpdated());
-        createdAtClient[i] = toTimestamp(e.getCreatedAtClient());
-        lastUpdatedAtClient[i] = toTimestamp(e.getLastUpdatedAtClient());
+        lastUpdated[i] = toTimestamptz(e.getLastUpdated());
+        createdAtClient[i] = toTimestamptz(e.getCreatedAtClient());
+        lastUpdatedAtClient[i] = toTimestamptz(e.getLastUpdatedAtClient());
         lastUpdatedByUserInfo[i] = toJson(e.getLastUpdatedByUserInfo());
         programStageIds[i] = e.getProgramStage().getId();
         organisationUnitIds[i] = e.getOrganisationUnit().getId();
         attributeOptionComboIds[i] = e.getAttributeOptionCombo().getId();
         status[i] = e.getStatus().name();
-        occurredDate[i] = toTimestamp(e.getOccurredDate());
-        completedDate[i] = toTimestamp(e.getCompletedDate());
+        occurredDate[i] = toTimestamptz(e.getOccurredDate());
+        completedDate[i] = toTimestamptz(e.getCompletedDate());
         completedBy[i] = e.getCompletedBy();
         assignedUserIds[i] = e.getAssignedUser() != null ? e.getAssignedUser().getId() : null;
         eventDataValues[i] = toEventDataValuesJson(e.getEventDataValues());
@@ -1252,16 +1269,16 @@ class EntityWriteBatch {
 
       try (PreparedStatement ps = conn.prepareStatement(SINGLE_EVENT_UPDATE_SQL)) {
         ps.setArray(1, conn.createArrayOf("bigint", ids));
-        ps.setArray(2, conn.createArrayOf("timestamptz", lastUpdated));
-        ps.setArray(3, conn.createArrayOf("timestamptz", createdAtClient));
-        ps.setArray(4, conn.createArrayOf("timestamptz", lastUpdatedAtClient));
+        ps.setArray(2, conn.createArrayOf("text", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("text", createdAtClient));
+        ps.setArray(4, conn.createArrayOf("text", lastUpdatedAtClient));
         ps.setArray(5, conn.createArrayOf("text", lastUpdatedByUserInfo));
         ps.setArray(6, conn.createArrayOf("bigint", programStageIds));
         ps.setArray(7, conn.createArrayOf("bigint", organisationUnitIds));
         ps.setArray(8, conn.createArrayOf("bigint", attributeOptionComboIds));
         ps.setArray(9, conn.createArrayOf("text", status));
-        ps.setArray(10, conn.createArrayOf("timestamptz", occurredDate));
-        ps.setArray(11, conn.createArrayOf("timestamptz", completedDate));
+        ps.setArray(10, conn.createArrayOf("text", occurredDate));
+        ps.setArray(11, conn.createArrayOf("text", completedDate));
         ps.setArray(12, conn.createArrayOf("text", completedBy));
         ps.setArray(13, conn.createArrayOf("bigint", assignedUserIds));
         ps.setArray(14, conn.createArrayOf("text", eventDataValues));
@@ -1531,7 +1548,7 @@ class EntityWriteBatch {
 
       Long[] trackedEntityIds = new Long[n];
       Long[] attributeIds = new Long[n];
-      Timestamp[] lastUpdated = new Timestamp[n];
+      String[] lastUpdated = new String[n];
       String[] value = new String[n];
       String[] updatedBy = new String[n];
 
@@ -1539,7 +1556,7 @@ class EntityWriteBatch {
         TrackedEntityAttributeValue v = chunk.get(i);
         trackedEntityIds[i] = v.getTrackedEntity().getId();
         attributeIds[i] = v.getAttribute().getId();
-        lastUpdated[i] = toTimestamp(v.getLastUpdated());
+        lastUpdated[i] = toTimestamptz(v.getLastUpdated());
         value[i] = v.getValue();
         updatedBy[i] = v.getUpdatedBy();
       }
@@ -1547,7 +1564,7 @@ class EntityWriteBatch {
       try (PreparedStatement ps = conn.prepareStatement(TEAV_UPDATE_SQL)) {
         ps.setArray(1, conn.createArrayOf("bigint", trackedEntityIds));
         ps.setArray(2, conn.createArrayOf("bigint", attributeIds));
-        ps.setArray(3, conn.createArrayOf("timestamptz", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("text", lastUpdated));
         ps.setArray(4, conn.createArrayOf("text", value));
         ps.setArray(5, conn.createArrayOf("text", updatedBy));
         ps.executeUpdate();
@@ -1622,6 +1639,22 @@ class EntityWriteBatch {
 
   private static Timestamp toTimestamp(Date date) {
     return date != null ? new Timestamp(date.getTime()) : null;
+  }
+
+  /**
+   * Formats a date as an ISO-8601 instant with explicit UTC offset, for binding into a {@code
+   * ?::timestamptz[]} parameter as a text array. Binding {@code createArrayOf("timestamptz",
+   * Timestamp[])} is not safe: pgjdbc stringifies each element via {@code Timestamp.toString()},
+   * which renders the JVM-local wall-clock time without an offset, so the server re-interprets it
+   * under the session {@code TimeZone} -- skewing every value when the session zone differs from
+   * the JVM zone (e.g. {@code options=-c TimeZone=UTC}) and in the DST fall-back hour. An explicit
+   * offset makes the parse unambiguous. Single-value {@code setTimestamp} binds are unaffected
+   * (pgjdbc appends the JVM zone offset there).
+   */
+  private static String toTimestamptz(Date date) {
+    return date != null
+        ? OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC).toString()
+        : null;
   }
 
   private static void setNullableTimestamp(PreparedStatement ps, int index, Date date)
