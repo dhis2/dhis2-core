@@ -92,7 +92,7 @@ final class GistPlanner {
     }
     fields = withPresetFields(fields); // 1:n
     fields = withAttributeFields(fields); // 1:1
-    fields = withDisplayAsTranslatedFields(fields); // 1:1
+    fields = withTranslatedFields(fields); // 1:1
     fields = withCollectionItemPropertyAsTransformation(fields); // 1:1
     fields = withEffectiveTransformation(fields); // 1:1
     fields = withEndpointsField(fields); // 1:1+1
@@ -294,14 +294,14 @@ final class GistPlanner {
         Field::asAttribute);
   }
 
-  private List<Field> withDisplayAsTranslatedFields(List<Field> fields) {
+  private List<Field> withTranslatedFields(List<Field> fields) {
     return map1to1(
         fields,
         f -> f.transformation() == Transform.AUTO,
         f -> {
           String path = f.propertyPath();
           Property p = context.resolve(path);
-          if (p == null) return f;
+          if (p == null || !p.isTranslatable()) return f;
           String name = Property.resolveTranslationBasePropertyName(p.getName());
           if (name.equals(p.getName())) return f;
           return f.withPropertyPath(pathOnSameParent(path, name))
