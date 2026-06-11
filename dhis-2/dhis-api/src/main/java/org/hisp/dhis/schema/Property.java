@@ -728,7 +728,7 @@ public class Property implements Ordered, Klass {
    * @param displayPropertyName the display property name (e.g., "displayName")
    * @return the base property name (e.g., "name")
    */
-  public static String resolveBasePropertyName(String displayPropertyName) {
+  public static String resolveTranslationBasePropertyName(String displayPropertyName) {
     if (displayPropertyName.startsWith("display")
         && displayPropertyName.length() > "display".length()) {
       String basePropertyName = displayPropertyName.substring("display".length());

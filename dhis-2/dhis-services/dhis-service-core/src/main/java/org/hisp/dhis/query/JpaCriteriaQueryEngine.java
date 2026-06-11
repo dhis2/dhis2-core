@@ -240,7 +240,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
   private <T extends IdentifiableObject> jakarta.persistence.criteria.Order handleDisplayProperty(
       CriteriaBuilder builder, Root<T> root, Schema schema, Property property, Order order) {
-    String basePropertyName = Property.resolveBasePropertyName(order.getProperty());
+    String basePropertyName = Property.resolveTranslationBasePropertyName(order.getProperty());
     Property baseProperty = schema.getProperty(basePropertyName);
 
     if (baseProperty != null && baseProperty.canBeTranslated()) {
@@ -296,7 +296,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             builder.literal(translationKey),
             builder.literal(locale.toString()));
 
-    String basePropertyName = Property.resolveBasePropertyName(property.getName());
+    String basePropertyName = Property.resolveTranslationBasePropertyName(property.getName());
     Expression<String> baseValue = root.get(basePropertyName);
 
     Expression<String> coalescedValue = builder.coalesce(translatedValue, baseValue);
@@ -364,7 +364,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       // Map display properties to their base properties
       PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
       if (path == null && filterPath.startsWith("display")) {
-        filterPath = Property.resolveBasePropertyName(filterPath);
+        filterPath = Property.resolveTranslationBasePropertyName(filterPath);
         filter = new Filter(filterPath, filter.getOperator());
         path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
       }

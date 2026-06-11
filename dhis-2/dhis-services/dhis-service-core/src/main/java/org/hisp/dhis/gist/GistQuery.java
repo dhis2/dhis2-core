@@ -116,9 +116,6 @@ public final class GistQuery {
   /** Not the elements contained in the collection but those not contained (yet). Default false. */
   @JsonProperty private final boolean inverse;
 
-  /** Apply translations to translatable properties? Default true. */
-  @JsonProperty private final boolean translate;
-
   /**
    * Use absolute URLs when referring to other APIs in pager and {@code apiEndpoints}? Default
    * false.
@@ -332,7 +329,6 @@ public final class GistQuery {
       @JsonProperty String propertyName,
       @JsonProperty Transform transformation,
       @JsonProperty String transformationArgument,
-      @JsonProperty boolean translate,
       @JsonProperty boolean attribute) {
 
     public static final String REFS_PATH = "__refs__";
@@ -348,7 +344,7 @@ public final class GistQuery {
     }
 
     public Field(String propertyPath, Transform transformation, String transformationArgument) {
-      this(propertyPath, "", transformation, transformationArgument, false, false);
+      this(propertyPath, "", transformation, transformationArgument, false);
     }
 
     @Nonnull
@@ -369,27 +365,19 @@ public final class GistQuery {
     }
 
     public Field withTransformation(Transform transform, String argument) {
-      return new Field(propertyPath, propertyName, transform, argument, translate, attribute);
+      return new Field(propertyPath, propertyName, transform, argument, attribute);
     }
 
     public Field withPropertyPath(String path) {
-      return new Field(
-          path, propertyName, transformation, transformationArgument, translate, attribute);
+      return new Field(path, propertyName, transformation, transformationArgument, attribute);
     }
 
     public Field withPropertyName(String name) {
-      return new Field(
-          propertyPath, name, transformation, transformationArgument, translate, attribute);
-    }
-
-    public Field withTranslate() {
-      return new Field(
-          propertyPath, propertyName, transformation, transformationArgument, true, attribute);
+      return new Field(propertyPath, name, transformation, transformationArgument, attribute);
     }
 
     public Field asAttribute() {
-      return new Field(
-          propertyPath, propertyName, transformation, transformationArgument, translate, true);
+      return new Field(propertyPath, propertyName, transformation, transformationArgument, true);
     }
 
     public boolean isMultiPluck() {
@@ -436,7 +424,7 @@ public final class GistQuery {
             }
           }
         }
-        return new Field(parts[0], alias, transform, arg, false, false);
+        return new Field(parts[0], alias, transform, arg, false);
       }
 
       static String chain(String parent, String child) {

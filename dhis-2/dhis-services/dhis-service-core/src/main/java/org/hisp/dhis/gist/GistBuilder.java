@@ -76,6 +76,7 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -210,13 +211,6 @@ final class GistBuilder {
       return query.addField(pathOnSameParent(f.propertyPath(), ID_PROPERTY));
     }
 
-    // translatable fields? => make sure we have translations
-    if ((query.isTranslate() || f.translate())
-        && p.isTranslatable()
-        && !existsSameParentField(query, f, TRANSLATIONS_PROPERTY)) {
-      return query.addField(pathOnSameParent(f.propertyPath(), TRANSLATIONS_PROPERTY));
-    }
-
     // Access based on Sharing
     if (isAccessProperty(p) && !existsSameParentField(query, f, SHARING_PROPERTY)) {
       return query.addField(pathOnSameParent(f.propertyPath(), SHARING_PROPERTY));
@@ -296,12 +290,7 @@ final class GistBuilder {
     addTransformer(
         row ->
             addEndpointURL(
-                row,
-                refIndex,
-                field,
-                isNullOrEmpty(row[idFieldIndex])
-                    ? null
-                    : toEndpointURL(endpointRoot, row[idFieldIndex], property)));
+                row, refIndex, field, toEndpointURL(endpointRoot, row[idFieldIndex], property)));
   }
 
   private void addTransformer(Consumer<Object[]> transformer) {
@@ -441,7 +430,7 @@ final class GistBuilder {
       return HQL_NULL;
     }
     if (isFieldTranslated(field, property)) {
-      return createTranslatedFieldHQL(property);
+      return createTranslatedFieldHQL(field, property);
     }
     if (isHrefProperty(property)) {
       String endpointRoot = getSameParentEndpointRoot(path);
@@ -483,19 +472,22 @@ final class GistBuilder {
   }
 
   private boolean isFieldTranslated(Field field, Property property) {
-    return (field.translate() || query.isTranslate())
+    return (field.transformation() == Transform.TRANSLATE)
         && property.canBeTranslated()
-        && query.hasTranslationContext();
+        && (query.hasTranslationContext() || field.transformationArgument() != null);
   }
 
-  private String createTranslatedFieldHQL(Property property) {
+  private String createTranslatedFieldHQL(Field field, Property property) {
+    String locale = query.getTranslationLocale().toString();
+    if (field.transformationArgument() != null)
+      locale = Locale.of(field.transformationArgument()).toString();
     return replace(
         "coalesce(jsonb_get_translated_value(e.translations, '${key}', '${locale}'), e.${property})",
         Map.of(
             "key",
             property.getTranslationKey(),
             "locale",
-            query.getTranslationLocale().toString(),
+            locale,
             "property",
             property.getFieldName()));
   }
@@ -1030,7 +1022,8 @@ final class GistBuilder {
   private String createOrderByHQL(Integer index, GistQuery.Order order) {
     String propertyPath = order.getPropertyPath();
     String dir = order.getDirection().name().toLowerCase();
-    Property property = context.resolve(Property.resolveBasePropertyName(order.getPropertyPath()));
+    Property property =
+        context.resolve(Property.resolveTranslationBasePropertyName(order.getPropertyPath()));
     if (property != null && property.canBeTranslated()) {
       return "coalesce(jsonb_get_translated_value(e.translations, '%s', '%s'), e.%s) %s"
           .formatted(
@@ -1071,7 +1064,8 @@ final class GistBuilder {
       Transform transformation = field.transformation();
       if (field.transformationArgument() != null
           && transformation != Transform.PLUCK
-          && transformation != Transform.FROM) {
+          && transformation != Transform.FROM
+          && transformation != Transform.TRANSLATE) {
         dest.accept("p_" + field.propertyPath(), field.transformationArgument());
       }
     }

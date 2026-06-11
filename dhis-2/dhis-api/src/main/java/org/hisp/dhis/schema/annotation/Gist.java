@@ -107,6 +107,9 @@ public @interface Gist {
     /** Used to indicate that the property does not need or use a projection. */
     NONE,
 
+    /** The property should use the translation (argument can be used to decide language) */
+    TRANSLATE,
+
     /** Emptiness of a collection (no item exists) */
     IS_EMPTY,
 

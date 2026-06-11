@@ -101,7 +101,8 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     switchToGuestUser();
     JsonArray users = GET("/users/gist?headless=true").content();
     JsonObject user0 = users.getObject(1);
-    assertContainsOnly(Set.of("id", "code", "surname", "firstName", "username"), user0.names());
+    assertContainsOnly(
+        Set.of("id", "code", "name", "surname", "firstName", "username"), user0.names());
     switchToAdminUser();
     users = GET("/users/gist?headless=true").content();
     user0 = users.getObject(0);
@@ -140,9 +141,9 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     String noUsersGroupId =
         assertStatus(HttpStatus.CREATED, POST("/userGroups/", "{'name':'groupX', 'users':[]}"));
     JsonObject group = GET("/userGroups/{uid}/gist?fields=name,users", noUsersGroupId).content();
-    assertFalse(group.getObject("apiEndpoints").getString("users").exists());
+    assertTrue(group.getObject("apiEndpoints").getString("users").exists());
     group = GET("/userGroups/{uid}/gist?fields=name,users::size", noUsersGroupId).content();
-    assertFalse(group.getObject("apiEndpoints").getString("users").exists());
+    assertTrue(group.getObject("apiEndpoints").getString("users").exists());
     group = GET("/userGroups/{uid}/gist?fields=name,users", userGroupId).content();
     assertTrue(group.getObject("apiEndpoints").getString("users").exists());
     group = GET("/userGroups/{uid}/gist?fields=name,users::size", userGroupId).content();

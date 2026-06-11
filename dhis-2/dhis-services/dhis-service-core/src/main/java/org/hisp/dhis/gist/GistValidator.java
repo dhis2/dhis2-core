@@ -257,7 +257,7 @@ final class GistValidator {
   private void validateOrder(Property order) {
     if (order.isSimple()) {
       if (order.isPersisted()) return;
-      Property base = context.resolve(Property.resolveBasePropertyName(order.getName()));
+      Property base = context.resolve(Property.resolveTranslationBasePropertyName(order.getName()));
       if (base != null && base.isPersisted() && base.canBeTranslated()) return;
     }
     throw createIllegalProperty(order, "Property `%s` cannot be used as order property.");

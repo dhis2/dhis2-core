@@ -192,7 +192,6 @@ public class GistPipeline {
         .autoType(params.getAuto(GistAutoType.L))
         .translationLocale(getTranslationLocale(params.getLocale()))
         .typedAttributeValues(true)
-        .translate(params.isTranslate())
         .references(params.isReferences())
         .absoluteUrls(params.isAbsoluteUrls())
         .fields(GistQuery.Field.of(input.params().fields))
@@ -217,7 +216,6 @@ public class GistPipeline {
         .paging(true)
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
-        .translate(params.isTranslate())
         .absoluteUrls(params.isAbsoluteUrls())
         .headless(params.isHeadless())
         .references(params.isReferences())
@@ -260,7 +258,6 @@ public class GistPipeline {
         .paging(!offline)
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
-        .translate(params.isTranslate())
         .total(params.isCountTotalPages())
         .absoluteUrls(params.isAbsoluteUrls())
         .headless(params.isHeadless())
@@ -325,7 +322,6 @@ public class GistPipeline {
             .exportObjectList(
                 GistQuery.builder()
                     .elementType(query.getElementType())
-                    .translate(query.isTranslate())
                     .translationLocale(query.getTranslationLocale())
                     .paging(false)
                     .filters(

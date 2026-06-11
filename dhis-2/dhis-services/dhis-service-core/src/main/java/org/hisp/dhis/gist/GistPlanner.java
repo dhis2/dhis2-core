@@ -212,12 +212,14 @@ final class GistPlanner {
       return field.transformation() == Transform.PLUCK
           ? field
           : field.withTransformation(Transform.NONE);
+    Transform transformation = field.transformation();
+    if (transformation == Transform.TRANSLATE) return field;
     Transform transform =
         effectiveTransform(
             context.resolveMandatory(field.propertyPath()),
             query.getDefaultTransformation(),
-            field.transformation());
-    if (transform == field.transformation()) return field;
+            transformation);
+    if (transform == transformation) return field;
     return field.withTransformation(transform);
   }
 
@@ -293,22 +295,19 @@ final class GistPlanner {
   }
 
   private List<Field> withDisplayAsTranslatedFields(List<Field> fields) {
-    // TODO make generic so it applies to all displayX
-    fields =
-        map1to1(
-            fields,
-            f -> isDisplayNameField(f.propertyPath()),
-            f ->
-                f.withPropertyName(f.name())
-                    .withTranslate()
-                    .withPropertyPath(pathOnSameParent(f.propertyPath(), "name")));
     return map1to1(
         fields,
-        f -> isDisplayShortName(f.propertyPath()),
-        f ->
-            f.withPropertyName(f.name())
-                .withTranslate()
-                .withPropertyPath(pathOnSameParent(f.propertyPath(), "shortName")));
+        f -> f.transformation() == Transform.AUTO,
+        f -> {
+          String path = f.propertyPath();
+          Property p = context.resolve(path);
+          if (p == null) return f;
+          String name = Property.resolveTranslationBasePropertyName(p.getName());
+          if (name.equals(p.getName())) return f;
+          return f.withPropertyPath(pathOnSameParent(path, name))
+              .withPropertyName(f.name())
+              .withTransformation(Transform.TRANSLATE);
+        });
   }
 
   private List<Field> withCollectionItemPropertyAsTransformation(List<Field> fields) {
