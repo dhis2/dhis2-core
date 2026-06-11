@@ -156,5 +156,10 @@ public @interface Gist {
     public boolean isArrayAggregate() {
       return this == IDS || this == PLUCK || this == ID_OBJECTS;
     }
+
+    public static Transform of(String name) {
+      for (Transform t : values()) if (t.name().replace("_", "").equalsIgnoreCase(name)) return t;
+      return AUTO;
+    }
   }
 }

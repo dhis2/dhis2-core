@@ -165,7 +165,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
         } else {
           f =
               f.withTransformation(
-                  Gist.Transform.valueOf(t.type.toString().toUpperCase().replace('-', '_')),
+                  Gist.Transform.of(t.type.toString()),
                   t.args.stream().map(Text::toString).toList());
         }
       }
