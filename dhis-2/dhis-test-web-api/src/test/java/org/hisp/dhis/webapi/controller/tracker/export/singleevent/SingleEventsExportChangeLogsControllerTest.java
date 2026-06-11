@@ -383,6 +383,19 @@ class SingleEventsExportChangeLogsControllerTest extends PostgresControllerInteg
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
   }
 
+  /**
+   * Simulates a fresh per-request {@code EntityManager}. Production registers an {@code
+   * OpenEntityManagerInViewFilter}, so every {@code /tracker} request gets its own Hibernate
+   * session. These MockMvc tests otherwise share one thread-bound session across imports; since the
+   * tracker importer writes via JDBC (bypassing Hibernate), a previous import's now-stale managed
+   * entity would linger in the L1 cache and be returned to the next import's preheat. Flushing then
+   * clearing the session between imports reproduces the production per-request isolation.
+   */
+  private void startNewRequestSession() {
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+  }
+
   private SingleEvent event() {
     SingleEvent eventA = new SingleEvent();
     eventA.setProgramStage(programStage);
