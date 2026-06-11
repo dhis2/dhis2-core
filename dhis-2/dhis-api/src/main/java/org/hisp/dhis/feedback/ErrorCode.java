@@ -611,6 +611,7 @@ public enum ErrorCode {
   E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
   E7245("Program stage `{0}` does not belong to program `{1}`"),
   E7246("Sorting by `{0}` requires ENROLLMENT_OU as a dimension or filter"),
+  E7247("Query filter keyword `{0}` can only be used with option set dimensions"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

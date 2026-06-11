@@ -849,7 +849,7 @@ class EventQueryValidatorTest extends TestBase {
                     new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
             .build();
 
-    assertValidationError(ErrorCode.E7246, params);
+    assertValidationError(ErrorCode.E7247, params);
   }
 
   @Test
