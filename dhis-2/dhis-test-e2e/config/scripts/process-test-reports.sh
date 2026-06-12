@@ -6,30 +6,27 @@ set -e
 
 echo "Starting test reports processing..."
 
-apt-get update && apt-get install -y git gnupg2
+apt-get update && apt-get install -y git openssh-client
 
-if [ -n "$GPG_PRIVATE_KEY" ]; then
-    echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+if [ -n "$SSH_SIGNING_KEY" ]; then
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
+    printf '%s\n' "$SSH_SIGNING_KEY" > ~/.ssh/signing_key
+    chmod 600 ~/.ssh/signing_key
 
-    # derive the signing key ID and the committer identity from the imported key's
-    # own UID, so the committer email always matches the key GitHub verifies against.
-    GPG_KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ {print $5; exit}')
-    GPG_UID=$(gpg --list-secret-keys --with-colons | awk -F: '/^uid:/ {print $10; exit}')
-    GPG_EMAIL="${GPG_UID##*<}"
-    export GIT_AUTHOR_NAME="${GPG_UID%% <*}"
-    export GIT_AUTHOR_EMAIL="${GPG_EMAIL%>}"
-    export GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
-    export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
-    echo "Signing commits as $GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL> with key $GPG_KEY_ID"
+    # strip the passphrase from this throwaway copy so the container can sign
+    # non-interactively; the decrypted key only exists in the ephemeral CI container.
+    ssh-keygen -p -P "$SSH_SIGNING_PASSPHRASE" -N "" -f ~/.ssh/signing_key
 
-    # unlock the secret key once so gpg-agent caches the passphrase, letting the
-    # later commit sign non-interactively without prompting inside the container.
-    echo "prime" | gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
-        --local-user "$GPG_KEY_ID" --detach-sign -o /dev/null
+    # build an allowed-signers entry so the post-commit verification below can
+    # confirm the signature locally against the committer email.
+    ssh-keygen -y -f ~/.ssh/signing_key > ~/.ssh/signing_key.pub
+    echo "$GIT_COMMITTER_EMAIL $(cat ~/.ssh/signing_key.pub)" > ~/.ssh/allowed_signers
 
-    git config --global user.signingkey "$GPG_KEY_ID"
+    git config --global gpg.format ssh
+    git config --global user.signingkey ~/.ssh/signing_key
     git config --global commit.gpgsign true
-    git config --global gpg.program gpg
+    git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
 fi
 
 git config --global user.name "$GIT_AUTHOR_NAME"

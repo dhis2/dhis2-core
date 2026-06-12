@@ -39,8 +39,8 @@ jobs:
       SIERRA_LEONE_DB_PATH: "/tmp/db/sierra-leone"
       SIERRA_LEONE_DB_VERSION: "2.39.6"
       GITHUB_TOKEN: ${{ secrets.DHIS2_BOT_GITHUB_TOKEN }}
-      GPG_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
-      GPG_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+      SSH_SIGNING_KEY: ${{ secrets.DHIS2_BOT_SSH_SIGNING_KEY }}
+      SSH_SIGNING_PASSPHRASE: ${{ secrets.DHIS2_BOT_SSH_SIGNING_PASSPHRASE }}
 
     runs-on: ubuntu-22.04
     if: contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests-doris') || (github.event_name == 'workflow_dispatch')
