@@ -41,7 +41,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 @Getter
 @NoArgsConstructor
 public class RelationshipItem implements EmbeddedObject {
-  private int id;
+  private long id;
 
   private Relationship relationship;
 

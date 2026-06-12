@@ -71,13 +71,12 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  * <ul>
  *   <li>TrackedEntity inserts are flushed via a multi-row JDBC INSERT against {@code trackedentity}
  *       -- ids are pre-allocated by {@link AbstractTrackerPersister} from {@code
- *       trackedentityinstance_sequence} in one round-trip.
+ *       trackedentity_sequence} in one round-trip.
  *   <li>TrackedEntity updates are flushed via a single JDBC unnest UPDATE against {@code
  *       trackedentity}, writing only the columns mutated by {@code TrackerObjectsMapper.map} on the
  *       update branch.
  *   <li>Enrollment inserts are flushed via a multi-row JDBC INSERT against {@code enrollment} --
- *       ids are pre-allocated by {@link AbstractTrackerPersister} from {@code
- *       programinstance_sequence}.
+ *       ids are pre-allocated by {@link AbstractTrackerPersister} from {@code enrollment_sequence}.
  *   <li>Enrollment updates are flushed via a single JDBC unnest UPDATE against {@code enrollment},
  *       writing the columns mutated by {@code TrackerObjectsMapper.map} on the update branch.
  *   <li>TrackerEvent inserts are flushed via a multi-row JDBC INSERT against {@code trackerevent}
@@ -97,9 +96,9 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  *       {@code relationship} with {@code from/to_relationshipitemid} left NULL, a multi-row INSERT
  *       into {@code relationshipitem} for the (from + to) items, and an unnest UPDATE on {@code
  *       relationship} to set the from/to FKs. The three-step shape breaks the circular FK between
- *       the two tables, which is not deferrable in the live schema. Both tables use the shared
- *       {@code hibernate_sequence}. Relationship is INSERT-only -- the persister rejects UPDATE
- *       strategy upstream.
+ *       the two tables, which is not deferrable in the live schema. Ids come from {@code
+ *       relationship_sequence} and {@code relationshipitem_sequence}. Relationship is INSERT-only
+ *       -- the persister rejects UPDATE strategy upstream.
  *   <li>TrackedEntityAttributeValues are flushed via JDBC against {@code
  *       trackedentityattributevalue} -- a multi-row INSERT, a single unnest UPDATE keyed on the
  *       composite ({@code trackedentityid}, {@code trackedentityattributeid}) PK, and a single
@@ -384,9 +383,8 @@ class EntityWriteBatch {
   private static final String SINGLE_EVENT_NOTES_INSERT_ROW = "(?, ?, ?)";
 
   // Relationship is INSERT-only in tracker imports (RelationshipPersister.convert returns null on
-  // UPDATE strategy). Both relationship and relationshipitem use `hibernate_sequence` (no
-  // dedicated sequence was provisioned in any Flyway migration -- the hbm.xml `<generator
-  // class="native"/>` resolves to the shared global counter).
+  // UPDATE strategy). Relationship ids come from `relationship_sequence`, item ids from
+  // `relationshipitem_sequence`.
   //
   // The two tables form a circular FK (relationship.from/to_relationshipitemid <->
   // relationshipitem.relationshipid) with non-deferrable constraints. We break the cycle by
@@ -1409,7 +1407,7 @@ class EntityWriteBatch {
 
   /**
    * Inserts the {@code relationshipitem} rows. Each Relationship has exactly two items (from + to);
-   * we allocate {@code 2 * relationships.size()} ids from {@code hibernate_sequence} in one
+   * we allocate {@code 2 * relationships.size()} ids from {@code relationshipitem_sequence} in one
    * round-trip, assign them to the in-memory items (so the subsequent unnest UPDATE can read them
    * back), then flatten the from/to items into a single multi-row INSERT.
    */
@@ -1417,11 +1415,11 @@ class EntityWriteBatch {
     if (relationshipInserts.isEmpty()) {
       return;
     }
-    long[] itemIds = allocateIds(conn, "hibernate_sequence", 2 * relationshipInserts.size());
+    long[] itemIds = allocateIds(conn, "relationshipitem_sequence", 2 * relationshipInserts.size());
     int cursor = 0;
     for (Relationship r : relationshipInserts) {
-      r.getFrom().setId((int) itemIds[cursor++]);
-      r.getTo().setId((int) itemIds[cursor++]);
+      r.getFrom().setId(itemIds[cursor++]);
+      r.getTo().setId(itemIds[cursor++]);
     }
 
     // Flatten (from + to) per relationship into a single list to drive one multi-row INSERT.
@@ -1501,8 +1499,8 @@ class EntityWriteBatch {
       for (int i = 0; i < n; i++) {
         Relationship r = chunk.get(i);
         ids[i] = r.getId();
-        fromIds[i] = (long) r.getFrom().getId();
-        toIds[i] = (long) r.getTo().getId();
+        fromIds[i] = r.getFrom().getId();
+        toIds[i] = r.getTo().getId();
       }
 
       try (PreparedStatement ps = conn.prepareStatement(RELATIONSHIP_UPDATE_FROM_TO_SQL)) {
