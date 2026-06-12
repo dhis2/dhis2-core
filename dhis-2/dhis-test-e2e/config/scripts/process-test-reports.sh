@@ -11,8 +11,16 @@ apt-get update && apt-get install -y git gnupg2
 if [ -n "$GPG_PRIVATE_KEY" ]; then
     echo "$GPG_PRIVATE_KEY" | gpg --batch --import
 
-    # derive the signing key ID from the imported secret key itself
+    # derive the signing key ID and the committer identity from the imported key's
+    # own UID, so the committer email always matches the key GitHub verifies against.
     GPG_KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ {print $5; exit}')
+    GPG_UID=$(gpg --list-secret-keys --with-colons | awk -F: '/^uid:/ {print $10; exit}')
+    GPG_EMAIL="${GPG_UID##*<}"
+    export GIT_AUTHOR_NAME="${GPG_UID%% <*}"
+    export GIT_AUTHOR_EMAIL="${GPG_EMAIL%>}"
+    export GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
+    export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+    echo "Signing commits as $GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL> with key $GPG_KEY_ID"
 
     # unlock the secret key once so gpg-agent caches the passphrase, letting the
     # later commit sign non-interactively without prompting inside the container.
@@ -50,7 +58,8 @@ if git diff --cached --quiet; then
 else
     commit_message="Add test results from $(date -Iseconds)"
     echo "Committing with message: $commit_message"
-    git commit -m "$commit_message"    
+    git commit -m "$commit_message"
+    git log --show-signature -1 || true
     git push origin main
 fi
 
