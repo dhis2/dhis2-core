@@ -109,7 +109,7 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     testSetup.importTrackerData("tracker/event_with_updated_data_values.json", params);
 
-    manager.clear();
+    clearSession();
 
     List<TrackerEvent> updatedEvents = manager.getAll(TrackerEvent.class);
     assertEquals(1, updatedEvents.size());

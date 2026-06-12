@@ -124,8 +124,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
     trackerObjectDeletionService.deleteSingleEvents(List.of(UID.of("OTmjvJDn0Fu")));
 
-    manager.flush();
-    manager.clear();
+    clearSession();
 
     assertThrows(
         NotFoundException.class,
@@ -438,7 +437,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
                       TrackerImportParams.builder().build(),
                       TrackerObjects.builder().events(List.of(e)).build()));
             });
-    manager.clear();
+    clearSession();
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {
