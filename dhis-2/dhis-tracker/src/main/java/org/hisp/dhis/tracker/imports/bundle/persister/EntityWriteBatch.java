@@ -1418,8 +1418,8 @@ class EntityWriteBatch {
     long[] itemIds = allocateIds(conn, "relationshipitem_sequence", 2 * relationshipInserts.size());
     int cursor = 0;
     for (Relationship r : relationshipInserts) {
-      r.getFrom().setId(itemIds[cursor++]);
-      r.getTo().setId(itemIds[cursor++]);
+      r.getFrom().setId((int) itemIds[cursor++]);
+      r.getTo().setId((int) itemIds[cursor++]);
     }
 
     // Flatten (from + to) per relationship into a single list to drive one multi-row INSERT.
@@ -1499,8 +1499,8 @@ class EntityWriteBatch {
       for (int i = 0; i < n; i++) {
         Relationship r = chunk.get(i);
         ids[i] = r.getId();
-        fromIds[i] = r.getFrom().getId();
-        toIds[i] = r.getTo().getId();
+        fromIds[i] = (long) r.getFrom().getId();
+        toIds[i] = (long) r.getTo().getId();
       }
 
       try (PreparedStatement ps = conn.prepareStatement(RELATIONSHIP_UPDATE_FROM_TO_SQL)) {
