@@ -192,6 +192,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public abstract class AbstractJdbcEventAnalyticsManager {
 
+  public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
   /**
    * Represents an aggregate clause with its SQL expression and metadata about the aggregation type.
    *
@@ -1293,10 +1295,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param json the JSON string.
    */
   private void addReferenceValue(Grid grid, String json) {
-    ObjectMapper mapper = new ObjectMapper();
-
     try {
-      JsonNode jsonNode = mapper.readTree(json);
+      JsonNode jsonNode = OBJECT_MAPPER.readTree(json);
       String uid = UUID.randomUUID().toString();
       Reference referenceNode = new Reference(uid, jsonNode);
 
