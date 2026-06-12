@@ -43,7 +43,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -77,8 +76,6 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private DbmsManager dbmsManager;
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity;
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity;
@@ -130,7 +127,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
     testSetup.importTrackerData("tracker/one_te.json", params);
-
+    clearSession();
     Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
 
     assertTrue(
@@ -146,7 +143,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
     testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
-    manager.clear();
+    clearSession();
     Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
     assertHasSize(1, values);
     TrackedEntityAttributeValue attributeValue = values.iterator().next();
@@ -172,7 +169,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
     testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
-    manager.clear();
+    clearSession();
     Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
     assertHasSize(1, values);
     TrackedEntityAttributeValue attributeValue = values.iterator().next();
@@ -695,14 +692,6 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 .build()));
   }
 
-  /**
-   * Flush the session to synchronize the hibernate objects with the database and clear the
-   * references used during the import, so we can compare an object before and after
-   */
-  void clearSession() {
-    dbmsManager.clearSession();
-  }
-
   Enrollment getEnrollment() {
     return getEntityJpql(Enrollment.class.getSimpleName(), enrollment.getUID().getValue());
   }
@@ -753,5 +742,6 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     ImportReport report = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(report);
+    clearSession();
   }
 }

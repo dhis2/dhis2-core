@@ -32,12 +32,15 @@ package org.hisp.dhis.appmanager;
 import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -46,6 +49,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -85,10 +94,42 @@ public class BlobStoreAppStorageService implements AppStorageService {
   private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";
   public static final String MANIFEST_WEBAPP_FILENAME = "manifest.webapp";
 
+  /**
+   * Max concurrent file uploads to blob storage across <em>all</em> apps installing at once. Apps
+   * may install in parallel (see {@code DefaultAppManager}); this is a single shared pool so the
+   * total number of in-flight uploads (and buffered file payloads) stays bounded regardless of how
+   * many apps install concurrently.
+   *
+   * <p>Note this value also bounds transient memory: the S3 backend buffers each non-resetable zip
+   * entry stream fully in memory, so worst case is this many file payloads on the heap at once.
+   * Benchmarks against AWS S3 showed no install-time gain from 64 over 32, so 32 is used to halve
+   * the worst-case memory footprint.
+   */
+  private static final int APP_UPLOAD_PARALLELISM = 32;
+
   private final BlobStoreService blobStore;
   private final LocationManager locationManager;
   private final ObjectMapper jsonMapper;
   private final FileResourceContentStore fileResourceContentStore;
+
+  /**
+   * Shared, lazily-populated pool for concurrent file uploads. Core threads time out when idle so
+   * the pool holds no threads outside of (re)install activity, e.g. after startup.
+   */
+  private final ExecutorService uploadExecutor = newUploadExecutor();
+
+  private static ExecutorService newUploadExecutor() {
+    ThreadPoolExecutor executor =
+        new ThreadPoolExecutor(
+            APP_UPLOAD_PARALLELISM,
+            APP_UPLOAD_PARALLELISM,
+            60L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            new ThreadFactoryBuilder().setNameFormat("app-upload-%d").setDaemon(true).build());
+    executor.allowCoreThreadTimeOut(true);
+    return executor;
+  }
 
   @Override
   @Nonnull
@@ -224,7 +265,8 @@ public class BlobStoreAppStorageService implements AppStorageService {
   public App installApp(
       @Nonnull File file,
       @Nonnull Cache<App> appCache,
-      @CheckForNull BundledAppInfo bundledAppInfo) {
+      @CheckForNull BundledAppInfo bundledAppInfo,
+      boolean removeExisting) {
     App app;
     AppFolderName folder;
     String topLevelFolder;
@@ -259,7 +301,9 @@ public class BlobStoreAppStorageService implements AppStorageService {
       ZipFileUtils.validateZip(file, folder.path(), topLevelFolder);
       unzipFile(file, folder, topLevelFolder);
 
-      removeOtherAppsWithSameKey(app);
+      if (removeExisting) {
+        removeOtherAppsWithSameKey(app);
+      }
 
       app.setAppState(AppStatus.OK);
       logInstallSuccess(app, folder.path());
@@ -286,6 +330,8 @@ public class BlobStoreAppStorageService implements AppStorageService {
   private void unzipFile(File file, AppFolderName folder, String topLevelFolder)
       throws IOException, ZipSlipException {
     try (ZipFile zipFile = new ZipFile(file)) {
+      List<ZipEntry> fileEntries = new ArrayList<>();
+      List<String> filePaths = new ArrayList<>();
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
@@ -298,11 +344,48 @@ public class BlobStoreAppStorageService implements AppStorageService {
           blobStore.createDirectory(BlobKeyPrefix.of(filePath));
           continue;
         }
-        try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
-          blobStore.putBlob(
-              BlobKey.of(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
-        }
+        fileEntries.add(zipEntry);
+        filePaths.add(filePath);
       }
+      uploadEntriesInParallel(zipFile, fileEntries, filePaths);
+    }
+  }
+
+  /**
+   * Uploads the given zip file entries to blob storage concurrently via the shared {@link
+   * #uploadExecutor}. App zips contain many small files and each upload is dominated by per-request
+   * latency (network round-trip on object stores), so uploading them in parallel rather than
+   * one-at-a-time substantially reduces install time. The pool is shared across concurrently
+   * installing apps so total in-flight uploads stay bounded; this call only waits on its own files.
+   */
+  private void uploadEntriesInParallel(
+      ZipFile zipFile, List<ZipEntry> fileEntries, List<String> filePaths) throws IOException {
+    if (fileEntries.isEmpty()) return;
+
+    try {
+      CompletableFuture<?>[] futures = new CompletableFuture<?>[fileEntries.size()];
+      for (int i = 0; i < fileEntries.size(); i++) {
+        ZipEntry zipEntry = fileEntries.get(i);
+        String filePath = filePaths.get(i);
+        futures[i] =
+            CompletableFuture.runAsync(
+                () -> uploadZipEntry(zipFile, zipEntry, filePath), uploadExecutor);
+      }
+      CompletableFuture.allOf(futures).join();
+    } catch (CompletionException e) {
+      Throwable cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof UncheckedIOException uioe) throw uioe.getCause();
+      if (cause instanceof IOException ioe) throw ioe;
+      if (cause instanceof RuntimeException re) throw re;
+      throw new IOException("Failed to upload app files", cause);
+    }
+  }
+
+  private void uploadZipEntry(ZipFile zipFile, ZipEntry zipEntry, String filePath) {
+    try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+      blobStore.putBlob(BlobKey.of(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 

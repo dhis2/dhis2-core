@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Set;
 import javax.sql.DataSource;
@@ -62,7 +63,12 @@ public class RelationshipPersister
 
   @Override
   protected String sequenceName() {
-    return null;
+    // Shared with every other entity that uses Hibernate's `<generator class="native"/>`. No
+    // dedicated relationship_sequence was provisioned in any Flyway migration. The 2
+    // RelationshipItem
+    // ids per Relationship are allocated separately inside
+    // EntityWriteBatch.insertRelationshipItems.
+    return "hibernate_sequence";
   }
 
   @Override
@@ -77,6 +83,7 @@ public class RelationshipPersister
 
   @Override
   protected void updateAttributes(
+      Connection connection,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.tracker.model.Relationship hibernateEntity,
