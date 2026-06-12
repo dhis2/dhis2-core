@@ -11,6 +11,9 @@ apt-get update && apt-get install -y git gnupg2
 if [ -n "$GPG_PRIVATE_KEY" ]; then
     echo "$GPG_PRIVATE_KEY" | gpg --batch --import
 
+    # derive the signing key ID from the imported secret key itself
+    GPG_KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ {print $5; exit}')
+
     # unlock the secret key once so gpg-agent caches the passphrase, letting the
     # later commit sign non-interactively without prompting inside the container.
     echo "prime" | gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
