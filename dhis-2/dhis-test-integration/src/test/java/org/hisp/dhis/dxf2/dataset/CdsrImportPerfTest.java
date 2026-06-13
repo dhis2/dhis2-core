@@ -31,21 +31,18 @@ package org.hisp.dhis.dxf2.dataset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -57,45 +54,40 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Performance regression test for the CDSR import path after replacing the quick BatchHandler with
- * Spring JdbcTemplate.
+ * Performance comparison harness for the CDSR import write path, run through the REAL import
+ * pipeline (full Spring context, Hibernate, Testcontainers PostgreSQL) — not an isolated JDBC
+ * micro-benchmark.
  *
- * <p>This is NOT a micro-benchmark. It exercises the full import pipeline — JSON parsing,
- * validation, metadata caching, and bulk SQL inserts — against a real PostgreSQL database, and
- * logs wall-clock time so the before/after cost is visible in the test output.
+ * <p>Same payload is imported on whichever implementation of {@link
+ * CompleteDataSetRegistrationExchangeService} is on the classpath:
  *
- * <h2>Before (BatchHandler)</h2>
- * BatchHandler opened its own autoCommit JDBC connection and flushed buffered inserts at the end.
- * Inserts were batched by the quick library into a single prepared-statement batch. The connection
- * overhead was minimal but it was decoupled from the Spring transaction.
- *
- * <h2>After (JdbcTemplate)</h2>
- * JdbcTemplate.batchUpdate() flushes the same batch of rows at close() time, using the
- * transaction-bound connection. The Spring proxy adds negligible per-call overhead (one
- * DataSourceUtils.getConnection() lookup, no lock contention). The critical difference is that the
- * insert now happens INSIDE the Spring transaction, so:
  * <ul>
- *   <li>Newly-created periods are visible to the insert (fixes DHIS2-21617).</li>
- *   <li>A failed import rolls back all inserts atomically (correctness improvement).</li>
+ *   <li>on {@code master}: the quick {@code BatchHandler} (multi-row INSERT string, separate
+ *       autoCommit connection);
+ *   <li>on the refactor branch: {@code CdsrJdbcWriter} backed by {@code JdbcTemplate.batchUpdate}
+ *       (PreparedStatement batch on the transaction-bound connection).
  * </ul>
  *
- * <h2>Expected performance</h2>
- * Throughput should be within 5–10% of the BatchHandler baseline. Any larger regression would
- * indicate a problem (e.g. per-row round-trips instead of batching). This test fails if the import
- * produces a wrong result; the timing is informational and logged, not asserted.
+ * <p>The test only uses the public {@code saveCompleteDataSetRegistrationsJson} API, so the exact
+ * same test source compiles and runs against both implementations. Run it on each branch and
+ * compare the logged wall-clock numbers.
  *
- * @author Claude (prototype for DHIS2-21617 batchHandler refactor)
+ * <p>Design: one data set, one org unit (kept inside the importing user's hierarchy so every row
+ * passes validation), and {@value #PAYLOAD_SIZE} distinct monthly periods pre-created in setUp.
+ * Each registration therefore has a unique (dataSet, period, orgUnit, aoc) key — the same shape the
+ * BatchHandler/JdbcWriter unique-key logic keys on. Periods are pre-created so this measures the
+ * write path (findObject SELECT + INSERT), not period creation (covered separately by
+ * CompleteDataSetRegistrationImportNewPeriodTest).
+ *
+ * @author Claude (DHIS2-21617 batchHandler refactor — perf validation)
  */
 class CdsrImportPerfTest extends PostgresIntegrationTestBase {
 
-  /** Number of registrations in the large payload. Tune for desired signal/noise. */
-  private static final int PAYLOAD_SIZE = 500;
+  /** Registrations per import. 480 distinct monthly periods = 40 years, well within range. */
+  private static final int PAYLOAD_SIZE = 480;
 
-  /** Number of warm-up rounds before timing (lets JIT stabilise). */
-  private static final int WARMUP_ROUNDS = 1;
-
-  /** Number of timed rounds to average over. */
-  private static final int TIMED_ROUNDS = 3;
+  private static final int WARMUP_ROUNDS = 2;
+  private static final int TIMED_ROUNDS = 5;
 
   @Autowired private CompleteDataSetRegistrationExchangeService exchangeService;
 
@@ -103,141 +95,109 @@ class CdsrImportPerfTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private ObjectMapper jsonMapper;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-  private DataSet dataSet;
-  private List<OrganisationUnit> orgUnits;
+  private DataSet dataSetA;
+  private OrganisationUnit orgUnitA;
   private CategoryOptionCombo defaultAoc;
-  private User adminUser;
+  private List<String> periodIsos;
 
   @BeforeEach
   void setUp() {
-    adminUser = makeUser("A");
-    injectSecurityContextUser(adminUser);
+    PeriodType monthly = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
 
-    PeriodType monthly = periodService.getPeriodTypeByName(MonthlyPeriodType.NAME);
-    dataSet = createDataSet('A', monthly);
-    manager.save(dataSet, false);
+    orgUnitA = createOrganisationUnit('A');
+    idObjectManager.save(orgUnitA);
 
-    orgUnits = new ArrayList<>(PAYLOAD_SIZE);
-    for (int i = 0; i < PAYLOAD_SIZE; i++) {
-      // Use a unique character sequence to avoid collisions with existing test data.
-      // createOrganisationUnit takes a char so we encode index into a readable name.
-      OrganisationUnit ou = createOrganisationUnit("PerfUnit-" + i);
-      ou.getDataSets().add(dataSet);
-      manager.save(ou, false);
-      dataSet.addOrganisationUnit(ou);
-      orgUnits.add(ou);
-    }
-    manager.update(dataSet);
+    dataSetA = createDataSet('A', monthly);
+    dataSetA.addOrganisationUnit(orgUnitA);
+    idObjectManager.save(dataSetA);
 
     defaultAoc = categoryService.getDefaultCategoryOptionCombo();
 
-    // Pre-create the period so the perf test is not conflated with period-creation cost.
-    // (Period-creation path is exercised separately in CompleteDataSetRegistrationImportNewPeriodTest.)
-    Period p = periodService.reloadIsoPeriodInStatelessSession("202401");
-    manager.flush();
+    User user = createAndAddUser(true, "cdsruser", orgUnitA, "ALL");
+    injectSecurityContextUser(user);
+
+    // Generate PAYLOAD_SIZE distinct monthly ISO periods (e.g. 199001, 199002, ...) and
+    // pre-create them so the timed import measures the write path, not period creation.
+    periodIsos = new ArrayList<>(PAYLOAD_SIZE);
+    int year = 1990;
+    int month = 1;
+    for (int i = 0; i < PAYLOAD_SIZE; i++) {
+      periodIsos.add(String.format("%04d%02d", year, month));
+      if (++month > 12) {
+        month = 1;
+        year++;
+      }
+    }
+    for (String iso : periodIsos) {
+      periodService.reloadIsoPeriod(iso);
+    }
   }
 
-  /**
-   * Baseline: import PAYLOAD_SIZE registrations with all periods pre-existing. Measures the pure
-   * throughput of the write path (findObject + addObject + flush) after the BatchHandler → JdbcTemplate
-   * swap. Run with -Dtest.verbose to see wall-clock output.
-   */
   @Test
-  void importBulk_preExistingPeriod_measuresWriteThroughput() throws Exception {
-    String json = buildPayload("202401");
+  void importBulkRegistrations_measuresThroughput() {
+    String json = buildPayload();
 
-    // Warm-up
     for (int i = 0; i < WARMUP_ROUNDS; i++) {
-      deleteCdsrs(); // reset between rounds
-      runImport(json);
+      deleteAllRegistrations();
+      ImportSummary s = runImport(json);
+      assertEquals(
+          ImportStatus.SUCCESS, s.getStatus(), "warmup import failed: " + s.getConflicts());
     }
 
-    // Timed rounds
     long totalMs = 0;
+    long minMs = Long.MAX_VALUE;
     for (int i = 0; i < TIMED_ROUNDS; i++) {
-      deleteCdsrs();
+      deleteAllRegistrations();
       long start = System.currentTimeMillis();
       ImportSummary summary = runImport(json);
       long elapsed = System.currentTimeMillis() - start;
       totalMs += elapsed;
+      minMs = Math.min(minMs, elapsed);
 
-      assertEquals(ImportStatus.SUCCESS, summary.getStatus(), "Import should succeed on round " + i);
+      assertEquals(
+          ImportStatus.SUCCESS, summary.getStatus(), "import failed: " + summary.getConflicts());
       assertEquals(
           PAYLOAD_SIZE,
           summary.getImportCount().getImported(),
-          "All registrations should be imported on round " + i);
+          "all registrations should import on round " + i);
     }
 
     double avgMs = (double) totalMs / TIMED_ROUNDS;
     double rps = PAYLOAD_SIZE / (avgMs / 1000.0);
-
-    // Log so CI output is easy to compare before/after.
     System.out.printf(
-        "[CdsrImportPerfTest] payload=%d  avg=%.0f ms  throughput=%.0f reg/s%n",
-        PAYLOAD_SIZE, avgMs, rps);
+        "%n[CdsrImportPerfTest] payload=%d  avg=%.0fms  min=%dms  throughput=%.0f reg/s%n%n",
+        PAYLOAD_SIZE, avgMs, minMs, rps);
   }
 
-  /**
-   * Exercises the existing-check path (findObject SELECT per row) on a payload where every row
-   * already exists. This stresses the SELECT throughput rather than the INSERT throughput.
-   */
-  @Test
-  void importBulk_allExisting_measuresUpdateThroughput() throws Exception {
-    String json = buildPayload("202401");
-
-    // First import: populate the table
-    ImportSummary first = runImport(json);
-    assertEquals(ImportStatus.SUCCESS, first.getStatus());
-    assertEquals(PAYLOAD_SIZE, first.getImportCount().getImported());
-
-    // Second import: all rows exist → should UPDATE (CREATE_AND_UPDATE is default)
-    long start = System.currentTimeMillis();
-    ImportSummary second = runImport(json);
-    long elapsed = System.currentTimeMillis() - start;
-
-    assertEquals(ImportStatus.SUCCESS, second.getStatus(), "Re-import should succeed");
-    double rps = PAYLOAD_SIZE / (elapsed / 1000.0);
-    System.out.printf(
-        "[CdsrImportPerfTest] update path  payload=%d  elapsed=%d ms  throughput=%.0f reg/s%n",
-        PAYLOAD_SIZE, elapsed, rps);
-  }
-
-  // -------------------------------------------------------------------------
-  // Helpers
-  // -------------------------------------------------------------------------
-
-  private ImportSummary runImport(String json) throws Exception {
-    byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+  private ImportSummary runImport(String json) {
     return exchangeService.saveCompleteDataSetRegistrationsJson(
-        new ByteArrayInputStream(bytes), ImportOptions.getDefaultImportOptions());
+        new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), new ImportOptions());
   }
 
-  private String buildPayload(String period) throws Exception {
-    ObjectNode root = jsonMapper.createObjectNode();
-    ArrayNode registrations = root.putArray("completeDataSetRegistrations");
-
-    for (OrganisationUnit ou : orgUnits) {
-      ObjectNode reg = registrations.addObject();
-      reg.put("dataSet", dataSet.getUid());
-      reg.put("period", period);
-      reg.put("organisationUnit", ou.getUid());
-      reg.put("completed", true);
+  private String buildPayload() {
+    StringBuilder sb = new StringBuilder("{\"completeDataSetRegistrations\":[");
+    for (int i = 0; i < periodIsos.size(); i++) {
+      if (i > 0) sb.append(',');
+      sb.append("{\"dataSet\":\"")
+          .append(dataSetA.getUid())
+          .append("\",\"period\":\"")
+          .append(periodIsos.get(i))
+          .append("\",\"organisationUnit\":\"")
+          .append(orgUnitA.getUid())
+          .append("\",\"attributeOptionCombo\":\"")
+          .append(defaultAoc.getUid())
+          .append("\",\"completed\":true}");
     }
-
-    return jsonMapper.writeValueAsString(root);
+    sb.append("]}");
+    return sb.toString();
   }
 
-  private void deleteCdsrs() {
-    // Direct JDBC delete to reset state between rounds without going through the service
-    manager.flush();
-    manager
-        .getSession()
-        .createNativeQuery(
-            "DELETE FROM completedatasetregistration WHERE datasetid = :dsId")
-        .setParameter("dsId", dataSet.getId())
-        .executeUpdate();
-    manager.flush();
+  private void deleteAllRegistrations() {
+    // Reset between rounds via direct SQL so the timing only covers the import.
+    entityManager.createNativeQuery("DELETE FROM completedatasetregistration").executeUpdate();
+    entityManager.flush();
+    entityManager.clear();
   }
 }

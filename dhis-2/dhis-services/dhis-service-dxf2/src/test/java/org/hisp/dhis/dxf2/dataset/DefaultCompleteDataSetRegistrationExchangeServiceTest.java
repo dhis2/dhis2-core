@@ -63,7 +63,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
@@ -77,7 +76,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -92,8 +90,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -103,6 +99,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
@@ -120,7 +117,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Mock private I18nManager i18nManager;
 
-  @Mock private BatchHandlerFactory batchHandlerFactory;
+  @Mock private JdbcTemplate jdbcTemplate;
 
   @Mock private SystemSettingsProvider settingsProvider;
 
@@ -137,8 +134,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private MessageService messageService;
 
   @Mock private I18n i18n;
-
-  @Mock private BatchHandler<CompleteDataSetRegistration> batchHandler;
 
   // Cache mocks //
 
@@ -194,7 +189,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             idObjManager,
             orgUnitService,
             i18nManager,
-            batchHandlerFactory,
+            jdbcTemplate,
             settingsProvider,
             categoryService,
             periodService,
@@ -241,7 +236,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
               when(mock.getAttrOptComboOrgUnitMap()).thenReturn(attrOptComboOrgUnitCache);
             })) {
 
-      when(batchHandler.init()).thenReturn(batchHandler);
       when(idObjManager.get(CategoryCombo.class, categoryCombo.getUid())).thenReturn(categoryCombo);
       when(idObjManager.getObject(CategoryOption.class, IdScheme.UID, categoryOptionA.getUid()))
           .thenReturn(categoryOptionA);
@@ -283,8 +277,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
       when(i18nManager.getI18n()).thenReturn(i18n);
 
       when(categoryService.getDefaultCategoryOptionCombo()).thenReturn(DEFAULT_COC);
-      when(batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class))
-          .thenReturn(batchHandler);
 
       // call method under test
       ImportSummary summary =
