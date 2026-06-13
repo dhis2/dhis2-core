@@ -111,7 +111,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   public void save(Period period) {
     // Default path: join the caller's active read-write transaction when there is one (so the
     // mapping is visible within - and rolls back with - it), otherwise run in its own transaction.
-    applyPeriodId(period, runAutoJoinTransaction(upsertPeriod(period)));
+    applyPeriodId(period, runInTransaction(upsertPeriod(period)));
   }
 
   /**
@@ -274,7 +274,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         INSERT INTO periodtype (periodtypeid, name)
         VALUES (nextval('hibernate_sequence'), :name)""";
     Object id =
-        runAutoJoinTransaction(
+        runInTransaction(
             session -> {
               Object pk =
                   getSingleResult(session.createNativeQuery(sql1).setParameter("name", name));
@@ -302,7 +302,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         UPDATE periodtype SET label = :label
         WHERE name = :name""";
 
-    runAutoJoinTransaction(
+    runInTransaction(
         session ->
             session
                 .createNativeQuery(sql)
@@ -327,27 +327,42 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   }
 
   /**
-   * Persists the implicit period/period-type mapping, joining the caller's active read-write
-   * transaction when there is one (so the mapping is visible within - and rolls back with - that
-   * transaction), and otherwise committing it in a new, independent transaction. This is the right
-   * behaviour for ordinary period creation, where the caller persists everything it references on
-   * the same transaction-bound connection. Callers that must commit the mapping immediately even
-   * inside an active transaction use {@link #runInNewTransaction} directly.
+   * The single place that decides how an implicit period/period-type mapping is persisted: it joins
+   * the caller's active read-write transaction when there is one (so the mapping is visible within
+   * - and rolls back with - that transaction), and otherwise commits it in a new, independent
+   * transaction. This is the right behaviour for ordinary period creation, where the caller may or
+   * may not already be inside a transaction (e.g. a controller calling {@code reloadPeriod}
+   * directly). Callers that must commit the mapping immediately even inside an active transaction
+   * use {@link #runInNewTransaction} directly.
    */
-  private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
-    boolean active = TransactionSynchronizationManager.isActualTransactionActive();
-    boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+  private <R> R runInTransaction(Function<StatelessSession, R> query) {
+    return isActiveReadWriteTransaction()
+        ? joinActiveTransaction(query)
+        : runInNewTransaction(query);
+  }
 
-    if (active && !readOnly) {
-      // Join the caller's active read-write transaction by borrowing its transaction-bound
-      // connection, so the implicit mapping is visible within - and rolls back with - it.
-      Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
-      StatelessSession session =
-          getSession().getSessionFactory().openStatelessSession(borrowedConnection);
-      return query.apply(session);
+  private boolean isActiveReadWriteTransaction() {
+    return TransactionSynchronizationManager.isActualTransactionActive()
+        && !TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+  }
+
+  /**
+   * Joins the caller's active read-write transaction by borrowing its transaction-bound connection,
+   * so the mapping is visible within - and rolls back with - it. The active read-write transaction
+   * is a hard precondition: this method never opens one of its own, so it throws if there is none
+   * (the {@link #runInTransaction} dispatcher is the only place that decides join-vs-new; this
+   * guard protects any other/future caller from silently running outside a transaction).
+   */
+  private <R> R joinActiveTransaction(Function<StatelessSession, R> query) {
+    if (!isActiveReadWriteTransaction()) {
+      throw new IllegalStateException(
+          "joinActiveTransaction requires an active read-write transaction; "
+              + "use runInTransaction or runInNewTransaction when none is guaranteed");
     }
-
-    return runInNewTransaction(query);
+    Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
+    StatelessSession session =
+        getSession().getSessionFactory().openStatelessSession(borrowedConnection);
+    return query.apply(session);
   }
 
   /**
