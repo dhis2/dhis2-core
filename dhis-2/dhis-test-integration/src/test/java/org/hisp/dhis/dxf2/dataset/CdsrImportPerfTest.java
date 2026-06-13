@@ -38,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -96,6 +97,8 @@ class CdsrImportPerfTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
+  @Autowired private CompleteDataSetRegistrationService registrationService;
 
   private DataSet dataSetA;
   private OrganisationUnit orgUnitA;
@@ -195,9 +198,8 @@ class CdsrImportPerfTest extends PostgresIntegrationTestBase {
   }
 
   private void deleteAllRegistrations() {
-    // Reset between rounds via direct SQL so the timing only covers the import.
-    entityManager.createNativeQuery("DELETE FROM completedatasetregistration").executeUpdate();
-    entityManager.flush();
-    entityManager.clear();
+    // Reset between rounds via the transactional service method (the test method itself is
+    // not transactional, so a raw entityManager update would fail with TransactionRequired).
+    registrationService.deleteCompleteDataSetRegistrations(dataSetA);
   }
 }
