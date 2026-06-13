@@ -826,11 +826,23 @@ public class DefaultCompleteDataSetRegistrationExchangeService
    * import transaction is rolled back — a correctness improvement over the old approach.
    *
    * <p>Performance: batch inserts are preserved via {@link JdbcTemplate#batchUpdate}. The Spring
-   * template overhead per-call is negligible (a thin wrapper around the connection). The insert
-   * buffer is flushed on {@link #close()} (try-with-resources) rather than requiring a separate
-   * {@code flush()} call.
+   * template overhead per-call is negligible (a thin wrapper around the connection).
+   *
+   * <p>Memory: the insert buffer is flushed automatically every {@link #BATCH_SIZE} rows, and again
+   * on {@link #close()} (try-with-resources) for the final partial batch. This bounds heap use for
+   * arbitrarily large imports — mirroring the streaming behaviour of the quick BatchHandler, which
+   * flushed its SQL buffer every ~200&nbsp;KB. All batches run on the same transaction-bound
+   * connection, so they still commit (or roll back) atomically with the import transaction.
    */
   private static final class CdsrJdbcWriter implements AutoCloseable {
+
+    /**
+     * Max rows buffered before an automatic flush. Bounds heap use for very large imports (the
+     * buffer holds entity references, not just rows) instead of accumulating the whole payload.
+     * 1000 is a typical JDBC batch size and keeps the multi-row INSERT well under any statement
+     * limit while still amortising round-trips.
+     */
+    private static final int BATCH_SIZE = 1000;
 
     // Unique key: (datasetid, periodid, sourceid, attributeoptioncomboid)
 
@@ -855,7 +867,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     private final JdbcTemplate jdbc;
     private final List<CompleteDataSetRegistration> insertBuffer = new ArrayList<>();
-    // Tracks unique keys already buffered in this import to reject duplicates within one payload
+    // Tracks unique keys buffered in the CURRENT batch to reject duplicates; cleared on each flush
     private final Set<String> bufferedKeys = new HashSet<>();
 
     CdsrJdbcWriter(JdbcTemplate jdbc) {
@@ -884,16 +896,26 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     /**
-     * Buffers a CDSR for batch INSERT.
+     * Buffers a CDSR for batch INSERT, flushing automatically once the buffer reaches {@link
+     * #BATCH_SIZE} so heap use stays bounded for large imports.
+     *
+     * <p>Duplicate detection is scoped to the current (un-flushed) batch, matching the quick
+     * BatchHandler, which cleared its seen-keys set on every flush. A duplicate within the same
+     * batch is rejected here (returns {@code false}); a duplicate split across batches is caught by
+     * the {@code completedatasetregistration} primary-key constraint, exactly as it was with the
+     * BatchHandler's per-window dedup.
      *
      * @return {@code false} if this exact (datasetid, periodid, sourceid, aocid) combination was
-     *     already buffered in this import run (duplicate within payload); {@code true} otherwise.
+     *     already buffered in the current batch (duplicate within payload); {@code true} otherwise.
      */
     boolean addObject(CompleteDataSetRegistration cdsr) {
       if (!bufferedKeys.add(uniqueKey(cdsr))) {
         return false;
       }
       insertBuffer.add(cdsr);
+      if (insertBuffer.size() >= BATCH_SIZE) {
+        flush();
+      }
       return true;
     }
 
@@ -920,7 +942,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
           cdsr.getAttributeOptionCombo().getId());
     }
 
-    /** Executes all buffered inserts as a single JDBC batch and clears the buffer. */
+    /** Executes the currently buffered inserts as one JDBC batch and resets the buffer + seen-keys. */
     void flush() {
       if (insertBuffer.isEmpty()) {
         return;
