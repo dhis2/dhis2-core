@@ -109,10 +109,17 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
    */
   @Override
   public void save(Period period) {
-    save(period, false);
+    // Default path: join the caller's active read-write transaction when there is one (so the
+    // mapping is visible within - and rolls back with - it), otherwise run in its own transaction.
+    applyPeriodId(period, runAutoJoinTransaction(upsertPeriod(period)));
   }
 
-  private void save(Period period, boolean forceNewTransaction) {
+  /**
+   * The load-or-create upsert for a period, as a unit of work that can be run in any stateless
+   * session. Returns the existing primary key when the iso period is already present, otherwise
+   * inserts it and returns the new primary key.
+   */
+  private Function<StatelessSession, Object> upsertPeriod(Period period) {
     String sql1 = "SELECT periodid FROM period WHERE iso = :iso";
     String sql2 =
         """
@@ -120,25 +127,27 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         VALUES (nextval('hibernate_sequence'),
           (SELECT periodtypeid FROM periodtype WHERE name = :type), :start, :end, :iso)""";
     String isoDate = period.getIsoDate();
-    Function<StatelessSession, Object> upsert =
-        session -> {
-          Object pk = getSingleResult(session.createNativeQuery(sql1).setParameter("iso", isoDate));
-          if (pk != null) {
-            return pk;
-          }
-          session
-              .createNativeQuery(sql2)
-              .setParameter("type", period.getPeriodType().getName())
-              .setParameter("start", period.getStartDate())
-              .setParameter("end", period.getEndDate())
-              .setParameter("iso", isoDate)
-              .executeUpdate();
-          return session.createNativeQuery("SELECT lastval()").uniqueResult();
-        };
-    Object id = forceNewTransaction ? runInNewTransaction(upsert) : runAutoJoinTransaction(upsert);
+    return session -> {
+      Object pk = getSingleResult(session.createNativeQuery(sql1).setParameter("iso", isoDate));
+      if (pk != null) {
+        return pk;
+      }
+      session
+          .createNativeQuery(sql2)
+          .setParameter("type", period.getPeriodType().getName())
+          .setParameter("start", period.getStartDate())
+          .setParameter("end", period.getEndDate())
+          .setParameter("iso", isoDate)
+          .executeUpdate();
+      return session.createNativeQuery("SELECT lastval()").uniqueResult();
+    };
+  }
+
+  /** Caches and links the resolved primary key onto the transient period instance. */
+  private void applyPeriodId(Period period, Object id) {
     if (id instanceof Number n) {
       long periodId = n.longValue();
-      periodIdByIsoPeriod.putIfAbsent(isoDate, periodId);
+      periodIdByIsoPeriod.putIfAbsent(period.getIsoDate(), periodId);
       period.setId(periodId);
     }
   }
@@ -245,7 +254,9 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
 
   @Override
   public Period reloadForceAddPeriodInNewTransaction(Period period) {
-    save(period, true);
+    // Immediate-commit path: always commit in its own transaction so a separate connection (the
+    // quick BatchHandler) can see the period - see runInNewTransaction (DHIS2-7539, DHIS2-21617).
+    applyPeriodId(period, runInNewTransaction(upsertPeriod(period)));
     return period;
   }
 
