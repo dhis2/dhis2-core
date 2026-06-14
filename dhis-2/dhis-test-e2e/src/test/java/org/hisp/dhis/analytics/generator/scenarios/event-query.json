@@ -155,6 +155,13 @@
       }
     },
     {
+      "name": "stageAndOuLevelWithBoundary",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.ou:LEVEL-wjP19dkFeIk;ImspTQPwCqd&dimension=pe:2022&desc=eventdate,lastupdated",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "stageAndScheduledDate",
       "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.SCHEDULED_DATE:202208&desc=eventdate,lastupdated",
       "version": {

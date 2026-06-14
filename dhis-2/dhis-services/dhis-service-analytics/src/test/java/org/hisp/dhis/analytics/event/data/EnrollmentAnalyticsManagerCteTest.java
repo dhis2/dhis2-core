@@ -49,6 +49,7 @@ import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -81,6 +82,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
@@ -336,7 +338,10 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String generatedSql = sql.getValue();
-
+    String baseCteSql =
+            generatedSql.substring(
+                    generatedSql.indexOf("enrollment_aggr_base as ("),
+                    generatedSql.indexOf("select count(eb.enrollment) as value"));
     // The SQL should contain a per-stage filter CTE
     assertThat(generatedSql, containsString("latest_events_" + programStage.getUid()));
 
@@ -347,6 +352,62 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     // The filter CTE should use the ev_occurreddate alias for the date column
     assertThat(generatedSql, containsString("ev_occurreddate"));
+    // Stage event-date periods must not leak into the base enrollment-date filter
+    assertThat(baseCteSql, not(containsString("enrollmentdate >=")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentStageOrgUnitFilterStaysInFilterCte() {
+    DataElement orgUnitDataElement =
+        org.hisp.dhis.test.TestBase.createDataElement(
+            'O', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    orgUnitDataElement.setUid("n1rtSHYf6O6");
+
+    QueryItem queryItem =
+        new QueryItem(
+            orgUnitDataElement,
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            orgUnitDataElement.getAggregationType(),
+            null);
+    queryItem.setProgram(programA);
+    queryItem.setProgramStage(programStage);
+    queryItem.addFilter(new QueryFilter(IN, "ImspTQPwCqd"));
+
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList() , any(QueryItem.class)))
+        .thenReturn("ImspTQPwCqd");
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.addItemFilter(queryItem);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
+
+    assertThat(
+        generatedSql,
+        containsString(
+            noEof(
+                """
+                latest_events_%s as (
+                select enrollment, ev_n1rtSHYf6O6
+                from
+                """
+                    .formatted(programStage.getUid()))));
+    assertThat(generatedSql, containsString("\"n1rtSHYf6O6\" in ('ImspTQPwCqd')"));
+    assertThat(baseCteSql, containsString("inner join latest_events_" + programStage.getUid()));
+    assertThat(baseCteSql, not(containsString("and \"n1rtSHYf6O6\" in ('ImspTQPwCqd')")));
   }
 
   @Test

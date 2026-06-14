@@ -4219,4 +4219,277 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response, actualHeaders, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     response.validate().statusCode(200).body("headers", hasSize(3));
   }
+
+  @Test
+  public void stageAndOuLevelWithBoundary() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZkbAXlQUYJG.ou:LEVEL-wjP19dkFeIk;ImspTQPwCqd,pe:2022")
+            .add("desc=eventdate,lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        4,
+        23,
+        19); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":4,\"pageSize\":100,\"pageCount\":1},\"items\":{\"TEQlaapDQoK\":{\"code\":\"OU_254945\",\"name\":\"Port Loko\"},\"eIQbndfxQMb\":{\"code\":\"OU_268149\",\"name\":\"Tonkolili\"},\"jUb8gELQApl\":{\"code\":\"OU_204856\",\"name\":\"Kailahun\"},\"Vth0fbpFcsO\":{\"code\":\"OU_233310\",\"name\":\"Kono\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"PMa2VCrupOd\":{\"code\":\"OU_211212\",\"name\":\"Kambia\"},\"2022\":{\"name\":\"2022\"},\"bL4ooGhyHRQ\":{\"code\":\"OU_260377\",\"name\":\"Pujehun\"},\"O6uvpzGd5pu\":{\"code\":\"OU_264\",\"name\":\"Bo\"},\"kJq2mPyFEHo\":{\"code\":\"OU_222616\",\"name\":\"Kenema\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"wjP19dkFeIk\":{\"name\":\"District\"},\"fdc6uOvgoji\":{\"code\":\"OU_193190\",\"name\":\"Bombali\"},\"at6UHUQatSo\":{\"code\":\"OU_278310\",\"name\":\"Western Area\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ZkbAXlQUYJG.ou\":{\"name\":\"Organisation unit\"},\"lc3eMKXaEfw\":{\"code\":\"OU_197385\",\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"code\":\"OU_226213\",\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"code\":\"OU_246990\",\"name\":\"Moyamba\"}},\"dimensions\":{\"pe\":[],\"ZkbAXlQUYJG.ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "psi", "Event", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "eventdate",
+        "Event date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "createdbydisplayname",
+        "Created by",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "lastupdatedbydisplayname",
+        "Last updated by",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "created",
+        "Created on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "completed",
+        "Completed on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Start of treatment date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "incidentdate",
+        "Start of treatment date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "tei", "Tracked entity", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pi", "Program instance", "TEXT", "java.lang.String", false, true);
+    if (expectPostgis) {
+      validateHeaderPropertiesByName(
+          response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentgeometry",
+          "Enrollment geometry",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "longitude",
+          "Longitude",
+          "NUMBER",
+          "java.lang.Double",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "latitude",
+          "Latitude",
+          "NUMBER",
+          "java.lang.Double",
+          false,
+          true);
+    }
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ounamehierarchy",
+        "Organisation unit name hierarchy",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "oucode",
+        "Organisation unit code",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ZkbAXlQUYJG.ou",
+        "Organisation unit",
+        "ORGANISATION_UNIT",
+        "org.hisp.dhis.organisationunit.OrganisationUnit",
+        false,
+        true);
+
+    // Assert PostGIS-specific headers existence based on 'expectPostgis' flag
+    if (expectPostgis) {
+      validateHeaderExistence(actualHeaders, "geometry", true);
+      validateHeaderExistence(actualHeaders, "longitude", true);
+      validateHeaderExistence(actualHeaders, "latitude", true);
+    } else {
+      validateHeaderExistence(actualHeaders, "geometry", false);
+      validateHeaderExistence(actualHeaders, "longitude", false);
+      validateHeaderExistence(actualHeaders, "latitude", false);
+    }
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "psi", "IQCiAZs7PrK");
+    validateRowValueByName(response, actualHeaders, 0, "ZkbAXlQUYJG.ou", "O6uvpzGd5pu");
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2021-05-14 12:35:24.03");
+    validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2021-04-25 12:35:24.03");
+    validateRowValueByName(response, actualHeaders, 0, "tei", "LxMVYhJm3Jp");
+    validateRowValueByName(response, actualHeaders, 0, "pi", "awZ5RHoJin5");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 0, "programstatus", "ACTIVE");
+
+    // Validate selected values for row index 1
+    validateRowValueByName(response, actualHeaders, 1, "psi", "La2PAKKx3it");
+    validateRowValueByName(response, actualHeaders, 1, "ZkbAXlQUYJG.ou", "O6uvpzGd5pu");
+    validateRowValueByName(response, actualHeaders, 1, "enrollmentdate", "2022-08-11 12:32:30.524");
+    validateRowValueByName(response, actualHeaders, 1, "incidentdate", "2022-08-05 02:00:00.0");
+    validateRowValueByName(response, actualHeaders, 1, "tei", "pUK3xmXayQ5");
+    validateRowValueByName(response, actualHeaders, 1, "pi", "hXECENVui3x");
+    validateRowValueByName(response, actualHeaders, 1, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 1, "programstatus", "ACTIVE");
+
+    // Validate selected values for row index 2
+    validateRowValueByName(response, actualHeaders, 2, "psi", "qgaHGxGEI56");
+    validateRowValueByName(response, actualHeaders, 2, "ZkbAXlQUYJG.ou", "O6uvpzGd5pu");
+    validateRowValueByName(response, actualHeaders, 2, "enrollmentdate", "2023-01-01 01:00:00.0");
+    validateRowValueByName(response, actualHeaders, 2, "incidentdate", "2023-01-01 01:00:00.0");
+    validateRowValueByName(response, actualHeaders, 2, "tei", "fSofnQR6lAU");
+    validateRowValueByName(response, actualHeaders, 2, "pi", "fMCNMupsPrg");
+    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 2, "programstatus", "CANCELLED");
+
+    // Validate selected values for row index 3
+    validateRowValueByName(response, actualHeaders, 3, "psi", "BijwU5PwIMh");
+    validateRowValueByName(response, actualHeaders, 3, "ZkbAXlQUYJG.ou", "O6uvpzGd5pu");
+    validateRowValueByName(response, actualHeaders, 3, "enrollmentdate", "2023-01-15 01:00:00.0");
+    validateRowValueByName(response, actualHeaders, 3, "incidentdate", "2023-01-15 01:00:00.0");
+    validateRowValueByName(response, actualHeaders, 3, "tei", "fSofnQR6lAU");
+    validateRowValueByName(response, actualHeaders, 3, "pi", "czKU08gniYG");
+    validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 3, "programstatus", "ACTIVE");
+  }
 }
