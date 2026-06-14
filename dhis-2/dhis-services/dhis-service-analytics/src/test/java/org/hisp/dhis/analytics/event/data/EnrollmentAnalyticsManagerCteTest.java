@@ -32,7 +32,10 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
@@ -44,8 +47,10 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
+import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +59,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -81,6 +88,8 @@ import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettings;
@@ -150,6 +159,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
     // Mock stage.ou CTE context for stage OU dimension tests
     when(organisationUnitResolver.buildStageOuCteContext(any(), any()))
         .thenReturn(
@@ -777,6 +788,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService, systemSettingsService, builder, dataElementService);
+    programIndicatorSubqueryBuilder.init();
     ColumnMapper columnMapper = new ColumnMapper(builder, systemSettingsService);
     filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, builder);
     EnrollmentTimeFieldSqlRenderer timeFieldRenderer = new EnrollmentTimeFieldSqlRenderer(builder);
@@ -984,5 +996,227 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
       index += search.length();
     }
     return count;
+  }
+
+  // -------------------------------------------------------------------------
+  // Program indicator placeholder resolution in aggregate queries
+  // (classic /api/analytics path: getAggregatedEventData / getEnrollmentCount)
+  // -------------------------------------------------------------------------
+
+  @Test
+  void verifyAggregatedEventDataResolvesPsdePlaceholderInPiFilter() {
+    ProgramIndicator pi =
+        createEnrollmentProgramIndicator(
+            "V{enrollment_count}",
+            "A{w75KJ2mc4zz} == 'PIPPO' && #{%s.%s} == 'hello'"
+                .formatted(programStage.getUid(), dataElementA.getUid()));
+    stubPiExpressionSql(pi, "enrollment");
+    stubPiFilterSql(pi, "\"w75KJ2mc4zz\" = 'PIPPO' and " + psdePlaceholder(pi) + " = 'hello'");
+
+    subject.getAggregatedEventData(
+        createAggregatePiParams(pi, AggregationType.COUNT), new ListGrid(), 200000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(generatedSql, startsWith("with "));
+    assertThat(generatedSql, containsString(pi.getUid() + " as ("));
+    assertThat(generatedSql, containsString("inner join " + pi.getUid()));
+    assertThat(generatedSql, containsString(".enrollment = ax.enrollment"));
+  }
+
+  @Test
+  void verifyEnrollmentCountResolvesPsdePlaceholderInPiFilter() {
+    ProgramIndicator pi =
+        createEnrollmentProgramIndicator(
+            "V{enrollment_count}",
+            "#{%s.%s} == 'hello'".formatted(programStage.getUid(), dataElementA.getUid()));
+    stubPiExpressionSql(pi, "enrollment");
+    stubPiFilterSql(pi, psdePlaceholder(pi) + " = 'hello'");
+
+    subject.getEnrollmentCount(createAggregatePiParams(pi, AggregationType.COUNT));
+    verify(jdbcTemplate).queryForObject(sql.capture(), eq(Long.class));
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(generatedSql, startsWith("with "));
+    assertThat(generatedSql, containsString("inner join " + pi.getUid()));
+    assertThat(generatedSql, containsString(".enrollment = ax.enrollment"));
+  }
+
+  @Test
+  void verifyAggregatedEventDataResolvesPsdePlaceholderInPiExpression() {
+    ProgramIndicator pi =
+        createEnrollmentProgramIndicator(
+            "#{%s.%s}".formatted(programStage.getUid(), dataElementA.getUid()), null);
+    stubPiExpressionSql(pi, psdePlaceholder(pi));
+
+    subject.getAggregatedEventData(
+        createAggregatePiParams(pi, AggregationType.SUM), new ListGrid(), 200000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(generatedSql, startsWith("with "));
+    assertThat(generatedSql, containsString("inner join " + pi.getUid()));
+    assertThat(generatedSql, containsString("sum("));
+  }
+
+  @Test
+  void verifyAggregatedEventDataResolvesVariablePlaceholderInPiFilter() {
+    // d2:daysBetween keeps the V{...} reference out of the simple-filter analyzer, so the
+    // variable placeholder must be resolved by the complex-filter processing chain
+    ProgramIndicator pi =
+        createEnrollmentProgramIndicator(
+            "V{enrollment_count}", "d2:daysBetween(V{enrollment_date}, V{event_date}) > 7");
+    stubPiExpressionSql(pi, "enrollment");
+    stubPiFilterSql(
+        pi, "(cast(" + variablePlaceholder(pi) + " as date) - cast(enrollmentdate as date)) > 7");
+
+    subject.getAggregatedEventData(
+        createAggregatePiParams(pi, AggregationType.COUNT), new ListGrid(), 200000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(generatedSql, startsWith("with "));
+    assertThat(generatedSql, containsString("inner join " + pi.getUid()));
+  }
+
+  @Test
+  void verifyAggregatedEventDataResolvesD2FunctionPlaceholderInPiFilter() {
+    ProgramIndicator pi =
+        createEnrollmentProgramIndicator(
+            "V{enrollment_count}",
+            "d2:countIfValue(#{%s.%s}, 10) > 0"
+                .formatted(programStage.getUid(), dataElementA.getUid()));
+    stubPiExpressionSql(pi, "enrollment");
+    stubPiFilterSql(pi, d2FunctionPlaceholder(pi) + " > 0");
+
+    subject.getAggregatedEventData(
+        createAggregatePiParams(pi, AggregationType.COUNT), new ListGrid(), 200000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(generatedSql, startsWith("with "));
+    assertThat(generatedSql, containsString("inner join " + pi.getUid()));
+  }
+
+  @Test
+  void verifyAggregatedEventDataResolvesMixedPlaceholdersInPiFilter() {
+    ProgramIndicator pi =
+        createEnrollmentProgramIndicator(
+            "V{enrollment_count}",
+            "A{w75KJ2mc4zz} == 'PIPPO' && #{%s.%s} == 'hello' && (V{event_date} > '2021-01-01' || A{w75KJ2mc4zz} == 'x')"
+                .formatted(programStage.getUid(), dataElementA.getUid()));
+    stubPiExpressionSql(pi, "enrollment");
+    stubPiFilterSql(
+        pi,
+        "\"w75KJ2mc4zz\" = 'PIPPO' and "
+            + psdePlaceholder(pi)
+            + " = 'hello' and ("
+            + variablePlaceholder(pi)
+            + " > '2021-01-01' or \"w75KJ2mc4zz\" = 'x')");
+
+    subject.getAggregatedEventData(
+        createAggregatePiParams(pi, AggregationType.COUNT), new ListGrid(), 200000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertNoCtePlaceholders(generatedSql);
+    assertThat(generatedSql, startsWith("with "));
+    assertThat(generatedSql, containsString("inner join " + pi.getUid()));
+  }
+
+  @Test
+  void verifyAggregatedEventDataWithoutProgramIndicatorHasNoCtes() {
+    subject.getAggregatedEventData(
+        createRequestParams(programStage, ValueType.INTEGER), new ListGrid(), 200000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertThat(generatedSql, not(startsWith("with ")));
+    assertThat(generatedSql, not(containsString("inner join")));
+  }
+
+  private ProgramIndicator createEnrollmentProgramIndicator(String expression, String filter) {
+    return createProgramIndicator('X', AnalyticsType.ENROLLMENT, programA, expression, filter);
+  }
+
+  private EventQueryParams createAggregatePiParams(
+      ProgramIndicator pi, AggregationType aggregationType) {
+    return new EventQueryParams.Builder(createRequestParams())
+        .withProgramIndicator(pi)
+        .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+        .build();
+  }
+
+  private String psdePlaceholder(ProgramIndicator pi) {
+    return "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s')"
+        .formatted(programStage.getUid(), dataElementA.getUid(), pi.getUid());
+  }
+
+  private String variablePlaceholder(ProgramIndicator pi) {
+    return "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='%s', psUid='null', offset='0')"
+        .formatted(pi.getUid());
+  }
+
+  private String d2FunctionPlaceholder(ProgramIndicator pi) {
+    return "__D2FUNC__(func='countIfValue', ps='%s', de='%s', argType='val64', arg64='MTA=', hash='noboundaries', pi='%s')__"
+        .formatted(programStage.getUid(), dataElementA.getUid(), pi.getUid());
+  }
+
+  private void stubPiExpressionSql(ProgramIndicator pi, String rawExpressionSql) {
+    when(programIndicatorService.getAnalyticsSql(
+            eq(pi.getExpression()), eq(NUMERIC), eq(pi), any(), any()))
+        .thenReturn(rawExpressionSql);
+    when(programIndicatorService.getAnalyticsSql(
+            eq(pi.getExpression()), eq(NUMERIC), eq(pi), any(), any(), anyString()))
+        .thenReturn(rawExpressionSql);
+  }
+
+  private void stubPiFilterSql(ProgramIndicator pi, String rawFilterSql) {
+    // The filter analyzer may strip simple V{...} comparisons from the filter text before
+    // asking the service for SQL, so match any expression string for this PI.
+    when(programIndicatorService.getAnalyticsSqlAllowingNulls(
+            anyString(), eq(BOOLEAN), eq(pi), any(), any()))
+        .thenReturn(rawFilterSql);
+    when(programIndicatorService.getAnalyticsSqlAllowingNulls(
+            anyString(), eq(BOOLEAN), eq(pi), any(), any(), anyString()))
+        .thenReturn(rawFilterSql);
+  }
+
+  private void assertNoCtePlaceholders(String generatedSql) {
+    assertThat(generatedSql, not(containsString("__PSDE_CTE_PLACEHOLDER__")));
+    assertThat(generatedSql, not(containsString("FUNC_CTE_VAR(")));
+    assertThat(generatedSql, not(containsString("__D2FUNC__")));
+    assertJoinTargetsAreDefinedCtes(generatedSql);
+  }
+
+  /**
+   * Every inner/left join target that is not an analytics table must be defined as a CTE in the
+   * with clause, otherwise the query fails at runtime with "relation does not exist".
+   */
+  private void assertJoinTargetsAreDefinedCtes(String generatedSql) {
+    java.util.Set<String> definedCtes =
+        java.util.regex.Pattern.compile("([A-Za-z0-9_]+)\\s+as\\s*\\(")
+            .matcher(generatedSql)
+            .results()
+            .map(r -> r.group(1))
+            .collect(java.util.stream.Collectors.toSet());
+    java.util.regex.Matcher joins =
+        java.util.regex.Pattern.compile("(?:inner|left)\\s+join\\s+([A-Za-z0-9_]+)")
+            .matcher(generatedSql);
+    while (joins.find()) {
+      String target = joins.group(1);
+      if (target.startsWith("analytics_")) {
+        continue;
+      }
+      assertThat(
+          "join target '" + target + "' must be defined as a CTE in: " + generatedSql,
+          definedCtes.contains(target),
+          is(true));
+    }
   }
 }
