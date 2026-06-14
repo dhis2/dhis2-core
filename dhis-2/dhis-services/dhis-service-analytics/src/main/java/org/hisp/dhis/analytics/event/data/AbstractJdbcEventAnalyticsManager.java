@@ -1632,7 +1632,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     String filterString =
         item.getValueType() == ValueType.ORGANISATION_UNIT
-            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
+            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits(), item)
             : filter.getFilter();
 
     if (IN.equals(filter.getOperator())) {
@@ -3043,7 +3043,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Resolve special org unit keywords like USER_ORGUNIT if applicable
     String resolvedFilter =
         filterBuilder.requiresOrgUnitResolution(item)
-            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
+            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits(), item)
             : filter.getFilter();
 
     InQueryCteFilter inQueryCteFilter =
@@ -3094,7 +3094,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Resolve special org unit keywords like USER_ORGUNIT if applicable
     String filterValue =
         filterBuilder.requiresOrgUnitResolution(item)
-            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
+            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits(), item)
             : filter.getFilter();
 
     if ("NV".equals(filterValue)) {

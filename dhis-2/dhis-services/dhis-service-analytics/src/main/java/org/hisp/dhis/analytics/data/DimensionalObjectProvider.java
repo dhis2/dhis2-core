@@ -459,18 +459,50 @@ public class DimensionalObjectProvider {
    *     its keywords.
    * @param userOrgUnits the list of organisation units associated with the current user.
    * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
-   *     This is needed for SQL filtering but should be false for metadata generation.
+   *     Explicit org units are kept in the result (union semantics). This is needed for SQL
+   *     filtering but should be false for metadata generation.
    * @return a list of {@link OrganisationUnit} UIDs.
    */
   public List<String> getOrgUnitDimensionUid(
       List<String> items, List<OrganisationUnit> userOrgUnits, boolean expandGroupsAndLevels) {
+    return getOrgUnitDimensionUid(items, userOrgUnits, expandGroupsAndLevels, false);
+  }
+
+  /**
+   * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
+   * user organisation units.
+   *
+   * @param items the list of items that might be included into the resulting organisation unit and
+   *     its keywords.
+   * @param userOrgUnits the list of organisation units associated with the current user.
+   * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
+   *     This is needed for SQL filtering but should be false for metadata generation.
+   * @param orgUnitsAsBoundaries if true and LEVEL-X / OU_GROUP-X selectors are present, explicit
+   *     org units only scope the expansion and are not included in the result (stage.ou dimension
+   *     semantics). If false, explicit org units are kept alongside the expanded members (union
+   *     semantics, used by org unit typed data element filters). Only relevant when
+   *     expandGroupsAndLevels is true.
+   * @return a list of {@link OrganisationUnit} UIDs.
+   */
+  public List<String> getOrgUnitDimensionUid(
+      List<String> items,
+      List<OrganisationUnit> userOrgUnits,
+      boolean expandGroupsAndLevels,
+      boolean orgUnitsAsBoundaries) {
     List<Integer> levels = new ArrayList<>();
     List<OrganisationUnitGroup> groups = new ArrayList<>();
 
     List<DimensionalItemObject> ous =
         getOrgUnitDimensionItems(items, userOrgUnits, IdScheme.UID, levels, groups);
 
-    List<String> result = new ArrayList<>(ous.stream().map(DimensionalItemObject::getUid).toList());
+    boolean hasLevelsOrGroups = !levels.isEmpty() || !groups.isEmpty();
+
+    List<String> result = new ArrayList<>();
+
+    // With boundary semantics, OUs combined with levels / groups only scope the expansion
+    if (!(expandGroupsAndLevels && orgUnitsAsBoundaries && hasLevelsOrGroups)) {
+      result.addAll(ous.stream().map(DimensionalItemObject::getUid).toList());
+    }
 
     if (expandGroupsAndLevels) {
       List<OrganisationUnit> ousList = asTypedList(ous);
