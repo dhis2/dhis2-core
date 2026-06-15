@@ -158,7 +158,8 @@ public @interface Gist {
     }
 
     public static Transform of(String name) {
-      for (Transform t : values()) if (t.name().replace("_", "").equalsIgnoreCase(name)) return t;
+      for (Transform t : values())
+        if (t.name().replace("_", "").equalsIgnoreCase(name.replace("-", ""))) return t;
       return AUTO;
     }
   }

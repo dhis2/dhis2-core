@@ -90,19 +90,29 @@ class FieldsTest {
         List.of(
             new Fields.Field("id"),
             new Fields.Field("userGroups", Gist.Transform.PLUCK, List.of("name", "foo"))),
-        Fields.of("id,userGroups~pluck(name,foo)"));
+        Fields.of("id,userGroups~name,users::not-member({uid})pluck(name,foo)"));
   }
 
   @Test
-  void testFieldsOf_Pluck2() {
+  void testFieldsOf_MultiTransform() {
     assertFieldsEquals(
         List.of(
             new Fields.Field("id"),
             new Fields.Field("name"),
-            new Fields.Field("u123456789")
+            new Fields.Field("u1234567890")
                 .withPropertyName("geo")
                 .withTransformation(Gist.Transform.PLUCK)),
-        Fields.of("id,name,u123456789::rename(geo)::pluck"));
+        Fields.of("id,name,u1234567890::rename(geo)::pluck"));
+  }
+
+  @Test
+  void testFieldsOf_Transform() {
+    assertFieldsEquals(
+        List.of(
+            new Fields.Field("name"),
+            new Fields.Field("users")
+                .withTransformation(Gist.Transform.NOT_MEMBER, List.of("u1234567890"))),
+        Fields.of("name,users::not-member(u1234567890)"));
   }
 
   private void assertFieldsEquals(List<Fields.Field> expected, Fields actual) {
