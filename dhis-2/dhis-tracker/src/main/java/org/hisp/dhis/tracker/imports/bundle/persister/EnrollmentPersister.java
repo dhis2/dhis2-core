@@ -70,7 +70,7 @@ public class EnrollmentPersister
 
   @Override
   protected String sequenceName() {
-    return "programinstance_sequence";
+    return "enrollment_sequence";
   }
 
   @Override

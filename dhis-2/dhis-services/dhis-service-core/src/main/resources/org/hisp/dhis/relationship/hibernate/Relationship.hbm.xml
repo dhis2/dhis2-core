@@ -13,7 +13,9 @@
              longer touches relationships via Hibernate. -->
 
         <id name="id" column="relationshipid">
-            <generator class="native"/>
+            <generator class="sequence">
+                <param name="sequence_name">relationship_sequence</param>
+            </generator>
         </id>
 
         &identifiableProperties;
