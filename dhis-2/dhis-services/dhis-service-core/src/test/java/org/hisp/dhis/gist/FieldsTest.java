@@ -116,6 +116,14 @@ class FieldsTest {
         Fields.of("name,users::not-member(u1234567890)"));
   }
 
+  @Test
+  void testFieldsOf_Preset() {
+    assertFieldsEquals(List.of(new Fields.Field(":unknown")), Fields.of(":unknown"));
+    assertFieldsEquals(
+        List.of(new Fields.Field(":all"), new Fields.Field("*"), new Fields.Field("foo")),
+        Fields.of(":all,*,foo"));
+  }
+
   private void assertFieldsEquals(List<Fields.Field> expected, Fields actual) {
     assertEquals(expected, actual.fields());
   }
