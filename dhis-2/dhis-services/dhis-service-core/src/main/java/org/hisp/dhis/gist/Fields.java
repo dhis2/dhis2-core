@@ -225,7 +225,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     int i = offset;
     int len = fields.length();
     int s = i;
-    if (i < len && fields.charAt(i) == ':') s++; // skip : of a preset
+    if (i < len && isNameMarker(fields.charAt(i))) s++; // skip : of a preset
     int e = parseName(fields, s);
     if (e == i) throw expectedNameCharacter(fields, i);
     Text name = fields.subSequence(i, e);
@@ -305,6 +305,10 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
 
   private static boolean isTransformMarker(char c) {
     return c == ':' || c == '~' || c == '@';
+  }
+
+  private static boolean isNameMarker(char c) {
+    return c == ':' || c == '!' || c == '-';
   }
 
   private static IllegalArgumentException expectedNameCharacter(Text fields, int offset) {

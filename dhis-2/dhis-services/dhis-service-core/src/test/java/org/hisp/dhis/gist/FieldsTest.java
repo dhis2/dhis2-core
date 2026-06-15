@@ -120,8 +120,13 @@ class FieldsTest {
   void testFieldsOf_Preset() {
     assertFieldsEquals(List.of(new Fields.Field(":unknown")), Fields.of(":unknown"));
     assertFieldsEquals(
-        List.of(new Fields.Field(":all"), new Fields.Field("*"), new Fields.Field("foo")),
-        Fields.of(":all,*,foo"));
+        List.of(
+            new Fields.Field(":all"),
+            new Fields.Field("*"),
+            new Fields.Field("foo"),
+            new Fields.Field("-bar"),
+            new Fields.Field("!baz")),
+        Fields.of(":all,*,foo,-bar,!baz"));
   }
 
   private void assertFieldsEquals(List<Fields.Field> expected, Fields actual) {
