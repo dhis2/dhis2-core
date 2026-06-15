@@ -552,7 +552,7 @@ public class TrackerTest extends Simulation {
         "/api/tracker/events?program="
             + this.eventProgram
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser"
-            + "&paging=false"
+            + "&totalPages=true"
             + "&order=qrur9Dvnyt5:asc";
 
     Request goToFirstPage =
@@ -698,7 +698,7 @@ public class TrackerTest extends Simulation {
     String searchBirthEvents =
         "/api/tracker/events?order=enrolledAt:desc&program="
             + this.trackerProgram
-            + "&fields=*&paging=false";
+            + "&fields=*&totalPages=true";
 
     String getTEsFromEvents =
         "/api/tracker/trackedEntities?pageSize=15&program="
