@@ -116,6 +116,10 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       @Nonnull Transform transformation,
       @Nonnull List<String> args) {
 
+    public static Field of(String field) {
+      return Fields.of(field).fields.get(0);
+    }
+
     public static final String REFS_PATH = "__refs__";
     public static final String ALL_PATH = "*";
     public static final Field ALL = new Field(ALL_PATH, Transform.NONE);
@@ -130,10 +134,6 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
 
     public Field(String propertyPath, Transform transformation, List<String> args) {
       this(propertyPath, "", transformation, args);
-    }
-
-    static Field of(String field) {
-      return Fields.of(field).fields.get(0);
     }
 
     /**
