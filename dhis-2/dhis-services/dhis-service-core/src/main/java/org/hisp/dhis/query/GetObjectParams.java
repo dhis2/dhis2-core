@@ -75,6 +75,11 @@ public class GetObjectParams {
 
   @Setter @JsonProperty @Nonnull Defaults defaults = Defaults.INCLUDE;
 
+  @OpenApi.Description(
+      "Force to use (`true`) or not use (`false`) gist API backend for metadata API, default (`null`) auto-detect based on `fields` and `filter`s")
+  @OpenApi.Since(44)
+  Boolean gist;
+
   /**
    * Since splitting on comma is too unsophisticated to be correct this needs custom split code when
    * called by spring injecting URL parmaeters

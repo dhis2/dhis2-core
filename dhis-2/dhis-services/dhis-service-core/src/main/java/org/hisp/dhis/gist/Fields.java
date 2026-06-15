@@ -101,6 +101,10 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       @Nonnull String propertyName,
       @Nonnull Gist.Transform transformation,
       @Nonnull List<String> args,
+      // TODO make attribute a transform
+      // (maybe always use DB direct extract but re-wrap the value in an object that can be handled
+      // by AttributeValues
+      // so that there is only one way of extracting attributes and we always only get what we need
       boolean attribute) {
 
     public static final String REFS_PATH = "__refs__";
@@ -243,9 +247,8 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
           i = e;
           if (i >= len) return i;
           c = fields.charAt(i);
-          if (c == ')') return i + 1;
-          if (c != ',') throw expectedCharacter(',', fields, i);
-          i++; // skip ,
+          if (c != ')' && c != ',') throw expectedCharacter(',', fields, i);
+          if (c == ',') i++; // skip ,
         } while (i < len && fields.charAt(i) != ')');
         if (i >= len) throw expectedCharacter(')', fields, i);
         i++; // skip )

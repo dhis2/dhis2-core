@@ -93,6 +93,18 @@ class FieldsTest {
         Fields.of("id,userGroups~pluck(name,foo)"));
   }
 
+  @Test
+  void testFieldsOf_Pluck2() {
+    assertFieldsEquals(
+        List.of(
+            new Fields.Field("id"),
+            new Fields.Field("name"),
+            new Fields.Field("u123456789")
+                .withPropertyName("geo")
+                .withTransformation(Gist.Transform.PLUCK)),
+        Fields.of("id,name,u123456789::rename(geo)::pluck"));
+  }
+
   private void assertFieldsEquals(List<Fields.Field> expected, Fields actual) {
     assertEquals(expected, actual.fields());
   }
