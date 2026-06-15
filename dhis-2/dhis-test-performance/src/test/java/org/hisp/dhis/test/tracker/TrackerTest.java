@@ -553,7 +553,7 @@ public class TrackerTest extends Simulation {
             + this.eventProgram
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser"
             + "&paging=false"
-            + "&order=updatedAt:desc";
+            + "&order=createdAt:asc";
 
     Request goToFirstPage =
         new Request(
