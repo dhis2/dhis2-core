@@ -30,14 +30,13 @@
 package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
-import lombok.Data;
 
 /**
  * @author Morten Olav Hansen
  */
-@Data
-public class FieldPathTransformer {
-  private final String name;
+public record FieldPathTransformer(String name, List<String> parameters) {
 
-  private final List<String> parameters;
+  public FieldPathTransformer(String name) {
+    this(name, List.of());
+  }
 }

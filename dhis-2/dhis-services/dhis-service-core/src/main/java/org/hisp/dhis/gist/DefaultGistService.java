@@ -48,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.object.ObjectOutput;
@@ -120,13 +121,13 @@ public class DefaultGistService implements GistService {
     RelativePropertyContext context = createPropertyContext(query);
     List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
     for (Fields.Field f : query.getFields()) {
-      String name = f.name();
+      String path = f.path();
       if (f.isAttribute()) {
         ObjectOutput.Type type =
             f.isAttributeAsJson()
                 ? new ObjectOutput.Type(JsonNode.class)
                 : ObjectOutput.Type.STRING;
-        res.add(new ObjectOutput.Property(name, type, false));
+        res.add(new ObjectOutput.Property(path, type, false));
       } else if (f.isRefs()) {
         res.add(
             new ObjectOutput.Property(
@@ -146,7 +147,7 @@ public class DefaultGistService implements GistService {
               default -> type(p);
             };
         boolean arrayAggregate = f.transformation().isArrayAggregate() && !f.isMultiPluck();
-        res.add(new ObjectOutput.Property(name, type, arrayAggregate));
+        res.add(new ObjectOutput.Property(path, type, arrayAggregate));
       }
     }
     return res;

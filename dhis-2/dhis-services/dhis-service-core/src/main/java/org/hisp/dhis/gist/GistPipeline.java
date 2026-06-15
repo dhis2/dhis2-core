@@ -47,6 +47,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.object.ObjectOutput.Property;

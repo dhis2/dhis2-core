@@ -671,11 +671,11 @@ class FieldsParserTest {
   private static void assertField(ExpectField expected, List<FieldPath> fieldPaths) {
     String what = expected.included ? "include" : "exclude";
     List<FieldPath> actual =
-        fieldPaths.stream().filter(fp -> expected.dotPath.equals(fp.toFullPath())).toList();
+        fieldPaths.stream().filter(fp -> expected.dotPath.equals(fp.getFullPath())).toList();
     assertNotEmpty(
         actual,
         () ->
-            fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
+            fieldPaths.stream().map(FieldPath::getFullPath).collect(Collectors.toSet())
                 + " should contain "
                 + expected.dotPath
                 + " and "
@@ -689,7 +689,7 @@ class FieldsParserTest {
       assertFalse(
           actual.stream().anyMatch(FieldPath::isExclude),
           () ->
-              fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
+              fieldPaths.stream().map(FieldPath::getFullPath).collect(Collectors.toSet())
                   + " should includes "
                   + expected.dotPath
                   + " but it contains the path with an exclusion");
@@ -701,7 +701,7 @@ class FieldsParserTest {
     assertTrue(
         path.isPresent(),
         () ->
-            fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
+            fieldPaths.stream().map(FieldPath::getFullPath).collect(Collectors.toSet())
                 + " should contain "
                 + expected.dotPath
                 + " and "
@@ -727,12 +727,10 @@ class FieldsParserTest {
               .map(
                   t ->
                       new ExpectTransformation(
-                          t.getName(),
-                          (t.getParameters() == null || t.getParameters().isEmpty())
+                          t.name(),
+                          (t.parameters() == null || t.parameters().isEmpty())
                               ? null
-                              : t.getParameters().get(0).isEmpty()
-                                  ? null
-                                  : t.getParameters().get(0)))
+                              : t.parameters().get(0).isEmpty() ? null : t.parameters().get(0)))
               .toList();
       assertEquals(
           List.of(expected.transformations),

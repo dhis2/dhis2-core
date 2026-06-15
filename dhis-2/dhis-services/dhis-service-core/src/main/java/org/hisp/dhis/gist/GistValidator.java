@@ -39,7 +39,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.gist.Fields.Field;
+import org.hisp.dhis.common.input.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;

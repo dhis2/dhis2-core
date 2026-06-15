@@ -56,9 +56,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.common.input.Fields.Field;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.gist.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
@@ -297,7 +298,7 @@ final class GistPlanner {
   private List<Field> withTranslatedFields(List<Field> fields) {
     return map1to1(
         fields,
-        f -> f.isAuto(),
+        Field::isAuto,
         f -> {
           String path = f.propertyPath();
           Property p = context.resolve(path);
@@ -308,7 +309,7 @@ final class GistPlanner {
           if (b == null || !b.isTranslatable()) return f;
           if (name.equals(p.getName())) return f;
           return f.withPropertyPath(basePath)
-              .withRenamedPath(f.name())
+              .withRenamedPath(f.path())
               .withTransformation(Transform.TRANSLATE);
         });
   }
@@ -326,12 +327,12 @@ final class GistPlanner {
             && PrimaryKeyObject.class.isAssignableFrom(collection.getItemKlass())) {
           mapped.add(
               f.withPropertyPath(parentPath)
-                  .withRenamedPath(f.name())
+                  .withRenamedPath(f.path())
                   .withTransformation(Transform.IDS));
         } else {
           mapped.add(
               f.withPropertyPath(parentPath)
-                  .withRenamedPath(f.name())
+                  .withRenamedPath(f.path())
                   .withTransformation(Transform.PLUCK, List.of(propertyName)));
         }
       } else {

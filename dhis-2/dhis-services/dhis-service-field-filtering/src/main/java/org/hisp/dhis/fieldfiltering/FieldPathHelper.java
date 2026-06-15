@@ -74,7 +74,7 @@ public class FieldPathHelper {
     Map<String, FieldPath> fieldPathMap =
         fieldPaths.stream()
             .filter(not(FieldPath::isPreset).and(not(FieldPath::isExclude)))
-            .collect(Collectors.toMap(FieldPath::toFullPath, Function.identity()));
+            .collect(Collectors.toMap(FieldPath::getFullPath, Function.identity()));
 
     applyProperties(fieldPathMap.values(), rootKlass);
 
@@ -127,7 +127,7 @@ public class FieldPathHelper {
     paths.add(fieldPath.getName());
 
     Property property = fieldPath.getProperty();
-    fieldPathMap.put(fieldPath.toFullPath(), fieldPath);
+    fieldPathMap.put(fieldPath.getFullPath(), fieldPath);
 
     if (property.isSimple()) {
       return;
@@ -158,7 +158,7 @@ public class FieldPathHelper {
             paths);
     fp.setProperty(idProperty);
 
-    fieldPathMap.put(fp.toFullPath(), fp);
+    fieldPathMap.put(fp.getFullPath(), fp);
   }
 
   private void expandComplex(
@@ -229,7 +229,7 @@ public class FieldPathHelper {
       }
     }
 
-    fieldPaths.forEach(fp -> fieldPathMap.putIfAbsent(fp.toFullPath(), fp));
+    fieldPaths.forEach(fp -> fieldPathMap.putIfAbsent(fp.getFullPath(), fp));
   }
 
   public void visitFieldPaths(
@@ -282,10 +282,10 @@ public class FieldPathHelper {
   private void applyExclusions(List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap) {
     Set<String> excludedPaths = new HashSet<>();
     for (FieldPath exclusion : exclusions) {
-      excludedPaths.add(exclusion.toFullPath());
+      excludedPaths.add(exclusion.getFullPath());
 
       for (String fieldPath : fieldPathMap.keySet()) {
-        if (fieldShouldBeExcluded(fieldPath, exclusion.toFullPath())) {
+        if (fieldShouldBeExcluded(fieldPath, exclusion.getFullPath())) {
           excludedPaths.add(fieldPath);
         }
       }
@@ -395,7 +395,7 @@ public class FieldPathHelper {
       }
 
       if (isReference(property) || isComplex(property)) {
-        pathCount.compute(fieldPath.toFullPath(), (key, count) -> count == null ? 1L : count + 1L);
+        pathCount.compute(fieldPath.getFullPath(), (key, count) -> count == null ? 1L : count + 1L);
       }
     }
 

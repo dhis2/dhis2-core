@@ -27,14 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.gist;
+package org.hisp.dhis.common.input;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
@@ -45,9 +46,10 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
  *
  * <pre>
  *   fields = field ( ',' field )*
- *   field = name transform* ( '[' fields ']' )?
- *   transform = marker marker? ( '(' name ( ',' name )* ')' )?
- *   marker = ':' | '~' | '@'
+ *   field = marker? name transform* ( '[' fields ']' )?
+ *   transform = indicator indicator? ( '(' name ( ',' name )* ')' )?
+ *   marker = ':' | '-' | '!'
+ *   indicator = ':' | '~' | '@' | '|'
  *   name = 'a'-'z' | 'A'-'Z' | '_' | '-' | '*'
  * </pre>
  *
@@ -66,8 +68,21 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     return new Fields(res.stream().flatMap(e -> e.toFields("", "")).toList());
   }
 
+  /**
+   * Legacy support for {@link FieldPath}.
+   *
+   * @param fields as supplied by the client in the URL parameter
+   * @return the list of {@link FieldPath} as expected by the legacy field filtering system
+   */
+  public static List<FieldPath> parse(String fields) {
+    if (fields == null || fields.isEmpty()) return List.of();
+    List<FieldExp> res = new ArrayList<>();
+    parseFields(Text.of(fields), 0, res);
+    return res.stream().flatMap(e -> e.toFieldPaths(List.of())).distinct().toList();
+  }
+
   public List<String> names() {
-    return fields.stream().map(Fields.Field::name).toList();
+    return fields.stream().map(Fields.Field::path).toList();
   }
 
   public Fields add(Field f) {
@@ -121,9 +136,12 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       return Fields.of(field).fields.get(0);
     }
 
-    @JsonProperty
-    public String name() {
-      return renamedPath.isEmpty() ? propertyPath : renamedPath;
+    /**
+     * @return the effective path to render in the output
+     */
+    @Nonnull
+    public String path() {
+      return isRenamed() ? propertyPath : renamedPath;
     }
 
     public Field withTransformation(@Nonnull Transform transform) {
@@ -165,15 +183,65 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     public boolean isMultiPluck() {
       return transformation == Transform.PLUCK && args.size() > 1;
     }
+
+    public boolean isExclude() {
+      return isExcludeMarker(propertyPath.charAt(propertyPath.lastIndexOf('.') + 1));
+    }
+
+    public boolean isPreset() {
+      char c = propertyPath.charAt(propertyPath.lastIndexOf('.') + 1);
+      return isPresetMarker(c) || c == '*';
+    }
+
+    public boolean isRenamed() {
+      return !renamedPath.isEmpty();
+    }
+
+    public boolean isTransformed() {
+      return transformation != Transform.NONE && transformation != Transform.AUTO;
+    }
   }
 
+  /**
+   * A field transformation node or expression in the URL mini-language exactly as entered by the
+   * client
+   *
+   * @param type of the transformation (as entered)
+   * @param args arguments for the transformer
+   */
   private record TransformExp(Text type, List<Text> args) {}
 
+  /**
+   * A field node or expression in the URL mini-language exactly as entered by the client
+   *
+   * @param name name (including any markers)
+   * @param transforms anything using a transformation indicator
+   * @param children anything within the square brackets
+   */
   private record FieldExp(Text name, List<TransformExp> transforms, List<FieldExp> children) {
 
+    Stream<FieldPath> toFieldPaths(List<String> parentPath) {
+      String name = this.name.toString();
+      if ("*".equals(name)) name = ":all";
+      boolean exclude = isExcludeMarker(name.charAt(0));
+      boolean preset = isPresetMarker(name.charAt(0));
+      if (exclude || preset) name = name.substring(1);
+      List<FieldPathTransformer> transformers =
+          this.transforms.stream()
+              .map(
+                  t ->
+                      new FieldPathTransformer(
+                          t.type.toString(), t.args.stream().map(Text::toString).toList()))
+              .toList();
+      FieldPath f = new FieldPath(name, parentPath, exclude, preset, transformers);
+      if (children.isEmpty()) return Stream.of(f);
+      List<String> path = Stream.concat(parentPath.stream(), Stream.of(name)).toList();
+      return Stream.concat(Stream.of(f), children.stream().flatMap(c -> c.toFieldPaths(path)));
+    }
+
     Stream<Field> toFields(String parentPath, String parentRenamedPath) {
-      String nameStr = name.toString();
-      Field f = new Field(chain(parentPath, nameStr));
+      String plainName = name.toString();
+      Field f = new Field(chain(parentPath, plainName));
       String renamedName = "";
       for (TransformExp t : transforms)
         if (t.type.contentEquals("rename")) renamedName = t.args.get(0).toString();
@@ -182,11 +250,10 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
             f.withRenamedPath(
                 chain(
                     parentRenamedPath.isEmpty() ? parentPath : parentRenamedPath,
-                    renamedName.isEmpty() ? nameStr : renamedName));
+                    renamedName.isEmpty() ? plainName : renamedName));
       if (transforms.isEmpty() && children.isEmpty()) return Stream.of(f);
       Field base = f;
-      boolean renamed = !base.renamedPath.isEmpty();
-      boolean noTransform = transforms.isEmpty() || renamed && transforms.size() == 1;
+      boolean noTransform = transforms.isEmpty() || base.isRenamed() && transforms.size() == 1;
       Stream<Field> transformRes =
           transforms.stream()
               .filter(t -> !t.type.contentEquals("rename"))
@@ -217,6 +284,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       if (c == ']') return i;
       if (c != ',') throw expectedCharacter(',', fields, i);
       i++; // skip ,
+      i = skipSpace(fields, i);
     }
     return i;
   }
@@ -274,8 +342,8 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
         i = e;
         if (i >= len) return i;
         char c = fields.charAt(i);
-        if (c != ')' && c != ',') throw expectedCharacter(',', fields, i);
-        if (c == ',') i++; // skip ,
+        if (c != ')' && c != ',' && c != ';') throw expectedCharacter(',', fields, i);
+        if (c == ',' || c == ';') i++; // skip , or ;
       } while (i < len && fields.charAt(i) != ')');
       if (i >= len) throw expectedCharacter(')', fields, i);
       i++; // skip )
@@ -294,6 +362,13 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     return i + 1; // skip ]
   }
 
+  private static int skipSpace(Text fields, int offset) {
+    int i = offset;
+    int len = fields.length();
+    while (i < len && fields.charAt(i) == ' ') i++;
+    return i;
+  }
+
   private static boolean isNameCharacter(char c) {
     return c >= 'a' && c <= 'z'
         || c >= 'A' && c <= 'Z'
@@ -304,11 +379,19 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
   }
 
   private static boolean isTransformMarker(char c) {
-    return c == ':' || c == '~' || c == '@';
+    return c == ':' || c == '~' || c == '@' || c == '|';
   }
 
   private static boolean isNameMarker(char c) {
-    return c == ':' || c == '!' || c == '-';
+    return isPresetMarker(c) || isExcludeMarker(c);
+  }
+
+  private static boolean isPresetMarker(char c) {
+    return c == ':';
+  }
+
+  private static boolean isExcludeMarker(char c) {
+    return c == '!' || c == '-';
   }
 
   private static IllegalArgumentException expectedNameCharacter(Text fields, int offset) {

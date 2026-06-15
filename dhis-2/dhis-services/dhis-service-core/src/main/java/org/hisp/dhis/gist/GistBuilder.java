@@ -76,7 +76,8 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.gist.Fields.Field;
+import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.common.input.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
@@ -713,7 +714,7 @@ final class GistBuilder {
     if (row[refIndex] == null) {
       row[refIndex] = new TreeMap<>();
     }
-    ((Map<String, String>) row[refIndex]).put(field.name(), url);
+    ((Map<String, String>) row[refIndex]).put(field.path(), url);
   }
 
   private String toEndpointURL(String endpointRoot, Object id) {

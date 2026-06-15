@@ -46,6 +46,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**

@@ -32,6 +32,7 @@ package org.hisp.dhis.gist;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.junit.jupiter.api.Test;
 
