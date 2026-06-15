@@ -552,8 +552,7 @@ public class TrackerTest extends Simulation {
         "/api/tracker/events?program="
             + this.eventProgram
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser"
-            + "&orgUnit=DiszpKrYNg8"
-            + "&orgUnitMode=SELECTED"
+            + "&paging=false"
             + "&order=occurredAt:desc";
 
     Request goToFirstPage =
