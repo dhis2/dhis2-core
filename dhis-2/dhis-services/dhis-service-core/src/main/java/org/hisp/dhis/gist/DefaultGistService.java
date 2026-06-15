@@ -47,8 +47,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -84,8 +82,6 @@ public class DefaultGistService implements GistService {
   private final UserService userService;
 
   private final AclService aclService;
-
-  private final AttributeService attributeService;
 
   private final ObjectMapper jsonMapper;
 
@@ -125,9 +121,13 @@ public class DefaultGistService implements GistService {
     List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
     for (Fields.Field f : query.getFields()) {
       String name = f.name();
-      if (f.attribute()) {
-        res.add(new ObjectOutput.Property(name, ObjectOutput.Type.STRING, false));
-      } else if (Fields.Field.REFS_PATH.equals(f.propertyPath())) {
+      if (f.isAttribute()) {
+        ObjectOutput.Type type =
+            f.isAttributeAsJson()
+                ? new ObjectOutput.Type(JsonNode.class)
+                : ObjectOutput.Type.STRING;
+        res.add(new ObjectOutput.Property(name, type, false));
+      } else if (f.isRefs()) {
         res.add(
             new ObjectOutput.Property(
                 "apiEndpoints", new ObjectOutput.Type(Map.class, String.class), false));
@@ -268,23 +268,6 @@ public class DefaultGistService implements GistService {
       return userService.getUser(userId).getGroups().stream()
           .map(IdentifiableObject::getUid)
           .collect(toList());
-    }
-
-    @Override
-    public Attribute getAttributeById(String attributeId) {
-      return attributeService.getAttribute(attributeId);
-    }
-
-    @Override
-    public Object getTypedAttributeValue(Attribute attribute, String value) {
-      if (value == null || value.isBlank()) {
-        return value;
-      }
-      try {
-        return attribute.getValueType().isJson() ? jsonMapper.readTree(value) : value;
-      } catch (JsonProcessingException e) {
-        return value;
-      }
     }
   }
 }

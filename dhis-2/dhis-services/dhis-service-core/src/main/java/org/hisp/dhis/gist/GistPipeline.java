@@ -90,7 +90,7 @@ public class GistPipeline {
   @Transactional(readOnly = true)
   public void exportAsCsv(@Nonnull GistObjectList.Input in, @Nonnull Supplier<OutputStream> out)
       throws BadRequestException {
-    GistQuery query = createListQuery(in).withoutTypedAttributeValues();
+    GistQuery query = createListQuery(in);
     GistObjectList list = listObjects(in, query);
     GistOutput.toCsv(createObjectListOutput(in.params(), in.elementType(), list), out.get());
   }
@@ -116,7 +116,7 @@ public class GistPipeline {
   @Transactional(readOnly = true)
   public void exportAsCsv(GistObject.Input in, Supplier<OutputStream> out)
       throws BadRequestException, NotFoundException {
-    GistQuery query = createObjectQuery(in).withoutTypedAttributeValues();
+    GistQuery query = createObjectQuery(in);
     GistObject obj = gistService.exportObject(query);
     Object[] values = obj.values();
     if (values == null) throw new NotFoundException(in.objectType(), in.id());
@@ -159,7 +159,7 @@ public class GistPipeline {
       @SuppressWarnings("unchecked")
       Class<? extends PrimaryKeyObject> elementType =
           (Class<? extends PrimaryKeyObject>) property.getItemKlass();
-      GistQuery query = createPropertyListQuery(in, elementType).withoutTypedAttributeValues();
+      GistQuery query = createPropertyListQuery(in, elementType);
       GistObjectList list = gistService.exportPropertyObjectList(query);
       GistOutput.toCsv(createObjectListOutput(in.params(), elementType, list), out.get());
     }
@@ -191,7 +191,6 @@ public class GistPipeline {
         .elementType(input.objectType())
         .autoType(params.getAuto(GistAutoType.L))
         .translationLocale(getTranslationLocale(params.getLocale()))
-        .typedAttributeValues(true)
         .references(params.isReferences())
         .absoluteUrls(params.isAbsoluteUrls())
         .fields(Fields.of(input.params().fields))
@@ -211,7 +210,6 @@ public class GistPipeline {
         .contextRoot(input.contextRoot())
         .requestURL(input.requestURL())
         .translationLocale(getTranslationLocale(params.getLocale()))
-        .typedAttributeValues(true)
         .total(params.isCountTotalPages())
         .paging(true)
         .pageSize(size)
@@ -254,7 +252,6 @@ public class GistPipeline {
         .contextRoot(input.contextRoot())
         .requestURL(input.requestURL())
         .translationLocale(getTranslationLocale(params.getLocale()))
-        .typedAttributeValues(true)
         .paging(!offline)
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)

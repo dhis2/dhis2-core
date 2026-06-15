@@ -110,6 +110,9 @@ public @interface Gist {
     /** The property should use the translation (argument can be used to decide language) */
     TRANSLATE,
 
+    /** The property is an attribute */
+    ATTRIBUTE,
+
     /** Emptiness of a collection (no item exists) */
     IS_EMPTY,
 

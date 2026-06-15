@@ -98,10 +98,8 @@ final class GistValidator {
   }
 
   private void validateField(Field f, RelativePropertyContext context) {
+    if (f.isRefs() || f.isAttribute()) return;
     String path = f.propertyPath();
-    if (Fields.Field.REFS_PATH.equals(path) || f.attribute()) {
-      return;
-    }
     Property field = context.resolveMandatory(path);
     if (isNestedPath(path)) {
       List<Property> pathElements = context.resolvePath(path);

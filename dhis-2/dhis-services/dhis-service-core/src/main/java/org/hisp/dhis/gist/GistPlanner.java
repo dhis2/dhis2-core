@@ -208,10 +208,7 @@ final class GistPlanner {
   }
 
   private Field withEffectiveTransformation(Field field) {
-    if (field.attribute())
-      return field.transformation() == Transform.PLUCK
-          ? field
-          : field.withTransformation(Transform.NONE);
+    if (field.isAttribute()) return field;
     Transform transformation = field.transformation();
     if (transformation == Transform.TRANSLATE) return field;
     Transform transform =
@@ -290,14 +287,17 @@ final class GistPlanner {
   private List<Field> withAttributeFields(List<Field> fields) {
     return map1to1(
         fields,
-        f -> isAttributePath(f.propertyPath()) && context.resolve(f.propertyPath()) == null,
+        f ->
+            f.isAuto()
+                && isAttributePath(f.propertyPath())
+                && context.resolve(f.propertyPath()) == null,
         Fields.Field::asAttribute);
   }
 
   private List<Field> withTranslatedFields(List<Field> fields) {
     return map1to1(
         fields,
-        f -> f.transformation() == Transform.AUTO,
+        f -> f.isAuto(),
         f -> {
           String path = f.propertyPath();
           Property p = context.resolve(path);
@@ -308,7 +308,7 @@ final class GistPlanner {
           if (b == null || !b.isTranslatable()) return f;
           if (name.equals(p.getName())) return f;
           return f.withPropertyPath(basePath)
-              .withPropertyName(f.name())
+              .withRenamedPath(f.name())
               .withTransformation(Transform.TRANSLATE);
         });
   }
@@ -321,16 +321,17 @@ final class GistPlanner {
         String parentPath = parentPath(path);
         String propertyName = path.substring(path.lastIndexOf('.') + 1);
         Property collection = context.resolveMandatory(parentPath);
-        if ("id".equals(propertyName)
+        if (collection.isCollection()
+            && "id".equals(propertyName)
             && PrimaryKeyObject.class.isAssignableFrom(collection.getItemKlass())) {
           mapped.add(
               f.withPropertyPath(parentPath)
-                  .withPropertyName(f.name())
+                  .withRenamedPath(f.name())
                   .withTransformation(Transform.IDS));
         } else {
           mapped.add(
               f.withPropertyPath(parentPath)
-                  .withPropertyName(f.name())
+                  .withRenamedPath(f.name())
                   .withTransformation(Transform.PLUCK, List.of(propertyName)));
         }
       } else {
@@ -348,9 +349,7 @@ final class GistPlanner {
         fields.stream()
             .anyMatch(
                 field -> {
-                  if (field.attribute()) {
-                    return false;
-                  }
+                  if (field.isAttribute()) return false;
                   Property p = context.resolveMandatory(field.propertyPath());
                   return isPersistentReferenceField(p) && p.isIdentifiableObject()
                       || isPersistentCollectionField(p);
@@ -359,8 +358,7 @@ final class GistPlanner {
       return fields;
     }
     ArrayList<Field> extended = new ArrayList<>(fields);
-    extended.add(
-        new Field(Fields.Field.REFS_PATH, Transform.NONE).withPropertyName("apiEndpoints"));
+    extended.add(new Field(Fields.Field.REFS_PATH, Transform.NONE).withRenamedPath("apiEndpoints"));
     return extended;
   }
 

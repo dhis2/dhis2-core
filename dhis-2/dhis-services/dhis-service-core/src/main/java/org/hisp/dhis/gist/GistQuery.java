@@ -136,8 +136,6 @@ public final class GistQuery {
   /** Weather or not to include the API endpoints references */
   @JsonProperty private final boolean references;
 
-  private final boolean typedAttributeValues;
-
   /** The extend to which fields are included by default */
   @JsonProperty(value = "auto")
   private final GistAutoType autoType;
@@ -176,10 +174,6 @@ public final class GistQuery {
   private static List<String> getStrings(String value, String splitRegex) {
     if (value == null || value.isEmpty()) return List.of();
     return asList(value.split(splitRegex));
-  }
-
-  public GistQuery withoutTypedAttributeValues() {
-    return toBuilder().typedAttributeValues(false).build();
   }
 
   public GistQuery addField(String path) {

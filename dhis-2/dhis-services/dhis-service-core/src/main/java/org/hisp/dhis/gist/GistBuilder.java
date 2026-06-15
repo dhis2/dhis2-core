@@ -73,7 +73,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
@@ -125,10 +124,6 @@ final class GistBuilder {
    */
   interface GistBuilderSupport {
     List<String> getUserGroupIdsByUserId(String userId);
-
-    Attribute getAttributeById(String attributeId);
-
-    Object getTypedAttributeValue(Attribute attribute, String value);
   }
 
   /**
@@ -192,15 +187,8 @@ final class GistBuilder {
 
   private static GistQuery addSupportFields(
       GistQuery query, RelativePropertyContext context, Field f) {
-    if (Fields.Field.REFS_PATH.equals(f.propertyPath())) {
+    if (f.isRefs() || f.isAttribute()) {
       return query;
-    }
-
-    // attribute fields? => make sure we have attributeValues
-    if (f.attribute() && !existsSameParentField(query, f, ATTRIBUTES_PROPERTY)) {
-      return f.transformation() == Transform.PLUCK
-          ? query
-          : query.addField(pathOnSameParent(f.propertyPath(), ATTRIBUTES_PROPERTY));
     }
 
     Property p = context.resolveMandatory(f.propertyPath());
@@ -295,12 +283,6 @@ final class GistBuilder {
 
   private void addTransformer(Consumer<Object[]> transformer) {
     fieldResultTransformers.add(transformer);
-  }
-
-  private Object attributeValue(String attributeUid, Object attributeValues, Attribute attribute) {
-    AttributeValues values = (AttributeValues) attributeValues;
-    String value = values.get(attributeUid);
-    return attribute != null ? support.getTypedAttributeValue(attribute, value) : value;
   }
 
   @SuppressWarnings("unchecked")
@@ -399,23 +381,13 @@ final class GistBuilder {
   }
 
   private String createFieldHQL(int index, Field field) {
+    if (field.isRefs()) return HQL_NULL;
     String path = field.propertyPath();
-    if (Fields.Field.REFS_PATH.equals(path)) {
-      return HQL_NULL;
-    }
-    if (field.attribute()) {
-      Attribute attribute = query.isTypedAttributeValues() ? support.getAttributeById(path) : null;
-      if (field.transformation() == Transform.PLUCK) {
-        if (attribute != null) {
-          addTransformer(
-              row -> row[index] = support.getTypedAttributeValue(attribute, (String) row[index]));
-        }
-        return "jsonb_extract_path_text(e.attributeValues, '%s', 'value')".formatted(path);
+    if (field.isAttribute()) {
+      if (field.isAttributeAsJson()) {
+        addTransformer(row -> row[index] = JsonNode.of((String) row[index]));
       }
-      int attrValuesFieldIndex = getSameParentFieldIndex("", ATTRIBUTES_PROPERTY);
-      addTransformer(
-          row -> row[index] = attributeValue(path, row[attrValuesFieldIndex], attribute));
-      return HQL_NULL;
+      return "jsonb_extract_path_text(e.attributeValues, '%s', 'value')".formatted(path);
     }
     Property property = context.resolveMandatory(path);
     if (query.getElementType() == Attribute.class && isAttributeFlagProperty(property)) {

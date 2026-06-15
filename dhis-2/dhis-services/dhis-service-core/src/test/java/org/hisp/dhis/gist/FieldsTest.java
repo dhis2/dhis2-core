@@ -68,9 +68,9 @@ class FieldsTest {
   void testFieldsOf_Nest3Rename1() {
     assertFieldsEquals(
         List.of(
-            new Fields.Field("foo.bar.hey").withPropertyName("x.bar.hey"),
-            new Fields.Field("foo.bar.ho").withPropertyName("x.bar.ho"),
-            new Fields.Field("foo.baz.que").withPropertyName("x.baz.que")),
+            new Fields.Field("foo.bar.hey").withRenamedPath("x.bar.hey"),
+            new Fields.Field("foo.bar.ho").withRenamedPath("x.bar.ho"),
+            new Fields.Field("foo.baz.que").withRenamedPath("x.baz.que")),
         Fields.of("foo~rename(x)[bar[hey,ho],baz[que]]"));
   }
 
@@ -78,9 +78,9 @@ class FieldsTest {
   void testFieldsOf_Nest3Rename2() {
     assertFieldsEquals(
         List.of(
-            new Fields.Field("foo.bar.hey").withPropertyName("x.bar.y"),
-            new Fields.Field("foo.bar.ho").withPropertyName("x.bar.ho"),
-            new Fields.Field("foo.baz.que").withPropertyName("x.baz.que")),
+            new Fields.Field("foo.bar.hey").withRenamedPath("x.bar.y"),
+            new Fields.Field("foo.bar.ho").withRenamedPath("x.bar.ho"),
+            new Fields.Field("foo.baz.que").withRenamedPath("x.baz.que")),
         Fields.of("foo~rename(x)[bar[hey~rename(y),ho],baz[que]]"));
   }
 
@@ -89,8 +89,9 @@ class FieldsTest {
     assertFieldsEquals(
         List.of(
             new Fields.Field("id"),
+            new Fields.Field("userGroups", Gist.Transform.NOT_MEMBER, List.of("u1234567890")),
             new Fields.Field("userGroups", Gist.Transform.PLUCK, List.of("name", "foo"))),
-        Fields.of("id,userGroups~name,users::not-member({uid})pluck(name,foo)"));
+        Fields.of("id,userGroups::not-member(u1234567890)::pluck(name,foo)"));
   }
 
   @Test
@@ -100,7 +101,7 @@ class FieldsTest {
             new Fields.Field("id"),
             new Fields.Field("name"),
             new Fields.Field("u1234567890")
-                .withPropertyName("geo")
+                .withRenamedPath("geo")
                 .withTransformation(Gist.Transform.PLUCK)),
         Fields.of("id,name,u1234567890::rename(geo)::pluck"));
   }
