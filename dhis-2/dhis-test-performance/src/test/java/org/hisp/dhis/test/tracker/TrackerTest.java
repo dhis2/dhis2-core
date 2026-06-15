@@ -696,10 +696,9 @@ public class TrackerTest extends Simulation {
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
     String searchBirthEvents =
-        "/api/tracker/events?order=createdAt:desc&page=1"
-            + "&pageSize=15&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+        "/api/tracker/events?order=enrolledAt:desc&program="
             + this.trackerProgram
-            + "&programStage=A03MvHHogjR&fields=*";
+            + "&fields=*&totalPages=true";
 
     String getTEsFromEvents =
         "/api/tracker/trackedEntities?pageSize=15&program="
