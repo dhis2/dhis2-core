@@ -281,16 +281,15 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       i = parseField(fields, i, res);
       if (i >= len) return i;
       char c = fields.charAt(i);
-      if (c == ']') return i;
+      if (isNestedClose(c)) return i;
       if (c != ',') throw expectedCharacter(',', fields, i);
       i++; // skip ,
-      i = skipSpace(fields, i);
     }
     return i;
   }
 
   private static int parseField(Text fields, int offset, List<FieldExp> res) {
-    int i = offset;
+    int i = skipSpace(fields, offset);
     int len = fields.length();
     int s = i;
     if (i < len && isNameMarker(fields.charAt(i))) s++; // skip : of a preset
@@ -299,7 +298,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     Text name = fields.subSequence(i, e);
     FieldExp f = new FieldExp(name, new ArrayList<>(0), new ArrayList<>(0));
     res.add(f);
-    i = e;
+    i = skipSpace(fields, e);
     if (i >= len || fields.charAt(i) == ',') return i;
     i = parseTransforms(fields, i, f.transforms);
     return parseChildren(fields, i, f.children);
@@ -334,7 +333,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     int len = fields.length();
     if (i < len && fields.charAt(i) == '(') {
       i++; // skip (
-      do {
+      while (i < len && fields.charAt(i) != ')') {
         int e = parseName(fields, i);
         if (e == i) throw expectedNameCharacter(fields, i);
         Text arg = fields.subSequence(i, e);
@@ -344,7 +343,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
         char c = fields.charAt(i);
         if (c != ')' && c != ',' && c != ';') throw expectedCharacter(',', fields, i);
         if (c == ',' || c == ';') i++; // skip , or ;
-      } while (i < len && fields.charAt(i) != ')');
+      }
       if (i >= len) throw expectedCharacter(')', fields, i);
       i++; // skip )
     }
@@ -355,11 +354,12 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     int len = fields.length();
     int i = offset;
     if (i >= len) return i;
-    if (fields.charAt(i) != '[') return i;
-    i++; // skip [
+    if (!isNestedOpen(fields.charAt(i))) return i;
+    i++; // skip [ or (
     i = parseFields(fields, i, res);
-    if (i >= len || fields.charAt(i) != ']') throw expectedCharacter(']', fields, i);
-    return i + 1; // skip ]
+    if (i >= len) return i; // allow omitting ] at the end
+    if (!isNestedClose(fields.charAt(i))) throw expectedCharacter(']', fields, i);
+    return i + 1; // skip ] or )
   }
 
   private static int skipSpace(Text fields, int offset) {
@@ -394,6 +394,14 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     return c == '!' || c == '-';
   }
 
+  private static boolean isNestedOpen(char c) {
+    return c == '[' || c == '(';
+  }
+
+  private static boolean isNestedClose(char c) {
+    return c == ']' || c == ')';
+  }
+
   private static IllegalArgumentException expectedNameCharacter(Text fields, int offset) {
     return new IllegalArgumentException(
         "Expected a name character at position %d but found: %s"
@@ -406,6 +414,6 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
   }
 
   private static String butFound(Text fields, int offset) {
-    return offset >= fields.length() ? "EOF" : "" + fields.charAt(offset);
+    return offset >= fields.length() ? "EOI" : "" + fields.charAt(offset);
   }
 }

@@ -73,6 +73,40 @@ class FieldsParserTest {
   record ExpectField(boolean included, String dotPath, ExpectTransformation... transformations) {}
 
   @ParameterizedTest
+  @MethodSource("providerEqualBehaviourOutdated")
+  void testTrackerParserOutdated(String input, List<ExpectField> expectFields) {
+    Fields fields = FieldsParser.parse(input);
+
+    assertFields(expectFields, fields);
+  }
+
+  // This behaviour was "supported" (by accident I'd say) in old FieldFilterParser code
+  // but when it got replaced platform decided to no longer support it
+  static Stream<Arguments> providerEqualBehaviourOutdated() {
+    return Stream.of(
+        // ignore empty fields and blocks
+        Arguments.of(
+            " id, ,, group[ , , id ,  ], code  ,",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "code"))),
+
+        // this is the behavior of the org.hisp.dhis.fieldfiltering.FieldFilterParser
+        // I replicated it for backwards compatibility but am unsure if we want to trim whitespace
+        // inside of a field name
+        Arguments.of(
+            " id  ,name  code, gro  up [ id , name  ]  ",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "namecode"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"))));
+  }
+
+  @ParameterizedTest
   @MethodSource("providerEqualBehavior")
   void testTrackerParser(String input, List<ExpectField> expectFields) {
     Fields fields = FieldsParser.parse(input);
@@ -189,15 +223,6 @@ class FieldsParserTest {
                 new ExpectField(true, "group.name"),
                 new ExpectField(true, "code"))),
 
-        // ignore empty fields and blocks
-        Arguments.of(
-            " id, ,, group[ , , id ,  ], code  ,",
-            List.of(
-                new ExpectField(true, "id"),
-                new ExpectField(true, "group"),
-                new ExpectField(true, "group.id"),
-                new ExpectField(true, "code"))),
-
         // testBlockSpreadOut
         Arguments.of(
             "id,group[id],name,group[name],code",
@@ -208,18 +233,6 @@ class FieldsParserTest {
                 new ExpectField(true, "group.id"),
                 new ExpectField(true, "group.name"),
                 new ExpectField(true, "code"))),
-
-        // this is the behavior of the org.hisp.dhis.fieldfiltering.FieldFilterParser
-        // I replicated it for backwards compatibility but am unsure if we want to trim whitespace
-        // inside of a field name
-        Arguments.of(
-            " id  ,name  code, gro  up [ id , name  ]  ",
-            List.of(
-                new ExpectField(true, "id"),
-                new ExpectField(true, "namecode"),
-                new ExpectField(true, "group"),
-                new ExpectField(true, "group.id"),
-                new ExpectField(true, "group.name"))),
         Arguments.of(
             "id,name,!code",
             List.of(
@@ -377,11 +390,14 @@ class FieldsParserTest {
         List.of(new ExpectField(false, "group"), new ExpectField(true, "group.code")), fieldPaths);
   }
 
-  // this leads to an HTTP 500 instead of 400 in org.hisp.dhis.fieldfiltering.FieldFilterParser
+  // this did cause a HTTP 500 in the old code but now works as expected ignoring the extra ]
+  // the case remains here to make sure this behaviour is kept in the future
   @Test
   void bugInCurrentParserUnbalancedClosingParen() {
-    assertThrows(
-        java.util.EmptyStackException.class, () -> FieldFilterParser.parse("group[name]]"));
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("group[name]]");
+
+    assertFields(
+        List.of(new ExpectField(true, "group"), new ExpectField(true, "group.name")), fieldPaths);
   }
 
   @Test
