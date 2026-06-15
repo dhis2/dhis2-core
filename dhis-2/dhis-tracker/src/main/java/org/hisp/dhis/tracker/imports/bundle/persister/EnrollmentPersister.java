@@ -76,6 +76,21 @@ public class EnrollmentPersister
   }
 
   @Override
+  protected void assignId(Enrollment entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(Enrollment entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(Enrollment entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
+  }
+
+  @Override
   protected void updateAttributes(
       Connection connection,
       TrackerPreheat preheat,

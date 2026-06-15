@@ -92,6 +92,21 @@ public class TrackerEventPersister
   }
 
   @Override
+  protected void assignId(TrackerEvent entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(TrackerEvent entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(TrackerEvent entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
+  }
+
+  @Override
   protected void updatePreheat(TrackerPreheat preheat, TrackerEvent event) {
     preheat.putTrackerEvents(Collections.singletonList(event));
   }

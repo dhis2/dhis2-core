@@ -91,6 +91,21 @@ public class SingleEventPersister
   }
 
   @Override
+  protected void assignId(SingleEvent entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(SingleEvent entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(SingleEvent entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
+  }
+
+  @Override
   protected void updatePreheat(TrackerPreheat preheat, SingleEvent event) {
     preheat.putSingleEvents(Collections.singletonList(event));
   }
