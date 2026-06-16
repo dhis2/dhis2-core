@@ -145,6 +145,15 @@ public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
     return "toDateOrNull(toString(" + expression + "))";
   }
 
+  /**
+   * ClickHouse analytics tables store empty strings where Postgres stores NULL for absent text
+   * values, so grouping would otherwise split empty and NULL into separate buckets.
+   */
+  @Override
+  public String nullIfEmpty(String column) {
+    return "nullif(" + column + ", '')";
+  }
+
   private String castToDate(String expression) {
     return "toDate(" + expression + ")";
   }

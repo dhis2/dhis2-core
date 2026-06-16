@@ -3487,7 +3487,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         """
         select
             evt.enrollment,
-            evt.${colName} as value${outerAdditionalCols}
+            ${outerValueExpr} as value${outerAdditionalCols}
         from (
             select
                 evt.enrollment,
@@ -3540,8 +3540,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     }
 
+    // Normalise empty text values to NULL so grouping treats absent and empty text the same way
+    // (e.g. on ClickHouse, which stores empty strings where Postgres stores NULL). Numeric and
+    // stage.ou dimensions are left untouched.
+    String outerValueExpr = "evt." + effectiveColName;
+    if (!isStageOuDimension(item) && item.getValueType() != null && item.getValueType().isText()) {
+      outerValueExpr = sqlBuilder.nullIfEmpty(outerValueExpr);
+    }
+
     Map<String, String> values = new HashMap<>();
     values.put("colName", effectiveColName);
+    values.put("outerValueExpr", outerValueExpr);
     values.put("eventTableName", eventTableName);
     values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
     values.put("programStageUid", item.getProgramStage().getUid());

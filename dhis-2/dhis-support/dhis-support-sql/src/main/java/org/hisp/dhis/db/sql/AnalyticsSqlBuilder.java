@@ -117,4 +117,19 @@ public interface AnalyticsSqlBuilder extends SqlBuilder {
   default String castAsDate(String expression) {
     return "cast(" + expression + " as date)";
   }
+
+  /**
+   * Returns an SQL expression that yields {@code NULL} when {@code column} holds an empty string,
+   * and the column value otherwise. This normalises empty text to {@code NULL} so that grouping
+   * treats absent and empty text values the same way across analytics databases.
+   *
+   * <p>The default returns the column unchanged. Engines that store empty strings where other
+   * engines store {@code NULL} (ClickHouse) override this to wrap the column in a {@code nullif}.
+   *
+   * @param column the text SQL column or expression.
+   * @return a NULL-normalising SQL fragment.
+   */
+  default String nullIfEmpty(String column) {
+    return column;
+  }
 }
