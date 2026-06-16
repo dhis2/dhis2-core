@@ -1030,6 +1030,44 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyAggregatedTextDimensionWrapsEmptyStringAsNullForClickHouse() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    mockEmptyRowSet();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programStage, ValueType.TEXT)).build();
+
+    clickHouseSubject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    // SELECT and GROUP BY must both reference the nullif-wrapped column so '' folds into NULL.
+    assertThat(countMatches(generatedSql, "nullif(ax.\"fwiaetyvegk\", '')"), is(2));
+  }
+
+  @Test
+  void verifyAggregatedTextDimensionKeepsRawColumnForPostgres() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    mockEmptyRowSet();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programStage, ValueType.TEXT)).build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, not(containsString("nullif(ax.\"fwiaetyvegk\"")));
+  }
+
+  @Test
   void verifyGetAggregatedEventQueryUsesJoinBasedPeriodLookupForClickHouse() {
     ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
     JdbcEventAnalyticsManager clickHouseSubject =
