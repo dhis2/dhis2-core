@@ -41,7 +41,6 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -60,15 +59,10 @@ public class DeletedObjectController {
 
   private final DeletedObjectService deletedObjectService;
 
-  private final ContextService contextService;
-
   public DeletedObjectController(
-      FieldFilterService fieldFilterService,
-      DeletedObjectService deletedObjectService,
-      ContextService contextService) {
+      FieldFilterService fieldFilterService, DeletedObjectService deletedObjectService) {
     this.fieldFilterService = fieldFilterService;
     this.deletedObjectService = deletedObjectService;
-    this.contextService = contextService;
   }
 
   @OpenApi.Response(DeletedObject[].class)

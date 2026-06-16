@@ -209,7 +209,7 @@ class DataElementOperandControllerTest {
 
     final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
     assertThat(fieldFilterParams.getObjects(), hasSize(pageSize));
-    assertEquals(fieldFilterParams.getFields(), "*");
+    assertEquals("*", fieldFilterParams.getFields());
 
     // Make sure that the first and last element in the page matches with
     // the
@@ -270,7 +270,7 @@ class DataElementOperandControllerTest {
 
     final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
     assertThat(fieldFilterParams.getObjects(), hasSize(pageSize));
-    assertEquals(fieldFilterParams.getFields(), "*");
+    assertEquals("*", fieldFilterParams.getFields());
 
     // Make sure that the first and last element in the page matches with
     // the

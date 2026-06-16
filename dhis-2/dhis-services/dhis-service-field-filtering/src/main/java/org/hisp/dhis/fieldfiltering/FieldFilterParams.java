@@ -30,7 +30,7 @@
 package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.hisp.dhis.user.UserDetails;
 
@@ -38,37 +38,27 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Olav Hansen
  */
 @Data
-@Builder
+@AllArgsConstructor
 public class FieldFilterParams<T> {
   /** Objects to apply filters on. */
   private final List<T> objects;
 
   private final String fields;
 
-  private UserDetails user;
-
   /** Do not include sharing properties (user, sharing, publicAccess, etc). */
   private final boolean skipSharing;
 
-  public static <O> FieldFilterParams<O> of(List<O> objects, String fields) {
-    return new FieldFilterParams<>(objects, fields, null, false);
-  }
+  private UserDetails user;
 
-  public static <O> FieldFilterParams<O> of(O object, String fields) {
+  public static <T> FieldFilterParams<T> of(T object, String fields) {
     return of(List.of(object), fields);
   }
 
-  public static class FieldFilterParamsBuilder<T> {
-    private String fields = "*";
+  public static <T> FieldFilterParams<T> of(List<T> objects, String fields) {
+    return of(objects, fields, false);
+  }
 
-    public FieldFilterParamsBuilder<T> fields(String fields) {
-      this.fields = fields;
-      return this;
-    }
-
-    public FieldFilterParamsBuilder<T> fields(List<String> filters) {
-      this.fields = String.join(",", filters);
-      return this;
-    }
+  public static <T> FieldFilterParams<T> of(List<T> objects, String fields, boolean skipSharing) {
+    return new FieldFilterParams<>(objects, fields, skipSharing, null);
   }
 }

@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,11 +42,7 @@ import org.junit.jupiter.api.Test;
 class FieldFilterParamsTest {
   @Test
   void testBuilderWithObjectAndFilters() {
-    FieldFilterParams<String> params =
-        FieldFilterParams.<String>builder()
-            .objects(Lists.newArrayList("A", "B", "C"))
-            .fields("id,name")
-            .build();
+    FieldFilterParams<String> params = FieldFilterParams.of(List.of("A", "B", "C"), "id,name");
 
     assertTrue(params.getObjects().contains("A"));
     assertTrue(params.getObjects().contains("B"));
