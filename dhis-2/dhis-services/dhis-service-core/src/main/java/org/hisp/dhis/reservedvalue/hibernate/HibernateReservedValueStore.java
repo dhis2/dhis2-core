@@ -131,31 +131,31 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
           .intValue();
     }
 
-    // Pending reservations (not yet in TEAV) + all TEAVs. The NOT EXISTS makes the two sides
-    // disjoint, so UNION ALL is correct and avoids double-counting values that exist in both
-    // tables between RemoveUsedOrExpiredReservedValuesJob runs.
+    // The MATERIALIZED CTE computes the TEAV set once so PostgreSQL builds a hash table
+    // and probes it per RV row, rather than re-running the correlated inner query 11M times.
+    // The two sides of the UNION ALL are disjoint (NOT EXISTS), avoiding double-counting
+    // values present in both tables between RemoveUsedOrExpiredReservedValuesJob runs.
     Long count =
         jdbcTemplate.queryForObject(
-            "SELECT count(*) FROM ("
-                + "SELECT 1 FROM reservedvalue rv"
-                + " WHERE rv.owneruid = ? AND rv.key = ?"
-                + " AND NOT EXISTS ("
-                + " SELECT 1 FROM trackedentityattributevalue teav"
-                + " JOIN trackedentityattribute tea"
-                + " ON teav.trackedentityattributeid = tea.trackedentityattributeid"
-                + " WHERE tea.uid = rv.owneruid AND lower(teav.value) = lower(rv.value)"
-                + " )"
-                + " UNION ALL"
-                + " SELECT 1 FROM trackedentityattributevalue teav"
+            "WITH teav_vals AS MATERIALIZED ("
+                + " SELECT lower(teav.value) AS lower_val"
+                + " FROM trackedentityattributevalue teav"
                 + " JOIN trackedentityattribute tea"
                 + " ON teav.trackedentityattributeid = tea.trackedentityattributeid"
                 + " WHERE tea.uid = ? AND lower(teav.value) LIKE lower(?)"
-                + ") used_values",
+                + ")"
+                + " SELECT count(*) FROM ("
+                + " SELECT 1 FROM reservedvalue rv"
+                + " WHERE rv.owneruid = ? AND rv.key = ?"
+                + " AND NOT EXISTS (SELECT 1 FROM teav_vals WHERE lower_val = lower(rv.value))"
+                + " UNION ALL"
+                + " SELECT 1 FROM teav_vals"
+                + ") counted",
             Long.class,
             reservedValue.getOwnerUid(),
-            reservedValue.getKey(),
+            reservedValue.getValue(),
             reservedValue.getOwnerUid(),
-            reservedValue.getValue());
+            reservedValue.getKey());
     return count == null ? 0 : count.intValue();
   }
 

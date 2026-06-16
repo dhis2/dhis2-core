@@ -537,7 +537,12 @@ public class ReservedValuePerformanceTest extends Simulation {
             http(EXECUTE_JOB_REQUEST)
                 .post("/api/jobConfigurations/#{jobConfigUid}/execute")
                 .check(status().is(200)))
-        .exec(session -> session.set("jobDone", false).set("pollCount", 0))
+        .exec(
+            session ->
+                session
+                    .set("jobDone", false)
+                    .set("pollCount", 0)
+                    .set("jobStartMs", System.currentTimeMillis()))
 
         // 4. Poll until a new completion is detected or max polls exceeded
         .asLongAs(
@@ -568,8 +573,14 @@ public class ReservedValuePerformanceTest extends Simulation {
                       boolean done = advanced && settled;
 
                       if (done) {
+                        long durationMs =
+                            System.currentTimeMillis() - session.<Long>get("jobStartMs");
                         log.info(
-                            "Cleanup job finished after {} poll(s), status={}.", count, jobStatus);
+                            "Cleanup job finished after {} poll(s), status={}, duration={}ms ({} s).",
+                            count,
+                            jobStatus,
+                            durationMs,
+                            String.format("%.1f", durationMs / 1000.0));
                       } else if (count >= JOB_MAX_POLLS) {
                         log.error(
                             "Cleanup job did not complete within {} polls ({} s).",
