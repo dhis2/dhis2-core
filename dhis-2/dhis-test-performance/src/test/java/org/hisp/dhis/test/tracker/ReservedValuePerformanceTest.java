@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
  *         <li>1M random TEAVs for PerfTea0002 (noise)
  *         <li>8M regular TEAVs across PerfTea0003–PerfTea0010
  *       </ul>
- *   <li>11M reserved values for PerfTea0001 ({@code key=''}):
+ *   <li>11M reserved values for PerfTea0001 ({@code key='RANDOM(########)'}):
  *       <ul>
  *         <li>8M expired ({@code expirydate < now()}) — cleared by {@code removeExpiredValues()}
  *         <li>20K valid matching TEAVs — cleared by {@code removeUsedValues()}
@@ -131,7 +131,7 @@ public class ReservedValuePerformanceTest extends Simulation {
 
   // ── Perf TEA UIDs ─────────────────────────────────────────────────────────────
 
-  /** Target of the reserved value test — RANDOM(########), no static prefix, key=''. */
+  /** Target of the reserved value test — RANDOM(########), no static prefix, key='RANDOM(########)'. */
   private static final String PERF_TEA_UID = "PerfTea0001";
 
   private static final List<String> ALL_TEA_UIDS =
@@ -274,7 +274,10 @@ public class ReservedValuePerformanceTest extends Simulation {
     }
 
     JsonNode summary = mapper.readTree(resp.body());
-    log.info("Metadata import: {}", summary.path("stats").toString());
+    log.info(
+        "Metadata import: status={} stats={}",
+        summary.path("status").asText("?"),
+        summary.path("response").path("stats").toString());
   }
 
   private static String teaJson(String uid, int index, String pattern) {
@@ -298,7 +301,7 @@ public class ReservedValuePerformanceTest extends Simulation {
    * Inserts via {@code docker exec psql}. Idempotent: skips if {@code PerfRv00001} already exists
    * in the {@code trackedentity} table.
    *
-   * <p>Reserved value layout for PerfTea0001 ({@code key=''}):
+   * <p>Reserved value layout for PerfTea0001 ({@code key='RANDOM(########)'}):
    *
    * <pre>
    *   '00000001' – '00020000'  (20 000 rows)  valid, match first 20K TEAVs → removeUsedValues target
@@ -419,7 +422,7 @@ public class ReservedValuePerformanceTest extends Simulation {
                 v_rv_base + gs,
                 NOW(),
                 NOW() - INTERVAL '1 day',
-                '',
+                'RANDOM(########)',
                 'TRACKEDENTITYATTRIBUTE',
                 'PerfTea0001',
                 lpad((3980000 + gs)::text, 8, '0')
@@ -433,7 +436,7 @@ public class ReservedValuePerformanceTest extends Simulation {
                 v_rv_base + 8000000 + gs,
                 NOW(),
                 NOW() + INTERVAL '7 days',
-                '',
+                'RANDOM(########)',
                 'TRACKEDENTITYATTRIBUTE',
                 'PerfTea0001',
                 lpad(gs::text, 8, '0')
@@ -447,7 +450,7 @@ public class ReservedValuePerformanceTest extends Simulation {
                 v_rv_base + 8020000 + gs,
                 NOW(),
                 NOW() + INTERVAL '7 days',
-                '',
+                'RANDOM(########)',
                 'TRACKEDENTITYATTRIBUTE',
                 'PerfTea0001',
                 lpad((1000000 + gs)::text, 8, '0')

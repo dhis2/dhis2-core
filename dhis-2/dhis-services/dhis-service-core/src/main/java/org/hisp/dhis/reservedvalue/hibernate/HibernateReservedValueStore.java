@@ -137,7 +137,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
     Long count =
         jdbcTemplate.queryForObject(
             "SELECT count(*) FROM ("
-                + "SELECT rv.reservedvalueid FROM reservedvalue rv"
+                + "SELECT 1 FROM reservedvalue rv"
                 + " WHERE rv.owneruid = ? AND rv.key = ?"
                 + " AND NOT EXISTS ("
                 + " SELECT 1 FROM trackedentityattributevalue teav"
@@ -146,7 +146,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
                 + " WHERE tea.uid = rv.owneruid AND lower(teav.value) = lower(rv.value)"
                 + " )"
                 + " UNION ALL"
-                + " SELECT teav.trackedentityattributevalueid FROM trackedentityattributevalue teav"
+                + " SELECT 1 FROM trackedentityattributevalue teav"
                 + " JOIN trackedentityattribute tea"
                 + " ON teav.trackedentityattributeid = tea.trackedentityattributeid"
                 + " WHERE tea.uid = ? AND lower(teav.value) LIKE lower(?)"
