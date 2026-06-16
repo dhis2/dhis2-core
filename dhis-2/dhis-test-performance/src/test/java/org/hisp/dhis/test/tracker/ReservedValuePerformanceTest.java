@@ -411,43 +411,40 @@ public class ReservedValuePerformanceTest extends Simulation {
             -- 8M expired (cleared by removeExpiredValues)
             RAISE NOTICE 'Inserting 8M expired reserved values...';
             INSERT INTO reservedvalue
-                (created, expirydate, key, ownerobject, owneruid, value, trackedentityattributeid)
+                (created, expirydate, key, ownerobject, owneruid, value)
             SELECT
                 NOW(),
                 NOW() - INTERVAL '1 day',
                 '',
                 'TRACKEDENTITYATTRIBUTE',
                 'PerfTea0001',
-                lpad((3980000 + gs)::text, 8, '0'),
-                v_tea1_id
+                lpad((3980000 + gs)::text, 8, '0')
             FROM generate_series(1, 8000000) gs;
 
             -- 20K valid matching TEAVs (cleared by removeUsedValues)
             RAISE NOTICE 'Inserting 20K matching valid reserved values...';
             INSERT INTO reservedvalue
-                (created, expirydate, key, ownerobject, owneruid, value, trackedentityattributeid)
+                (created, expirydate, key, ownerobject, owneruid, value)
             SELECT
                 NOW(),
                 NOW() + INTERVAL '7 days',
                 '',
                 'TRACKEDENTITYATTRIBUTE',
                 'PerfTea0001',
-                lpad(gs::text, 8, '0'),
-                v_tea1_id
+                lpad(gs::text, 8, '0')
             FROM generate_series(1, 20000) gs;
 
             -- 2.98M valid non-matching (survive the cleanup run)
             RAISE NOTICE 'Inserting 2.98M non-matching valid reserved values...';
             INSERT INTO reservedvalue
-                (created, expirydate, key, ownerobject, owneruid, value, trackedentityattributeid)
+                (created, expirydate, key, ownerobject, owneruid, value)
             SELECT
                 NOW(),
                 NOW() + INTERVAL '7 days',
                 '',
                 'TRACKEDENTITYATTRIBUTE',
                 'PerfTea0001',
-                lpad((1000000 + gs)::text, 8, '0'),
-                v_tea1_id
+                lpad((1000000 + gs)::text, 8, '0')
             FROM generate_series(1, 2980000) gs;
 
             RAISE NOTICE 'Seeding complete: 1M TEs, 10M TEAVs, 11M reserved values.';
