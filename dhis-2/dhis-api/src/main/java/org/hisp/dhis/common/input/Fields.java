@@ -47,7 +47,7 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
  * <pre>
  *   fields = field ( ',' field )*
  *   field = marker? name transform* ( '[' fields ']' )?
- *   transform = indicator indicator? ( '(' name ( ',' name )* ')' )?
+ *   transform = indicator indicator? ( '(' ( name ( (',' | ';') name )* )? ')' )?
  *   marker = ':' | '-' | '!'
  *   indicator = ':' | '~' | '@' | '|'
  *   name = 'a'-'z' | 'A'-'Z' | '_' | '-' | '*'
@@ -141,7 +141,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
      */
     @Nonnull
     public String path() {
-      return isRenamed() ? propertyPath : renamedPath;
+      return isRenamed() ? renamedPath : propertyPath;
     }
 
     public Field withTransformation(@Nonnull Transform transform) {
@@ -341,8 +341,8 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
         i = e;
         if (i >= len) return i;
         char c = fields.charAt(i);
-        if (c != ')' && c != ',' && c != ';') throw expectedCharacter(',', fields, i);
-        if (c == ',' || c == ';') i++; // skip , or ;
+        if (c != ')' && !isSeparator(c)) throw expectedCharacter(',', fields, i);
+        if (isSeparator(c)) i++; // skip , or ;
       }
       if (i >= len) throw expectedCharacter(')', fields, i);
       i++; // skip )
@@ -400,6 +400,10 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
 
   private static boolean isNestedClose(char c) {
     return c == ']' || c == ')';
+  }
+
+  private static boolean isSeparator(char c) {
+    return c == ',' || c == ';';
   }
 
   private static IllegalArgumentException expectedNameCharacter(Text fields, int offset) {
