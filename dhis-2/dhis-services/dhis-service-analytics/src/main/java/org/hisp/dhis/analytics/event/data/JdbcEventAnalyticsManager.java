@@ -718,12 +718,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     if (params.isCoordinatesOnly() || params.isGeometryOnly()) {
+      // nullIfEmpty normalises ClickHouse's empty-string "no coordinate" to NULL so the filter
+      // matches Postgres; it is a no-op for other databases.
       sql +=
           hlp.whereAnd()
               + " "
-              + getCoalesce(
-                  resolveCoordinateFieldsColumnNames(params.getCoordinateFields(), params),
-                  FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue())
+              + sqlBuilder.nullIfEmpty(
+                  getCoalesce(
+                      resolveCoordinateFieldsColumnNames(params.getCoordinateFields(), params),
+                      FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue()))
               + " is not null ";
     }
 

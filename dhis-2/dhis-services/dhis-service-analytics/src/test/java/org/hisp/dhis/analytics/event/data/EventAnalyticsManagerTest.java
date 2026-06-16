@@ -1387,6 +1387,50 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyCoordinatesOnlyFilterTreatsEmptyStringAsNullForClickHouse() {
+    // ClickHouse stores a missing coordinate as '' (not NULL), so a plain
+    // "coalesce(col) is not null" filter matches every row. The column must be wrapped in
+    // nullif(col, '') so empty strings are treated as NULL, matching Postgres.
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+    mockEmptyRowSet();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withCoordinatesOnly(true)
+            .withCoordinateFields(List.of("eventgeometry"))
+            .build();
+
+    clickHouseSubject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(
+        generatedSql, containsString("nullif(coalesce(ax.\"eventgeometry\"), '') is not null"));
+  }
+
+  @Test
+  void verifyCoordinatesOnlyFilterKeepsPlainCoalesceForPostgres() {
+    mockEmptyRowSet();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withCoordinatesOnly(true)
+            .withCoordinateFields(List.of("eventgeometry"))
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("coalesce(ax.\"eventgeometry\") is not null"));
+    assertThat(generatedSql, not(containsString("nullif(coalesce(")));
+  }
+
+  @Test
   void verifyRelationshipEventProgramIndicatorKeepsInlineRelationshipPredicate() {
     mockEmptyRowSet();
     ProgramIndicator programIndicator =
