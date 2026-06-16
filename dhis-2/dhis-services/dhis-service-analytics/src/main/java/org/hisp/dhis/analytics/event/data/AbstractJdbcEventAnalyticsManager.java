@@ -703,14 +703,24 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         && hasOrderByClauseForQueryItem(queryItem, params)) {
       return getColumnAndAliasWithNullIfFunction(queryItem);
     } else if (queryItem.isText() && isAggregated) {
-      // ClickHouse stores an empty string value as '' rather than NULL, so a raw GROUP BY would
-      // produce a '' bucket and return '' instead of NULL. nullIfEmpty normalises '' to
+      // ClickHouse stores an absent string value as '' rather than NULL, so a raw GROUP BY would
+      // produce a spurious '' bucket and return '' instead of NULL. nullIfEmpty normalises '' to
       // NULL (no-op on Postgres/Doris). The same expression is used for SELECT and GROUP BY so the
       // bucket key and the displayed value stay aligned.
-      String column = sqlBuilder.nullIfEmpty(getColumn(queryItem));
+      String rawColumn = getColumn(queryItem);
+      String column = sqlBuilder.nullIfEmpty(rawColumn);
+
+      if (column.equals(rawColumn)) {
+        // No normalisation applied (Postgres/Doris): keep the original rendering unchanged.
+        return getColumnAndAlias(queryItem, isGroupByClause, "");
+      }
+
+      // ClickHouse: the nullif wrapper drops the implicit column label, so alias it with the item
+      // name the row builder looks up.
       return isGroupByClause
           ? ColumnAndAlias.ofColumn(column)
-          : ColumnAndAlias.ofColumnAndAlias(column, getAlias(queryItem).orElse(""));
+          : ColumnAndAlias.ofColumnAndAlias(
+              column, getAlias(queryItem).orElse(queryItem.getItemName()));
     } else {
       return getColumnAndAlias(queryItem, isGroupByClause, "");
     }

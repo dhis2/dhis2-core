@@ -1048,6 +1048,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String generatedSql = sql.getValue().toLowerCase();
     // SELECT and GROUP BY must both reference the nullif-wrapped column so '' folds into NULL.
     assertThat(countMatches(generatedSql, "nullif(ax.\"fwiaetyvegk\", '')"), is(2));
+    // The SELECT column must keep an alias matching the item name so the row builder can read it.
+    assertThat(generatedSql, containsString("nullif(ax.\"fwiaetyvegk\", '') as \"fwiaetyvegk\""));
   }
 
   @Test
