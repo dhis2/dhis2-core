@@ -1159,6 +1159,45 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyEventItemSelectColumnsKeepRequestOrderWhenMixingCteAndInlineItems() {
+    // On ClickHouse (no correlated subquery support) program indicators are rendered as CTEs while
+    // plain data elements stay inline. The SELECT must keep the items in request order so the
+    // positionally-read rows align with the grid headers, which are built in items order.
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
+    mockEmptyRowSet();
+
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piFirstItem", AggregationType.SUM, "ou");
+    stubProgramIndicatorExpression(programIndicator, "ou", "ou");
+
+    QueryItem inlineDataElement =
+        new QueryItem(dataElementA, programA, null, ValueType.INTEGER, AggregationType.SUM, null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .addItem(createProgramIndicatorQueryItem(programIndicator)) // request item 0
+            .addItem(inlineDataElement) // request item 1
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    int piSelectPos = generatedSql.indexOf("as pifirstitem");
+    int inlineSelectPos = generatedSql.indexOf(dataElementA.getUid().toLowerCase());
+
+    assertTrue(
+        piSelectPos >= 0 && inlineSelectPos >= 0,
+        "Both item columns must be present: " + sql.getValue());
+    assertTrue(
+        piSelectPos < inlineSelectPos,
+        "Program indicator column must keep its request-order position before the inline data "
+            + "element column: "
+            + sql.getValue());
+  }
+
+  @Test
   void verifyEventQueryEnrollmentProgramIndicatorUsesCtePathToExpandPlaceholders() {
     when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(true);
     mockEmptyRowSet();
