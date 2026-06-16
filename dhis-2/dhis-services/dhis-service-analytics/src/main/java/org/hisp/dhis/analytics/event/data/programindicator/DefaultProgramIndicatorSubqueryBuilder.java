@@ -578,7 +578,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       case VARIABLE -> formatVariableJoin(alias);
       case PROGRAM_STAGE_DATE_ELEMENT -> formatPsdeJoin(key, alias, definition.getTargetRank());
       case D2_FUNCTION -> formatD2FunctionJoin(alias);
-      case D2_RELATIONSHIP_COUNT -> formatRelationshipCountJoin(key, alias);
+      case D2_RELATIONSHIP_COUNT -> formatRelationshipCountJoin(alias);
       default -> {
         log.trace(
             "Skipping join generation for non-value CTE type: {} with key: {}",
@@ -589,11 +589,15 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     };
   }
 
-  /** Formats the LEFT JOIN for the per-trackedEntity relationship count CTE. */
-  private String formatRelationshipCountJoin(String key, String alias) {
+  /**
+   * Formats the LEFT JOIN for the per-trackedEntity relationship count CTE. The CTE is declared in
+   * the WITH clause under its alias (relationship-count CTEs are not in {@code useKeyAsAlias}), so
+   * the join must reference the alias, not the registry key.
+   */
+  private String formatRelationshipCountJoin(String alias) {
     return String.format(
         "left join %s %s on %s.trackedentityid = %s.trackedentity",
-        key, alias, alias, SUBQUERY_TABLE_ALIAS);
+        alias, alias, alias, SUBQUERY_TABLE_ALIAS);
   }
 
   /**
@@ -610,7 +614,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
           || !joinedAliases.add(definition.getAlias())) {
         continue;
       }
-      joinClauses.add(formatRelationshipCountJoin(key, definition.getAlias()));
+      joinClauses.add(formatRelationshipCountJoin(definition.getAlias()));
     }
     return String.join(" ", joinClauses);
   }

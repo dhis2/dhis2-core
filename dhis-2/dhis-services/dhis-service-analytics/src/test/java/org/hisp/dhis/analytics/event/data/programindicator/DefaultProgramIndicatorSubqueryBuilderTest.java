@@ -631,12 +631,14 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         "Relationship count CTE should aggregate per trackedEntity without a type filter");
     assertTrue(
         mainCteSql.contains(
-            "left join relcnt_all "
+            "left join "
+                + relcntAlias
+                + " "
                 + relcntAlias
                 + " on "
                 + relcntAlias
                 + ".trackedentityid = subax.trackedentity"),
-        "Main CTE should join the relationship count CTE on trackedEntity");
+        "Main CTE should join the relationship count CTE by its WITH alias on trackedEntity");
     assertTrue(
         mainCteSql.contains("where " + relcntAlias + ".value > toFloat64(0)"),
         "Filter should reference the joined relationship count value");
@@ -684,12 +686,14 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         "Relationship count CTE should filter on the requested relationship type");
     assertTrue(
         mainCteSql.contains(
-            "left join relcnt_RelatnTypeA "
+            "left join "
+                + relcntAlias
+                + " "
                 + relcntAlias
                 + " on "
                 + relcntAlias
                 + ".trackedentityid = subax.trackedentity"),
-        "Main CTE should join the typed relationship count CTE on trackedEntity");
+        "Main CTE should join the typed relationship count CTE by its WITH alias on trackedEntity");
     assertTrue(
         mainCteSql.contains("where " + relcntAlias + ".value > toFloat64(0)"),
         "Filter should reference the joined relationship count value");
@@ -765,12 +769,14 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String relcntAlias = relcntCte.getAlias();
     assertTrue(
         mainCteSql.contains(
-            "left join relcnt_all "
+            "left join "
+                + relcntAlias
+                + " "
                 + relcntAlias
                 + " on "
                 + relcntAlias
                 + ".trackedentityid = subax.trackedentity"),
-        "Event PI main CTE should join the relationship count CTE on trackedEntity");
+        "Event PI main CTE should join the relationship count CTE by its WITH alias on trackedEntity");
     assertTrue(
         mainCteSql.contains("sum(" + relcntAlias + ".value)"),
         "Event PI expression should aggregate the joined relationship count value");
