@@ -204,7 +204,7 @@ public class DimensionController
 
     RootNode rootNode = NodeUtils.createMetadata();
 
-    List<String> fields = params.getFieldsJsonList();
+    String fields = params.getFieldsJsonList();
     CollectionNode collectionNode =
         rootNode.addChild(
             oldFieldFilterService.toCollectionNode(

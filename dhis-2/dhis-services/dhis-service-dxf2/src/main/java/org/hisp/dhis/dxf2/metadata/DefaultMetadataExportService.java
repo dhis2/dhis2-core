@@ -243,7 +243,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       FieldFilterParams<?> fieldFilterParams =
           FieldFilterParams.builder()
               .objects(new ArrayList<>(entry.getValue()))
-              .filters(params.getFields(entry.getKey()))
+              .fields(params.getFields(entry.getKey()))
               .skipSharing(params.getSkipSharing())
               .build();
 
@@ -293,7 +293,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
         FieldFilterParams<?> fieldFilterParams =
             FieldFilterParams.builder()
                 .objects(objects)
-                .filters(params.getFields(klass))
+                .fields(params.getFields(klass))
                 .skipSharing(params.getSkipSharing())
                 .user(CurrentUserUtil.getCurrentUserDetails())
                 .build();
@@ -331,7 +331,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
         FieldFilterParams<?> fieldFilterParams =
             FieldFilterParams.builder()
                 .objects(new ArrayList<>(metadata.get(klass)))
-                .filters(":owner")
+                .fields(":owner")
                 .skipSharing(params.getSkipSharing())
                 .build();
 
@@ -368,7 +368,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       FieldFilterParams<?> fieldFilterParams =
           FieldFilterParams.builder()
               .objects(new ArrayList<>(metadata.get(klass)))
-              .filters(":owner")
+              .fields(":owner")
               .skipSharing(params.getSkipSharing())
               .build();
 

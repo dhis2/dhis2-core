@@ -62,6 +62,7 @@ import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -295,7 +296,7 @@ public abstract class AbstractFullReadOnlyController<
     }
 
     List<T> entities = getEntityList(params, List.of());
-    List<String> fields = params.getFieldsCsvList();
+    String fields = params.getFieldsCsvList();
     try {
       String csv = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
       return ResponseEntity.ok(csv);
@@ -309,11 +310,7 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   protected String applyCsvSteps(
-      List<String> fields,
-      List<T> entities,
-      char separator,
-      String arraySeparator,
-      boolean skipHeader)
+      String fields, List<T> entities, char separator, String arraySeparator, boolean skipHeader)
       throws IOException {
     CsvSchema.Builder schemaBuilder = CsvSchema.builder();
     Map<String, Function<T, Object>> obj2valueByProperty = new LinkedHashMap<>();
@@ -355,34 +352,28 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   private void setupSchemaAndProperties(
-      Builder schemaBuilder,
-      List<String> fields,
-      Map<String, Function<T, Object>> obj2valueByProperty) {
-    for (String field : fields) {
-      // We just split on ',' here, we do not try and deep dive into
-      // objects using [], if the client provides id,name,group[id]
-      // then the group[id] part is simply ignored.
-      for (String fieldName : field.split(",")) {
-        Property property = getSchema().getProperty(fieldName);
+      Builder schemaBuilder, String fields, Map<String, Function<T, Object>> obj2valueByProperty) {
+    for (Fields.Field field : Fields.of(fields)) {
+      String fieldName = field.propertyPath();
+      Property property = getSchema().getProperty(fieldName);
 
-        if (property == null) {
-          if (CodeGenerator.isValidUid(fieldName)) {
-            schemaBuilder.addColumn(fieldName);
-            obj2valueByProperty.put(fieldName, obj -> getAttributeValue(obj, fieldName));
-          }
-          continue;
+      if (property == null) {
+        if (CodeGenerator.isValidUid(fieldName)) {
+          schemaBuilder.addColumn(fieldName);
+          obj2valueByProperty.put(fieldName, obj -> getAttributeValue(obj, fieldName));
         }
+        continue;
+      }
 
-        if ((property.isCollection() && property.itemIs(PropertyType.REFERENCE))) {
-          schemaBuilder.addArrayColumn(property.getCollectionName());
-          obj2valueByProperty.put(
-              property.getCollectionName(), obj -> getCollectionValue(obj, property));
-        } else if (property.isSimple()) {
-          schemaBuilder.addColumn(property.getName());
-          obj2valueByProperty.put(
-              property.getName(),
-              obj -> DefaultSchemaService.safeInvoke(obj, property.getGetterMethod()));
-        }
+      if ((property.isCollection() && property.itemIs(PropertyType.REFERENCE))) {
+        schemaBuilder.addArrayColumn(property.getCollectionName());
+        obj2valueByProperty.put(
+            property.getCollectionName(), obj -> getCollectionValue(obj, property));
+      } else if (property.isSimple()) {
+        schemaBuilder.addColumn(property.getName());
+        obj2valueByProperty.put(
+            property.getName(),
+            obj -> DefaultSchemaService.safeInvoke(obj, property.getGetterMethod()));
       }
     }
   }
@@ -431,7 +422,7 @@ public abstract class AbstractFullReadOnlyController<
 
     List<T> entities = queryService.query(query);
 
-    List<String> fields = params.getFieldsObject();
+    String fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
 
     entities.forEach(e -> postProcessResponseEntity(e, params));
@@ -481,7 +472,7 @@ public abstract class AbstractFullReadOnlyController<
 
     List<T> entities = queryService.query(query);
 
-    List<String> fields = params.getFieldsObject();
+    String fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
 
     entities.forEach(e -> postProcessResponseEntity(entity, params));
@@ -534,25 +525,23 @@ public abstract class AbstractFullReadOnlyController<
         ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
   }
 
-  private boolean hasHref(List<String> fields) {
+  private boolean hasHref(String fields) {
     return fieldsContains("href", fields);
   }
 
-  private void handleLinksAndAccess(List<T> entityList, List<String> fields, boolean deep) {
+  private void handleLinksAndAccess(List<T> entityList, String fields, boolean deep) {
     if (hasHref(fields)) {
       linkService.generateLinks(entityList, deep);
     }
   }
 
-  private boolean fieldsContains(String match, List<String> fields) {
-    for (String field : fields) {
-      // for now assume href/access if * or preset is requested
-      if (field.contains(match) || field.equals("*") || field.startsWith(":")) {
-        return true;
-      }
-    }
-
-    return false;
+  private boolean fieldsContains(String match, String fields) {
+    return fields.contains("*")
+        || fields.contains(":all")
+        || fields.equals(match)
+        || fields.startsWith(match + ",")
+        || fields.endsWith("," + match)
+        || fields.contains("," + match + ",");
   }
 
   // --------------------------------------------------------------------------

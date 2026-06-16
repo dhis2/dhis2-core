@@ -317,7 +317,7 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
     FieldFilterParams<T> fieldFilterParams =
         FieldFilterParams.<T>builder()
             .objects(new ArrayList<>(objects))
-            .filters(filters)
+            .fields(filters)
             .skipSharing(true)
             .build();
 

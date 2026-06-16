@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.deletedobject.DeletedObject;
@@ -39,13 +38,13 @@ import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -75,14 +74,10 @@ public class DeletedObjectController {
   @OpenApi.Response(DeletedObject[].class)
   @GetMapping
   @RequiresAuthority(anyOf = ALL)
-  public RootNode getDeletedObjects(DeletedObjectQuery query) {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+  public RootNode getDeletedObjects(
+      DeletedObjectQuery query, @RequestParam(defaultValue = "*") String fields) {
     int totalDeletedObjects = deletedObjectService.countDeletedObjects(query);
     query.setTotal(totalDeletedObjects);
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
 
     List<DeletedObject> deletedObjects = deletedObjectService.getDeletedObjects(query);
 

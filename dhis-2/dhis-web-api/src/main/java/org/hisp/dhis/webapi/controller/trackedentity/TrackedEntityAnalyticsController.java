@@ -47,7 +47,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
@@ -279,7 +278,7 @@ class TrackedEntityAnalyticsController {
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
       @RequestParam String trackedEntityType,
       @RequestParam(required = false) Set<String> program,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);

@@ -433,7 +433,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     char[] indent = new char[offset];
     Arrays.fill(indent, ' ');
     String marker = new String(indent) + "^";
-    return "\n  %s\n  %s".formatted(fields, marker);
+    return "%n  %s%n  %s".formatted(fields, marker);
   }
 
   private static String butFound(Text fields, int offset) {

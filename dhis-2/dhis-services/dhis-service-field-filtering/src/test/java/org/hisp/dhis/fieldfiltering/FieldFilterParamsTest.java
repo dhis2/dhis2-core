@@ -44,14 +44,14 @@ class FieldFilterParamsTest {
     FieldFilterParams<String> params =
         FieldFilterParams.<String>builder()
             .objects(Lists.newArrayList("A", "B", "C"))
-            .filters("id,name")
+            .fields("id,name")
             .build();
 
     assertTrue(params.getObjects().contains("A"));
     assertTrue(params.getObjects().contains("B"));
     assertTrue(params.getObjects().contains("C"));
-    assertTrue(params.getFilters().contains("id"));
-    assertTrue(params.getFilters().contains("name"));
+    assertTrue(params.getFields().contains("id"));
+    assertTrue(params.getFields().contains("name"));
   }
 
   @Test
@@ -62,6 +62,6 @@ class FieldFilterParamsTest {
     assertTrue(params.getObjects().contains("A"));
     assertTrue(params.getObjects().contains("B"));
     assertTrue(params.getObjects().contains("C"));
-    assertEquals("*", params.getFilters());
+    assertEquals("*", params.getFields());
   }
 }

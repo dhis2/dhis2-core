@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import java.util.Collections;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -44,34 +43,31 @@ public class FieldFilterParams<T> {
   /** Objects to apply filters on. */
   private final List<T> objects;
 
-  private final String filters;
+  private final String fields;
 
   private UserDetails user;
 
   /** Do not include sharing properties (user, sharing, publicAccess, etc). */
   private final boolean skipSharing;
 
-  public static <O> FieldFilterParams<O> of(List<O> objects, List<String> filters) {
-    return FieldFilterParams.<O>builder().objects(objects).filters(filters).build();
+  public static <O> FieldFilterParams<O> of(List<O> objects, String fields) {
+    return new FieldFilterParams<>(objects, fields, null, false);
   }
 
-  public static <O> FieldFilterParams<O> of(O object, List<String> filters) {
-    return FieldFilterParams.<O>builder()
-        .objects(Collections.singletonList(object))
-        .filters(filters)
-        .build();
+  public static <O> FieldFilterParams<O> of(O object, String fields) {
+    return of(List.of(object), fields);
   }
 
   public static class FieldFilterParamsBuilder<T> {
-    private String filters = "*";
+    private String fields = "*";
 
-    public FieldFilterParamsBuilder<T> filters(String filters) {
-      this.filters = filters;
+    public FieldFilterParamsBuilder<T> fields(String fields) {
+      this.fields = fields;
       return this;
     }
 
-    public FieldFilterParamsBuilder<T> filters(List<String> filters) {
-      this.filters = String.join(",", filters);
+    public FieldFilterParamsBuilder<T> fields(List<String> filters) {
+      this.fields = String.join(",", filters);
       return this;
     }
   }

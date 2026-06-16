@@ -188,7 +188,7 @@ public class FieldFilterService {
       return objectNodes;
     }
 
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFilters());
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFields());
     return toObjectNodes(params.getObjects(), fieldPaths, params.getUser(), params.isSkipSharing());
   }
 
@@ -342,7 +342,7 @@ public class FieldFilterService {
     if (params.getObjects().isEmpty()) {
       return;
     }
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFilters());
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFields());
 
     try {
       toObjectNodes(
