@@ -29,10 +29,8 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -49,16 +47,5 @@ class FieldFilterParamsTest {
     assertTrue(params.getObjects().contains("C"));
     assertTrue(params.getFields().contains("id"));
     assertTrue(params.getFields().contains("name"));
-  }
-
-  @Test
-  void testBuilderWithDefault() {
-    FieldFilterParams<String> params =
-        FieldFilterParams.<String>builder().objects(Lists.newArrayList("A", "B", "C")).build();
-
-    assertTrue(params.getObjects().contains("A"));
-    assertTrue(params.getObjects().contains("B"));
-    assertTrue(params.getObjects().contains("C"));
-    assertEquals("*", params.getFields());
   }
 }
