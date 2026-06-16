@@ -100,6 +100,7 @@ import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
@@ -734,7 +735,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     removeLegacyPeriodDimensionColumns(columns, params);
 
     SelectBuilder sb = new SelectBuilder();
-    sb.addColumn(ENROLLMENT_COL, "ax");
+    sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
       sb.addColumn(SqlColumnParser.removeTableAlias(column));
     }
@@ -931,12 +932,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       return;
     }
 
-    String eventTableName = ANALYTICS_EVENT + params.getProgram().getUid();
+    String eventTableName = AnalyticsTableNames.eventTable(params.getProgram());
     String eventEnrollmentFilterSql =
         """
         (
             select
-                ev.enrollment,
+                ev.enrollment as enrollment,
                 max(ev.%s) as %s
             from %s ev
             where ev.eventstatus != 'SCHEDULE'
