@@ -131,31 +131,42 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
           .intValue();
     }
 
-    // The MATERIALIZED CTE computes the TEAV set once so PostgreSQL builds a hash table
-    // and probes it per RV row, rather than re-running the correlated inner query 11M times.
-    // The two sides of the UNION ALL are disjoint (NOT EXISTS), avoiding double-counting
-    // values present in both tables between RemoveUsedOrExpiredReservedValuesJob runs.
+    // Inclusion-exclusion avoids double-counting values present in both tables.
+    // The overlap sub-query scans TEAV (small side) and uses the unique index
+    // in_reservedvalue_value_generation (ownerobject, owneruid, key, lower(value))
+    // for O(log N) lookups into RV (large side), keeping memory usage low regardless of work_mem.
     Long count =
         jdbcTemplate.queryForObject(
-            "WITH teav_vals AS MATERIALIZED ("
-                + " SELECT lower(teav.value) AS lower_val"
-                + " FROM trackedentityattributevalue teav"
-                + " JOIN trackedentityattribute tea"
-                + " ON teav.trackedentityattributeid = tea.trackedentityattributeid"
-                + " WHERE tea.uid = ? AND lower(teav.value) LIKE lower(?)"
-                + ")"
-                + " SELECT count(*) FROM ("
-                + " SELECT 1 FROM reservedvalue rv"
-                + " WHERE rv.owneruid = ? AND rv.key = ?"
-                + " AND NOT EXISTS (SELECT 1 FROM teav_vals WHERE lower_val = lower(rv.value))"
-                + " UNION ALL"
-                + " SELECT 1 FROM teav_vals"
-                + ") counted",
+            "SELECT rv_count + teav_count - overlap_count FROM ("
+                + " SELECT"
+                + "  (SELECT count(*)"
+                + "   FROM reservedvalue"
+                + "   WHERE owneruid = ? AND key = ?) AS rv_count,"
+                + "  (SELECT count(*)"
+                + "   FROM trackedentityattributevalue teav"
+                + "   JOIN trackedentityattribute tea"
+                + "    ON teav.trackedentityattributeid = tea.trackedentityattributeid"
+                + "   WHERE tea.uid = ? AND lower(teav.value) LIKE lower(?)) AS teav_count,"
+                + "  (SELECT count(*)"
+                + "   FROM trackedentityattributevalue teav"
+                + "   JOIN trackedentityattribute tea"
+                + "    ON teav.trackedentityattributeid = tea.trackedentityattributeid"
+                + "   WHERE tea.uid = ? AND lower(teav.value) LIKE lower(?)"
+                + "   AND EXISTS ("
+                + "    SELECT 1 FROM reservedvalue rv"
+                + "    WHERE rv.ownerobject = 'TRACKEDENTITYATTRIBUTE'"
+                + "    AND rv.owneruid = ? AND rv.key = ?"
+                + "    AND lower(rv.value) = lower(teav.value))) AS overlap_count"
+                + ") counts",
             Long.class,
-            reservedValue.getOwnerUid(),
-            reservedValue.getValue(),
-            reservedValue.getOwnerUid(),
-            reservedValue.getKey());
+            reservedValue.getOwnerUid(), // rv_count: owneruid
+            reservedValue.getKey(), // rv_count: key
+            reservedValue.getOwnerUid(), // teav_count: tea.uid
+            reservedValue.getValue(), // teav_count: LIKE lower(?)
+            reservedValue.getOwnerUid(), // overlap_count: tea.uid
+            reservedValue.getValue(), // overlap_count: LIKE lower(?)
+            reservedValue.getOwnerUid(), // overlap EXISTS: rv.owneruid
+            reservedValue.getKey()); // overlap EXISTS: rv.key
     return count == null ? 0 : count.intValue();
   }
 
