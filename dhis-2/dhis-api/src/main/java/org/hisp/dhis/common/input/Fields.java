@@ -30,6 +30,7 @@
 package org.hisp.dhis.common.input;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -189,8 +190,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     public boolean isPreset() {
-      char c = propertyPath.charAt(propertyPath.lastIndexOf('.') + 1);
-      return isPresetMarker(c) || c == '*';
+      return isPresetMarker(propertyPath.charAt(propertyPath.lastIndexOf('.') + 1));
     }
 
     public boolean isRenamed() {
@@ -222,10 +222,12 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
 
     Stream<FieldPath> toFieldPaths(List<String> parentPath) {
       String name = this.name.toString();
-      if ("*".equals(name)) name = ":all";
       boolean exclude = isExcludeMarker(name.charAt(0));
+      if (exclude) name = name.substring(1);
+      if ("*".equals(name)) name = ":all";
       boolean preset = isPresetMarker(name.charAt(0));
-      if (exclude || preset) name = name.substring(1);
+      if (preset) name = name.substring(1);
+      if (preset && exclude) exclude = false;
       List<FieldPathTransformer> transformers =
           this.transforms.stream()
               .map(
@@ -240,8 +242,11 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     Stream<Field> toFields(String parentPath, String parentRenamedPath) {
-      String plainName = name.toString();
-      Field f = new Field(chain(parentPath, plainName));
+      String name = this.name.toString();
+      if (name.length() >= 2 && isExcludeMarker(name.charAt(0)) && isPresetMarker(name.charAt(1)))
+        name = name.substring(1); // drop negation of preset
+      if ("*".equals(name)) name = ":all"; // unify * to :all
+      Field f = new Field(chain(parentPath, name));
       String renamedName = "";
       for (TransformExp t : transforms)
         if (t.type.contentEquals("rename")) renamedName = t.args.get(0).toString();
@@ -250,7 +255,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
             f.withRenamedPath(
                 chain(
                     parentRenamedPath.isEmpty() ? parentPath : parentRenamedPath,
-                    renamedName.isEmpty() ? plainName : renamedName));
+                    renamedName.isEmpty() ? name : renamedName));
       if (transforms.isEmpty() && children.isEmpty()) return Stream.of(f);
       Field base = f;
       boolean noTransform = transforms.isEmpty() || base.isRenamed() && transforms.size() == 1;
@@ -276,9 +281,10 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
 
   private static int parseFields(Text fields, int offset, List<FieldExp> res) {
     int i = offset;
+    boolean nested = offset > 0;
     int len = fields.length();
     while (i < len) {
-      i = parseField(fields, i, res);
+      i = parseField(fields, i, nested, res);
       if (i >= len) return i;
       char c = fields.charAt(i);
       if (isNestedClose(c)) return i;
@@ -288,11 +294,14 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     return i;
   }
 
-  private static int parseField(Text fields, int offset, List<FieldExp> res) {
-    int i = skipSpace(fields, offset);
+  private static int parseField(Text fields, int offset, boolean nested, List<FieldExp> res) {
     int len = fields.length();
+    int i = skipSpace(fields, offset);
+    if (i >= len) return i; // allow empty field at the end (ignore dangling ,)
+    char c = fields.charAt(i);
+    if (c == ',' || nested && isNestedClose(c)) return i; // allow empty field (ignore)
     int s = i;
-    if (i < len && isNameMarker(fields.charAt(i))) s++; // skip : of a preset
+    while (s < len && isNameMarker(fields.charAt(s))) s++; // skip : or * of a preset
     int e = parseName(fields, s);
     if (e == i) throw expectedNameCharacter(fields, i);
     Text name = fields.subSequence(i, e);
@@ -356,8 +365,11 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     if (i >= len) return i;
     if (!isNestedOpen(fields.charAt(i))) return i;
     i++; // skip [ or (
+    i = skipSpace(fields, i);
+    if (i >= len) return i;
+    if (isNestedClose(fields.charAt(i))) return i + 1; // skip ] or )
     i = parseFields(fields, i, res);
-    if (i >= len) return i; // allow omitting ] at the end
+    if (i >= len) return i; // allow omitting ] or ) at the end
     if (!isNestedClose(fields.charAt(i))) throw expectedCharacter(']', fields, i);
     return i + 1; // skip ] or )
   }
@@ -374,8 +386,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
         || c >= 'A' && c <= 'Z'
         || c >= '0' && c <= '9'
         || c == '_'
-        || c == '-'
-        || c == '*';
+        || c == '-';
   }
 
   private static boolean isTransformMarker(char c) {
@@ -387,7 +398,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
   }
 
   private static boolean isPresetMarker(char c) {
-    return c == ':';
+    return c == ':' || c == '*';
   }
 
   private static boolean isExcludeMarker(char c) {
@@ -408,13 +419,21 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
 
   private static IllegalArgumentException expectedNameCharacter(Text fields, int offset) {
     return new IllegalArgumentException(
-        "Expected a name character at position %d but found: %s"
-            .formatted(offset, butFound(fields, offset)));
+        "Expected a name character at position %d but found: %s%s"
+            .formatted(offset, butFound(fields, offset), marker(fields, offset)));
   }
 
   private static IllegalArgumentException expectedCharacter(char ch, Text fields, int offset) {
     return new IllegalArgumentException(
-        "Expected %s at position %d but found: %s".formatted(ch, offset, butFound(fields, offset)));
+        "Expected %s at position %d but found: %s%s"
+            .formatted(ch, offset, butFound(fields, offset), marker(fields, offset)));
+  }
+
+  private static String marker(Text fields, int offset) {
+    char[] indent = new char[offset];
+    Arrays.fill(indent, ' ');
+    String marker = new String(indent) + "^";
+    return "\n  %s\n  %s".formatted(fields, marker);
   }
 
   private static String butFound(Text fields, int offset) {

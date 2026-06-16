@@ -84,15 +84,6 @@ class FieldsParserTest {
   // but when it got replaced platform decided to no longer support it
   static Stream<Arguments> providerEqualBehaviourOutdated() {
     return Stream.of(
-        // ignore empty fields and blocks
-        Arguments.of(
-            " id, ,, group[ , , id ,  ], code  ,",
-            List.of(
-                new ExpectField(true, "id"),
-                new ExpectField(true, "group"),
-                new ExpectField(true, "group.id"),
-                new ExpectField(true, "code"))),
-
         // this is the behavior of the org.hisp.dhis.fieldfiltering.FieldFilterParser
         // I replicated it for backwards compatibility but am unsure if we want to trim whitespace
         // inside of a field name
@@ -221,6 +212,15 @@ class FieldsParserTest {
                 new ExpectField(true, "group"),
                 new ExpectField(true, "group.id"),
                 new ExpectField(true, "group.name"),
+                new ExpectField(true, "code"))),
+
+        // ignore empty fields and blocks
+        Arguments.of(
+            " id, ,, group[ , , id ,  ], code  ,",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
                 new ExpectField(true, "code"))),
 
         // testBlockSpreadOut
