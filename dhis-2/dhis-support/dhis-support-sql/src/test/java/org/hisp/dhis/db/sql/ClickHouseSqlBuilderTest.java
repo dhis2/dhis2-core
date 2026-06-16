@@ -296,8 +296,27 @@ class ClickHouseSqlBuilderTest {
         "dateDiff('minute', toDateTime('2020-06-01'), completeddate)",
         sqlBuilder.dateDifference("'2020-06-01'", "completeddate", DateUnit.MINUTES));
     assertEquals(
-        "dateDiff('month', enrollmentdate, toDateTime64('2020-06-01 12:30:45', 3))",
+        "age('month', enrollmentdate, toDateTime64('2020-06-01 12:30:45', 3))",
         sqlBuilder.dateDifference("enrollmentdate", "'2020-06-01 12:30:45'", DateUnit.MONTHS));
+  }
+
+  @Test
+  void testDateDifferenceUsesCompletedUnitSemantics() {
+    assertEquals(
+        "age('year', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.YEARS));
+    assertEquals(
+        "age('month', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.MONTHS));
+    assertEquals(
+        "age('week', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.WEEKS));
+    assertEquals(
+        "dateDiff('day', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.DAYS));
+    assertEquals(
+        "dateDiff('minute', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.MINUTES));
   }
 
   @Test

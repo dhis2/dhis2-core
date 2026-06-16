@@ -282,6 +282,15 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     };
   }
 
+  /**
+   * Years, months and weeks use ClickHouse <code>age</code> (available since v23.1) rather than
+   * <code>dateDiff</code>. ClickHouse <code>dateDiff</code> counts boundary crossings (e.g. <code>
+   * dateDiff('year', '2023-12-31', '2024-01-01')</code> is 1), whereas PostgreSQL, the reference
+   * implementation, counts completed units via <code>age()</code>. Using <code>age</code> keeps
+   * these units consistent with PostgreSQL. Days and minutes stay on <code>dateDiff</code> because
+   * PostgreSQL computes them with date subtraction and elapsed time, which already match <code>
+   * dateDiff</code> for those units.
+   */
   @Override
   public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
     startDate = normalizeDateDiffOperand(startDate, dateUnit);
@@ -290,9 +299,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return switch (dateUnit) {
       case DAYS -> String.format("dateDiff('day', %s, %s)", startDate, endDate);
       case MINUTES -> String.format("dateDiff('minute', %s, %s)", startDate, endDate);
-      case MONTHS -> String.format("dateDiff('month', %s, %s)", startDate, endDate);
-      case YEARS -> String.format("dateDiff('year', %s, %s)", startDate, endDate);
-      case WEEKS -> String.format("dateDiff('week', %s, %s)", startDate, endDate);
+      case MONTHS -> String.format("age('month', %s, %s)", startDate, endDate);
+      case YEARS -> String.format("age('year', %s, %s)", startDate, endDate);
+      case WEEKS -> String.format("age('week', %s, %s)", startDate, endDate);
     };
   }
 
