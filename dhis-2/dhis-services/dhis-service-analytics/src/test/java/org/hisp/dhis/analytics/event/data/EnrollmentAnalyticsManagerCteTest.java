@@ -1154,7 +1154,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     queryItem.setProgramStage(programStage);
     queryItem.addFilter(new QueryFilter(EQ, orgUnitUid));
 
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn(orgUnitUid);
 
     EventQueryParams.Builder params = createRequestParamsBuilder();
