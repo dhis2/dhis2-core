@@ -121,39 +121,42 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
   @Override
   public int getNumberOfUsedValues(ReservedValue reservedValue) {
-    Query<Long> countReservedValuesQuery =
-        getTypedQuery("SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key");
-
-    Long count =
-        countReservedValuesQuery
-            .setParameter("uid", reservedValue.getOwnerUid())
-            .setParameter("key", reservedValue.getKey())
-            .getSingleResult();
-
-    if (Objects.valueOf(reservedValue.getOwnerObject()).equals(TRACKEDENTITYATTRIBUTE)) {
-      String countTeavQuery =
-          "SELECT count(*) "
-              + "FROM TrackedEntityAttributeValue "
-              + "WHERE attribute = "
-              + "( FROM TrackedEntityAttribute "
-              + "WHERE uid = :uid ) ";
-
-      if (reservedValue.getValue().equals("%")) {
-        Query<Long> attrQuery = getTypedQuery(countTeavQuery);
-        count += attrQuery.setParameter("uid", reservedValue.getOwnerUid()).getSingleResult();
-      } else {
-        countTeavQuery += "AND value LIKE :value ";
-        Query<Long> attrQuery = getTypedQuery(countTeavQuery);
-
-        count +=
-            attrQuery
-                .setParameter("uid", reservedValue.getOwnerUid())
-                .setParameter("value", reservedValue.getValue())
-                .getSingleResult();
-      }
+    if (!Objects.valueOf(reservedValue.getOwnerObject()).equals(TRACKEDENTITYATTRIBUTE)) {
+      Query<Long> query =
+          getTypedQuery("SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key");
+      return query
+          .setParameter("uid", reservedValue.getOwnerUid())
+          .setParameter("key", reservedValue.getKey())
+          .getSingleResult()
+          .intValue();
     }
 
-    return count.intValue();
+    // Pending reservations (not yet in TEAV) + all TEAVs. The NOT EXISTS makes the two sides
+    // disjoint, so UNION ALL is correct and avoids double-counting values that exist in both
+    // tables between RemoveUsedOrExpiredReservedValuesJob runs.
+    Long count =
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM ("
+                + "SELECT rv.reservedvalueid FROM reservedvalue rv"
+                + " WHERE rv.owneruid = ? AND rv.key = ?"
+                + " AND NOT EXISTS ("
+                + " SELECT 1 FROM trackedentityattributevalue teav"
+                + " JOIN trackedentityattribute tea"
+                + " ON teav.trackedentityattributeid = tea.trackedentityattributeid"
+                + " WHERE tea.uid = rv.owneruid AND lower(teav.value) = lower(rv.value)"
+                + " )"
+                + " UNION ALL"
+                + " SELECT teav.trackedentityattributevalueid FROM trackedentityattributevalue teav"
+                + " JOIN trackedentityattribute tea"
+                + " ON teav.trackedentityattributeid = tea.trackedentityattributeid"
+                + " WHERE tea.uid = ? AND lower(teav.value) LIKE lower(?)"
+                + ") used_values",
+            Long.class,
+            reservedValue.getOwnerUid(),
+            reservedValue.getKey(),
+            reservedValue.getOwnerUid(),
+            reservedValue.getValue());
+    return count == null ? 0 : count.intValue();
   }
 
   @Override
