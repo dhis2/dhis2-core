@@ -320,6 +320,7 @@ public class ReservedValuePerformanceTest extends Simulation {
             v_tea_ids  INTEGER[];
             v_tea1_id  INTEGER;
             v_base_id  BIGINT;
+            v_rv_base  BIGINT;
             i          INTEGER;
         BEGIN
             IF EXISTS (SELECT 1 FROM trackedentity WHERE uid = 'Te000000001') THEN
@@ -408,11 +409,14 @@ public class ReservedValuePerformanceTest extends Simulation {
 
             -- 11M reserved values for PerfTea0001 ─────────────────────────────────
 
+            SELECT COALESCE(MAX(reservedvalueid), 0) INTO v_rv_base FROM reservedvalue;
+
             -- 8M expired (cleared by removeExpiredValues)
             RAISE NOTICE 'Inserting 8M expired reserved values...';
             INSERT INTO reservedvalue
-                (created, expirydate, key, ownerobject, owneruid, value)
+                (reservedvalueid, created, expirydate, key, ownerobject, owneruid, value)
             SELECT
+                v_rv_base + gs,
                 NOW(),
                 NOW() - INTERVAL '1 day',
                 '',
@@ -424,8 +428,9 @@ public class ReservedValuePerformanceTest extends Simulation {
             -- 20K valid matching TEAVs (cleared by removeUsedValues)
             RAISE NOTICE 'Inserting 20K matching valid reserved values...';
             INSERT INTO reservedvalue
-                (created, expirydate, key, ownerobject, owneruid, value)
+                (reservedvalueid, created, expirydate, key, ownerobject, owneruid, value)
             SELECT
+                v_rv_base + 8000000 + gs,
                 NOW(),
                 NOW() + INTERVAL '7 days',
                 '',
@@ -437,8 +442,9 @@ public class ReservedValuePerformanceTest extends Simulation {
             -- 2.98M valid non-matching (survive the cleanup run)
             RAISE NOTICE 'Inserting 2.98M non-matching valid reserved values...';
             INSERT INTO reservedvalue
-                (created, expirydate, key, ownerobject, owneruid, value)
+                (reservedvalueid, created, expirydate, key, ownerobject, owneruid, value)
             SELECT
+                v_rv_base + 8020000 + gs,
                 NOW(),
                 NOW() + INTERVAL '7 days',
                 '',
@@ -446,6 +452,10 @@ public class ReservedValuePerformanceTest extends Simulation {
                 'PerfTea0001',
                 lpad((1000000 + gs)::text, 8, '0')
             FROM generate_series(1, 2980000) gs;
+
+            -- Advance the sequence so DHIS2 doesn't collide on next insert
+            PERFORM setval('reservedvalue_sequence',
+                (SELECT MAX(reservedvalueid) FROM reservedvalue));
 
             RAISE NOTICE 'Seeding complete: 1M TEs, 10M TEAVs, 11M reserved values.';
         END $$;
