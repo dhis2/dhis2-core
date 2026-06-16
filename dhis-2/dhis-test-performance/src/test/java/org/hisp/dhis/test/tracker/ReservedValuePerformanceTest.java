@@ -322,7 +322,7 @@ public class ReservedValuePerformanceTest extends Simulation {
             v_base_id  BIGINT;
             i          INTEGER;
         BEGIN
-            IF EXISTS (SELECT 1 FROM trackedentity WHERE uid = 'PerfRv00001') THEN
+            IF EXISTS (SELECT 1 FROM trackedentity WHERE uid = 'PerfRv0000001') THEN
                 RAISE NOTICE 'Perf data already present — skipping seed.';
                 RETURN;
             END IF;
@@ -359,7 +359,7 @@ public class ReservedValuePerformanceTest extends Simulation {
                  trackedentitytypeid, organisationunitid, inactive, deleted)
             SELECT
                 v_base_id + gs,
-                'PerfRv' || lpad(gs::text, 5, '0'),
+                'PerfRv' || lpad(gs::text, 7, '0'),
                 NOW() - ((gs %% 365) || ' days')::interval,
                 NOW() - ((gs %% 30)  || ' days')::interval,
                 v_tet_id, v_ou_id, false, false
