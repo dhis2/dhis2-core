@@ -56,6 +56,7 @@ import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_EVENT;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
@@ -109,6 +110,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -176,6 +178,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
@@ -555,7 +558,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           if (params.isAggregatedEnrollments()
               && dimension.getDimensionType() == DimensionType.PERIOD) {
             for (DimensionalItemObject it : dimension.getItems()) {
-              columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
+              columns.add(
+                  ((PeriodDimension) it)
+                      .getPeriodType()
+                      .getPeriodTypeEnum()
+                      .getName()
+                      .toLowerCase(Locale.ROOT));
             }
             return;
           }
@@ -584,7 +592,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             columns.add(
                 isGroupByClause
                     ? singleQuote(period.getIsoDate())
-                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    : singleQuote(period.getIsoDate())
+                        + " as "
+                        + period.getPeriodType().getName().toLowerCase(Locale.ROOT));
           } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
             // Assuming same period type for all period filters, as the
             // query planner splits into one query per period type
@@ -593,7 +603,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             columns.add(
                 isGroupByClause
                     ? singleQuote(period.getIsoDate())
-                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    : singleQuote(period.getIsoDate())
+                        + " as "
+                        + period.getPeriodType().getName().toLowerCase(Locale.ROOT));
           } else {
             throw new IllegalStateException(
                 """
@@ -718,6 +730,25 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         && !isGroupByClause
         && hasOrderByClauseForQueryItem(queryItem, params)) {
       return getColumnAndAliasWithNullIfFunction(queryItem);
+    } else if (queryItem.isText() && isAggregated) {
+      // ClickHouse stores an absent string value as '' rather than NULL, so a raw GROUP BY would
+      // produce a spurious '' bucket and return '' instead of NULL. nullIfEmpty normalises '' to
+      // NULL (no-op on Postgres/Doris). The same expression is used for SELECT and GROUP BY so the
+      // bucket key and the displayed value stay aligned.
+      String rawColumn = getColumn(queryItem);
+      String column = sqlBuilder.nullIfEmpty(rawColumn);
+
+      if (column.equals(rawColumn)) {
+        // No normalisation applied (Postgres/Doris): keep the original rendering unchanged.
+        return getColumnAndAlias(queryItem, isGroupByClause, "");
+      }
+
+      // ClickHouse: the nullif wrapper drops the implicit column label, so alias it with the item
+      // name the row builder looks up.
+      return isGroupByClause
+          ? ColumnAndAlias.ofColumn(column)
+          : ColumnAndAlias.ofColumnAndAlias(
+              column, getAlias(queryItem).orElse(queryItem.getItemName()));
     } else {
       return getColumnAndAlias(queryItem, isGroupByClause, "");
     }
@@ -1289,7 +1320,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
-      return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
+      String expr = sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
+      return isGroupByClause ? expr : expr + " as " + col;
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
       return params
           .getOrgUnitField()
@@ -1303,7 +1335,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else if (params.isPiDisagDimension(col)) {
       return piDisagQueryGenerator.getColumnForSelectOrGroupBy(params, col, isGroupByClause);
     } else {
-      return quoteAlias(col);
+      return isGroupByClause ? quoteAlias(col) : quoteAlias(col) + " as " + col;
     }
   }
 
@@ -2007,8 +2039,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         if (params.getCoordinateFields().stream()
             .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
           columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX).asSql());
-        } else if (!cteContext.isEventsAnalytics() && isStageOuDimension(queryItem)) {
-          // Stage.ou dimensions use CTE columns (only for enrollment analytics)
+        } else if (!cteContext.isEventsAnalytics() && queryItem.hasProgramStage()) {
+          // Enrollment stage org-unit items use CTE columns to avoid correlated subqueries.
           columns.add(getColumnWithCte(queryItem, cteContext, params));
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
@@ -2209,14 +2241,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
 
     List<CteColumn> columns = new ArrayList<>();
-    columns.add(valueColumn(cteAlias, valueAlias));
+    columns.add(valueColumn(cteDef, cteAlias, item, valueAlias));
     columns.addAll(stageOuHelperColumns(cteAlias, item, params));
     columns.addAll(rowContextColumns(cteDef, cteAlias, offset, valueAlias));
     return columns.stream().map(CteColumn::sql).collect(joining(",\n"));
   }
 
-  private CteColumn valueColumn(String cteAlias, String valueAlias) {
-    return new CteColumn(cteAlias + ".value", quote(valueAlias));
+  private CteColumn valueColumn(
+      CteDefinition cteDef, String cteAlias, QueryItem item, String valueAlias) {
+    String valueExpression =
+        cteDef.hasValueName() && shouldProjectValueName(item)
+            ? cteAlias + ".value_name"
+            : cteAlias + ".value";
+    return new CteColumn(valueExpression, quote(valueAlias));
   }
 
   /**
@@ -2351,6 +2388,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       generateFilterCTEs(params, cteContext);
     }
 
+    addEventProgramIndicatorCandidatesCte(params, cteContext);
+
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
 
@@ -2415,6 +2454,58 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   abstract void addFromClause(SelectBuilder sb, EventQueryParams params);
 
   abstract List<String> getStandardColumns(EventQueryParams params);
+
+  /**
+   * Adds the candidate-event CTE used as the input source for EVENT program-indicator CTEs on
+   * databases that cannot render correlated subqueries (such as Clickhouse).
+   *
+   * <p>The candidate CTE is only added for event analytics queries that already have eligible EVENT
+   * program-indicator CTEs. It mirrors the outer event query's base scope, but deliberately avoids
+   * PI filters because those filters depend on the PI CTEs themselves.
+   *
+   * @param params the event query parameters
+   * @param cteContext the CTE context to update
+   */
+  private void addEventProgramIndicatorCandidatesCte(
+      EventQueryParams params, CteContext cteContext) {
+    if (!cteContext.isEventsAnalytics()
+        || !cteContext.hasEventProgramIndicatorCtes()
+        || isBlank(cteContext.getEventProgramIndicatorSourceTable())
+        || cteContext.containsCte(cteContext.getEventProgramIndicatorSourceTable())) {
+      return;
+    }
+
+    SelectBuilder candidates = new SelectBuilder();
+    candidates.addColumn("ax.*");
+    addFromClause(candidates, params);
+    addOrgUnitJoin(candidates, params);
+    candidates.where(buildEventProgramIndicatorCandidateConditions(params));
+
+    cteContext.addEventProgramIndicatorCandidatesCte(candidates.build());
+  }
+
+  /**
+   * Builds the WHERE condition for the EVENT program-indicator candidate CTE.
+   *
+   * <p>The returned condition combines the outer event query's base filters with non-PI query-item
+   * filters. Program-indicator filters are excluded to avoid circular SQL dependencies, since those
+   * filters are evaluated from the joined PI CTE values in the outer query.
+   *
+   * @param params the event query parameters
+   * @return the candidate CTE condition
+   */
+  private Condition buildEventProgramIndicatorCandidateConditions(EventQueryParams params) {
+    Set<QueryItem> programIndicatorItems =
+        Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
+            .filter(QueryItem::isProgramIndicator)
+            .collect(toSet());
+
+    String nonProgramIndicatorItemFilters =
+        getQueryItemsAndFiltersWhereClause(params, programIndicatorItems, new SqlHelper());
+
+    return Condition.and(
+        Condition.raw(getWhereClause(params)), Condition.raw(nonProgramIndicatorItemFilters));
+  }
 
   /**
    * Adds a sequence of "shadow" Common Table Expressions (CTEs) to the CteContext to optimize
@@ -2642,7 +2733,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addShadowEventTableCte(EventQueryParams params, CteContext cteContext) {
     // Create a shadow CTE with the EXACT same name as the real event table
-    String eventTableName = "analytics_event_" + params.getProgram().getUid();
+    String eventTableName = AnalyticsTableNames.eventTable(params.getProgram());
 
     SelectBuilder shadowEvents = new SelectBuilder();
 
@@ -2878,6 +2969,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   void handleProgramIndicatorCte(QueryItem item, CteContext cteContext, EventQueryParams params) {
     ProgramIndicator pi = (ProgramIndicator) item.getItem();
+    // EVENT-type PI CTEs aggregate over events filtered only by the PI's own predicate,
+    // ignoring the outer query's scope (periods, org units, etc.). For backends that support
+    // correlated subqueries, fall back to the inline `(SELECT ... WHERE event = ax.event AND
+    // <pi_filter>)` rendering in getColumnAndAlias, which is naturally scoped to the outer row.
+    // Limited to event analytics: enrollment SELECT building has no master-subquery fallback for
+    // PIs and ENROLLMENT-type PIs need the CTE path to expand generated placeholders.
+    if (sqlBuilder.supportsCorrelatedSubquery()
+        && cteContext.isEventsAnalytics()
+        && pi.getAnalyticsType() == AnalyticsType.EVENT) {
+      return;
+    }
     if (item.hasRelationshipType()) {
       programIndicatorSubqueryBuilder.addCte(
           pi,
@@ -2969,8 +3071,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       builder.crossJoin(itemUid, cteDef.getAlias());
     } else {
       String alias = cteDef.getAlias();
-      builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
+      String joinColumn = resolveProgramIndicatorJoinColumn(cteDef, cteContext);
+      builder.leftJoin(
+          itemUid, alias, tableAlias -> tableAlias + "." + joinColumn + " = ax." + joinColumn);
     }
+  }
+
+  private String resolveProgramIndicatorJoinColumn(CteDefinition cteDef, CteContext cteContext) {
+    if (isNotBlank(cteDef.getJoinColumn())) {
+      return cteDef.getJoinColumn();
+    }
+    if (cteContext.isEnrollmentAnalytics()) {
+      return "enrollment";
+    }
+    return cteDef.getCteType() == PROGRAM_INDICATOR_EVENT ? "event" : "enrollment";
   }
 
   private void addFilterJoin(SelectBuilder builder, String itemUid, CteDefinition cteDef) {
@@ -3002,7 +3116,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private void buildProgramStageCte(
       CteContext cteContext, QueryItem item, EventQueryParams params) {
     // The event table name, e.g. "analytics_event_XYZ".
-    String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+    String eventTableName = AnalyticsTableNames.eventTable(item.getProgram());
 
     // Quoted column name for the item (e.g. "ax"."my_column").
     String colName = quote(item.getItemName());
@@ -3039,7 +3153,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         item,
         cteSql,
         computeRowNumberOffset(programStageOffset),
-        hasRowContext);
+        hasRowContext,
+        filterBuilder.hasNonNvFilter(item),
+        shouldProjectValueName(item));
 
     // If row context is needed, we add an extra "exists" CTE for event checks.
     if (hasRowContext) {
@@ -3284,7 +3400,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       QueryFilter filter, QueryItem item, CteDefinition cteDef, EventQueryParams params) {
     String value = getSqlFilterValue(filter, item, params);
     String operator = resolveOperator(filter, value);
-    return Condition.raw(String.format("%s.value %s %s", cteDef.getAlias(), operator, value));
+    String lhs =
+        shouldCoalesceProgramIndicatorFilter(cteDef)
+            ? "coalesce(" + cteDef.getAlias() + ".value, 0)"
+            : cteDef.getAlias() + ".value";
+    return Condition.raw(String.format("%s %s %s", lhs, operator, value));
+  }
+
+  private boolean shouldCoalesceProgramIndicatorFilter(CteDefinition cteDef) {
+    return cteDef.getCteType() == PROGRAM_INDICATOR_EVENT && cteDef.isRequiresCoalesce();
   }
 
   private String resolveOperator(QueryFilter filter, String value) {
@@ -3341,7 +3465,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String buildAggregateFilterCteSql(List<QueryItem> stageItems, EventQueryParams params) {
     QueryItem firstItem = stageItems.get(0);
-    String tableName = "analytics_event_" + firstItem.getProgram().getUid().toLowerCase();
+    String tableName = AnalyticsTableNames.eventTable(firstItem.getProgram());
     String stageUid = firstItem.getProgramStage().getUid();
 
     List<String> innerColumns = new ArrayList<>();
@@ -3438,10 +3562,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               // Determine the correct table: event table or enrollment table
               String tableName =
                   item.hasProgramStage()
-                      ? "analytics_event_"
-                          + item.getProgram()
-                              .getUid()
-                              .toLowerCase() // Event table for program stage
+                      ? AnalyticsTableNames.eventTable(item.getProgram())
                       : params.getTableName(); // Enrollment table
 
               String programStageCondition =
@@ -3528,7 +3649,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         """
         select
             evt.enrollment,
-            evt.${colName} as value${outerAdditionalCols}
+            ${outerValueExpr} as value${outerAdditionalCols}
         from (
             select
                 evt.enrollment,
@@ -3581,8 +3702,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     }
 
+    // Normalise empty text values to NULL so grouping treats absent and empty text the same way
+    // (e.g. on ClickHouse, which stores empty strings where Postgres stores NULL). Numeric and
+    // stage.ou dimensions are left untouched.
+    String outerValueExpr = "evt." + effectiveColName;
+    if (!isStageOuDimension(item) && item.getValueType() != null && item.getValueType().isText()) {
+      outerValueExpr = sqlBuilder.nullIfEmpty(outerValueExpr);
+    }
+
     Map<String, String> values = new HashMap<>();
     values.put("colName", effectiveColName);
+    values.put("outerValueExpr", outerValueExpr);
     values.put("eventTableName", eventTableName);
     values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
     values.put("programStageUid", item.getProgramStage().getUid());
@@ -3749,6 +3879,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     }
 
+    if (shouldProjectValueName(item)) {
+      additionalCols += " " + getValueNameColumn(item) + " as value_name,";
+    }
+
     // Build enrollment pre-filter for performance optimization
     String enrollmentPrefilter = buildEnrollmentPrefilterSql(params);
 
@@ -3763,6 +3897,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("enrollmentPrefilter", enrollmentPrefilter);
 
     return new StringSubstitutor(values).replace(template);
+  }
+
+  private boolean shouldProjectValueName(QueryItem item) {
+    return item.getValueType() == ValueType.ORGANISATION_UNIT && !isStageOuDimension(item);
+  }
+
+  private String getValueNameColumn(QueryItem item) {
+    return quote(item.getItemName() + "_name");
   }
 
   /**
