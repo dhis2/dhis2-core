@@ -143,9 +143,9 @@ public class UsersPerformanceTest extends Simulation {
   private static final String BASIC_AUTH =
       Base64.getEncoder()
           .encodeToString((USERNAME + ":" + PASSWORD).getBytes(StandardCharsets.UTF_8));
-  private static final String USER_ROLE_UID = prop("userRoleUid", "Euq3XfEIEbx");
-  private static final String ORG_UNIT_UID = prop("orgUnitUid", "ImspTQPwCqd");
-  private static final String USER_GROUP_UID = prop("userGroupUid", "wl5cDMuUhmF");
+  private static final String USER_ROLE_UID = prop("userRoleUid", "MoRvPzDH7lc");
+  private static final String ORG_UNIT_UID = prop("orgUnitUid", "VCCdfC9pvMA");
+  private static final String USER_GROUP_UID = prop("userGroupUid", "KOvR9SAEeEZ");
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
   // Default to sequential so each scenario is measured in isolation (single-endpoint latency).
   // Set -Dmode=parallel for a mixed-load stress test where all scenarios run concurrently.

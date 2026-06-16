@@ -64,7 +64,7 @@ public class TrackedEntityPersister
 
   @Override
   protected String sequenceName() {
-    return "trackedentityinstance_sequence";
+    return "trackedentity_sequence";
   }
 
   @Override
