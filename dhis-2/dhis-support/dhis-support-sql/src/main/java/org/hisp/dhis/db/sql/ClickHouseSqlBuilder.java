@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
@@ -259,6 +261,21 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String coalesce(String expression, String defaultValue) {
     return "coalesce(" + expression + ", " + defaultValue + ")";
+  }
+
+  /**
+   * ClickHouse <code>concat</code> propagates <code>NULL</code>, so a single null argument yields a
+   * null result. Non-literal arguments are coalesced to an empty string to honour the {@link
+   * SqlBuilder#safeConcat} contract that null values are treated as empty strings, matching
+   * PostgreSQL.
+   */
+  @Override
+  public String safeConcat(String... columns) {
+    return "concat("
+        + Arrays.stream(columns)
+            .map(column -> isSingleQuoted(column) ? column : coalesce(column, "''"))
+            .collect(Collectors.joining(", "))
+        + ")";
   }
 
   @Override

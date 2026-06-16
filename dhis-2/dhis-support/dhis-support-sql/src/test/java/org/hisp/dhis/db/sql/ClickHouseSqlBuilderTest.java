@@ -183,7 +183,15 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testConcat() {
     assertEquals(
-        "concat(de.uid, pe.iso, ou.uid)", sqlBuilder.safeConcat("de.uid", "pe.iso", "ou.uid"));
+        "concat(coalesce(de.uid, ''), coalesce(pe.iso, ''), coalesce(ou.uid, ''))",
+        sqlBuilder.safeConcat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testConcatLeavesLiteralsUnwrapped() {
+    assertEquals(
+        "concat(coalesce(en.\"surname\", ''), ', ', coalesce(en.\"username\", ''))",
+        sqlBuilder.safeConcat("en.\"surname\"", "', '", "en.\"username\""));
   }
 
   @Test
