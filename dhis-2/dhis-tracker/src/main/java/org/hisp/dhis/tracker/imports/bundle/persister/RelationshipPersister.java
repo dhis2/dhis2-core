@@ -30,8 +30,8 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
@@ -41,8 +41,10 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -97,13 +99,13 @@ public class RelationshipPersister
 
   @Override
   protected void updateAttributes(
-      Connection connection,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.tracker.model.Relationship hibernateEntity,
       UserDetails user,
       ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch) {
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     // NOTHING TO DO
   }
 

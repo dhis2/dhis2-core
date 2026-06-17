@@ -30,10 +30,11 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.sql.Connection;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fileresource.FileResourceStore;
@@ -45,10 +46,12 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -94,21 +97,31 @@ public class EnrollmentPersister
 
   @Override
   protected void updateAttributes(
-      Connection connection,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist,
       UserDetails user,
       ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch) {
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     handleTrackedEntityAttributeValues(
-        connection,
         preheat,
         enrollment.getAttributes(),
         enrollmentToPersist.getTrackedEntity(),
         user,
         changeLogs,
-        batch);
+        batch,
+        existingAttributeValues);
+  }
+
+  @Override
+  protected Set<String> trackedEntityUidsForAttributeLoad(
+      List<org.hisp.dhis.tracker.imports.domain.Enrollment> dtos) {
+    return dtos.stream()
+        .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
+        .filter(java.util.Objects::nonNull)
+        .map(UID::getValue)
+        .collect(Collectors.toSet());
   }
 
   @Override

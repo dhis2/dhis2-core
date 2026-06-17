@@ -41,8 +41,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
-import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 
 /**
@@ -100,19 +98,6 @@ final class TeavWriter {
 
   void stageDelete(TrackedEntityAttributeValue value) {
     deletes.add(value);
-  }
-
-  /**
-   * TEAVs already staged for insert or update against the given TrackedEntity. Used by the
-   * attribute-handling code to detect when the same logical TEAV (composite key {@code te + attr})
-   * is being processed twice within one persister run -- e.g. two enrollments under the same TE
-   * each carrying the same attribute value -- so it can fold the second occurrence into the first
-   * staged instance instead of staging a second INSERT for the same composite key, which would
-   * violate the primary key at flush.
-   */
-  Stream<TrackedEntityAttributeValue> stagedFor(TrackedEntity trackedEntity) {
-    return Stream.concat(inserts.stream(), updates.stream())
-        .filter(v -> v.getTrackedEntity() == trackedEntity);
   }
 
   Mark mark() {
