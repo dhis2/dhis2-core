@@ -295,7 +295,8 @@ public class SingleEventPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.SingleEvent trackerDto,
-      SingleEvent entity) {
+      SingleEvent entity,
+      EntityWriteBatch batch) {
     // DO NOTHING. Event creation does not create ownership records.
   }
 

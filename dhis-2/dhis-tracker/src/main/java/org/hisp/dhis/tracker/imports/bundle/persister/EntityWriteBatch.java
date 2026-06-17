@@ -38,6 +38,7 @@ import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 
 /**
@@ -99,6 +100,8 @@ class EntityWriteBatch {
   private final TrackerEventWriter trackerEventWriter;
   private final SingleEventWriter singleEventWriter;
   private final RelationshipWriter relationshipWriter = new RelationshipWriter();
+  private final TrackedEntityProgramOwnerWriter ownershipWriter =
+      new TrackedEntityProgramOwnerWriter();
   private final TeavWriter teavWriter = new TeavWriter();
 
   EntityWriteBatch(ObjectMapper objectMapper) {
@@ -147,6 +150,14 @@ class EntityWriteBatch {
     relationshipWriter.stageInsert(relationship);
   }
 
+  /**
+   * Stages a program-ownership row for a newly created enrollment. INSERT-only; {@link
+   * EnrollmentPersister} guards against duplicates before staging.
+   */
+  void stageOwnershipInsert(TrackedEntityProgramOwner owner) {
+    ownershipWriter.stageInsert(owner);
+  }
+
   void stageTeavInsert(TrackedEntityAttributeValue value) {
     teavWriter.stageInsert(value);
   }
@@ -183,6 +194,7 @@ class EntityWriteBatch {
         trackerEventWriter.mark(),
         singleEventWriter.mark(),
         relationshipWriter.mark(),
+        ownershipWriter.mark(),
         teavWriter.mark());
   }
 
@@ -192,6 +204,7 @@ class EntityWriteBatch {
     trackerEventWriter.rollbackTo(mark.trackerEvent());
     singleEventWriter.rollbackTo(mark.singleEvent());
     relationshipWriter.rollbackTo(mark.relationshipInserts());
+    ownershipWriter.rollbackTo(mark.ownershipInserts());
     teavWriter.rollbackTo(mark.teav());
   }
 
@@ -202,8 +215,10 @@ class EntityWriteBatch {
    * bypass the Hibernate persistence context and audit listeners -- see the class javadoc for the
    * scope of that trade-off.
    *
-   * <p>Writers run in FK-safe order: TrackedEntity -> Enrollment -> TrackerEvent -> SingleEvent ->
-   * Relationship -> TEAV. Each writer applies its own inserts before updates before notes.
+   * <p>Writers run in FK-safe order: TrackedEntity -> Enrollment -> program ownership ->
+   * TrackerEvent -> SingleEvent -> Relationship -> TEAV. Each writer applies its own inserts before
+   * updates before notes. Program ownership is flushed after Enrollment (it references the tracked
+   * entity, program and org unit, all already present).
    */
   void flush(Connection conn) throws SQLException {
     if (isEmpty()) {
@@ -212,6 +227,7 @@ class EntityWriteBatch {
 
     trackedEntityWriter.flush(conn);
     enrollmentWriter.flush(conn);
+    ownershipWriter.flush(conn);
     trackerEventWriter.flush(conn);
     singleEventWriter.flush(conn);
     relationshipWriter.flush(conn);
@@ -219,6 +235,7 @@ class EntityWriteBatch {
 
     trackedEntityWriter.clear();
     enrollmentWriter.clear();
+    ownershipWriter.clear();
     trackerEventWriter.clear();
     singleEventWriter.clear();
     relationshipWriter.clear();
@@ -228,6 +245,7 @@ class EntityWriteBatch {
   private boolean isEmpty() {
     return trackedEntityWriter.isEmpty()
         && enrollmentWriter.isEmpty()
+        && ownershipWriter.isEmpty()
         && trackerEventWriter.isEmpty()
         && singleEventWriter.isEmpty()
         && relationshipWriter.isEmpty()
@@ -240,5 +258,6 @@ class EntityWriteBatch {
       UpsertTableWriter.Mark trackerEvent,
       UpsertTableWriter.Mark singleEvent,
       int relationshipInserts,
+      int ownershipInserts,
       TeavWriter.Mark teav) {}
 }

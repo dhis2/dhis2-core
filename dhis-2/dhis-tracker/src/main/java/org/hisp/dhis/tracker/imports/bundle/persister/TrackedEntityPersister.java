@@ -121,7 +121,8 @@ public class TrackedEntityPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity entity) {
+      TrackedEntity entity,
+      EntityWriteBatch batch) {
     // DO NOTHING, TE alone does not have ownership records
 
   }

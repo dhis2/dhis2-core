@@ -353,7 +353,8 @@ public class TrackerEventPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerDto,
-      TrackerEvent entity) {
+      TrackerEvent entity,
+      EntityWriteBatch batch) {
     // DO NOTHING. Event creation does not create ownership records.
   }
 

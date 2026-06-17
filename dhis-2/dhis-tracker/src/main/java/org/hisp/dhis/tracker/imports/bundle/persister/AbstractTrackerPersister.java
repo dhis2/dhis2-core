@@ -164,7 +164,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             if (preAllocatedIds != null) {
               assignId(convertedDto, preAllocatedIds[preAllocatedIdsCursor++]);
             }
-            persistOwnership(bundle, trackerDto, convertedDto);
+            persistOwnership(bundle, trackerDto, convertedDto, batch);
             stageInsert(convertedDto, batch);
             updateDataValues(
                 bundle.getPreheat(),
@@ -335,16 +335,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   /**
    * Persists ownership records for the given entity. The only non-trivial implementation
-   * (enrollments creating a {@link org.hisp.dhis.tracker.model.TrackedEntityProgramOwner}) still
-   * goes through a Hibernate {@code save()} that is never flushed per entity -- a per-entity
-   * session flush would dirty-check the whole preheat-populated persistence context, which is the
-   * overhead the JDBC write path removed. Consequence: a constraint violation on the owner row
-   * (only reachable via a concurrent import racing on the {@code trackedentityid + programid}
-   * unique key) surfaces at transaction commit, outside the per-entity try/catch in {@link
-   * #persist}, so in non-atomic mode stats can report the enrollment as created while the commit
-   * then fails.
+   * (enrollments creating a {@link org.hisp.dhis.tracker.model.TrackedEntityProgramOwner}) stages
+   * the owner row into {@code batch} for a single batched multi-row INSERT at flush, alongside the
+   * other entity writes. Staging within the per-entity try/catch means a rollback also drops the
+   * staged owner, and the {@code trackedentityid + programid} unique-key violation (only reachable
+   * via a concurrent import racing on the same key) now surfaces at the batch flush rather than at
+   * transaction commit.
    */
-  protected abstract void persistOwnership(TrackerBundle bundle, T trackerDto, V entity);
+  protected abstract void persistOwnership(
+      TrackerBundle bundle, T trackerDto, V entity, EntityWriteBatch batch);
 
   /** Execute the persistence of Data values linked to the entity being processed */
   protected abstract void updateDataValues(

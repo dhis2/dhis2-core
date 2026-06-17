@@ -127,7 +127,8 @@ public class RelationshipPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       Relationship trackerDto,
-      org.hisp.dhis.tracker.model.Relationship entity) {
+      org.hisp.dhis.tracker.model.Relationship entity,
+      EntityWriteBatch batch) {
     // NOTHING TO DO
 
   }
