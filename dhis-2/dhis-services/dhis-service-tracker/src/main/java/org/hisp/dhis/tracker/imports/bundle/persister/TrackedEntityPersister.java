@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -54,9 +53,8 @@ public class TrackedEntityPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
 
-  public TrackedEntityPersister(
-      ReservedValueService reservedValueService, DhisConfigurationProvider config) {
-    super(reservedValueService, config);
+  public TrackedEntityPersister(DhisConfigurationProvider config) {
+    super(config);
   }
 
   @Override
