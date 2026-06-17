@@ -118,12 +118,6 @@ public class DefaultTrackedEntityAttributeValueService
 
     if (attributeValue.getValue() != null) {
       attributeValueStore.saveVoid(attributeValue);
-
-      if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
-          && attributeValue.getAttribute().getTextPattern() != null) {
-        reservedValueService.useReservedValue(
-            attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-      }
     }
   }
 

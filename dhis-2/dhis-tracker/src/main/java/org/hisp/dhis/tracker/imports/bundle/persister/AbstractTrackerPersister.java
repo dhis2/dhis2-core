@@ -56,7 +56,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
@@ -83,7 +82,6 @@ import org.hisp.dhis.user.UserDetails;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends IdentifiableObject>
     implements TrackerPersister<T, V> {
-  protected final ReservedValueService reservedValueService;
 
   /**
    * Template method that can be used by classes extending this class to execute the persistence
@@ -443,8 +441,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
         previousValue,
         user,
         changeLogs);
-
-    handleReservedValue(attributeToPersist);
   }
 
   private void delete(
@@ -523,14 +519,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             + " should never be NULL here if validation is enforced before commit.");
 
     return trackedEntityAttribute;
-  }
-
-  private void handleReservedValue(TrackedEntityAttributeValue attributeValue) {
-    if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
-        && attributeValue.getAttribute().getTextPattern() != null) {
-      reservedValueService.useReservedValue(
-          attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-    }
   }
 
   protected static String formatDate(Date date) {

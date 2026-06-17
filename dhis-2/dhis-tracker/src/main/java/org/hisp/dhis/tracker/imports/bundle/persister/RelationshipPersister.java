@@ -33,7 +33,6 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -49,10 +48,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.tracker.model.Relationship> {
-
-  public RelationshipPersister(ReservedValueService reservedValueService) {
-    super(reservedValueService);
-  }
 
   @Override
   protected org.hisp.dhis.tracker.model.Relationship convert(

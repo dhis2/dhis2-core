@@ -37,7 +37,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -57,10 +56,7 @@ public class EnrollmentPersister
     extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment> {
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  public EnrollmentPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService);
+  public EnrollmentPersister(TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
