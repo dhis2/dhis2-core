@@ -119,42 +119,39 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
   @Override
   public int getNumberOfUsedValues(ReservedValue reservedValue) {
-    Query<Long> query =
+    Query<Long> countReservedValuesQuery =
         getTypedQuery("SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key");
 
     Long count =
-        query
+        countReservedValuesQuery
             .setParameter("uid", reservedValue.getOwnerUid())
             .setParameter("key", reservedValue.getKey())
             .getSingleResult();
 
     if (Objects.valueOf(reservedValue.getOwnerObject()).equals(TRACKEDENTITYATTRIBUTE)) {
-      Query<Long> attrQuery =
-          getTypedQuery(
-              "SELECT count(*) "
-                  + "FROM TrackedEntityAttributeValue "
-                  + "WHERE attribute = "
-                  + "( FROM TrackedEntityAttribute "
-                  + "WHERE uid = :uid ) "
-                  + "AND value LIKE :value ");
+      String countTeavQuery =
+          "SELECT count(*) "
+              + "FROM TrackedEntityAttributeValue "
+              + "WHERE attribute = "
+              + "( FROM TrackedEntityAttribute "
+              + "WHERE uid = :uid ) ";
 
-      count +=
-          attrQuery
-              .setParameter("uid", reservedValue.getOwnerUid())
-              .setParameter("value", reservedValue.getValue())
-              .getSingleResult();
+      if (reservedValue.getValue().equals("%")) {
+        Query<Long> attrQuery = getTypedQuery(countTeavQuery);
+        count += attrQuery.setParameter("uid", reservedValue.getOwnerUid()).getSingleResult();
+      } else {
+        countTeavQuery += "AND value LIKE :value ";
+        Query<Long> attrQuery = getTypedQuery(countTeavQuery);
+
+        count +=
+            attrQuery
+                .setParameter("uid", reservedValue.getOwnerUid())
+                .setParameter("value", reservedValue.getValue())
+                .getSingleResult();
+      }
     }
 
     return count.intValue();
-  }
-
-  @Override
-  public boolean useReservedValue(String ownerUID, String value) {
-    return getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value")
-            .setParameter("uid", ownerUID)
-            .setParameter("value", value)
-            .executeUpdate()
-        == 1;
   }
 
   @Override

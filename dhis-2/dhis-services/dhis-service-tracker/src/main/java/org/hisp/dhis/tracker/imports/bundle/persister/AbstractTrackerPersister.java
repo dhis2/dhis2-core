@@ -51,7 +51,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -78,7 +77,6 @@ import org.jasypt.encryption.pbe.PBEStringEncryptor;
 public abstract class AbstractTrackerPersister<
         T extends TrackerDto, V extends BaseIdentifiableObject>
     implements TrackerPersister<T, V> {
-  protected final ReservedValueService reservedValueService;
 
   protected final DhisConfigurationProvider config;
 
@@ -453,8 +451,6 @@ public abstract class AbstractTrackerPersister<
             .setLastUpdated(new Date());
 
     saveOrUpdate(entityManager, preheat, isNew, trackedEntity, attributeToPersist, changeLogs);
-
-    handleReservedValue(attributeToPersist);
   }
 
   private void saveOrUpdate(
@@ -509,11 +505,18 @@ public abstract class AbstractTrackerPersister<
     return trackedEntityAttribute;
   }
 
-  private void handleReservedValue(TrackedEntityAttributeValue attributeValue) {
-    if (attributeValue.getAttribute().isGenerated()
-        && attributeValue.getAttribute().getTextPattern() != null) {
-      reservedValueService.useReservedValue(
-          attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
+  protected static String formatDate(Date date) {
+    java.text.SimpleDateFormat formatter =
+        new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    return date != null ? formatter.format(date) : null;
+  }
+
+  protected static String formatGeometry(org.locationtech.jts.geom.Geometry geometry) {
+    if (geometry == null) {
+      return null;
     }
+    return java.util.stream.Stream.of(geometry.getCoordinates())
+        .map(c -> String.format("(%f, %f)", c.x, c.y))
+        .collect(java.util.stream.Collectors.joining(", "));
   }
 }

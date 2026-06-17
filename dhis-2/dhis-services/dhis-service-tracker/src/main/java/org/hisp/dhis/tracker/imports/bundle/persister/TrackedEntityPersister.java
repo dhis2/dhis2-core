@@ -34,7 +34,6 @@ import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -59,12 +58,11 @@ public class TrackedEntityPersister
       teConverter;
 
   public TrackedEntityPersister(
-      ReservedValueService reservedValueService,
       DhisConfigurationProvider config,
       @Qualifier("aes128StringEncryptor") PBEStringEncryptor encryptor,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
           teConverter) {
-    super(reservedValueService, config, encryptor);
+    super(config, encryptor);
     this.teConverter = teConverter;
   }
 

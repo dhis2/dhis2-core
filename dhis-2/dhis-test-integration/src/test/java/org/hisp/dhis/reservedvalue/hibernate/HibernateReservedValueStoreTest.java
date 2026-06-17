@@ -35,6 +35,7 @@ import com.google.common.collect.Lists;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -47,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
@@ -85,6 +87,8 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private TrackedEntityAttributeValueStore trackedEntityAttributeValueStore;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   @Override
   protected void setUpTest() {
@@ -212,6 +216,35 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     reservedValueStore.removeExpiredValues();
     reservedValueStore.removeUsedValues();
     assertEquals(num, reservedValueStore.getCount());
+  }
+
+  @Test
+  void shouldNotBeAvailableWhenAssignedToTeavWithReservedValueRowStillPresent() {
+    ReservedValue rv = reservedValue.value(prog001).build();
+    saveReservedValue(rv);
+
+    OrganisationUnit ou = createOrganisationUnit("OU");
+    organisationUnitStore.save(ou);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    manager.save(trackedEntity);
+    TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
+    tea.setUid(teaUid);
+    trackedEntityAttributeStore.save(tea);
+    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
+    teav.setValue(prog001);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
+    rv.setTrackedEntityAttributeId(teav.getAttribute().getId());
+
+    assertEquals(1, reservedValueStore.getCount());
+
+    List<ReservedValue> available =
+        reservedValueStore.getAvailableValues(
+            rv, Lists.newArrayList(prog001, prog002), rv.getOwnerObject());
+    assertFalse(available.stream().anyMatch(r -> r.getValue().equals(prog001)));
+    assertTrue(available.stream().anyMatch(r -> r.getValue().equals(prog002)));
   }
 
   @Test

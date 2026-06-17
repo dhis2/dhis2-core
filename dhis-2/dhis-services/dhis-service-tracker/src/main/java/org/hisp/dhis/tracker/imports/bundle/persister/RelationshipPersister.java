@@ -32,7 +32,6 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
@@ -54,13 +53,12 @@ public class RelationshipPersister
       relationshipConverter;
 
   public RelationshipPersister(
-      ReservedValueService reservedValueService,
       DhisConfigurationProvider config,
       @Qualifier("aes128StringEncryptor") PBEStringEncryptor encryptor,
       TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
           relationshipConverter) {
 
-    super(reservedValueService, config, encryptor);
+    super(config, encryptor);
     this.relationshipConverter = relationshipConverter;
   }
 
