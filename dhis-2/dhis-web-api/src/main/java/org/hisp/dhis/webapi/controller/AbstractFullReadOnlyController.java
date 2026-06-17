@@ -44,9 +44,11 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -69,6 +71,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.gist.GistObjectListParams;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -80,6 +83,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.DefaultSchemaService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
@@ -181,24 +185,30 @@ public abstract class AbstractFullReadOnlyController<
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
-      P params, HttpServletResponse response, @CurrentUser UserDetails currentUser)
+      P params,
+      HttpServletRequest request,
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, ConflictException {
-    return getObjectListInternal(params, response, currentUser, getAdditionalFilters(params));
+    return getObjectListInternal(
+        params, request, response, currentUser, getAdditionalFilters(params));
   }
 
   protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListWith(
       P params,
+      HttpServletRequest request,
       HttpServletResponse response,
       UserDetails currentUser,
       List<Filter> additionalFilters)
       throws ForbiddenException, BadRequestException, ConflictException {
     List<Filter> filters = getAdditionalFilters(params);
     filters.addAll(additionalFilters);
-    return getObjectListInternal(params, response, currentUser, filters);
+    return getObjectListInternal(params, request, response, currentUser, filters);
   }
 
   protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListInternal(
       P params,
+      HttpServletRequest request,
       HttpServletResponse response,
       UserDetails currentUser,
       List<Filter> additionalFilters)
@@ -220,10 +230,15 @@ public abstract class AbstractFullReadOnlyController<
     List<T> entities = List.of();
     long totalCount = 0;
 
+    String fields = params.getFieldsJsonList();
     if (!isAlwaysEmpty) {
+      if (additionalFilters.isEmpty() && canUseObjectListGistBridge(request, params)) {
+        getObjectListGistBridge(params, request, response);
+        return null; // response already created by Gist
+      }
       entities = getEntityList(params, additionalFilters);
       postProcessResponseEntities(entities, params);
-      handleLinksAndAccess(entities, params.getFieldsJsonList(), false);
+      handleLinksAndAccess(entities, fields, false);
       if (params.isPaging()) totalCount = countGetObjectList(params, additionalFilters);
     }
 
@@ -238,7 +253,7 @@ public abstract class AbstractFullReadOnlyController<
         new StreamingJsonRoot<>(
             pager,
             getSchema().getCollectionName(),
-            FieldFilterParams.of(entities, params.getFieldsJsonList()),
+            FieldFilterParams.of(entities, fields),
             params.getDefaults().isExclude()));
   }
 
@@ -570,5 +585,66 @@ public abstract class AbstractFullReadOnlyController<
 
   protected final Schema getSchema(Class<?> klass) {
     return schemaService.getSchema(klass);
+  }
+
+  /*
+  Gist Backend Bridge
+   */
+
+  private void getObjectListGistBridge(
+      P params, HttpServletRequest request, HttpServletResponse response)
+      throws BadRequestException {
+    GistObjectListParams p = new GistObjectListParams();
+    p.setFields(params.getFieldsJsonList());
+    p.setFilter(request.getParameter("filter"));
+    p.setPage(params.getPage());
+    p.setPageSize(params.getPageSize());
+    p.setOrder(request.getParameter("order"));
+    p.setRootJunction(params.getRootJunction());
+    p.setTotalPages(true);
+    p.setLocale(request.getParameter("locale"));
+    p.setReferences(false);
+    getObjectListGist(p, request, response);
+  }
+
+  private static final Set<String> GIST_BRIDE_PARAMS =
+      Set.of(
+          "fields",
+          "filter",
+          "order",
+          "page",
+          "pageSize",
+          "paging",
+          "locale",
+          "rootJunction",
+          "gist");
+
+  private boolean canUseObjectListGistBridge(HttpServletRequest request, P params) {
+    if (!params.isPaging()) return false;
+    Boolean gist = params.getGist();
+    if (gist != null) return gist;
+    Iterator<String> iter = request.getParameterNames().asIterator();
+    while (iter.hasNext()) {
+      String name = iter.next();
+      if (!GIST_BRIDE_PARAMS.contains(name)) return false;
+    }
+    RelativePropertyContext context =
+        new RelativePropertyContext(getEntityClass(), schemaService::getSchema);
+    for (Fields.Field f : Fields.of(params.getFieldsJsonList())) {
+      if (f.isPreset()) return false;
+      List<Property> path = context.resolvePath(f.propertyPath());
+      if (path.size() > 2) return false;
+      if (!canUseGistBridge(path.get(path.size() - 1))) return false;
+      if (path.size() == 2) {
+        Property ref = path.get(0);
+        Class<?> refType = ref.isCollection() ? ref.getItemKlass() : ref.getKlass();
+        if (!IdentifiableObject.class.isAssignableFrom(refType)) return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean canUseGistBridge(Property p) {
+    return p.isSimple() && (p.isPersisted() || p.getName().startsWith("display"));
   }
 }

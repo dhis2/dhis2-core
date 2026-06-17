@@ -54,12 +54,6 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
 @OpenApi.Shared
 public class GetObjectParams {
 
-  /**
-   * Fields allow {@code property[sub,sub]} syntax where a comma occurs as part of the property
-   * name. These commas need to be ignored when splitting a {@code fields} parameter list.
-   */
-  private static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
-
   @OpenApi.Description(
       """
     Limit the response to specific field(s).\s

@@ -268,7 +268,7 @@ public class GistPipeline {
   }
 
   private static Locale getTranslationLocale(String locale) {
-    return !locale.isEmpty()
+    return locale != null && !locale.isEmpty()
         ? Locale.of(locale)
         : UserSettings.getCurrentSettings().getUserDbLocale();
   }

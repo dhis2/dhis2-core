@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.dimension;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -123,6 +124,7 @@ public class DimensionController
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(
       GetObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser) {
 
