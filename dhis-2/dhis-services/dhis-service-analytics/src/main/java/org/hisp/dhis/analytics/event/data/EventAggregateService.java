@@ -284,8 +284,7 @@ public class EventAggregateService {
     timer.getSplitTime("Planned event query, got partitions: {}", params.getPartitions());
 
     for (EventQueryParams query : queries) {
-      if
-      (query.hasEnrollmentProgramIndicatorDimension()) {
+      if (query.hasEnrollmentProgramIndicatorDimension()) {
         enrollmentAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
       } else {
         eventAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
