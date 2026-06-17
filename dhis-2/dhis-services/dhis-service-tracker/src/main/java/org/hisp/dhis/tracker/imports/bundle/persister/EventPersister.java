@@ -54,7 +54,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
@@ -77,11 +76,10 @@ public class EventPersister
       eventConverter;
 
   public EventPersister(
-      ReservedValueService reservedValueService,
       DhisConfigurationProvider config,
       @Qualifier("aes128StringEncryptor") PBEStringEncryptor encryptor,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter) {
-    super(reservedValueService, config, encryptor);
+    super(config, encryptor);
     this.eventConverter = eventConverter;
   }
 

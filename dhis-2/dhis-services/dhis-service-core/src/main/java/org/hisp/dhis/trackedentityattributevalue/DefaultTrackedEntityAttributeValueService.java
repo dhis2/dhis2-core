@@ -39,7 +39,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -61,8 +60,6 @@ public class DefaultTrackedEntityAttributeValueService
 
   private final TrackedEntityAttributeValueChangeLogService
       trackedEntityAttributeValueChangeLogService;
-
-  private final ReservedValueService reservedValueService;
 
   private final DhisConfigurationProvider config;
 
@@ -149,12 +146,6 @@ public class DefaultTrackedEntityAttributeValueService
 
     if (attributeValue.getValue() != null) {
       attributeValueStore.saveVoid(attributeValue);
-
-      if (attributeValue.getAttribute().isGenerated()
-          && attributeValue.getAttribute().getTextPattern() != null) {
-        reservedValueService.useReservedValue(
-            attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-      }
     }
   }
 
@@ -199,12 +190,6 @@ public class DefaultTrackedEntityAttributeValueService
           trackedEntityAttributeValueChangeLog);
 
       attributeValueStore.update(attributeValue);
-
-      if (attributeValue.getAttribute().isGenerated()
-          && attributeValue.getAttribute().getTextPattern() != null) {
-        reservedValueService.useReservedValue(
-            attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-      }
     }
   }
 
