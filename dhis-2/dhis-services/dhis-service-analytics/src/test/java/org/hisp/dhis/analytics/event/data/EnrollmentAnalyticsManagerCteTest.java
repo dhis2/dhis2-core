@@ -339,9 +339,9 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     String generatedSql = sql.getValue();
     String baseCteSql =
-            generatedSql.substring(
-                    generatedSql.indexOf("enrollment_aggr_base as ("),
-                    generatedSql.indexOf("select count(eb.enrollment) as value"));
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
     // The SQL should contain a per-stage filter CTE
     assertThat(generatedSql, containsString("latest_events_" + programStage.getUid()));
 
@@ -376,7 +376,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     queryItem.addFilter(new QueryFilter(IN, "ImspTQPwCqd"));
 
     when(organisationUnitResolver.resolveOrgUnits(
-            any(QueryFilter.class), anyList() , any(QueryItem.class)))
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("ImspTQPwCqd");
 
     EventQueryParams.Builder params = createRequestParamsBuilder();
