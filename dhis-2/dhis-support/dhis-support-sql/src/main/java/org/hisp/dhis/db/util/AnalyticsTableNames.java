@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.db.util;
 
-import java.util.List;
-import org.hisp.dhis.common.GenericStore;
+import java.util.Locale;
+import java.util.Objects;
+import org.hisp.dhis.program.Program;
 
 /**
- * @author Stian Sandvold
+ * Constructs the names of program-scoped analytics tables ({@code analytics_event_<programUid>},
+ * {@code analytics_enrollment_<programUid>}).
+ *
+ * <p>The program UID is lowercased with {@link Locale#ROOT} so the returned name matches the
+ * physical analytics table on every supported engine, including those that preserve identifier case
+ * (ClickHouse). Use this helper at every emission site instead of concatenating the prefix inline.
  */
-public interface ReservedValueStore extends GenericStore<ReservedValue> {
+public final class AnalyticsTableNames {
 
-  int DELETE_BATCH_SIZE = 500_000;
+  public static final String EVENT_PREFIX = "analytics_event_";
 
-  void bulkInsertReservedValues(List<ReservedValue> toAdd);
+  public static final String ENROLLMENT_PREFIX = "analytics_enrollment_";
 
-  void reserveValues(List<ReservedValue> toAdd);
+  private AnalyticsTableNames() {}
 
-  List<ReservedValue> getAvailableValues(
-      ReservedValue reservedValue, List<String> values, String ownerObject);
+  /** Returns the analytics event table name for the given program. */
+  public static String eventTable(Program program) {
+    Objects.requireNonNull(program, "program");
+    return EVENT_PREFIX + program.getUid().toLowerCase(Locale.ROOT);
+  }
 
-  int getNumberOfUsedValues(ReservedValue reservedValue);
-
-  void deleteReservedValueByUid(String uid);
-
-  boolean isReserved(String ownerObject, String ownerUID, String value);
-
-  int removeExpiredValues();
-
-  int removeUsedValues();
+  /** Returns the analytics enrollment table name for the given program. */
+  public static String enrollmentTable(Program program) {
+    Objects.requireNonNull(program, "program");
+    return ENROLLMENT_PREFIX + program.getUid().toLowerCase(Locale.ROOT);
+  }
 }
