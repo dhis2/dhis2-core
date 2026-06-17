@@ -56,7 +56,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -75,9 +74,6 @@ import org.springframework.stereotype.Component;
 public class TrackerEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackerEvent, TrackerEvent> {
-  public TrackerEventPersister(ReservedValueService reservedValueService) {
-    super(reservedValueService);
-  }
 
   @Override
   protected void updatePreheat(TrackerPreheat preheat, TrackerEvent event) {
