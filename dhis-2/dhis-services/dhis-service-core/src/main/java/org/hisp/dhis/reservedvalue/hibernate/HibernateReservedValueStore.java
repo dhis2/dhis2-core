@@ -152,7 +152,8 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
   @Override
   public boolean useReservedValue(String ownerUID, String value) {
-    return getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value")
+    return getQuery(
+                "DELETE FROM ReservedValue WHERE owneruid = :uid AND lower(value) = lower(:value)")
             .setParameter("uid", ownerUID)
             .setParameter("value", value)
             .executeUpdate()
@@ -170,7 +171,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   public boolean isReserved(String ownerObject, String ownerUID, String value) {
     String hql =
         "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid "
-            + "and rv.value =:value";
+            + "and lower(rv.value) = lower(:value)";
 
     return !getQuery(hql)
         .setParameter("ownerObject", ownerObject)
