@@ -200,6 +200,10 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     public boolean isTransformed() {
       return transformation != Transform.NONE && transformation != Transform.AUTO;
     }
+
+    public boolean isNested() {
+      return propertyPath.indexOf('.') >= 0;
+    }
   }
 
   /**

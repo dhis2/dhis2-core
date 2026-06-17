@@ -607,6 +607,11 @@ public abstract class AbstractFullReadOnlyController<
     getObjectListGist(p, request, response);
   }
 
+  /**
+   * These URL parameters can generally can be handled by the Gist API, but anything not in this
+   * list is likely to have special meaning in the metadata API so the bridge should not be used to
+   * be safe
+   */
   private static final Set<String> GIST_BRIDE_PARAMS =
       Set.of(
           "fields",
@@ -634,7 +639,7 @@ public abstract class AbstractFullReadOnlyController<
       if (f.isPreset()) return false;
       List<Property> path = context.resolvePath(f.propertyPath());
       if (path.size() > 2) return false;
-      if (!canUseGistBridge(path.get(path.size() - 1))) return false;
+      if (!canUseGistBridge(f, path.get(path.size() - 1), context)) return false;
       if (path.size() == 2) {
         Property ref = path.get(0);
         Class<?> refType = ref.isCollection() ? ref.getItemKlass() : ref.getKlass();
@@ -644,7 +649,17 @@ public abstract class AbstractFullReadOnlyController<
     return true;
   }
 
-  private static boolean canUseGistBridge(Property p) {
-    return p.isSimple() && (p.isPersisted() || p.getName().startsWith("display"));
+  private static boolean canUseGistBridge(
+      Fields.Field f, Property p, RelativePropertyContext context) {
+    if (!p.isPersisted()) {
+      if (p.getName().startsWith("display") && !f.isNested()) {
+        Property base = context.resolve(Property.resolveTranslationBasePropertyName(p.getName()));
+        if (base != null && base.isTranslatable() && base.isPersisted()) return true;
+      }
+      return false;
+    }
+    if (p.isSimple()) return true;
+    if (p.isCollection() && !f.isNested() && f.isTransformed()) return true;
+    return false;
   }
 }
