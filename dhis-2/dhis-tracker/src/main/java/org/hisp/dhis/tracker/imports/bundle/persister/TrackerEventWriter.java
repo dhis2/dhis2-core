@@ -172,8 +172,7 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
             ps.setArray(
                 p++, textArray(conn, chunk, e -> userInfo.toJson(e.getCreatedByUserInfo())));
             ps.setArray(
-                p++,
-                textArray(conn, chunk, e -> userInfo.toJson(e.getLastUpdatedByUserInfo())));
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getLastUpdatedByUserInfo())));
             ps.setArray(p++, textArray(conn, chunk, e -> e.getStatus().name()));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getOccurredDate())));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getScheduledDate())));

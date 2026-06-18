@@ -34,7 +34,10 @@ import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.tr
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Base for the per-entity writers that stage inserts and updates of a single top-level entity type
@@ -47,12 +50,23 @@ abstract class UpsertTableWriter<E> {
   protected final List<E> inserts = new ArrayList<>();
   protected final List<E> updates = new ArrayList<>();
 
+  // Membership index over `inserts` for O(1) isStagedAsInsert, which is called once per tracked
+  // entity during attribute handling -- a List.contains scan there is O(n) and turns a large
+  // insert batch quadratic. Identity-based: the instance staged is the same instance queried.
+  private final Set<E> insertSet = Collections.newSetFromMap(new IdentityHashMap<>());
+
   void stageInsert(E entity) {
     inserts.add(entity);
+    insertSet.add(entity);
   }
 
   void stageUpdate(E entity) {
     updates.add(entity);
+  }
+
+  /** Whether the given entity is staged for insert (no DB row yet) in this batch. */
+  boolean isStagedAsInsert(E entity) {
+    return insertSet.contains(entity);
   }
 
   Mark mark() {
@@ -60,12 +74,16 @@ abstract class UpsertTableWriter<E> {
   }
 
   void rollbackTo(Mark mark) {
+    for (int i = mark.inserts(); i < inserts.size(); i++) {
+      insertSet.remove(inserts.get(i));
+    }
     truncate(inserts, mark.inserts());
     truncate(updates, mark.updates());
   }
 
   void clear() {
     inserts.clear();
+    insertSet.clear();
     updates.clear();
   }
 

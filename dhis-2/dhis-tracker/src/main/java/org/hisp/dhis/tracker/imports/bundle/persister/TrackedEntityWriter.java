@@ -153,8 +153,7 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
             ps.setArray(
                 p++, textArray(conn, chunk, te -> userInfo.toJson(te.getCreatedByUserInfo())));
             ps.setArray(
-                p++,
-                textArray(conn, chunk, te -> userInfo.toJson(te.getLastUpdatedByUserInfo())));
+                p++, textArray(conn, chunk, te -> userInfo.toJson(te.getLastUpdatedByUserInfo())));
             ps.executeUpdate();
           }
         });

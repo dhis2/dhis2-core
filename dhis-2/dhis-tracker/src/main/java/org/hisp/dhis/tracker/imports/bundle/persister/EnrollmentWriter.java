@@ -165,8 +165,7 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
             ps.setArray(
                 p++, textArray(conn, chunk, e -> userInfo.toJson(e.getCreatedByUserInfo())));
             ps.setArray(
-                p++,
-                textArray(conn, chunk, e -> userInfo.toJson(e.getLastUpdatedByUserInfo())));
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getLastUpdatedByUserInfo())));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getEnrollmentDate())));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getOccurredDate())));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getCompletedDate())));
