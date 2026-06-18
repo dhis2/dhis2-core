@@ -65,6 +65,23 @@ public class RelationshipPersister
   }
 
   @Override
+  protected void assignId(org.hisp.dhis.tracker.model.Relationship entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(
+      org.hisp.dhis.tracker.model.Relationship entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(
+      org.hisp.dhis.tracker.model.Relationship entity, EntityWriteBatch batch) {
+    throw new UnsupportedOperationException("Relationships are not updated");
+  }
+
+  @Override
   protected org.hisp.dhis.tracker.model.Relationship convert(
       TrackerBundle bundle, Relationship trackerDto) {
     if (bundle.getStrategy(trackerDto) == TrackerImportStrategy.UPDATE) {
@@ -106,7 +123,8 @@ public class RelationshipPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       Relationship trackerDto,
-      org.hisp.dhis.tracker.model.Relationship entity) {
+      org.hisp.dhis.tracker.model.Relationship entity,
+      EntityWriteBatch batch) {
     // NOTHING TO DO
 
   }

@@ -48,6 +48,8 @@ import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -71,6 +73,21 @@ public class EnrollmentPersister
   @Override
   protected String sequenceName() {
     return "enrollment_sequence";
+  }
+
+  @Override
+  protected void assignId(Enrollment entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(Enrollment entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(Enrollment entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
   }
 
   @Override
@@ -155,7 +172,8 @@ public class EnrollmentPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
-      Enrollment entity) {
+      Enrollment entity,
+      EntityWriteBatch batch) {
     if ((bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
         || bundle
                 .getPreheat()
@@ -163,8 +181,20 @@ public class EnrollmentPersister
                 .get(entity.getTrackedEntity().getUID())
                 .get(entity.getProgram().getUid())
             == null)) {
-      trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
-          entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
+      // Mirrors DefaultTrackedEntityProgramOwnerService.createTrackedEntityProgramOwner, but stages
+      // the row into the write batch instead of a per-enrollment Hibernate save (see
+      // AbstractTrackerPersister#persistOwnership and TrackedEntityProgramOwnerWriter).
+      TrackedEntityProgramOwner owner =
+          new TrackedEntityProgramOwner(
+              entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
+      owner.updateDates();
+      owner.setCreatedBy(CurrentUserUtil.getCurrentUsername());
+      batch.stageOwnershipInsert(owner);
+      // The store's save()/update() invalidate the program-owner cache; since we bypass the store,
+      // invalidate it here so a stale "no owner / registering org unit" entry cached before this
+      // import does not survive the newly created ownership.
+      trackedEntityProgramOwnerService.invalidateOwnershipCache(
+          entity.getTrackedEntity(), entity.getProgram());
     }
   }
 
