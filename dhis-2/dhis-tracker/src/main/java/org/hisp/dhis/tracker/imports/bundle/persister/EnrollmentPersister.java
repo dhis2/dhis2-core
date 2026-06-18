@@ -41,7 +41,6 @@ import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -66,12 +65,11 @@ public class EnrollmentPersister
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   public EnrollmentPersister(
-      ReservedValueService reservedValueService,
       DataSource dataSource,
       FileResourceStore fileResourceStore,
       ObjectMapper objectMapper,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
+    super(dataSource, fileResourceStore, objectMapper);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
