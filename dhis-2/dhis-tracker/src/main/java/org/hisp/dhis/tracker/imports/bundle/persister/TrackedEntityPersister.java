@@ -68,6 +68,21 @@ public class TrackedEntityPersister
   }
 
   @Override
+  protected void assignId(TrackedEntity entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(TrackedEntity entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(TrackedEntity entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
+  }
+
+  @Override
   protected void updateAttributes(
       Connection connection,
       TrackerPreheat preheat,
@@ -106,7 +121,8 @@ public class TrackedEntityPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity entity) {
+      TrackedEntity entity,
+      EntityWriteBatch batch) {
     // DO NOTHING, TE alone does not have ownership records
 
   }

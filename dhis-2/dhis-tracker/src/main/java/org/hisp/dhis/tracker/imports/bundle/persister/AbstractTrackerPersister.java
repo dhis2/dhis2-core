@@ -80,12 +80,8 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.tracker.model.Enrollment;
-import org.hisp.dhis.tracker.model.Relationship;
-import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -168,7 +164,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             if (preAllocatedIds != null) {
               assignId(convertedDto, preAllocatedIds[preAllocatedIdsCursor++]);
             }
-            persistOwnership(bundle, trackerDto, convertedDto);
+            persistOwnership(bundle, trackerDto, convertedDto, batch);
             stageInsert(convertedDto, batch);
             updateDataValues(
                 bundle.getPreheat(),
@@ -297,58 +293,25 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     return allocateIds(conn, sequenceName, createCount);
   }
 
-  private void assignId(V convertedDto, long id) {
-    if (convertedDto instanceof TrackedEntity te) {
-      te.setId(id);
-    } else if (convertedDto instanceof Enrollment e) {
-      e.setId(id);
-    } else if (convertedDto instanceof TrackerEvent ev) {
-      ev.setId(id);
-    } else if (convertedDto instanceof SingleEvent sev) {
-      sev.setId(id);
-    } else if (convertedDto instanceof Relationship r) {
-      r.setId(id);
-    } else {
-      throw new IllegalStateException(
-          "Pre-allocated id assignment not implemented for "
-              + convertedDto.getClass().getName()
-              + " -- sequenceName() returned non-null but assignId does not handle this type.");
-    }
-  }
+  /**
+   * Assigns a pre-allocated id to a new entity. Implemented by each concrete persister against its
+   * statically-known entity type {@code V}; only invoked when {@link #sequenceName()} is non-null.
+   */
+  protected abstract void assignId(V convertedDto, long id);
 
-  private void stageInsert(V convertedDto, EntityWriteBatch batch) {
-    if (convertedDto instanceof TrackedEntity te) {
-      batch.stageInsert(te);
-    } else if (convertedDto instanceof Enrollment e) {
-      batch.stageInsert(e);
-    } else if (convertedDto instanceof TrackerEvent e) {
-      batch.stageInsert(e);
-    } else if (convertedDto instanceof SingleEvent e) {
-      batch.stageInsert(e);
-    } else if (convertedDto instanceof Relationship r) {
-      batch.stageInsert(r);
-    } else {
-      throw new IllegalArgumentException(
-          "Unsupported entity type: " + convertedDto.getClass().getName());
-    }
-  }
+  /**
+   * Stages a new entity for insertion in the batch. Implemented by each concrete persister against
+   * its statically-known entity type {@code V}, so the correct {@link EntityWriteBatch} overload is
+   * selected at compile time rather than by runtime type dispatch.
+   */
+  protected abstract void stageInsert(V convertedDto, EntityWriteBatch batch);
 
-  // Relationships are not updated -- the persister branch above ignores update payloads before
-  // this is called -- so no Relationship case is needed here.
-  private void stageUpdate(V convertedDto, EntityWriteBatch batch) {
-    if (convertedDto instanceof TrackedEntity te) {
-      batch.stageUpdate(te);
-    } else if (convertedDto instanceof Enrollment e) {
-      batch.stageUpdate(e);
-    } else if (convertedDto instanceof TrackerEvent e) {
-      batch.stageUpdate(e);
-    } else if (convertedDto instanceof SingleEvent e) {
-      batch.stageUpdate(e);
-    } else {
-      throw new IllegalArgumentException(
-          "Unsupported entity type for update: " + convertedDto.getClass().getName());
-    }
-  }
+  /**
+   * Stages an existing entity for update in the batch. {@link RelationshipPersister} throws, as
+   * relationships are never updated -- the persister branch in {@link #persist} ignores update
+   * payloads before this is called.
+   */
+  protected abstract void stageUpdate(V convertedDto, EntityWriteBatch batch);
 
   // // // // // // // //
   // // // // // // // //
@@ -372,16 +335,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   /**
    * Persists ownership records for the given entity. The only non-trivial implementation
-   * (enrollments creating a {@link org.hisp.dhis.tracker.model.TrackedEntityProgramOwner}) still
-   * goes through a Hibernate {@code save()} that is never flushed per entity -- a per-entity
-   * session flush would dirty-check the whole preheat-populated persistence context, which is the
-   * overhead the JDBC write path removed. Consequence: a constraint violation on the owner row
-   * (only reachable via a concurrent import racing on the {@code trackedentityid + programid}
-   * unique key) surfaces at transaction commit, outside the per-entity try/catch in {@link
-   * #persist}, so in non-atomic mode stats can report the enrollment as created while the commit
-   * then fails.
+   * (enrollments creating a {@link org.hisp.dhis.tracker.model.TrackedEntityProgramOwner}) stages
+   * the owner row into {@code batch} for a single batched multi-row INSERT at flush, alongside the
+   * other entity writes. Staging within the per-entity try/catch means a rollback also drops the
+   * staged owner, and the {@code trackedentityid + programid} unique-key violation (only reachable
+   * via a concurrent import racing on the same key) now surfaces at the batch flush rather than at
+   * transaction commit.
    */
-  protected abstract void persistOwnership(TrackerBundle bundle, T trackerDto, V entity);
+  protected abstract void persistOwnership(
+      TrackerBundle bundle, T trackerDto, V entity, EntityWriteBatch batch);
 
   /** Execute the persistence of Data values linked to the entity being processed */
   protected abstract void updateDataValues(
