@@ -29,10 +29,9 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.buildMultiRowInsertSql;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bigintArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.setNullableString;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamp;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.truncate;
 
@@ -53,11 +52,20 @@ import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
  */
 final class TeavWriter {
 
-  private static final String INSERT_PREFIX =
+  // Constant-text INSERT ... SELECT unnest(...) so pgjdbc's prepared-statement cache engages
+  // regardless of row count.
+  private static final String INSERT_SQL =
       "insert into trackedentityattributevalue ("
-          + "trackedentityid, trackedentityattributeid, created, lastupdated,"
-          + " value, updatedby) values ";
-  private static final String INSERT_ROW = "(?, ?, ?, ?, ?, ?)";
+          + "trackedentityid, trackedentityattributeid, created, lastupdated, value, updatedby)"
+          + " select trackedentityid, trackedentityattributeid, created, lastupdated, value, updatedby"
+          + " from ( select"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::bigint[]) as trackedentityattributeid,"
+          + " unnest(?::timestamptz[]) as created,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::text[]) as value,"
+          + " unnest(?::text[]) as updatedby"
+          + " ) v";
 
   // `created` is insert-only and deliberately excluded from the UPDATE column set.
   private static final String UPDATE_SQL =
@@ -130,17 +138,14 @@ final class TeavWriter {
     forEachChunk(
         inserts,
         chunk -> {
-          String sql = buildMultiRowInsertSql(INSERT_PREFIX, INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
             int p = 1;
-            for (TrackedEntityAttributeValue v : chunk) {
-              ps.setLong(p++, v.getTrackedEntity().getId());
-              ps.setLong(p++, v.getAttribute().getId());
-              ps.setTimestamp(p++, toTimestamp(v.getCreated()));
-              ps.setTimestamp(p++, toTimestamp(v.getLastUpdated()));
-              setNullableString(ps, p++, v.getValue());
-              setNullableString(ps, p++, v.getUpdatedBy());
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, v -> v.getTrackedEntity().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, v -> v.getAttribute().getId()));
+            ps.setArray(p++, textArray(conn, chunk, v -> toTimestamptz(v.getCreated())));
+            ps.setArray(p++, textArray(conn, chunk, v -> toTimestamptz(v.getLastUpdated())));
+            ps.setArray(p++, textArray(conn, chunk, TrackedEntityAttributeValue::getValue));
+            ps.setArray(p++, textArray(conn, chunk, TrackedEntityAttributeValue::getUpdatedBy));
             ps.executeUpdate();
           }
         });

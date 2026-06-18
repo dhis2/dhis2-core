@@ -35,12 +35,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -83,6 +82,53 @@ final class JdbcBatchSupport {
   }
 
   /**
+   * Extracts one column value from a row. Allows {@link SQLException} so JSON serializers ({@link
+   * #toJson}, {@link #toEventDataValuesJson}) can be used directly as extractors.
+   */
+  @FunctionalInterface
+  interface RowExtractor<E, R> {
+    R apply(E row) throws SQLException;
+  }
+
+  /**
+   * Builds a SQL {@code bigint[]} from one column of {@code rows} for binding into a {@code
+   * ?::bigint[]} parameter of a constant-text {@code INSERT ... SELECT unnest(...)} statement. Null
+   * elements (e.g. nullable FKs) become SQL NULLs.
+   */
+  static <E> Array bigintArray(Connection conn, List<E> rows, RowExtractor<E, Long> extractor)
+      throws SQLException {
+    Long[] values = new Long[rows.size()];
+    for (int i = 0; i < values.length; i++) {
+      values[i] = extractor.apply(rows.get(i));
+    }
+    return conn.createArrayOf("bigint", values);
+  }
+
+  /**
+   * Builds a SQL {@code text[]} from one column of {@code rows}. Used both for genuine text columns
+   * ({@code ?::text[]}) and for timestamps formatted via {@link #toTimestamptz} ({@code
+   * ?::timestamptz[]}), mirroring the unnest UPDATE binding.
+   */
+  static <E> Array textArray(Connection conn, List<E> rows, RowExtractor<E, String> extractor)
+      throws SQLException {
+    String[] values = new String[rows.size()];
+    for (int i = 0; i < values.length; i++) {
+      values[i] = extractor.apply(rows.get(i));
+    }
+    return conn.createArrayOf("text", values);
+  }
+
+  /** Builds a SQL {@code boolean[]} from one column of {@code rows}. */
+  static <E> Array booleanArray(Connection conn, List<E> rows, RowExtractor<E, Boolean> extractor)
+      throws SQLException {
+    Boolean[] values = new Boolean[rows.size()];
+    for (int i = 0; i < values.length; i++) {
+      values[i] = extractor.apply(rows.get(i));
+    }
+    return conn.createArrayOf("boolean", values);
+  }
+
+  /**
    * Fetches {@code count} ids from {@code sequenceName} in a single round-trip. The sequence name
    * is interpolated into the SQL (not a bind parameter) because PostgreSQL's {@code nextval} takes
    * a {@code regclass}; the value is always a static literal controlled by us.
@@ -106,23 +152,6 @@ final class JdbcBatchSupport {
     return ids;
   }
 
-  static String buildMultiRowInsertSql(String prefix, String rowPlaceholders, int rowCount) {
-    StringBuilder sb =
-        new StringBuilder(prefix.length() + rowPlaceholders.length() * rowCount + 16);
-    sb.append(prefix);
-    for (int i = 0; i < rowCount; i++) {
-      if (i > 0) {
-        sb.append(", ");
-      }
-      sb.append(rowPlaceholders);
-    }
-    return sb.toString();
-  }
-
-  static Timestamp toTimestamp(Date date) {
-    return date != null ? new Timestamp(date.getTime()) : null;
-  }
-
   /**
    * Formats a date as an ISO-8601 instant with explicit UTC offset, for binding into a {@code
    * ?::timestamptz[]} parameter as a text array. Binding {@code createArrayOf("timestamptz",
@@ -130,8 +159,7 @@ final class JdbcBatchSupport {
    * which renders the JVM-local wall-clock time without an offset, so the server re-interprets it
    * under the session {@code TimeZone} -- skewing every value when the session zone differs from
    * the JVM zone (e.g. {@code options=-c TimeZone=UTC}) and in the DST fall-back hour. An explicit
-   * offset makes the parse unambiguous. Single-value {@code setTimestamp} binds are unaffected
-   * (pgjdbc appends the JVM zone offset there).
+   * offset makes the parse unambiguous.
    */
   static String toTimestamptz(Date date) {
     return date != null
@@ -139,20 +167,12 @@ final class JdbcBatchSupport {
         : null;
   }
 
-  static void setNullableTimestamp(PreparedStatement ps, int index, Date date) throws SQLException {
-    if (date != null) {
-      ps.setTimestamp(index, new Timestamp(date.getTime()));
-    } else {
-      ps.setNull(index, Types.TIMESTAMP);
-    }
-  }
-
-  static void setNullableString(PreparedStatement ps, int index, String value) throws SQLException {
-    if (value != null) {
-      ps.setString(index, value);
-    } else {
-      ps.setNull(index, Types.VARCHAR);
-    }
+  /**
+   * The WKT text of a geometry, or {@code null}. Bound into a {@code ?::text[]} array and converted
+   * back by {@code ST_GeomFromText} in the INSERT/UPDATE projection.
+   */
+  static String geometryText(org.locationtech.jts.geom.Geometry geometry) {
+    return geometry != null ? geometry.toText() : null;
   }
 
   static <T> void truncate(List<T> list, int size) {
