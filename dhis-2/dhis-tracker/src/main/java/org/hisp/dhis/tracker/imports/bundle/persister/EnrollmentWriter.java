@@ -35,10 +35,8 @@ import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bo
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.geometryText;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toJson;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -134,11 +132,11 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
           + " unnest(?::text[]) as geometry"
           + " ) v where e.enrollmentid = v.enrollmentid";
 
-  private final ObjectMapper objectMapper;
+  private final UserInfoJsonCache userInfo;
   private final NoteCascadeWriter notes = new NoteCascadeWriter("enrollment_notes", "enrollmentid");
 
-  EnrollmentWriter(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+  EnrollmentWriter(UserInfoJsonCache userInfo) {
+    this.userInfo = userInfo;
   }
 
   @Override
@@ -165,10 +163,10 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
             ps.setArray(
                 p++, textArray(conn, chunk, e -> toTimestamptz(e.getLastUpdatedAtClient())));
             ps.setArray(
-                p++, textArray(conn, chunk, e -> toJson(objectMapper, e.getCreatedByUserInfo())));
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getCreatedByUserInfo())));
             ps.setArray(
                 p++,
-                textArray(conn, chunk, e -> toJson(objectMapper, e.getLastUpdatedByUserInfo())));
+                textArray(conn, chunk, e -> userInfo.toJson(e.getLastUpdatedByUserInfo())));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getEnrollmentDate())));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getOccurredDate())));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getCompletedDate())));
@@ -225,7 +223,7 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
             lastUpdated[i] = toTimestamptz(e.getLastUpdated());
             createdAtClient[i] = toTimestamptz(e.getCreatedAtClient());
             lastUpdatedAtClient[i] = toTimestamptz(e.getLastUpdatedAtClient());
-            lastUpdatedByUserInfo[i] = toJson(objectMapper, e.getLastUpdatedByUserInfo());
+            lastUpdatedByUserInfo[i] = userInfo.toJson(e.getLastUpdatedByUserInfo());
             trackedEntityIds[i] = e.getTrackedEntity().getId();
             programIds[i] = e.getProgram().getId();
             organisationUnitIds[i] = e.getOrganisationUnit().getId();
