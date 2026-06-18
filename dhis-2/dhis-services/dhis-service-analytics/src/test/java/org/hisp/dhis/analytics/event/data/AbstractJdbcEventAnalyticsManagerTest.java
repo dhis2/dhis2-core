@@ -699,7 +699,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void
-      verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite() {
+      verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnits() {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
@@ -730,8 +730,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(
         columns,
         containsInAnyOrder(
-            "ax.\"pe\"",
-            "ax.\"ou\"",
+            "ax.\"pe\" as pe",
+            "ax.\"ou\" as ou",
             "'[' || round(ST_X(ST_Centroid(\""
                 + deA.getUid()
                 + "_geom"

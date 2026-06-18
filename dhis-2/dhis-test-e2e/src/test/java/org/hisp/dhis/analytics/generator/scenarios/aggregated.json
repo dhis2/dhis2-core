@@ -211,6 +211,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "enrollmentProgramIndicatorsWithStageElementFilters",
+      "query": "/api/analytics.json?dimension=dx:x8f2Dq4jI3H&filter=pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=NAME&skipMeta=true&skipData=false&includeNumDen=false&relativePeriodDate=2024-01-01",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

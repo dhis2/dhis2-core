@@ -624,8 +624,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     saveOrUpdate(
         preheat, isNew, trackedEntity, attributeToPersist, previousValue, user, changeLogs, batch);
-
-    handleReservedValue(attributeToPersist);
   }
 
   private void delete(
@@ -696,14 +694,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             + " should never be NULL here if validation is enforced before commit.");
 
     return trackedEntityAttribute;
-  }
-
-  private void handleReservedValue(TrackedEntityAttributeValue attributeValue) {
-    if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
-        && attributeValue.getAttribute().getTextPattern() != null) {
-      reservedValueService.useReservedValue(
-          attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-    }
   }
 
   protected static String formatDate(Date date) {

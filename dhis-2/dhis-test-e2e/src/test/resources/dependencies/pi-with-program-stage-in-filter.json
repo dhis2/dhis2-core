@@ -1,0 +1,15 @@
+{
+  "type": "program_indicator",
+  "code": "PI_PROGRAM_STAGE_IN_FILTER",
+  "aggregationType":"COUNT",
+  "expression":"V{enrollment_count}",
+  "filter":"A{w75KJ2mc4zz} == 'Evelyn' && #{ZzYYXq4fJie.OuJ6sgPyAbC} == 'High blood pressure.' && (#{A03MvHHogjR.a3kGcGDCuk6} == 34)",
+  "name":"PI_WITH_PROGRAM_STAGE_IN_FILTER",
+  "analyticsType":"ENROLLMENT",
+  "shortName":"PI_PROGRAM_STAGE_IN_FILTER",
+  "program":{
+    "id":"IpHINAT79UW"
+  },
+  "analyticsPeriodBoundaries": [],
+  "legendSets": []
+}
