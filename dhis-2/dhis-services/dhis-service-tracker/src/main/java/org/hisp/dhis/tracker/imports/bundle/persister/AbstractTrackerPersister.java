@@ -504,19 +504,4 @@ public abstract class AbstractTrackerPersister<
 
     return trackedEntityAttribute;
   }
-
-  protected static String formatDate(Date date) {
-    java.text.SimpleDateFormat formatter =
-        new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    return date != null ? formatter.format(date) : null;
-  }
-
-  protected static String formatGeometry(org.locationtech.jts.geom.Geometry geometry) {
-    if (geometry == null) {
-      return null;
-    }
-    return java.util.stream.Stream.of(geometry.getCoordinates())
-        .map(c -> String.format("(%f, %f)", c.x, c.y))
-        .collect(java.util.stream.Collectors.joining(", "));
-  }
 }
