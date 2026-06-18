@@ -210,6 +210,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsContinuousAnalytics() {
+    return true;
+  }
+
+  @Override
   public boolean supportsPercentileCont() {
     return false;
   }

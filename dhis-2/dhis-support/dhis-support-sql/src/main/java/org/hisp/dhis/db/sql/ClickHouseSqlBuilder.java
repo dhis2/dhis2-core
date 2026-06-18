@@ -220,6 +220,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsContinuousAnalytics() {
+    return false;
+  }
+
+  @Override
   public boolean supportsPercentileCont() {
     return false;
   }

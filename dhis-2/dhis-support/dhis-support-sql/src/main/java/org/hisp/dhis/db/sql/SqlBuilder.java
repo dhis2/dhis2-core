@@ -212,6 +212,12 @@ public interface SqlBuilder {
   boolean requiresIndexesForAnalytics();
 
   /**
+   * @return true if the DBMS supports continuous analytics (incremental latest-partition updates).
+   *     Requires support for correlated subquery DELETEs used in removeUpdatedData().
+   */
+  boolean supportsContinuousAnalytics();
+
+  /**
    * The percentile_cont function is a statistical function that calculates the continuous
    * percentile value for a given set of data.
    *

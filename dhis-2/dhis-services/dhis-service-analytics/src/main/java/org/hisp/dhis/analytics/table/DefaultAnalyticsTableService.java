@@ -169,7 +169,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Analyzed tables");
     }
 
-    if (params.isLatestUpdate()) {
+    if (params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics()) {
       progress.startingStage(
           format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
       progress.runStage(() -> tableManager.removeUpdatedData(tables));
