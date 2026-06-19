@@ -419,10 +419,9 @@ public class DefaultExpressionService implements ExpressionService {
         new CachingMap<String, Constant>()
             .load(idObjectManager.getAllNoAcl(Constant.class), IdentifiableObject::getUid);
 
-    // Resolve org unit group member counts with a single count query rather than loading the
-    // (potentially very large) members collections via getMembers().size(). A single OUG{}
-    // reference
-    // to a group with tens of thousands of members would otherwise hydrate all of them.
+    // Resolve org unit group member counts with a single count query. Reading the size of the lazy
+    // members collection directly would initialise it, hydrating every member of a group that may
+    // contain tens of thousands of org units into the session.
     Set<String> orgUnitGroupUids =
         indicators.stream()
             .flatMap(indicator -> Stream.of(indicator.getNumerator(), indicator.getDenominator()))
