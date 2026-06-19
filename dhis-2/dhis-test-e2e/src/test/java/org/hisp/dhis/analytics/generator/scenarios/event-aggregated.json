@@ -99,6 +99,13 @@
       }
     },
     {
+      "name": "stageAndOuLevelWithBoundary",
+      "query": "/api/analytics/events/aggregate/ur1Edk5Oe2n.json?displayProperty=NAME&sortOrder=desc&totalPages=false&outputType=EVENT&dimension=pe:2022&dimension=ZkbAXlQUYJG.ou:LEVEL-wjP19dkFeIk;ImspTQPwCqd",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "stageAndOuMultipleOus",
       "query": "/api/analytics/events/aggregate/ur1Edk5Oe2n.json?displayProperty=NAME&sortOrder=desc&totalPages=false&outputType=EVENT&dimension=pe:LAST_5_YEARS&dimension=ZkbAXlQUYJG.ou:O6uvpzGd5pu;DiszpKrYNg8&relativePeriodDate=2023-07-01",
       "version": {
