@@ -92,6 +92,14 @@ public class HibernateLockExceptionStore extends HibernateGenericStore<LockExcep
   // LockExceptionStore Implementation
   // -------------------------------------------------------------------------
 
+  @Nonnull
+  @Override
+  public List<LockException> getAll() {
+    return getQuery(
+            "from LockException le join fetch le.organisationUnit join fetch le.period")
+        .list();
+  }
+
   @Override
   public void save(@Nonnull LockException lockException) {
     lockException.setPeriod(periodService.reloadPeriod(lockException.getPeriod()));
