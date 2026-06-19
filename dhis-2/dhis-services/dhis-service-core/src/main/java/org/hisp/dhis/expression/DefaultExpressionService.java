@@ -103,6 +103,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
@@ -152,6 +153,8 @@ public class DefaultExpressionService implements ExpressionService {
   private final I18nManager i18nManager;
 
   private final SqlBuilder sqlBuilder;
+
+  private final OrganisationUnitGroupStore organisationUnitGroupStore;
 
   // -------------------------------------------------------------------------
   // Static data
@@ -254,7 +257,9 @@ public class DefaultExpressionService implements ExpressionService {
       IdentifiableObjectManager idObjectManager,
       I18nManager i18nManager,
       CacheProvider cacheProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      @Qualifier("org.hisp.dhis.organisationunit.OrganisationUnitGroupStore")
+          OrganisationUnitGroupStore organisationUnitGroupStore) {
     checkNotNull(expressionStore);
     checkNotNull(constantService);
     checkNotNull(dimensionService);
@@ -262,6 +267,7 @@ public class DefaultExpressionService implements ExpressionService {
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
     checkNotNull(sqlBuilder);
+    checkNotNull(organisationUnitGroupStore);
 
     this.expressionStore = expressionStore;
     this.constantService = constantService;
@@ -270,6 +276,7 @@ public class DefaultExpressionService implements ExpressionService {
     this.i18nManager = i18nManager;
     this.constantMapCache = cacheProvider.createAllConstantsCache();
     this.sqlBuilder = sqlBuilder;
+    this.organisationUnitGroupStore = organisationUnitGroupStore;
   }
 
   // -------------------------------------------------------------------------
@@ -402,7 +409,7 @@ public class DefaultExpressionService implements ExpressionService {
   }
 
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public void substituteIndicatorExpressions(Collection<Indicator> indicators) {
     if (indicators == null || indicators.isEmpty()) {
       return;
@@ -412,18 +419,45 @@ public class DefaultExpressionService implements ExpressionService {
         new CachingMap<String, Constant>()
             .load(idObjectManager.getAllNoAcl(Constant.class), IdentifiableObject::getUid);
 
-    Map<String, OrganisationUnitGroup> orgUnitGroups =
-        new CachingMap<String, OrganisationUnitGroup>()
-            .load(
-                idObjectManager.getAllNoAcl(OrganisationUnitGroup.class),
-                IdentifiableObject::getUid);
+    // Resolve org unit group member counts with a count query rather than loading the (potentially
+    // very large) members collections via getMembers().size(). A single OUG{} reference to a group
+    // with tens of thousands of members would otherwise hydrate all of them into the session.
+    Set<String> orgUnitGroupUids = new HashSet<>();
+
+    for (Indicator indicator : indicators) {
+      orgUnitGroupUids.addAll(getReferencedOrgUnitGroupUids(indicator.getNumerator()));
+      orgUnitGroupUids.addAll(getReferencedOrgUnitGroupUids(indicator.getDenominator()));
+    }
+
+    Map<String, Integer> orgUnitGroupCounts =
+        organisationUnitGroupStore.getOrganisationUnitGroupMemberCounts(orgUnitGroupUids);
 
     for (Indicator indicator : indicators) {
       indicator.setExplodedNumerator(
-          regenerateIndicatorExpression(indicator.getNumerator(), constants, orgUnitGroups));
+          regenerateIndicatorExpression(indicator.getNumerator(), constants, orgUnitGroupCounts));
       indicator.setExplodedDenominator(
-          regenerateIndicatorExpression(indicator.getDenominator(), constants, orgUnitGroups));
+          regenerateIndicatorExpression(indicator.getDenominator(), constants, orgUnitGroupCounts));
     }
+  }
+
+  /**
+   * Returns the UIDs of the organisation unit groups referenced by {@code OUG{...}} in the given
+   * expression.
+   */
+  private Set<String> getReferencedOrgUnitGroupUids(String expression) {
+    Set<String> uids = new HashSet<>();
+
+    if (expression == null || expression.isEmpty()) {
+      return uids;
+    }
+
+    Matcher matcher = OU_GROUP_PATTERN.matcher(expression);
+
+    while (matcher.find()) {
+      uids.add(matcher.group(GROUP_ID));
+    }
+
+    return uids;
   }
 
   // -------------------------------------------------------------------------
@@ -741,9 +775,7 @@ public class DefaultExpressionService implements ExpressionService {
    * orgUnitCounts.
    */
   private String regenerateIndicatorExpression(
-      String expression,
-      Map<String, Constant> constants,
-      Map<String, OrganisationUnitGroup> orgUnitGroups) {
+      String expression, Map<String, Constant> constants, Map<String, Integer> orgUnitGroupCounts) {
     if (expression == null || expression.isEmpty()) {
       return null;
     }
@@ -778,10 +810,9 @@ public class DefaultExpressionService implements ExpressionService {
     while (matcher.find()) {
       String oug = matcher.group(GROUP_ID);
 
-      OrganisationUnitGroup group = orgUnitGroups.get(oug);
+      Integer memberCount = orgUnitGroupCounts.get(oug);
 
-      String replacement =
-          group != null ? String.valueOf(group.getMembers().size()) : NULL_REPLACEMENT;
+      String replacement = memberCount != null ? String.valueOf(memberCount) : NULL_REPLACEMENT;
 
       matcher.appendReplacement(sb, replacement);
 
