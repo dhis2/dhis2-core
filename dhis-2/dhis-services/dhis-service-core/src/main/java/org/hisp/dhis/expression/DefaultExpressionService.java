@@ -419,15 +419,15 @@ public class DefaultExpressionService implements ExpressionService {
         new CachingMap<String, Constant>()
             .load(idObjectManager.getAllNoAcl(Constant.class), IdentifiableObject::getUid);
 
-    // Resolve org unit group member counts with a count query rather than loading the (potentially
-    // very large) members collections via getMembers().size(). A single OUG{} reference to a group
-    // with tens of thousands of members would otherwise hydrate all of them into the session.
-    Set<String> orgUnitGroupUids = new HashSet<>();
-
-    for (Indicator indicator : indicators) {
-      orgUnitGroupUids.addAll(getReferencedOrgUnitGroupUids(indicator.getNumerator()));
-      orgUnitGroupUids.addAll(getReferencedOrgUnitGroupUids(indicator.getDenominator()));
-    }
+    // Resolve org unit group member counts with a single count query rather than loading the
+    // (potentially very large) members collections via getMembers().size(). A single OUG{}
+    // reference
+    // to a group with tens of thousands of members would otherwise hydrate all of them.
+    Set<String> orgUnitGroupUids =
+        indicators.stream()
+            .flatMap(indicator -> Stream.of(indicator.getNumerator(), indicator.getDenominator()))
+            .flatMap(expression -> getReferencedOrgUnitGroupUids(expression).stream())
+            .collect(Collectors.toSet());
 
     Map<String, Integer> orgUnitGroupCounts =
         organisationUnitGroupStore.getOrganisationUnitGroupMemberCounts(orgUnitGroupUids);

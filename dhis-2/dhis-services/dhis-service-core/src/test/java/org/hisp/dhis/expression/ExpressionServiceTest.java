@@ -1060,8 +1060,7 @@ class ExpressionServiceTest extends TestBase {
         ImmutableList.<Constant>builder().add(constantA).add(constantB).build();
 
     when(idObjectManager.getAllNoAcl(Constant.class)).thenReturn(constants);
-    when(organisationUnitGroupStore.getOrganisationUnitGroupMemberCounts(
-            eq(Set.of(groupA.getUid()))))
+    when(organisationUnitGroupStore.getOrganisationUnitGroupMemberCounts(Set.of(groupA.getUid())))
         .thenReturn(Map.of(groupA.getUid(), groupA.getMembers().size()));
 
     target.substituteIndicatorExpressions(indicators);
