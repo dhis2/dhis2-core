@@ -55,11 +55,6 @@ abstract class UpsertTableWriter<E> {
     updates.add(entity);
   }
 
-  /** Whether the given entity is staged for insert (no DB row yet) in this batch. */
-  boolean isStagedAsInsert(E entity) {
-    return inserts.contains(entity);
-  }
-
   Mark mark() {
     return new Mark(inserts.size(), updates.size());
   }
