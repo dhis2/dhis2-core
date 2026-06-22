@@ -952,6 +952,31 @@ class ExpressionServiceTest extends TestBase {
   }
 
   @Test
+  void testGetExpressionValueOrgUnitGroupCountMissingMemberCountIsZero() {
+    // An OUG{} indicator queried for an org unit whose subtree has no members of the group: the
+    // analytics target map then has no entry for that org unit, so DataHandler passes a null (or
+    // entry-less) orgUnitCountMap down to expression evaluation. The org unit group count must
+    // resolve to 0 rather than throwing (previously a NullPointerException / "Cannot find count").
+    mockConstantService();
+
+    Map<DimensionalItemId, DimensionalItemObject> itemMap =
+        ImmutableMap.<DimensionalItemId, DimensionalItemObject>builder()
+            .put(getId(opA), opA)
+            .build();
+
+    Map<DimensionalItemObject, Object> valueMap = new HashMap<>();
+    valueMap.put(opA, 12d);
+
+    // expressionH = #{deA.coc} * OUG{groupA}; with the group count resolving to 0 -> 12 * 0 = 0.
+
+    // Null map (no target entry for this org unit at all).
+    assertEquals(0d, exprValue(expressionH, itemMap, valueMap, null, null), DELTA);
+
+    // Non-null map missing this group's uid.
+    assertEquals(0d, exprValue(expressionH, itemMap, valueMap, new HashMap<>(), null), DELTA);
+  }
+
+  @Test
   void testGetIndicatorDimensionalItemMap2() {
     Set<DimensionalItemId> itemIds = Sets.newHashSet(getId(opA));
 
