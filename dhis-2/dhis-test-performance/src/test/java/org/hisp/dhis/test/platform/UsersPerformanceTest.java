@@ -174,17 +174,14 @@ public class UsersPerformanceTest extends Simulation {
   private static final String DELETE_REQUEST = "DELETE User - delete";
   private static final int PATCH_GROUP_COUNT = Integer.parseInt(prop("patchGroupCount", "7"));
 
-  // Thresholds per profile, slack 1.5× observed p95/max, rounded to nearest 50ms.
+  // Thresholds per profile, (p95, max) in ms. Recalibrated 2026-06-22 from fresh sequential
+  // baselines analysed over 2026-06-16–06-22 (LOAD nightly × 10 iter, SMOKE nightly × 3 iter).
   //
-  // STALE — PENDING RECALIBRATION. The values below were calibrated under the OLD regime: all
-  // scenarios run in parallel, which on the shared CI runner caused CPU contention that inflated
-  // the
-  // tail (GET p95 reached 783ms on CI vs ~81ms in isolation). As of 2026-06-03 the test runs
-  // scenarios sequentially (in isolation) and authenticates once per virtual user, moving the
-  // one-time session-establishing bcrypt out of the measured requests, so measured times dropped
-  // sharply. These thresholds are now far too loose and provide little regression protection until
-  // recalibrated from fresh nightly baselines (~1 week of runs).
-  // Old baselines: LOAD 10 nightly × 10 iter (2026-04-02–04-11); SMOKE 14 nightly × 3 iter.
+  // The test runs scenarios sequentially (single-endpoint latency in isolation) and authenticates
+  // once per virtual user, keeping the one-time session-establishing bcrypt out of the measured
+  // requests. This is far cheaper than the old parallel regime, where CPU contention on the shared
+  // CI runner inflated the tail (GET p95 reached 783ms vs ~81ms in isolation) — hence the much
+  // tighter values below (e.g. GET LOAD dropped from 700/1050 to 50/150).
   // Recalibrate with: scripts/download-user-perf-results.sh --test-name users-smoke
   //                   scripts/analyze-user-perf-results.py --profile smoke
   private static final Map<Profile, Thresholds> POST_THRESH =
