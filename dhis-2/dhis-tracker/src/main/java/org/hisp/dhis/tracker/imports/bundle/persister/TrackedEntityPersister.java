@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fileresource.FileResourceStore;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -58,11 +57,8 @@ public class TrackedEntityPersister
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
 
   public TrackedEntityPersister(
-      ReservedValueService reservedValueService,
-      DataSource dataSource,
-      FileResourceStore fileResourceStore,
-      ObjectMapper objectMapper) {
-    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
   }
 
   @Override
