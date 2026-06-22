@@ -36,7 +36,6 @@ import java.util.Set;
 import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fileresource.FileResourceStore;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -56,11 +55,8 @@ public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.tracker.model.Relationship> {
 
   public RelationshipPersister(
-      ReservedValueService reservedValueService,
-      DataSource dataSource,
-      FileResourceStore fileResourceStore,
-      ObjectMapper objectMapper) {
-    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
   }
 
   @Override

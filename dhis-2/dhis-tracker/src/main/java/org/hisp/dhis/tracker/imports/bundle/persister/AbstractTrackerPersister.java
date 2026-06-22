@@ -64,7 +64,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
@@ -105,8 +104,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           + " from trackedentityattributevalue teav"
           + " join trackedentity te on te.trackedentityid = teav.trackedentityid"
           + " where te.uid = any(?)";
-
-  protected final ReservedValueService reservedValueService;
 
   protected final DataSource dataSource;
 
@@ -446,7 +443,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();
 
-  @SuppressWarnings("unchecked")
   protected abstract List<T> getByType(TrackerBundle bundle);
 
   /**
@@ -465,22 +461,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
    */
   private static long[] allocateIds(Connection conn, String sequenceName, int count)
       throws SQLException {
-    long[] ids = new long[count];
-    String sql = "select nextval('" + sequenceName + "') from generate_series(1, ?)";
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-      ps.setInt(1, count);
-      try (ResultSet rs = ps.executeQuery()) {
-        int i = 0;
-        while (rs.next()) {
-          ids[i++] = rs.getLong(1);
-        }
-        if (i != count) {
-          throw new SQLException(
-              "Allocated " + i + " ids from " + sequenceName + ", expected " + count);
-        }
-      }
-    }
-    return ids;
+    return JdbcBatchSupport.allocateIds(conn, sequenceName, count);
   }
 
   // // // // // // // //
