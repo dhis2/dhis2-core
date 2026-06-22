@@ -188,25 +188,25 @@ public class UsersPerformanceTest extends Simulation {
   // Recalibrate with: scripts/download-user-perf-results.sh --test-name users-smoke
   //                   scripts/analyze-user-perf-results.py --profile smoke
   private static final Map<Profile, Thresholds> POST_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1150, 1200), Profile.LOAD, new Thresholds(1250, 1500));
+      Map.of(Profile.SMOKE, new Thresholds(200, 200), Profile.LOAD, new Thresholds(200, 250));
 
   private static final Map<Profile, Thresholds> GET_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1050, 1400), Profile.LOAD, new Thresholds(700, 1050));
+      Map.of(Profile.SMOKE, new Thresholds(50, 60), Profile.LOAD, new Thresholds(50, 150));
 
   private static final Map<Profile, Thresholds> PUT_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1600, 1700), Profile.LOAD, new Thresholds(1500, 2100));
+      Map.of(Profile.SMOKE, new Thresholds(300, 300), Profile.LOAD, new Thresholds(300, 350));
 
   private static final Map<Profile, Thresholds> PATCH_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1350, 1750), Profile.LOAD, new Thresholds(850, 950));
+      Map.of(Profile.SMOKE, new Thresholds(50, 60), Profile.LOAD, new Thresholds(50, 100));
 
   private static final Map<Profile, Thresholds> PATCH_GROUPS_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1350, 1700), Profile.LOAD, new Thresholds(850, 950));
+      Map.of(Profile.SMOKE, new Thresholds(100, 110), Profile.LOAD, new Thresholds(100, 110));
 
   private static final Map<Profile, Thresholds> REPLICA_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1250, 1800), Profile.LOAD, new Thresholds(1050, 1200));
+      Map.of(Profile.SMOKE, new Thresholds(150, 160), Profile.LOAD, new Thresholds(150, 300));
 
   private static final Map<Profile, Thresholds> DELETE_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1400, 1650), Profile.LOAD, new Thresholds(1450, 1950));
+      Map.of(Profile.SMOKE, new Thresholds(250, 260), Profile.LOAD, new Thresholds(250, 280));
 
   // Timestamp-based offset so each run generates unique usernames
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
