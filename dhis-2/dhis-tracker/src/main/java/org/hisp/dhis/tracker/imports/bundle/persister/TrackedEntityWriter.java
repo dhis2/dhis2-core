@@ -35,8 +35,10 @@ import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bo
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.geometryText;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toJson;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -115,10 +117,10 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
           + " unnest(?::text[]) as geometry"
           + " ) v where te.trackedentityid = v.trackedentityid";
 
-  private final UserInfoJsonCache userInfo;
+  private final ObjectMapper objectMapper;
 
-  TrackedEntityWriter(UserInfoJsonCache userInfo) {
-    this.userInfo = userInfo;
+  TrackedEntityWriter(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -151,10 +153,10 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
             ps.setArray(p++, bigintArray(conn, chunk, te -> te.getTrackedEntityType().getId()));
             ps.setArray(p++, textArray(conn, chunk, te -> geometryText(te.getGeometry())));
             ps.setArray(
-                p++, textArray(conn, chunk, te -> userInfo.toJson(te.getCreatedByUserInfo())));
+                p++, textArray(conn, chunk, te -> toJson(objectMapper, te.getCreatedByUserInfo())));
             ps.setArray(
                 p++,
-                textArray(conn, chunk, te -> userInfo.toJson(te.getLastUpdatedByUserInfo())));
+                textArray(conn, chunk, te -> toJson(objectMapper, te.getLastUpdatedByUserInfo())));
             ps.executeUpdate();
           }
         });
@@ -197,7 +199,7 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
             trackedEntityTypeIds[i] = te.getTrackedEntityType().getId();
             potentialDuplicate[i] = te.isPotentialDuplicate();
             inactive[i] = te.isInactive();
-            lastUpdatedByUserInfo[i] = userInfo.toJson(te.getLastUpdatedByUserInfo());
+            lastUpdatedByUserInfo[i] = toJson(objectMapper, te.getLastUpdatedByUserInfo());
             geometry[i] = te.getGeometry() != null ? te.getGeometry().toText() : null;
           }
 
