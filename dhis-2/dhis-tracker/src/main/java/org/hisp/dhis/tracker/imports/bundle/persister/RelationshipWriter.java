@@ -30,17 +30,17 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.allocateIds;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.buildMultiRowInsertSql;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bigintArray;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.booleanArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.setNullableTimestamp;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toObjectStyleJson;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamp;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.truncate;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.tracker.model.Relationship;
@@ -58,23 +58,46 @@ import org.hisp.dhis.tracker.model.RelationshipItem;
  */
 final class RelationshipWriter {
 
-  private static final String INSERT_PREFIX =
+  // Constant-text INSERT ... SELECT unnest(...) so pgjdbc's prepared-statement cache engages
+  // regardless of row count. from/to_relationshipitemid are written as NULL on this parent INSERT
+  // and filled in by updateFromTo after the items are inserted.
+  private static final String INSERT_SQL =
       "insert into relationship ("
           + "relationshipid, uid, code, created, lastupdated, lastupdatedby,"
-          + " style, relationshiptypeid,"
-          + " from_relationshipitemid, to_relationshipitemid,"
-          + " key, inverted_key, deleted, createdatclient) values ";
+          + " style, relationshiptypeid, from_relationshipitemid, to_relationshipitemid,"
+          + " key, inverted_key, deleted, createdatclient)"
+          + " select relationshipid, uid, code, created, lastupdated, lastupdatedby,"
+          + " style::jsonb, relationshiptypeid, null, null,"
+          + " key, inverted_key, deleted, createdatclient"
+          + " from ( select"
+          + " unnest(?::bigint[]) as relationshipid,"
+          + " unnest(?::text[]) as uid,"
+          + " unnest(?::text[]) as code,"
+          + " unnest(?::timestamptz[]) as created,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::bigint[]) as lastupdatedby,"
+          + " unnest(?::text[]) as style,"
+          + " unnest(?::bigint[]) as relationshiptypeid,"
+          + " unnest(?::text[]) as key,"
+          + " unnest(?::text[]) as inverted_key,"
+          + " unnest(?::boolean[]) as deleted,"
+          + " unnest(?::timestamptz[]) as createdatclient"
+          + " ) v";
 
-  // from/to_relationshipitemid are written as NULL on the parent INSERT and filled in by
-  // updateFromTo after the items are inserted.
-  private static final String INSERT_ROW =
-      "(?, ?, ?, ?, ?, ?, ?::jsonb, ?, NULL, NULL, ?, ?, ?, ?)";
-
-  private static final String ITEM_INSERT_PREFIX =
+  private static final String ITEM_INSERT_SQL =
       "insert into relationshipitem ("
           + "relationshipitemid, relationshipid,"
-          + " trackedentityid, enrollmentid, trackereventid, singleeventid) values ";
-  private static final String ITEM_INSERT_ROW = "(?, ?, ?, ?, ?, ?)";
+          + " trackedentityid, enrollmentid, trackereventid, singleeventid)"
+          + " select relationshipitemid, relationshipid,"
+          + " trackedentityid, enrollmentid, trackereventid, singleeventid"
+          + " from ( select"
+          + " unnest(?::bigint[]) as relationshipitemid,"
+          + " unnest(?::bigint[]) as relationshipid,"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::bigint[]) as enrollmentid,"
+          + " unnest(?::bigint[]) as trackereventid,"
+          + " unnest(?::bigint[]) as singleeventid"
+          + " ) v";
 
   private static final String UPDATE_FROM_TO_SQL =
       "update relationship r set"
@@ -125,18 +148,33 @@ final class RelationshipWriter {
     forEachChunk(
         inserts,
         chunk -> {
-          String sql = buildMultiRowInsertSql(INSERT_PREFIX, INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          for (Relationship r : chunk) {
+            requirePreallocatedId(r);
+          }
+          try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
             int p = 1;
-            for (Relationship r : chunk) {
-              p = bindRow(ps, p, r);
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, Relationship::getId));
+            ps.setArray(p++, textArray(conn, chunk, Relationship::getUid));
+            ps.setArray(p++, textArray(conn, chunk, Relationship::getCode));
+            ps.setArray(p++, textArray(conn, chunk, r -> toTimestamptz(r.getCreated())));
+            ps.setArray(p++, textArray(conn, chunk, r -> toTimestamptz(r.getLastUpdated())));
+            ps.setArray(p++, bigintArray(conn, chunk, RelationshipWriter::lastUpdatedById));
+            ps.setArray(p++, textArray(conn, chunk, r -> toObjectStyleJson(r.getStyle())));
+            ps.setArray(p++, bigintArray(conn, chunk, r -> r.getRelationshipType().getId()));
+            ps.setArray(p++, textArray(conn, chunk, Relationship::getKey));
+            ps.setArray(p++, textArray(conn, chunk, Relationship::getInvertedKey));
+            ps.setArray(p++, booleanArray(conn, chunk, Relationship::isDeleted));
+            ps.setArray(p++, textArray(conn, chunk, r -> toTimestamptz(r.getCreatedAtClient())));
             ps.executeUpdate();
           }
         });
   }
 
-  private int bindRow(PreparedStatement ps, int p, Relationship r) throws SQLException {
+  private static Long lastUpdatedById(Relationship r) {
+    return r.getLastUpdatedBy() != null ? r.getLastUpdatedBy().getId() : null;
+  }
+
+  private static void requirePreallocatedId(Relationship r) throws SQLException {
     if (r.getId() == 0) {
       throw new SQLException(
           "Relationship "
@@ -144,27 +182,6 @@ final class RelationshipWriter {
               + " has no pre-allocated id; AbstractTrackerPersister"
               + " must pre-allocate ids when sequenceName() is non-null.");
     }
-    ps.setLong(p++, r.getId());
-    ps.setString(p++, r.getUid());
-    if (r.getCode() != null) {
-      ps.setString(p++, r.getCode());
-    } else {
-      ps.setNull(p++, Types.VARCHAR);
-    }
-    ps.setTimestamp(p++, toTimestamp(r.getCreated()));
-    ps.setTimestamp(p++, toTimestamp(r.getLastUpdated()));
-    if (r.getLastUpdatedBy() != null) {
-      ps.setLong(p++, r.getLastUpdatedBy().getId());
-    } else {
-      ps.setNull(p++, Types.BIGINT);
-    }
-    ps.setString(p++, toObjectStyleJson(r.getStyle()));
-    ps.setLong(p++, r.getRelationshipType().getId());
-    ps.setString(p++, r.getKey());
-    ps.setString(p++, r.getInvertedKey());
-    ps.setBoolean(p++, r.isDeleted());
-    setNullableTimestamp(ps, p++, r.getCreatedAtClient());
-    return p;
   }
 
   /** Flattened from/to item with its pre-allocated id and parent relationship id. */
@@ -193,49 +210,31 @@ final class RelationshipWriter {
       rows.add(new ItemRow(r.getTo().getId(), r.getId(), r.getTo()));
     }
 
+    // For PROGRAM_STAGE_INSTANCE endpoints the mapper sets BOTH trackerEvent and singleEvent from
+    // preheat (TrackerObjectsMapper.java:350-353,366-369), but only the matching one resolves to
+    // non-null because a given UID exists in exactly one of the two event tables.
     forEachChunk(
         rows,
         chunk -> {
-          String sql = buildMultiRowInsertSql(ITEM_INSERT_PREFIX, ITEM_INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          try (PreparedStatement ps = conn.prepareStatement(ITEM_INSERT_SQL)) {
             int p = 1;
-            for (ItemRow row : chunk) {
-              p = bindItemRow(ps, p, row.itemId(), row.relationshipId(), row.item());
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, ItemRow::itemId));
+            ps.setArray(p++, bigintArray(conn, chunk, ItemRow::relationshipId));
+            ps.setArray(
+                p++, bigintArray(conn, chunk, row -> itemRefId(row.item().getTrackedEntity())));
+            ps.setArray(
+                p++, bigintArray(conn, chunk, row -> itemRefId(row.item().getEnrollment())));
+            ps.setArray(
+                p++, bigintArray(conn, chunk, row -> itemRefId(row.item().getTrackerEvent())));
+            ps.setArray(
+                p++, bigintArray(conn, chunk, row -> itemRefId(row.item().getSingleEvent())));
             ps.executeUpdate();
           }
         });
   }
 
-  private int bindItemRow(
-      PreparedStatement ps, int p, long itemId, long relationshipId, RelationshipItem item)
-      throws SQLException {
-    ps.setLong(p++, itemId);
-    ps.setLong(p++, relationshipId);
-    if (item.getTrackedEntity() != null) {
-      ps.setLong(p++, item.getTrackedEntity().getId());
-    } else {
-      ps.setNull(p++, Types.BIGINT);
-    }
-    if (item.getEnrollment() != null) {
-      ps.setLong(p++, item.getEnrollment().getId());
-    } else {
-      ps.setNull(p++, Types.BIGINT);
-    }
-    // For PROGRAM_STAGE_INSTANCE endpoints the mapper sets BOTH trackerEvent and singleEvent from
-    // preheat (TrackerObjectsMapper.java:350-353,366-369), but only the matching one resolves to
-    // non-null because a given UID exists in exactly one of the two event tables.
-    if (item.getTrackerEvent() != null) {
-      ps.setLong(p++, item.getTrackerEvent().getId());
-    } else {
-      ps.setNull(p++, Types.BIGINT);
-    }
-    if (item.getSingleEvent() != null) {
-      ps.setLong(p++, item.getSingleEvent().getId());
-    } else {
-      ps.setNull(p++, Types.BIGINT);
-    }
-    return p;
+  private static Long itemRefId(org.hisp.dhis.common.IdentifiableObject ref) {
+    return ref != null ? ref.getId() : null;
   }
 
   /**

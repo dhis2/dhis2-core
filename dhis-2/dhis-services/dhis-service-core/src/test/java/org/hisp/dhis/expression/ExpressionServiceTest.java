@@ -54,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
@@ -102,6 +103,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -140,6 +142,8 @@ class ExpressionServiceTest extends TestBase {
   @Mock private SystemSettingsService settingsService;
 
   @Mock private SystemSettings settings;
+
+  @Mock private OrganisationUnitGroupStore organisationUnitGroupStore;
 
   private DefaultExpressionService target;
 
@@ -262,7 +266,8 @@ class ExpressionServiceTest extends TestBase {
             idObjectManager,
             i18nManager,
             cacheProvider,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitGroupStore);
 
     categoryOptionA = new CategoryOption("Under 5");
     categoryOptionB = new CategoryOption("Over 5");
@@ -1079,11 +1084,9 @@ class ExpressionServiceTest extends TestBase {
     List<Constant> constants =
         ImmutableList.<Constant>builder().add(constantA).add(constantB).build();
 
-    List<OrganisationUnitGroup> orgUnitGroups =
-        ImmutableList.<OrganisationUnitGroup>builder().add(groupA).build();
-
     when(idObjectManager.getAllNoAcl(Constant.class)).thenReturn(constants);
-    when(idObjectManager.getAllNoAcl(OrganisationUnitGroup.class)).thenReturn(orgUnitGroups);
+    when(organisationUnitGroupStore.getOrganisationUnitGroupMemberCounts(Set.of(groupA.getUid())))
+        .thenReturn(Map.of(groupA.getUid(), groupA.getMembers().size()));
 
     target.substituteIndicatorExpressions(indicators);
 
@@ -1091,6 +1094,9 @@ class ExpressionServiceTest extends TestBase {
     assertEquals("#{deabcdefghA." + coc.getUid() + "}*2.0", indicatorA.getExplodedDenominator());
     assertEquals("#{deabcdefghA." + coc.getUid() + "}*3", indicatorB.getExplodedNumerator());
     assertEquals(expressionZ, indicatorB.getExplodedDenominator());
+
+    // The members collection must never be loaded; counts come from the store count query.
+    verify(idObjectManager, never()).getAllNoAcl(OrganisationUnitGroup.class);
   }
 
   // -------------------------------------------------------------------------
