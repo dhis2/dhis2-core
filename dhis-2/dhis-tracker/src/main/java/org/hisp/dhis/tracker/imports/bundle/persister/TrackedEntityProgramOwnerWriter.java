@@ -30,9 +30,10 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.allocateIds;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.buildMultiRowInsertSql;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bigintArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamp;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.truncate;
 
 import java.sql.Connection;
@@ -58,11 +59,23 @@ import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
  */
 final class TrackedEntityProgramOwnerWriter {
 
-  private static final String INSERT_PREFIX =
+  // Constant-text INSERT ... SELECT unnest(...) so pgjdbc's prepared-statement cache engages
+  // regardless of row count.
+  private static final String INSERT_SQL =
       "insert into trackedentityprogramowner ("
           + "trackedentityprogramownerid, trackedentityid, programid,"
-          + " created, lastupdated, organisationunitid, createdby) values ";
-  private static final String INSERT_ROW = "(?, ?, ?, ?, ?, ?, ?)";
+          + " created, lastupdated, organisationunitid, createdby)"
+          + " select trackedentityprogramownerid, trackedentityid, programid,"
+          + " created, lastupdated, organisationunitid, createdby"
+          + " from ( select"
+          + " unnest(?::bigint[]) as trackedentityprogramownerid,"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::bigint[]) as programid,"
+          + " unnest(?::timestamptz[]) as created,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::bigint[]) as organisationunitid,"
+          + " unnest(?::text[]) as createdby"
+          + " ) v";
 
   private final List<TrackedEntityProgramOwner> inserts = new ArrayList<>();
 
@@ -99,18 +112,15 @@ final class TrackedEntityProgramOwnerWriter {
     forEachChunk(
         inserts,
         chunk -> {
-          String sql = buildMultiRowInsertSql(INSERT_PREFIX, INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
             int p = 1;
-            for (TrackedEntityProgramOwner owner : chunk) {
-              ps.setLong(p++, owner.getId());
-              ps.setLong(p++, owner.getTrackedEntity().getId());
-              ps.setLong(p++, owner.getProgram().getId());
-              ps.setTimestamp(p++, toTimestamp(owner.getCreated()));
-              ps.setTimestamp(p++, toTimestamp(owner.getLastUpdated()));
-              ps.setLong(p++, owner.getOrganisationUnit().getId());
-              ps.setString(p++, owner.getCreatedBy());
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, o -> (long) o.getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, o -> o.getTrackedEntity().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, o -> o.getProgram().getId()));
+            ps.setArray(p++, textArray(conn, chunk, o -> toTimestamptz(o.getCreated())));
+            ps.setArray(p++, textArray(conn, chunk, o -> toTimestamptz(o.getLastUpdated())));
+            ps.setArray(p++, bigintArray(conn, chunk, o -> o.getOrganisationUnit().getId()));
+            ps.setArray(p++, textArray(conn, chunk, TrackedEntityProgramOwner::getCreatedBy));
             ps.executeUpdate();
           }
         });
