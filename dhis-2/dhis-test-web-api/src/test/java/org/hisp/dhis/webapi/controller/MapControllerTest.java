@@ -83,6 +83,71 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testImportExportedMapWithLegendSet() {
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'OU1','shortName':'OU1','openingDate':'2020-01-01'}"));
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{'name':'Per cent','factor':100,'number':false}"));
+    String indicatorId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
+                "{'name':'Ind1','shortName':'Ind1','indicatorType':{'id':'"
+                    + indicatorTypeId
+                    + "'},'numerator':'1','denominator':'1'}"));
+    String legendSetId = assertStatus(HttpStatus.CREATED, POST("/legendSets/", "{'name':'LS'}"));
+
+    String mapId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/maps/",
+                "{'name':'My map','mapViews':[{"
+                    + "'layer':'thematic1','renderingStrategy':'SINGLE',"
+                    + "'legendSet':{'id':'"
+                    + legendSetId
+                    + "'},"
+                    + "'columns':[{'dimension':'dx','items':[{'id':'"
+                    + indicatorId
+                    + "'}]}],"
+                    + "'rows':[{'dimension':'ou','items':[{'id':'"
+                    + ouId
+                    + "'}]}],"
+                    + "'filters':[{'dimension':'pe','items':[{'id':'THIS_YEAR'}]}]"
+                    + "}]}"));
+
+    JsonObject exported = GET("/maps/{uid}?fields=:owner", mapId).content();
+    System.out.println("EXPORTED=" + exported.toString());
+
+    System.out.println(
+        "METADATA_IMPORT="
+            + POST("/metadata", "{\"maps\":[" + exported.toString() + "]}")
+                .content(HttpStatus.OK)
+                .toString());
+
+    System.out.println("IMPORTED=" + GET("/maps/{uid}?fields=:owner", mapId).content().toString());
+    JsonObject importedView =
+        GET("/maps/{uid}", mapId).content().getArray("mapViews").get(0).as(JsonObject.class);
+    assertEquals(legendSetId, importedView.getObject("legendSet").getString("id").string());
+    assertEquals(
+        indicatorId,
+        importedView
+            .getArray("dataDimensionItems")
+            .get(0)
+            .as(JsonObject.class)
+            .getObject("indicator")
+            .getString("id")
+            .string());
+  }
+
+  @Test
   void testGetWithMapViewAndOrgUnitField() {
     String attrId =
         assertStatus(
