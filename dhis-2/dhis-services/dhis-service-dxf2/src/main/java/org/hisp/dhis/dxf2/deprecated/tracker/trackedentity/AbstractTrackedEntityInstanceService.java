@@ -181,7 +181,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   // -------------------------------------------------------------------------
 
   @Override
-  @Transactional(readOnly = true)
   public List<TrackedEntityInstance> getTrackedEntityInstances(
       TrackedEntityQueryParams queryParams,
       TrackedEntityInstanceParams params,
