@@ -30,14 +30,14 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.allocateIds;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.buildMultiRowInsertSql;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bigintArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamp;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -60,20 +60,39 @@ import org.hisp.dhis.note.Note;
  */
 final class NoteCascadeWriter {
 
-  private static final String NOTE_INSERT_PREFIX =
-      "insert into note (noteid, uid, created, lastupdatedby, notetext) values ";
-  private static final String NOTE_INSERT_ROW = "(?, ?, ?, ?, ?)";
-
-  private static final String JOIN_INSERT_ROW = "(?, ?, ?)";
+  // Constant-text INSERT ... SELECT unnest(...) so pgjdbc's prepared-statement cache engages
+  // regardless of row count.
+  private static final String NOTE_INSERT_SQL =
+      "insert into note (noteid, uid, created, lastupdatedby, notetext)"
+          + " select noteid, uid, created, lastupdatedby, notetext"
+          + " from ( select"
+          + " unnest(?::bigint[]) as noteid,"
+          + " unnest(?::text[]) as uid,"
+          + " unnest(?::timestamptz[]) as created,"
+          + " unnest(?::bigint[]) as lastupdatedby,"
+          + " unnest(?::text[]) as notetext"
+          + " ) v";
 
   /** A new {@link Note} to insert for a given owner row, with its 1-based sort order. */
   record NoteRow(long ownerId, Note note, int sortOrder) {}
 
-  private final String joinInsertPrefix;
+  // Constant per join table (the table and owner-id column vary by instance), built once here so
+  // each NoteCascadeWriter has a single cacheable join INSERT statement.
+  private final String joinInsertSql;
 
   NoteCascadeWriter(String joinTable, String ownerIdColumn) {
-    this.joinInsertPrefix =
-        "insert into " + joinTable + " (" + ownerIdColumn + ", noteid, sort_order) values ";
+    this.joinInsertSql =
+        "insert into "
+            + joinTable
+            + " ("
+            + ownerIdColumn
+            + ", noteid, sort_order)"
+            + " select owner_id, note_id, sort_order"
+            + " from ( select"
+            + " unnest(?::bigint[]) as owner_id,"
+            + " unnest(?::bigint[]) as note_id,"
+            + " unnest(?::bigint[]) as sort_order"
+            + " ) v";
   }
 
   /**
@@ -127,42 +146,31 @@ final class NoteCascadeWriter {
     forEachChunk(
         newNotes,
         chunk -> {
-          String sql = buildMultiRowInsertSql(NOTE_INSERT_PREFIX, NOTE_INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          try (PreparedStatement ps = conn.prepareStatement(NOTE_INSERT_SQL)) {
             int p = 1;
-            for (NoteRow item : chunk) {
-              Note n = item.note();
-              ps.setLong(p++, n.getId());
-              ps.setString(p++, n.getUid());
-              ps.setTimestamp(p++, toTimestamp(n.getCreated()));
-              if (n.getLastUpdatedBy() != null) {
-                ps.setLong(p++, n.getLastUpdatedBy().getId());
-              } else {
-                ps.setNull(p++, Types.BIGINT);
-              }
-              if (n.getNoteText() != null) {
-                ps.setString(p++, n.getNoteText());
-              } else {
-                ps.setNull(p++, Types.VARCHAR);
-              }
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, nr -> nr.note().getId()));
+            ps.setArray(p++, textArray(conn, chunk, nr -> nr.note().getUid()));
+            ps.setArray(p++, textArray(conn, chunk, nr -> toTimestamptz(nr.note().getCreated())));
+            ps.setArray(p++, bigintArray(conn, chunk, nr -> lastUpdatedById(nr.note())));
+            ps.setArray(p++, textArray(conn, chunk, nr -> nr.note().getNoteText()));
             ps.executeUpdate();
           }
         });
+  }
+
+  private static Long lastUpdatedById(Note note) {
+    return note.getLastUpdatedBy() != null ? note.getLastUpdatedBy().getId() : null;
   }
 
   private void insertJoinRows(Connection conn, List<NoteRow> newNotes) throws SQLException {
     forEachChunk(
         newNotes,
         chunk -> {
-          String sql = buildMultiRowInsertSql(joinInsertPrefix, JOIN_INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          try (PreparedStatement ps = conn.prepareStatement(joinInsertSql)) {
             int p = 1;
-            for (NoteRow item : chunk) {
-              ps.setLong(p++, item.ownerId());
-              ps.setLong(p++, item.note().getId());
-              ps.setInt(p++, item.sortOrder());
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, NoteRow::ownerId));
+            ps.setArray(p++, bigintArray(conn, chunk, nr -> nr.note().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, nr -> (long) nr.sortOrder()));
             ps.executeUpdate();
           }
         });
