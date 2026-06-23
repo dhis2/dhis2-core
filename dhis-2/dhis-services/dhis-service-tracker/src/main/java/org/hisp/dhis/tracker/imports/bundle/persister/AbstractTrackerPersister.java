@@ -56,7 +56,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -84,7 +83,6 @@ import org.hisp.dhis.user.UserDetails;
 public abstract class AbstractTrackerPersister<
         T extends TrackerDto, V extends BaseIdentifiableObject>
     implements TrackerPersister<T, V> {
-  protected final ReservedValueService reservedValueService;
   protected final DhisConfigurationProvider config;
 
   /**
@@ -458,8 +456,6 @@ public abstract class AbstractTrackerPersister<
         previousValue,
         user,
         changeLogs);
-
-    handleReservedValue(attributeToPersist);
   }
 
   private void delete(
@@ -538,14 +534,6 @@ public abstract class AbstractTrackerPersister<
             + " should never be NULL here if validation is enforced before commit.");
 
     return trackedEntityAttribute;
-  }
-
-  private void handleReservedValue(TrackedEntityAttributeValue attributeValue) {
-    if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
-        && attributeValue.getAttribute().getTextPattern() != null) {
-      reservedValueService.useReservedValue(
-          attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-    }
   }
 
   protected static String formatDate(Date date) {

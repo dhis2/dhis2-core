@@ -37,7 +37,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -58,10 +57,9 @@ public class EnrollmentPersister
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   public EnrollmentPersister(
-      ReservedValueService reservedValueService,
       DhisConfigurationProvider config,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService, config);
+    super(config);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
