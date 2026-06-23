@@ -31,9 +31,11 @@ package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,5 +75,34 @@ class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest {
     Set<OrganisationUnitGroup> groups = Sets.newHashSet(groupA, groupB);
     OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet('A', groupA, groupC);
     assertEquals(groupA, groupStore.getOrgUnitGroupInGroupSet(groups, groupSet));
+  }
+
+  @Test
+  void testGetOrganisationUnitGroupMemberCounts() {
+    OrganisationUnit unitA = addOrganisationUnit('A');
+    OrganisationUnit unitB = addOrganisationUnit('B');
+    OrganisationUnit unitC = addOrganisationUnit('C');
+    OrganisationUnitGroup groupA = addOrganisationUnitGroup('A', unitA, unitB, unitC);
+    OrganisationUnitGroup groupB = addOrganisationUnitGroup('B', unitB);
+    OrganisationUnitGroup groupEmpty = addOrganisationUnitGroup('E');
+
+    Map<String, Integer> counts =
+        groupStore.getOrganisationUnitGroupMemberCounts(
+            Set.of(groupA.getUid(), groupB.getUid(), groupEmpty.getUid()));
+
+    assertEquals(3, counts.get(groupA.getUid()));
+    assertEquals(1, counts.get(groupB.getUid()));
+    assertEquals(0, counts.get(groupEmpty.getUid()));
+  }
+
+  @Test
+  void testGetOrganisationUnitGroupMemberCountsEmptyAndUnknown() {
+    OrganisationUnit unitA = addOrganisationUnit('A');
+    addOrganisationUnitGroup('A', unitA);
+
+    assertTrue(groupStore.getOrganisationUnitGroupMemberCounts(Set.of()).isEmpty());
+    assertTrue(
+        groupStore.getOrganisationUnitGroupMemberCounts(Set.of("nonExistnt0")).isEmpty(),
+        "unknown group UIDs must be omitted, not present with a zero count");
   }
 }
