@@ -68,8 +68,8 @@ public class AnalyticsTrackedEntityQuery7 extends Simulation implements Analytic
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(4200),
-        details(GET_QUERY).responseTime().max().lt(4200),
+        details(GET_QUERY).responseTime().percentile(95).lt(480),
+        details(GET_QUERY).responseTime().max().lt(510),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }

@@ -68,8 +68,8 @@ public class AnalyticsEventQuery4 extends Simulation implements AnalyticsSimulat
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(4500),
-        details(GET_QUERY).responseTime().max().lt(4500),
+        details(GET_QUERY).responseTime().percentile(95).lt(150),
+        details(GET_QUERY).responseTime().max().lt(160),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }

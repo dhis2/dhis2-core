@@ -68,8 +68,8 @@ public class AnalyticsEnrollmentQuery2 extends Simulation implements AnalyticsSi
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(4800),
-        details(GET_QUERY).responseTime().max().lt(4800),
+        details(GET_QUERY).responseTime().percentile(95).lt(550),
+        details(GET_QUERY).responseTime().max().lt(590),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }
