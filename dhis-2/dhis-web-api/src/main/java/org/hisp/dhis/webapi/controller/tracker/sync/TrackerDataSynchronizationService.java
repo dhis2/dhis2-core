@@ -63,6 +63,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -90,6 +91,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       Mappers.getMapper(TrackedEntityMapper.class);
 
   private final TrackedEntityService trackedEntityService;
+  private final EventService eventService;
   private final SystemSettingsService systemSettingsService;
   private final RestTemplate restTemplate;
   private final RenderService renderService;
@@ -259,6 +261,9 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
       if (!deletedEnrollmentDtos.isEmpty() || !deletedEventDtos.isEmpty()) {
         syncDeletedChildren(deletedEnrollmentDtos, deletedEventDtos, instance, settings);
+        if (!deletedEventDtos.isEmpty()) {
+          updateDeletedEventsSyncTimestamp(deletedEventDtos, syncTime);
+        }
       }
 
       syncTrackedEntities(
@@ -375,6 +380,11 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
               CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
       renderService.toJson(request.getBody(), payload);
     };
+  }
+
+  private void updateDeletedEventsSyncTimestamp(List<Event> deletedEvents, Date syncTime) {
+    List<String> eventUids = deletedEvents.stream().map(e -> e.getEvent().getValue()).toList();
+    eventService.updateEventsSyncTimestamp(eventUids, syncTime);
   }
 
   private void updateTrackedEntitiesSyncTimestamp(

@@ -75,6 +75,7 @@ class EnrollmentAggregate {
               .fields(ctx.fields().getEnrollmentFields())
               .trackedEntities(trackedEntityUids)
               .includeDeleted(ctx.queryParams().isIncludeDeleted())
+              .synchronizationQuery(ctx.queryParams().isSynchronizationQuery())
               .program(ctx.queryParams().getEnrolledInTrackerProgram())
               .build();
       findEnrollments(params, result);
