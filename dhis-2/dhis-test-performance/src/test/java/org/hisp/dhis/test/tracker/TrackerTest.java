@@ -289,7 +289,9 @@ public class TrackerTest extends Simulation {
     // importDurationSec must disable the profile's importRequestsPerUser default (and vice versa);
     // otherwise the opt-in mode never takes effect.
     this.importRequestsPerUser =
-        durationSet ? 0 : Integer.getInteger("importRequestsPerUser", defaults.importRequestsPerUser());
+        durationSet
+            ? 0
+            : Integer.getInteger("importRequestsPerUser", defaults.importRequestsPerUser());
     this.importDurationSec =
         repeatSet ? 0 : Integer.getInteger("importDurationSec", defaults.importDurationSec());
     this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
