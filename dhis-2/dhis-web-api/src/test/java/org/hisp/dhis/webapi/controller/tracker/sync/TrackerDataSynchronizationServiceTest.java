@@ -140,7 +140,8 @@ class TrackerDataSynchronizationServiceTest {
     List<Map<?, ?>> payloads = synchronizeAndCapturePayloads();
 
     Map<?, ?> deleteBody = payloads.get(0);
-    assertEquals(Set.of("enrollments", "events"), deleteBody.keySet());
+    assertEquals(Set.of("trackedEntities", "enrollments", "events"), deleteBody.keySet());
+    assertEquals(0, ((List<?>) deleteBody.get("trackedEntities")).size());
     assertEquals(1, ((List<?>) deleteBody.get("events")).size());
 
     List<?> teList = (List<?>) payloads.get(1).get("trackedEntities");
@@ -164,7 +165,8 @@ class TrackerDataSynchronizationServiceTest {
     List<Map<?, ?>> payloads = synchronizeAndCapturePayloads();
 
     Map<?, ?> deleteBody = payloads.get(0);
-    assertEquals(Set.of("enrollments", "events"), deleteBody.keySet());
+    assertEquals(Set.of("trackedEntities", "enrollments", "events"), deleteBody.keySet());
+    assertEquals(0, ((List<?>) deleteBody.get("trackedEntities")).size());
     List<?> deletedEnrollments = (List<?>) deleteBody.get("enrollments");
     assertEquals(1, deletedEnrollments.size());
     assertEquals(

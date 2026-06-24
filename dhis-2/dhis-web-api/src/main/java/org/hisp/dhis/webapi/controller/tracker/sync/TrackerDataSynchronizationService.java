@@ -249,36 +249,39 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
 
-    if (!activeTrackedEntities.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntityDtos =
-          activeTrackedEntities.stream()
-              .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
-              .toList();
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntityDtos =
+        activeTrackedEntities.stream()
+            .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
+            .toList();
 
-      List<Enrollment> deletedEnrollmentDtos = new ArrayList<>();
-      List<Event> deletedEventDtos = new ArrayList<>();
+    List<Enrollment> deletedEnrollmentDtos = new ArrayList<>();
+    List<Event> deletedEventDtos = new ArrayList<>();
+    if (!activeTrackedEntityDtos.isEmpty()) {
       stripDeletedChildren(activeTrackedEntityDtos, deletedEnrollmentDtos, deletedEventDtos);
+    }
 
-      if (!deletedEnrollmentDtos.isEmpty() || !deletedEventDtos.isEmpty()) {
-        syncDeletedChildren(deletedEnrollmentDtos, deletedEventDtos, instance, settings);
-        if (!deletedEventDtos.isEmpty()) {
-          updateDeletedEventsSyncTimestamp(deletedEventDtos, syncTime);
-        }
-      }
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
+        deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
 
+    if (!deletedTrackedEntityDtos.isEmpty()
+        || !deletedEnrollmentDtos.isEmpty()
+        || !deletedEventDtos.isEmpty()) {
+      syncDeleted(
+          deletedTrackedEntityDtos,
+          deletedEnrollmentDtos,
+          deletedEventDtos,
+          instance,
+          settings,
+          syncTime);
+    }
+
+    if (!activeTrackedEntityDtos.isEmpty()) {
       syncTrackedEntities(
           activeTrackedEntityDtos,
           instance,
           settings,
           syncTime,
           TrackerImportStrategy.CREATE_AND_UPDATE);
-    }
-
-    if (!deletedTrackedEntities.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
-          deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
-      syncTrackedEntities(
-          deletedTrackedEntityDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
     }
   }
 
@@ -303,32 +306,39 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     }
   }
 
-  private void syncDeletedChildren(
+  private void syncDeleted(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntities,
       List<Enrollment> deletedEnrollments,
       List<Event> deletedEvents,
       SystemInstance instance,
-      SystemSettings settings) {
-    List<Enrollment> minimalEnrollments =
-        deletedEnrollments.stream().map(this::toMinimalEnrollment).toList();
-    List<Event> minimalEvents = deletedEvents.stream().map(this::toMinimalEvent).toList();
-
+      SystemSettings settings,
+      Date syncTime) {
     String url = instance.getUrl() + "?importStrategy=" + TrackerImportStrategy.DELETE;
 
-    ImportSummary summary =
-        sendTrackerRequest(
-            Map.of("enrollments", minimalEnrollments, "events", minimalEvents),
-            instance,
-            settings,
-            url);
+    Map<String, List<?>> payload =
+        Map.of(
+            "trackedEntities", deletedTrackedEntities,
+            "enrollments", deletedEnrollments.stream().map(this::toMinimalEnrollment).toList(),
+            "events", deletedEvents.stream().map(this::toMinimalEvent).toList());
+
+    ImportSummary summary = sendTrackerRequest(payload, instance, settings, url);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
-      throw new MetadataSyncServiceException("Tracker sync failed for deleted enrollments/events");
+      throw new MetadataSyncServiceException("Tracker sync failed for deletes");
     }
 
     log.info(
-        "Tracker sync successful for deleted enrollments ({}) and events ({})",
+        "Tracker delete sync successful: TEs={}, enrollments={}, events={}",
+        deletedTrackedEntities.size(),
         deletedEnrollments.size(),
         deletedEvents.size());
+
+    if (!deletedTrackedEntities.isEmpty()) {
+      updateTrackedEntitiesSyncTimestamp(deletedTrackedEntities, syncTime);
+    }
+    if (!deletedEvents.isEmpty()) {
+      updateDeletedEventsSyncTimestamp(deletedEvents, syncTime);
+    }
   }
 
   private void syncTrackedEntities(
