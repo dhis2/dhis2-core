@@ -1420,11 +1420,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     //    This helper checks basic counts and dimensions, adapting based on the runtime
     // 'expectPostgis' flag.
     validateResponseStructure(
-        response,
-        false,
-        2,
-        3,
-        3); // Pass runtime flag, row count, and expected header counts
+        response, false, 2, 3, 3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
