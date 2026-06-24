@@ -159,10 +159,8 @@ public class EnrollmentAggregateService {
     }
 
     // Sort grid, done again due to potential multiple partitions.
-    if (params.hasSortOrder() && grid.getHeight() > 0) {
-      if (grid.getIndexOfHeader("value") != -1) {
-        grid.sortGrid(grid.getIndexOfHeader("value") + 1, params.getSortOrderAsInt());
-      }
+    if (params.hasSortOrder() && grid.getHeight() > 0 && grid.getIndexOfHeader("value") != -1) {
+      grid.sortGrid(grid.getIndexOfHeader("value") + 1, params.getSortOrderAsInt());
     }
 
     // Limit grid.
