@@ -104,10 +104,11 @@ class EntityWriteBatch {
   private final TeavWriter teavWriter = new TeavWriter();
 
   EntityWriteBatch(ObjectMapper objectMapper) {
-    this.trackedEntityWriter = new TrackedEntityWriter(objectMapper);
-    this.enrollmentWriter = new EnrollmentWriter(objectMapper);
-    this.trackerEventWriter = new TrackerEventWriter(objectMapper);
-    this.singleEventWriter = new SingleEventWriter(objectMapper);
+    UserInfoJsonCache userInfo = new UserInfoJsonCache(objectMapper);
+    this.trackedEntityWriter = new TrackedEntityWriter(userInfo);
+    this.enrollmentWriter = new EnrollmentWriter(userInfo);
+    this.trackerEventWriter = new TrackerEventWriter(userInfo);
+    this.singleEventWriter = new SingleEventWriter(userInfo);
   }
 
   void stageInsert(TrackedEntity trackedEntity) {
