@@ -36,10 +36,8 @@ import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.fo
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.geometryText;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toEventDataValuesJson;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toJson;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -141,11 +139,11 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
           + " unnest(?::text[]) as geometry"
           + " ) v where ev.eventid = v.eventid";
 
-  private final ObjectMapper objectMapper;
+  private final UserInfoJsonCache userInfo;
   private final NoteCascadeWriter notes = new NoteCascadeWriter("trackerevent_notes", "eventid");
 
-  TrackerEventWriter(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+  TrackerEventWriter(UserInfoJsonCache userInfo) {
+    this.userInfo = userInfo;
   }
 
   @Override
@@ -172,10 +170,9 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
             ps.setArray(
                 p++, textArray(conn, chunk, e -> toTimestamptz(e.getLastUpdatedAtClient())));
             ps.setArray(
-                p++, textArray(conn, chunk, e -> toJson(objectMapper, e.getCreatedByUserInfo())));
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getCreatedByUserInfo())));
             ps.setArray(
-                p++,
-                textArray(conn, chunk, e -> toJson(objectMapper, e.getLastUpdatedByUserInfo())));
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getLastUpdatedByUserInfo())));
             ps.setArray(p++, textArray(conn, chunk, e -> e.getStatus().name()));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getOccurredDate())));
             ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getScheduledDate())));
@@ -240,7 +237,7 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
             lastUpdated[i] = toTimestamptz(e.getLastUpdated());
             createdAtClient[i] = toTimestamptz(e.getCreatedAtClient());
             lastUpdatedAtClient[i] = toTimestamptz(e.getLastUpdatedAtClient());
-            lastUpdatedByUserInfo[i] = toJson(objectMapper, e.getLastUpdatedByUserInfo());
+            lastUpdatedByUserInfo[i] = userInfo.toJson(e.getLastUpdatedByUserInfo());
             enrollmentIds[i] = e.getEnrollment().getId();
             programStageIds[i] = e.getProgramStage().getId();
             organisationUnitIds[i] = e.getOrganisationUnit().getId();
