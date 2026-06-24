@@ -261,7 +261,8 @@ public class DefaultDataQueryService implements DataQueryService {
         request.getDisplayProperty(),
         userOrgUnits,
         allowNull,
-        inputIdScheme);
+        inputIdScheme,
+        false);
   }
 
   @Override
@@ -281,7 +282,8 @@ public class DefaultDataQueryService implements DataQueryService {
         displayProperty,
         userOrgUnits,
         allowNull,
-        inputIdScheme);
+        inputIdScheme,
+        false);
   }
 
   @Override
@@ -335,7 +337,8 @@ public class DefaultDataQueryService implements DataQueryService {
                   request.getDisplayProperty(),
                   userOrgUnits,
                   false,
-                  firstNonNull(request.getInputIdScheme(), UID)));
+                  firstNonNull(request.getInputIdScheme(), UID),
+                  request.isGeometryOnly()));
         }
       }
     }
@@ -377,7 +380,8 @@ public class DefaultDataQueryService implements DataQueryService {
       DisplayProperty displayProperty,
       List<OrganisationUnit> userOrgUnits,
       boolean allowNull,
-      IdScheme inputIdScheme) {
+      IdScheme inputIdScheme,
+      boolean geometryOnly) {
     if (DATA_X_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getDimension(items, inputIdScheme);
     } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(dimension)) {
@@ -398,7 +402,7 @@ public class DefaultDataQueryService implements DataQueryService {
       return dimensionalObjectProducer.getPeriodDimension(items, relativePeriodDate);
     } else if (ORGUNIT_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getOrgUnitDimension(
-          items, displayProperty, userOrgUnits, inputIdScheme);
+          items, displayProperty, userOrgUnits, inputIdScheme, geometryOnly);
     } else if (ORGUNIT_GROUP_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getOrgUnitGroupDimension(items, inputIdScheme);
     } else if (LONGITUDE_DIM_ID.contains(dimension)) {

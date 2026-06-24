@@ -377,6 +377,24 @@ public class DimensionalObjectProvider {
       DisplayProperty displayProperty,
       List<OrganisationUnit> userOrgUnits,
       IdScheme inputIdScheme) {
+    return getOrgUnitDimension(items, displayProperty, userOrgUnits, inputIdScheme, false);
+  }
+
+  /**
+   * Same as {@link #getOrgUnitDimension(List, DisplayProperty, List, IdScheme)} but, when {@code
+   * geometryOnly} is true, restricts level- and group-resolved organisation units to those that
+   * have a non-null geometry. Used by the geoFeatures endpoint, which only renders units that have
+   * geometry. When {@code geometryOnly} is true an empty result is allowed (it does not raise
+   * {@code E7143}), since "no units have geometry" is a valid empty response rather than an error.
+   *
+   * @param geometryOnly whether to include only organisation units that have a non-null geometry.
+   */
+  public DimensionalObject getOrgUnitDimension(
+      List<String> items,
+      DisplayProperty displayProperty,
+      List<OrganisationUnit> userOrgUnits,
+      IdScheme inputIdScheme,
+      boolean geometryOnly) {
     List<Integer> levels = new ArrayList<>();
     List<OrganisationUnitGroup> groups = new ArrayList<>();
     List<DimensionalItemObject> ous =
@@ -386,8 +404,11 @@ public class DimensionalObjectProvider {
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
     if (!levels.isEmpty()) {
-      orgUnitAtLevels.addAll(
-          sort(organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList)));
+      List<OrganisationUnit> atLevels =
+          geometryOnly
+              ? organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList, true)
+              : organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList);
+      orgUnitAtLevels.addAll(sort(atLevels));
 
       dimensionalKeywords.addKeywords(
           levels.stream()
@@ -397,7 +418,11 @@ public class DimensionalObjectProvider {
     }
 
     if (!groups.isEmpty()) {
-      orgUnitAtLevels.addAll(sort(organisationUnitService.getOrganisationUnits(groups, ousList)));
+      List<OrganisationUnit> inGroups =
+          geometryOnly
+              ? organisationUnitService.getOrganisationUnits(groups, ousList, true)
+              : organisationUnitService.getOrganisationUnits(groups, ousList);
+      orgUnitAtLevels.addAll(sort(inGroups));
 
       dimensionalKeywords.addKeywords(
           groups.stream()
@@ -420,7 +445,9 @@ public class DimensionalObjectProvider {
       dimensionalKeywords.addKeywords(ousList);
     }
 
-    if (orgUnitAtLevels.isEmpty()) {
+    // When geometryOnly is set, an empty result is a valid empty response (e.g. no unit at the
+    // level has geometry), not a query error, so the E7143 guard is skipped in that case.
+    if (orgUnitAtLevels.isEmpty() && !geometryOnly) {
       throwIllegalQueryEx(E7143, ORGUNIT_DIM_ID);
     }
 
