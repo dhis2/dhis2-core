@@ -51,7 +51,9 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
     Event existingEvent = bundle.getPreheat().getEvent(event.getEvent());
 
     if (existingEvent != null && existingEvent.isDeleted()) {
-      if (!importStrategy.isDelete()) {
+      if (importStrategy.isDelete()) {
+        reporter.addWarning(event, E1082, event.getEvent());
+      } else {
         reporter.addError(event, E1082, event.getEvent());
       }
       return;

@@ -53,7 +53,9 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
     Enrollment existingPi = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
 
     if (existingPi != null && existingPi.isDeleted()) {
-      if (!importStrategy.isDelete()) {
+      if (importStrategy.isDelete()) {
+        reporter.addWarning(enrollment, E1113, enrollment.getEnrollment());
+      } else {
         reporter.addError(enrollment, E1113, enrollment.getEnrollment());
       }
       return;

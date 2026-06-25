@@ -54,7 +54,9 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
         bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
     if (existingTe != null && existingTe.isDeleted()) {
-      if (!importStrategy.isDelete()) {
+      if (importStrategy.isDelete()) {
+        reporter.addWarning(trackedEntity, E1114, trackedEntity.getTrackedEntity());
+      } else {
         reporter.addError(trackedEntity, E1114, trackedEntity.getTrackedEntity());
       }
       return;

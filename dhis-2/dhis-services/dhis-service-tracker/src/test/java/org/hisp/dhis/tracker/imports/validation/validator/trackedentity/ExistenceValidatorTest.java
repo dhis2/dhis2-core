@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1002;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1063;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1114;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasWarning;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -132,6 +133,22 @@ class ExistenceValidatorTest {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, E1114);
+  }
+
+  @Test
+  void shouldWarnWhenDeletingAlreadyDeletedTrackedEntity() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+            .trackedEntity(SOFT_DELETED_TE_UID)
+            .build();
+    when(preheat.getTrackedEntity(SOFT_DELETED_TE_UID)).thenReturn(getSoftDeletedTei());
+    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.TrackedEntity.class)))
+        .thenReturn(TrackerImportStrategy.DELETE);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertIsEmpty(reporter.getErrors());
+    assertHasWarning(reporter, trackedEntity, E1114);
   }
 
   @Test
