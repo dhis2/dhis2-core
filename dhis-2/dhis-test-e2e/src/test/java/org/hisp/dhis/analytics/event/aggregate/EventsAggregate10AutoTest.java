@@ -44,7 +44,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 /** Groups e2e tests for "/events/aggregate" endpoint. */
-public class EventsAggregate11AutoTest extends AnalyticsApiTest {
+public class EventsAggregate10AutoTest extends AnalyticsApiTest {
   private final AnalyticsEventActions actions = new AnalyticsEventActions();
 
   @Test
@@ -101,12 +101,8 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
-    // Validate row exists with values from original row index 0
-    validateRowExists(
-        response, actualHeaders, Map.of("pe", "2022", "ou", "ImspTQPwCqd", "value", "8005"));
 
-    // Validate row exists with values from original row index 1
-    validateRowExists(
-        response, actualHeaders, Map.of("pe", "2021", "ou", "ImspTQPwCqd", "value", "11017"));
+    validateRow(response, List.of("2022", "ImspTQPwCqd", "8005"));
+    validateRow(response, List.of("2021", "ImspTQPwCqd", "11017"));
   }
 }
