@@ -306,7 +306,7 @@ public class TwoFactorAuthService {
   }
 
   @NonTransactional
-  public @Nonnull byte[] generateQRCode(@Nonnull User currentUser) throws ConflictException {
+  public @Nonnull byte[] generateQRCode(@Nonnull UserDetails currentUser) throws ConflictException {
     if (!configurationProvider.isEnabled(ConfigurationKey.TOTP_2FA_ENABLED)) {
       throw new ConflictException(ErrorCode.E3046);
     }
