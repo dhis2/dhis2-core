@@ -230,6 +230,34 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotBeAvailableWhenAssignedToTeavWithReservedValueRowStillPresent() {
+    ReservedValue rv = reservedValue.value(prog001).build();
+    saveReservedValue(rv);
+
+    OrganisationUnit ou = createOrganisationUnit("OU");
+    organisationUnitStore.save(ou);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou, trackedEntityType);
+    manager.save(trackedEntity);
+    TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
+    tea.setUid(teaUid);
+    trackedEntityAttributeStore.save(tea);
+    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
+    teav.setValue(prog001);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
+    rv.setTrackedEntityAttributeId(teav.getAttribute().getId());
+
+    assertEquals(1, reservedValueStore.getCount());
+
+    List<ReservedValue> available =
+        reservedValueStore.getAvailableValues(
+            rv, Lists.newArrayList(prog001, prog002), rv.getOwnerObject());
+    assertFalse(available.stream().anyMatch(r -> r.getValue().equals(prog001)));
+    assertTrue(available.stream().anyMatch(r -> r.getValue().equals(prog002)));
+  }
+
+  @Test
   void shouldNotAddAlreadyReservedValues() {
     saveReservedValue(reservedValue.value(prog001).build());
     OrganisationUnit ou = createOrganisationUnit("OU");
