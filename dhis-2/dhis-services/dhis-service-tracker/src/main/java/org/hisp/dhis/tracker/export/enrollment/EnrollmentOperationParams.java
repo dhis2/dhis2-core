@@ -99,12 +99,6 @@ public class EnrollmentOperationParams {
   /** Indicates whether to include soft-deleted enrollments */
   private final boolean includeDeleted;
 
-  /**
-   * Indicates whether this is a synchronization query; propagated to event queries to filter events
-   * by lastupdated > lastsynchronized
-   */
-  private final boolean synchronizationQuery;
-
   private final List<Order> order;
 
   public static class EnrollmentOperationParamsBuilder {

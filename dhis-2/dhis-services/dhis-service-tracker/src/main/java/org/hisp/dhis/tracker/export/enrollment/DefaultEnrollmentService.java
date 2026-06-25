@@ -144,7 +144,6 @@ class DefaultEnrollmentService implements EnrollmentService {
         new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
         params.getFields(),
         params.isIncludeDeleted(),
-        params.isSynchronizationQuery(),
         queryParams.getOrganisationUnitMode());
   }
 
@@ -161,23 +160,17 @@ class DefaultEnrollmentService implements EnrollmentService {
             enrollmentsPage.getItems(),
             params.getFields(),
             params.isIncludeDeleted(),
-            params.isSynchronizationQuery(),
             queryParams.getOrganisationUnitMode());
     return enrollmentsPage.withFilteredItems(enrollments);
   }
 
-  private Set<Event> getEvents(
-      Enrollment enrollment,
-      EventFields fields,
-      boolean includeDeleted,
-      boolean synchronizationQuery) {
+  private Set<Event> getEvents(Enrollment enrollment, EventFields fields, boolean includeDeleted) {
     EventOperationParams eventOperationParams =
         EventOperationParams.builder()
             .enrollments(Set.of(UID.of(enrollment)))
             .trackedEntity(enrollment.getTrackedEntity())
             .fields(fields)
             .includeDeleted(includeDeleted)
-            .synchronizationQuery(synchronizationQuery)
             .build();
     try {
       return Set.copyOf(eventService.findEvents(eventOperationParams));
@@ -194,10 +187,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   private Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment,
-      @Nonnull EnrollmentFields fields,
-      boolean includeDeleted,
-      boolean synchronizationQuery) {
+      @Nonnull Enrollment enrollment, @Nonnull EnrollmentFields fields, boolean includeDeleted) {
     Enrollment result = new Enrollment();
     result.setUid(enrollment.getUid());
 
@@ -227,8 +217,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     result.setDeleted(enrollment.isDeleted());
     result.setNotes(enrollment.getNotes());
     if (fields.isIncludesEvents()) {
-      result.setEvents(
-          getEvents(enrollment, fields.getEventFields(), includeDeleted, synchronizationQuery));
+      result.setEvents(getEvents(enrollment, fields.getEventFields(), includeDeleted));
     }
     if (fields.isIncludesRelationships()) {
       result.setRelationshipItems(
@@ -267,7 +256,6 @@ class DefaultEnrollmentService implements EnrollmentService {
       Iterable<Enrollment> enrollments,
       EnrollmentFields fields,
       boolean includeDeleted,
-      boolean synchronizationQuery,
       OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
     UserDetails currentUser = getCurrentUserDetails();
@@ -278,7 +266,7 @@ class DefaultEnrollmentService implements EnrollmentService {
               || trackerOwnershipAccessManager.hasAccess(
                   currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
           && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
-        enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted, synchronizationQuery));
+        enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted));
       }
     }
 

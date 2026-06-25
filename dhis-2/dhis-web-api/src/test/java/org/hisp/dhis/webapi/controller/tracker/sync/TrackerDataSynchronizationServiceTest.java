@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -59,7 +58,6 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,7 +79,6 @@ class TrackerDataSynchronizationServiceTest {
   private static final String PING_RESPONSE = "true";
 
   @Mock private TrackedEntityService trackedEntityService;
-  @Mock private EventService eventService;
   @Mock private SystemSettingsService systemSettingsService;
   @Mock private RenderService renderService;
 
@@ -94,7 +91,7 @@ class TrackerDataSynchronizationServiceTest {
     mockServer = MockRestServiceServer.createServer(restTemplate);
     service =
         new TrackerDataSynchronizationService(
-            trackedEntityService, eventService, systemSettingsService, restTemplate, renderService);
+            trackedEntityService, systemSettingsService, restTemplate, renderService);
   }
 
   @Test
@@ -106,7 +103,6 @@ class TrackerDataSynchronizationServiceTest {
     service.synchronizeTrackerData(100, JobProgress.noop());
 
     mockServer.verify();
-    verify(eventService).updateEventsSyncTimestamp(eq(List.of("DelEvtUidAB")), any(Date.class));
   }
 
   @Test
