@@ -1455,6 +1455,133 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  public void queryWithProgramAndFilterByEnrollmentOuKeyword() {
+    // ENROLLMENT_OU is an exact-match alias for the program-scoped `ou` dimension, so this must
+    // return exactly the same result as queryWithProgramAndFilterByEnrollmentOrgUnit (which uses
+    // dimension=IpHINAT79UW.ou:BV4IomHvri4).
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("program=IpHINAT79UW")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add("dimension=IpHINAT79UW.ENROLLMENT_OU:BV4IomHvri4")
+            .add("desc=lastupdated")
+            .add("relativePeriodDate=2022-09-27");
+
+    // When
+    ApiResponse response =
+        analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(16)))
+        .body("rows", hasSize(equalTo(14)))
+        .body("metaData.dimensions.ou", hasSize(equalTo(1)))
+        .body("metaData.dimensions.ou", hasItem("BV4IomHvri4"))
+        .body("height", equalTo(14))
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16));
+
+    // Validate the first three rows, as samples (identical to the `ou` variant).
+    validateRow(
+        response,
+        0,
+        List.of(
+            "NYKMYcUHzSt",
+            "2015-08-07 15:47:24.377",
+            ",  ()",
+            "2015-08-07 15:47:24.376",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ahmadiyya Muslim Hospital",
+            "OU_268246",
+            "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
+            "Female",
+            "",
+            "Angela",
+            "Wright",
+            "BV4IomHvri4"));
+
+    validateRow(
+        response,
+        1,
+        List.of(
+            "sM7XmpfgKFb",
+            "2015-08-07 15:47:24.033",
+            ",  ()",
+            "2015-08-07 15:47:24.032",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ahmadiyya Muslim Hospital",
+            "OU_268246",
+            "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
+            "Female",
+            "",
+            "Brenda",
+            "Morgan",
+            "BV4IomHvri4"));
+
+    validateRow(
+        response,
+        2,
+        List.of(
+            "vFSQneulDLz",
+            "2015-08-07 15:47:22.383",
+            ",  ()",
+            "2015-08-07 15:47:22.383",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ahmadiyya Muslim Hospital",
+            "OU_268246",
+            "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
+            "Male",
+            "",
+            "Edward",
+            "Murray",
+            "BV4IomHvri4"));
+  }
+
+  @Test
+  public void queryWithProgramHeaderEnrollmentOuNameKeywordEqualsOuName() throws JSONException {
+    // enrollmentouname is an exact-match alias for the program-scoped `ouname` dimension. The
+    // response for headers=IpHINAT79UW.enrollmentouname must be identical to the response for
+    // headers=IpHINAT79UW.ouname, proving the alias by equivalence.
+    QueryParamsBuilder keywordParams =
+        new QueryParamsBuilder()
+            .add("program=IpHINAT79UW")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add("headers=IpHINAT79UW.enrollmentouname,lZGmxYbs97q")
+            .add("desc=lastupdated")
+            .add("relativePeriodDate=2022-09-27");
+
+    QueryParamsBuilder canonicalParams =
+        new QueryParamsBuilder()
+            .add("program=IpHINAT79UW")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add("headers=IpHINAT79UW.ouname,lZGmxYbs97q")
+            .add("desc=lastupdated")
+            .add("relativePeriodDate=2022-09-27");
+
+    // When
+    ApiResponse keyword =
+        analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, keywordParams);
+    ApiResponse canonical =
+        analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, canonicalParams);
+
+    // Then
+    keyword.validate().statusCode(200);
+    canonical.validate().statusCode(200);
+    assertEquals(canonical.getAsString(), keyword.getAsString(), false);
+  }
+
+  @Test
   public void queryWithProgramAndFilterByEventOrgUnit() {
     // Given
     QueryParamsBuilder params =

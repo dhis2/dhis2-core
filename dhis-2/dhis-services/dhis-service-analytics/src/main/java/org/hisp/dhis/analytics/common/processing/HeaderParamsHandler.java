@@ -34,11 +34,14 @@ import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.ge
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionAliases;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
@@ -72,7 +75,12 @@ public class HeaderParamsHandler {
     CommonRequestParams requestParams = contextParams.getCommonRaw();
 
     Set<GridHeader> headers = getGridHeaders(contextParams, fields);
-    Set<String> paramHeaders = requestParams.getHeaders();
+    // Canonicalize keyword aliases (e.g. programId.enrollmentouname -> programId.ouname) so the
+    // requested headers match the canonical grid header names produced for the dimensions.
+    Set<String> paramHeaders =
+        requestParams.getHeaders().stream()
+            .map(DimensionAliases::canonicalizeHeader)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
 
     if (isEmpty(paramHeaders)) {
       // Adds all headers.
