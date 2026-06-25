@@ -40,6 +40,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
@@ -62,7 +63,6 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -128,7 +128,7 @@ public class FileResourceController
       @PathVariable UID uid,
       HttpServletResponse response,
       @RequestParam(required = false) ImageFileDimension dimension,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws NotFoundException, ForbiddenException, WebMessageException {
     FileResource fileResource = fileResourceService.getFileResource(uid.getValue());
 
@@ -205,7 +205,7 @@ public class FileResourceController
    *
    * @return true if user has access, false if not.
    */
-  private boolean checkSharing(FileResource fileResource, User currentUser) {
+  private boolean checkSharing(FileResource fileResource, UserDetails currentUser) {
     /*
      * Serving DATA_VALUE fileResources from this endpoint doesn't make sense
      * So we will return false if the fileResource have this domain.
@@ -217,7 +217,7 @@ public class FileResourceController
 
     if (domain == FileResourceDomain.USER_AVATAR) {
       return currentUser.isAuthorized("F_USER_VIEW")
-          || fileResource.equals(currentUser.getAvatar());
+          || Objects.equals(UID.of(fileResource), currentUser.getAvatar());
     }
 
     return true;

@@ -44,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 
 /**
@@ -110,15 +111,16 @@ class DataApprovalPermissionsEvaluator {
     ev.idObjectManager = idObjectManager;
     ev.dataApprovalLevelService = dataApprovalLevelService;
 
-    ev.user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    ev.user = userService.getUserByUsername(currentUser.getUsername());
 
     ev.acceptanceRequiredForApproval = settings.getAcceptanceRequiredForApproval();
     boolean hideUnapprovedData = settings.isHideUnapprovedDataInAnalytics();
 
-    ev.authorizedToApprove = ev.user.isAuthorized(F_APPROVE_DATA);
-    ev.authorizedToApproveAtLowerLevels = ev.user.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS);
-    ev.authorizedToAcceptAtLowerLevels = ev.user.isAuthorized(F_ACCEPT_DATA_LOWER_LEVELS);
-    boolean authorizedToViewUnapprovedData = ev.user.isAuthorized(F_VIEW_UNAPPROVED_DATA);
+    ev.authorizedToApprove = currentUser.isAuthorized(F_APPROVE_DATA);
+    ev.authorizedToApproveAtLowerLevels = currentUser.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS);
+    ev.authorizedToAcceptAtLowerLevels = currentUser.isAuthorized(F_ACCEPT_DATA_LOWER_LEVELS);
+    boolean authorizedToViewUnapprovedData = currentUser.isAuthorized(F_VIEW_UNAPPROVED_DATA);
 
     ev.mayViewLowerLevelUnapprovedData = !hideUnapprovedData || authorizedToViewUnapprovedData;
 

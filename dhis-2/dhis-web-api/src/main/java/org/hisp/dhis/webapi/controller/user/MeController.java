@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.fieldfiltering.FieldFilterParams.*;
-import static org.hisp.dhis.webapi.controller.security.ImpersonateUserController.hasAllowListedIp;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -41,7 +40,6 @@ import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +54,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -76,7 +73,6 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
@@ -94,15 +90,13 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.security.ImpersonateUserController;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -194,7 +188,7 @@ public class MeController {
         settingKeys.isEmpty() ? settings.toJson(false) : settings.toJson(true, settingKeys);
     MeDto meDto =
         new MeDto(user, s, programs, dataSets, patTokens, filteredUserGroups, filteredUserRoles);
-    determineUserImpersonation(meDto, user.getAllAuthorities(), request);
+    determineUserImpersonation(meDto, userDetails, request);
 
     ObjectNode jsonNodes = fieldFilterService.toObjectNodes(of(meDto, fields)).get(0);
 
@@ -202,26 +196,11 @@ public class MeController {
   }
 
   private void determineUserImpersonation(
-      MeDto meDto, Set<String> allAuthorities, HttpServletRequest request) {
-    Authentication current = SecurityContextHolder.getContext().getAuthentication();
-
-    // iterate over granted authorities and find the 'switch user' authority
-    Collection<? extends GrantedAuthority> authorities = current.getAuthorities();
-    for (GrantedAuthority auth : authorities) {
-      // check for switch user type of authority
-      if (auth instanceof SwitchUserGrantedAuthority userGrantedAuthority) {
-        meDto.setImpersonation(userGrantedAuthority.getSource().getName());
-      }
-    }
-
-    String remoteAddr = request.getRemoteAddr();
-    boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
-    if (enabled
-        && (allAuthorities.contains(Authorities.ALL.name())
-            || allAuthorities.contains(Authorities.F_IMPERSONATE_USER.name()))
-        && hasAllowListedIp(remoteAddr, config)) {
-      meDto.setCanImpersonate(true);
-    }
+      MeDto meDto, UserDetails currentUser, HttpServletRequest request) {
+    Authentication current = ImpersonateUserController.getImpersonatorUserAuth(request);
+    if (current != null && current.getPrincipal() instanceof UserDetails impersonator)
+      meDto.setImpersonation(impersonator.getName());
+    meDto.setCanImpersonate(ImpersonateUserController.canImpersonate(currentUser, request, config));
   }
 
   private boolean fieldsContains(String key, List<String> fields) {
@@ -318,14 +297,14 @@ public class MeController {
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<String>> getAuthorities(
       @CurrentUser(required = true) User currentUser) {
-    return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.getAllAuthorities());
+    return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.getAuthorities());
   }
 
   @GetMapping(
       value = {"/authorization/{authority}", "/authorities/{authority}"},
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> hasAuthority(
-      @PathVariable String authority, @CurrentUser(required = true) User currentUser) {
+      @PathVariable String authority, @CurrentUser(required = true) UserDetails currentUser) {
     return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.isAuthorized(authority));
   }
 

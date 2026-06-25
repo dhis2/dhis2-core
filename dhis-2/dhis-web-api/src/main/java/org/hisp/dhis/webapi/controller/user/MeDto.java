@@ -106,7 +106,7 @@ public class MeDto {
     this.twitter = user.getTwitter();
 
     this.userRoles = filteredUserRoles;
-    this.authorities = new ArrayList<>(user.getAllAuthorities());
+    this.authorities = new ArrayList<>(user.getAuthorities());
 
     this.settings = settings;
     this.programs = programs;

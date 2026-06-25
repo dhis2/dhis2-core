@@ -318,7 +318,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testCopyProgramWithUserWithNoAuthorities() {
     User userWithNoAuthorities = switchToNewUser("test1");
-    Set<String> authorities = userWithNoAuthorities.getAllAuthorities();
+    Set<String> authorities = userWithNoAuthorities.getAuthorities();
     assertEquals(0, authorities.size());
 
     JsonWebMessage response =
@@ -331,7 +331,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testCopyProgramWithUserWithProgramPrivateAddAuthority() {
     User userWithInsufficientAuthorities = switchToNewUser("test1", "F_PROGRAM_PRIVATE_ADD");
-    Set<String> authorities = userWithInsufficientAuthorities.getAllAuthorities();
+    Set<String> authorities = userWithInsufficientAuthorities.getAuthorities();
     assertEquals(1, authorities.size());
 
     JsonWebMessage response =
@@ -344,7 +344,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testCopyProgramWithUserWithProgramAuthorityOnly() {
     User userWithInsufficientAuthorities = switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD");
-    Set<String> authorities = userWithInsufficientAuthorities.getAllAuthorities();
+    Set<String> authorities = userWithInsufficientAuthorities.getAuthorities();
     assertEquals(1, authorities.size());
 
     assertStatus(HttpStatus.FORBIDDEN, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
@@ -354,7 +354,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   void testCopyProgramWithUserWithProgramAndIndicatorAuthority() {
     User userWithRequiredAuthorities =
         switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
-    Set<String> authorities = userWithRequiredAuthorities.getAllAuthorities();
+    Set<String> authorities = userWithRequiredAuthorities.getAuthorities();
     assertEquals(2, authorities.size());
 
     assertStatus(HttpStatus.CREATED, POST("/programs/%s/copy".formatted(PROGRAM_UID)));

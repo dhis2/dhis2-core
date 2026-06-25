@@ -47,6 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -115,9 +116,10 @@ public class UserControllerUtils {
    * @return a node with the ordered list of data approval levels
    */
   private ArrayNode getWorkflowLevelNodes(User user, DataApprovalWorkflow workflow) {
-    boolean canApprove = user.isAuthorized(F_APPROVE_DATA);
-    boolean canApproveLowerLevels = user.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS);
-    boolean canAccept = user.isAuthorized(F_ACCEPT_DATA_LOWER_LEVELS);
+    UserDetails currentUser = UserDetails.fromUser(user);
+    boolean canApprove = currentUser.isAuthorized(F_APPROVE_DATA);
+    boolean canApproveLowerLevels = currentUser.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS);
+    boolean canAccept = currentUser.isAuthorized(F_ACCEPT_DATA_LOWER_LEVELS);
 
     boolean acceptConfigured =
         settingsProvider.getCurrentSettings().getAcceptanceRequiredForApproval();

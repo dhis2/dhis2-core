@@ -62,7 +62,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -281,9 +281,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
   }
 
   private boolean canCapture(OrganisationUnit captureTarget) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    return currentUser.isSuper()
-        || currentUser.getOrganisationUnits().stream()
-            .anyMatch(ou -> captureTarget.getStoredPath().startsWith(ou.getStoredPath()));
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    return currentUser.isSuper() || currentUser.isInUserHierarchy(captureTarget.getStoredPath());
   }
 }

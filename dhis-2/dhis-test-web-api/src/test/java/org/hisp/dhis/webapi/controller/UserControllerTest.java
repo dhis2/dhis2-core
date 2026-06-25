@@ -593,7 +593,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     peter = userService.getUser(this.peter.getUid());
     assertTrue(
         peter
-            .getAllAuthorities()
+            .getAuthorities()
             .containsAll(Set.of("F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE")));
     switchContextToUser(this.peter);
 

@@ -34,7 +34,7 @@ import static org.hisp.dhis.user.UserConstants.MAX_LENGTH_NAME;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.auth.RegistrationParams;
@@ -49,7 +49,7 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -193,12 +193,10 @@ public class DefaultUserAccountService implements UserAccountService {
   }
 
   public void authenticate(
-      String username,
-      String rawPassword,
-      Collection<GrantedAuthority> authorities,
-      HttpServletRequest request) {
+      String username, String rawPassword, Set<String> authorities, HttpServletRequest request) {
     UsernamePasswordAuthenticationToken token =
-        new UsernamePasswordAuthenticationToken(username, rawPassword, authorities);
+        new UsernamePasswordAuthenticationToken(
+            username, rawPassword, authorities.stream().map(SimpleGrantedAuthority::new).toList());
     token.setDetails(new TwoFactorWebAuthenticationDetails(request));
     Authentication auth = twoFactorAuthProvider.authenticate(token);
     SecurityContextHolder.getContext().setAuthentication(auth);

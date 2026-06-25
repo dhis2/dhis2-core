@@ -49,7 +49,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.Category;
@@ -68,8 +67,6 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * @author Nguyen Hong Duc
@@ -239,7 +236,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   /** Returns a set of the aggregated authorities for all user authority groups of this user. */
-  public Set<String> getAllAuthorities() {
+  public Set<String> getAuthorities() {
     return userRoles == null
         ? Set.of()
         : userRoles.stream()
@@ -260,32 +257,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
             .collect(Collectors.toUnmodifiableSet());
   }
 
-  /** Indicates whether this user has at least one authority through its user authority groups. */
-  public boolean hasAuthorities() {
-    return userRoles != null
-        && userRoles.stream().anyMatch(role -> role != null && !role.getAuthorities().isEmpty());
-  }
-
-  /**
-   * Tests whether this user has any of the authorities in the given set.
-   *
-   * @param auths the authorities to compare with.
-   * @return true or false.
-   */
-  public boolean hasAnyAuthority(Collection<String> auths) {
-    return getAllAuthorities().stream().anyMatch(auths::contains);
-  }
-
-  /**
-   * Tests whether this user has any of the {@link Authorities} in the given set.
-   *
-   * @param auths the {@link Authorities} to compare with.
-   * @return true or false.
-   */
-  public boolean hasAnyAuth(@Nonnull Collection<Authorities> auths) {
-    return hasAnyAuthority(auths.stream().map(Authorities::toString).toList());
-  }
-
   /**
    * "Return true if any of the restrictions in the collection are in the list of all restrictions."
    *
@@ -295,20 +266,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    */
   public boolean hasAnyRestrictions(Collection<String> restrictions) {
     return getAllRestrictions().stream().anyMatch(restrictions::contains);
-  }
-
-  /**
-   * Tests whether the user has the given authority. Returns true in any case if the user has the
-   * ALL authority.
-   */
-  public boolean isAuthorized(String auth) {
-    if (auth == null) {
-      return false;
-    }
-
-    final Set<String> auths = getAllAuthorities();
-
-    return auths.contains(Authorities.ALL.toString()) || auths.contains(auth);
   }
 
   /**
@@ -334,7 +291,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
       return false;
     }
 
-    final Set<String> authorities = getAllAuthorities();
+    final Set<String> authorities = getAuthorities();
 
     if (authorities.contains(Authorities.ALL.toString())) {
       return true;
@@ -375,13 +332,13 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
       return false;
     }
 
-    final Set<String> authorities = getAllAuthorities();
+    final Set<String> authorities = getAuthorities();
 
     if (authorities.contains(Authorities.ALL.toString())) {
       return true;
     }
 
-    return authorities.containsAll(other.getAllAuthorities());
+    return authorities.containsAll(other.getAuthorities());
   }
 
   /** Sets the last login property to the current date. */
@@ -653,15 +610,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.settings = settings;
   }
 
-  public Collection<GrantedAuthority> getAuthorities() {
-    Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-
-    getAllAuthorities()
-        .forEach(authority -> grantedAuthorities.add(new SimpleGrantedAuthority(authority)));
-
-    return grantedAuthorities;
-  }
-
   public boolean isAccountNonExpired() {
     return accountExpiry == null || accountExpiry.after(new Date());
   }
@@ -827,16 +775,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public String getOrganisationUnitsName() {
     return IdentifiableObjectUtils.join(organisationUnits);
-  }
-
-  /**
-   * Tests whether the user has the given authority. Returns true in any case if the user has the
-   * ALL authority.
-   *
-   * @param auth the {@link Authorities}.
-   */
-  public boolean isAuthorized(@Nonnull Authorities auth) {
-    return isAuthorized(auth.toString());
   }
 
   public Set<UserGroup> getManagedGroups() {

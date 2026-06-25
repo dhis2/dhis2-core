@@ -43,7 +43,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -82,7 +82,7 @@ class FileResourceControllerMockTest {
 
     when(fileResourceService.getFileResource(id.getValue())).thenReturn(fileResource);
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     controller.getFileResourceData(id, new MockHttpServletResponse(), null, currentUser);
 
     verify(fileResourceService).copyFileResourceContent(any(), any());
@@ -99,7 +99,7 @@ class FileResourceControllerMockTest {
 
     when(fileResourceService.getFileResource(id.getValue())).thenReturn(fileResource);
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     assertThrows(
         ForbiddenException.class,
         () -> controller.getFileResourceData(id, new MockHttpServletResponse(), null, currentUser));

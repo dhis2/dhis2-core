@@ -235,7 +235,10 @@ class SecurityTrackedEntityValidatorTest extends TrackerTestBase {
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
             .build();
-    user.getAllAuthorities().add(Authorities.F_TEI_CASCADE_DELETE.name());
+
+    User userA = makeUser("A", List.of(Authorities.F_TEI_CASCADE_DELETE.toString()));
+    userA.addOrganisationUnit(organisationUnit);
+    user = UserDetails.fromUser(userA);
 
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithEnrollments();

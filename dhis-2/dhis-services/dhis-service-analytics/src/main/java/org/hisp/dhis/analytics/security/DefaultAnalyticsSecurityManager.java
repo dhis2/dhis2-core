@@ -94,16 +94,18 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   @Override
   @Transactional(readOnly = true)
   public void decideAccess(DataQueryParams params) {
-    decideAccessDataViewOrganisationUnits(params, CurrentUserUtil.getCurrentUserDetails());
-    decideAccessDataReadObjects(params, CurrentUserUtil.getCurrentUserDetails());
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    decideAccessDataViewOrganisationUnits(params, currentUserDetails);
+    decideAccessDataReadObjects(params, currentUserDetails);
   }
 
   @Override
   @Transactional(readOnly = true)
   public void decideAccess(
       List<OrganisationUnit> queryOrgUnits, Set<IdentifiableObject> readObjects) {
-    decideAccessDataViewOrganisationUnits(queryOrgUnits, CurrentUserUtil.getCurrentUserDetails());
-    decideAccessDataReadObjects(readObjects, CurrentUserUtil.getCurrentUserDetails());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    decideAccessDataViewOrganisationUnits(queryOrgUnits, currentUser);
+    decideAccessDataReadObjects(readObjects, currentUser);
   }
 
   /**
@@ -210,7 +212,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   @Override
   @Transactional(readOnly = true)
   public void decideAccessEventAnalyticsAuthority() {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetailsOrNull();
 
     boolean notAuthorized =
         currentUser != null && !currentUser.isAuthorized(F_VIEW_EVENT_ANALYTICS);
@@ -235,7 +237,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   public DataQueryParams withDataApprovalConstraints(DataQueryParams params) {
     DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder(params);
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     boolean hideUnapprovedData =
         settingsProvider.getCurrentSettings().isHideUnapprovedDataInAnalytics();

@@ -30,6 +30,7 @@
 package org.hisp.dhis.security.jwt;
 
 import java.util.Collection;
+import java.util.List;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.core.GrantedAuthority;
@@ -74,9 +75,8 @@ public class DhisJwtAuthenticationToken extends JwtAuthenticationToken {
    *     authentication)
    * @param user the DHIS2 {@link UserDetails} the mapping claim resolved to
    */
-  public DhisJwtAuthenticationToken(
-      Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name, UserDetails user) {
-    super(jwt, authorities, name);
+  public DhisJwtAuthenticationToken(Jwt jwt, String name, UserDetails user) {
+    super(jwt, List.of(), name);
 
     this.dhisOidcUser = new DhisOidcUser(user, jwt.getClaims(), IdTokenClaimNames.SUB, null);
   }
@@ -89,5 +89,10 @@ public class DhisJwtAuthenticationToken extends JwtAuthenticationToken {
   @Override
   public Object getPrincipal() {
     return this.dhisOidcUser;
+  }
+
+  @Override
+  public Collection<GrantedAuthority> getAuthorities() {
+    return (Collection<GrantedAuthority>) dhisOidcUser.getAuthorities();
   }
 }

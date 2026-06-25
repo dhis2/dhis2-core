@@ -109,6 +109,8 @@ class ImpersonateUserControllerTest extends H2ControllerIntegrationTestBase {
     String username = me.getUsername();
     assertEquals(usernameToImpersonate, username);
 
+    // FIXME seems legit that the impersonated user itself cannot exit
+    // as he does not have the authority required to call the endpoint
     JsonImpersonateUserResponse responseExit =
         POST("/auth/impersonateExit").content(HttpStatus.OK).as(JsonImpersonateUserResponse.class);
 

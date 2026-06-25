@@ -292,8 +292,9 @@ public class InterpretationController
       return notFound("Interpretation does not exist: " + uid);
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (!currentUser.equals(interpretation.getCreatedBy()) && !currentUser.isSuper()) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (!currentUser.getUid().equals(interpretation.getCreatedBy().getUid())
+        && !currentUser.isSuper()) {
       throw new ForbiddenException("You are not allowed to update this interpretation.");
     }
 
@@ -365,11 +366,12 @@ public class InterpretationController
       return conflict("Interpretation does not exist: " + uid);
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     for (InterpretationComment comment : interpretation.getComments()) {
       if (comment.getUid().equals(cuid)) {
-        if (!currentUser.equals(comment.getCreatedBy()) && !currentUser.isSuper()) {
+        if (!currentUser.getUid().equals(comment.getCreatedBy().getUid())
+            && !currentUser.isSuper()) {
           throw new ForbiddenException("You are not allowed to update this comment.");
         }
 
@@ -396,12 +398,13 @@ public class InterpretationController
 
     Iterator<InterpretationComment> iterator = interpretation.getComments().iterator();
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     while (iterator.hasNext()) {
       InterpretationComment comment = iterator.next();
       if (comment.getUid().equals(cuid)) {
-        if (!currentUser.equals(comment.getCreatedBy()) && !currentUser.isSuper()) {
+        if (!currentUser.getUid().equals(comment.getCreatedBy().getUid())
+            && !currentUser.isSuper()) {
           throw new ForbiddenException("You are not allowed to delete this comment.");
         }
 

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -41,12 +42,14 @@ import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
@@ -59,7 +62,6 @@ public interface UserDetails
   static UserDetailsImplBuilder empty() {
     return UserDetailsImpl.builder()
         .isSuper(false)
-        .authorities(List.of())
         .allAuthorities(Set.of())
         .allRestrictions(Set.of())
         .userGroupIds(Set.of())
@@ -135,6 +137,7 @@ public interface UserDetails
       return null;
     }
 
+    Set<String> authorities = Set.copyOf(user.getAuthorities());
     UserDetailsImplBuilder userDetailsImplBuilder =
         UserDetailsImpl.builder()
             .id(user.getId())
@@ -147,6 +150,7 @@ public interface UserDetails
             .twoFactorType(user.getTwoFactorType())
             .secret(user.getSecret())
             .email(user.getEmail())
+            .avatar(UID.of(user.getAvatar()))
             .isEmailVerified(user.isEmailVerified())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
@@ -155,14 +159,8 @@ public interface UserDetails
             .accountNonLocked(accountNonLocked)
             .credentialsNonExpired(credentialsNonExpired)
             .dataViewMaxOrganisationUnitLevel(user.getDataViewMaxOrganisationUnitLevel())
-            .authorities(user.getAuthorities())
-            .allAuthorities(
-                new HashSet<>(
-                    Set.copyOf(
-                        user.getAuthorities().stream()
-                            .map(GrantedAuthority::getAuthority)
-                            .toList())))
-            .isSuper(user.isSuper())
+            .allAuthorities(authorities)
+            .isSuper(authorities.contains(Authorities.ALL.toString()))
             .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
             .userGroupIds(
                 new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
@@ -214,7 +212,9 @@ public interface UserDetails
 
   @Nonnull
   @Override
-  Collection<? extends GrantedAuthority> getAuthorities();
+  default Collection<? extends GrantedAuthority> getAuthorities() {
+    return getAllAuthorities().stream().map(SimpleGrantedAuthority::new).toList();
+  }
 
   @Override
   String getPassword();
@@ -251,6 +251,9 @@ public interface UserDetails
 
   String getEmail();
 
+  @CheckForNull
+  UID getAvatar();
+
   @Nonnull
   Set<String> getUserGroupIds();
 
@@ -276,6 +279,17 @@ public interface UserDetails
   Set<Long> getUserRoleLongIds();
 
   boolean hasAnyAuthority(Collection<String> auths);
+
+  default boolean hasAnyAuthority(String... auths) {
+    return hasAnyAuthority(Arrays.asList(auths));
+  }
+
+  default boolean hasAnyAuthority(Authorities... auths) {
+    Set<String> authorities = getAllAuthorities();
+    if (authorities.isEmpty()) return false;
+    for (Authorities a : auths) if (authorities.contains(a.toString())) return true;
+    return false;
+  }
 
   boolean hasAnyAuthorities(Collection<Authorities> auths);
 

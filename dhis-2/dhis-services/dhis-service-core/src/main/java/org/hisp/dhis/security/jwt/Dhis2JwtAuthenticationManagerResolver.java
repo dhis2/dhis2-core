@@ -34,7 +34,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_C
 
 import com.nimbusds.jwt.JWTParser;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +51,6 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -230,11 +228,7 @@ public class Dhis2JwtAuthenticationManagerResolver
                 mappingClaimKey, mappingValue));
       }
 
-      Collection<GrantedAuthority> grantedAuthorities =
-          List.copyOf(currentUserDetails.getAuthorities());
-
-      return new DhisJwtAuthenticationToken(
-          jwt, grantedAuthorities, mappingValue, currentUserDetails);
+      return new DhisJwtAuthenticationToken(jwt, mappingValue, currentUserDetails);
     };
   }
 
