@@ -152,7 +152,7 @@ class AppResourceTest extends ApiTest {
       List<String> location = response.getHeaders().get("Location");
       assertNotNull(location);
       assertEquals(1, location.size());
-      assertEquals(SERVER_BASE + "/apps/" + app + "?answer=42", location.get(0));
+      assertEquals("/apps/" + app + "?answer=42", location.get(0));
     }
 
     // Redirect to global shell from / (default) with forwarded querystring
@@ -162,7 +162,7 @@ class AppResourceTest extends ApiTest {
       List<String> location = response.getHeaders().get("Location");
       assertNotNull(location);
       assertEquals(1, location.size());
-      assertEquals(SERVER_BASE + "/apps/" + app + "?answer=42", location.get(0));
+      assertEquals("/apps/" + app + "?answer=42", location.get(0));
     }
 
     // Serve index.html from index.html?redirect=false

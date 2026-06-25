@@ -65,18 +65,9 @@ class QueryControllerTest extends H2ControllerIntegrationTestBase {
         "/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
         doc.getString("path").string());
     assertEquals(
-        "http://localhost/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
+        "http://localhost:8080/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
         doc.getString("href").string());
     assertEquals("/api/me?fields=id,username,surname,firstName", doc.getString("target").string());
-
-    /*
-     * Testing the actual query implementation requires a valid cache
-     * provider which is not available in integration test contexts
-     */
-
-    // JsonObject targetResponse = GET( testTargetUrl.substring( "/api".length() ) ).content();
-    // JsonObject aliasResponse = GET( testTargetAliasPath ).content();
-    // assertEquals( targetResponse.toString(), aliasResponse.toString() );
   }
 
   private void testInvalidPayloads(String apiEndpoint) {
@@ -107,7 +98,7 @@ class QueryControllerTest extends H2ControllerIntegrationTestBase {
             "{ \"target\": \"/api/me?fields=id,username,surname,firstName\" }");
     assertStatus(HttpStatus.SEE_OTHER, response);
     assertEquals(
-        "http://localhost/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
+        "http://localhost:8080/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
         response.header("Location"));
   }
 
