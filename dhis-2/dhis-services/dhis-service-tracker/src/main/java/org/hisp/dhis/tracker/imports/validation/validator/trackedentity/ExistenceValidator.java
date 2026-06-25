@@ -53,9 +53,10 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
     TrackedEntity existingTe =
         bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
-    // If the tracked entity is soft-deleted no operation is allowed
     if (existingTe != null && existingTe.isDeleted()) {
-      reporter.addError(trackedEntity, E1114, trackedEntity.getTrackedEntity());
+      if (!importStrategy.isDelete()) {
+        reporter.addError(trackedEntity, E1114, trackedEntity.getTrackedEntity());
+      }
       return;
     }
 

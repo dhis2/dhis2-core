@@ -52,9 +52,10 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
 
     Enrollment existingPi = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
 
-    // If the tracked entity is soft-deleted no operation is allowed
     if (existingPi != null && existingPi.isDeleted()) {
-      reporter.addError(enrollment, E1113, enrollment.getEnrollment());
+      if (!importStrategy.isDelete()) {
+        reporter.addError(enrollment, E1113, enrollment.getEnrollment());
+      }
       return;
     }
 
