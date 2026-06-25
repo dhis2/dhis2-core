@@ -58,14 +58,14 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
           + "trackedentityid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
           + " inactive, deleted, lastsynchronized, potentialduplicate,"
           + " organisationunitid, trackedentitytypeid, geometry, createdbyuserinfo,"
-          + " lastupdatedbyuserinfo)"
+          + " lastupdatedbyuserinfo, storedby)"
           + " select trackedentityid, uid, created, lastupdated, createdatclient,"
           + " lastupdatedatclient, inactive, deleted, lastsynchronized, potentialduplicate,"
           + " organisationunitid, trackedentitytypeid,"
           + " case when geometry is null then null else ST_GeomFromText(geometry, "
           + SRID
           + ") end,"
-          + " createdbyuserinfo::jsonb, lastupdatedbyuserinfo::jsonb"
+          + " createdbyuserinfo::jsonb, lastupdatedbyuserinfo::jsonb, storedby"
           + " from ( select"
           + " unnest(?::bigint[]) as trackedentityid,"
           + " unnest(?::text[]) as uid,"
@@ -81,7 +81,8 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
           + " unnest(?::bigint[]) as trackedentitytypeid,"
           + " unnest(?::text[]) as geometry,"
           + " unnest(?::text[]) as createdbyuserinfo,"
-          + " unnest(?::text[]) as lastupdatedbyuserinfo"
+          + " unnest(?::text[]) as lastupdatedbyuserinfo,"
+          + " unnest(?::text[]) as storedby"
           + " ) v";
 
   // Columns mutated by TrackerObjectsMapper.map() on the UPDATE branch. Insert-only columns (uid,
@@ -154,6 +155,7 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
                 p++, textArray(conn, chunk, te -> userInfo.toJson(te.getCreatedByUserInfo())));
             ps.setArray(
                 p++, textArray(conn, chunk, te -> userInfo.toJson(te.getLastUpdatedByUserInfo())));
+            ps.setArray(p++, textArray(conn, chunk, TrackedEntity::getStoredBy));
             ps.executeUpdate();
           }
         });

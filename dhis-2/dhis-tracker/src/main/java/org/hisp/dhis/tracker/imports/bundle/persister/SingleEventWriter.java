@@ -60,7 +60,7 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
           + " createdbyuserinfo, lastupdatedbyuserinfo, status, occurreddate, completeddate,"
           + " completedby, deleted, lastsynchronized,"
           + " programstageid, organisationunitid, attributeoptioncomboid,"
-          + " assigneduserid, eventdatavalues, geometry)"
+          + " assigneduserid, eventdatavalues, geometry, storedby)"
           + " select eventid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
           + " createdbyuserinfo::jsonb, lastupdatedbyuserinfo::jsonb, status, occurreddate,"
           + " completeddate, completedby, deleted, lastsynchronized,"
@@ -68,7 +68,8 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
           + " assigneduserid, eventdatavalues::jsonb,"
           + " case when geometry is null then null else ST_GeomFromText(geometry, "
           + SRID
-          + ") end"
+          + ") end,"
+          + " storedby"
           + " from ( select"
           + " unnest(?::bigint[]) as eventid,"
           + " unnest(?::text[]) as uid,"
@@ -89,7 +90,8 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
           + " unnest(?::bigint[]) as attributeoptioncomboid,"
           + " unnest(?::bigint[]) as assigneduserid,"
           + " unnest(?::text[]) as eventdatavalues,"
-          + " unnest(?::text[]) as geometry"
+          + " unnest(?::text[]) as geometry,"
+          + " unnest(?::text[]) as storedby"
           + " ) v";
 
   // Columns mutated by TrackerObjectsMapper.mapSingleEvent outside the new-entity branch. Insert-
@@ -179,6 +181,7 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
             ps.setArray(
                 p++, textArray(conn, chunk, e -> toEventDataValuesJson(e.getEventDataValues())));
             ps.setArray(p++, textArray(conn, chunk, e -> geometryText(e.getGeometry())));
+            ps.setArray(p++, textArray(conn, chunk, SingleEvent::getStoredBy));
             ps.executeUpdate();
           }
         });

@@ -57,14 +57,16 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
           + "enrollmentid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
           + " createdbyuserinfo, lastupdatedbyuserinfo, enrollmentdate, occurreddate, completeddate,"
           + " completedby, status, followup, deleted,"
-          + " trackedentityid, programid, organisationunitid, attributeoptioncomboid, geometry)"
+          + " trackedentityid, programid, organisationunitid, attributeoptioncomboid, geometry,"
+          + " storedby)"
           + " select enrollmentid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
           + " createdbyuserinfo::jsonb, lastupdatedbyuserinfo::jsonb, enrollmentdate, occurreddate,"
           + " completeddate, completedby, status, followup, deleted,"
           + " trackedentityid, programid, organisationunitid, attributeoptioncomboid,"
           + " case when geometry is null then null else ST_GeomFromText(geometry, "
           + SRID
-          + ") end"
+          + ") end,"
+          + " storedby"
           + " from ( select"
           + " unnest(?::bigint[]) as enrollmentid,"
           + " unnest(?::text[]) as uid,"
@@ -85,7 +87,8 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
           + " unnest(?::bigint[]) as programid,"
           + " unnest(?::bigint[]) as organisationunitid,"
           + " unnest(?::bigint[]) as attributeoptioncomboid,"
-          + " unnest(?::text[]) as geometry"
+          + " unnest(?::text[]) as geometry,"
+          + " unnest(?::text[]) as storedby"
           + " ) v";
 
   // Columns mutated by TrackerObjectsMapper.map(Enrollment) outside the new-entity branch. Insert-
@@ -178,6 +181,7 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
             ps.setArray(p++, bigintArray(conn, chunk, e -> e.getOrganisationUnit().getId()));
             ps.setArray(p++, bigintArray(conn, chunk, e -> e.getAttributeOptionCombo().getId()));
             ps.setArray(p++, textArray(conn, chunk, e -> geometryText(e.getGeometry())));
+            ps.setArray(p++, textArray(conn, chunk, Enrollment::getStoredBy));
             ps.executeUpdate();
           }
         });

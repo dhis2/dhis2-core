@@ -60,7 +60,7 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
           + " createdbyuserinfo, lastupdatedbyuserinfo, status, occurreddate, scheduleddate,"
           + " completeddate, completedby, deleted, lastsynchronized,"
           + " enrollmentid, programstageid, organisationunitid, attributeoptioncomboid,"
-          + " assigneduserid, eventdatavalues, geometry)"
+          + " assigneduserid, eventdatavalues, geometry, storedby)"
           + " select eventid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
           + " createdbyuserinfo::jsonb, lastupdatedbyuserinfo::jsonb, status, occurreddate,"
           + " scheduleddate, completeddate, completedby, deleted, lastsynchronized,"
@@ -68,7 +68,8 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
           + " assigneduserid, eventdatavalues::jsonb,"
           + " case when geometry is null then null else ST_GeomFromText(geometry, "
           + SRID
-          + ") end"
+          + ") end,"
+          + " storedby"
           + " from ( select"
           + " unnest(?::bigint[]) as eventid,"
           + " unnest(?::text[]) as uid,"
@@ -91,7 +92,8 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
           + " unnest(?::bigint[]) as attributeoptioncomboid,"
           + " unnest(?::bigint[]) as assigneduserid,"
           + " unnest(?::text[]) as eventdatavalues,"
-          + " unnest(?::text[]) as geometry"
+          + " unnest(?::text[]) as geometry,"
+          + " unnest(?::text[]) as storedby"
           + " ) v";
 
   // Columns mutated by TrackerObjectsMapper.map(TrackerEvent) outside the new-entity branch.
@@ -188,6 +190,7 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
             ps.setArray(
                 p++, textArray(conn, chunk, e -> toEventDataValuesJson(e.getEventDataValues())));
             ps.setArray(p++, textArray(conn, chunk, e -> geometryText(e.getGeometry())));
+            ps.setArray(p++, textArray(conn, chunk, TrackerEvent::getStoredBy));
             ps.executeUpdate();
           }
         });
