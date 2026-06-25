@@ -103,6 +103,6 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
 
-    validateRow(response, List.of("2022", "ImspTQPwCqd", "11025"));
+    validateRow(response, List.of("11025", "ImspTQPwCqd", "2022"));
   }
 }
