@@ -253,11 +253,13 @@ public class DefaultDataQueryService implements DataQueryService {
     return getDimension(
         dimension,
         items,
-        request.getRelativePeriodDate(),
-        request.getDisplayProperty(),
         userOrgUnits,
-        allowNull,
-        inputIdScheme);
+        new DimensionResolveOptions(
+            request.getRelativePeriodDate(),
+            request.getDisplayProperty(),
+            allowNull,
+            inputIdScheme,
+            false));
   }
 
   @Override
@@ -273,11 +275,9 @@ public class DefaultDataQueryService implements DataQueryService {
     return getDimension(
         dimension,
         items,
-        relativePeriodDate,
-        displayProperty,
         userOrgUnits,
-        allowNull,
-        inputIdScheme);
+        new DimensionResolveOptions(
+            relativePeriodDate, displayProperty, allowNull, inputIdScheme, false));
   }
 
   @Override
@@ -327,11 +327,13 @@ public class DefaultDataQueryService implements DataQueryService {
               getDimension(
                   dimension,
                   items,
-                  request.getRelativePeriodDate(),
-                  request.getDisplayProperty(),
                   userOrgUnits,
-                  false,
-                  firstNonNull(request.getInputIdScheme(), UID)));
+                  new DimensionResolveOptions(
+                      request.getRelativePeriodDate(),
+                      request.getDisplayProperty(),
+                      false,
+                      firstNonNull(request.getInputIdScheme(), UID),
+                      request.isGeometryOnly())));
         }
       }
     }
@@ -355,25 +357,37 @@ public class DefaultDataQueryService implements DataQueryService {
   }
 
   /**
+   * Options controlling how a dimension is resolved by {@link #getDimension(String, List, List,
+   * DimensionResolveOptions)}.
+   *
+   * @param relativePeriodDate the relative period date.
+   * @param displayProperty the display property.
+   * @param allowNull whether to allow returning null.
+   * @param inputIdScheme the input {@link IdScheme}.
+   * @param geometryOnly whether to restrict org unit resolution to units with a non-null geometry.
+   */
+  private record DimensionResolveOptions(
+      Date relativePeriodDate,
+      DisplayProperty displayProperty,
+      boolean allowNull,
+      IdScheme inputIdScheme,
+      boolean geometryOnly) {}
+
+  /**
    * Returns a {@link DimensionalObject}.
    *
    * @param dimension the dimension identifier.
    * @param items the dimension items.
-   * @param relativePeriodDate the relative period date.
-   * @param displayProperty the relative period date.
    * @param userOrgUnits the list of user {@link OrganisationUnit}.
-   * @param allowNull whether to allow returning null.
-   * @param inputIdScheme the input {@link IdScheme}.
+   * @param options the {@link DimensionResolveOptions} controlling resolution.
    * @return a {@link DimensionalObject}.
    */
   private DimensionalObject getDimension(
       String dimension,
       List<String> items,
-      Date relativePeriodDate,
-      DisplayProperty displayProperty,
       List<OrganisationUnit> userOrgUnits,
-      boolean allowNull,
-      IdScheme inputIdScheme) {
+      DimensionResolveOptions options) {
+    IdScheme inputIdScheme = options.inputIdScheme();
     if (DATA_X_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getDimension(items, inputIdScheme);
     } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(dimension)) {
@@ -391,10 +405,10 @@ public class DefaultDataQueryService implements DataQueryService {
           DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO,
           getCategoryOptionComboList(items, inputIdScheme));
     } else if (PERIOD_DIM_ID.equals(dimension)) {
-      return dimensionalObjectProducer.getPeriodDimension(items, relativePeriodDate);
+      return dimensionalObjectProducer.getPeriodDimension(items, options.relativePeriodDate());
     } else if (ORGUNIT_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getOrgUnitDimension(
-          items, displayProperty, userOrgUnits, inputIdScheme);
+          items, options.displayProperty(), userOrgUnits, inputIdScheme, options.geometryOnly());
     } else if (ORGUNIT_GROUP_DIM_ID.equals(dimension)) {
       return dimensionalObjectProducer.getOrgUnitGroupDimension(items, inputIdScheme);
     } else if (LONGITUDE_DIM_ID.contains(dimension)) {
@@ -406,14 +420,14 @@ public class DefaultDataQueryService implements DataQueryService {
     } else {
       Optional<BaseDimensionalObject> baseDimensionalObject =
           dimensionalObjectProducer.getDynamicDimension(
-              dimension, items, displayProperty, inputIdScheme);
+              dimension, items, options.displayProperty(), inputIdScheme);
 
       if (baseDimensionalObject.isPresent()) {
         return baseDimensionalObject.get();
       }
     }
 
-    if (allowNull) {
+    if (options.allowNull()) {
       return null;
     }
 
