@@ -63,13 +63,14 @@ final class NoteCascadeWriter {
   // Constant-text INSERT ... SELECT unnest(...) so pgjdbc's prepared-statement cache engages
   // regardless of row count.
   private static final String NOTE_INSERT_SQL =
-      "insert into note (noteid, uid, created, lastupdatedby, notetext)"
-          + " select noteid, uid, created, lastupdatedby, notetext"
+      "insert into note (noteid, uid, created, lastupdatedby, creator, notetext)"
+          + " select noteid, uid, created, lastupdatedby, creator, notetext"
           + " from ( select"
           + " unnest(?::bigint[]) as noteid,"
           + " unnest(?::text[]) as uid,"
           + " unnest(?::timestamptz[]) as created,"
           + " unnest(?::bigint[]) as lastupdatedby,"
+          + " unnest(?::text[]) as creator,"
           + " unnest(?::text[]) as notetext"
           + " ) v";
 
@@ -152,6 +153,7 @@ final class NoteCascadeWriter {
             ps.setArray(p++, textArray(conn, chunk, nr -> nr.note().getUid()));
             ps.setArray(p++, textArray(conn, chunk, nr -> toTimestamptz(nr.note().getCreated())));
             ps.setArray(p++, bigintArray(conn, chunk, nr -> lastUpdatedById(nr.note())));
+            ps.setArray(p++, textArray(conn, chunk, nr -> nr.note().getCreator()));
             ps.setArray(p++, textArray(conn, chunk, nr -> nr.note().getNoteText()));
             ps.executeUpdate();
           }
