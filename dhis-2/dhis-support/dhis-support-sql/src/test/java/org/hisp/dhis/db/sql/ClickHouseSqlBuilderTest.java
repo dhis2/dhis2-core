@@ -39,6 +39,7 @@ import java.util.Map;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -182,7 +183,15 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testConcat() {
     assertEquals(
-        "concat(de.uid, pe.iso, ou.uid)", sqlBuilder.safeConcat("de.uid", "pe.iso", "ou.uid"));
+        "concat(coalesce(de.uid, ''), coalesce(pe.iso, ''), coalesce(ou.uid, ''))",
+        sqlBuilder.safeConcat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testConcatLeavesLiteralsUnwrapped() {
+    assertEquals(
+        "concat(coalesce(en.\"surname\", ''), ', ', coalesce(en.\"username\", ''))",
+        sqlBuilder.safeConcat("en.\"surname\"", "', '", "en.\"username\""));
   }
 
   @Test
@@ -284,6 +293,38 @@ class ClickHouseSqlBuilderTest {
         """
         toString(ax."qrur9Dvnyt5")""",
         sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.TEXT));
+  }
+
+  @Test
+  void testDateDifferenceCastsDateLiterals() {
+    assertEquals(
+        "dateDiff('day', asicv.value, toDate32('2020-06-01'))",
+        sqlBuilder.dateDifference("asicv.value", "'2020-06-01'", DateUnit.DAYS));
+    assertEquals(
+        "dateDiff('minute', toDateTime('2020-06-01'), completeddate)",
+        sqlBuilder.dateDifference("'2020-06-01'", "completeddate", DateUnit.MINUTES));
+    assertEquals(
+        "age('month', enrollmentdate, toDateTime64('2020-06-01 12:30:45', 3))",
+        sqlBuilder.dateDifference("enrollmentdate", "'2020-06-01 12:30:45'", DateUnit.MONTHS));
+  }
+
+  @Test
+  void testDateDifferenceUsesCompletedUnitSemantics() {
+    assertEquals(
+        "age('year', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.YEARS));
+    assertEquals(
+        "age('month', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.MONTHS));
+    assertEquals(
+        "age('week', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.WEEKS));
+    assertEquals(
+        "dateDiff('day', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.DAYS));
+    assertEquals(
+        "dateDiff('minute', enrollmentdate, occurreddate)",
+        sqlBuilder.dateDifference("enrollmentdate", "occurreddate", DateUnit.MINUTES));
   }
 
   @Test

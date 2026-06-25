@@ -222,7 +222,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     trackedEntityType = trackedEntityTypeAccessible();
 
     teaA = createTrackedEntityAttribute('A', ValueType.PHONE_NUMBER);
-    teaA.setConfidential(false);
     teaA.getSharing().setOwner(user1);
     teaA.getSharing().addUserAccess(fullAccess(user1));
     manager.save(teaA, false);
@@ -867,7 +866,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     event.setProgramStage(trackerProgramStage);
     event.setOrganisationUnit(enrollment.getOrganisationUnit());
     event.setAttributeOptionCombo(coc);
-    event.setOccurredDate(new Date());
+    // SMS submissions encode dates with second precision, so the occurred date must not carry
+    // milliseconds or it won't survive the SMS encode/decode round-trip in shouldUpdateEvent().
+    event.setOccurredDate(DateUtils.getDate(2024, 9, 2, 10, 15));
     event.setAutoFields();
     manager.save(event);
     return event;

@@ -55,7 +55,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Performance test for single-user CRUD operations on {@code /api/users}.
  *
- * <p>Five scenarios, all running against the Sierra Leone demo DB by default:
+ * <p>Five scenarios, all running against the platform-perf DB (~250k users / ~250k org units) by
+ * default:
  *
  * <ol>
  *   <li><b>POST</b> — creates a new user (with optional group assignment)
@@ -71,7 +72,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * itself — no existing database users are touched.
  *
  * <p>Run with {@code -DuserGroupUid=<uid>} pointing at a group with large membership to expose N+1
- * problems in POST and DELETE. The default points at "Administrators" on the SL demo DB.
+ * problems in POST and DELETE. The default points at a ~83k-member group on the platform-perf DB.
  *
  * <p>Configuration can be provided via a {@code .properties} file instead of individual {@code -D}
  * flags:
@@ -82,18 +83,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * Individual {@code -D} flags always override values from the config file.
  *
- * <p>Available properties (with SL demo DB defaults):
+ * <p>Available properties (with platform-perf DB defaults):
  *
  * <ul>
  *   <li>{@code configFile} — path to a {@code .properties} file (optional)
  *   <li>{@code baseUrl} (default: {@code http://localhost:8080})
  *   <li>{@code username} (default: {@code admin})
  *   <li>{@code password} (default: {@code district})
- *   <li>{@code userRoleUid} (default: {@code Euq3XfEIEbx} — "Data entry clerk")
- *   <li>{@code orgUnitUid} (default: {@code ImspTQPwCqd} — "Sierra Leone" root)
- *   <li>{@code userGroupUid} (default: {@code wl5cDMuUhmF} — "Administrators")
+ *   <li>{@code userRoleUid} (default: {@code MoRvPzDH7lc} — generic role with ~83k users)
+ *   <li>{@code orgUnitUid} (default: {@code VCCdfC9pvMA} — root org unit)
+ *   <li>{@code userGroupUid} (default: {@code KOvR9SAEeEZ} — group with ~83k members)
  *   <li>{@code iterations} (default: {@code 3})
- *   <li>{@code mode} (default: {@code parallel}; use {@code sequential} to chain scenarios)
+ *   <li>{@code mode} (default: {@code sequential}; runs each scenario in isolation so timings
+ *       reflect single-endpoint latency. Use {@code parallel} to run all scenarios concurrently as
+ *       a mixed-load stress test.)
  * </ul>
  */
 public class UsersPerformanceTest extends Simulation {
@@ -137,11 +140,16 @@ public class UsersPerformanceTest extends Simulation {
   private static final String BASE_URL = prop("baseUrl", "http://localhost:8080");
   private static final String USERNAME = prop("username", "admin");
   private static final String PASSWORD = prop("password", "district");
-  private static final String USER_ROLE_UID = prop("userRoleUid", "Euq3XfEIEbx");
-  private static final String ORG_UNIT_UID = prop("orgUnitUid", "ImspTQPwCqd");
-  private static final String USER_GROUP_UID = prop("userGroupUid", "wl5cDMuUhmF");
+  private static final String BASIC_AUTH =
+      Base64.getEncoder()
+          .encodeToString((USERNAME + ":" + PASSWORD).getBytes(StandardCharsets.UTF_8));
+  private static final String USER_ROLE_UID = prop("userRoleUid", "MoRvPzDH7lc");
+  private static final String ORG_UNIT_UID = prop("orgUnitUid", "VCCdfC9pvMA");
+  private static final String USER_GROUP_UID = prop("userGroupUid", "KOvR9SAEeEZ");
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
-  private static final String MODE = prop("mode", "parallel");
+  // Default to sequential so each scenario is measured in isolation (single-endpoint latency).
+  // Set -Dmode=parallel for a mixed-load stress test where all scenarios run concurrently.
+  private static final String MODE = prop("mode", "sequential");
 
   private enum Profile {
     SMOKE,
@@ -166,31 +174,36 @@ public class UsersPerformanceTest extends Simulation {
   private static final String DELETE_REQUEST = "DELETE User - delete";
   private static final int PATCH_GROUP_COUNT = Integer.parseInt(prop("patchGroupCount", "7"));
 
-  // Thresholds per profile, slack 1.5× observed p95/max, rounded to nearest 50ms.
-  // LOAD:  10 nightly runs × 10 iterations (2026-04-02 – 2026-04-11), 100 samples each.
-  // SMOKE: 14 nightly runs × 3 iterations (2026-04-09 – 2026-04-22), 42–90 samples each.
-  //        Recalibrate with: scripts/download-user-perf-results.sh --test-name users-smoke
-  //                          scripts/analyze-user-perf-results.py --profile smoke
+  // Thresholds per profile, (p95, max) in ms. Recalibrated 2026-06-22 from fresh sequential
+  // baselines analysed over 2026-06-16–06-22 (LOAD nightly × 10 iter, SMOKE nightly × 3 iter).
+  //
+  // The test runs scenarios sequentially (single-endpoint latency in isolation) and authenticates
+  // once per virtual user, keeping the one-time session-establishing bcrypt out of the measured
+  // requests. This is far cheaper than the old parallel regime, where CPU contention on the shared
+  // CI runner inflated the tail (GET p95 reached 783ms vs ~81ms in isolation) — hence the much
+  // tighter values below (e.g. GET LOAD dropped from 700/1050 to 50/150).
+  // Recalibrate with: scripts/download-user-perf-results.sh --test-name users-smoke
+  //                   scripts/analyze-user-perf-results.py --profile smoke
   private static final Map<Profile, Thresholds> POST_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1150, 1200), Profile.LOAD, new Thresholds(1250, 1500));
+      Map.of(Profile.SMOKE, new Thresholds(200, 200), Profile.LOAD, new Thresholds(200, 250));
 
   private static final Map<Profile, Thresholds> GET_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1050, 1400), Profile.LOAD, new Thresholds(700, 1050));
+      Map.of(Profile.SMOKE, new Thresholds(50, 60), Profile.LOAD, new Thresholds(50, 150));
 
   private static final Map<Profile, Thresholds> PUT_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1600, 1700), Profile.LOAD, new Thresholds(1500, 2100));
+      Map.of(Profile.SMOKE, new Thresholds(300, 300), Profile.LOAD, new Thresholds(300, 350));
 
   private static final Map<Profile, Thresholds> PATCH_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1350, 1750), Profile.LOAD, new Thresholds(850, 950));
+      Map.of(Profile.SMOKE, new Thresholds(50, 60), Profile.LOAD, new Thresholds(50, 100));
 
   private static final Map<Profile, Thresholds> PATCH_GROUPS_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1350, 1700), Profile.LOAD, new Thresholds(850, 950));
+      Map.of(Profile.SMOKE, new Thresholds(100, 110), Profile.LOAD, new Thresholds(100, 110));
 
   private static final Map<Profile, Thresholds> REPLICA_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1250, 1800), Profile.LOAD, new Thresholds(1050, 1200));
+      Map.of(Profile.SMOKE, new Thresholds(150, 160), Profile.LOAD, new Thresholds(150, 300));
 
   private static final Map<Profile, Thresholds> DELETE_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1400, 1650), Profile.LOAD, new Thresholds(1450, 1950));
+      Map.of(Profile.SMOKE, new Thresholds(250, 260), Profile.LOAD, new Thresholds(250, 280));
 
   // Timestamp-based offset so each run generates unique usernames
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
@@ -371,16 +384,35 @@ public class UsersPerformanceTest extends Simulation {
   }
 
   public UsersPerformanceTest() {
+    // No protocol-level basicAuth. DHIS2 is stateful (SessionCreationPolicy.IF_REQUIRED +
+    // HttpSessionSecurityContextRepository), so once a session exists Spring Security reuses the
+    // SecurityContext and skips re-authentication; bcrypt password verification (~70ms) is only
+    // paid on the FIRST request that establishes the session. With protocol basicAuth + the default
+    // cookie jar, that first-request bcrypt landed inside the measured GET/PUT/... requests and
+    // surfaced in their p95 (a fixed ~80ms auth artifact, not endpoint latency). Instead we
+    // authenticate once per virtual user via a separately-named request (see `authenticate`) so the
+    // measured requests reflect endpoint cost only.
     HttpProtocolBuilder httpProtocol =
-        http.baseUrl(BASE_URL)
-            .acceptHeader("application/json")
-            .disableCaching()
-            .basicAuth(USERNAME, PASSWORD);
+        http.baseUrl(BASE_URL).acceptHeader("application/json").disableCaching();
+
+    // Authenticate once per virtual user (paying the one-time bcrypt to establish the session),
+    // then
+    // reuse the JSESSIONID cookie for all measured requests. The login request is named separately
+    // so its bcrypt cost is NOT counted in the per-endpoint assertions. Relies on CSRF being
+    // disabled (the DHIS2 default) so session-cookie writes (POST/PUT/PATCH/DELETE) are accepted
+    // without a CSRF token.
+    ChainBuilder authenticate =
+        exec(flushCookieJar())
+            .exec(
+                http("Authenticate (session login)")
+                    .get("/api/me")
+                    .header("Authorization", "Basic " + BASIC_AUTH)
+                    .check(status().is(200)));
 
     // ── Scenario: POST /api/users ────────────────────────────────────────────
     ScenarioBuilder postScenario =
         scenario(POST_REQUEST)
-            .exec(flushCookieJar())
+            .exec(authenticate)
             .repeat(ITERATIONS)
             .on(
                 exec(session -> {
@@ -398,7 +430,7 @@ public class UsersPerformanceTest extends Simulation {
     // ── Scenario: GET /api/users/{uid} ──────────────────────────────────────
     ScenarioBuilder getScenario =
         scenario(GET_REQUEST)
-            .exec(flushCookieJar())
+            .exec(authenticate)
             .repeat(ITERATIONS)
             .on(
                 exec(session -> {
@@ -412,7 +444,7 @@ public class UsersPerformanceTest extends Simulation {
     // ── Scenario: PUT /api/users/{uid} ──────────────────────────────────────
     ScenarioBuilder putScenario =
         scenario(PUT_REQUEST)
-            .exec(flushCookieJar())
+            .exec(authenticate)
             .repeat(ITERATIONS)
             .on(
                 exec(session -> {
@@ -433,7 +465,7 @@ public class UsersPerformanceTest extends Simulation {
     // ── Scenario: PATCH /api/users/{uid} ────────────────────────────────────
     ScenarioBuilder patchScenario =
         scenario(PATCH_REQUEST)
-            .exec(flushCookieJar())
+            .exec(authenticate)
             .repeat(ITERATIONS)
             .on(
                 exec(session -> {
@@ -456,7 +488,7 @@ public class UsersPerformanceTest extends Simulation {
     // ── Scenario: PATCH /api/users/{uid} userGroups ────────────────────────
     ScenarioBuilder patchGroupsScenario =
         scenario(PATCH_GROUPS_REQUEST)
-            .exec(flushCookieJar())
+            .exec(authenticate)
             .repeat(ITERATIONS)
             .on(
                 exec(session -> {
@@ -476,7 +508,7 @@ public class UsersPerformanceTest extends Simulation {
     // ── Scenario: POST /api/users/{uid}/replica ─────────────────────────────
     ScenarioBuilder replicaScenario =
         scenario(REPLICA_REQUEST)
-            .exec(flushCookieJar())
+            .exec(authenticate)
             .repeat(ITERATIONS)
             .on(
                 exec(session -> {
@@ -503,7 +535,7 @@ public class UsersPerformanceTest extends Simulation {
     // Users are pre-created in before(), so this scenario measures only DELETE time.
     ScenarioBuilder deleteScenario =
         scenario(DELETE_REQUEST)
-            .exec(flushCookieJar())
+            .exec(authenticate)
             .repeat(ITERATIONS)
             .on(
                 exec(session -> {
