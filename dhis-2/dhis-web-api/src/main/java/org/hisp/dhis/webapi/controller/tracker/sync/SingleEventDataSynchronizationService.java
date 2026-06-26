@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,11 +71,9 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Stats;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.mapstruct.factory.Mappers;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -97,9 +96,10 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
+    private final int maxAttempts;
 
     public EventSynchronizationContext(Date skipChangedBefore, int pageSize) {
-      this(skipChangedBefore, 0, null, pageSize, Map.of());
+      this(skipChangedBefore, 0, null, pageSize, Map.of(), 1);
     }
 
     public EventSynchronizationContext(
@@ -107,9 +107,11 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         long objectsToSynchronize,
         SystemInstance instance,
         int pageSize,
-        Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+        Map<String, Set<String>> skipSyncDataElementsByProgramStage,
+        int maxAttempts) {
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
       this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
+      this.maxAttempts = maxAttempts;
     }
 
     public boolean hasNoObjectsToSynchronize() {
@@ -165,7 +167,12 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         getSkipSyncProgramStageDataElements();
 
     return new EventSynchronizationContext(
-        skipChangedBefore, eventCount, instance, pageSize, skipSyncProgramStageDataElements);
+        skipChangedBefore,
+        eventCount,
+        instance,
+        pageSize,
+        skipSyncProgramStageDataElements,
+        settings.getSyncMaxAttempts());
   }
 
   private long countEventsForSynchronization(Date skipChangedBefore)
@@ -248,17 +255,23 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       List<Event> activeEvents, List<Event> deletedEvents, EventSynchronizationContext context) {
     Date syncTime = context.getStartTime();
     SystemInstance instance = context.getInstance();
+    int maxAttempts = context.getMaxAttempts();
 
     if (!activeEvents.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEventDtos =
           activeEvents.stream().map(EVENT_MAPPER::map).toList();
-      syncEvents(activeEventDtos, instance, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
+      syncEvents(
+          activeEventDtos,
+          instance,
+          syncTime,
+          TrackerImportStrategy.CREATE_AND_UPDATE,
+          maxAttempts);
     }
 
     if (!deletedEvents.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos =
           deletedEvents.stream().map(this::toMinimalEvent).toList();
-      syncEvents(deletedEventDtos, instance, syncTime, TrackerImportStrategy.DELETE);
+      syncEvents(deletedEventDtos, instance, syncTime, TrackerImportStrategy.DELETE, maxAttempts);
     }
   }
 
@@ -266,10 +279,11 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
       SystemInstance instance,
       Date syncTime,
-      TrackerImportStrategy importStrategy) {
+      TrackerImportStrategy importStrategy,
+      int maxAttempts) {
     String url = instance.getUrl() + "?importStrategy=" + importStrategy;
 
-    ImportSummary summary = sendTrackerRequest(events, instance, url);
+    ImportSummary summary = sendTrackerRequest(events, instance, url, maxAttempts);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
@@ -287,22 +301,18 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private ImportSummary sendTrackerRequest(
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
       SystemInstance instance,
-      String url) {
+      String url,
+      int maxAttempts) {
     RequestCallback requestCallback = createRequestCallback(events, instance);
     String syncUrl = url + "&async=false";
-    try {
-      return restTemplate.execute(
-          syncUrl,
-          HttpMethod.POST,
-          requestCallback,
-          response -> {
-            ImportReport report = JSON_MAPPER.readValue(response.getBody(), ImportReport.class);
-            return toImportSummary(report);
-          });
-    } catch (RestClientException ex) {
-      log.error("Failed to POST single event sync payload: {}", ex.getMessage(), ex);
-      return null;
-    }
+    return runSyncRequest(
+            restTemplate,
+            requestCallback,
+            response ->
+                toImportSummary(JSON_MAPPER.readValue(response.getBody(), ImportReport.class)),
+            syncUrl,
+            maxAttempts)
+        .orElse(null);
   }
 
   static ImportSummary toImportSummary(ImportReport report) {

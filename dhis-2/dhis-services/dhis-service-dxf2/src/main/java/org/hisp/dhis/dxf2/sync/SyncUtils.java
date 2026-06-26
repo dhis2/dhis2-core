@@ -104,6 +104,39 @@ public class SyncUtils {
     return false;
   }
 
+  public static <T> Optional<T> runSyncRequest(
+      RestTemplate restTemplate,
+      RequestCallback requestCallback,
+      ResponseExtractor<T> responseExtractor,
+      String syncUrl,
+      int maxSyncAttempts) {
+    boolean networkErrorOccurred = true;
+    int syncAttemptsDone = 0;
+    T responseSummary = null;
+
+    while (networkErrorOccurred) {
+      networkErrorOccurred = false;
+      syncAttemptsDone++;
+      try {
+        responseSummary =
+            restTemplate.execute(syncUrl, HttpMethod.POST, requestCallback, responseExtractor);
+      } catch (HttpServerErrorException ex) {
+        log.error(
+            "Internal error happened during sync request: {}", ex.getResponseBodyAsString(), ex);
+        if (syncAttemptsDone <= maxSyncAttempts) {
+          networkErrorOccurred = true;
+        } else {
+          throw ex;
+        }
+      } catch (ResourceAccessException ex) {
+        log.error("Exception during sync request: {}", ex.getMessage(), ex);
+        throw ex;
+      }
+    }
+
+    return Optional.ofNullable(responseSummary);
+  }
+
   public static Optional<WebMessageResponse> runSyncRequest(
       RestTemplate restTemplate,
       RequestCallback requestCallback,
