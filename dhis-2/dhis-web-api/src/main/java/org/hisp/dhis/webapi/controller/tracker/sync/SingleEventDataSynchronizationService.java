@@ -30,13 +30,12 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,6 +43,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -65,12 +66,15 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Stats;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -82,6 +86,7 @@ import org.springframework.web.client.RestTemplate;
 public class SingleEventDataSynchronizationService extends TrackerDataSynchronizationWithPaging {
   private static final String PROCESS_NAME = "Single event programs data synchronization";
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
+  private static final ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
 
   private final EventService eventService;
   private final SystemSettingsService systemSettingsService;
@@ -130,7 +135,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       return endProcess(progress, "No events to synchronize", PROCESS_NAME);
     }
 
-    boolean success = executeSynchronizationWithPaging(context, progress, settings);
+    boolean success = executeSynchronizationWithPaging(context, progress);
 
     return success
         ? endProcess(progress, "Completed successfully", PROCESS_NAME)
@@ -180,7 +185,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   private boolean executeSynchronizationWithPaging(
-      EventSynchronizationContext context, JobProgress progress, SystemSettings settings) {
+      EventSynchronizationContext context, JobProgress progress) {
     String stageDescription =
         format(
             "Found %d single events. Remote: %s. Pages: %d (size %d)",
@@ -194,15 +199,14 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     progress.runStage(
         IntStream.range(1, context.getPages() + 1).boxed(),
         page -> format("Syncing page %d (size %d)", page, context.getPageSize()),
-        page -> synchronizePageSafely(page, context, settings));
+        page -> synchronizePageSafely(page, context));
 
     return !progress.isSkipCurrentStage();
   }
 
-  private void synchronizePageSafely(
-      int page, EventSynchronizationContext context, SystemSettings settings) {
+  private void synchronizePageSafely(int page, EventSynchronizationContext context) {
     try {
-      synchronizePage(page, context, settings);
+      synchronizePage(page, context);
     } catch (Exception ex) {
       log.error("Failed to synchronize page {}", page, ex);
       throw new RuntimeException(
@@ -210,8 +214,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     }
   }
 
-  private void synchronizePage(
-      int page, EventSynchronizationContext context, SystemSettings settings)
+  private void synchronizePage(int page, EventSynchronizationContext context)
       throws ForbiddenException, BadRequestException {
     List<Event> events = fetchEventsForPage(page, context);
 
@@ -219,7 +222,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     List<Event> deletedEvents = partitionedEvents.get(true);
     List<Event> activeEvents = partitionedEvents.get(false);
 
-    syncEventsByDeletionStatus(activeEvents, deletedEvents, context, settings);
+    syncEventsByDeletionStatus(activeEvents, deletedEvents, context);
   }
 
   private List<Event> fetchEventsForPage(int page, EventSynchronizationContext context)
@@ -242,36 +245,31 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   private void syncEventsByDeletionStatus(
-      List<Event> activeEvents,
-      List<Event> deletedEvents,
-      EventSynchronizationContext context,
-      SystemSettings settings) {
+      List<Event> activeEvents, List<Event> deletedEvents, EventSynchronizationContext context) {
     Date syncTime = context.getStartTime();
     SystemInstance instance = context.getInstance();
 
     if (!activeEvents.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEventDtos =
           activeEvents.stream().map(EVENT_MAPPER::map).toList();
-      syncEvents(
-          activeEventDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
+      syncEvents(activeEventDtos, instance, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
     }
 
     if (!deletedEvents.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos =
           deletedEvents.stream().map(this::toMinimalEvent).toList();
-      syncEvents(deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
+      syncEvents(deletedEventDtos, instance, syncTime, TrackerImportStrategy.DELETE);
     }
   }
 
   private void syncEvents(
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
       SystemInstance instance,
-      SystemSettings settings,
       Date syncTime,
       TrackerImportStrategy importStrategy) {
     String url = instance.getUrl() + "?importStrategy=" + importStrategy;
 
-    ImportSummary summary = sendTrackerRequest(events, instance, settings, url);
+    ImportSummary summary = sendTrackerRequest(events, instance, url);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
@@ -289,19 +287,39 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private ImportSummary sendTrackerRequest(
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
       SystemInstance instance,
-      SystemSettings settings,
       String url) {
     RequestCallback requestCallback = createRequestCallback(events, instance);
+    String syncUrl = url + "&async=false";
+    try {
+      return restTemplate.execute(
+          syncUrl,
+          HttpMethod.POST,
+          requestCallback,
+          response -> {
+            ImportReport report = JSON_MAPPER.readValue(response.getBody(), ImportReport.class);
+            return toImportSummary(report);
+          });
+    } catch (RestClientException ex) {
+      log.error("Failed to POST single event sync payload: {}", ex.getMessage(), ex);
+      return null;
+    }
+  }
 
-    Optional<WebMessageResponse> response =
-        runSyncRequest(
-            restTemplate,
-            requestCallback,
-            SyncEndpoint.TRACKER_IMPORT.getKlass(),
-            url,
-            settings.getSyncMaxAttempts());
-
-    return response.map(ImportSummary.class::cast).orElse(null);
+  static ImportSummary toImportSummary(ImportReport report) {
+    ImportSummary summary = new ImportSummary();
+    summary.setStatus(
+        switch (report.getStatus()) {
+          case OK -> ImportStatus.SUCCESS;
+          case WARNING -> ImportStatus.WARNING;
+          case ERROR -> ImportStatus.ERROR;
+        });
+    Stats stats = report.getStats();
+    if (stats != null) {
+      summary.setImportCount(
+          new ImportCount(
+              stats.getCreated(), stats.getUpdated(), stats.getIgnored(), stats.getDeleted()));
+    }
+    return summary;
   }
 
   private RequestCallback createRequestCallback(
