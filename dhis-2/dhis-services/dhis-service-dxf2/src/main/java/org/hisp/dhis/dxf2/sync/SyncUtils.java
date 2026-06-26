@@ -104,15 +104,15 @@ public class SyncUtils {
     return false;
   }
 
-  public static <T> Optional<T> runSyncRequest(
+  public static Optional<ImportSummary> runSyncRequest(
       RestTemplate restTemplate,
       RequestCallback requestCallback,
-      ResponseExtractor<T> responseExtractor,
+      ResponseExtractor<ImportSummary> responseExtractor,
       String syncUrl,
       int maxSyncAttempts) {
     boolean networkErrorOccurred = true;
     int syncAttemptsDone = 0;
-    T responseSummary = null;
+    ImportSummary responseSummary = null;
 
     while (networkErrorOccurred) {
       networkErrorOccurred = false;
