@@ -33,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -939,7 +940,16 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
       return false;
     }
     query.where(builder.or(predicates.toArray(new Predicate[0])));
-    return !entityManager.createQuery(query).setMaxResults(1).getResultList().isEmpty();
+    // Read-only existence check: skip the JPA auto-flush (a full-session dirty-check) that would
+    // otherwise run before this query. During user deletion this is invoked once per metadata type
+    // (~44 queries); with a large object graph in the session, that per-query flush dominates the
+    // cost while the query itself is sub-millisecond.
+    return !entityManager
+        .createQuery(query)
+        .setFlushMode(FlushModeType.COMMIT)
+        .setMaxResults(1)
+        .getResultList()
+        .isEmpty();
   }
 
   /**
