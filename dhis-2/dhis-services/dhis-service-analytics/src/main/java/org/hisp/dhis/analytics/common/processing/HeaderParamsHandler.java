@@ -34,11 +34,9 @@ import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.ge
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionAliases;
@@ -75,12 +73,7 @@ public class HeaderParamsHandler {
     CommonRequestParams requestParams = contextParams.getCommonRaw();
 
     Set<GridHeader> headers = getGridHeaders(contextParams, fields);
-    // Canonicalize keyword aliases (e.g. programId.enrollmentouname -> programId.ouname) so the
-    // requested headers match the canonical grid header names produced for the dimensions.
-    Set<String> paramHeaders =
-        requestParams.getHeaders().stream()
-            .map(DimensionAliases::canonicalizeHeader)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+    Set<String> paramHeaders = requestParams.getHeaders();
 
     if (isEmpty(paramHeaders)) {
       // Adds all headers.
@@ -122,13 +115,19 @@ public class HeaderParamsHandler {
    * programUid.stageUid.dimension <-> stageUid.dimension.
    */
   private Optional<GridHeader> findMatchingHeader(List<GridHeader> gridHeaders, String header) {
-    GridHeader requested = new GridHeader(header);
+    // Match on the canonical form of keyword aliases (e.g. programId.enrollmentouname ->
+    // programId.ouname) while leaving the originally requested spelling to flow through to the
+    // returned header name via withRequestedNameIfNeeded.
+    String canonicalHeader = DimensionAliases.canonicalizeHeader(header);
+    GridHeader requested = new GridHeader(canonicalHeader);
 
     if (gridHeaders.contains(requested)) {
       return Optional.of(gridHeaders.get(gridHeaders.indexOf(requested)));
     }
 
-    return gridHeaders.stream().filter(h -> isStageScopedAlias(h.getName(), header)).findFirst();
+    return gridHeaders.stream()
+        .filter(h -> isStageScopedAlias(h.getName(), canonicalHeader))
+        .findFirst();
   }
 
   private boolean isStageScopedAlias(String existingHeaderName, String requestedHeaderName) {

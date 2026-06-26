@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
  * @author maikel arabori
  */
 public class TrackedEntityQueryTest extends AnalyticsApiTest {
-  private AnalyticsTrackedEntityActions analyticsTrackedEntityActions =
+  private final AnalyticsTrackedEntityActions analyticsTrackedEntityActions =
       new AnalyticsTrackedEntityActions();
 
   private QueryParamsBuilder withDefaultHeaders(QueryParamsBuilder queryParamsBuilder) {
@@ -1549,10 +1549,11 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void queryWithProgramHeaderEnrollmentOuNameKeywordEqualsOuName() throws JSONException {
-    // enrollmentouname is an exact-match alias for the program-scoped `ouname` dimension. The
-    // response for headers=IpHINAT79UW.enrollmentouname must be identical to the response for
-    // headers=IpHINAT79UW.ouname, proving the alias by equivalence.
+  public void queryWithProgramHeaderEnrollmentOuNameKeywordPreservesRequestedName() {
+    // enrollmentouname is an exact-match alias for the program-scoped `ouname` dimension. The data
+    // returned must be identical to headers=IpHINAT79UW.ouname, but the requested keyword spelling
+    // must be preserved in the response header name (IpHINAT79UW.enrollmentouname), mirroring how
+    // stage-scoped header aliases keep their requested spelling.
     QueryParamsBuilder keywordParams =
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
@@ -1578,7 +1579,31 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     // Then
     keyword.validate().statusCode(200);
     canonical.validate().statusCode(200);
-    assertEquals(canonical.getAsString(), keyword.getAsString(), false);
+
+    // The requested keyword spelling is preserved in the response header name.
+    validateHeader(
+        keyword,
+        0,
+        "IpHINAT79UW.enrollmentouname",
+        "Organisation Unit Name, Child Programme",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // The canonical request keeps the canonical header name.
+    validateHeader(
+        canonical,
+        0,
+        "IpHINAT79UW.ouname",
+        "Organisation Unit Name, Child Programme",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // The data is identical regardless of which alias was used.
+    keyword.validate().body("rows", equalTo(canonical.extractList("rows")));
   }
 
   @Test
