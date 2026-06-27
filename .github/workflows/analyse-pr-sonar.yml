@@ -1,0 +1,90 @@
+name: SonarQube analysis (PR)
+# Companion to analyse-pr.yml. That workflow builds a pull request WITHOUT
+# secrets (so it works for PRs from forks, which GitHub denies secret access)
+# and uploads the built workspace as an artifact. This workflow is triggered by
+# its completion via `workflow_run`, which runs in the base-repo context and so
+# DOES have access to the SonarCloud token — it downloads the artifact and runs
+# the analysis, decorating the originating PR.
+#
+# Security note: a `workflow_run` workflow always runs the definition from the
+# repository's default branch, so a fork cannot alter the steps below. The
+# heavy, untrusted PR build runs in analyse-pr.yml without the token. The
+# residual surface is that `mvn sonar:sonar` reads the fork-controlled pom.xml
+# (Maven could execute fork-declared build extensions with the token in scope);
+# we accept this as the standard Maven-based variant of SonarSource's
+# recommended pattern. See the PR description for the hardening alternative.
+on:
+  workflow_run:
+    workflows: ["SonarQube analysis"]
+    types:
+      - completed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}-${{ github.event.workflow_run.head_repository.full_name }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+  actions: read
+env:
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.DHIS2_BOT_SONARCLOUD_TOKEN }}
+
+jobs:
+  sonar:
+    name: Analyse PR
+    # Only act on successful PR builds — push/workflow_dispatch runs of the
+    # build workflow analyse inline and upload no artifact. Dependabot is
+    # excluded to match the build workflow.
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.actor.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Sonar token
+        run: |
+          if [ -z "${{ secrets.DHIS2_BOT_SONARCLOUD_TOKEN }}" ]; then
+            echo "SONAR_TOKEN is not set"
+            exit 1
+          fi
+
+      - name: Download workspace artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sonar-workspace
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/sonar-artifact
+
+      - name: Unpack workspace
+        run: tar -xzf /tmp/sonar-artifact/sonar-workspace.tar.gz -C "$GITHUB_WORKSPACE"
+
+      # Restore the sibling dhis2 module artifacts staged by the build workflow
+      # so sonar:sonar can resolve the reactor offline-of-remote for SNAPSHOTs.
+      - name: Restore installed module artifacts
+        run: |
+          if [ -d .sonar-m2/dhis ]; then
+            mkdir -p "$HOME/.m2/repository/org/hisp"
+            cp -r .sonar-m2/dhis "$HOME/.m2/repository/org/hisp/"
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+
+      - name: Load PR metadata
+        run: cat sonar-pr-meta.env >> "$GITHUB_ENV"
+
+      - name: Analyse PR
+        run: |
+          mvn -f dhis-2/pom.xml sonar:sonar \
+            -Dsonar.internal.analysis.dbd=false \
+            --batch-mode --no-transfer-progress \
+            -Dsonar.projectKey=dhis2_dhis2-core \
+            -Dsonar.scm.revision="$PR_HEAD_SHA" \
+            -Dsonar.pullrequest.key="$PR_NUMBER" \
+            -Dsonar.pullrequest.branch="$PR_HEAD_REF" \
+            -Dsonar.pullrequest.base="$PR_BASE_REF"

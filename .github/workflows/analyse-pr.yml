@@ -6,8 +6,9 @@ env:
   MAVEN_ARGS: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
   # Controls log4j2 suppression of expected test errors. ci-verbose label sets to error to show them.
   TEST_LOG_SUPPRESSED_LEVEL: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci-verbose') && 'error') || (inputs.maven_log == 'debug' && 'error') || 'off' }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  SONAR_TOKEN: ${{ secrets.DHIS2_BOT_SONARCLOUD_TOKEN }}
+  # NB: the Sonar/GitHub tokens are intentionally NOT declared here. The build-pr
+  # job builds untrusted fork code and must never see them; they are scoped to the
+  # analyse-branch job below, which only ever runs for non-fork push/dispatch events.
 on:
   push:
     branches:
@@ -36,13 +37,87 @@ permissions:
   contents: read
 
 jobs:
-  sonarqube:
-    if: github.actor != 'dependabot[bot]'
+  # PR analysis runs in two stages so it works for pull requests from forks.
+  # GitHub does not expose repository secrets (the SonarCloud token) to
+  # `pull_request` runs triggered by a fork, so this job must NOT need the
+  # token: it only builds the (untrusted) PR code and uploads the result as an
+  # artifact. The companion workflow `analyse-pr-sonar.yml` then picks the
+  # artifact up via `workflow_run` — which runs in the base-repo context with
+  # access to the token — and performs the actual Sonar analysis.
+  build-pr:
+    name: Build PR for analysis
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+
+      - name: Build
+        run: mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
+
+      # The Sonar workflow has no PR context (it is triggered by workflow_run),
+      # so hand it everything it needs to decorate the right pull request.
+      - name: Save PR metadata
+        run: |
+          {
+            echo "PR_NUMBER=${{ github.event.number }}"
+            echo "PR_HEAD_SHA=${{ github.event.pull_request.head.sha }}"
+            echo "PR_HEAD_REF=${{ github.event.pull_request.head.ref }}"
+            echo "PR_BASE_REF=${{ github.event.pull_request.base.ref }}"
+          } > sonar-pr-meta.env
+
+      # sonar:sonar in the companion workflow resolves the reactor's
+      # dependencies from a fresh ~/.m2, so it needs the sibling dhis2 module
+      # artifacts that `install` just put there (these are SNAPSHOTs that exist
+      # in no remote repo). Stage them into the workspace so they travel in the
+      # artifact. Third-party dependencies are restored from the Maven cache /
+      # remote in the companion workflow as usual.
+      - name: Stage installed module artifacts
+        run: |
+          mkdir -p .sonar-m2
+          if [ -d "$HOME/.m2/repository/org/hisp/dhis" ]; then
+            cp -r "$HOME/.m2/repository/org/hisp/dhis" .sonar-m2/
+          fi
+
+      # Package the built workspace (sources, compiled classes under target/,
+      # the poms, the staged module artifacts and .git for SCM blame) into a
+      # single file — far faster to transfer than uploading the many small
+      # files individually. The packaged module jars in target/ are redundant
+      # with the staged .m2 copies, so they are excluded. Written to /tmp so
+      # the archive does not try to include itself.
+      - name: Package workspace for analysis
+        run: tar --exclude='./**/target/*.jar' -czf /tmp/sonar-workspace.tar.gz -C "$GITHUB_WORKSPACE" .
+
+      - name: Upload workspace artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-workspace
+          path: /tmp/sonar-workspace.tar.gz
+          retention-days: 1
+          # The tarball is already gzip-compressed.
+          compression-level: 0
+
+  # Long-living branch (push) and manual (workflow_dispatch) analysis. These
+  # never originate from a fork, so secrets are available and analysis can run
+  # inline as before.
+  analyse-branch:
+    name: Analyse long-living branch
+    if: github.event_name != 'pull_request' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.DHIS2_BOT_SONARCLOUD_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
           fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -58,18 +133,7 @@ jobs:
             exit 1
           fi
 
-      - name: Analyse PR
-        env:
-          BASE_BRANCH: ${{ github.base_ref }}
-          BRANCH: ${{ github.ref }}
-          PR: ${{ github.event.number }}
-        if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event_name == 'pull_request'
-        run: |
-          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core
-
       - name: Analyse long-living branch
-        if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event_name != 'pull_request'
         run: |
           mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
           mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core
