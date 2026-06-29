@@ -862,7 +862,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         new DefaultStageQuerySqlFacade(
             new DefaultStageQueryItemClassifier(),
             new DefaultStageDatePeriodBucketSqlRenderer(builder),
-            new DefaultStageOrgUnitSqlService(organisationUnitResolver, builder));
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, builder),
+            builder);
 
     DateFieldPeriodBucketColumnResolver bucketResolver =
         new DateFieldPeriodBucketColumnResolver(builder);
@@ -883,7 +884,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         stageQuerySqlFacade,
         bucketResolver,
         new EnrollmentEventSubqueryBuilder(builder, new ProgramStageOffsetSqlBuilder(builder)),
-        new AggregatedEnrollmentQueryAssembler(builder, bucketResolver));
+        new AggregatedEnrollmentQueryAssembler(
+            builder, bucketResolver, new DefaultStageDatePeriodBucketSqlRenderer(builder)));
   }
 
   @Test
