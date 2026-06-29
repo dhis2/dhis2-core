@@ -97,7 +97,7 @@ public enum ValidationCode {
   E1080("Enrollment: `{0}` already exists."),
   E1081("Enrollment: `{0}` do not exist."),
   E1082("Event: `{0}` is already deleted and cannot be modified."),
-  E1083("User: `{0}` is not authorized to update completed Events."),
+  E1083("User: `{0}` is not authorized to uncomplete events."),
   E1089("Event: `{0}` references ProgramStage `{1}` which do not belong to Program `{2}`."),
   E1090(
       "Attribute: `{0}` is mandatory in TrackedEntityType `{1}` but not found in TrackedEntity `{2}`."),

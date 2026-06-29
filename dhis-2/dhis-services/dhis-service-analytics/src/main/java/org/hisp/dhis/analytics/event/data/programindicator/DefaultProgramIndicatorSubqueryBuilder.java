@@ -54,6 +54,7 @@ import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.RelationshipCountJoinExpander;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -188,13 +189,23 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       Date latestDate,
       CteContext cteContext) {
 
-    // 1. Pre-process Filter
+    if (isUnsupportedEventProgramIndicatorCte(programIndicator, relationshipType, cteContext)) {
+      return;
+    }
+
+    if (isEventProgramIndicatorCte(programIndicator, cteContext)) {
+      addEventProgramIndicatorCte(programIndicator, earliestStartDate, latestDate, cteContext);
+      return;
+    }
+
+    // 1. Get the raw SQL for the main expression of the Program Indicator.
+    String rawExpressionSql =
+        getRawSqlForExpression(programIndicator, earliestStartDate, latestDate);
+
+    // 2. Pre-process Filter.
     FilterProcessingResult filterResult =
         preprocessFilter(programIndicator, cteContext, earliestStartDate, latestDate);
 
-    // 2. Get the raw SQL for the main expression of the Program Indicator
-    String rawExpressionSql =
-        getRawSqlForExpression(programIndicator, earliestStartDate, latestDate);
     String rawComplexFilterSql =
         getRawSqlForFilter(
             filterResult.complexFilterString(), programIndicator, earliestStartDate, latestDate);
@@ -209,18 +220,24 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             latestDate,
             cteContext);
 
+    ProcessedSql expandedSql = expandRelationshipCountPlaceholders(processedSql, cteContext);
+
     // 4. Build Join Clauses
     String innerJoinSql = buildInnerJoinsForFilters(filterResult.filterAliases(), cteContext);
     String leftJoinSql = buildLeftJoinsForAllValueCtes(cteContext);
 
     // 5. Build Where Clause
-    String whereClause = buildWhereClause(processedSql.processedFilterSql());
+    String whereClause = buildWhereClause(expandedSql.processedFilterSql());
 
     // 6. Assemble Main PI CTE SQL
     String mainCteSql =
         assembleMainPiCteSql(
             programIndicator,
-            processedSql.processedExpressionSql(),
+            // The candidate-event source is only valid for the EVENT PI simple path below. This
+            // complex path supports enrollment-grain placeholder CTEs and is only reached for
+            // enrollment analytics after EVENT/simple PI handling has returned.
+            getTableName(programIndicator),
+            expandedSql.processedExpressionSql(),
             innerJoinSql,
             leftJoinSql,
             whereClause,
@@ -228,7 +245,87 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
     // 7. Register Main PI CTE
     cteContext.addProgramIndicatorCte(
-        programIndicator, mainCteSql, requireCoalesce(programIndicator));
+        programIndicator,
+        mainCteSql,
+        requireCoalesce(programIndicator, cteContext.getEndpointItem()),
+        resolveProgramIndicatorJoinColumn(programIndicator, cteContext.getEndpointItem()));
+  }
+
+  private boolean isUnsupportedEventProgramIndicatorCte(
+      ProgramIndicator programIndicator, RelationshipType relationshipType, CteContext cteContext) {
+    return isEventProgramIndicatorCte(programIndicator, cteContext)
+        && (relationshipType != null || isCustomAggregation(programIndicator));
+  }
+
+  private void addEventProgramIndicatorCte(
+      ProgramIndicator programIndicator,
+      Date earliestStartDate,
+      Date latestDate,
+      CteContext cteContext) {
+    String expressionSql = getRawSqlForExpression(programIndicator, earliestStartDate, latestDate);
+    String filterSql =
+        getRawSqlForFilter(
+            programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate);
+
+    if (hasGeneratedEnrollmentGrainPlaceholder(expressionSql)
+        || hasGeneratedEnrollmentGrainPlaceholder(filterSql)) {
+      return;
+    }
+
+    ProcessedSql expandedSql =
+        expandRelationshipCountPlaceholders(new ProcessedSql(expressionSql, filterSql), cteContext);
+
+    String mainCteSql =
+        assembleMainPiCteSql(
+            programIndicator,
+            getEventProgramIndicatorSourceTable(programIndicator, cteContext),
+            expandedSql.processedExpressionSql(),
+            "",
+            buildRelationshipCountJoins(cteContext),
+            buildWhereClause(expandedSql.processedFilterSql()),
+            cteContext.getEndpointItem());
+
+    cteContext.addProgramIndicatorCte(
+        programIndicator,
+        mainCteSql,
+        requireCoalesce(programIndicator, cteContext.getEndpointItem()),
+        resolveProgramIndicatorJoinColumn(programIndicator, cteContext.getEndpointItem()));
+  }
+
+  private boolean isEventProgramIndicatorCte(
+      ProgramIndicator programIndicator, CteContext cteContext) {
+    return cteContext.isEventsAnalytics()
+        && programIndicator.getAnalyticsType() == AnalyticsType.EVENT;
+  }
+
+  private String resolveProgramIndicatorJoinColumn(
+      ProgramIndicator programIndicator, EndpointItem endpointItem) {
+    if (endpointItem == EndpointItem.ENROLLMENT) {
+      return "enrollment";
+    }
+    if (programIndicator.getAnalyticsType() == AnalyticsType.EVENT) {
+      return "event";
+    }
+    return null;
+  }
+
+  private boolean isCustomAggregation(ProgramIndicator programIndicator) {
+    String function =
+        TextUtils.emptyIfEqual(
+            programIndicator.getAggregationTypeFallback().getValue(),
+            AggregationType.CUSTOM.getValue());
+    return StringUtils.isBlank(function);
+  }
+
+  private boolean hasGeneratedEnrollmentGrainPlaceholder(String sql) {
+    return org.apache.commons.lang3.Strings.CS.containsAny(
+        sql, "FUNC_CTE_VAR(", "__PSDE_", "__D2FUNC__(");
+  }
+
+  private String getEventProgramIndicatorSourceTable(
+      ProgramIndicator programIndicator, CteContext cteContext) {
+    return StringUtils.defaultIfBlank(
+        cteContext.getEventProgramIndicatorSourceTable(), getTableName(programIndicator));
   }
 
   private FilterProcessingResult preprocessFilter(
@@ -337,6 +434,15 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     return new ProcessedSql(finalProcessedExpressionSql, finalProcessedFilterSql);
   }
 
+  private ProcessedSql expandRelationshipCountPlaceholders(
+      ProcessedSql processedSql, CteContext cteContext) {
+    return new ProcessedSql(
+        RelationshipCountJoinExpander.expand(
+            processedSql.processedExpressionSql(), cteContext, SUBQUERY_TABLE_ALIAS, sqlBuilder),
+        RelationshipCountJoinExpander.expand(
+            processedSql.processedFilterSql(), cteContext, SUBQUERY_TABLE_ALIAS, sqlBuilder));
+  }
+
   /** Builds the INNER JOIN clause string for simple Filter CTEs. */
   private String buildInnerJoinsForFilters(List<String> filterAliases, CteContext cteContext) {
     if (filterAliases == null || filterAliases.isEmpty()) {
@@ -370,6 +476,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   /** Assembles the final SQL string for the main Program Indicator CTE definition. */
   private String assembleMainPiCteSql(
       ProgramIndicator programIndicator,
+      String tableName,
       String finalProcessedExpressionSql,
       String innerJoinSql,
       String leftJoinSql,
@@ -380,7 +487,6 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         TextUtils.emptyIfEqual(
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
-    String tableName = getTableName(programIndicator);
 
     // Ensure space separation between join/where clauses only if they exist
     String joinsAndWhere =
@@ -393,7 +499,17 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     }
     if (endpointItem == EndpointItem.ENROLLMENT) {
       return String.format(
-          "select %s.enrollment, %s(%s) as value from %s as %s %s group by %s.enrollment",
+          "select %s.enrollment as enrollment, %s(%s) as value from %s as %s %s group by %s.enrollment",
+          SUBQUERY_TABLE_ALIAS,
+          function,
+          finalProcessedExpressionSql,
+          tableName,
+          SUBQUERY_TABLE_ALIAS,
+          joinsAndWhere,
+          SUBQUERY_TABLE_ALIAS);
+    } else if (programIndicator.getAnalyticsType() == AnalyticsType.EVENT) {
+      return String.format(
+          "select %s.event as event, %s(%s) as value from %s as %s %s group by %s.event",
           SUBQUERY_TABLE_ALIAS,
           function,
           finalProcessedExpressionSql,
@@ -462,6 +578,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       case VARIABLE -> formatVariableJoin(alias);
       case PROGRAM_STAGE_DATE_ELEMENT -> formatPsdeJoin(key, alias, definition.getTargetRank());
       case D2_FUNCTION -> formatD2FunctionJoin(alias);
+      case D2_RELATIONSHIP_COUNT -> formatRelationshipCountJoin(alias);
       default -> {
         log.trace(
             "Skipping join generation for non-value CTE type: {} with key: {}",
@@ -470,6 +587,36 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         yield null;
       }
     };
+  }
+
+  /**
+   * Formats the LEFT JOIN for the per-trackedEntity relationship count CTE. The CTE is declared in
+   * the WITH clause under its alias (relationship-count CTEs are not in {@code useKeyAsAlias}), so
+   * the join must reference the alias, not the registry key.
+   */
+  private String formatRelationshipCountJoin(String alias) {
+    return String.format(
+        "left join %s %s on %s.trackedentityid = %s.trackedentity",
+        alias, alias, alias, SUBQUERY_TABLE_ALIAS);
+  }
+
+  /**
+   * Emits LEFT JOINs only for {@link CteDefinition.CteType#D2_RELATIONSHIP_COUNT} CTEs. Used by the
+   * event-PI path, which does not join other value/function CTEs at this level.
+   */
+  private String buildRelationshipCountJoins(CteContext cteContext) {
+    List<String> joinClauses = new ArrayList<>();
+    Set<String> joinedAliases = new HashSet<>();
+    for (String key : cteContext.getCteKeys()) {
+      CteDefinition definition = cteContext.getDefinitionByKey(key);
+      if (definition == null
+          || definition.getCteType() != CteDefinition.CteType.D2_RELATIONSHIP_COUNT
+          || !joinedAliases.add(definition.getAlias())) {
+        continue;
+      }
+      joinClauses.add(formatRelationshipCountJoin(definition.getAlias()));
+    }
+    return String.join(" ", joinClauses);
   }
 
   /** Formats the LEFT JOIN for Variable CTEs (rn=1). */
@@ -499,11 +646,15 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         alias, alias, alias, SUBQUERY_TABLE_ALIAS);
   }
 
-  private boolean requireCoalesce(ProgramIndicator programIndicator) {
+  private boolean requireCoalesce(ProgramIndicator programIndicator, EndpointItem endpointItem) {
     String function =
         TextUtils.emptyIfEqual(
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
+    if (endpointItem == EndpointItem.EVENT
+        && programIndicator.getAnalyticsType() == AnalyticsType.EVENT) {
+      return function.equalsIgnoreCase("count");
+    }
     return switch (function.toLowerCase()) {
       case "count", "sum", "min", "max" -> true;
       default -> false;
@@ -526,12 +677,13 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
     String aggregateSql =
-        getProgramIndicatorSql(
+        programIndicatorService.getAnalyticsSql(
             programIndicator.getExpression(),
             NUMERIC,
             programIndicator,
             earliestStartDate,
-            latestDate);
+            latestDate,
+            SUBQUERY_TABLE_ALIAS);
     aggregateSql += ")";
     aggregateSql += getFrom(programIndicator);
     String where = getWhere(outerSqlEntity, programIndicator, relationshipType);
@@ -586,7 +738,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       ProgramIndicator programIndicator,
       Date earliestStartDate,
       Date latestDate) {
-    return this.programIndicatorService.getAnalyticsSql(
+    return this.programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
         expression,
         dataType,
         programIndicator,

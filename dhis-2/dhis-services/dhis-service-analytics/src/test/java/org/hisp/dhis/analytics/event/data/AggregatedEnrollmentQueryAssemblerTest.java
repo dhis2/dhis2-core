@@ -241,9 +241,9 @@ class AggregatedEnrollmentQueryAssemblerTest {
     assembler.addPeriodAggregateColumns(params, sb, List.of());
 
     String sql = sb.build();
-    assertThat(sql, containsString("Monthly"));
-    assertThat(sql, containsString("group by Monthly"));
-    assertThat(sql, not(containsString("t1.Monthly")));
+    assertThat(sql, containsString("monthly"));
+    assertThat(sql, containsString("group by monthly"));
+    assertThat(sql, not(containsString("t1.monthly")));
   }
 
   @Test
