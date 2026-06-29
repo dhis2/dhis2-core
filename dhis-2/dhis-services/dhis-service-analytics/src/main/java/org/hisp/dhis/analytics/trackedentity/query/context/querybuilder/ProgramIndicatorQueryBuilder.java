@@ -30,7 +30,6 @@
 package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
 import static java.lang.Math.abs;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.NUMERIC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
@@ -150,7 +149,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
                                     item.getValues(),
                                     NUMERIC,
                                     queryContext))
-                        .collect(toList()))));
+                        .toList())));
       }
     }
   }
