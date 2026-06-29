@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.Duration.ofDays;
 import static java.time.Instant.now;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1031;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1042;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1043;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1046;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1047;
@@ -52,6 +51,7 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -73,32 +73,53 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    validateCompletionExpiryDays(reporter, bundle, event, program);
+    validateCompletionExpiryDays(
+        reporter, bundle.getPreheat(), event, program, UserDetails.fromUser(bundle.getUser()));
     validateExpiryPeriodType(reporter, event, program, bundle.getUser());
   }
 
   private void validateCompletionExpiryDays(
-      Reporter reporter, TrackerBundle bundle, Event event, Program program) {
-    User actingUser = bundle.getUser();
-
-    checkNotNull(actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL);
-    checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
-    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
-
-    if (actingUser.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+      Reporter reporter, TrackerPreheat preheat, Event event, Program program, UserDetails user) {
+    if (program.getCompleteEventsExpiryDays() == 0
+        || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 
-    if ((program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())) {
-      if (event.getCompletedAt() == null) {
-        reporter.addError(event, E1042, event);
-      } else {
-        if (now()
-            .isAfter(event.getCompletedAt().plus(ofDays(program.getCompleteEventsExpiryDays())))) {
-          reporter.addError(event, E1043, event);
-        }
-      }
+    Instant completedAt = getCompletedDate(preheat, event);
+
+    if (completedAt != null
+        && now().isAfter(completedAt.plus(ofDays(program.getCompleteEventsExpiryDays())))) {
+      reporter.addError(event, E1043, event);
     }
+  }
+
+  /**
+   * Returns the completion date the expiry check should be anchored to, or {@code null} if the
+   * event is not completed.
+   *
+   * <p>When the event is already completed in the database, the persisted completion date is used.
+   * This makes the expiry check work even when the update payload does not include {@code
+   * completedAt}, and prevents the payload from resetting the expiry clock on an already completed
+   * event. Otherwise, when the payload itself completes the event, its completion date is used.
+   */
+  private Instant getCompletedDate(TrackerPreheat preheat, Event event) {
+    Date persistedCompletedDate = getPersistedCompletedDate(preheat, event);
+    if (persistedCompletedDate != null) {
+      return persistedCompletedDate.toInstant();
+    }
+
+    if (EventStatus.COMPLETED == event.getStatus()) {
+      return event.getCompletedAt();
+    }
+
+    return null;
+  }
+
+  private Date getPersistedCompletedDate(TrackerPreheat preheat, Event event) {
+    org.hisp.dhis.program.Event persisted = preheat.getEvent(event.getEvent());
+    return persisted != null && EventStatus.COMPLETED == persisted.getStatus()
+        ? persisted.getCompletedDate()
+        : null;
   }
 
   private void validateExpiryPeriodType(
