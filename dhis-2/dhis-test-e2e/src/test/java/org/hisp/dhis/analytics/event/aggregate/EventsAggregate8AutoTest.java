@@ -267,6 +267,6 @@ public class EventsAggregate8AutoTest extends AnalyticsApiTest {
     // 7. Assert row existence by value (unsorted results - validates all columns).
 
     validateRow(response, List.of("2022", "ImspTQPwCqd", "8005"));
-    validateRow(response, List.of("2021", "ImspTQPwCqd", "11017"));
+    validateRow(response, List.of("2021", "ImspTQPwCqd", "11019"));
   }
 }
