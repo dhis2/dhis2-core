@@ -920,7 +920,14 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
   }
 
   /**
-   * Look up objects which have property createdBy or lastUpdatedBy linked to given {@link User}
+   * Look up objects which have property createdBy or lastUpdatedBy linked to given {@link User}.
+   *
+   * <p>Runs with {@link FlushModeType#COMMIT}, so the JPA auto-flush (a full-session dirty-check)
+   * is skipped before this query. This is safe for the current caller (the read-only deletion veto
+   * phase, which runs before any deletion handler writes), and avoids a per-query flush that
+   * dominates the cost when a large object graph is in the session. If a future caller reads within
+   * a transaction and must observe earlier un-flushed changes, change this method to accept a
+   * flush-mode parameter rather than relaxing the mode for everyone.
    *
    * @param user the {@link User} for filtering
    * @return TRUE of objects found. FALSE otherwise.
@@ -940,10 +947,6 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
       return false;
     }
     query.where(builder.or(predicates.toArray(new Predicate[0])));
-    // Read-only existence check: skip the JPA auto-flush (a full-session dirty-check) that would
-    // otherwise run before this query. During user deletion this is invoked once per metadata type
-    // (~44 queries); with a large object graph in the session, that per-query flush dominates the
-    // cost while the query itself is sub-millisecond.
     return !entityManager
         .createQuery(query)
         .setFlushMode(FlushModeType.COMMIT)
