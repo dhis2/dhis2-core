@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
@@ -123,6 +124,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   private final FirstOrLastValueSubqueryRenderer firstOrLastRenderer;
 
+  private final EventItemSelectColumnResolver eventItemSelectColumnResolver;
+
   public JdbcEventAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
@@ -157,6 +160,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         dateFieldPeriodBucketColumnResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     this.firstOrLastRenderer = firstOrLastRenderer;
+    this.eventItemSelectColumnResolver =
+        new EventItemSelectColumnResolver(
+            sqlBuilder,
+            organisationUnitResolver,
+            this::getStageOuValueColumnTableAlias,
+            (item, queryParams) -> getColumnAndAlias(item, queryParams, false, false),
+            this::handleRowContext);
   }
 
   @Override
@@ -473,9 +483,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       String joinCol = quoteAlias(params.getTimeFieldAsField(AnalyticsType.EVENT));
       sql.append("left join analytics_rs_dateperiodstructure as ")
           .append(DATE_PERIOD_STRUCT_ALIAS)
-          .append(" on cast(")
-          .append(joinCol)
-          .append(" as date) = ")
+          .append(" on ")
+          .append(sqlBuilder.castAsDate(joinCol))
+          .append(" = ")
           .append(DATE_PERIOD_STRUCT_ALIAS)
           .append(".")
           .append(quote("dateperiod"))
@@ -711,12 +721,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     if (params.isCoordinatesOnly() || params.isGeometryOnly()) {
+      // nullIfEmpty normalises ClickHouse's empty-string "no coordinate" to NULL so the filter
+      // matches Postgres; it is a no-op for other databases.
       sql +=
           hlp.whereAnd()
               + " "
-              + getCoalesce(
-                  resolveCoordinateFieldsColumnNames(params.getCoordinateFields(), params),
-                  FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue())
+              + sqlBuilder.nullIfEmpty(
+                  getCoalesce(
+                      resolveCoordinateFieldsColumnNames(params.getCoordinateFields(), params),
+                      FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue()))
               + " is not null ";
     }
 
@@ -888,7 +901,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
     OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
-    addEventsItemSelectColumns(columns, params, cteContext);
+    columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
     columns.forEach(
         column -> {
@@ -898,54 +911,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             sb.addColumn(column, "ax");
           }
         });
-    if (cteContext.hasCteDefinitions()) {
-      // if there are no CTEs, we can use the standard columns
+    // ClickHouse emits item columns (including CTE-backed program indicators) inline in items
+    // order via EventItemSelectColumnResolver, so a second CTE pass would duplicate and reorder
+    // them relative to the items-ordered grid headers. Other databases keep the existing two-pass
+    // assembly, where this pass contributes their CTE-backed columns.
+    if (cteContext.hasCteDefinitions() && sqlBuilder.supportsCorrelatedSubquery()) {
       getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
-    }
-  }
-
-  private void addEventsItemSelectColumns(
-      List<String> columns, EventQueryParams params, CteContext cteContext) {
-    for (QueryItem queryItem : params.getItems()) {
-      // Special handling for stage.ou dimensions
-      // These require 3 columns (ou, ouname, oucode) instead of 1
-      if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()
-          && OrganisationUnitResolver.isStageOuDimension(queryItem)) {
-        String stageUid = queryItem.getProgramStage().getUid();
-        // Main value column (uidlevelX), qualified to avoid ambiguity when ENROLLMENT_OU joins.
-        OrganisationUnitResolver.StageOuCteContext stageOuContext =
-            organisationUnitResolver.buildStageOuCteContext(
-                queryItem, params, getStageOuValueColumnTableAlias(params));
-        columns.add(stageOuContext.valueColumn() + " as " + quote(stageUid + ".ou"));
-        // Conditionally add ouname/oucode columns
-        if (params.hasHeaders()) {
-          if (params.getHeaders().contains(stageUid + ".ouname")) {
-            columns.add(
-                sqlBuilder.quote(
-                        getStageOuValueColumnTableAlias(params),
-                        EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
-                    + " as "
-                    + quote(stageUid + ".ouname"));
-          }
-          if (params.getHeaders().contains(stageUid + ".oucode")) {
-            columns.add(
-                sqlBuilder.quote(
-                        getStageOuValueColumnTableAlias(params),
-                        EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
-                    + " as "
-                    + quote(stageUid + ".oucode"));
-          }
-        }
-      } else {
-        ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
-
-        if (columnAndAlias != null && !cteContext.containsCte(columnAndAlias.alias)) {
-          columns.add(columnAndAlias.asSql());
-        }
-
-        // asked for row context if allowed and needed based on column and its alias
-        handleRowContext(columns, params, queryItem, columnAndAlias);
-      }
     }
   }
 
@@ -976,12 +947,17 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       cteContext = new CteContext(EndpointItem.EVENT);
     }
 
-    for (QueryItem item : params.getItems()) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      cteContext.useEventProgramIndicatorCandidateSource();
+    }
+
+    for (QueryItem item :
+        Stream.concat(params.getItems().stream(), params.getItemFilters().stream()).toList()) {
       if (item.isProgramIndicator()) {
         ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
         // Handle any program indicator CTE logic.
-        if (programIndicator.getAnalyticsType().equals(AnalyticsType.ENROLLMENT)) {
-          // CTE needed only for Enrollment type
+        if (programIndicator.getAnalyticsType().equals(AnalyticsType.ENROLLMENT)
+            || programIndicator.getAnalyticsType().equals(AnalyticsType.EVENT)) {
           handleProgramIndicatorCte(item, cteContext, params);
         }
       }

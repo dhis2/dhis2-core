@@ -535,14 +535,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   @Test
   void testRelationshipCountWithNoRelationshipId() {
     String sql = test("d2:relationshipCount()");
-    assertThat(
-        sql,
-        is(
-            """
-             (select sum(relationship_count)
-              from analytics_rs_relationship arr
-              where arr.trackedentityid = ax.trackedentity)
-             """));
+    assertThat(sql, is("__D2RELCNT__(uid='')__"));
   }
 
   @Test
@@ -550,14 +543,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     when(idObjectManager.get(RelationshipType.class, relTypeA.getUid())).thenReturn(relTypeA);
 
     String sql = test("d2:relationshipCount('RelatnTypeA')");
-    assertThat(
-        sql,
-        is(
-            """
-                     (select relationship_count
-                      from analytics_rs_relationship arr
-                      where arr.trackedentityid = ax.trackedentity and relationshiptypeuid = 'RelatnTypeA')
-                     """));
+    assertThat(sql, is("__D2RELCNT__(uid='RelatnTypeA')__"));
   }
 
   @Test
@@ -592,8 +578,8 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     assertThat(
         sql,
         is(
-            "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null "
+            "(date_part('year',age(cast((select occurreddate from analytics_event_program000a "
+                + "where analytics_event_program000a.enrollment = ax.enrollment and occurreddate is not null "
                 + "and ps = 'ProgrmStagA' "
                 + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date))))"));
   }
@@ -608,8 +594,8 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     assertThat(
         sql,
         is(
-            "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null "
+            "(date_part('year',age(cast((select occurreddate from analytics_event_program000a "
+                + "where analytics_event_program000a.enrollment = ax.enrollment and occurreddate is not null "
                 + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA' "
                 + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1::numeric"));
