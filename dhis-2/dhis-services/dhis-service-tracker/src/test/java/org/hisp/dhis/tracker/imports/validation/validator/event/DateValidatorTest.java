@@ -43,11 +43,11 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Date;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -60,6 +60,9 @@ import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -69,9 +72,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DateValidatorTest extends TestBase {
 
-  private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
-
-  private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "ProgramWithoutRegistration";
+  private static final String PROGRAM_ID = "ProgramId";
 
   private DateValidator validator;
 
@@ -93,195 +94,13 @@ class DateValidatorTest extends TestBase {
   }
 
   @Test
-  void testEventIsValid() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
-        .thenReturn(getProgramWithoutRegistration());
-    Event event = new Event();
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
-    event.setOccurredAt(now());
-    event.setStatus(EventStatus.ACTIVE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
-        .thenReturn(getProgramWithoutRegistration());
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1031);
-  }
-
-  @Test
-  void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setStatus(EventStatus.ACTIVE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1031);
-  }
-
-  @Test
-  void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setStatus(EventStatus.COMPLETED);
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1031);
-  }
-
-  @Test
-  void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setOccurredAt(Instant.now());
-    event.setStatus(EventStatus.SCHEDULE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1050);
-  }
-
-  @Test
-  void shouldFailWhenCompletedAtIsPresentAndStatusIsNotCompleted() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setOccurredAt(now());
-    event.setCompletedAt(now());
-    event.setStatus(EventStatus.ACTIVE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1051);
-  }
-
-  @Test
-  void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setOccurredAt(now());
-    event.setCompletedAt(sevenDaysAgo());
-    event.setStatus(EventStatus.COMPLETED);
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1043);
-  }
-
-  @Test
-  void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setOccurredAt(null);
-    event.setScheduledAt(null);
-    event.setStatus(EventStatus.SKIPPED);
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1046);
-  }
-
-  @Test
-  void shouldFailValidationForEventWhenDateBelongsToExpiredPeriod() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setOccurredAt(sevenDaysAgo());
-    event.setStatus(EventStatus.ACTIVE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1047);
-  }
-
-  @Test
-  void shouldPassValidationForEventWhenDateBelongsToPastPeriodWithZeroExpiryDays() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(0));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setOccurredAt(sevenDaysAgo());
-    event.setStatus(EventStatus.ACTIVE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void shouldPassValidationForEventWhenDateBelongsPastEventPeriodButWithinExpiryDays() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(7));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setOccurredAt(sevenDaysAgo());
-    event.setStatus(EventStatus.ACTIVE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void shouldPassValidationForEventWhenScheduledDateBelongsToFuturePeriod() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
-    event.setScheduledAt(sevenDaysLater());
-    event.setStatus(EventStatus.SCHEDULE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void shouldPassValidationForEventWhenDateBelongsToExpiredPeriodIfUserIsAuthorized() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    UserDetails user = mock(UserDetails.class);
-    when(user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())).thenReturn(true);
-    bundle.setUser(user);
+  void shouldPassWhenEventIsValid() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(0));
     Event event =
         Event.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
-            .occurredAt(sevenDaysAgo())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
             .status(EventStatus.ACTIVE)
             .build();
 
@@ -290,20 +109,264 @@ class DateValidatorTest extends TestBase {
     assertIsEmpty(reporter.getErrors());
   }
 
-  private Program getProgramWithRegistration(int expiryDays) {
+  @ParameterizedTest
+  @EnumSource(
+      value = EventStatus.class,
+      mode = Mode.INCLUDE,
+      names = {"ACTIVE", "COMPLETED"})
+  void shouldFailWhenMandatoryOccurredAtIsNotPresent(EventStatus eventStatus) {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(0));
+    Event event =
+        Event.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(eventStatus)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1031);
+  }
+
+  @Test
+  void shouldFailWhenScheduledDateIsNotPresentAndEventIsSchedule() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    Event event =
+        Event.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .status(EventStatus.SCHEDULE)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1050);
+  }
+
+  @Test
+  void shouldFailWhenCompletedAtIsPresentAndStatusIsNotCompleted() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    Event event =
+        Event.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .completedAt(now())
+            .status(EventStatus.ACTIVE)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1051);
+  }
+
+  @Test
+  void shouldFailWhenCompletedAtIsTooSoonAndEventIsCompleted() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    Event event =
+        Event.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .completedAt(sevenDaysAgo())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1043);
+  }
+
+  @Test
+  void shouldFailWhenCompletionHasExpiredEvenIfPayloadHasNoCompletedAt() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    when(preheat.getEvent(uid)).thenReturn(completedEvent(sevenDaysAgo()));
+    Event event =
+        Event.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1043);
+  }
+
+  @Test
+  void shouldFailWhenCompletionHasExpiredEvenIfPayloadHasNoStatusNorCompletedAt() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    when(preheat.getEvent(uid)).thenReturn(completedEvent(sevenDaysAgo()));
+    Event event =
+        Event.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1043);
+  }
+
+  @Test
+  void shouldUsePersistedCompletionDateAndIgnorePayloadCompletedAtWhenAlreadyCompleted() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    // event was completed in the database long ago (expired)...
+    when(preheat.getEvent(uid)).thenReturn(completedEvent(sevenDaysAgo()));
+    Event event =
+        Event.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            // ...so a fresh completedAt in the payload must not reset the expiry clock
+            .completedAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1043);
+  }
+
+  @Test
+  void shouldPassWhenPersistedCompletionIsWithinExpiryDays() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    when(preheat.getEvent(uid)).thenReturn(completedEvent(twoDaysAgo()));
+    Event event =
+        Event.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassWhenPersistedCompletionHasExpiredButUserIsAuthorized() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    UserDetails user = mock(UserDetails.class);
+    when(user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())).thenReturn(true);
+    bundle.setUser(user);
+    Event event =
+        Event.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailWhenOccurredAtAndScheduledAtAreNotPresent() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    Event event =
+        Event.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(null)
+            .scheduledAt(null)
+            .status(EventStatus.SKIPPED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1046);
+  }
+
+  @Test
+  void shouldFailWhenEventDateBelongsToExpiredPeriod() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    Event event = expiredEvent();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1047);
+  }
+
+  @Test
+  void shouldPassWhenEventDateBelongsToExpiredPeriodIfUserIsAuthorized() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UserDetails user = mock(UserDetails.class);
+    when(user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())).thenReturn(true);
+    bundle.setUser(user);
+
+    validator.validate(reporter, bundle, expiredEvent());
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassWhenEventDateBelongsToPastPeriodWithZeroExpiryDays() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(0));
+
+    validator.validate(reporter, bundle, expiredEvent());
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassWhenEventDateBelongsPastEventPeriodButWithinExpiryDays() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(14));
+
+    validator.validate(reporter, bundle, expiredEvent());
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassWhenScheduledDateBelongsToFuturePeriod() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    Event event =
+        Event.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .scheduledAt(sevenDaysLater())
+            .status(EventStatus.SCHEDULE)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  private Event expiredEvent() {
+    return Event.builder()
+        .event(UID.generate())
+        .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+        .occurredAt(sevenDaysAgo())
+        .status(EventStatus.ACTIVE)
+        .build();
+  }
+
+  private static org.hisp.dhis.program.Event completedEvent(Instant completedDate) {
+    org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
+    event.setStatus(EventStatus.COMPLETED);
+    event.setCompletedDate(Date.from(completedDate));
+    return event;
+  }
+
+  private Program getProgram(int expiryDays) {
     Program program = createProgram('A');
-    program.setUid(PROGRAM_WITH_REGISTRATION_ID);
-    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setUid(PROGRAM_ID);
     program.setCompleteEventsExpiryDays(5);
     program.setExpiryDays(expiryDays);
     program.setExpiryPeriodType(new DailyPeriodType());
-    return program;
-  }
-
-  private Program getProgramWithoutRegistration() {
-    Program program = createProgram('A');
-    program.setUid(PROGRAM_WITHOUT_REGISTRATION_ID);
-    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     return program;
   }
 
@@ -311,8 +374,12 @@ class DateValidatorTest extends TestBase {
     return Instant.now();
   }
 
-  private Instant sevenDaysAgo() {
+  private static Instant sevenDaysAgo() {
     return LocalDateTime.now().minusDays(7).toInstant(ZoneOffset.UTC);
+  }
+
+  private static Instant twoDaysAgo() {
+    return LocalDateTime.now().minusDays(2).toInstant(ZoneOffset.UTC);
   }
 
   private Instant sevenDaysLater() {
