@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ColumnAndAlias;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,8 @@ class StageQuerySqlFacadeTest {
   private final TestDateRenderer dateRenderer = new TestDateRenderer();
   private final TestOrgUnitService orgUnitService = new TestOrgUnitService();
   private final DefaultStageQuerySqlFacade subject =
-      new DefaultStageQuerySqlFacade(classifier, dateRenderer, orgUnitService);
+      new DefaultStageQuerySqlFacade(
+          classifier, dateRenderer, orgUnitService, new PostgreSqlAnalyticsSqlBuilder());
 
   @Test
   void shouldResolveStageOrgUnitSelectColumn() {
@@ -181,7 +183,7 @@ class StageQuerySqlFacadeTest {
     }
 
     @Override
-    public String renderPeriodBucketExpression(QueryItem item, String periodBucketColumn) {
+    public String renderPeriodBucketExpression(String stageDateColumn, String periodBucketColumn) {
       return "bucket_expr_" + periodBucketColumn;
     }
   }

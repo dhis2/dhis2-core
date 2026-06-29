@@ -1507,7 +1507,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         new DefaultStageQuerySqlFacade(
             new DefaultStageQueryItemClassifier(),
             new DefaultStageDatePeriodBucketSqlRenderer(builder),
-            new DefaultStageOrgUnitSqlService(organisationUnitResolver, builder));
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, builder),
+            builder);
 
     return new JdbcEventAnalyticsManager(
         jdbcTemplate,
