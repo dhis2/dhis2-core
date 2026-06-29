@@ -103,7 +103,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
         streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
             .map(ProgramIndicatorDimensionIdentifier::of)
             .distinct()
-            .collect(toList());
+            .toList();
 
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
