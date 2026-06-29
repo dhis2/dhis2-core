@@ -593,7 +593,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       // -----------------------------------------------------------------
 
       if (params.hasSortOrder() && grid.getHeight() > 0) {
-        grid.sortGrid(1, params.getSortOrderAsInt());
+        grid.sortGrid(grid.getIndexOfHeader("value"), params.getSortOrderAsInt());
       }
 
       if (params.hasLimit() && grid.getHeight() > params.getLimit()) {

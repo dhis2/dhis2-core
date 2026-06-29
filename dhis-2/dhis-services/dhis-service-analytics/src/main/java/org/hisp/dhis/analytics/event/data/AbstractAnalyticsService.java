@@ -248,17 +248,17 @@ public abstract class AbstractAnalyticsService {
       count = addData(grid, params);
     }
 
-    // Limit grid.
-    if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
-      grid.limitGrid(params.getLimit());
-    }
-
     // Sort grid, done again due to potential multiple partitions.
     if (params.getEndpointAction() == AGGREGATE
         && params.hasSortOrder()
         && grid.getHeight() > 0
         && grid.getIndexOfHeader("value") != -1) {
       grid.sortGrid(grid.getIndexOfHeader("value") + 1, params.getSortOrderAsInt());
+    }
+
+    // Limit grid.
+    if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
+      grid.limitGrid(params.getLimit());
     }
 
     // ---------------------------------------------------------------------
