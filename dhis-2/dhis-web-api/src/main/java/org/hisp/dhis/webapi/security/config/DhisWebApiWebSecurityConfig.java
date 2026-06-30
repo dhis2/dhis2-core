@@ -388,6 +388,9 @@ public class DhisWebApiWebSecurityConfig {
                   .requestMatchers(
                       new AntPathRequestMatcher(apiContextPath + "/**/account/restore"))
                   .permitAll()
+                  .requestMatchers(
+                      new AntPathRequestMatcher(apiContextPath + "/**/account/password"))
+                  .permitAll()
                   .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account"))
                   .permitAll()
                   ///////////////////////////////////////////////////////////////////////////////////////////////
