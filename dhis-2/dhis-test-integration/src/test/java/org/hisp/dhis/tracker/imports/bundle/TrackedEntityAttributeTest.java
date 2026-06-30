@@ -28,11 +28,13 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -41,9 +43,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
@@ -119,5 +125,119 @@ class TrackedEntityAttributeTest extends TrackerTest {
     for (TrackedEntityAttributeValue av : attributeValues) {
       assertEquals(importUser.getUsername(), av.getStoredBy());
     }
+  }
+
+  @Test
+  void shouldUpdateExistingAttributeValueWhenImportingWithNonUidIdScheme() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    // The persister must recognize the attribute value as existing (and route it to an UPDATE
+    // instead of a duplicate INSERT, which would violate the composite PK) regardless of the
+    // idScheme the import resolves attributes with.
+    TrackerObjects update =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                        .trackedEntity("CLR1fvPj4ic")
+                        .trackedEntityType(MetadataIdentifier.ofName("Person"))
+                        .orgUnit(MetadataIdentifier.ofName("Country"))
+                        .attributes(
+                            List.of(
+                                Attribute.builder()
+                                    .attribute(MetadataIdentifier.ofName("Attribute_Text"))
+                                    .value("updated value")
+                                    .build()))
+                        .build()))
+            .build();
+    params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.UPDATE)
+            .idSchemes(TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.NAME).build())
+            .build();
+
+    assertNoErrors(trackerImportService.importTracker(params, update));
+
+    TrackedEntity trackedEntity = manager.getAll(TrackedEntity.class).get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    assertEquals(3, attributeValues.size());
+    TrackedEntityAttributeValue updatedValue =
+        attributeValues.stream()
+            .filter(av -> "TsfP85GKsU5".equals(av.getAttribute().getUid()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals("updated value", updatedValue.getValue());
+  }
+
+  @Test
+  void shouldNotPersistAttributeValueWhenImportingEmptyValueForAttributeNotInDb() {
+    String te = CodeGenerator.generateUid();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                        .trackedEntity(te)
+                        .trackedEntityType(MetadataIdentifier.ofUid("KrYIdvLxkMb"))
+                        .orgUnit(MetadataIdentifier.ofUid("cNEZTkdAvmg"))
+                        .attributes(
+                            List.of(
+                                Attribute.builder()
+                                    .attribute(MetadataIdentifier.ofUid("sYn3tkL3XKa"))
+                                    .value("123")
+                                    .build(),
+                                Attribute.builder()
+                                    .attribute(MetadataIdentifier.ofUid("TsfP85GKsU5"))
+                                    .value("")
+                                    .build()))
+                        .build()))
+            .build();
+
+    assertNoErrors(
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
+
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, te);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    assertContainsOnly(
+        List.of("sYn3tkL3XKa"),
+        attributeValues.stream().map(av -> av.getAttribute().getUid()).toList());
+  }
+
+  @Test
+  void shouldDeleteAttributeValueWhenImportingEmptyValueForExistingAttribute() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    TrackerObjects update =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                        .trackedEntity("CLR1fvPj4ic")
+                        .trackedEntityType(MetadataIdentifier.ofUid("KrYIdvLxkMb"))
+                        .orgUnit(MetadataIdentifier.ofUid("cNEZTkdAvmg"))
+                        .attributes(
+                            List.of(
+                                Attribute.builder()
+                                    .attribute(MetadataIdentifier.ofUid("TsfP85GKsU5"))
+                                    .value("")
+                                    .build()))
+                        .build()))
+            .build();
+    params = TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
+
+    assertNoErrors(trackerImportService.importTracker(params, update));
+
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "CLR1fvPj4ic");
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    assertContainsOnly(
+        List.of("sYn3tkL3XKa", "sTGqP5JNy6E"),
+        attributeValues.stream().map(av -> av.getAttribute().getUid()).toList());
   }
 }
