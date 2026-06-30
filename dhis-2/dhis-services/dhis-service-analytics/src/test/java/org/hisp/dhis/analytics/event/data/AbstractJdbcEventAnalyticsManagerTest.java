@@ -46,12 +46,10 @@ import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
@@ -125,9 +123,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -195,8 +191,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private JdbcEventAnalyticsManager eventSubject;
 
-  private JdbcEnrollmentAnalyticsManager enrollmentSubject;
-
   private Program programA;
 
   private DataElement dataElementA;
@@ -228,7 +222,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new DefaultStageQuerySqlFacade(
             new DefaultStageQueryItemClassifier(),
             new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
-            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder),
+            sqlBuilder);
 
     eventSubject =
         new JdbcEventAnalyticsManager(
@@ -249,29 +244,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
             new FirstOrLastValueSubqueryRenderer(
                 sqlBuilder, eventTimeFieldSqlRenderer, programIndicatorService));
-
-    enrollmentSubject =
-        new JdbcEnrollmentAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            null,
-            piDisagQueryGenerator,
-            enrollmentTimeFieldSqlRenderer,
-            executionPlanStore,
-            systemSettingsService,
-            config,
-            sqlBuilder,
-            organisationUnitResolver,
-            columnMapper,
-            filterBuilder,
-            stageQuerySqlFacade,
-            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
-            new EnrollmentEventSubqueryBuilder(
-                sqlBuilder, new ProgramStageOffsetSqlBuilder(sqlBuilder)),
-            new AggregatedEnrollmentQueryAssembler(
-                sqlBuilder,
-                new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder())));
   }
 
   @Test
@@ -1152,24 +1124,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testGetSelectClauseForAggregatedEnrollments() {
-    // Given
-    PeriodDimension period = PeriodDimension.of(THIS_YEAR);
-    period.getPeriod().setPeriodType(new YearlyPeriodType());
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(createProgram('A'))
-            .withEndpointAction(AGGREGATE)
-            .withEndpointItem(ENROLLMENT)
-            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
-            .build();
-    // When
-    String select = enrollmentSubject.getSelectClause(params);
-    // Then
-    assertEquals("select enrollment,yearly ", select);
-  }
-
-  @Test
   void testItemsInFilterAreQuotedForOrganisationUnit() {
     // Given
     QueryItem queryItem = mock(QueryItem.class);
@@ -1214,25 +1168,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     // Then
     assertEquals("ax.\"12345678\" in ('A','B','C')", sql);
-  }
-
-  @Test
-  void testGetSelectClauseForQueryEnrollments() {
-    // Given
-    PeriodDimension period = PeriodDimension.of(THIS_YEAR);
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(createProgram('A'))
-            .withEndpointAction(QUERY)
-            .withEndpointItem(ENROLLMENT)
-            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
-            .build();
-    // When
-    String select = enrollmentSubject.getSelectClause(params);
-    // Then
-    assertEquals(
-        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,created,completeddate,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" as yearly ",
-        select);
   }
 
   @Test
