@@ -174,25 +174,10 @@ class PersistablesFilter {
 
   private <T extends TrackerDto> void collectDeletables(Class<T> type, List<T> entities) {
     for (T entity : entities) {
-      if (isValid(entity) && !isAlreadyDeleted(entity)) {
+      if (isValid(entity)) {
         collectPersistable(type, entity);
       }
     }
-  }
-
-  private boolean isAlreadyDeleted(TrackerDto entity) {
-    if (entity instanceof Event ev) {
-      org.hisp.dhis.program.Event existing = preheat.getEvent(ev.getEvent());
-      return existing != null && existing.isDeleted();
-    } else if (entity instanceof Enrollment en) {
-      org.hisp.dhis.program.Enrollment existing = preheat.getEnrollment(en.getEnrollment());
-      return existing != null && existing.isDeleted();
-    } else if (entity instanceof TrackedEntity te) {
-      org.hisp.dhis.trackedentity.TrackedEntity existing =
-          preheat.getTrackedEntity(te.getTrackedEntity());
-      return existing != null && existing.isDeleted();
-    }
-    return false;
   }
 
   private <T extends TrackerDto> void collectPersistables(

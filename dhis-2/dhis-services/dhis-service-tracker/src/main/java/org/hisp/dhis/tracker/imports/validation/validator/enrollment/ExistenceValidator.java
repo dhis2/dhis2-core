@@ -50,20 +50,16 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
     TrackerImportStrategy importStrategy = bundle.getStrategy(enrollment);
 
-    Enrollment existingPi = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
+    Enrollment existingEnrollment = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
 
-    if (existingPi != null && existingPi.isDeleted()) {
-      if (importStrategy.isDelete()) {
-        reporter.addWarning(enrollment, E1113, enrollment.getEnrollment());
-      } else {
-        reporter.addError(enrollment, E1113, enrollment.getEnrollment());
-      }
+    if (existingEnrollment != null && existingEnrollment.isDeleted()) {
+      reporter.addError(enrollment, E1113, enrollment.getEnrollment());
       return;
     }
 
-    if (existingPi != null && importStrategy.isCreate()) {
+    if (existingEnrollment != null && importStrategy.isCreate()) {
       reporter.addError(enrollment, E1080, enrollment.getEnrollment());
-    } else if (existingPi == null && importStrategy.isUpdateOrDelete()) {
+    } else if (existingEnrollment == null && importStrategy.isUpdateOrDelete()) {
       reporter.addError(enrollment, E1081, enrollment.getEnrollment());
     }
   }
