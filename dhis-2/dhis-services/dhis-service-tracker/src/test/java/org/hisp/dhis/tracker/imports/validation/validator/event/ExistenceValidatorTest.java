@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1030;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1032;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1082;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasWarning;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -127,20 +126,6 @@ class ExistenceValidatorTest {
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1082);
-  }
-
-  @Test
-  void shouldWarnWhenDeletingAlreadyDeletedEvent() {
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder().event(SOFT_DELETED_EVENT_UID).build();
-    when(preheat.getEvent(SOFT_DELETED_EVENT_UID)).thenReturn(getSoftDeletedEvent());
-    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
-        .thenReturn(TrackerImportStrategy.DELETE);
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-    assertHasWarning(reporter, event, E1082);
   }
 
   @Test

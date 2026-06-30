@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.sync;
 import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -274,12 +275,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     }
 
     if (!activeTrackedEntityDtos.isEmpty()) {
-      syncTrackedEntities(
-          activeTrackedEntityDtos,
-          instance,
-          settings,
-          syncTime,
-          TrackerImportStrategy.CREATE_AND_UPDATE);
+      syncTrackedEntities(activeTrackedEntityDtos, instance, settings, syncTime);
     }
   }
 
@@ -340,21 +336,24 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       SystemInstance instance,
       SystemSettings settings,
-      Date syncTime,
-      TrackerImportStrategy importStrategy) {
-    String url = instance.getUrl() + "?importStrategy=" + importStrategy;
+      Date syncTime) {
+    String url =
+        instance.getUrl()
+            + "?importStrategy="
+            + CREATE_AND_UPDATE
+            + "&async=false&atomicMode=OBJECT";
 
     ImportSummary summary =
         sendTrackerRequest(Map.of("trackedEntities", trackedEntities), instance, settings, url);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
-          format("Tracked Entity sync failed for importStrategy=%s", importStrategy));
+          format("Tracked Entity sync failed for importStrategy=%s", CREATE_AND_UPDATE));
     }
 
     log.info(
         "Tracked Entity sync successful for importStrategy={}. Tracked entities count: {}",
-        importStrategy,
+        CREATE_AND_UPDATE,
         trackedEntities.size());
 
     updateTrackedEntitiesSyncTimestamp(trackedEntities, syncTime);

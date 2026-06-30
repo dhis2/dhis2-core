@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1080;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1081;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1113;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasWarning;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -135,22 +134,6 @@ class EnrollmentPreCheckExistenceValidatorTest {
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, E1113);
-  }
-
-  @Test
-  void shouldWarnWhenDeletingAlreadyDeletedEnrollment() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(SOFT_DELETED_ENROLLMENT_UID)
-            .build();
-    when(preheat.getEnrollment(SOFT_DELETED_ENROLLMENT_UID)).thenReturn(getSoftDeletedEnrollment());
-    when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Enrollment.class)))
-        .thenReturn(TrackerImportStrategy.DELETE);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertIsEmpty(reporter.getErrors());
-    assertHasWarning(reporter, enrollment, E1113);
   }
 
   @Test

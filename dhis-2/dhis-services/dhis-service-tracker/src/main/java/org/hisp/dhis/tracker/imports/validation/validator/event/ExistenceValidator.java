@@ -50,6 +50,7 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
 
     Event existingEvent = bundle.getPreheat().getEvent(event.getEvent());
 
+    // If the event is soft-deleted no operation is allowed
     if (existingEvent != null && existingEvent.isDeleted()) {
       reporter.addError(event, E1082, event.getEvent());
       return;
