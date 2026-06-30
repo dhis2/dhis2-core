@@ -29,10 +29,8 @@
  */
 package org.hisp.dhis.visualization;
 
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.HashMap;
 import java.util.Map;
 import org.hisp.dhis.common.MetadataItem;
 import org.junit.jupiter.api.Test;
