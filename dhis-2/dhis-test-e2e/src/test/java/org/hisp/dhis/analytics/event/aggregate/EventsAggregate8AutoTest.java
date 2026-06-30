@@ -30,11 +30,14 @@ package org.hisp.dhis.analytics.event.aggregate;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -206,5 +209,64 @@ public class EventsAggregate8AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(response, List.of("2021", "ImspTQPwCqd", "697"));
     validateRow(response, List.of("2022", "ImspTQPwCqd", "988"));
+  }
+
+  @Test
+  public void withSortOrderAndLimit() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("stage=A03MvHHogjR")
+            .add("displayProperty=NAME")
+            .add("sortOrder=asc")
+            .add("totalPages=false")
+            .add("limit=2")
+            .add("outputType=EVENT")
+            .add("dimension=ou:ImspTQPwCqd,pe:LAST_5_YEARS")
+            .add("relativePeriodDate=2026-06-23");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response, false, 2, 3, 3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"2025\":{\"name\":\"2025\"},\"ou\":{\"name\":\"Organisation unit\"},\"2024\":{\"name\":\"2024\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"}},\"dimensions\":{\"pe\":[\"2021\",\"2022\",\"2023\",\"2024\",\"2025\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+
+    validateRow(response, List.of("2022", "ImspTQPwCqd", "8005"));
+    validateRow(response, List.of("2021", "ImspTQPwCqd", "11019"));
   }
 }
