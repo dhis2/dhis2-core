@@ -45,8 +45,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.SingleEvent;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,7 +93,7 @@ class BlockEntryFormAfterCompletionValidatorTest {
   void shouldFailWhenSingleEventIsCompletedAndBlockEntryFormIsEnabled() {
     stubProgramStage(true);
     Event event =
-        SingleEvent.builder()
+        Event.builder()
             .event(UID.generate())
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
             .status(EventStatus.COMPLETED)
@@ -147,7 +145,7 @@ class BlockEntryFormAfterCompletionValidatorTest {
   }
 
   private Event trackerEvent(EventStatus status) {
-    return TrackerEvent.builder()
+    return Event.builder()
         .event(UID.generate())
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
         .status(status)
