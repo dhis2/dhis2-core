@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.trackedentity;
 
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -129,9 +130,39 @@ public class TrackedEntityAggregateService {
     result.ifPresent(r -> addGroupedRows(grid, r.result()));
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    metadataParamsHandler.handle(grid, contextParams, currentUser, rowsCount);
+    metadataParamsHandler.handle(
+        grid, withGroupedDimensionsOnly(contextParams), currentUser, rowsCount);
     addGroupedOrgUnitMetadata(grid, contextParams);
     return grid;
+  }
+
+  /**
+   * Scopes the metadata inputs to the dimensions the aggregate query actually groups by. The TE
+   * mapper injects all of the tracked entity type's attributes into the parsed dimensions for
+   * row-level display; without this filter the shared {@link MetadataParamsHandler} would advertise
+   * those non-grouped attributes in {@code metaData.dimensions}/{@code metaData.items} even though
+   * they are absent from the aggregate headers and rows. Grouped dimensions come from the single
+   * source of truth in {@link AggregateQueryBuilder#getGroupedDimensionKeys}.
+   */
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      withGroupedDimensionsOnly(
+          ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
+    CommonParsedParams commonParsed = contextParams.getCommonParsed();
+
+    CommonParsedParams scoped =
+        commonParsed.toBuilder()
+            .dimensionIdentifiers(
+                commonParsed.getDimensionIdentifiers().stream()
+                    .filter(dimension -> groupedKeys.contains(dimension.getKey()))
+                    .collect(toList()))
+            .parsedHeaders(
+                commonParsed.getParsedHeaders().stream()
+                    .filter(dimension -> groupedKeys.contains(dimension.getKey()))
+                    .collect(toCollection(LinkedHashSet::new)))
+            .build();
+
+    return contextParams.toBuilder().commonParsed(scoped).build();
   }
 
   /**

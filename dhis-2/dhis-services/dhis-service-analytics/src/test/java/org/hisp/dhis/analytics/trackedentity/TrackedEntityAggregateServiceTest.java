@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -74,6 +75,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -125,7 +127,7 @@ class TrackedEntityAggregateServiceTest {
     assertEquals("OU_UID_1", grid.getRow(0).get(0));
     assertEquals(42, grid.getRow(0).get(1));
     verify(securityManager).decideAccess(any(), any());
-    verify(metadataParamsHandler).handle(eq(grid), eq(ctx), any(), eq(0L));
+    verify(metadataParamsHandler).handle(eq(grid), any(), any(), eq(0L));
   }
 
   @Test
@@ -164,7 +166,31 @@ class TrackedEntityAggregateServiceTest {
     service.getGrid(ctx);
 
     verify(queryExecutor).count(any());
-    verify(metadataParamsHandler).handle(any(), eq(ctx), any(), eq(9L));
+    verify(metadataParamsHandler).handle(any(), any(), any(), eq(9L));
+  }
+
+  @Test
+  void getGridMetadataExcludesInjectedNonGroupedDimensions() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParamsWithInjectedAttribute("w75KJ2mc4zz");
+    SqlRowSet rowSet =
+        fakeRowSet(new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    service.getGrid(ctx);
+
+    ArgumentCaptor<ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>> captor =
+        ArgumentCaptor.forClass(ContextParams.class);
+    verify(metadataParamsHandler).handle(any(), captor.capture(), any(), anyLong());
+
+    List<String> metadataDimensionKeys =
+        captor.getValue().getCommonParsed().getDimensionIdentifiers().stream()
+            .map(DimensionIdentifier::getKey)
+            .collect(toList());
+    assertEquals(List.of("ou"), metadataDimensionKeys);
   }
 
   @Test
@@ -189,6 +215,24 @@ class TrackedEntityAggregateServiceTest {
     when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
 
     assertDoesNotThrow(() -> service.getGrid(ctx));
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      aggregateContextParamsWithInjectedAttribute(String attribute) {
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().aggregate(true).build();
+
+    // Only `ou` is explicitly requested; the attribute is injected into the parsed dimensions
+    // upstream (as the TE mapper does for all TET attributes) and must not surface in metaData.
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(trackedEntityQueryParams)
+        .commonRaw(new CommonRequestParams().withDimension(Set.of("ou")))
+        .commonParsed(
+            CommonParsedParams.builder()
+                .dimensionIdentifiers(
+                    List.of(stubOuDimension("ou1"), stubAttributeDimension(attribute)))
+                .build())
+        .build();
   }
 
   private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
