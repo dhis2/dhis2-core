@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.trackedentity.query.context.sql;
 
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,6 +52,7 @@ import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.DataElementQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.EnrolledInProgramQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.LimitOffsetQueryBuilder;
@@ -60,9 +62,11 @@ import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.PeriodQu
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.ProgramIndicatorQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.TrackedEntityQueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
@@ -213,6 +217,127 @@ class SqlQueryCreatorServiceTest extends TestBase {
     String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
     assertContains("group by t_1.\"ou\"", sql);
+  }
+
+  @Test
+  void testAggregateCountGroupedByOrgUnit() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .build();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("count(1) as \"value\"", sql);
+    assertContains("group by t_1.\"ou\"", sql);
+    assertFalse(
+        sql.contains("enrollments"), "per-TEI columns must be suppressed in aggregate mode");
+  }
+
+  @Test
+  void testAggregateCountGroupedByAttribute() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .build();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubAttributeDimension("attr1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("count(1) as \"value\"", sql);
+    assertContains("group by t_1.\"attr1\"", sql);
+  }
+
+  @Test
+  void testAggregateCountGroupedByOrgUnitAndAttribute() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .build();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(
+                        List.of(stubOuDimension("ou1"), stubAttributeDimension("attr1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    // every dimension becomes a group-by key; the value column is last and not grouped.
+    assertContains("select t_1.\"ou\", t_1.\"attr1\", count(1) as \"value\"", sql);
+    assertContains("group by t_1.\"ou\", t_1.\"attr1\"", sql);
+  }
+
+  private DimensionIdentifier<DimensionParam> stubAttributeDimension(String attribute) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject(attribute, DimensionType.PROGRAM_ATTRIBUTE, List.of()),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of());
+    return DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  private DimensionIdentifier<DimensionParam> stubOuDimension(String ou) {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(ou);
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(orgUnit)),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of(ou));
+    return DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam)
+        .withDefaultGroupId();
   }
 
   /** Stub builder that contributes a group-by field, used to verify group-by propagation. */
