@@ -43,36 +43,45 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Performance test for single-user CRUD operations on {@code /api/users}.
  *
- * <p>Five scenarios, all running against the platform-perf DB (~250k users / ~250k org units) by
+ * <p>Seven scenarios, all running against the platform-perf DB (~250k users / ~250k org units) by
  * default:
  *
  * <ol>
  *   <li><b>POST</b> — creates a new user (with optional group assignment)
- *   <li><b>GET</b> — fetches a single pre-created user by UID
- *   <li><b>PUT</b> — full-replace of a pre-created user
- *   <li><b>PATCH</b> — partial update via RFC 6902 JSON Patch on a pre-created user
+ *   <li><b>GET</b> — fetches a single existing user by UID
+ *   <li><b>PATCH</b> — partial update via RFC 6902 JSON Patch on an existing user
+ *   <li><b>REPLICA</b> — replicates an existing user via {@code POST /api/users/{uid}/replica}
+ *   <li><b>PUT</b> — full-replace of an existing user
  *   <li><b>PATCH userGroups</b> — updates group assignment via the user-side PATCH path
- *   <li><b>REPLICA</b> — replicates a pre-created user via {@code POST /api/users/{uid}/replica}
- *   <li><b>DELETE</b> — deletes pre-created users (separate pool, timing is clean)
+ *   <li><b>DELETE</b> — deletes existing users
  * </ol>
  *
- * <p>All scenarios operate exclusively on users created in {@code before()} or by the POST scenario
- * itself — no existing database users are touched.
+ * <p>Except for POST (which creates new users), every scenario operates on <i>existing</i> perf-DB
+ * users — chosen precisely because they carry heavy userGroup/userRole relationships, so the
+ * measured ops exercise the associated N+1 paths. {@code before()} fetches a pool of existing users
+ * and partitions it into disjoint, consume-once slices — one per scenario — so each user is
+ * operated on at most once. This keeps every measured op against a still-heavy user (PUT and
+ * PATCH-userGroups shrink the user on first write) and guarantees scenarios never interfere; in
+ * sequential mode they run least → most destructive with DELETE last.
+ *
+ * <p>Because DELETE/PUT mutate real users with no DB reset between runs, run with {@code WARMUP=0}
+ * (the concurrency ramp already warms the server) — a destructive warmup would consume users the
+ * measured run then expects to find. The configured admin {@code username} is excluded from the
+ * pool so the test never mutates the account it authenticates with.
  *
  * <p>Run with {@code -DuserGroupUid=<uid>} pointing at a group with large membership to expose N+1
- * problems in POST and DELETE. The default points at a ~83k-member group on the platform-perf DB.
+ * problems in POST. The default points at a ~83k-member group on the platform-perf DB.
  *
  * <p>Configuration can be provided via a {@code .properties} file instead of individual {@code -D}
  * flags:
@@ -93,7 +102,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li>{@code userRoleUid} (default: {@code MoRvPzDH7lc} — generic role with ~83k users)
  *   <li>{@code orgUnitUid} (default: {@code VCCdfC9pvMA} — root org unit)
  *   <li>{@code userGroupUid} (default: {@code KOvR9SAEeEZ} — group with ~83k members)
- *   <li>{@code iterations} (default: {@code 3})
+ *   <li>{@code concurrency} (default: {@code 10}) — peak concurrent virtual users per scenario
+ *   <li>{@code rampSeconds} (default: {@code 30}) — seconds to ramp concurrency from 1 to peak
+ *   <li>{@code sustainSeconds} (default: {@code 120}) — seconds to hold peak concurrency
+ *   <li>{@code paceMillis} (default: {@code 1000}) — minimum interval between a virtual user's
+ *       requests; controls cadence (≈ concurrency ÷ paceMillis req/s per scenario). Set {@code 0}
+ *       to fire as fast as the server answers
+ *   <li>{@code userPoolSize} (default: {@code 30000}) — existing users fetched and split across the
+ *       six existing-user scenarios; raise it if a scenario reports "slice exhausted"
  *   <li>{@code mode} (default: {@code sequential}; runs each scenario in isolation so timings
  *       reflect single-endpoint latency. Use {@code parallel} to run all scenarios concurrently as
  *       a mixed-load stress test.)
@@ -146,10 +162,36 @@ public class UsersPerformanceTest extends Simulation {
   private static final String USER_ROLE_UID = prop("userRoleUid", "MoRvPzDH7lc");
   private static final String ORG_UNIT_UID = prop("orgUnitUid", "VCCdfC9pvMA");
   private static final String USER_GROUP_UID = prop("userGroupUid", "KOvR9SAEeEZ");
-  private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
   // Default to sequential so each scenario is measured in isolation (single-endpoint latency).
   // Set -Dmode=parallel for a mixed-load stress test where all scenarios run concurrently.
   private static final String MODE = prop("mode", "sequential");
+
+  // Closed-model load profile: ramp concurrency from 1 to CONCURRENCY over RAMP_SECONDS, then hold
+  // CONCURRENCY for SUSTAIN_SECONDS. In sequential mode each scenario runs this full profile in its
+  // own phase; in parallel mode all scenarios run it concurrently.
+  private static final int CONCURRENCY = Integer.parseInt(prop("concurrency", "10"));
+  private static final int RAMP_SECONDS = Integer.parseInt(prop("rampSeconds", "30"));
+  private static final int SUSTAIN_SECONDS = Integer.parseInt(prop("sustainSeconds", "120"));
+
+  // Each virtual user loops for this long (the full ramp + sustain window) then exits. Using a
+  // time-bounded loop rather than forever() guarantees the closed-injection population drains when
+  // the window ends — forever() loopers are not terminated by the injection profile and would run
+  // indefinitely. Users injected during the ramp finish up to RAMP_SECONDS after the window, a
+  // bounded overshoot.
+  private static final int TEST_DURATION_SECONDS = RAMP_SECONDS + SUSTAIN_SECONDS;
+
+  // Existing perf-DB users to fetch and partition across the existing-user scenarios. Must be large
+  // enough that no scenario's disjoint slice is exhausted within the sustained window (see
+  // before()). With pacing on (paceMillis > 0) each scenario consumes ~(concurrency × window /
+  // paceMillis) users — e.g. 10 × 150s / 1s = 1500.
+  private static final int USER_POOL_SIZE = Integer.parseInt(prop("userPoolSize", "30000"));
+
+  // Minimum interval between consecutive requests from a single virtual user. The test paces each
+  // user to at most one request per this period, so request cadence is controlled rather than
+  // open-throttle: at the default 1000ms with CONCURRENCY=10 each scenario runs at ~10 req/s. A
+  // request that itself takes longer than the pace simply proceeds at its natural rate (pace never
+  // speeds requests up, only spaces fast ones out). Set paceMillis=0 to disable pacing.
+  private static final int PACE_MILLIS = Integer.parseInt(prop("paceMillis", "1000"));
 
   private enum Profile {
     SMOKE,
@@ -205,33 +247,55 @@ public class UsersPerformanceTest extends Simulation {
   private static final Map<Profile, Thresholds> DELETE_THRESH =
       Map.of(Profile.SMOKE, new Thresholds(250, 260), Profile.LOAD, new Thresholds(250, 280));
 
-  // Timestamp-based offset so each run generates unique usernames
+  // Timestamp-based offset so each run generates unique usernames for the POST/REPLICA scenarios,
+  // the only scenarios that create new users.
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
   private static final AtomicInteger POST_COUNTER = new AtomicInteger(RUN_OFFSET);
-  private static final AtomicInteger PRE_CREATE_COUNTER = new AtomicInteger(RUN_OFFSET + 500_000);
   private static final AtomicInteger REPLICA_COUNTER = new AtomicInteger(RUN_OFFSET + 1_000_000);
 
+  // Rotates which user groups a PATCH-userGroups request assigns, for variety across requests.
+  private static final AtomicInteger PATCH_GROUPS_ROTATION = new AtomicInteger();
+
   /**
-   * Pre-created users for GET/PUT/PATCH scenarios. Stored as [uid, username] pairs. Scenarios cycle
-   * through this list, so it is never exhausted.
+   * Existing perf-DB users (heavy userGroup/userRole relationships) fetched in {@link #before()},
+   * stored as [uid, username] pairs. The list is partitioned into disjoint per-scenario slices so
+   * each user is operated on at most once across the whole run — keeping every measured op against
+   * a still-heavy user, and ensuring scenarios never interfere (e.g. DELETE can't remove a user a
+   * read/write scenario will later touch).
    */
-  private static final List<String[]> READ_WRITE_USERS = new ArrayList<>();
+  private static final List<String[]> EXISTING_USERS = new ArrayList<>();
 
   private static final List<String> PATCH_GROUP_UIDS = new ArrayList<>();
 
-  // Each scenario starts at a different offset so parallel runs don't share the same user.
-  // Offsets are separated by ITERATIONS so each scenario gets its own non-overlapping slice.
-  private static final AtomicInteger GET_INDEX = new AtomicInteger(0);
-  private static final AtomicInteger PUT_INDEX = new AtomicInteger(ITERATIONS);
-  private static final AtomicInteger PATCH_INDEX = new AtomicInteger(ITERATIONS * 2);
-  private static final AtomicInteger PATCH_GROUPS_INDEX = new AtomicInteger(ITERATIONS * 3);
-  private static final AtomicInteger REPLICA_SOURCE_INDEX = new AtomicInteger(ITERATIONS * 4);
+  // One disjoint, consume-once slice of EXISTING_USERS per scenario that operates on existing
+  // users.
+  // Slice bounds are assigned in before() once the fetched pool size is known.
+  private static final UserSlice GET_USERS = new UserSlice();
+  private static final UserSlice PATCH_USERS = new UserSlice();
+  private static final UserSlice REPLICA_USERS = new UserSlice();
+  private static final UserSlice PUT_USERS = new UserSlice();
+  private static final UserSlice PATCH_GROUPS_USERS = new UserSlice();
+  private static final UserSlice DELETE_USERS = new UserSlice();
 
   /**
-   * Pre-created users for the DELETE scenario. Consumed one-at-a-time; sized generously so the
-   * queue is never exhausted within a normal test run.
+   * A cursor over a contiguous, disjoint slice of {@link #EXISTING_USERS} that hands out each user
+   * exactly once. Returns {@code null} once the slice is exhausted, so the scenario fails loudly
+   * rather than silently reusing (and thus mutating twice) a user.
    */
-  private static final BlockingQueue<String> DELETE_UID_QUEUE = new LinkedBlockingQueue<>();
+  private static final class UserSlice {
+    private final AtomicInteger cursor = new AtomicInteger();
+    private int end;
+
+    void init(int start, int end) {
+      this.end = end;
+      cursor.set(start);
+    }
+
+    String[] next() {
+      int i = cursor.getAndIncrement();
+      return i < end ? EXISTING_USERS.get(i) : null;
+    }
+  }
 
   private static String patchUserGroupsBody(int startIndex) {
     int count = Math.min(PATCH_GROUP_COUNT, PATCH_GROUP_UIDS.size());
@@ -299,50 +363,72 @@ public class UsersPerformanceTest extends Simulation {
   }
 
   /**
-   * Creates a user via the DHIS2 API and returns its UID, or {@code null} on failure. Used by
-   * {@code before()} to populate the pre-created user pools without Gatling DSL.
+   * Fetches up to {@code needed} existing users (id + username) from the perf DB into {@link
+   * #EXISTING_USERS}, paging as required. The configured admin {@link #USERNAME} is skipped so the
+   * test never mutates or deletes the account it authenticates with.
    */
-  private static String createUser(
-      HttpClient client, ObjectMapper mapper, String auth, String username, String firstName) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(URI.create(BASE_URL + "/api/users"))
-              .header("Content-Type", "application/json")
-              .header("Authorization", "Basic " + auth)
-              .header("Accept", "application/json")
-              .POST(HttpRequest.BodyPublishers.ofString(userBody(null, username, firstName)))
-              .build();
-      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      String uid = mapper.readTree(response.body()).path("response").path("uid").asText();
-      if (!uid.isEmpty()) return uid;
-      System.err.println(
-          "Pre-create failed for " + username + " (HTTP " + response.statusCode() + ")");
-    } catch (Exception e) {
-      System.err.println("Pre-create error for " + username + ": " + e.getMessage());
+  private static void fetchExistingUsers(
+      HttpClient client, ObjectMapper mapper, String auth, int needed) {
+    int pageSize = Math.min(needed, 10_000);
+    int page = 1;
+    while (EXISTING_USERS.size() < needed) {
+      try {
+        HttpRequest request =
+            HttpRequest.newBuilder()
+                .uri(
+                    URI.create(
+                        BASE_URL
+                            + "/api/users?fields=id,username&pageSize="
+                            + pageSize
+                            + "&page="
+                            + page))
+                .header("Authorization", "Basic " + auth)
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+          System.err.println("Fetching existing users failed (HTTP " + response.statusCode() + ")");
+          return;
+        }
+        JsonNode users = mapper.readTree(response.body()).path("users");
+        if (!users.elements().hasNext()) {
+          return; // no more pages
+        }
+        for (JsonNode user : users) {
+          String uid = user.path("id").asText();
+          String username = user.path("username").asText();
+          if (!uid.isBlank() && !username.isBlank() && !username.equals(USERNAME)) {
+            EXISTING_USERS.add(new String[] {uid, username});
+            if (EXISTING_USERS.size() >= needed) {
+              return;
+            }
+          }
+        }
+        page++;
+      } catch (Exception e) {
+        System.err.println("Fetching existing users failed: " + e.getMessage());
+        return;
+      }
     }
-    return null;
   }
 
+  // Scenarios that operate on existing users, each paired with the slice it consumes. The order
+  // also drives the sequential run order (least → most destructive), so DELETE runs last.
+  private static final List<UserSlice> EXISTING_USER_SLICES =
+      List.of(GET_USERS, PATCH_USERS, REPLICA_USERS, PUT_USERS, PATCH_GROUPS_USERS, DELETE_USERS);
+
   /**
-   * Pre-creates all users needed by the test:
-   *
-   * <ul>
-   *   <li>A pool of read/write users for the GET, PUT, and PATCH scenarios (cycled, never deleted)
-   *   <li>A pool of disposable users for the DELETE scenario (one per DELETE request)
-   * </ul>
-   *
-   * No existing database users are touched by the test.
+   * Fetches a pool of existing perf-DB users and partitions it into equal, disjoint slices — one
+   * per existing-user scenario. Each slice is consumed once (never cycled), so every measured op
+   * runs against a still-heavy user and no two scenarios ever touch the same user. POST is the only
+   * scenario that creates users, so it draws from no slice.
    */
   @Override
   public void before() {
-    // Conservative pool sizes: enough headroom for ~3× concurrent virtual users per scenario.
-    int rwNeeded = ITERATIONS * 5 + 5;
-    int delNeeded = ITERATIONS * 3 + 5;
-    String groupLabel = USER_GROUP_UID.isBlank() ? "" : " (group: " + USER_GROUP_UID + ")";
     System.out.println(
-        "Pre-creating %d read/write users and %d delete users%s..."
-            .formatted(rwNeeded, delNeeded, groupLabel));
+        "Fetching up to %d existing users to partition across %d scenarios..."
+            .formatted(USER_POOL_SIZE, EXISTING_USER_SLICES.size()));
 
     String auth =
         Base64.getEncoder()
@@ -350,21 +436,20 @@ public class UsersPerformanceTest extends Simulation {
     HttpClient client = HttpClient.newHttpClient();
     ObjectMapper mapper = new ObjectMapper();
 
-    for (int i = 0; i < rwNeeded; i++) {
-      int num = PRE_CREATE_COUNTER.getAndIncrement();
-      String username = "perftest_rw_" + String.format("%07d", num);
-      String uid = createUser(client, mapper, auth, username, "ReadWrite");
-      if (uid != null) READ_WRITE_USERS.add(new String[] {uid, username});
+    fetchExistingUsers(client, mapper, auth, USER_POOL_SIZE);
+
+    int sliceCount = EXISTING_USER_SLICES.size();
+    int sliceSize = EXISTING_USERS.size() / sliceCount;
+    if (sliceSize == 0) {
+      throw new IllegalStateException(
+          "Fetched only %d existing users — need at least %d (one per scenario). Check baseUrl/auth."
+              .formatted(EXISTING_USERS.size(), sliceCount));
+    }
+    for (int i = 0; i < sliceCount; i++) {
+      EXISTING_USER_SLICES.get(i).init(i * sliceSize, (i + 1) * sliceSize);
     }
 
-    for (int i = 0; i < delNeeded; i++) {
-      int num = PRE_CREATE_COUNTER.getAndIncrement();
-      String username = "perftest_del_" + String.format("%07d", num);
-      String uid = createUser(client, mapper, auth, username, "Delete");
-      if (uid != null) DELETE_UID_QUEUE.offer(uid);
-    }
-
-    fetchUserGroupUids(client, mapper, auth, rwNeeded);
+    fetchUserGroupUids(client, mapper, auth, PATCH_GROUP_COUNT * 4);
     if (PATCH_GROUP_UIDS.isEmpty() && !USER_GROUP_UID.isBlank()) {
       PATCH_GROUP_UIDS.add(USER_GROUP_UID);
     }
@@ -374,13 +459,8 @@ public class UsersPerformanceTest extends Simulation {
     }
 
     System.out.println(
-        "Pre-created %d/%d read/write users, %d/%d delete users, loaded %d user groups."
-            .formatted(
-                READ_WRITE_USERS.size(),
-                rwNeeded,
-                DELETE_UID_QUEUE.size(),
-                delNeeded,
-                PATCH_GROUP_UIDS.size()));
+        "Fetched %d existing users → %d per scenario slice; loaded %d user groups."
+            .formatted(EXISTING_USERS.size(), sliceSize, PATCH_GROUP_UIDS.size()));
   }
 
   public UsersPerformanceTest() {
@@ -409,17 +489,26 @@ public class UsersPerformanceTest extends Simulation {
                     .header("Authorization", "Basic " + BASIC_AUTH)
                     .check(status().is(200)));
 
+    // Paces each virtual user to at most one request per PACE_MILLIS. Prepended to every per-user
+    // loop body so the test controls request cadence (≈ CONCURRENCY/PACE_MILLIS req/s per scenario)
+    // rather than firing as fast as the server can answer. Safe to share across scenarios: the pace
+    // marker lives in each virtual user's own session. paceMillis=0 disables it (no-op chain).
+    ChainBuilder pacing =
+        PACE_MILLIS > 0 ? pace(Duration.ofMillis(PACE_MILLIS)) : exec(session -> session);
+
     // ── Scenario: POST /api/users ────────────────────────────────────────────
     ScenarioBuilder postScenario =
         scenario(POST_REQUEST)
             .exec(authenticate)
-            .repeat(ITERATIONS)
+            .during(Duration.ofSeconds(TEST_DURATION_SECONDS))
             .on(
-                exec(session -> {
-                      int num = POST_COUNTER.getAndIncrement();
-                      String username = "perftest_post_" + String.format("%07d", num);
-                      return session.set("postBody", userBody(null, username, "Post"));
-                    })
+                pacing
+                    .exec(
+                        session -> {
+                          int num = POST_COUNTER.getAndIncrement();
+                          String username = "perftest_post_" + String.format("%07d", num);
+                          return session.set("postBody", userBody(null, username, "Post"));
+                        })
                     .exec(
                         http(POST_REQUEST)
                             .post("/api/users")
@@ -431,30 +520,44 @@ public class UsersPerformanceTest extends Simulation {
     ScenarioBuilder getScenario =
         scenario(GET_REQUEST)
             .exec(authenticate)
-            .repeat(ITERATIONS)
+            .during(Duration.ofSeconds(TEST_DURATION_SECONDS))
             .on(
-                exec(session -> {
-                      String[] user =
-                          READ_WRITE_USERS.get(
-                              GET_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
-                      return session.set("getUid", user[0]);
-                    })
+                pacing
+                    .exec(
+                        session -> {
+                          String[] user = GET_USERS.next();
+                          if (user == null) {
+                            System.err.println("GET user slice exhausted — increase userPoolSize");
+                            return session.markAsFailed();
+                          }
+                          // markAsSucceeded clears any KO left on the session by the previous
+                          // iteration's request, so exitHereIfFailed only fires on slice exhaustion
+                          // (above), not on a prior failed response.
+                          return session.markAsSucceeded().set("getUid", user[0]);
+                        })
+                    .exitHereIfFailed()
                     .exec(http(GET_REQUEST).get("/api/users/#{getUid}").check(status().is(200))));
 
     // ── Scenario: PUT /api/users/{uid} ──────────────────────────────────────
     ScenarioBuilder putScenario =
         scenario(PUT_REQUEST)
             .exec(authenticate)
-            .repeat(ITERATIONS)
+            .during(Duration.ofSeconds(TEST_DURATION_SECONDS))
             .on(
-                exec(session -> {
-                      String[] user =
-                          READ_WRITE_USERS.get(
-                              PUT_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
-                      return session
-                          .set("putUid", user[0])
-                          .set("putBody", userBody(user[0], user[1], "PutUpdated"));
-                    })
+                pacing
+                    .exec(
+                        session -> {
+                          String[] user = PUT_USERS.next();
+                          if (user == null) {
+                            System.err.println("PUT user slice exhausted — increase userPoolSize");
+                            return session.markAsFailed();
+                          }
+                          return session
+                              .markAsSucceeded()
+                              .set("putUid", user[0])
+                              .set("putBody", userBody(user[0], user[1], "PutUpdated"));
+                        })
+                    .exitHereIfFailed()
                     .exec(
                         http(PUT_REQUEST)
                             .put("/api/users/#{putUid}")
@@ -466,14 +569,20 @@ public class UsersPerformanceTest extends Simulation {
     ScenarioBuilder patchScenario =
         scenario(PATCH_REQUEST)
             .exec(authenticate)
-            .repeat(ITERATIONS)
+            .during(Duration.ofSeconds(TEST_DURATION_SECONDS))
             .on(
-                exec(session -> {
-                      String[] user =
-                          READ_WRITE_USERS.get(
-                              PATCH_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
-                      return session.set("patchUid", user[0]);
-                    })
+                pacing
+                    .exec(
+                        session -> {
+                          String[] user = PATCH_USERS.next();
+                          if (user == null) {
+                            System.err.println(
+                                "PATCH user slice exhausted — increase userPoolSize");
+                            return session.markAsFailed();
+                          }
+                          return session.markAsSucceeded().set("patchUid", user[0]);
+                        })
+                    .exitHereIfFailed()
                     .exec(
                         http(PATCH_REQUEST)
                             .patch("/api/users/#{patchUid}")
@@ -489,15 +598,25 @@ public class UsersPerformanceTest extends Simulation {
     ScenarioBuilder patchGroupsScenario =
         scenario(PATCH_GROUPS_REQUEST)
             .exec(authenticate)
-            .repeat(ITERATIONS)
+            .during(Duration.ofSeconds(TEST_DURATION_SECONDS))
             .on(
-                exec(session -> {
-                      int index = PATCH_GROUPS_INDEX.getAndIncrement();
-                      String[] user = READ_WRITE_USERS.get(index % READ_WRITE_USERS.size());
-                      return session
-                          .set("patchUserUid", user[0])
-                          .set("patchGroupsBody", patchUserGroupsBody(index));
-                    })
+                pacing
+                    .exec(
+                        session -> {
+                          String[] user = PATCH_GROUPS_USERS.next();
+                          if (user == null) {
+                            System.err.println(
+                                "PATCH userGroups slice exhausted — increase userPoolSize");
+                            return session.markAsFailed();
+                          }
+                          return session
+                              .markAsSucceeded()
+                              .set("patchUserUid", user[0])
+                              .set(
+                                  "patchGroupsBody",
+                                  patchUserGroupsBody(PATCH_GROUPS_ROTATION.getAndIncrement()));
+                        })
+                    .exitHereIfFailed()
                     .exec(
                         http(PATCH_GROUPS_REQUEST)
                             .patch("/api/users/#{patchUserUid}")
@@ -509,21 +628,28 @@ public class UsersPerformanceTest extends Simulation {
     ScenarioBuilder replicaScenario =
         scenario(REPLICA_REQUEST)
             .exec(authenticate)
-            .repeat(ITERATIONS)
+            .during(Duration.ofSeconds(TEST_DURATION_SECONDS))
             .on(
-                exec(session -> {
-                      String[] user =
-                          READ_WRITE_USERS.get(
-                              REPLICA_SOURCE_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
-                      int num = REPLICA_COUNTER.getAndIncrement();
-                      String replicaUsername = "perftest_rep_" + String.format("%07d", num);
-                      return session
-                          .set("replicaSourceUid", user[0])
-                          .set(
-                              "replicaBody",
-                              "{\"username\":\"%s\",\"password\":\"Test1234@\"}"
-                                  .formatted(replicaUsername));
-                    })
+                pacing
+                    .exec(
+                        session -> {
+                          String[] user = REPLICA_USERS.next();
+                          if (user == null) {
+                            System.err.println(
+                                "REPLICA source slice exhausted — increase userPoolSize");
+                            return session.markAsFailed();
+                          }
+                          int num = REPLICA_COUNTER.getAndIncrement();
+                          String replicaUsername = "perftest_rep_" + String.format("%07d", num);
+                          return session
+                              .markAsSucceeded()
+                              .set("replicaSourceUid", user[0])
+                              .set(
+                                  "replicaBody",
+                                  "{\"username\":\"%s\",\"password\":\"Test1234@\"}"
+                                      .formatted(replicaUsername));
+                        })
+                    .exitHereIfFailed()
                     .exec(
                         http(REPLICA_REQUEST)
                             .post("/api/users/#{replicaSourceUid}/replica")
@@ -532,54 +658,65 @@ public class UsersPerformanceTest extends Simulation {
                             .check(status().is(201))));
 
     // ── Scenario: DELETE /api/users/{uid} ───────────────────────────────────
-    // Users are pre-created in before(), so this scenario measures only DELETE time.
+    // Deletes existing perf-DB users (one per request, never reused). Runs last so no other
+    // scenario operates on a user this one has deleted.
     ScenarioBuilder deleteScenario =
         scenario(DELETE_REQUEST)
             .exec(authenticate)
-            .repeat(ITERATIONS)
+            .during(Duration.ofSeconds(TEST_DURATION_SECONDS))
             .on(
-                exec(session -> {
-                      String uid = DELETE_UID_QUEUE.poll();
-                      if (uid == null) {
-                        System.err.println(
-                            "DELETE_UID_QUEUE exhausted — increase iterations buffer");
-                        return session.markAsFailed();
-                      }
-                      return session.set("deleteUid", uid);
-                    })
+                pacing
+                    .exec(
+                        session -> {
+                          String[] user = DELETE_USERS.next();
+                          if (user == null) {
+                            System.err.println(
+                                "DELETE user slice exhausted — increase userPoolSize");
+                            return session.markAsFailed();
+                          }
+                          return session.markAsSucceeded().set("deleteUid", user[0]);
+                        })
                     .exitHereIfFailed()
                     .exec(
                         http(DELETE_REQUEST)
                             .delete("/api/users/#{deleteUid}")
                             .check(status().is(200))));
 
-    ClosedInjectionStep singleUser = rampConcurrentUsers(0).to(1).during(1);
+    // Ramp concurrency from 1 to CONCURRENCY over RAMP_SECONDS, then hold CONCURRENCY for
+    // SUSTAIN_SECONDS. The same profile drives every scenario (steps are immutable, so sharing the
+    // array is safe).
+    ClosedInjectionStep[] loadProfile = {
+      rampConcurrentUsers(1).to(CONCURRENCY).during(RAMP_SECONDS),
+      constantConcurrentUsers(CONCURRENCY).during(SUSTAIN_SECONDS)
+    };
 
-    PopulationBuilder postPopulation = postScenario.injectClosed(singleUser);
-    PopulationBuilder getPopulation = getScenario.injectClosed(singleUser);
-    PopulationBuilder putPopulation = putScenario.injectClosed(singleUser);
-    PopulationBuilder patchPopulation = patchScenario.injectClosed(singleUser);
-    PopulationBuilder patchGroupsPopulation = patchGroupsScenario.injectClosed(singleUser);
-    PopulationBuilder replicaPopulation = replicaScenario.injectClosed(singleUser);
-    PopulationBuilder deletePopulation = deleteScenario.injectClosed(singleUser);
+    PopulationBuilder postPopulation = postScenario.injectClosed(loadProfile);
+    PopulationBuilder getPopulation = getScenario.injectClosed(loadProfile);
+    PopulationBuilder putPopulation = putScenario.injectClosed(loadProfile);
+    PopulationBuilder patchPopulation = patchScenario.injectClosed(loadProfile);
+    PopulationBuilder patchGroupsPopulation = patchGroupsScenario.injectClosed(loadProfile);
+    PopulationBuilder replicaPopulation = replicaScenario.injectClosed(loadProfile);
+    PopulationBuilder deletePopulation = deleteScenario.injectClosed(loadProfile);
 
     var sim =
         "sequential".equals(MODE)
+            // Order least → most destructive so DELETE runs last. Slices are disjoint, so this is
+            // belt-and-suspenders, but it keeps the run order intuitive.
             ? setUp(
                 postPopulation
                     .andThen(getPopulation)
-                    .andThen(putPopulation)
                     .andThen(patchPopulation)
-                    .andThen(patchGroupsPopulation)
                     .andThen(replicaPopulation)
+                    .andThen(putPopulation)
+                    .andThen(patchGroupsPopulation)
                     .andThen(deletePopulation))
             : setUp(
                 postPopulation,
                 getPopulation,
-                putPopulation,
                 patchPopulation,
-                patchGroupsPopulation,
                 replicaPopulation,
+                putPopulation,
+                patchGroupsPopulation,
                 deletePopulation);
 
     sim.protocols(httpProtocol)
