@@ -32,11 +32,18 @@ package org.hisp.dhis.analytics.trackedentity;
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getAggregateGridHeaders;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -49,10 +56,14 @@ import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -79,6 +90,8 @@ public class TrackedEntityAggregateService {
   private final MetadataParamsHandler metadataParamsHandler;
 
   private final UserService userService;
+
+  private final OrganisationUnitService organisationUnitService;
 
   public Grid getGrid(
       @Nonnull ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
@@ -110,7 +123,76 @@ public class TrackedEntityAggregateService {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     metadataParamsHandler.handle(grid, contextParams, currentUser, rowsCount);
+    addGroupedOrgUnitMetadata(grid, contextParams);
     return grid;
+  }
+
+  /**
+   * Resolves the org units grouped by the {@code ou} dimension into the grid metaData. A bare
+   * {@code ou} dimension is parsed as a static dimension (no {@link
+   * org.hisp.dhis.common.DimensionalObject}), so the shared {@link MetadataParamsHandler} never
+   * emits it. This adds {@code metaData.dimensions.ou} (the grouped org unit uids) and {@code
+   * metaData.items} entries mapping each uid to its display name, so clients can resolve org unit
+   * uids to names. The org unit uids are read from the {@code ou} column of the grid rows and
+   * resolved to {@link OrganisationUnit} objects.
+   */
+  private void addGroupedOrgUnitMetadata(
+      Grid grid,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    Map<String, Object> metaData = grid.getMetaData();
+    if (metaData == null) {
+      return;
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> items = (Map<String, Object>) metaData.get(ITEMS.getKey());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> dimensions = (Map<String, Object>) metaData.get(DIMENSIONS.getKey());
+    if (items == null && dimensions == null) {
+      return;
+    }
+
+    int ouColumnIndex = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
+    if (ouColumnIndex < 0) {
+      return;
+    }
+
+    Set<String> orgUnitUids = new LinkedHashSet<>();
+    for (List<Object> row : grid.getRows()) {
+      Object value = row.get(ouColumnIndex);
+      if (value != null) {
+        orgUnitUids.add(String.valueOf(value));
+      }
+    }
+
+    if (orgUnitUids.isEmpty()) {
+      return;
+    }
+
+    DisplayProperty displayProperty = contextParams.getCommonRaw().getDisplayProperty();
+    boolean includeMetadataDetails = contextParams.getCommonRaw().isIncludeMetadataDetails();
+
+    Map<String, OrganisationUnit> orgUnitsByUid = new LinkedHashMap<>();
+    organisationUnitService
+        .getOrganisationUnitsByUid(orgUnitUids)
+        .forEach(orgUnit -> orgUnitsByUid.put(orgUnit.getUid(), orgUnit));
+
+    if (items != null) {
+      for (String uid : orgUnitUids) {
+        OrganisationUnit orgUnit = orgUnitsByUid.get(uid);
+        if (orgUnit != null) {
+          items.put(
+              uid,
+              new MetadataItem(
+                  orgUnit.getDisplayProperty(displayProperty),
+                  includeMetadataDetails ? orgUnit : null));
+        }
+      }
+    }
+
+    if (dimensions != null) {
+      dimensions.put(ORGUNIT_DIM_ID, List.copyOf(orgUnitUids));
+    }
   }
 
   private void addGroupedRows(Grid grid, SqlRowSet rs) {
