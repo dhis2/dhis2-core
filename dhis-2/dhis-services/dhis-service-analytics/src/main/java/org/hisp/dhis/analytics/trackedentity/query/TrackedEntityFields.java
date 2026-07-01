@@ -187,16 +187,7 @@ public class TrackedEntityFields {
                         true)));
 
     // Adding dimension headers.
-    fields.stream()
-        .map(
-            field ->
-                findDimensionParamForField(
-                    field,
-                    Stream.concat(
-                        commonParsed.getDimensionIdentifiers().stream(),
-                        getEligibleParsedHeaders(commonParsed))))
-        .filter(Objects::nonNull)
-        .forEach(dimIdentifier -> addHeaderToMap(dimIdentifier, contextParams, headersMap));
+    addDimensionHeaders(fields, commonParsed, contextParams, headersMap);
 
     return reorder(headersMap, fields);
   }
@@ -218,7 +209,26 @@ public class TrackedEntityFields {
 
     Map<String, GridHeader> headersMap = new HashMap<>();
 
-    // Dimension headers only — no TrackedEntityStaticField headers (those are per-TEI output).
+    // Dimension headers only - no TrackedEntityStaticField headers (those are per-TEI output).
+    addDimensionHeaders(fields, commonParsed, contextParams, headersMap);
+
+    return reorder(headersMap, fields);
+  }
+
+  /**
+   * Adds headers, to the given headers map, for the dimensions found in the given list of {@link
+   * Field}.
+   *
+   * @param fields list of {@link Field}.
+   * @param commonParsed the {@link CommonParsedParams}.
+   * @param contextParams the {@link ContextParams}.
+   * @param headersMap the headers map to add to.
+   */
+  private static void addDimensionHeaders(
+      List<Field> fields,
+      CommonParsedParams commonParsed,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
+      Map<String, GridHeader> headersMap) {
     fields.stream()
         .map(
             field ->
@@ -229,8 +239,6 @@ public class TrackedEntityFields {
                         getEligibleParsedHeaders(commonParsed))))
         .filter(Objects::nonNull)
         .forEach(dimIdentifier -> addHeaderToMap(dimIdentifier, contextParams, headersMap));
-
-    return reorder(headersMap, fields);
   }
 
   /**
