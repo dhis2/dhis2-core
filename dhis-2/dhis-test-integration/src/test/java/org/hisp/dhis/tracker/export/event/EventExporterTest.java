@@ -438,6 +438,30 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnEventsForWithoutRegistrationProgramGivenOrgUnitModeSelected()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnit(UID.of("DiszpKrYNg8"))
+            .orgUnitMode(SELECTED)
+            .program(UID.of("iS7eutanDry"))
+            .programStage(UID.of("qLZC0lvvxQH"))
+            .build();
+
+    List<Event> events = eventService.findEvents(params);
+
+    assertContainsOnly(
+        List.of(
+            "QRYjLTiJTrA",
+            "kWjSezkXHVp",
+            "OTmjvJDn0Fu",
+            "ck7DzdxqLqA",
+            "lumVtWwwy0O",
+            "cadc5eGj0j7"),
+        uids(events));
+  }
+
+  @Test
   void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
