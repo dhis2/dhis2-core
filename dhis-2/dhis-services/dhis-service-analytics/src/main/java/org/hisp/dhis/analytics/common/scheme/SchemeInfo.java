@@ -76,26 +76,26 @@ public record SchemeInfo(Settings settings, Data data) {
 
     /** Indicates whether this query defines an identifier scheme different from UID. */
     public boolean isGeneralOutputIdSchemeSet() {
-      return outputIdScheme != null && !IdScheme.UID.equals(outputIdScheme);
+      return outputIdScheme != null;
     }
 
     /** Indicates whether this query defines an identifier scheme different from UID. */
     public boolean isDataIdSchemeSet() {
-      return dataIdScheme != null && !IdScheme.UID.equals(dataIdScheme);
+      return dataIdScheme != null;
     }
 
     public boolean isOutputDataItemIdSchemeSet() {
-      return outputDataItemIdScheme != null && !IdScheme.UID.equals(outputDataItemIdScheme);
+      return outputDataItemIdScheme != null;
     }
 
     /** Indicates whether this query defines an identifier scheme different from UID. */
     public boolean isOutputDataElementIdSchemeSet() {
-      return outputDataElementIdScheme != null && !IdScheme.UID.equals(outputDataElementIdScheme);
+      return outputDataElementIdScheme != null;
     }
 
     /** Indicates whether this query defines an identifier scheme different from UID. */
     public boolean isOutputOrgUnitIdSchemeSet() {
-      return outputOrgUnitIdScheme != null && !IdScheme.UID.equals(outputOrgUnitIdScheme);
+      return outputOrgUnitIdScheme != null;
     }
 
     /** Indicates whether a non-default identifier scheme is specified. */
