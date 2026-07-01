@@ -151,7 +151,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
         new DefaultStageQuerySqlFacade(
             new DefaultStageQueryItemClassifier(),
             new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
-            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder),
+            sqlBuilder);
 
     DateFieldPeriodBucketColumnResolver bucketResolver =
         new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder());
@@ -175,7 +176,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             bucketResolver,
             new EnrollmentEventSubqueryBuilder(
                 sqlBuilder, new ProgramStageOffsetSqlBuilder(sqlBuilder)),
-            new AggregatedEnrollmentQueryAssembler(sqlBuilder, bucketResolver));
+            new AggregatedEnrollmentQueryAssembler(
+                sqlBuilder,
+                bucketResolver,
+                new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder)));
   }
 
   @Test

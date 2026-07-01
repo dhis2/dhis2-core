@@ -46,18 +46,20 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.aggregate.AggregatedEnrollmentDateHeaderResolver;
 import org.hisp.dhis.analytics.event.data.aggregate.AggregatedEnrollmentHeaderColumnResolver;
+import org.hisp.dhis.analytics.event.data.stage.StageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlColumnParser;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
@@ -69,7 +71,6 @@ import org.springframework.stereotype.Component;
  * columns with optional shadow-CTE alias rewriting).
  */
 @Component
-@RequiredArgsConstructor
 public class AggregatedEnrollmentQueryAssembler {
 
   private static final AnalyticsType ANALYTICS_TYPE = AnalyticsType.ENROLLMENT;
@@ -87,8 +88,17 @@ public class AggregatedEnrollmentQueryAssembler {
   private final AggregatedEnrollmentDateHeaderResolver dateHeaderResolver =
       new AggregatedEnrollmentDateHeaderResolver();
 
-  private final AggregatedEnrollmentHeaderColumnResolver headerColumnResolver =
-      new AggregatedEnrollmentHeaderColumnResolver(stageHeaderClassifier);
+  private final AggregatedEnrollmentHeaderColumnResolver headerColumnResolver;
+
+  public AggregatedEnrollmentQueryAssembler(
+      AnalyticsSqlBuilder sqlBuilder,
+      DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver,
+      StageDatePeriodBucketSqlRenderer dateRenderer) {
+    this.sqlBuilder = sqlBuilder;
+    this.dateFieldPeriodBucketColumnResolver = dateFieldPeriodBucketColumnResolver;
+    this.headerColumnResolver =
+        new AggregatedEnrollmentHeaderColumnResolver(stageHeaderClassifier, dateRenderer);
+  }
 
   /** A response key paired with the optional bucketed expression that produces it. */
   public record PeriodProjection(
@@ -223,8 +233,25 @@ public class AggregatedEnrollmentQueryAssembler {
     }
 
     Map<String, CteDefinition> cteDefinitionMap = collectCteDefinitions(cteContext);
+    Map<String, QueryItem> stageDateItems = collectStageDateItems(params);
     headerColumnResolver.addHeaderColumns(
-        headerColumns, cteContext, sb, cteDefinitionMap, this::quote);
+        headerColumns, cteContext, sb, cteDefinitionMap, stageDateItems, this::quote);
+  }
+
+  /**
+   * Indexes query items carrying a custom stage header (e.g. {@code stageUid.EVENT_DATE}) by their
+   * analytics header key (e.g. {@code stageUid.eventdate}) so the header-column resolver can bucket
+   * a stage date column by the item's requested period.
+   */
+  private Map<String, QueryItem> collectStageDateItems(EventQueryParams params) {
+    Map<String, QueryItem> stageDateItems = new HashMap<>();
+    for (QueryItem item : params.getItems()) {
+      if (item.hasCustomHeader()) {
+        AnalyticsCustomHeader customHeader = item.getCustomHeader();
+        stageDateItems.put(customHeader.headerKey(customHeader.key()), item);
+      }
+    }
+    return stageDateItems;
   }
 
   /**

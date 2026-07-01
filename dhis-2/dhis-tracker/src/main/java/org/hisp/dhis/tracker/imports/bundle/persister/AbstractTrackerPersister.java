@@ -64,7 +64,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
@@ -80,12 +79,8 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.tracker.model.Enrollment;
-import org.hisp.dhis.tracker.model.Relationship;
-import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -100,12 +95,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   private static final DateTimeFormatter DATE_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
+  // One batched read of existing attribute values for every tracked entity touched by this
+  // persister run, keyed by tracked-entity uid (resolved by the join so callers need only the
+  // payload uids, not pre-resolved DB ids). New tracked entities have no row yet at read time, so
+  // the join simply returns nothing for them. Replaces the former per-tracked-entity SELECT.
   private static final String EXISTING_ATTRIBUTE_VALUES_SQL =
-      "select trackedentityattributeid, value"
-          + " from trackedentityattributevalue"
-          + " where trackedentityid = ?";
-
-  protected final ReservedValueService reservedValueService;
+      "select teav.trackedentityid, teav.trackedentityattributeid, teav.value"
+          + " from trackedentityattributevalue teav"
+          + " join trackedentity te on te.trackedentityid = teav.trackedentityid"
+          + " where te.uid = any(?)";
 
   protected final DataSource dataSource;
 
@@ -143,6 +141,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       long[] preAllocatedIds = preAllocateIds(conn, bundle, dtos);
       int preAllocatedIdsCursor = 0;
 
+      // One batched read of existing attribute values for all tracked entities this run touches,
+      // keyed by tracked-entity id. Threaded into attribute handling as a mutable per-run map: it
+      // is seeded from the DB (so it sees rows an earlier persister flushed on this connection) and
+      // updated as TEAVs are staged, so a second occurrence of the same logical TEAV within this
+      // run is routed to an UPDATE instead of a duplicate INSERT.
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues =
+          loadExistingAttributeValues(
+              conn, bundle.getPreheat(), trackedEntityUidsForAttributeLoad(dtos));
+
       for (T trackerDto : dtos) {
 
         Entity objectReport = new Entity(getType(), trackerDto.getUID());
@@ -168,7 +175,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             if (preAllocatedIds != null) {
               assignId(convertedDto, preAllocatedIds[preAllocatedIdsCursor++]);
             }
-            persistOwnership(bundle, trackerDto, convertedDto);
+            persistOwnership(bundle, trackerDto, convertedDto, batch);
             stageInsert(convertedDto, batch);
             updateDataValues(
                 bundle.getPreheat(),
@@ -180,13 +187,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             typeReport.getStats().incCreated();
             typeReport.addEntity(objectReport);
             updateAttributes(
-                conn,
                 bundle.getPreheat(),
                 trackerDto,
                 convertedDto,
                 bundle.getUser(),
                 changeLogs,
-                batch);
+                batch,
+                existingAttributeValues);
             bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
           } else {
             if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
@@ -201,13 +208,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                   bundle.getUser(),
                   changeLogs);
               updateAttributes(
-                  conn,
                   bundle.getPreheat(),
                   trackerDto,
                   convertedDto,
                   bundle.getUser(),
                   changeLogs,
-                  batch);
+                  batch,
+                  existingAttributeValues);
               stageUpdate(convertedDto, batch);
               typeReport.getStats().incUpdated();
               typeReport.addEntity(objectReport);
@@ -297,58 +304,25 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     return allocateIds(conn, sequenceName, createCount);
   }
 
-  private void assignId(V convertedDto, long id) {
-    if (convertedDto instanceof TrackedEntity te) {
-      te.setId(id);
-    } else if (convertedDto instanceof Enrollment e) {
-      e.setId(id);
-    } else if (convertedDto instanceof TrackerEvent ev) {
-      ev.setId(id);
-    } else if (convertedDto instanceof SingleEvent sev) {
-      sev.setId(id);
-    } else if (convertedDto instanceof Relationship r) {
-      r.setId(id);
-    } else {
-      throw new IllegalStateException(
-          "Pre-allocated id assignment not implemented for "
-              + convertedDto.getClass().getName()
-              + " -- sequenceName() returned non-null but assignId does not handle this type.");
-    }
-  }
+  /**
+   * Assigns a pre-allocated id to a new entity. Implemented by each concrete persister against its
+   * statically-known entity type {@code V}; only invoked when {@link #sequenceName()} is non-null.
+   */
+  protected abstract void assignId(V convertedDto, long id);
 
-  private void stageInsert(V convertedDto, EntityWriteBatch batch) {
-    if (convertedDto instanceof TrackedEntity te) {
-      batch.stageInsert(te);
-    } else if (convertedDto instanceof Enrollment e) {
-      batch.stageInsert(e);
-    } else if (convertedDto instanceof TrackerEvent e) {
-      batch.stageInsert(e);
-    } else if (convertedDto instanceof SingleEvent e) {
-      batch.stageInsert(e);
-    } else if (convertedDto instanceof Relationship r) {
-      batch.stageInsert(r);
-    } else {
-      throw new IllegalArgumentException(
-          "Unsupported entity type: " + convertedDto.getClass().getName());
-    }
-  }
+  /**
+   * Stages a new entity for insertion in the batch. Implemented by each concrete persister against
+   * its statically-known entity type {@code V}, so the correct {@link EntityWriteBatch} overload is
+   * selected at compile time rather than by runtime type dispatch.
+   */
+  protected abstract void stageInsert(V convertedDto, EntityWriteBatch batch);
 
-  // Relationships are not updated -- the persister branch above ignores update payloads before
-  // this is called -- so no Relationship case is needed here.
-  private void stageUpdate(V convertedDto, EntityWriteBatch batch) {
-    if (convertedDto instanceof TrackedEntity te) {
-      batch.stageUpdate(te);
-    } else if (convertedDto instanceof Enrollment e) {
-      batch.stageUpdate(e);
-    } else if (convertedDto instanceof TrackerEvent e) {
-      batch.stageUpdate(e);
-    } else if (convertedDto instanceof SingleEvent e) {
-      batch.stageUpdate(e);
-    } else {
-      throw new IllegalArgumentException(
-          "Unsupported entity type for update: " + convertedDto.getClass().getName());
-    }
-  }
+  /**
+   * Stages an existing entity for update in the batch. {@link RelationshipPersister} throws, as
+   * relationships are never updated -- the persister branch in {@link #persist} ignores update
+   * payloads before this is called.
+   */
+  protected abstract void stageUpdate(V convertedDto, EntityWriteBatch batch);
 
   // // // // // // // //
   // // // // // // // //
@@ -372,16 +346,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   /**
    * Persists ownership records for the given entity. The only non-trivial implementation
-   * (enrollments creating a {@link org.hisp.dhis.tracker.model.TrackedEntityProgramOwner}) still
-   * goes through a Hibernate {@code save()} that is never flushed per entity -- a per-entity
-   * session flush would dirty-check the whole preheat-populated persistence context, which is the
-   * overhead the JDBC write path removed. Consequence: a constraint violation on the owner row
-   * (only reachable via a concurrent import racing on the {@code trackedentityid + programid}
-   * unique key) surfaces at transaction commit, outside the per-entity try/catch in {@link
-   * #persist}, so in non-atomic mode stats can report the enrollment as created while the commit
-   * then fails.
+   * (enrollments creating a {@link org.hisp.dhis.tracker.model.TrackedEntityProgramOwner}) stages
+   * the owner row into {@code batch} for a single batched multi-row INSERT at flush, alongside the
+   * other entity writes. Staging within the per-entity try/catch means a rollback also drops the
+   * staged owner, and the {@code trackedentityid + programid} unique-key violation (only reachable
+   * via a concurrent import racing on the same key) now surfaces at the batch flush rather than at
+   * transaction commit.
    */
-  protected abstract void persistOwnership(TrackerBundle bundle, T trackerDto, V entity);
+  protected abstract void persistOwnership(
+      TrackerBundle bundle, T trackerDto, V entity, EntityWriteBatch batch);
 
   /** Execute the persistence of Data values linked to the entity being processed */
   protected abstract void updateDataValues(
@@ -394,18 +367,27 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   /**
    * Execute the persistence of Attribute values linked to the entity being processed. {@code
-   * connection} is the transaction-bound JDBC connection held by {@link #persist} -- attribute
-   * handling reads existing values through it so the reads see rows staged by earlier persisters in
-   * the same (uncommitted) transaction.
+   * existingAttributeValues} is the per-run map of already-known attribute values keyed by tracked
+   * entity id (see {@link #persist}); attribute handling reads and mutates it instead of querying
+   * the DB per tracked entity.
    */
   protected abstract void updateAttributes(
-      Connection connection,
       TrackerPreheat preheat,
       T trackerDto,
       V hibernateEntity,
       UserDetails user,
       ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch);
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues);
+
+  /**
+   * The uids of the tracked entities whose existing attribute values must be bulk-loaded before the
+   * persist loop. Empty by default (persisters that do not write tracked-entity attribute values);
+   * overridden by the TrackedEntity and Enrollment persisters.
+   */
+  protected Set<String> trackedEntityUidsForAttributeLoad(List<T> dtos) {
+    return Set.of();
+  }
 
   /** Updates the {@link TrackerPreheat} object with the entity that has been persisted */
   protected abstract void updatePreheat(TrackerPreheat preheat, V convertedDto);
@@ -461,7 +443,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();
 
-  @SuppressWarnings("unchecked")
   protected abstract List<T> getByType(TrackerBundle bundle);
 
   /**
@@ -480,22 +461,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
    */
   private static long[] allocateIds(Connection conn, String sequenceName, int count)
       throws SQLException {
-    long[] ids = new long[count];
-    String sql = "select nextval('" + sequenceName + "') from generate_series(1, ?)";
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-      ps.setInt(1, count);
-      try (ResultSet rs = ps.executeQuery()) {
-        int i = 0;
-        while (rs.next()) {
-          ids[i++] = rs.getLong(1);
-        }
-        if (i != count) {
-          throw new SQLException(
-              "Allocated " + i + " ids from " + sequenceName + ", expected " + count);
-        }
-      }
-    }
-    return ids;
+    return JdbcBatchSupport.allocateIds(conn, sequenceName, count);
   }
 
   // // // // // // // //
@@ -524,44 +490,29 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   }
 
   protected void handleTrackedEntityAttributeValues(
-      Connection connection,
       TrackerPreheat preheat,
       List<Attribute> payloadAttributes,
       TrackedEntity trackedEntity,
       UserDetails user,
       ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch) {
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     if (payloadAttributes.isEmpty()) {
       return;
     }
 
-    TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-    // TODO [Phase 6 / DHIS2-21378]: drop this lookup and the batch overlay below once
-    // EntityWriteBatch is shared across persisters (it is currently created per persist() call).
-    // At that point the batch itself is the source of truth for "what has already been staged for
-    // this TE", and DB rows can be loaded eagerly by the preheat -- no per-call round-trip needed
-    // here. Until then: read the existing values straight from the DB via JDBC on the
-    // transaction-bound connection. TEAV writes also go through JDBC on that same connection (see
-    // EntityWriteBatch), so a TEAV inserted/updated by a prior persister in this same import is an
-    // uncommitted row that is nonetheless visible to this read because both run in the same
-    // transaction -- the same logical TEAV (composite key
-    // trackedentityid + trackedentityattributeid) can appear on a TrackedEntity payload and on an
-    // Enrollment payload, and finding the existing row here routes the second occurrence to an
-    // UPDATE instead of a duplicate INSERT (which would violate the composite PK). The batch
-    // overlay catches the within-persister case (e.g. two enrollments under the same TE both
-    // carrying the same attribute) where the second occurrence would otherwise produce a fresh
-    // instance with the same composite key. A TE staged for insert in this batch has no DB row yet
-    // -- whether or not its id is set (Phase 4a pre-allocates the id from the sequence) -- so the
-    // read would always return empty and can be skipped.
+    // The per-tracked-entity slice of the run's existing-values map. Seeded by the bulk read in
+    // persist() and kept current here: each staged save/update is reflected back so a later
+    // occurrence of the same logical TEAV (composite key trackedentityid +
+    // trackedentityattributeid)
+    // within this run -- e.g. two enrollments under the same TE both carrying the same attribute --
+    // is routed to an UPDATE instead of a duplicate INSERT. A brand-new tracked entity simply has
+    // no
+    // row in the read, so its slice starts empty. The bulk read leaves trackedEntity unset (it has
+    // only the id), so bind it to this entity for the writers and change logs.
     Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById =
-        batch.isStagedAsInsert(trackedEntity)
-            ? new HashMap<>()
-            : loadExistingAttributeValues(connection, preheat, idSchemes, trackedEntity);
-    batch
-        .stagedFor(trackedEntity)
-        .forEach(
-            teav ->
-                attributeValueById.put(idSchemes.toMetadataIdentifier(teav.getAttribute()), teav));
+        existingAttributeValues.computeIfAbsent(trackedEntity.getId(), k -> new HashMap<>());
+    attributeValueById.values().forEach(v -> v.setTrackedEntity(trackedEntity));
 
     payloadAttributes.forEach(
         attribute -> {
@@ -574,47 +525,60 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           String previousValue = isNew ? null : currentValue.getValue();
           boolean valueChanged = isNew || !Objects.equals(previousValue, attribute.getValue());
 
-          if (isDelete && !isNew) {
-            delete(preheat, currentValue, trackedEntity, user, changeLogs, batch);
+          if (isDelete) {
+            if (!isNew) {
+              delete(preheat, currentValue, trackedEntity, user, changeLogs, batch);
+
+              // Leave the entry in the map: the DELETE is not flushed until the end of
+              // the run, so a later occurrence of the same TE+attribute in this run must
+              // still see it as existing (matching the pre-batch DB-read behaviour).
+            }
+
+            // If the value doesn't exist yet, deleting it is a no-op.
           } else if (valueChanged) {
-            saveOrUpdateAttributeValue(
-                preheat,
-                trackedEntity,
-                attribute,
-                currentValue,
-                isNew,
-                previousValue,
-                user,
-                changeLogs,
-                batch);
+            TrackedEntityAttributeValue persisted =
+                saveOrUpdateAttributeValue(
+                    preheat,
+                    trackedEntity,
+                    attribute,
+                    currentValue,
+                    isNew,
+                    previousValue,
+                    user,
+                    changeLogs,
+                    batch);
+            attributeValueById.put(attribute.getAttribute(), persisted);
           }
         });
   }
 
   /**
-   * Reads the tracked entity's existing attribute values straight from the DB via JDBC on the
-   * transaction-bound connection held by {@link #persist}, keyed by the attribute's {@link
-   * MetadataIdentifier}. Replaces the former JPQL lookup so the persister no longer needs an {@code
-   * EntityManager}; the values are plain {@link TrackedEntityAttributeValue} instances (not
-   * Hibernate-managed), matching what the {@code value} property mapping ({@code
-   * access="property"}) produces on load. Attributes are resolved from the preheat by primary key,
-   * which is independent of the import's configured idScheme -- the preheat lookup maps are keyed
-   * by the idScheme identifier, so resolving by the UID read from the DB would silently miss every
-   * existing value under idScheme CODE/NAME/ATTRIBUTE, turning updates into duplicate INSERTs.
-   * Existing values for attributes not in the preheat are skipped -- the caller only probes
-   * attributes that appear in the payload, and those are always preheated.
+   * Reads, in a single round-trip, the existing attribute values of every tracked entity in {@code
+   * trackedEntityUids}, grouped by tracked-entity id and keyed within each group by the attribute's
+   * {@link MetadataIdentifier}. Runs on the transaction-bound connection held by {@link #persist},
+   * so it sees rows an earlier persister flushed on the same (uncommitted) transaction. The values
+   * are plain {@link TrackedEntityAttributeValue} instances (not Hibernate-managed), matching what
+   * the {@code value} property mapping ({@code access="property"}) produces on load, with {@code
+   * trackedEntity} left unset (the caller binds it). Attributes are resolved from the preheat by
+   * primary key, which is independent of the import's configured idScheme -- the preheat lookup
+   * maps are keyed by the idScheme identifier, so resolving by the UID read from the DB would
+   * silently miss every existing value under idScheme CODE/NAME/ATTRIBUTE, turning updates into
+   * duplicate INSERTs. Existing values for attributes not in the preheat are skipped -- the caller
+   * only probes attributes that appear in the payload, and those are always preheated.
    */
-  private Map<MetadataIdentifier, TrackedEntityAttributeValue> loadExistingAttributeValues(
-      Connection connection,
-      TrackerPreheat preheat,
-      TrackerIdSchemeParams idSchemes,
-      TrackedEntity trackedEntity) {
+  private Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>>
+      loadExistingAttributeValues(
+          Connection connection, TrackerPreheat preheat, Set<String> trackedEntityUids) {
+    Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingByTe = new HashMap<>();
+    if (trackedEntityUids.isEmpty()) {
+      return existingByTe;
+    }
+    TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
     Map<Long, TrackedEntityAttribute> attributesById =
         preheat.getAll(TrackedEntityAttribute.class).stream()
             .collect(Collectors.toMap(TrackedEntityAttribute::getId, a -> a, (a, b) -> a));
-    Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById = new HashMap<>();
     try (PreparedStatement ps = connection.prepareStatement(EXISTING_ATTRIBUTE_VALUES_SQL)) {
-      ps.setLong(1, trackedEntity.getId());
+      ps.setArray(1, connection.createArrayOf("text", trackedEntityUids.toArray(new String[0])));
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
           TrackedEntityAttribute attribute =
@@ -625,20 +589,19 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           TrackedEntityAttributeValue value =
               new TrackedEntityAttributeValue()
                   .setAttribute(attribute)
-                  .setTrackedEntity(trackedEntity)
                   .setValue(rs.getString("value"));
-          attributeValueById.put(idSchemes.toMetadataIdentifier(attribute), value);
+          existingByTe
+              .computeIfAbsent(rs.getLong("trackedentityid"), k -> new HashMap<>())
+              .put(idSchemes.toMetadataIdentifier(attribute), value);
         }
       }
     } catch (SQLException e) {
-      throw new PersistenceException(
-          "Failed to load existing attribute values for tracked entity " + trackedEntity.getUid(),
-          e);
+      throw new PersistenceException("Failed to load existing attribute values", e);
     }
-    return attributeValueById;
+    return existingByTe;
   }
 
-  private void saveOrUpdateAttributeValue(
+  private TrackedEntityAttributeValue saveOrUpdateAttributeValue(
       TrackerPreheat preheat,
       TrackedEntity trackedEntity,
       Attribute attribute,
@@ -662,6 +625,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     saveOrUpdate(
         preheat, isNew, trackedEntity, attributeToPersist, previousValue, user, changeLogs, batch);
+
+    return attributeToPersist;
   }
 
   private void delete(
