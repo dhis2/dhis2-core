@@ -31,7 +31,9 @@ package org.hisp.dhis.analytics.trackedentity;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,6 +50,7 @@ import org.hisp.dhis.analytics.common.QueryExecutor;
 import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -60,6 +63,9 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -159,6 +165,52 @@ class TrackedEntityAggregateServiceTest {
 
     verify(queryExecutor).count(any());
     verify(metadataParamsHandler).handle(any(), eq(ctx), any(), eq(9L));
+  }
+
+  @Test
+  void getGridRejectsSortOnNonGroupedDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParamsGroupedByOuSortedBy(stubAttributeDimension("w75KJ2mc4zz"));
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
+    assertEquals(ErrorCode.E7252, ex.getErrorCode());
+  }
+
+  @Test
+  void getGridAllowsSortOnGroupedDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParamsGroupedByOuSortedBy(stubOuDimension("ou1"));
+    SqlRowSet rowSet =
+        fakeRowSet(new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    assertDoesNotThrow(() -> service.getGrid(ctx));
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      aggregateContextParamsGroupedByOuSortedBy(DimensionIdentifier<DimensionParam> orderBy) {
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().aggregate(true).build();
+
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(trackedEntityQueryParams)
+        .commonRaw(new CommonRequestParams().withDimension(Set.of("ou")))
+        .commonParsed(
+            CommonParsedParams.builder()
+                .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                .orderParams(
+                    List.of(
+                        AnalyticsSortingParams.builder()
+                            .orderBy(orderBy)
+                            .sortDirection(SortDirection.DESC)
+                            .index(0)
+                            .build()))
+                .build())
+        .build();
   }
 
   private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>

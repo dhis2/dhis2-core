@@ -52,16 +52,21 @@ import org.hisp.dhis.analytics.common.QueryExecutor;
 import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -102,6 +107,8 @@ public class TrackedEntityAggregateService {
     securityManager.applyOrganisationUnitConstraint(commonParams);
     securityManager.applyDimensionConstraints(commonParams);
 
+    validateSorting(contextParams);
+
     SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator(contextParams);
 
     Optional<SqlQueryResult> result =
@@ -125,6 +132,28 @@ public class TrackedEntityAggregateService {
     metadataParamsHandler.handle(grid, contextParams, currentUser, rowsCount);
     addGroupedOrgUnitMetadata(grid, contextParams);
     return grid;
+  }
+
+  /**
+   * Rejects sort parameters that reference a dimension the aggregate query does not group by.
+   * Sorting on a non-grouped column produces invalid grouped SQL (an {@code ORDER BY} on a column
+   * absent from {@code GROUP BY}). The grouped dimensions are the single source of truth in {@link
+   * AggregateQueryBuilder#getGroupedDimensionKeys}.
+   */
+  private void validateSorting(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    List<AnalyticsSortingParams> orderParams = contextParams.getCommonParsed().getOrderParams();
+    if (orderParams.isEmpty()) {
+      return;
+    }
+
+    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
+    for (AnalyticsSortingParams orderParam : orderParams) {
+      String key = orderParam.getOrderBy().getKey();
+      if (!groupedKeys.contains(key)) {
+        throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7252, key));
+      }
+    }
   }
 
   /**
@@ -205,6 +234,8 @@ public class TrackedEntityAggregateService {
 
   public Grid getGridExplain(
       @Nonnull ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    validateSorting(contextParams);
+
     Grid grid = new ListGrid();
     String explainId = randomUUID().toString();
     SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator(contextParams);

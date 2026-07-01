@@ -36,10 +36,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import lombok.Getter;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilder;
@@ -74,10 +77,7 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
 
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    Set<String> requestedKeys =
-        queryContext.getContextParams().getCommonRaw().getDimension().stream()
-            .map(param -> getDimensionFromParam(param))
-            .collect(toSet());
+    Set<String> groupedKeys = getGroupedDimensionKeys(queryContext.getContextParams());
 
     // Only dimensions explicitly requested by the user (present in the raw request's
     // `dimension` param) become select columns and group-by keys. `acceptedDimensions` also
@@ -86,7 +86,7 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
     // "as <alias>" suffix is invalid inside a GROUP BY, and the column name already identifies
     // the dimension item.
     acceptedDimensions.stream()
-        .filter(dimension -> requestedKeys.contains(dimension.getKey()))
+        .filter(dimension -> groupedKeys.contains(dimension.getKey()))
         .forEach(
             dimension -> {
               Field field = Field.ofDimensionIdentifier(dimension);
@@ -98,6 +98,31 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
     builder.selectField(Field.ofUnquoted("", () -> "count(1)", "value"));
 
     return builder.build();
+  }
+
+  /**
+   * Returns the keys of the dimensions an aggregate query groups by: the dimensions the user
+   * explicitly requested (present in the raw {@code dimension} param) that are also groupable in
+   * aggregate mode (registration org unit or a tracked entity / program attribute). Only {@code
+   * commonRaw} distinguishes explicitly-requested dimensions from those injected upstream for
+   * row-level display; the parsed dimensions merge both. This is the single source of truth for
+   * what the aggregate query groups by, and therefore what may be sorted on.
+   */
+  public static Set<String> getGroupedDimensionKeys(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    Set<String> requestedKeys =
+        contextParams.getCommonRaw().getDimension().stream()
+            .map(param -> getDimensionFromParam(param))
+            .collect(toSet());
+
+    return contextParams.getCommonParsed().getDimensionIdentifiers().stream()
+        .filter(
+            dimension ->
+                OrgUnitQueryBuilder.isOu(dimension)
+                    || TrackedEntityQueryBuilder.isTrackedEntity(dimension))
+        .map(DimensionIdentifier::getKey)
+        .filter(requestedKeys::contains)
+        .collect(toSet());
   }
 
   @Override
