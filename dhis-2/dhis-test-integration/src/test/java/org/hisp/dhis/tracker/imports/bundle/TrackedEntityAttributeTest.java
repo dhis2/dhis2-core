@@ -38,8 +38,6 @@ import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -237,28 +235,5 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     assertContainsOnly(
         List.of("sYn3tkL3XKa", "sTGqP5JNy6E"),
         attributeValues.stream().map(av -> av.getAttribute().getUid()).toList());
-  }
-
-  private TrackedEntityAttribute getAttribute(List<TrackedEntityAttribute> teas, String uid) {
-    return teas.stream()
-        .filter(t -> t.getUid().equals(uid))
-        .findFirst()
-        .orElseThrow(
-            () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
-  }
-
-  private String getErrorMessage(ImportReport report) {
-    return report.getTypeReports().stream()
-        .findFirst()
-        .flatMap(
-            typeReport ->
-                typeReport.getObjectReports().stream()
-                    .findFirst()
-                    .flatMap(
-                        objectReport ->
-                            objectReport.getErrorReports().stream()
-                                .findFirst()
-                                .map(ErrorReport::getMessage)))
-        .orElseThrow();
   }
 }
