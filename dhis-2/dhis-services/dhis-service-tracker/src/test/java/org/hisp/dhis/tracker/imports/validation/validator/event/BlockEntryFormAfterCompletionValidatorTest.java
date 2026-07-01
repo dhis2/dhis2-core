@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -79,7 +80,7 @@ class BlockEntryFormAfterCompletionValidatorTest {
   @Test
   void shouldFailWhenTrackerEventIsCompletedAndBlockEntryFormIsEnabled() {
     stubProgramStage(true);
-    Event event = trackerEvent(EventStatus.COMPLETED);
+    Event event = event(EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
 
@@ -103,7 +104,7 @@ class BlockEntryFormAfterCompletionValidatorTest {
   @Test
   void shouldPassWhenEventIsCompletedButBlockEntryFormIsDisabled() {
     stubProgramStage(false);
-    Event event = trackerEvent(EventStatus.COMPLETED);
+    Event event = event(EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
 
@@ -117,7 +118,7 @@ class BlockEntryFormAfterCompletionValidatorTest {
       names = {"COMPLETED"})
   void shouldPassWhenBlockEntryFormIsEnabledButEventIsNotCompleted(EventStatus status) {
     stubProgramStage(true);
-    Event event = trackerEvent(status);
+    Event event = event(status);
 
     validator.validate(reporter, bundle, event);
 
@@ -140,8 +141,9 @@ class BlockEntryFormAfterCompletionValidatorTest {
         .thenReturn(programStage);
   }
 
-  private Event trackerEvent(EventStatus status) {
+  private Event event(EventStatus status) {
     return Event.builder()
+        .event(CodeGenerator.generateUid())
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
         .status(status)
         .build();
