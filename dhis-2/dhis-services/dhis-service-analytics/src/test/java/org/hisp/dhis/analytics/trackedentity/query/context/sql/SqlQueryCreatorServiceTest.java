@@ -232,10 +232,13 @@ class SqlQueryCreatorServiceTest extends TestBase {
             .aggregate(true)
             .build();
 
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
         ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .typedParsed(trackedEntityQueryParams)
-            .commonRaw(new CommonRequestParams())
+            .commonRaw(requestParams)
             .commonParsed(
                 CommonParsedParams.builder()
                     .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
@@ -263,10 +266,13 @@ class SqlQueryCreatorServiceTest extends TestBase {
             .aggregate(true)
             .build();
 
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("attr1"));
+
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
         ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .typedParsed(trackedEntityQueryParams)
-            .commonRaw(new CommonRequestParams())
+            .commonRaw(requestParams)
             .commonParsed(
                 CommonParsedParams.builder()
                     .dimensionIdentifiers(List.of(stubAttributeDimension("attr1")))
@@ -292,10 +298,13 @@ class SqlQueryCreatorServiceTest extends TestBase {
             .aggregate(true)
             .build();
 
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou", "attr1"));
+
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
         ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .typedParsed(trackedEntityQueryParams)
-            .commonRaw(new CommonRequestParams())
+            .commonRaw(requestParams)
             .commonParsed(
                 CommonParsedParams.builder()
                     .dimensionIdentifiers(
@@ -305,9 +314,44 @@ class SqlQueryCreatorServiceTest extends TestBase {
 
     String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
-    // every dimension becomes a group-by key; the value column is last and not grouped.
+    // every explicitly requested dimension becomes a group-by key; the value column is last
+    // and not grouped.
     assertContains("select t_1.\"ou\", t_1.\"attr1\", count(1) as \"value\"", sql);
     assertContains("group by t_1.\"ou\", t_1.\"attr1\"", sql);
+  }
+
+  @Test
+  void testAggregateGroupsByExplicitlyRequestedDimensionsOnly() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(
+                        List.of(stubOuDimension("ou1"), stubAttributeDimension("attr1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("count(1) as \"value\"", sql);
+    assertContains("group by t_1.\"ou\"", sql);
+    assertFalse(sql.contains("attr1"), "auto-injected attribute must not leak into the SQL");
   }
 
   private DimensionIdentifier<DimensionParam> stubAttributeDimension(String attribute) {

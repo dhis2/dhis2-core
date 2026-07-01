@@ -29,7 +29,11 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
@@ -70,15 +74,25 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
 
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    // Each requested dimension is both a select column and a group-by key. The same
-    // alias-free field is used for both: an "as <alias>" suffix is invalid inside a GROUP BY,
-    // and the column name already identifies the dimension item.
-    acceptedDimensions.forEach(
-        dimension -> {
-          Field field = Field.ofDimensionIdentifier(dimension);
-          builder.selectField(field);
-          builder.groupByField(field);
-        });
+    Set<String> requestedKeys =
+        queryContext.getContextParams().getCommonRaw().getDimension().stream()
+            .map(param -> getDimensionFromParam(param))
+            .collect(toSet());
+
+    // Only dimensions explicitly requested by the user (present in the raw request's
+    // `dimension` param) become select columns and group-by keys. `acceptedDimensions` also
+    // carries dimensions injected upstream for row-level display purposes, which must not
+    // affect grouping. The same alias-free field is used for both select and group-by: an
+    // "as <alias>" suffix is invalid inside a GROUP BY, and the column name already identifies
+    // the dimension item.
+    acceptedDimensions.stream()
+        .filter(dimension -> requestedKeys.contains(dimension.getKey()))
+        .forEach(
+            dimension -> {
+              Field field = Field.ofDimensionIdentifier(dimension);
+              builder.selectField(field);
+              builder.groupByField(field);
+            });
 
     // The aggregate value column is the last select column and is not grouped.
     builder.selectField(Field.ofUnquoted("", () -> "count(1)", "value"));
