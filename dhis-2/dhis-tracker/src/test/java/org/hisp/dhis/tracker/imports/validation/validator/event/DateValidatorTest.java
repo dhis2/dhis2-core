@@ -43,6 +43,7 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -197,6 +198,118 @@ class DateValidatorTest extends TrackerTestBase {
   }
 
   @Test
+  void shouldFailWhenTrackerEventCompletionHasExpiredEvenIfPayloadHasNoCompletedAt() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    when(preheat.getTrackerEvent(uid)).thenReturn(completedTrackerEvent(sevenDaysAgo()));
+    Event event =
+        TrackerEvent.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1043);
+  }
+
+  @Test
+  void shouldFailWhenTrackerEventCompletionHasExpiredEvenIfPayloadHasNoStatusNorCompletedAt() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    when(preheat.getTrackerEvent(uid)).thenReturn(completedTrackerEvent(sevenDaysAgo()));
+    Event event =
+        TrackerEvent.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1043);
+  }
+
+  @Test
+  void shouldFailWhenSingleEventCompletionHasExpiredEvenIfPayloadHasNoCompletedAt() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    when(preheat.getSingleEvent(uid)).thenReturn(completedSingleEvent(sevenDaysAgo()));
+    Event event =
+        SingleEvent.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1043);
+  }
+
+  @Test
+  void shouldUsePersistedCompletionDateAndIgnorePayloadCompletedAtWhenAlreadyCompleted() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    // event was completed in the database long ago (expired)...
+    when(preheat.getTrackerEvent(uid)).thenReturn(completedTrackerEvent(sevenDaysAgo()));
+    Event event =
+        TrackerEvent.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            // ...so a fresh completedAt in the payload must not reset the expiry clock
+            .completedAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1043);
+  }
+
+  @Test
+  void shouldPassWhenTrackerEventPersistedCompletionIsWithinExpiryDays() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    when(preheat.getTrackerEvent(uid)).thenReturn(completedTrackerEvent(twoDaysAgo()));
+    Event event =
+        TrackerEvent.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassWhenPersistedCompletionHasExpiredButUserIsAuthorized() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UID uid = UID.generate();
+    UserDetails user = mock(UserDetails.class);
+    when(user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())).thenReturn(true);
+    bundle.setUser(user);
+    Event event =
+        TrackerEvent.builder()
+            .event(uid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(now())
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
   void shouldFailWhenTrackerEventOccurredAtAndScheduledAtAreNotPresent() {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
     Event event =
@@ -292,6 +405,22 @@ class DateValidatorTest extends TrackerTestBase {
     return Stream.of(Arguments.of(trackerEvent), Arguments.of(singleEvent));
   }
 
+  private static org.hisp.dhis.tracker.model.TrackerEvent completedTrackerEvent(
+      Instant completedDate) {
+    org.hisp.dhis.tracker.model.TrackerEvent event = new org.hisp.dhis.tracker.model.TrackerEvent();
+    event.setStatus(EventStatus.COMPLETED);
+    event.setCompletedDate(Date.from(completedDate));
+    return event;
+  }
+
+  private static org.hisp.dhis.tracker.model.SingleEvent completedSingleEvent(
+      Instant completedDate) {
+    org.hisp.dhis.tracker.model.SingleEvent event = new org.hisp.dhis.tracker.model.SingleEvent();
+    event.setStatus(EventStatus.COMPLETED);
+    event.setCompletedDate(Date.from(completedDate));
+    return event;
+  }
+
   private Program getProgram(int expiryDays) {
     Program program = createProgram('A');
     program.setUid(PROGRAM_ID);
@@ -307,6 +436,10 @@ class DateValidatorTest extends TrackerTestBase {
 
   private static Instant sevenDaysAgo() {
     return LocalDateTime.now().minusDays(7).toInstant(ZoneOffset.UTC);
+  }
+
+  private static Instant twoDaysAgo() {
+    return LocalDateTime.now().minusDays(2).toInstant(ZoneOffset.UTC);
   }
 
   private Instant sevenDaysLater() {
