@@ -202,6 +202,38 @@ public class TrackedEntityFields {
   }
 
   /**
+   * Returns a collection of headers for the given {@link TrackedEntityQueryParams}, covering only
+   * the GROUP BY dimensions present in the given list of {@link Field}. Unlike {@link
+   * #getGridHeaders(ContextParams, List)}, the unconditional per-TEI {@link
+   * TrackedEntityStaticField} headers are not included, since aggregate output has no per-TEI rows.
+   *
+   * @param contextParams the {@link ContextParams}.
+   * @param fields list of {@link Field}.
+   * @return a {@link Set} of {@link GridHeader}.
+   */
+  public static Set<GridHeader> getAggregateGridHeaders(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
+      List<Field> fields) {
+    CommonParsedParams commonParsed = contextParams.getCommonParsed();
+
+    Map<String, GridHeader> headersMap = new HashMap<>();
+
+    // Dimension headers only — no TrackedEntityStaticField headers (those are per-TEI output).
+    fields.stream()
+        .map(
+            field ->
+                findDimensionParamForField(
+                    field,
+                    Stream.concat(
+                        commonParsed.getDimensionIdentifiers().stream(),
+                        getEligibleParsedHeaders(commonParsed))))
+        .filter(Objects::nonNull)
+        .forEach(dimIdentifier -> addHeaderToMap(dimIdentifier, contextParams, headersMap));
+
+    return reorder(headersMap, fields);
+  }
+
+  /**
    * Adds the header for the given dimension identifier to the headers map.
    *
    * @param dimIdentifier the dimension identifier
