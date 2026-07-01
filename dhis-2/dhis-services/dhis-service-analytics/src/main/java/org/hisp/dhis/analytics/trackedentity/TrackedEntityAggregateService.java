@@ -47,7 +47,6 @@ import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
-import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.ExecutionPlan;
@@ -103,9 +102,8 @@ public class TrackedEntityAggregateService {
               .orElse(0L);
     }
 
-    List<Field> selectFields = queryCreator.getRenderableSqlQuery().getSelectFields();
     Grid grid = new ListGrid();
-    getAggregateGridHeaders(contextParams, selectFields).forEach(grid::addHeader);
+    getAggregateGridHeaders(contextParams).forEach(grid::addHeader);
     grid.addHeader(VALUE_HEADER);
 
     result.ifPresent(r -> addGroupedRows(grid, r.result()));

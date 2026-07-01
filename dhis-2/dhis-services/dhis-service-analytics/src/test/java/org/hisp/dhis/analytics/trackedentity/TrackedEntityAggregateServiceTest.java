@@ -40,6 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
@@ -53,9 +54,6 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants;
-import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -101,8 +99,6 @@ class TrackedEntityAggregateServiceTest {
   void getGridBuildsOuAndValueHeadersAndMapsGroupedRows() {
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
         aggregateContextParamsWithOuDimension();
-    RenderableSqlQuery renderable =
-        RenderableSqlQuery.builder().selectFields(List.of(ouField(), valueField())).build();
 
     SqlQuery selectQuery = mock(SqlQuery.class);
     SqlRowSet rowSet =
@@ -111,7 +107,6 @@ class TrackedEntityAggregateServiceTest {
             List.of(new Object[] {"OU_UID_1", 42}, new Object[] {"OU_UID_2", 7}));
 
     when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
-    when(queryCreator.getRenderableSqlQuery()).thenReturn(renderable);
     when(queryCreator.createForSelect()).thenReturn(selectQuery);
     when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
 
@@ -131,18 +126,12 @@ class TrackedEntityAggregateServiceTest {
   void getGridAppendsValueHeaderLastForOuPlusAttribute() {
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
         aggregateContextParamsWithOuAndAttribute("w75KJ2mc4zz");
-    RenderableSqlQuery renderable =
-        RenderableSqlQuery.builder()
-            .selectFields(
-                List.of(ouField(), attributeField("w75KJ2mc4zz"), valueField()))
-            .build();
     SqlRowSet rowSet =
         fakeRowSet(
             new String[] {"ou", "w75KJ2mc4zz", "value"},
             List.<Object[]>of(new Object[] {"OU1", "M", 5}));
 
     when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
-    when(queryCreator.getRenderableSqlQuery()).thenReturn(renderable);
     when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
     when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
 
@@ -157,13 +146,10 @@ class TrackedEntityAggregateServiceTest {
   void getGridCountsGroupsWhenShowTotalPages() {
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
         aggregateContextParamsWithOuDimensionShowTotalPages();
-    RenderableSqlQuery renderable =
-        RenderableSqlQuery.builder().selectFields(List.of(ouField(), valueField())).build();
     SqlRowSet rowSet =
         fakeRowSet(new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 3}));
 
     when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
-    when(queryCreator.getRenderableSqlQuery()).thenReturn(renderable);
     when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
     when(queryCreator.createForCount()).thenReturn(mock(SqlQuery.class));
     when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
@@ -182,7 +168,7 @@ class TrackedEntityAggregateServiceTest {
 
     return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
         .typedParsed(trackedEntityQueryParams)
-        .commonRaw(new CommonRequestParams())
+        .commonRaw(new CommonRequestParams().withDimension(Set.of("ou")))
         .commonParsed(
             CommonParsedParams.builder()
                 .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
@@ -197,7 +183,7 @@ class TrackedEntityAggregateServiceTest {
 
     return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
         .typedParsed(trackedEntityQueryParams)
-        .commonRaw(new CommonRequestParams())
+        .commonRaw(new CommonRequestParams().withDimension(Set.of("ou", attribute)))
         .commonParsed(
             CommonParsedParams.builder()
                 .dimensionIdentifiers(
@@ -213,25 +199,13 @@ class TrackedEntityAggregateServiceTest {
 
     return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
         .typedParsed(trackedEntityQueryParams)
-        .commonRaw(new CommonRequestParams())
+        .commonRaw(new CommonRequestParams().withDimension(Set.of("ou")))
         .commonParsed(
             CommonParsedParams.builder()
                 .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
                 .pagingParams(AnalyticsPagingParams.builder().totalPages(true).build())
                 .build())
         .build();
-  }
-
-  private Field ouField() {
-    return Field.of(QueryContextConstants.TRACKED_ENTITY_ALIAS, () -> "ou", "ou");
-  }
-
-  private Field attributeField(String attribute) {
-    return Field.of(QueryContextConstants.TRACKED_ENTITY_ALIAS, () -> attribute, attribute);
-  }
-
-  private Field valueField() {
-    return Field.of(QueryContextConstants.TRACKED_ENTITY_ALIAS, () -> "value", "value");
   }
 
   private DimensionIdentifier<DimensionParam> stubOuDimension(String ou) {
