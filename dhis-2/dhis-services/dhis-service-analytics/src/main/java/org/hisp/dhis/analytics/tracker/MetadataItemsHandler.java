@@ -39,6 +39,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_OU;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
@@ -207,11 +208,50 @@ public class MetadataItemsHandler {
    * @return a map of dimension items.
    */
   private Map<String, List<String>> buildDimensionItems(Grid grid, EventQueryParams params) {
+    Map<String, List<String>> dimensionItems;
+
     if (params.isComingFromQuery()) {
       Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, params.getItems());
-      return getDimensionItems(params, Optional.of(optionsPresentInGrid));
+      dimensionItems = getDimensionItems(params, Optional.of(optionsPresentInGrid));
+    } else {
+      dimensionItems = getDimensionItems(params, empty());
     }
-    return getDimensionItems(params, empty());
+
+    addNoValueToDimensions(dimensionItems, params);
+
+    return dimensionItems;
+  }
+
+  /**
+   * Appends the no-value keyword to the dimension item list of every option-set dimension whose
+   * filter explicitly contains the keyword (filter-scoped). The keyword is added to the dimensions
+   * only; rows and {@code metaData.items} are unaffected.
+   *
+   * @param dimensionItems the dimension items map.
+   * @param params the {@link EventQueryParams}.
+   */
+  private void addNoValueToDimensions(
+      Map<String, List<String>> dimensionItems, EventQueryParams params) {
+    for (QueryItem item : params.getItemsAndItemFilters()) {
+      if (!item.hasOptionSet() || !isFilteredByNoValue(item)) {
+        continue;
+      }
+
+      String dimension = getItemUid(item);
+      List<String> values = dimensionItems.get(dimension);
+
+      if (values != null && !values.contains(NO_VALUE)) {
+        List<String> withNoValue = new ArrayList<>(values);
+        withNoValue.add(NO_VALUE);
+        dimensionItems.put(dimension, withNoValue);
+      }
+    }
+  }
+
+  /** Indicates whether any of the item's filters contains the reserved no-value keyword. */
+  private boolean isFilteredByNoValue(QueryItem item) {
+    return item.getFilters().stream()
+        .anyMatch(filter -> QueryFilter.getFilterItems(filter.getFilter()).contains(NO_VALUE));
   }
 
   /**

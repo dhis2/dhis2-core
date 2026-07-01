@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,11 +49,18 @@ public class InQueryCteFilter {
 
   private final boolean isText;
 
+  private final boolean isOptionSet;
+
   public InQueryCteFilter(
-      String field, String encodedFilter, boolean isText, CteDefinition cteDefinition) {
+      String field,
+      String encodedFilter,
+      boolean isText,
+      boolean isOptionSet,
+      CteDefinition cteDefinition) {
     this.filter = encodedFilter;
     this.field = field;
     this.isText = isText;
+    this.isOptionSet = isOptionSet;
     this.cteDefinition = cteDefinition;
   }
 
@@ -65,21 +72,22 @@ public class InQueryCteFilter {
    * (value1,value2,...)" - For text fields: generates "alias_offset.field in
    * ('value1','value2',...)"
    *
-   * <p>2. Missing values only (NV): - Generates "alias_offset.enrollment is not null and
+   * <p>2. Missing values only (NO_VALUE): - Generates "alias_offset.enrollment is not null and
    * alias_offset.field is null"
    *
-   * <p>3. Mixed values (regular values and NV): - Currently throws UnsupportedOperationException
+   * <p>3. Mixed values (regular values and NO_VALUE): - Currently throws
+   * UnsupportedOperationException
    *
    * @param offset An integer value used to generate the unique CTE alias in the form
    *     "alias_offset". This allows for multiple references to the same CTE in different parts of
    *     the query. This value can be null to signal that there is no need for an offset index.
    * @return A String containing the SQL filter condition. The exact format depends on the filter
    *     type: - For regular values with numeric field: "alias_0.field in (10,11,12)" - For regular
-   *     values with text field: "alias_0.field in ('value1','value2')" - For missing values (NV):
-   *     "alias_0.enrollment is not null and alias_0.field is null"
-   * @throws UnsupportedOperationException when the filter contains both regular values and NV
+   *     values with text field: "alias_0.field in ('value1','value2')" - For missing values
+   *     (NO_VALUE): "alias_0.enrollment is not null and alias_0.field is null"
+   * @throws UnsupportedOperationException when the filter contains both regular values and NO_VALUE
    *     (missing values)
-   * @see org.hisp.dhis.analytics.QueryKey#NV
+   * @see org.hisp.dhis.analytics.QueryKey#NO_VALUE
    * @see CteDefinition#getAlias(int)
    *     <p>Example usage:
    *     <pre>
@@ -92,7 +100,7 @@ public class InQueryCteFilter {
    * String sql2 = filter2.getSqlFilter(1); // Returns: "alias_1.name in ('john','jack')"
    *
    * // For missing values
-   * InQueryCteFilter filter3 = new InQueryCteFilter("name", "NV", true, cteDef);
+   * InQueryCteFilter filter3 = new InQueryCteFilter("name", "D2__NOVALUE", true, cteDef);
    * String sql3 = filter3.getSqlFilter(0); // Returns: "alias_0.enrollment is not null and alias_0.name is null"
    * </pre>
    */
@@ -127,14 +135,14 @@ public class InQueryCteFilter {
 
   /**
    * Checks if the filter items contain any non-missing values (values that are not {@link
-   * org.hisp.dhis.analytics.QueryKey#NV}). Non-missing values represent actual values that should
-   * be included in the SQL IN clause. This method is used to determine if the generated SQL
+   * org.hisp.dhis.analytics.QueryKey#NO_VALUE}). Non-missing values represent actual values that
+   * should be included in the SQL IN clause. This method is used to determine if the generated SQL
    * condition needs to include an IN clause.
    *
    * @param filterItems the list of filter items to check for non-missing values
    * @return true if any item in the list is not equal to {@link
-   *     org.hisp.dhis.analytics.QueryKey#NV}, indicating at least one actual value that should be
-   *     included in the SQL IN clause; false if all values are missing
+   *     org.hisp.dhis.analytics.QueryKey#NO_VALUE}, indicating at least one actual value that
+   *     should be included in the SQL IN clause; false if all values are missing
    */
   private boolean hasNonMissingValue(List<String> filterItems) {
     return anyMatch(filterItems, this::isNotMissingItem);
@@ -145,7 +153,7 @@ public class InQueryCteFilter {
   }
 
   private boolean isMissingItem(String filterItem) {
-    return NV.equals(filterItem);
+    return isNoValue(filterItem, isOptionSet);
   }
 
   /**
@@ -161,14 +169,14 @@ public class InQueryCteFilter {
 
   /**
    * Checks if the filter items contain any missing values represented by the special marker {@link
-   * org.hisp.dhis.analytics.QueryKey#NV}. Missing values indicate that the corresponding database
-   * field should be treated as NULL in the SQL query. This method is used to determine if the
-   * generated SQL condition needs to include an IS NULL clause.
+   * org.hisp.dhis.analytics.QueryKey#NO_VALUE}. Missing values indicate that the corresponding
+   * database field should be treated as NULL in the SQL query. This method is used to determine if
+   * the generated SQL condition needs to include an IS NULL clause.
    *
    * @param filterItems the list of filter items to check for missing values
-   * @return true if any item in the list equals{@link org.hisp.dhis.analytics.QueryKey#NV},
+   * @return true if any item in the list equals{@link org.hisp.dhis.analytics.QueryKey#NO_VALUE},
    *     indicating a missing value that should be treated as NULL in the SQL query; false otherwise
-   * @see org.hisp.dhis.analytics.QueryKey#NV
+   * @see org.hisp.dhis.analytics.QueryKey#NO_VALUE
    */
   private boolean hasMissingValue(List<String> filterItems) {
     return anyMatch(filterItems, this::isMissingItem);

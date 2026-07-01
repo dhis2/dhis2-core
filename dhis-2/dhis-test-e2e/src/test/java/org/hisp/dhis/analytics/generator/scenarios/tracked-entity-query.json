@@ -244,6 +244,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "optionSetDimensionFilteredByNoValueKeyword",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:ImspTQPwCqd,ciq2USN94oJ:IN:D2__NOVALUE&headers=ouname,ciq2USN94oJ&totalPages=false&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&asc=ouname",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
