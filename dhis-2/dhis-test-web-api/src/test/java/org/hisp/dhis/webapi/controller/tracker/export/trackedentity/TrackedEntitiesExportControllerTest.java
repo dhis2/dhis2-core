@@ -344,6 +344,27 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void shouldReturnUpdatedByOnAttributeWhenTrackedEntityAttributeValueIsExported() {
+    TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
+
+    JsonList<JsonAttribute> attributes =
+        GET(
+                "/tracker/trackedEntities/{id}?fields=attributes[attribute,value,updatedBy]",
+                te.getUid())
+            .content(HttpStatus.OK)
+            .getList("attributes", JsonAttribute.class);
+
+    assertNotEmpty(attributes.stream().toList());
+    attributes.stream()
+        .forEach(
+            a ->
+                assertEquals(
+                    "trackeradmin",
+                    a.updatedBy(),
+                    "updatedBy mismatch on attribute " + a.getAttribute()));
+  }
+
+  @Test
   void
       shouldGetTrackedEntityWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
     TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");

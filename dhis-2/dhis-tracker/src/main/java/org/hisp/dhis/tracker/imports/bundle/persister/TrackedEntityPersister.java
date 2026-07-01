@@ -29,18 +29,22 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fileresource.FileResourceStore;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -53,10 +57,28 @@ public class TrackedEntityPersister
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
 
   public TrackedEntityPersister(
-      ReservedValueService reservedValueService,
-      DataSource dataSource,
-      FileResourceStore fileResourceStore) {
-    super(reservedValueService, dataSource, fileResourceStore);
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
+  }
+
+  @Override
+  protected String sequenceName() {
+    return "trackedentity_sequence";
+  }
+
+  @Override
+  protected void assignId(TrackedEntity entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(TrackedEntity entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(TrackedEntity entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
   }
 
   @Override
@@ -66,9 +88,16 @@ public class TrackedEntityPersister
       TrackedEntity te,
       UserDetails user,
       ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch) {
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     handleTrackedEntityAttributeValues(
-        preheat, trackerDto.getAttributes(), te, user, changeLogs, batch);
+        preheat, trackerDto.getAttributes(), te, user, changeLogs, batch, existingAttributeValues);
+  }
+
+  @Override
+  protected Set<String> trackedEntityUidsForAttributeLoad(
+      List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> dtos) {
+    return dtos.stream().map(te -> te.getUID().getValue()).collect(Collectors.toSet());
   }
 
   @Override
@@ -97,7 +126,8 @@ public class TrackedEntityPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity entity) {
+      TrackedEntity entity,
+      EntityWriteBatch batch) {
     // DO NOTHING, TE alone does not have ownership records
 
   }

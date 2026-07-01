@@ -82,8 +82,6 @@ public class App implements Serializable {
 
   private String defaultLocale;
 
-  private AppStorageSource appStorageSource;
-
   private String folderName;
 
   /** Optional. */
@@ -416,18 +414,8 @@ public class App implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AppStorageSource getAppStorageSource() {
-    return appStorageSource;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public List<AppShortcut> getShortcuts() {
     return shortcuts;
-  }
-
-  public void setAppStorageSource(AppStorageSource appStorageSource) {
-    this.appStorageSource = appStorageSource;
   }
 
   @JsonProperty

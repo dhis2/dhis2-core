@@ -308,3 +308,11 @@ docker builder prune -a
 ```
 
 Use `-a` to remove all cache layers, not just unused ones.
+
+## Recording Traffic
+
+Gatling Recorder captures HTTP requests as you interact with DHIS2 and generates a simulation that
+replays them. Use it to capture production workflows and replay them in a testing environment, for
+example to evaluate performance after a DHIS2 upgrade or to conduct load testing.
+
+See [Recording DHIS2 Traffic with Gatling Recorder](RECORDING.md) for the full guide.
