@@ -101,7 +101,7 @@
     <dhis-json-tree.version>1.9.4</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>6.5.10</spring-security.version>
+    <spring-security.version>7.1.0</spring-security.version>
     <spring-authorization-server.version>1.5.2</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
