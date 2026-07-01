@@ -27,56 +27,39 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static org.hisp.dhis.tracker.imports.validation.validator.All.all;
-import static org.hisp.dhis.tracker.imports.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.imports.validation.validator.Field.field;
-import static org.hisp.dhis.tracker.imports.validation.validator.Seq.seq;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1326;
 
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.springframework.stereotype.Component;
 
-/** Validator to validate all {@link Event}s in the {@link TrackerBundle}. */
-@Component("org.hisp.dhis.tracker.imports.validation.validator.event.EventValidator")
-public class EventValidator implements Validator<TrackerBundle> {
-  private final Validator<TrackerBundle> validator;
-
-  public EventValidator(
-      SecurityOwnershipValidator securityOwnershipValidator,
-      CategoryOptValidator categoryOptValidator) {
-    validator =
-        all(
-            each(
-                TrackerBundle::getEvents,
-                seq(
-                    new UidValidator(),
-                    new ExistenceValidator(),
-                    new MandatoryFieldsValidator(),
-                    new MetaValidator(),
-                    new UpdatableFieldsValidator(),
-                    new DataRelationsValidator(),
-                    seq(new BlockEntryFormAfterCompletionValidator(), securityOwnershipValidator),
-                    all(
-                        categoryOptValidator,
-                        new DateValidator(),
-                        new GeoValidator(),
-                        new NoteValidator(),
-                        new DataValuesValidator(),
-                        new StatusUpdateValidator(),
-                        new AssignedUserValidator()))),
-            field(TrackerBundle::getEvents, new RepeatedEventsValidator()));
-  }
+/**
+ * Rejects updates to a completed event when its {@link ProgramStage} has {@code blockEntryForm}
+ * enabled. With that setting on, the entry form is locked once the event is completed, so the event
+ * must be reopened (its status changed away from {@link EventStatus#COMPLETED}) before it can be
+ * modified.
+ */
+class BlockEntryFormAfterCompletionValidator implements Validator<Event> {
 
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-    validator.validate(reporter, bundle, input);
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    TrackerPreheat preheat = bundle.getPreheat();
+
+    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
+
+    if (EventStatus.COMPLETED == event.getStatus()
+        && Boolean.TRUE.equals(programStage.getBlockEntryForm())) {
+      reporter.addError(event, E1326, event.getEvent());
+    }
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
-    return true; // this main validator should always run
+    return strategy == TrackerImportStrategy.UPDATE;
   }
 }
