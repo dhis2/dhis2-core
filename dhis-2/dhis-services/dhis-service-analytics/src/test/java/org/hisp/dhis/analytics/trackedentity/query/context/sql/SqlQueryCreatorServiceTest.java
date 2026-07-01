@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +48,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.DataElementQueryBuilder;
@@ -77,10 +79,12 @@ import org.junit.jupiter.api.Test;
 class SqlQueryCreatorServiceTest extends TestBase {
   private SqlQueryCreatorService sqlQueryCreatorService;
 
+  private List<SqlQueryBuilder> queryBuilders;
+
   @BeforeEach
   void setUp() {
     ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
-    List<SqlQueryBuilder> queryBuilders =
+    queryBuilders =
         List.of(
             new DataElementQueryBuilder(),
             new LimitOffsetQueryBuilder(),
@@ -188,6 +192,44 @@ class SqlQueryCreatorServiceTest extends TestBase {
 
     assertTrue(sql.contains("ouname"));
     assertContains("(t_1.\"program1\" or t_1.\"program2\")", sql);
+  }
+
+  @Test
+  void testGroupByFieldsArePropagatedToFinalQuery() {
+    List<SqlQueryBuilder> buildersWithGroupBy = new ArrayList<>(queryBuilders);
+    buildersWithGroupBy.add(new GroupByStubBuilder());
+    SqlQueryCreatorService service = new SqlQueryCreatorService(buildersWithGroupBy);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().trackedEntityType(createTrackedEntityType('A')).build();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(stubSortingCommonParams(null, 1, "ouname"))
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("group by t_1.\"ou\"", sql);
+  }
+
+  /** Stub builder that contributes a group-by field, used to verify group-by propagation. */
+  private static class GroupByStubBuilder implements SqlQueryBuilder {
+    @Override
+    public RenderableSqlQuery buildSqlQuery(
+        QueryContext queryContext,
+        List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
+        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+        List<AnalyticsSortingParams> acceptedSortingParams) {
+      return RenderableSqlQuery.builder().groupByField(Field.of("t_1", () -> "ou", "")).build();
+    }
+
+    @Override
+    public boolean alwaysRun() {
+      return true;
+    }
   }
 
   private Program mockProgram(String uid) {
