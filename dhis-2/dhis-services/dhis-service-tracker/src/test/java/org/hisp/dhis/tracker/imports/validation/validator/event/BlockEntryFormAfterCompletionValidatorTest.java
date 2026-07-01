@@ -92,6 +92,7 @@ class BlockEntryFormAfterCompletionValidatorTest {
     stubProgramStage(true);
     Event event =
         Event.builder()
+            .event(CodeGenerator.generateUid())
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
             .status(EventStatus.COMPLETED)
             .build();
