@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests-doris') || (github.event_name == 'workflow_dispatch')
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Free disk space on runner (Ubuntu)
         shell: bash
