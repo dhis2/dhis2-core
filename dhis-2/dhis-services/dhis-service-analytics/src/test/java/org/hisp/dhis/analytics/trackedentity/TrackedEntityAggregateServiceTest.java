@@ -41,6 +41,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -189,6 +190,12 @@ class TrackedEntityAggregateServiceTest {
             .map(DimensionIdentifier::getKey)
             .toList();
     assertEquals(List.of("ou"), metadataDimensionKeys);
+
+    List<String> metadataHeaderKeys =
+        captor.getValue().getCommonParsed().getParsedHeaders().stream()
+            .map(DimensionIdentifier::getKey)
+            .toList();
+    assertEquals(List.of("ou"), metadataHeaderKeys);
   }
 
   @Test
@@ -229,6 +236,9 @@ class TrackedEntityAggregateServiceTest {
             CommonParsedParams.builder()
                 .dimensionIdentifiers(
                     List.of(stubOuDimension("ou1"), stubAttributeDimension(attribute)))
+                .parsedHeaders(
+                    new LinkedHashSet<>(
+                        List.of(stubOuDimension("ou1"), stubAttributeDimension(attribute))))
                 .build())
         .build();
   }

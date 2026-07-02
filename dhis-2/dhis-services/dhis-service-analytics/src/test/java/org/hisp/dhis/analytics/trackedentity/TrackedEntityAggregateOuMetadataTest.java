@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -134,9 +135,76 @@ class TrackedEntityAggregateOuMetadataTest {
 
   @Test
   void metadataExposesGroupedOrgUnitsForBareOuDimension() {
-    OrganisationUnit ngelehun = new OrganisationUnit("Ngelehun CHC");
-    ngelehun.setUid("a04CZxe0PSe");
+    OrganisationUnit ngelehun = orgUnit("Ngelehun CHC", "a04CZxe0PSe", null);
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        contextParamsForOuDimension(new CommonRequestParams().withDimension(Set.of("ou")));
 
+    SqlRowSet rowSet =
+        fakeRowSet(
+            new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"a04CZxe0PSe", 42}));
+
+    stubQuery(ctx, rowSet);
+    when(organisationUnitService.getOrganisationUnitsByUid(Set.of("a04CZxe0PSe")))
+        .thenReturn(List.of(ngelehun));
+
+    Grid grid = service.getGrid(ctx);
+
+    Map<String, List<String>> dimensions = getDimensions(grid);
+    assertTrue(
+        dimensions.containsKey("ou"),
+        "metaData.dimensions must contain 'ou'; was: " + dimensions.keySet());
+    assertEquals(List.of("a04CZxe0PSe"), dimensions.get("ou"));
+
+    Map<String, MetadataItem> items = getItems(grid);
+    assertTrue(
+        items.containsKey("a04CZxe0PSe"),
+        "metaData.items must map the grouped org unit uid; was: " + items.keySet());
+    assertEquals("Ngelehun CHC", items.get("a04CZxe0PSe").getName());
+  }
+
+  @Test
+  void metadataKeepsGroupedOrgUnitOrderAndDetailsForResolvedUnitsOnly() {
+    OrganisationUnit ngelehun = orgUnit("Ngelehun CHC", "a04CZxe0PSe", "NGELEHUN");
+    OrganisationUnit mabesseneh = orgUnit("Mabesseneh CHP", "b04CZxe0PSe", "MABESS");
+    CommonRequestParams request =
+        new CommonRequestParams().withDimension(Set.of("ou")).withIncludeMetadataDetails(true);
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        contextParamsForOuDimension(request);
+
+    SqlRowSet rowSet =
+        fakeRowSet(
+            new String[] {"ou", "value"},
+            List.of(
+                new Object[] {"a04CZxe0PSe", 42},
+                new Object[] {"b04CZxe0PSe", 13},
+                new Object[] {"a04CZxe0PSe", 7},
+                new Object[] {null, 3},
+                new Object[] {"unresolved01", 1}));
+
+    stubQuery(ctx, rowSet);
+    when(organisationUnitService.getOrganisationUnitsByUid(
+            Set.of("a04CZxe0PSe", "b04CZxe0PSe", "unresolved01")))
+        .thenReturn(List.of(mabesseneh, ngelehun));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(
+        List.of("a04CZxe0PSe", "b04CZxe0PSe", "unresolved01"), getDimensions(grid).get("ou"));
+
+    Map<String, MetadataItem> items = getItems(grid);
+    assertTrue(items.containsKey("a04CZxe0PSe"));
+    assertTrue(items.containsKey("b04CZxe0PSe"));
+    assertFalse(items.containsKey("unresolved01"));
+    assertEquals("Ngelehun CHC", items.get("a04CZxe0PSe").getName());
+    assertEquals("a04CZxe0PSe", items.get("a04CZxe0PSe").getUid());
+    assertEquals("NGELEHUN", items.get("a04CZxe0PSe").getCode());
+    assertEquals("Mabesseneh CHP", items.get("b04CZxe0PSe").getName());
+    assertEquals("b04CZxe0PSe", items.get("b04CZxe0PSe").getUid());
+    assertEquals("MABESS", items.get("b04CZxe0PSe").getCode());
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      contextParamsForOuDimension(CommonRequestParams request) {
     when(dimensionIdentifierConverter.fromString(anyList(), eq("ou")))
         .thenReturn(
             DimensionIdentifier.of(
@@ -144,46 +212,46 @@ class TrackedEntityAggregateOuMetadataTest {
                 ElementWithOffset.emptyElementWithOffset(),
                 StringUid.of("ou")));
 
-    CommonRequestParams request = new CommonRequestParams().withDimension(Set.of("ou"));
     CommonParsedParams commonParsed = parser.parse(request);
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(TrackedEntityQueryParams.builder().aggregate(true).build())
+        .commonRaw(request)
+        .commonParsed(commonParsed)
+        .build();
+  }
 
-    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
-        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
-            .typedParsed(TrackedEntityQueryParams.builder().aggregate(true).build())
-            .commonRaw(request)
-            .commonParsed(commonParsed)
-            .build();
-
-    SqlRowSet rowSet =
-        fakeRowSet(
-            new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"a04CZxe0PSe", 42}));
-
+  private void stubQuery(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx, SqlRowSet rowSet) {
     when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
     when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
     when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
-    when(organisationUnitService.getOrganisationUnitsByUid(Set.of("a04CZxe0PSe")))
-        .thenReturn(List.of(ngelehun));
+  }
 
-    Grid grid = service.getGrid(ctx);
+  private OrganisationUnit orgUnit(String name, String uid, String code) {
+    OrganisationUnit organisationUnit = new OrganisationUnit(name);
+    organisationUnit.setUid(uid);
+    organisationUnit.setCode(code);
+    return organisationUnit;
+  }
 
+  private Map<String, List<String>> getDimensions(Grid grid) {
     Map<String, Object> metaData = grid.getMetaData();
     assertNotNull(metaData, "metaData must be present");
 
     @SuppressWarnings("unchecked")
     Map<String, List<String>> dimensions = (Map<String, List<String>>) metaData.get("dimensions");
     assertNotNull(dimensions, "metaData.dimensions must be present");
-    assertTrue(
-        dimensions.containsKey("ou"),
-        "metaData.dimensions must contain 'ou'; was: " + dimensions.keySet());
-    assertEquals(List.of("a04CZxe0PSe"), dimensions.get("ou"));
+    return dimensions;
+  }
+
+  private Map<String, MetadataItem> getItems(Grid grid) {
+    Map<String, Object> metaData = grid.getMetaData();
+    assertNotNull(metaData, "metaData must be present");
 
     @SuppressWarnings("unchecked")
     Map<String, MetadataItem> items = (Map<String, MetadataItem>) metaData.get("items");
     assertNotNull(items, "metaData.items must be present");
-    assertTrue(
-        items.containsKey("a04CZxe0PSe"),
-        "metaData.items must map the grouped org unit uid; was: " + items.keySet());
-    assertEquals("Ngelehun CHC", items.get("a04CZxe0PSe").getName());
+    return items;
   }
 
   private SqlRowSet fakeRowSet(String[] columns, List<Object[]> rows) {

@@ -208,14 +208,7 @@ public class TrackedEntityAggregateService {
       return;
     }
 
-    Set<String> orgUnitUids = new LinkedHashSet<>();
-    for (List<Object> row : grid.getRows()) {
-      Object value = row.get(ouColumnIndex);
-      if (value != null) {
-        orgUnitUids.add(String.valueOf(value));
-      }
-    }
-
+    Set<String> orgUnitUids = getGroupedOrgUnitUids(grid, ouColumnIndex);
     if (orgUnitUids.isEmpty()) {
       return;
     }
@@ -223,29 +216,59 @@ public class TrackedEntityAggregateService {
     DisplayProperty displayProperty = contextParams.getCommonRaw().getDisplayProperty();
     boolean includeMetadataDetails = contextParams.getCommonRaw().isIncludeMetadataDetails();
 
+    Map<String, OrganisationUnit> orgUnitsByUid = getOrgUnitsByUid(orgUnitUids);
+    addOrgUnitItems(
+        metadata.items(), orgUnitUids, orgUnitsByUid, displayProperty, includeMetadataDetails);
+    addOrgUnitDimension(metadata.dimensions(), orgUnitUids);
+  }
+
+  private Set<String> getGroupedOrgUnitUids(Grid grid, int ouColumnIndex) {
+    Set<String> orgUnitUids = new LinkedHashSet<>();
+    for (List<Object> row : grid.getRows()) {
+      Object value = row.get(ouColumnIndex);
+      if (value != null) {
+        orgUnitUids.add(String.valueOf(value));
+      }
+    }
+    return orgUnitUids;
+  }
+
+  private Map<String, OrganisationUnit> getOrgUnitsByUid(Set<String> orgUnitUids) {
     Map<String, OrganisationUnit> orgUnitsByUid = new LinkedHashMap<>();
     organisationUnitService
         .getOrganisationUnitsByUid(orgUnitUids)
         .forEach(orgUnit -> orgUnitsByUid.put(orgUnit.getUid(), orgUnit));
+    return orgUnitsByUid;
+  }
 
-    if (metadata.items() != null) {
-      for (String uid : orgUnitUids) {
-        OrganisationUnit orgUnit = orgUnitsByUid.get(uid);
-        if (orgUnit != null) {
-          metadata
-              .items()
-              .put(
-                  uid,
-                  new MetadataItem(
-                      orgUnit.getDisplayProperty(displayProperty),
-                      includeMetadataDetails ? orgUnit : null));
-        }
+  private void addOrgUnitItems(
+      Map<String, Object> items,
+      Set<String> orgUnitUids,
+      Map<String, OrganisationUnit> orgUnitsByUid,
+      DisplayProperty displayProperty,
+      boolean includeMetadataDetails) {
+    if (items == null) {
+      return;
+    }
+
+    for (String uid : orgUnitUids) {
+      OrganisationUnit orgUnit = orgUnitsByUid.get(uid);
+      if (orgUnit != null) {
+        items.put(
+            uid,
+            new MetadataItem(
+                orgUnit.getDisplayProperty(displayProperty),
+                includeMetadataDetails ? orgUnit : null));
       }
     }
+  }
 
-    if (metadata.dimensions() != null) {
-      metadata.dimensions().put(ORGUNIT_DIM_ID, List.copyOf(orgUnitUids));
+  private void addOrgUnitDimension(Map<String, Object> dimensions, Set<String> orgUnitUids) {
+    if (dimensions == null) {
+      return;
     }
+
+    dimensions.put(ORGUNIT_DIM_ID, List.copyOf(orgUnitUids));
   }
 
   private GridMetadata getGridMetadata(Grid grid) {
