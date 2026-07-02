@@ -243,7 +243,7 @@ public class UserDatastoreController extends AbstractDatastoreController {
 
     if (userEntry == null) return addEntry(namespace, key, username, value, encrypt);
 
-    service.updateEntry(user, namespace, key, value, path, roll);
+    service.updateEntry(user.getId(), namespace, key, value, path, roll);
     return ok(String.format("Key updated: '%s'", key));
   }
 

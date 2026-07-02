@@ -139,7 +139,7 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
     userDatastoreStore.save(entryB);
 
     // user B updates the root value of their own "test"/"foo" entry
-    userDatastoreStore.updateEntry(userB, "test", "foo", "{\"a\": \"0\"}", null, null);
+    userDatastoreStore.updateEntry(userB.getId(), "test", "foo", "{\"a\": \"0\"}", null, null);
 
     // the update runs as native SQL; clear the session so the entries are re-read from the DB
     entityManager.flush();

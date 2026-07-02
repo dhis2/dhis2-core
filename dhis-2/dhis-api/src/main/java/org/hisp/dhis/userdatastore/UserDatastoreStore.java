@@ -99,7 +99,7 @@ public interface UserDatastoreStore extends IdentifiableObjectStore<UserDatastor
    * <p>The update only affects the entry owned by the given user so that entries of other users
    * sharing the same namespace and key are not modified.
    *
-   * @param user the owner of the entry to update
+   * @param userId the id of the user owning the entry to update
    * @param ns namespace to update
    * @param key key to update
    * @param value the new JSON value, null to remove the entry or clear the property at the provided
@@ -110,7 +110,7 @@ public interface UserDatastoreStore extends IdentifiableObjectStore<UserDatastor
    * @return true, if the update affects an existing row
    */
   boolean updateEntry(
-      @Nonnull User user,
+      long userId,
       @Nonnull String ns,
       @Nonnull String key,
       @CheckForNull String value,

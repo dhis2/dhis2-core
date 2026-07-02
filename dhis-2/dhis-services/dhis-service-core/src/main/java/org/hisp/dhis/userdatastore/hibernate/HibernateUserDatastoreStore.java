@@ -158,13 +158,12 @@ public class HibernateUserDatastoreStore
 
   @Override
   public boolean updateEntry(
-      @Nonnull User user,
+      long userId,
       @Nonnull String ns,
       @Nonnull String key,
       @Nullable String value,
       @Nullable String path,
       @Nullable Integer roll) {
-    long userId = user.getId();
     boolean rootIsTarget = path == null || path.isEmpty();
     if (value == null && rootIsTarget) return updateEntryRootDelete(userId, ns, key);
     if (value == null) return updateEntryPathSetToNull(userId, ns, key, path);
