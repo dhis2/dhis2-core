@@ -29,10 +29,6 @@
  */
 package org.hisp.dhis.user;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Collection;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -49,73 +45,7 @@ import org.springframework.security.core.GrantedAuthority;
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDetailsImpl implements UserDetails {
-
-  @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-  public static UserDetailsImpl userDetailsMixin(
-      @JsonProperty("id") String uid,
-      @JsonProperty("code") String code,
-      @JsonProperty("username") String username,
-      @JsonProperty("firstName") String firstName,
-      @JsonProperty("surname") String surname,
-      @JsonProperty("password") String password,
-      @JsonProperty("externalAuth") boolean externalAuth,
-      @JsonProperty("isTwoFactorEnabled") boolean isTwoFactorEnabled,
-      @JsonProperty("twoFactorType") TwoFactorType twoFactorType,
-      @JsonProperty("secret") String secret,
-      @JsonProperty("email") String email,
-      @JsonProperty("isEmailVerified") boolean isEmailVerified,
-      @JsonProperty("enabled") boolean enabled,
-      @JsonProperty("accountNonExpired") boolean accountNonExpired,
-      @JsonProperty("accountNonLocked") boolean accountNonLocked,
-      @JsonProperty("credentialsNonExpired") boolean credentialsNonExpired,
-      @JsonProperty("dataViewMaxOrganisationUnitLevel") int dataViewMaxOrganisationUnitLevel,
-      @JsonProperty("authorities") Collection<GrantedAuthority> authorities,
-      @JsonProperty("allAuthorities") Set<String> allAuthorities,
-      @JsonProperty("allRestrictions") Set<String> allRestrictions,
-      @JsonProperty("userGroupIds") Set<String> userGroupIds,
-      @JsonProperty("userOrgUnitIds") Set<String> userOrgUnitIds,
-      @JsonProperty("userDataOrgUnitIds") Set<String> userDataOrgUnitIds,
-      @JsonProperty("userSearchOrgUnitIds") Set<String> userSearchOrgUnitIds,
-      @JsonProperty("userEffectiveSearchOrgUnitIds") Set<String> userEffectiveSearchOrgUnitIds,
-      @JsonProperty("isSuper") boolean isSuper,
-      @JsonProperty("userRoleIds") Set<String> userRoleIds,
-      @JsonProperty("managedGroupLongIds") Set<Long> managedGroupLongIds,
-      @JsonProperty("userRoleLongIds") Set<Long> userRoleLongIds) {
-    return UserDetailsImpl.builder()
-        .uid(uid)
-        .code(code)
-        .username(username)
-        .firstName(firstName)
-        .surname(surname)
-        .password(password)
-        .externalAuth(externalAuth)
-        .isTwoFactorEnabled(isTwoFactorEnabled)
-        .twoFactorType(twoFactorType)
-        .secret(secret)
-        .email(email)
-        .isEmailVerified(isEmailVerified)
-        .enabled(enabled)
-        .accountNonExpired(accountNonExpired)
-        .accountNonLocked(accountNonLocked)
-        .credentialsNonExpired(credentialsNonExpired)
-        .dataViewMaxOrganisationUnitLevel(dataViewMaxOrganisationUnitLevel)
-        .authorities(authorities)
-        .allAuthorities(allAuthorities)
-        .allRestrictions(allRestrictions)
-        .userGroupIds(userGroupIds)
-        .userOrgUnitIds(userOrgUnitIds)
-        .userDataOrgUnitIds(userDataOrgUnitIds)
-        .userSearchOrgUnitIds(userSearchOrgUnitIds)
-        .userEffectiveSearchOrgUnitIds(userEffectiveSearchOrgUnitIds)
-        .isSuper(isSuper)
-        .userRoleIds(userRoleIds)
-        .managedGroupLongIds(managedGroupLongIds)
-        .userRoleLongIds(userRoleLongIds)
-        .build();
-  }
 
   private final String uid;
   @Setter private Long id;

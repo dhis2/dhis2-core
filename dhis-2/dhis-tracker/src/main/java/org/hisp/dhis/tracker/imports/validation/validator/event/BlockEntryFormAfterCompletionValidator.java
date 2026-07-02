@@ -27,25 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1326;
+
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.Validator;
 
 /**
- * This class is a wrapper for all possible parameters related to a tracked entity. All attributes
- * present here should be correctly typed and ready to be used by the service layers.
- *
- * @author maikel arabori
+ * Rejects updates to a completed event when its {@link ProgramStage} has {@code blockEntryForm}
+ * enabled. With that setting on, the entry form is locked once the event is completed, so the event
+ * must be reopened (its status changed away from {@link EventStatus#COMPLETED}) before it can be
+ * modified.
  */
-@Getter
-@Setter
-@Builder(toBuilder = true)
-public class TrackedEntityQueryParams {
-  private final TrackedEntityType trackedEntityType;
+class BlockEntryFormAfterCompletionValidator implements Validator<Event> {
 
-  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
-  private boolean aggregate;
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    TrackerPreheat preheat = bundle.getPreheat();
+
+    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
+
+    if (EventStatus.COMPLETED == event.getStatus()
+        && Boolean.TRUE.equals(programStage.getBlockEntryForm())) {
+      reporter.addError(event, E1326, event.getEvent());
+    }
+  }
+
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == TrackerImportStrategy.UPDATE;
+  }
 }

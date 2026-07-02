@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.visualization;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * This class is a wrapper for all possible parameters related to a tracked entity. All attributes
- * present here should be correctly typed and ready to be used by the service layers.
- *
- * @author maikel arabori
- */
-@Getter
-@Setter
-@Builder(toBuilder = true)
-public class TrackedEntityQueryParams {
-  private final TrackedEntityType trackedEntityType;
+import java.util.Map;
+import org.hisp.dhis.common.MetadataItem;
+import org.junit.jupiter.api.Test;
 
-  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
-  private boolean aggregate;
+class VisualizationTest {
+
+  @Test
+  void extractDimensionNameHappyFlow() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem("itemName1"));
+
+    String value = Visualization.extractDimensionName(metaData, "uid1");
+
+    assertEquals("itemName1", value);
+  }
+
+  @Test
+  void extractDimensionWhenNameIsBlank() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem(" "));
+
+    String value = Visualization.extractDimensionName(metaData, "uid1");
+
+    assertEquals("uid1", value);
+  }
+
+  @Test
+  void extractDimensionWhenNameIsNull() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem(null));
+
+    String value = Visualization.extractDimensionName(metaData, "uid1");
+
+    assertEquals("uid1", value);
+  }
 }
