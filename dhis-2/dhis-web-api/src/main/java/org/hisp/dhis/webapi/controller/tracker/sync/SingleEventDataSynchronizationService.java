@@ -33,10 +33,10 @@ import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,6 +44,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -65,8 +67,9 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Stats;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -82,6 +85,7 @@ import org.springframework.web.client.RestTemplate;
 public class SingleEventDataSynchronizationService extends TrackerDataSynchronizationWithPaging {
   private static final String PROCESS_NAME = "Single event programs data synchronization";
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
+  private static final ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
 
   private final EventService eventService;
   private final SystemSettingsService systemSettingsService;
@@ -292,16 +296,32 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       SystemSettings settings,
       String url) {
     RequestCallback requestCallback = createRequestCallback(events, instance);
-
-    Optional<WebMessageResponse> response =
-        runSyncRequest(
+    String syncUrl = url + "&async=false";
+    return runSyncRequest(
             restTemplate,
             requestCallback,
-            SyncEndpoint.TRACKER_IMPORT.getKlass(),
-            url,
-            settings.getSyncMaxAttempts());
+            response ->
+                toImportSummary(JSON_MAPPER.readValue(response.getBody(), ImportReport.class)),
+            syncUrl,
+            settings.getSyncMaxAttempts())
+        .orElse(null);
+  }
 
-    return response.map(ImportSummary.class::cast).orElse(null);
+  static ImportSummary toImportSummary(ImportReport report) {
+    ImportSummary summary = new ImportSummary();
+    summary.setStatus(
+        switch (report.getStatus()) {
+          case OK -> ImportStatus.SUCCESS;
+          case WARNING -> ImportStatus.WARNING;
+          case ERROR -> ImportStatus.ERROR;
+        });
+    Stats stats = report.getStats();
+    if (stats != null) {
+      summary.setImportCount(
+          new ImportCount(
+              stats.getCreated(), stats.getUpdated(), stats.getIgnored(), stats.getDeleted()));
+    }
+    return summary;
   }
 
   private RequestCallback createRequestCallback(
