@@ -186,11 +186,16 @@ public class UserAccountController {
    * self-guarding: it only proceeds for an expired account whose current password is supplied
    * correctly. It deliberately does not establish a session — once the password is changed the
    * account is no longer expired, so the frontend calls the existing {@code auth/login} to log in.
+   *
+   * <p>The current-password check runs <b>before</b> the expiry check, so {@code "Account is not
+   * expired"} can only be observed by a caller who already knows the password (no username
+   * enumeration), and repeated attempts against one account are throttled via the shared
+   * account-recovery lockout (mirrors {@code forgotPassword}).
    */
   @PostMapping("/updatePassword")
   @ResponseStatus(HttpStatus.OK)
   public WebMessage updatePassword(@RequestBody UpdatePasswordRequest request)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException {
 
     String username = request.getUsername();
     String oldPassword = request.getOldPassword();
@@ -208,18 +213,28 @@ public class UserAccountController {
       throw new BadRequestException("Invalid username or password");
     }
 
-    // Guard 1 - this self-service path is ONLY for expired accounts.
-    if (userService.userNonExpired(user)) {
-      throw new BadRequestException("Account is not expired");
-    }
+    // Throttle repeated attempts against a single account (brute-force protection), reusing the
+    // account-recovery lockout. Registers an attempt and rejects once the threshold is exceeded.
+    checkRecoveryLock(user.getUsername());
 
-    // Guard 2 - caller must know the current (expired) password.
+    // Caller must know the current (expired) password. Checked before the expiry guard below so
+    // that "Account is not expired" can only be observed by someone who knows the password.
     if (!passwordManager.matches(oldPassword, user.getPassword())) {
       throw new BadRequestException("Invalid username or password");
     }
 
+    // This self-service path is ONLY for expired accounts.
+    if (userService.userNonExpired(user)) {
+      throw new BadRequestException("Account is not expired");
+    }
+
     if (newPassword.trim().equals(username.trim())) {
       throw new BadRequestException("Password cannot be equal to username");
+    }
+
+    // The stored hash is still the old password here, so this rejects an unchanged password.
+    if (passwordManager.matches(newPassword, user.getPassword())) {
+      throw new BadRequestException("New password must be different from the old password");
     }
 
     CredentialsInfo credentialsInfo =

@@ -217,9 +217,12 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Non-expired account is rejected")
+  @DisplayName("Non-expired account is rejected only when the correct password is supplied")
   void testUpdatePasswordNonExpired() {
+    String oldPassword = "Str0ng_old_1!";
     User user = createUserWithAuth("nonexpired");
+    userService.encodeAndSetPassword(user, oldPassword);
+    userService.updateUser(user);
     clearSecurityContext();
 
     assertWebMessage(
@@ -229,7 +232,28 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
         "Account is not expired",
         POST(
                 "/auth/updatePassword",
-                "{'username':'%s','oldPassword':'x','newPassword':'Str0ng_new_1!'}"
+                "{'username':'%s','oldPassword':'%s','newPassword':'Str0ng_new_1!'}"
+                    .formatted(user.getUsername(), oldPassword))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName(
+      "Non-expired account with wrong password gets the generic message, not the expiry hint")
+  void testUpdatePasswordNonExpiredWrongPasswordIsGeneric() {
+    User user = createUserWithAuth("nonexpiredwrong");
+    userService.encodeAndSetPassword(user, "Str0ng_old_1!");
+    userService.updateUser(user);
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Invalid username or password",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'WR0ng_pw_9!','newPassword':'Str0ng_new_1!'}"
                     .formatted(user.getUsername()))
             .content(HttpStatus.BAD_REQUEST));
   }
@@ -317,6 +341,45 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
                 "{'username':'%s','oldPassword':'%s','newPassword':'tester-dhis'}"
                     .formatted(user.getUsername(), oldPassword))
             .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("New password equal to the old password is rejected")
+  void testUpdatePasswordSameAsOld() {
+    String oldPassword = "Str0ng_old_1!";
+    User user = createExpiredUser("expirede", oldPassword);
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "New password must be different from the old password",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, oldPassword))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("Repeated wrong-password attempts are throttled via the recovery lockout")
+  void testUpdatePasswordLocksAfterRepeatedFailures() {
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
+    User user = createUserWithAuth("bruteforce");
+    clearSecurityContext();
+
+    String body =
+        "{'username':'%s','oldPassword':'WR0ng_pw_9!','newPassword':'Str0ng_new_1!'}"
+            .formatted(user.getUsername());
+
+    // RECOVER_MAX_ATTEMPTS = 5: the first 6 attempts still reach the generic password error,
+    // the next one is rejected as locked (403).
+    for (int i = 0; i < 6; i++) {
+      POST("/auth/updatePassword", body).content(HttpStatus.BAD_REQUEST);
+    }
+    POST("/auth/updatePassword", body).content(HttpStatus.FORBIDDEN);
   }
 
   /**

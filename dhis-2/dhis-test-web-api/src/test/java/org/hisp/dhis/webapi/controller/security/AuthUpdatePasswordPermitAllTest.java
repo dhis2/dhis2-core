@@ -65,15 +65,16 @@ class AuthUpdatePasswordPermitAllTest extends AuthenticationApiTestBase {
   void postAuthUpdatePasswordIsReachableWithoutAuthentication() throws Exception {
     clearSecurityContext();
 
-    // Anonymous request: no session, no Authorization header. The seeded "admin" user exists and is
-    // not expired, so the controller short-circuits with 400 "Account is not expired" before any
-    // password check. A 302 redirect to /login would mean the endpoint is not on the allowlist.
+    // Anonymous request: no session, no Authorization header. The body omits the passwords, so the
+    // controller short-circuits with 400 (required fields) before any user lookup — which proves it
+    // was reached. A 302 redirect to /login would mean the endpoint is not on the allowlist.
     mvc.perform(
             post("/api/auth/updatePassword")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"username\":\"admin\",\"oldPassword\":\"irrelevant\",\"newPassword\":\"irrelevant\"}"))
+                .content("{\"username\":\"admin\"}"))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Account is not expired")));
+        .andExpect(
+            content()
+                .string(containsString("Username, old password and new password are required")));
   }
 }
