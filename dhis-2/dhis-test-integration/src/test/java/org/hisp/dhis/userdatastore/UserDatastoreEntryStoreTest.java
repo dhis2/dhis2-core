@@ -113,4 +113,50 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
     assertTrue(list.contains(userEntryA));
     assertTrue(list.contains(userEntryB));
   }
+
+  /**
+   * Reproduces DHIS2-21740: a user datastore entry must only be updated for its owning user. Two
+   * users can each own an entry under the same namespace + key. Updating one user's value must not
+   * change the other user's value.
+   */
+  @Test
+  void testUpdateEntryOnlyAffectsOwningUser() {
+    User userA = user;
+    User userB = createUserWithAuth("otheruser");
+
+    UserDatastoreEntry entryA = new UserDatastoreEntry();
+    entryA.setNamespace("test");
+    entryA.setKey("foo");
+    entryA.setValue("{\"a\": \"999999\"}");
+    entryA.setCreatedBy(userA);
+    userDatastoreStore.save(entryA);
+
+    UserDatastoreEntry entryB = new UserDatastoreEntry();
+    entryB.setNamespace("test");
+    entryB.setKey("foo");
+    entryB.setValue("{\"a\": \"111111\"}");
+    entryB.setCreatedBy(userB);
+    userDatastoreStore.save(entryB);
+
+    // user B updates the root value of their own "test"/"foo" entry
+    userDatastoreStore.updateEntry(userB, "test", "foo", "{\"a\": \"0\"}", null, null);
+
+    // the update runs as native SQL; clear the session so the entries are re-read from the DB
+    entityManager.flush();
+    entityManager.clear();
+
+    UserDatastoreEntry updatedB = userDatastoreStore.getEntry(userB, "test", "foo");
+    UserDatastoreEntry updatedA = userDatastoreStore.getEntry(userA, "test", "foo");
+    assertNotNull(updatedA);
+    assertNotNull(updatedB);
+
+    // user B's own value was updated as requested
+    assertTrue(
+        updatedB.getValue().contains("0"),
+        "user B's value should have been updated but was: " + updatedB.getValue());
+    // user A's value must be untouched by user B's update
+    assertTrue(
+        updatedA.getValue().contains("999999"),
+        "user A's value was overwritten by user B's update: " + updatedA.getValue());
+  }
 }
