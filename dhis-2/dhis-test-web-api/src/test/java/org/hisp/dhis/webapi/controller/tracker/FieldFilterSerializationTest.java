@@ -157,7 +157,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         // input was correct.
         // "relationships[unknownfield]",
         "relationships[!unknownfield]",
-        "relationships[f rom[trackedEntity[ org Unit ]",
+        // space in property names is no longer supported
+        // "relationships[f rom[trackedEntity[ org Unit ]",
         "relationships[from[trackedEntity[ :simple ]",
         // transformations
         "dataValues~isEmpty",

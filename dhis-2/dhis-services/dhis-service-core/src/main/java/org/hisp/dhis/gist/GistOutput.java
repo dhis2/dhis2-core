@@ -113,6 +113,7 @@ public final class GistOutput {
                   p.addString("prevPage", pager.prevPage());
                   p.addString("nextPage", pager.nextPage());
                 });
+          obj.addBoolean("gist", true);
           obj.addArray(list.collectionName(), addObjectListElements(list, values));
         });
   }

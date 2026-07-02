@@ -59,8 +59,8 @@ public class KeyByFieldTransformer implements FieldTransformer {
 
     String keyByFieldName = "id";
 
-    if (!fieldPathTransformer.getParameters().isEmpty()) {
-      keyByFieldName = fieldPathTransformer.getParameters().get(0);
+    if (!fieldPathTransformer.parameters().isEmpty()) {
+      keyByFieldName = fieldPathTransformer.parameters().get(0);
     }
 
     String fieldName = getFieldName(path);
