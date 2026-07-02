@@ -32,7 +32,9 @@ package org.hisp.dhis.webapi.controller.tracker.sync;
 import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +70,8 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
@@ -244,24 +248,87 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
 
-    if (!activeTrackedEntities.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntityDtos =
-          activeTrackedEntities.stream()
-              .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
-              .toList();
-      syncTrackedEntities(
-          activeTrackedEntityDtos,
-          instance,
-          settings,
-          syncTime,
-          TrackerImportStrategy.CREATE_AND_UPDATE);
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntityDtos =
+        activeTrackedEntities.stream()
+            .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
+            .toList();
+
+    List<Enrollment> deletedEnrollmentDtos = new ArrayList<>();
+    List<Event> deletedEventDtos = new ArrayList<>();
+    if (!activeTrackedEntityDtos.isEmpty()) {
+      stripDeletedChildren(activeTrackedEntityDtos, deletedEnrollmentDtos, deletedEventDtos);
     }
 
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
+        deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
+
+    if (!deletedTrackedEntityDtos.isEmpty()
+        || !deletedEnrollmentDtos.isEmpty()
+        || !deletedEventDtos.isEmpty()) {
+      syncDeleted(
+          deletedTrackedEntityDtos,
+          deletedEnrollmentDtos,
+          deletedEventDtos,
+          instance,
+          settings,
+          syncTime);
+    }
+
+    if (!activeTrackedEntityDtos.isEmpty()) {
+      syncTrackedEntities(activeTrackedEntityDtos, instance, settings, syncTime);
+    }
+  }
+
+  private void stripDeletedChildren(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntityDtos,
+      List<Enrollment> deletedEnrollments,
+      List<Event> deletedEvents) {
+    for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity teDto : trackedEntityDtos) {
+      List<Enrollment> enrollments = teDto.getEnrollments();
+
+      deletedEnrollments.addAll(enrollments.stream().filter(Enrollment::isDeleted).toList());
+
+      List<Enrollment> activeEnrollments =
+          enrollments.stream().filter(e -> !e.isDeleted()).toList();
+      teDto.setEnrollments(activeEnrollments);
+
+      for (Enrollment enrollment : activeEnrollments) {
+        List<Event> events = enrollment.getEvents();
+        deletedEvents.addAll(events.stream().filter(Event::isDeleted).toList());
+        enrollment.setEvents(events.stream().filter(e -> !e.isDeleted()).toList());
+      }
+    }
+  }
+
+  private void syncDeleted(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntities,
+      List<Enrollment> deletedEnrollments,
+      List<Event> deletedEvents,
+      SystemInstance instance,
+      SystemSettings settings,
+      Date syncTime) {
+    String url = instance.getUrl() + "?importStrategy=" + TrackerImportStrategy.DELETE;
+
+    Map<String, List<?>> payload =
+        Map.of(
+            "trackedEntities", deletedTrackedEntities,
+            "enrollments", deletedEnrollments.stream().map(this::toMinimalEnrollment).toList(),
+            "events", deletedEvents.stream().map(this::toMinimalEvent).toList());
+
+    ImportSummary summary = sendTrackerRequest(payload, instance, settings, url);
+
+    if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
+      throw new MetadataSyncServiceException("Tracker sync failed for deletes");
+    }
+
+    log.info(
+        "Tracker delete sync successful: TEs={}, enrollments={}, events={}",
+        deletedTrackedEntities.size(),
+        deletedEnrollments.size(),
+        deletedEvents.size());
+
     if (!deletedTrackedEntities.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
-          deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
-      syncTrackedEntities(
-          deletedTrackedEntityDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
+      updateTrackedEntitiesSyncTimestamp(deletedTrackedEntities, syncTime);
     }
   }
 
@@ -269,31 +336,32 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       SystemInstance instance,
       SystemSettings settings,
-      Date syncTime,
-      TrackerImportStrategy importStrategy) {
-    String url = instance.getUrl() + "?importStrategy=" + importStrategy;
+      Date syncTime) {
+    String url =
+        instance.getUrl()
+            + "?importStrategy="
+            + CREATE_AND_UPDATE
+            + "&async=false&atomicMode=OBJECT";
 
-    ImportSummary summary = sendTrackerRequest(trackedEntities, instance, settings, url);
+    ImportSummary summary =
+        sendTrackerRequest(Map.of("trackedEntities", trackedEntities), instance, settings, url);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
-          format("Tracked Entity sync failed for importStrategy=%s", importStrategy));
+          format("Tracked Entity sync failed for importStrategy=%s", CREATE_AND_UPDATE));
     }
 
     log.info(
         "Tracked Entity sync successful for importStrategy={}. Tracked entities count: {}",
-        importStrategy,
+        CREATE_AND_UPDATE,
         trackedEntities.size());
 
     updateTrackedEntitiesSyncTimestamp(trackedEntities, syncTime);
   }
 
   private ImportSummary sendTrackerRequest(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
-      SystemInstance instance,
-      SystemSettings settings,
-      String url) {
-    RequestCallback requestCallback = createRequestCallback(trackedEntities, instance);
+      Map<String, ?> payload, SystemInstance instance, SystemSettings settings, String url) {
+    RequestCallback requestCallback = createRequestCallback(payload, instance);
 
     Optional<WebMessageResponse> response =
         runSyncRequest(
@@ -306,9 +374,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     return response.map(ImportSummary.class::cast).orElse(null);
   }
 
-  private RequestCallback createRequestCallback(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
-      SystemInstance instance) {
+  private RequestCallback createRequestCallback(Map<String, ?> payload, SystemInstance instance) {
     return request -> {
       request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
       request
@@ -316,8 +382,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
           .set(
               SyncUtils.HEADER_AUTHORIZATION,
               CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
-
-      renderService.toJson(request.getBody(), Map.of("trackedEntities", trackedEntities));
+      renderService.toJson(request.getBody(), payload);
     };
   }
 
@@ -336,5 +401,17 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         new org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity();
     minimalTrackedEntity.setTrackedEntity(UID.of(trackedEntity.getUid()));
     return minimalTrackedEntity;
+  }
+
+  private Enrollment toMinimalEnrollment(Enrollment enrollment) {
+    Enrollment minimal = new Enrollment();
+    minimal.setEnrollment(enrollment.getEnrollment());
+    return minimal;
+  }
+
+  private Event toMinimalEvent(Event event) {
+    Event minimal = new Event();
+    minimal.setEvent(event.getEvent());
+    return minimal;
   }
 }
