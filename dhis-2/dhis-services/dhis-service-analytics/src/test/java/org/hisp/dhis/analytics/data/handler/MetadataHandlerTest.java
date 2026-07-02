@@ -51,6 +51,7 @@ class MetadataHandlerTest {
 
     Settings settings = new MetadataHandler(null, null, null).schemeSettings(params);
 
+    assertTrue(params.hasCustomIdSchemeSet());
     assertEquals(UID, settings.getOutputIdScheme());
     assertEquals(UID, settings.getOutputDataElementIdScheme());
     assertEquals(UID, settings.getOutputDataItemIdScheme());
