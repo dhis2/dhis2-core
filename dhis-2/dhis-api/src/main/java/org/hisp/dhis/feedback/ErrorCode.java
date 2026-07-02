@@ -613,6 +613,7 @@ public enum ErrorCode {
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
+  E7252("Sorting is only supported on grouped dimensions in an aggregate query: `{0}`"),
   E7253(
       "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
 

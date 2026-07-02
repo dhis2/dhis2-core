@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.analytics.data.handler;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import static org.hisp.dhis.common.IdScheme.ID;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * This class is a wrapper for all possible parameters related to a tracked entity. All attributes
- * present here should be correctly typed and ready to be used by the service layers.
- *
- * @author maikel arabori
- */
-@Getter
-@Setter
-@Builder(toBuilder = true)
-public class TrackedEntityQueryParams {
-  private final TrackedEntityType trackedEntityType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
+import org.junit.jupiter.api.Test;
 
-  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
-  private boolean aggregate;
+class MetadataHandlerTest {
+
+  @Test
+  void schemeSettingsReturnsUIDWhenID() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withOutputIdScheme(ID)
+            .withOutputDataElementIdScheme(ID)
+            .withOutputDataItemIdScheme(ID)
+            .withOutputOrgUnitIdScheme(ID)
+            .build();
+
+    Settings settings = new MetadataHandler(null, null, null).schemeSettings(params);
+
+    assertTrue(params.hasCustomIdSchemeSet());
+    assertEquals(UID, settings.getOutputIdScheme());
+    assertEquals(UID, settings.getOutputDataElementIdScheme());
+    assertEquals(UID, settings.getOutputDataItemIdScheme());
+    assertEquals(UID, settings.getOutputOrgUnitIdScheme());
+  }
 }
