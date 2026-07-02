@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,42 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import java.util.List;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
-import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 /**
- * Interface for classes responsible for persisting Tracker objects to the persistence engine.
+ * Memoizes {@link UserInfoSnapshot} JSON serialization for the lifetime of a single {@link
+ * EntityWriteBatch}. {@code TrackerObjectsMapper} stamps a fresh {@code UserInfoSnapshot} of the
+ * importing user onto the created/lastUpdated columns of every row, so without caching the same
+ * string is serialized once per row per column. The importing user is constant across an import, so
+ * the snapshots are equal by value ({@link UserInfoSnapshot} inherits {@code equals}/{@code
+ * hashCode} on id/code/uid from {@code IdentifiableObjectSnapshot}) and collapse to a single cache
+ * entry, leaving essentially one serialization per batch.
  *
- * @author Luciano Fiandesio
+ * <p>Intentionally batch-scoped (one instance per persist() call) and not thread-safe: this bounds
+ * the cache and prevents one request's user JSON from being reused by another.
  */
-public interface TrackerPersister<T extends TrackerDto, V> {
+final class UserInfoJsonCache {
+  private final ObjectMapper objectMapper;
+  private final Map<UserInfoSnapshot, String> cache = new HashMap<>();
 
-  record PersistResult(TrackerTypeReport report, List<EntityNotifications> notifications) {}
+  UserInfoJsonCache(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
-  /**
-   * Persist one of the collections in the provided Tracker Bundle. Each class implementing this
-   * method should be responsible to persist one collection of the TrackerBundle (e.g. Enrollments)
-   *
-   * @param bundle the Bundle to persist
-   * @return a {@link PersistResult} containing the report and any notifications
-   */
-  PersistResult persist(TrackerBundle bundle);
+  String toJson(UserInfoSnapshot info) throws SQLException {
+    if (info == null) {
+      return null;
+    }
+    String cached = cache.get(info);
+    if (cached != null) {
+      return cached;
+    }
+    String json = JdbcBatchSupport.toJson(objectMapper, info);
+    cache.put(info, json);
+    return json;
+  }
 }
