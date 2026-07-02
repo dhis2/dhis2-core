@@ -377,9 +377,9 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     // RECOVER_MAX_ATTEMPTS = 5: the first 6 attempts still reach the generic password error,
     // the next one is rejected as locked (403).
     for (int i = 0; i < 6; i++) {
-      POST("/auth/updatePassword", body).content(HttpStatus.BAD_REQUEST);
+      assertEquals(HttpStatus.BAD_REQUEST, POST("/auth/updatePassword", body).status());
     }
-    POST("/auth/updatePassword", body).content(HttpStatus.FORBIDDEN);
+    assertEquals(HttpStatus.FORBIDDEN, POST("/auth/updatePassword", body).status());
   }
 
   /**
