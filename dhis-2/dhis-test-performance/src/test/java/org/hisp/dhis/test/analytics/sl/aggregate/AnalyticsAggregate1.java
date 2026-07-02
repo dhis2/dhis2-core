@@ -30,12 +30,15 @@
 package org.hisp.dhis.test.analytics.sl.aggregate;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
+import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildHttpProtocol;
 import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
 import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
+import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
@@ -45,14 +48,28 @@ public class AnalyticsAggregate1 extends Simulation implements AnalyticsSimulati
   private static final String GET_QUERY_API =
       "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS;&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2026-04-30";
 
+  public AnalyticsAggregate1() {
+    // How users should enter the scenarios.
+    OpenInjectionStep defaultInjectionStep = simpleUsersRumpUp(1, 20);
+
+    // Build scenarios and assertions from the discovered simulations.
+    List<PopulationBuilder> scenarios = new ArrayList<>();
+    List<Assertion> assertions = new ArrayList<>();
+
+    // Build scenarios, assertions and execution setup.
+    scenarios.add(buildPopulation(defaultInjectionStep));
+    assertions.addAll(buildAssertions());
+    setUp(scenarios).protocols(buildHttpProtocol("/api/ping")).assertions(assertions);
+  }
+
   public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
     return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
   }
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(4750),
-        details(GET_QUERY).responseTime().max().lt(4750),
+        details(GET_QUERY).responseTime().percentile(95).lt(300),
+        details(GET_QUERY).responseTime().max().lt(325),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }

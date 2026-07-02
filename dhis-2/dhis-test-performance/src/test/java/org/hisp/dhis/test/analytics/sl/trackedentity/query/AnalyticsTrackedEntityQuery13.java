@@ -30,12 +30,15 @@
 package org.hisp.dhis.test.analytics.sl.trackedentity.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
+import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildHttpProtocol;
 import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
 import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
+import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
@@ -45,14 +48,28 @@ public class AnalyticsTrackedEntityQuery13 extends Simulation implements Analyti
   private static final String GET_QUERY_API =
       "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:jNb63DIHuwU,RG7uGl4w5Jq,lw1SqmMlnfh:GT:180&headers=ouname,RG7uGl4w5Jq,lw1SqmMlnfh&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=RG7uGl4w5Jq&relativePeriodDate=2024-06-13";
 
+  public AnalyticsTrackedEntityQuery13() {
+    // How users should enter the scenarios.
+    OpenInjectionStep defaultInjectionStep = simpleUsersRumpUp(1, 20);
+
+    // Build scenarios and assertions from the discovered simulations.
+    List<PopulationBuilder> scenarios = new ArrayList<>();
+    List<Assertion> assertions = new ArrayList<>();
+
+    // Build scenarios, assertions and execution setup.
+    scenarios.add(buildPopulation(defaultInjectionStep));
+    assertions.addAll(buildAssertions());
+    setUp(scenarios).protocols(buildHttpProtocol("/api/ping")).assertions(assertions);
+  }
+
   public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
     return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
   }
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(6700),
-        details(GET_QUERY).responseTime().max().lt(6700),
+        details(GET_QUERY).responseTime().percentile(95).lt(455),
+        details(GET_QUERY).responseTime().max().lt(485),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }

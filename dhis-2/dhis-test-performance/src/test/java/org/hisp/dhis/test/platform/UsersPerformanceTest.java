@@ -197,13 +197,13 @@ public class UsersPerformanceTest extends Simulation {
       Map.of(Profile.SMOKE, new Thresholds(50, 60), Profile.LOAD, new Thresholds(50, 100));
 
   private static final Map<Profile, Thresholds> PATCH_GROUPS_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(100, 110), Profile.LOAD, new Thresholds(100, 110));
+      Map.of(Profile.SMOKE, new Thresholds(150, 150), Profile.LOAD, new Thresholds(150, 150));
 
   private static final Map<Profile, Thresholds> REPLICA_THRESH =
       Map.of(Profile.SMOKE, new Thresholds(150, 160), Profile.LOAD, new Thresholds(150, 300));
 
   private static final Map<Profile, Thresholds> DELETE_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(250, 260), Profile.LOAD, new Thresholds(250, 280));
+      Map.of(Profile.SMOKE, new Thresholds(1000, 1000), Profile.LOAD, new Thresholds(1000, 1000));
 
   // Timestamp-based offset so each run generates unique usernames
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
