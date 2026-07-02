@@ -154,7 +154,6 @@ class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
 
     MetadataExportParams exportParams = new MetadataExportParams();
     exportParams.addClass(org.hisp.dhis.mapping.Map.class);
-    exportParams.addClass(MapView.class);
     ObjectNode exported = metadataExportService.getMetadataAsObjectNode(exportParams);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
