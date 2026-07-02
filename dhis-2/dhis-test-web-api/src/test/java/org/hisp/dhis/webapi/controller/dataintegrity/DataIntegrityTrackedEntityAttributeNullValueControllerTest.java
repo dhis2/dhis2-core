@@ -64,7 +64,8 @@ class DataIntegrityTrackedEntityAttributeNullValueControllerTest
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     manager.save(trackedEntityType);
 
-    trackedEntity = createTrackedEntity(organisationUnit, trackedEntityType);
+    trackedEntity = createTrackedEntity('A', organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntity);
 
     attribute = createTrackedEntityAttribute('A');
