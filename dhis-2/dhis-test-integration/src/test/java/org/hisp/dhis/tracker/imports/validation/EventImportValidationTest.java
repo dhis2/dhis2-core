@@ -239,8 +239,7 @@ class EventImportValidationTest extends TrackerTest {
   @Test
   void shouldBlockUpdateOfCompletedEventWhenBlockEntryFormIsTrue() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects =
-        testSetup.fromJson("tracker/validations/single_completed_event.json");
+    TrackerObjects trackerObjects = fromJson("tracker/validations/single_completed_event.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
