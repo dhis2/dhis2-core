@@ -237,6 +237,17 @@ class EventImportValidationTest extends TrackerTest {
   }
 
   @Test
+  void shouldBlockUpdateOfCompletedEventWhenBlockEntryFormIsTrue() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects = fromJson("tracker/validations/single_completed_event.json");
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertNoErrors(importReport);
+
+    importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertHasOnlyErrors(importReport, ValidationCode.E1326);
+  }
+
+  @Test
   void testCategoryOptionComboNotFound() throws IOException {
     ImportReport importReport =
         trackerImportService.importTracker(
