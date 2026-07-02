@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.trackedentity;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -121,8 +120,7 @@ class TrackedEntityAggregateServiceTest {
     Grid grid = service.getGrid(ctx);
 
     assertEquals(
-        List.of("ou", "value"),
-        grid.getHeaders().stream().map(GridHeader::getName).collect(toList()));
+        List.of("ou", "value"), grid.getHeaders().stream().map(GridHeader::getName).toList());
     assertEquals(2, grid.getHeight());
     assertEquals("OU_UID_1", grid.getRow(0).get(0));
     assertEquals(42, grid.getRow(0).get(1));
@@ -145,7 +143,7 @@ class TrackedEntityAggregateServiceTest {
 
     Grid grid = service.getGrid(ctx);
 
-    List<String> names = grid.getHeaders().stream().map(GridHeader::getName).collect(toList());
+    List<String> names = grid.getHeaders().stream().map(GridHeader::getName).toList();
     assertEquals("value", names.get(names.size() - 1)); // value always last
     assertEquals(List.of("ou", "w75KJ2mc4zz", "value"), names);
   }
@@ -189,7 +187,7 @@ class TrackedEntityAggregateServiceTest {
     List<String> metadataDimensionKeys =
         captor.getValue().getCommonParsed().getDimensionIdentifiers().stream()
             .map(DimensionIdentifier::getKey)
-            .collect(toList());
+            .toList();
     assertEquals(List.of("ou"), metadataDimensionKeys);
   }
 

@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.trackedentity;
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getAggregateGridHeaders;
@@ -138,8 +137,8 @@ public class TrackedEntityAggregateService {
 
   /**
    * Scopes the metadata inputs to the dimensions the aggregate query actually groups by. The TE
-   * mapper injects all of the tracked entity type's attributes into the parsed dimensions for
-   * row-level display; without this filter the shared {@link MetadataParamsHandler} would advertise
+   * mapper injects all the tracked entity type's attributes into the parsed dimensions for
+   * row-level display; without this filter the shared {@link MetadataParamsHandler} would contain
    * those non-grouped attributes in {@code metaData.dimensions}/{@code metaData.items} even though
    * they are absent from the aggregate headers and rows. Grouped dimensions come from the single
    * source of truth in {@link AggregateQueryBuilder#getGroupedDimensionKeys}.
@@ -155,7 +154,7 @@ public class TrackedEntityAggregateService {
             .dimensionIdentifiers(
                 commonParsed.getDimensionIdentifiers().stream()
                     .filter(dimension -> groupedKeys.contains(dimension.getKey()))
-                    .collect(toList()))
+                    .toList())
             .parsedHeaders(
                 commonParsed.getParsedHeaders().stream()
                     .filter(dimension -> groupedKeys.contains(dimension.getKey()))
@@ -199,16 +198,8 @@ public class TrackedEntityAggregateService {
   private void addGroupedOrgUnitMetadata(
       Grid grid,
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
-    Map<String, Object> metaData = grid.getMetaData();
-    if (metaData == null) {
-      return;
-    }
-
-    @SuppressWarnings("unchecked")
-    Map<String, Object> items = (Map<String, Object>) metaData.get(ITEMS.getKey());
-    @SuppressWarnings("unchecked")
-    Map<String, Object> dimensions = (Map<String, Object>) metaData.get(DIMENSIONS.getKey());
-    if (items == null && dimensions == null) {
+    GridMetadata metadata = getGridMetadata(grid);
+    if (metadata == null || metadata.isEmpty()) {
       return;
     }
 
@@ -237,26 +228,47 @@ public class TrackedEntityAggregateService {
         .getOrganisationUnitsByUid(orgUnitUids)
         .forEach(orgUnit -> orgUnitsByUid.put(orgUnit.getUid(), orgUnit));
 
-    if (items != null) {
+    if (metadata.items() != null) {
       for (String uid : orgUnitUids) {
         OrganisationUnit orgUnit = orgUnitsByUid.get(uid);
         if (orgUnit != null) {
-          items.put(
-              uid,
-              new MetadataItem(
-                  orgUnit.getDisplayProperty(displayProperty),
-                  includeMetadataDetails ? orgUnit : null));
+          metadata
+              .items()
+              .put(
+                  uid,
+                  new MetadataItem(
+                      orgUnit.getDisplayProperty(displayProperty),
+                      includeMetadataDetails ? orgUnit : null));
         }
       }
     }
 
-    if (dimensions != null) {
-      dimensions.put(ORGUNIT_DIM_ID, List.copyOf(orgUnitUids));
+    if (metadata.dimensions() != null) {
+      metadata.dimensions().put(ORGUNIT_DIM_ID, List.copyOf(orgUnitUids));
+    }
+  }
+
+  private GridMetadata getGridMetadata(Grid grid) {
+    Map<String, Object> metaData = grid.getMetaData();
+    if (metaData == null) {
+      return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> items = (Map<String, Object>) metaData.get(ITEMS.getKey());
+    @SuppressWarnings("unchecked")
+    Map<String, Object> dimensions = (Map<String, Object>) metaData.get(DIMENSIONS.getKey());
+    return new GridMetadata(items, dimensions);
+  }
+
+  private record GridMetadata(Map<String, Object> items, Map<String, Object> dimensions) {
+    boolean isEmpty() {
+      return items == null && dimensions == null;
     }
   }
 
   private void addGroupedRows(Grid grid, SqlRowSet rs) {
-    List<String> columns = grid.getHeaders().stream().map(GridHeader::getName).collect(toList());
+    List<String> columns = grid.getHeaders().stream().map(GridHeader::getName).toList();
     while (rs.next()) {
       grid.addRow();
       columns.forEach(col -> grid.addValue(rs.getObject(col)));
