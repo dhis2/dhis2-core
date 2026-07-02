@@ -143,21 +143,6 @@ class SchemaControllerTest extends H2ControllerIntegrationTestBase {
   private org.hisp.dhis.schema.SchemaService schemaService;
 
   @Test
-  void diag() {
-    org.hisp.dhis.schema.Schema legend =
-        schemaService.getSchema(org.hisp.dhis.legend.Legend.class);
-    System.out.println(">>> legend.isEmbeddedObject=" + legend.isEmbeddedObject());
-    java.util.List<String> inList =
-        schemaService.getSortedNonEmbeddedSchemas().stream()
-            .filter(org.hisp.dhis.schema.Schema::isEmbeddedObject)
-            .map(org.hisp.dhis.schema.Schema::getName)
-            .collect(java.util.stream.Collectors.toList());
-    System.out.println(">>> embedded-in-nonEmbeddedList=" + inList);
-    System.out.println(
-        ">>> total=" + schemaService.getSortedNonEmbeddedSchemas().size());
-  }
-
-  @Test
   void testSchemasDoNotContainMapView() {
     JsonList<JsonSchema> schemas =
         GET("/schemas?fields=name").content(HttpStatus.OK).getList("schemas", JsonSchema.class);
