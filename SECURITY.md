@@ -145,6 +145,6 @@ assignment, affected-version ranges, and severity with you.
 - Threat model: <https://github.com/dhis2/threat-model>
 - GHSA: <https://github.com/dhis2/dhis2-core/security/advisories/new>
 
-> Contact: security@dhis2.org
-> Preferred-Languages: en
+> Contact: security@dhis2.org \
+> Preferred-Languages: en \
 > Policy: https://dhis2.org/trust/vulnerability-policy
