@@ -144,10 +144,5 @@ assignment, affected-version ranges, and severity with you.
 - Trust centre: <https://dhis2.org/trust/>
 - Hall of Fame: <https://dhis2.org/trust/hall-of-fame/>
 - Threat model: <https://github.com/dhis2/threat-model>
-
----
-
-Contact: https://github.com/dhis2/dhis2-core/security/advisories/new
-Contact: mailto:security@dhis2.org
-Preferred-Languages: en
-Policy: https://dhis2.org/trust/vulnerability-policy
+- GHSA: <https://github.com/dhis2/dhis2-core/security/advisories/new>
+- Email: mailto:security@dhis2.org
