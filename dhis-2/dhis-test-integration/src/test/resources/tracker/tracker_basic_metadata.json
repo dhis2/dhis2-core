@@ -275,7 +275,7 @@
     },
     {
       "programStageSections": [],
-      "blockEntryForm": false,
+      "blockEntryForm": true,
       "allowGenerateNextVisit": false,
       "created": "2019-03-29T12:41:32.972",
       "sortOrder": 3,
