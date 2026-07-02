@@ -47,6 +47,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.HiddenNotFoundException;
+import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -54,6 +55,7 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserConstants;
@@ -90,6 +92,7 @@ public class UserAccountController {
   private final UserAccountService userAccountService;
   private final PasswordValidationService passwordValidationService;
   private final DhisConfigurationProvider configurationProvider;
+  private final PasswordManager passwordManager;
 
   @PostMapping("/forgotPassword")
   @ResponseStatus(HttpStatus.OK)
@@ -175,6 +178,68 @@ public class UserAccountController {
     }
 
     log.info("Password was reset for user: {}", user.getUsername());
+  }
+
+  /**
+   * Self-service change of an <b>expired</b> password. This replaced the removed legacy form-param
+   * {@code POST /api/account/password}. The caller is not logged in, so the endpoint is
+   * self-guarding: it only proceeds for an expired account whose current password is supplied
+   * correctly. It deliberately does not establish a session — once the password is changed the
+   * account is no longer expired, so the frontend calls the existing {@code auth/login} to log in.
+   */
+  @PostMapping("/updatePassword")
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage updatePassword(@RequestBody UpdatePasswordRequest request)
+      throws BadRequestException {
+
+    String username = request.getUsername();
+    String oldPassword = request.getOldPassword();
+    String newPassword = request.getNewPassword();
+
+    if (StringUtils.isBlank(username)
+        || StringUtils.isBlank(oldPassword)
+        || StringUtils.isBlank(newPassword)) {
+      throw new BadRequestException("Username, old password and new password are required");
+    }
+
+    User user = userService.getUserByUsername(username);
+    // Generic message on purpose: do not reveal whether the username exists.
+    if (user == null) {
+      throw new BadRequestException("Invalid username or password");
+    }
+
+    // Guard 1 - this self-service path is ONLY for expired accounts.
+    if (userService.userNonExpired(user)) {
+      throw new BadRequestException("Account is not expired");
+    }
+
+    // Guard 2 - caller must know the current (expired) password.
+    if (!passwordManager.matches(oldPassword, user.getPassword())) {
+      throw new BadRequestException("Invalid username or password");
+    }
+
+    if (newPassword.trim().equals(username.trim())) {
+      throw new BadRequestException("Password cannot be equal to username");
+    }
+
+    CredentialsInfo credentialsInfo =
+        CredentialsInfo.builder()
+            .username(user.getUsername())
+            .password(newPassword)
+            .email(StringUtils.trimToEmpty(user.getEmail()))
+            .newUser(false)
+            .build();
+
+    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
+    if (!result.isValid()) {
+      throw new BadRequestException(result.getErrorMessage());
+    }
+
+    userService.encodeAndSetPassword(user, newPassword);
+    userService.updateUser(user, new SystemUser());
+
+    log.info("Expired password updated for user: {}", user.getUsername());
+    return ok("Password updated");
   }
 
   @PostMapping("/registration")

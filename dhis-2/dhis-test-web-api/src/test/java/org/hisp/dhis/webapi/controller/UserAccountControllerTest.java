@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -188,6 +189,153 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     boolean passwordMatch = passwordEncoder.matches(newPassword, updatedUser.getPassword());
 
     assertTrue(passwordMatch);
+  }
+
+  @Test
+  @DisplayName("Expired user changes password via auth/updatePassword and it is persisted")
+  void testUpdatePasswordExpiredOk() {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser("expireda", oldPassword);
+    clearSecurityContext();
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Password updated",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, newPassword))
+            .content(HttpStatus.OK));
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
+    // The account is no longer expired, so the frontend's follow-up auth/login will succeed.
+    assertTrue(userService.userNonExpired(updated));
+  }
+
+  @Test
+  @DisplayName("Non-expired account is rejected")
+  void testUpdatePasswordNonExpired() {
+    User user = createUserWithAuth("nonexpired");
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Account is not expired",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'x','newPassword':'Str0ng_new_1!'}"
+                    .formatted(user.getUsername()))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("Wrong old password is rejected with a generic message")
+  void testUpdatePasswordWrongOldPassword() {
+    User user = createExpiredUser("expiredb", "Str0ng_old_1!");
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Invalid username or password",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'WR0ng_pw_9!','newPassword':'Str0ng_new_1!'}"
+                    .formatted(user.getUsername()))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("Unknown username is rejected with the same generic message (no enumeration)")
+  void testUpdatePasswordUnknownUser() {
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Invalid username or password",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'no_such_user','oldPassword':'x','newPassword':'Str0ng_new_1!'}")
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("Missing fields are rejected")
+  void testUpdatePasswordMissingFields() {
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Username, old password and new password are required",
+        POST("/auth/updatePassword", "{'username':'admin'}").content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("New password equal to username is rejected")
+  void testUpdatePasswordEqualToUsername() {
+    String oldPassword = "Str0ng_old_1!";
+    User user = createExpiredUser("expiredc", oldPassword);
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Password cannot be equal to username",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, user.getUsername()))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("Weak new password is rejected by the password policy")
+  void testUpdatePasswordWeakNewPassword() {
+    String oldPassword = "Str0ng_old_1!";
+    User user = createExpiredUser("expiredd", oldPassword);
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Password must have at least one digit",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'tester-dhis'}"
+                    .formatted(user.getUsername(), oldPassword))
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  /**
+   * Creates a persisted user whose password is {@code password} but whose password-last-updated
+   * date is 2 months in the past, combined with a 1-month credential-expiry policy, so the account
+   * counts as expired for {@link org.hisp.dhis.user.UserService#userNonExpired(User)}.
+   */
+  private User createExpiredUser(String username, String password) {
+    settingsService.put("credentialsExpires", 1);
+    settingsService.clearCurrentSettings();
+
+    User user = createUserWithAuth(username);
+    userService.encodeAndSetPassword(user, password);
+
+    Calendar calendar = Calendar.getInstance();
+    calendar.add(Calendar.MONTH, -2);
+    user.setPasswordLastUpdated(calendar.getTime());
+    userService.updateUser(user);
+    return user;
   }
 
   @Test

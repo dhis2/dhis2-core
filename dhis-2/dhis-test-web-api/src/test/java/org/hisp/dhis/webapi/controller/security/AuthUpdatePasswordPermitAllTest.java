@@ -36,21 +36,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 
 /**
- * Verifies that {@code POST /api/account/password} is part of the unauthenticated {@code permitAll}
- * allowlist in {@link org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig} and is
- * therefore reachable without authentication.
+ * Verifies that {@code POST /api/auth/updatePassword} is part of the unauthenticated {@code
+ * permitAll} allowlist in {@link org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig}
+ * and is therefore reachable without authentication.
  *
- * <p>This is the self-service endpoint a user with an expired password must call to set a new one
- * (the "require password change after N months" flow). Such a user is by definition not
+ * <p>This is the JSON self-service endpoint a user with an expired password must call to set a new
+ * one (the "require password change after N months" flow). Such a user is by definition not
  * authenticated, so the endpoint has to be reachable anonymously. It is safe to expose because
- * {@link org.hisp.dhis.webapi.controller.AccountController#updatePassword} only proceeds for an
- * expired account and only after the supplied old password matches the stored one.
+ * {@link org.hisp.dhis.webapi.controller.security.UserAccountController#updatePassword} only
+ * proceeds for an expired account and only after the supplied old password matches the stored one.
  *
- * <p>Regression test for DHIS2-21120: the matcher was dropped from the allowlist in the 2.41 login
- * rewrite, so an anonymous request was redirected (302) to the login page and the user was locked
- * out.
+ * <p>It guards the JSON endpoint that replaced the removed legacy form-param {@code POST
+ * /api/account/password}.
  *
  * <p>Unlike the default controller test bases, {@link AuthenticationApiTestBase} wires the real
  * {@link org.springframework.security.web.FilterChainProxy} into MockMvc, so the actual allowlist
@@ -59,21 +59,21 @@ import org.junit.jupiter.api.Test;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class AccountPasswordPermitAllTest extends AuthenticationApiTestBase {
+class AuthUpdatePasswordPermitAllTest extends AuthenticationApiTestBase {
 
   @Test
-  void postAccountPasswordIsReachableWithoutAuthentication() throws Exception {
+  void postAuthUpdatePasswordIsReachableWithoutAuthentication() throws Exception {
     clearSecurityContext();
 
     // Anonymous request: no session, no Authorization header. The seeded "admin" user exists and is
-    // not expired, so the controller short-circuits with 400/NON_EXPIRED before any password check.
-    // Before the fix the request never reached the controller: it was redirected (302) to /login.
+    // not expired, so the controller short-circuits with 400 "Account is not expired" before any
+    // password check. A 302 redirect to /login would mean the endpoint is not on the allowlist.
     mvc.perform(
-            post("/api/account/password")
-                .param("username", "admin")
-                .param("oldPassword", "irrelevant")
-                .param("password", "irrelevant"))
+            post("/api/auth/updatePassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"username\":\"admin\",\"oldPassword\":\"irrelevant\",\"newPassword\":\"irrelevant\"}"))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("NON_EXPIRED")));
+        .andExpect(content().string(containsString("Account is not expired")));
   }
 }
