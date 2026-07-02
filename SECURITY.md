@@ -139,10 +139,12 @@ assignment, affected-version ranges, and severity with you.
 
 ## Learn More
 
-- Vulnerability policy: <https://dhis2.org/trust/vulnerability-policy/>
 - Security overview and features: <https://dhis2.org/security/>
 - Trust centre: <https://dhis2.org/trust/>
 - Hall of Fame: <https://dhis2.org/trust/hall-of-fame/>
 - Threat model: <https://github.com/dhis2/threat-model>
 - GHSA: <https://github.com/dhis2/dhis2-core/security/advisories/new>
-- Email: mailto:security@dhis2.org
+
+> Contact: security@dhis2.org
+> Preferred-Languages: en
+> Policy: https://dhis2.org/trust/vulnerability-policy
