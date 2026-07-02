@@ -155,7 +155,11 @@ class TrackedEntityAttributeTest extends TrackerTest {
     params =
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.UPDATE)
-            .idSchemes(TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.NAME).build())
+            .idSchemes(
+                TrackerIdSchemeParams.builder()
+                    .idScheme(TrackerIdSchemeParam.NAME)
+                    .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
+                    .build())
             .build();
 
     assertNoErrors(trackerImportService.importTracker(params, update));
