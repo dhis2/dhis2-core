@@ -74,12 +74,12 @@ public record SchemeInfo(Settings settings, Data data) {
     /** The output format. */
     private final OutputFormat outputFormat;
 
-    /** Indicates whether this query defines an identifier scheme different from UID. */
+    /** Indicates whether this query defines an identifier scheme. */
     public boolean isGeneralOutputIdSchemeSet() {
       return outputIdScheme != null;
     }
 
-    /** Indicates whether this query defines an identifier scheme different from UID. */
+    /** Indicates whether this query defines an identifier scheme. */
     public boolean isDataIdSchemeSet() {
       return dataIdScheme != null;
     }
@@ -88,12 +88,12 @@ public record SchemeInfo(Settings settings, Data data) {
       return outputDataItemIdScheme != null;
     }
 
-    /** Indicates whether this query defines an identifier scheme different from UID. */
+    /** Indicates whether this query defines an identifier scheme. */
     public boolean isOutputDataElementIdSchemeSet() {
       return outputDataElementIdScheme != null;
     }
 
-    /** Indicates whether this query defines an identifier scheme different from UID. */
+    /** Indicates whether this query defines an identifier scheme. */
     public boolean isOutputOrgUnitIdSchemeSet() {
       return outputOrgUnitIdScheme != null;
     }
