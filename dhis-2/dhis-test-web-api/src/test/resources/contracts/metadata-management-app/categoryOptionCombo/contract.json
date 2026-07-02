@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "jsonSchema": "contracts/metadata-management-app/categoryOptionCombo/json-schema.json",
+  "name": "categoryOptionCombo",
+  "requestUrl": "/categoryOptionCombos/{id}",
+  "responseStatus": 200
+}
