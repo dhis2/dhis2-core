@@ -1138,4 +1138,210 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     // Validate row exists with values from original row index 0
     validateRowExists(response, actualHeaders, Map.of("dx", piUid, "value", "1.0"));
   }
+
+  @Test
+  public void outputIdSchemeWithId() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("showHierarchy=false")
+            .add("includeMetadataDetails=true")
+            .add("filter=pe:LAST_5_YEARS")
+            .add("includeNumDen=true")
+            .add("hierarchyMeta=false")
+            .add("outputIdScheme=ID")
+            .add("completedOnly=false")
+            .add(
+                "dimension=dx:cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG;fbfJHSPpUQD,ou:USER_ORGUNIT_CHILDREN")
+            .add("skipRounding=false")
+            .add("relativePeriodDate=2026-06-01");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"jUb8gELQApl\":{\"uid\":\"jUb8gELQApl\",\"code\":\"OU_204856\",\"name\":\"Kailahun\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"eIQbndfxQMb\":{\"uid\":\"eIQbndfxQMb\",\"code\":\"OU_268149\",\"name\":\"Tonkolili\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"Vth0fbpFcsO\":{\"uid\":\"Vth0fbpFcsO\",\"code\":\"OU_233310\",\"name\":\"Kono\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"O6uvpzGd5pu\":{\"uid\":\"O6uvpzGd5pu\",\"code\":\"OU_264\",\"name\":\"Bo\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"bL4ooGhyHRQ\":{\"uid\":\"bL4ooGhyHRQ\",\"code\":\"OU_260377\",\"name\":\"Pujehun\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"kJq2mPyFEHo\":{\"uid\":\"kJq2mPyFEHo\",\"code\":\"OU_222616\",\"name\":\"Kenema\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"hfdmMSPBgLG\":{\"uid\":\"hfdmMSPBgLG\",\"code\":\"DE_359599\",\"name\":\"ANC 4th or more visits\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"at6UHUQatSo\":{\"uid\":\"at6UHUQatSo\",\"code\":\"OU_278310\",\"name\":\"Western Area\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"dx\":{\"uid\":\"dx\",\"name\":\"Data\",\"dimensionType\":\"DATA_X\"},\"pq2XI5kz2BY\":{\"uid\":\"pq2XI5kz2BY\",\"code\":\"COC_167661\",\"name\":\"Fixed\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"2025\":{\"uid\":\"2025\",\"code\":\"2025\",\"name\":\"2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-01-01T00:00:00.000\",\"endDate\":\"2025-12-31T00:00:00.000\"},\"Jtf34kNZhzP\":{\"uid\":\"Jtf34kNZhzP\",\"code\":\"DE_359598\",\"name\":\"ANC 3rd visit\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"2024\":{\"uid\":\"2024\",\"code\":\"2024\",\"name\":\"2024\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2024-01-01T00:00:00.000\",\"endDate\":\"2024-12-31T00:00:00.000\"},\"PT59n8BQbqM\":{\"uid\":\"PT59n8BQbqM\",\"code\":\"COC_167660\",\"name\":\"Outreach\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"TEQlaapDQoK\":{\"uid\":\"TEQlaapDQoK\",\"code\":\"OU_254945\",\"name\":\"Port Loko\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"PMa2VCrupOd\":{\"uid\":\"PMa2VCrupOd\",\"code\":\"OU_211212\",\"name\":\"Kambia\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"2023\":{\"uid\":\"2023\",\"code\":\"2023\",\"name\":\"2023\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2023-01-01T00:00:00.000\",\"endDate\":\"2023-12-31T00:00:00.000\"},\"2022\":{\"uid\":\"2022\",\"code\":\"2022\",\"name\":\"2022\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2022-01-01T00:00:00.000\",\"endDate\":\"2022-12-31T00:00:00.000\"},\"2021\":{\"uid\":\"2021\",\"code\":\"2021\",\"name\":\"2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"},\"fbfJHSPpUQD\":{\"uid\":\"fbfJHSPpUQD\",\"code\":\"DE_359596\",\"name\":\"ANC 1st visit\",\"legendSet\":\"fqs276KXCXi\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"USER_ORGUNIT_CHILDREN\":{\"organisationUnits\":[\"at6UHUQatSo\",\"TEQlaapDQoK\",\"PMa2VCrupOd\",\"qhqAxPSTUXp\",\"kJq2mPyFEHo\",\"jmIPBj66vD6\",\"Vth0fbpFcsO\",\"jUb8gELQApl\",\"fdc6uOvgoji\",\"eIQbndfxQMb\",\"O6uvpzGd5pu\",\"lc3eMKXaEfw\",\"bL4ooGhyHRQ\"]},\"fdc6uOvgoji\":{\"uid\":\"fdc6uOvgoji\",\"code\":\"OU_193190\",\"name\":\"Bombali\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"cYeuwXTCPkU\":{\"uid\":\"cYeuwXTCPkU\",\"code\":\"DE_359597\",\"name\":\"ANC 2nd visit\",\"legendSet\":\"fqs276KXCXi\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"lc3eMKXaEfw\":{\"uid\":\"lc3eMKXaEfw\",\"code\":\"OU_197385\",\"name\":\"Bonthe\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"qhqAxPSTUXp\":{\"uid\":\"qhqAxPSTUXp\",\"code\":\"OU_226213\",\"name\":\"Koinadugu\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"jmIPBj66vD6\":{\"uid\":\"jmIPBj66vD6\",\"code\":\"OU_246990\",\"name\":\"Moyamba\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"cYeuwXTCPkU\",\"Jtf34kNZhzP\",\"hfdmMSPBgLG\",\"fbfJHSPpUQD\"],\"pe\":[\"2021\",\"2022\",\"2023\",\"2024\",\"2025\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "numerator",
+        "Numerator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "denominator",
+        "Denominator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "multiplier",
+        "Multiplier",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "hfdmMSPBgLG"),
+            Map.entry("ou", "jmIPBj66vD6"),
+            Map.entry("value", "20618"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 7
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "Jtf34kNZhzP"),
+            Map.entry("ou", "eIQbndfxQMb"),
+            Map.entry("value", "21178"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 14
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "cYeuwXTCPkU"),
+            Map.entry("ou", "lc3eMKXaEfw"),
+            Map.entry("value", "12854"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 21
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "hfdmMSPBgLG"),
+            Map.entry("ou", "PMa2VCrupOd"),
+            Map.entry("value", "9012"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 28
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "Jtf34kNZhzP"),
+            Map.entry("ou", "kJq2mPyFEHo"),
+            Map.entry("value", "44756"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 35
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "hfdmMSPBgLG"),
+            Map.entry("ou", "qhqAxPSTUXp"),
+            Map.entry("value", "7620"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 42
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "hfdmMSPBgLG"),
+            Map.entry("ou", "O6uvpzGd5pu"),
+            Map.entry("value", "26410"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 49
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "fbfJHSPpUQD"),
+            Map.entry("ou", "TEQlaapDQoK"),
+            Map.entry("value", "47546"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+
+    // Validate row exists with values from original row index 51
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.ofEntries(
+            Map.entry("dx", "Jtf34kNZhzP"),
+            Map.entry("ou", "Vth0fbpFcsO"),
+            Map.entry("value", "12956"),
+            Map.entry("numerator", ""),
+            Map.entry("denominator", ""),
+            Map.entry("factor", ""),
+            Map.entry("multiplier", ""),
+            Map.entry("divisor", "")));
+  }
 }
