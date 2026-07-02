@@ -62,7 +62,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettings;
@@ -120,8 +119,6 @@ public class AccountController {
   private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
   private final ConfigurationService configurationService;
-
-  private final PasswordManager passwordManager;
 
   private final SystemSettingsProvider settingsProvider;
 
@@ -444,72 +441,6 @@ public class AccountController {
       User user, String username, String password, HttpServletRequest request) {
     Set<GrantedAuthority> authorities = getAuthorities(user.getUserRoles());
     authenticate(username, password, authorities, request);
-  }
-
-  @PostMapping("/password")
-  public ResponseEntity<Map<String, String>> updatePassword(
-      @RequestParam String oldPassword,
-      @RequestParam String password,
-      @RequestParam String username,
-      HttpServletRequest request) {
-    Map<String, String> result = new HashMap<>();
-
-    if (username == null) {
-      username = (String) request.getSession().getAttribute("username");
-    }
-
-    User user = userService.getUserByUsername(username);
-
-    if (username == null) {
-      result.put("status", "NON_EXPIRED");
-      result.put("message", "Username is not valid, redirecting to login.");
-
-      return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
-    }
-
-    CredentialsInfo credentialsInfo =
-        new CredentialsInfo(user.getUsername(), password, user.getEmail(), false);
-
-    if (userService.userNonExpired(user)) {
-      result.put("status", "NON_EXPIRED");
-      result.put("message", "Account is not expired, redirecting to login.");
-
-      return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
-    }
-
-    if (!passwordManager.matches(oldPassword, user.getPassword())) {
-      result.put("status", "NON_MATCHING_PASSWORD");
-      result.put("message", "Old password is wrong, please correct and try again.");
-
-      return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
-    }
-
-    PasswordValidationResult passwordValidationResult =
-        passwordValidationService.validate(credentialsInfo);
-
-    if (!passwordValidationResult.isValid()) {
-      result.put("status", "PASSWORD_INVALID");
-      result.put("message", passwordValidationResult.getErrorMessage());
-
-      return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
-    }
-
-    if (password.trim().equals(username.trim())) {
-      result.put("status", "PASSWORD_EQUAL_TO_USERNAME");
-      result.put("message", "Password cannot be equal to username");
-
-      return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
-    }
-
-    userService.encodeAndSetPassword(user, password);
-    userService.updateUser(user, new SystemUser());
-
-    authenticate(username, password, getAuthorities(user.getUserRoles()), request);
-
-    result.put("status", "OK");
-    result.put("message", "Account was updated.");
-
-    return ResponseEntity.ok().cacheControl(noStore()).body(result);
   }
 
   @GetMapping("/linkedAccounts")

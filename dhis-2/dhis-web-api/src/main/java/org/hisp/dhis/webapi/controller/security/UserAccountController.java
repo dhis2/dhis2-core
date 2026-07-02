@@ -47,6 +47,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.HiddenNotFoundException;
+import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -54,6 +55,7 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserConstants;
@@ -90,6 +92,7 @@ public class UserAccountController {
   private final UserAccountService userAccountService;
   private final PasswordValidationService passwordValidationService;
   private final DhisConfigurationProvider configurationProvider;
+  private final PasswordManager passwordManager;
 
   @PostMapping("/forgotPassword")
   @ResponseStatus(HttpStatus.OK)
@@ -175,6 +178,83 @@ public class UserAccountController {
     }
 
     log.info("Password was reset for user: {}", user.getUsername());
+  }
+
+  /**
+   * Self-service change of an <b>expired</b> password. This replaced the removed legacy form-param
+   * {@code POST /api/account/password}. The caller is not logged in, so the endpoint is
+   * self-guarding: it only proceeds for an expired account whose current password is supplied
+   * correctly. It deliberately does not establish a session — once the password is changed the
+   * account is no longer expired, so the frontend calls the existing {@code auth/login} to log in.
+   *
+   * <p>The current-password check runs <b>before</b> the expiry check, so {@code "Account is not
+   * expired"} can only be observed by a caller who already knows the password (no username
+   * enumeration), and repeated attempts against one account are throttled via the shared
+   * account-recovery lockout (mirrors {@code forgotPassword}).
+   */
+  @PostMapping("/updatePassword")
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage updatePassword(@RequestBody UpdatePasswordRequest request)
+      throws BadRequestException, ForbiddenException {
+
+    String username = request.getUsername();
+    String oldPassword = request.getOldPassword();
+    String newPassword = request.getNewPassword();
+
+    if (StringUtils.isBlank(username)
+        || StringUtils.isBlank(oldPassword)
+        || StringUtils.isBlank(newPassword)) {
+      throw new BadRequestException("Username, old password and new password are required");
+    }
+
+    User user = userService.getUserByUsername(username);
+    // Generic message on purpose: do not reveal whether the username exists.
+    if (user == null) {
+      throw new BadRequestException("Invalid username or password");
+    }
+
+    // Throttle repeated attempts against a single account (brute-force protection), reusing the
+    // account-recovery lockout. Registers an attempt and rejects once the threshold is exceeded.
+    checkRecoveryLock(user.getUsername());
+
+    // Caller must know the current (expired) password. Checked before the expiry guard below so
+    // that "Account is not expired" can only be observed by someone who knows the password.
+    if (!passwordManager.matches(oldPassword, user.getPassword())) {
+      throw new BadRequestException("Invalid username or password");
+    }
+
+    // This self-service path is ONLY for expired accounts.
+    if (userService.userNonExpired(user)) {
+      throw new BadRequestException("Account is not expired");
+    }
+
+    if (newPassword.trim().equals(username.trim())) {
+      throw new BadRequestException("Password cannot be equal to username");
+    }
+
+    // The stored hash is still the old password here, so this rejects an unchanged password.
+    if (passwordManager.matches(newPassword, user.getPassword())) {
+      throw new BadRequestException("New password must be different from the old password");
+    }
+
+    CredentialsInfo credentialsInfo =
+        CredentialsInfo.builder()
+            .username(user.getUsername())
+            .password(newPassword)
+            .email(StringUtils.trimToEmpty(user.getEmail()))
+            .newUser(false)
+            .build();
+
+    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
+    if (!result.isValid()) {
+      throw new BadRequestException(result.getErrorMessage());
+    }
+
+    userService.encodeAndSetPassword(user, newPassword);
+    userService.updateUser(user, new SystemUser());
+
+    log.info("Expired password updated for user: {}", user.getUsername());
+    return ok("Password updated");
   }
 
   @PostMapping("/registration")
