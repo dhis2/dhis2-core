@@ -80,8 +80,9 @@ class BlockEntryFormAfterCompletionValidatorTest {
   @Test
   void shouldFailWhenEventIsCompletedAndSavedStatusIsCompletedAndBlockEntryFormIsEnabled() {
     stubProgramStage(true);
-    UID uid = UID.generate();
+    String uid = CodeGenerator.generateUid();
     Event event = event(uid, EventStatus.COMPLETED);
+    stubSavedEvent(uid, EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
 
@@ -108,7 +109,7 @@ class BlockEntryFormAfterCompletionValidatorTest {
   void shouldPassWhenEventIsCompletedAndSavedStatusIsCompletedButBlockEntryFormIsDisabled() {
     stubProgramStage(false);
     String uid = CodeGenerator.generateUid();
-    stubSavedEvent(uid, EventStatus.COMPLETED);
+
     Event event = event(uid, EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
@@ -123,7 +124,7 @@ class BlockEntryFormAfterCompletionValidatorTest {
       names = {"COMPLETED"})
   void shouldPassWhenBlockEntryFormIsEnabledButEventIsNotCompleted(EventStatus status) {
     stubProgramStage(true);
-    UID uid = UID.generate();
+    String uid = CodeGenerator.generateUid();
     Event event = event(uid, status);
 
     validator.validate(reporter, bundle, event);
