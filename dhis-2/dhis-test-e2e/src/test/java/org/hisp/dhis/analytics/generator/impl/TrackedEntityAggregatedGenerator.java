@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.e2e.actions.analytics;
+package org.hisp.dhis.analytics.generator.impl;
 
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
-import org.hisp.dhis.test.e2e.dto.ApiResponse;
-import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.hisp.dhis.analytics.generator.Generator;
 
 /**
- * Provides tracked entities endpoints/operations associated to the parent
- * "analytics/trackedEntities".
- *
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Set of behavior and settings required by the test generation of
+ * "/analytics/trackedEntities/aggregate/{trackedEntityType}?" endpoint.
  */
-public class AnalyticsTrackedEntityActions extends RestApiActions {
-  public AnalyticsTrackedEntityActions() {
-    super("/analytics/trackedEntities");
+public class TrackedEntityAggregatedGenerator implements Generator {
+  private String[] scenarios = new String[] {};
+
+  public TrackedEntityAggregatedGenerator() {}
+
+  public TrackedEntityAggregatedGenerator(String... scenarios) {
+    this.scenarios = scenarios;
   }
 
-  public AnalyticsTrackedEntityActions(String endpoint) {
-    super("/analytics/trackedEntities" + endpoint);
+  @Override
+  public String[] getScenarios() {
+    return scenarios;
   }
 
-  public AnalyticsTrackedEntityActions query() {
-    return new AnalyticsTrackedEntityActions("/query");
+  @Override
+  public int getMaxTestsPerClass() {
+    return 4;
   }
 
-  public AnalyticsTrackedEntityActions aggregate() {
-    return new AnalyticsTrackedEntityActions("/aggregate");
+  @Override
+  public String getAction() {
+    return "aggregate";
   }
 
-  public ApiResponse getDimensions(String trackedEntityType, QueryParamsBuilder queryParams) {
-    if (queryParams == null) {
-      queryParams = new QueryParamsBuilder();
-    }
+  @Override
+  public String getClassNamePrefix() {
+    return "TrackedEntityAggregate";
+  }
 
-    queryParams.add("trackedEntityType", trackedEntityType);
+  @Override
+  public String getScenarioFile() {
+    return "tracked-entity-aggregated.json";
+  }
 
-    return this.get("/dimensions", queryParams);
+  @Override
+  public String getActionDeclaration() {
+    return "private AnalyticsTrackedEntityActions actions = new AnalyticsTrackedEntityActions();";
+  }
+
+  @Override
+  public String getPackage() {
+    return "org.hisp.dhis.analytics.trackedentity";
+  }
+
+  @Override
+  public String getTopClassComment() {
+    return "Groups e2e tests for \"/trackedEntities/aggregate\" endpoint.";
+  }
+
+  @Override
+  public boolean assertMetaData() {
+    return true;
+  }
+
+  @Override
+  public boolean assertRowIndex() {
+    return true;
   }
 }
