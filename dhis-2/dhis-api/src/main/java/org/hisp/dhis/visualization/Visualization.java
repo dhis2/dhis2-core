@@ -1181,7 +1181,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * @return the name or the UID.
    */
   static String extractDimensionName(Map<String, String> metaData, String dimensionId) {
-    return metaData.get(dimensionId) != null
+    return dimensionId != null && metaData.get(dimensionId) != null
         ? defaultIfBlank(metaData.get(dimensionId), dimensionId)
         : dimensionId;
   }

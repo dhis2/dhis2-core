@@ -53,11 +53,20 @@ class VisualizationTest {
   }
 
   @Test
-  void extractDimensionWhenNameIsNull() {
-    Map<String, String> metaData = Map.of("uid1", null);
+  void extractDimensionWhenNameIsEmpty() {
+    Map<String, String> metaData = Map.of("uid1", "");
 
     String value = Visualization.extractDimensionName(metaData, "uid1");
 
     assertEquals("uid1", value);
+  }
+
+  @Test
+  void extractDimensionWhenDimensionIdIsNull() {
+    Map<String, String> metaData = Map.of("uid1", "");
+
+    String value = Visualization.extractDimensionName(metaData, null);
+
+    assertEquals(null, value);
   }
 }
