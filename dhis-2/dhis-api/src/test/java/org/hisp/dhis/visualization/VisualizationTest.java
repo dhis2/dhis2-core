@@ -67,6 +67,6 @@ class VisualizationTest {
 
     String value = Visualization.extractDimensionName(metaData, null);
 
-    assertEquals(null, value);
+    assertNull(value);
   }
 }
