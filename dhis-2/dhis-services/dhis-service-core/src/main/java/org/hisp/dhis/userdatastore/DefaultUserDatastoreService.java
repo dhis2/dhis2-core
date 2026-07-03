@@ -79,6 +79,7 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
   @Override
   @Transactional
   public void updateEntry(
+      long userId,
       @Nonnull String ns,
       @Nonnull String key,
       @CheckForNull String value,
@@ -86,7 +87,7 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
       @CheckForNull Integer roll)
       throws BadRequestException {
     validateEntry(key, value);
-    store.updateEntry(ns, key, value, path, roll);
+    store.updateEntry(userId, ns, key, value, path, roll);
   }
 
   @Override
