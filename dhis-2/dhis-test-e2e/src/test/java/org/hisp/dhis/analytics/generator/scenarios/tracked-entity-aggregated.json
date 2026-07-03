@@ -1,0 +1,11 @@
+{
+  "scenarios": [
+    {
+      "name": "EXAMPLE",
+      "query": "/api/analytics/trackedEntities/aggregate/PROGRAM.json?PARAMS",
+      "version": {
+        "min": 44
+      }
+    }
+  ]
+}
