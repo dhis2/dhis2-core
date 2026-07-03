@@ -80,34 +80,39 @@ class BlockEntryFormAfterCompletionValidatorTest {
   }
 
   @Test
-  void shouldFailWhenTrackerEventIsCompletedAndBlockEntryFormIsEnabled() {
+  void shouldFailWhenEventIsCompletedAndSavedStatusIsCompletedAndBlockEntryFormIsEnabled() {
     stubProgramStage(true);
-    Event event = trackerEvent(EventStatus.COMPLETED);
+    UID uid = UID.generate();
+    stubSavedEvent(uid, EventStatus.COMPLETED);
+    Event event = event(uid, EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1326);
   }
 
-  @Test
-  void shouldFailWhenSingleEventIsCompletedAndBlockEntryFormIsEnabled() {
+  @ParameterizedTest
+  @EnumSource(
+      value = EventStatus.class,
+      mode = Mode.EXCLUDE,
+      names = {"COMPLETED"})
+  void shouldPassWhenEventIsCompletedButSavedStatusIsNotCompleted(EventStatus savedStatus) {
     stubProgramStage(true);
-    Event event =
-        Event.builder()
-            .event(UID.generate())
-            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
-            .status(EventStatus.COMPLETED)
-            .build();
+    UID uid = UID.generate();
+    stubSavedEvent(uid, savedStatus);
+    Event event = event(uid, EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, E1326);
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
-  void shouldPassWhenEventIsCompletedButBlockEntryFormIsDisabled() {
+  void shouldPassWhenEventIsCompletedAndSavedStatusIsCompletedButBlockEntryFormIsDisabled() {
     stubProgramStage(false);
-    Event event = trackerEvent(EventStatus.COMPLETED);
+    UID uid = UID.generate();
+    stubSavedEvent(uid, EventStatus.COMPLETED);
+    Event event = event(uid, EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
 
@@ -121,7 +126,9 @@ class BlockEntryFormAfterCompletionValidatorTest {
       names = {"COMPLETED"})
   void shouldPassWhenBlockEntryFormIsEnabledButEventIsNotCompleted(EventStatus status) {
     stubProgramStage(true);
-    Event event = trackerEvent(status);
+    UID uid = UID.generate();
+    stubSavedEvent(uid, EventStatus.COMPLETED);
+    Event event = event(uid, status);
 
     validator.validate(reporter, bundle, event);
 
@@ -144,9 +151,15 @@ class BlockEntryFormAfterCompletionValidatorTest {
         .thenReturn(programStage);
   }
 
-  private Event trackerEvent(EventStatus status) {
+  private void stubSavedEvent(UID uid, EventStatus status) {
+    org.hisp.dhis.program.Event savedEvent = new org.hisp.dhis.program.Event();
+    savedEvent.setStatus(status);
+    when(preheat.getEvent(uid)).thenReturn(savedEvent);
+  }
+
+  private Event event(UID uid, EventStatus status) {
     return Event.builder()
-        .event(UID.generate())
+        .event(uid)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
         .status(status)
         .build();
