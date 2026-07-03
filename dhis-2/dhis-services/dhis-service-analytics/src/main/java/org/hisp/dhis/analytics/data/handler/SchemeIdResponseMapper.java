@@ -32,7 +32,9 @@ import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSchemeMap;
+import static org.hisp.dhis.common.IdScheme.ID;
 import static org.hisp.dhis.common.IdScheme.NAME;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 
 import java.util.List;
@@ -136,7 +138,8 @@ public class SchemeIdResponseMapper {
   public Map<String, String> getSchemeIdResponseMap(CommonParams params) {
     Map<String, String> map =
         getDimensionItemIdSchemeMap(
-            params.delegate().getAllDimensionalItemObjects(), params.getOutputIdScheme());
+            params.delegate().getAllDimensionalItemObjects(),
+            getValidScheme(params.getOutputIdScheme()));
 
     // Apply general output ID scheme
     if (params.isGeneralOutputIdSchemeSet()) {
@@ -158,6 +161,21 @@ public class SchemeIdResponseMapper {
     }
 
     return map;
+  }
+
+  /**
+   * It returns a valid IdScheme, switching ID by UID if applicable. IDs cannot be exposed to users
+   * as they are internal PKs at database level.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @return the {@link IdScheme}.
+   */
+  public static IdScheme getValidScheme(IdScheme idScheme) {
+    if (idScheme == ID) {
+      return UID;
+    }
+
+    return idScheme;
   }
 
   /**
@@ -200,11 +218,11 @@ public class SchemeIdResponseMapper {
 
         if (header.hasOptionSet()) {
           Map<String, String> optionMap =
-              getOptionCodePropertyMap(header.getOptionSetObject(), idScheme);
+              getOptionCodePropertyMap(header.getOptionSetObject(), getValidScheme(idScheme));
           grid.substituteMetaData(i, i, optionMap);
         } else if (header.hasLegendSet()) {
           Map<String, String> legendMap =
-              header.getLegendSetObject().getLegendUidPropertyMap(idScheme);
+              header.getLegendSetObject().getLegendUidPropertyMap(getValidScheme(idScheme));
           grid.substituteMetaData(i, i, legendMap);
         }
       }
@@ -233,7 +251,9 @@ public class SchemeIdResponseMapper {
   private static Map<String, String> getOptionCodePropertyMap(OptionSet set, IdScheme idScheme) {
     return set.getOptions().stream()
         .filter(Objects::nonNull)
-        .collect(Collectors.toMap(Option::getCode, o -> o.getDisplayPropertyValue(idScheme)));
+        .collect(
+            Collectors.toMap(
+                Option::getCode, o -> o.getDisplayPropertyValue(getValidScheme(idScheme))));
   }
 
   private Map<String, String> getBooleanPropertyMap() {
@@ -251,13 +271,17 @@ public class SchemeIdResponseMapper {
   private void applyIdSchemeMapping(CommonParams params, Map<String, String> map) {
     if (isNotEmpty(params.getPrograms())) {
       for (Program program : params.getPrograms()) {
-        map.put(program.getUid(), program.getDisplayPropertyValue(params.getOutputIdScheme()));
+        map.put(
+            program.getUid(),
+            program.getDisplayPropertyValue(getValidScheme(params.getOutputIdScheme())));
       }
     }
 
     if (isNotEmpty(params.delegate().getProgramStages())) {
       for (ProgramStage stage : params.delegate().getProgramStages()) {
-        map.put(stage.getUid(), stage.getDisplayPropertyValue(params.getOutputIdScheme()));
+        map.put(
+            stage.getUid(),
+            stage.getDisplayPropertyValue(getValidScheme(params.getOutputIdScheme())));
       }
     }
 
@@ -265,7 +289,9 @@ public class SchemeIdResponseMapper {
       Set<Option> options = params.delegate().getItemsOptions();
 
       for (Option option : options) {
-        map.put(option.getCode(), option.getDisplayPropertyValue(params.getOutputIdScheme()));
+        map.put(
+            option.getCode(),
+            option.getDisplayPropertyValue(getValidScheme(params.getOutputIdScheme())));
       }
     }
   }
@@ -281,18 +307,21 @@ public class SchemeIdResponseMapper {
   private void applyIdSchemeMapping(DataQueryParams params, Map<String, String> map) {
     map.putAll(
         getDataElementOperandIdSchemeMap(
-            asTypedList(params.getDataElementOperands()), params.getOutputIdScheme()));
+            asTypedList(params.getDataElementOperands()),
+            getValidScheme(params.getOutputIdScheme())));
 
     if (params.hasProgram()) {
       map.put(
           params.getProgram().getUid(),
-          params.getProgram().getDisplayPropertyValue(params.getOutputIdScheme()));
+          params.getProgram().getDisplayPropertyValue(getValidScheme(params.getOutputIdScheme())));
     }
 
     if (params.hasProgramStage()) {
       map.put(
           params.getProgramStage().getUid(),
-          params.getProgramStage().getDisplayPropertyValue(params.getOutputIdScheme()));
+          params
+              .getProgramStage()
+              .getDisplayPropertyValue(getValidScheme(params.getOutputIdScheme())));
     }
 
     if (params instanceof EventQueryParams
@@ -300,7 +329,9 @@ public class SchemeIdResponseMapper {
       Set<Option> options = ((EventQueryParams) params).getItemOptions();
 
       for (Option option : options) {
-        map.put(option.getCode(), option.getDisplayPropertyValue(params.getOutputIdScheme()));
+        map.put(
+            option.getCode(),
+            option.getDisplayPropertyValue(getValidScheme(params.getOutputIdScheme())));
       }
     }
   }
@@ -309,7 +340,8 @@ public class SchemeIdResponseMapper {
       DataQueryParams params, Map<String, String> map) {
     map.putAll(
         getDataElementOperandIdSchemeMap(
-            asTypedList(params.getDataElementOperands()), params.getOutputDataElementIdScheme()));
+            asTypedList(params.getDataElementOperands()),
+            getValidScheme(params.getOutputDataElementIdScheme())));
   }
 
   /**
@@ -324,7 +356,9 @@ public class SchemeIdResponseMapper {
       Map<String, String> map,
       IdScheme outputIdScheme) {
     if (!dimensionalItemObjects.isEmpty()) {
-      map.putAll(getDimensionItemIdSchemeMap(asTypedList(dimensionalItemObjects), outputIdScheme));
+      map.putAll(
+          getDimensionItemIdSchemeMap(
+              asTypedList(dimensionalItemObjects), getValidScheme(outputIdScheme)));
     }
   }
 }

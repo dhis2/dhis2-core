@@ -538,7 +538,7 @@ class SchemeIdResponseMapperTest {
     CategoryOptionCombo categoryOptionComboC =
         dataElementOperandsStub.get(0).getCategoryOptionCombo();
 
-    assertThat(responseMap.get(orgUnitUid), is(equalTo(valueOf(orUnitStub.getId()))));
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(valueOf(orUnitStub.getUid()))));
     assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
     assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
     assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getCode())));
