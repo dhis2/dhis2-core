@@ -28,7 +28,7 @@
 name: single_events_null_occurred_date
 description: Single events without an occurred date
 section: Programs
-section_order: 3
+section_order: 6
 summary_sql: >-
   WITH rs as (
   SELECT e.uid

@@ -1,0 +1,102 @@
+# Copyright (c) 2004-2025, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: tracked_entity_attribute_null_value
+description: Tracked entity attribute value with no plain text value
+section: Programs
+section_order: 7
+summary_sql: >-
+  WITH rs as (
+  SELECT teav.trackedentityid, teav.trackedentityattributeid
+  FROM trackedentityattributevalue teav
+  WHERE teav.value IS NULL OR teav.value = ''
+  )
+  SELECT COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) from trackedentityattributevalue),0) as percent
+  from rs;
+details_sql: >-
+  SELECT
+    te.uid as uid,
+    te.uid || ' / ' || tea.name as name,
+    CASE
+      WHEN teav.encryptedvalue IS NOT NULL
+        THEN 'Attribute "' || tea.name || '" (' || tea.uid ||
+             ') has an encrypted value but no plain text value'
+      ELSE 'Attribute "' || tea.name || '" (' || tea.uid ||
+           ') has no value'
+    END AS comment
+  FROM trackedentityattributevalue teav
+  INNER JOIN trackedentity te ON te.trackedentityid = teav.trackedentityid
+  INNER JOIN trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
+  WHERE teav.value IS NULL OR teav.value = '';
+severity: SEVERE
+introduction: >
+  A tracked entity attribute value should always have a plain text value stored in the `value` column.
+  Some values only have an `encryptedvalue` and an empty or null `value`. This happened for attributes
+  that were marked as confidential, whose values were stored encrypted only.
+
+  Support for marking tracked entity attributes as confidential will be removed in version 2.44, and
+  such attributes are automatically migrated to `skipAnalytics = true`. That migration cannot recover the
+  plain text of values that were stored encrypted only, so any tracked entity attribute value that has an
+  encrypted value but no plain text value must be resolved before upgrading. This check must pass in order
+  to be able to upgrade to v44 and later.
+details_id_type: tracker
+recommendation: >-
+  For each flagged tracked entity attribute value you need to either restore a plain text value or delete
+  the value. How you proceed depends on whether an encrypted value is present (see the comment for each row).
+
+  Case 1 - the value has an encrypted value but no plain text value (previously confidential):
+  The plain text cannot be recovered by DHIS2 itself. You have two options.
+
+  Option A - recover the plain text value. This requires access to the encryption key that was configured
+  in `dhis.conf` (the `encryption.password` property) at the time the value was stored, and decrypting the
+  `encryptedvalue` outside of DHIS2. If you need the historical values preserved, please reach out on the
+  DHIS2 Community of Practice forum at https://community.dhis2.org for assistance before upgrading.
+
+  Option B - delete the encrypted-only values if you do not need them:
+
+  DELETE FROM trackedentityattributevalue
+  WHERE encryptedvalue IS NOT NULL
+  AND (value IS NULL OR value = '');
+
+  Case 2 - the value has neither a plain text value nor an encrypted value:
+  These are empty rows that carry no information and can be deleted:
+
+  DELETE FROM trackedentityattributevalue
+  WHERE encryptedvalue IS NULL
+  AND (value IS NULL OR value = '');
+
+  As is always the case with direct database manipulation, you should ensure that you have a backup of your
+  database before running these commands, ensure that DHIS2 is not running, and perform the change in a test
+  environment first.
+
+  After applying the fix, restart DHIS2 and re-run the integrity check to ensure that no tracked entity
+  attribute values are flagged.
+
+  If you are unsure how to proceed or encounter issues, please feel free to reach out on the DHIS2 Community
+  of Practice forum at https://community.dhis2.org.
+is_slow: true
