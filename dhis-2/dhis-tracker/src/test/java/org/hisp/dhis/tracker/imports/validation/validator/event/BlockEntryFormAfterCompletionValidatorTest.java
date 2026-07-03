@@ -141,7 +141,6 @@ class BlockEntryFormAfterCompletionValidatorTest {
   void shouldPassWhenTrackerEventIsCompletedAndSavedStatusIsCompletedButBlockEntryFormIsDisabled() {
     stubProgramStage(false);
     UID uid = UID.generate();
-    stubSavedTrackerEvent(uid, EventStatus.COMPLETED);
     Event event = trackerEvent(uid, EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
@@ -157,7 +156,6 @@ class BlockEntryFormAfterCompletionValidatorTest {
   void shouldPassWhenBlockEntryFormIsEnabledButTrackerEventIsNotCompleted(EventStatus status) {
     stubProgramStage(true);
     UID uid = UID.generate();
-    stubSavedTrackerEvent(uid, EventStatus.COMPLETED);
     Event event = trackerEvent(uid, status);
 
     validator.validate(reporter, bundle, event);
@@ -169,7 +167,6 @@ class BlockEntryFormAfterCompletionValidatorTest {
   void shouldPassWhenSingleEventIsCompletedAndSavedStatusIsCompletedButBlockEntryFormIsDisabled() {
     stubProgramStage(false);
     UID uid = UID.generate();
-    stubSavedSingleEvent(uid, EventStatus.COMPLETED);
     Event event = singleEvent(uid, EventStatus.COMPLETED);
 
     validator.validate(reporter, bundle, event);
@@ -185,7 +182,6 @@ class BlockEntryFormAfterCompletionValidatorTest {
   void shouldPassWhenBlockEntryFormIsEnabledButSingleEventIsNotCompleted(EventStatus status) {
     stubProgramStage(true);
     UID uid = UID.generate();
-    stubSavedSingleEvent(uid, EventStatus.COMPLETED);
     Event event = singleEvent(uid, status);
 
     validator.validate(reporter, bundle, event);
