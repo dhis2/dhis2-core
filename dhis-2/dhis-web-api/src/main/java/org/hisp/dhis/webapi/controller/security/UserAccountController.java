@@ -36,30 +36,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.HiddenNotFoundException;
-import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CredentialsInfo;
-import org.hisp.dhis.user.PasswordValidationResult;
-import org.hisp.dhis.user.PasswordValidationService;
-import org.hisp.dhis.user.RestoreOptions;
-import org.hisp.dhis.user.RestoreType;
-import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
-import org.hisp.dhis.user.UserConstants;
-import org.hisp.dhis.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -88,172 +74,34 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class UserAccountController {
 
-  private final UserService userService;
   private final UserAccountService userAccountService;
-  private final PasswordValidationService passwordValidationService;
-  private final DhisConfigurationProvider configurationProvider;
-  private final PasswordManager passwordManager;
 
   @PostMapping("/forgotPassword")
   @ResponseStatus(HttpStatus.OK)
-  public void forgotPassword(@RequestBody ForgotPasswordRequest request, SystemSettings settings)
+  public void forgotPassword(@RequestBody ForgotPasswordRequest request)
       throws HiddenNotFoundException, ConflictException, ForbiddenException {
-
-    if (!settings.getAccountRecoveryEnabled()) {
-      throw new ConflictException("Account recovery is not enabled");
-    }
-
-    String baseUrl = configurationProvider.getServerBaseUrl();
-    if (StringUtils.isEmpty(baseUrl)) {
-      throw new ConflictException("Server base URL is not configured");
-    }
-
-    User user = getUser(request.getEmailOrUsername());
-
-    checkRecoveryLock(user.getUsername());
-
-    ErrorCode errorCode = userService.validateRestore(user);
-    if (errorCode != null) {
-      log.warn("Validate email restore failed: {}", errorCode);
-      throw new HiddenNotFoundException("Validate failed: " + errorCode);
-    }
-
-    if (!userService.sendRestoreOrInviteMessage(
-        user, baseUrl, RestoreOptions.RECOVER_PASSWORD_OPTION)) {
-      throw new ConflictException("Account could not be recovered");
-    }
-
-    log.info("Forgot email was sent to user: {}", user.getUsername());
+    userAccountService.forgotPassword(request.getEmailOrUsername());
   }
 
   @PostMapping("/passwordReset")
   @ResponseStatus(HttpStatus.OK)
-  public void resetPassword(@RequestBody ResetPasswordRequest request, SystemSettings settings)
+  public void resetPassword(@RequestBody ResetPasswordRequest request)
       throws ConflictException, BadRequestException {
-
-    if (!settings.getAccountRecoveryEnabled()) {
-      throw new ConflictException("Account recovery is not enabled");
-    }
-
-    String token = request.getToken();
-    String newPassword = request.getNewPassword();
-
-    if (StringUtils.isBlank(token)) {
-      throw new BadRequestException("Token is required");
-    }
-    if (StringUtils.isBlank(newPassword)) {
-      throw new BadRequestException("New password is required");
-    }
-
-    String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
-    String idToken = idAndRestoreToken[0];
-
-    User user = userService.getUserByIdToken(idToken);
-    if (user == null || idAndRestoreToken.length < 2 || user.isExternalAuth()) {
-      throw new ConflictException("Account recovery failed");
-    }
-
-    String restoreToken = idAndRestoreToken[1];
-
-    if (newPassword.trim().equals(user.getUsername())) {
-      throw new BadRequestException("Password cannot be equal to username");
-    }
-
-    CredentialsInfo credentialsInfo =
-        CredentialsInfo.builder()
-            .username(user.getUsername())
-            .password(newPassword)
-            .email(StringUtils.trimToEmpty(user.getEmail()))
-            .newUser(false)
-            .build();
-
-    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
-    if (!result.isValid()) {
-      throw new BadRequestException(result.getErrorMessage());
-    }
-
-    if (!userService.restore(user, restoreToken, newPassword, RestoreType.RECOVER_PASSWORD)) {
-      throw new BadRequestException(
-          "Account could not be restored for user: " + user.getUsername());
-    }
-
-    log.info("Password was reset for user: {}", user.getUsername());
+    userAccountService.resetPassword(request.getToken(), request.getNewPassword());
   }
 
   /**
-   * Self-service change of an <b>expired</b> password. This replaced the removed legacy form-param
-   * {@code POST /api/account/password}. The caller is not logged in, so the endpoint is
-   * self-guarding: it only proceeds for an expired account whose current password is supplied
-   * correctly. It deliberately does not establish a session — once the password is changed the
-   * account is no longer expired, so the frontend calls the existing {@code auth/login} to log in.
-   *
-   * <p>The current-password check runs <b>before</b> the expiry check, so {@code "Account is not
-   * expired"} can only be observed by a caller who already knows the password (no username
-   * enumeration), and repeated attempts against one account are throttled via the shared
-   * account-recovery lockout (mirrors {@code forgotPassword}).
+   * Self-service change of an <b>expired</b> password, see {@link
+   * UserAccountService#updateExpiredPassword}. This replaced the removed legacy form-param {@code
+   * POST /api/account/password}. Reachable without authentication ({@code permitAll}) since a user
+   * with an expired password cannot log in; the service flow is self-guarding.
    */
   @PostMapping("/updatePassword")
   @ResponseStatus(HttpStatus.OK)
   public WebMessage updatePassword(@RequestBody UpdatePasswordRequest request)
       throws BadRequestException, ForbiddenException {
-
-    String username = request.getUsername();
-    String oldPassword = request.getOldPassword();
-    String newPassword = request.getNewPassword();
-
-    if (StringUtils.isBlank(username)
-        || StringUtils.isBlank(oldPassword)
-        || StringUtils.isBlank(newPassword)) {
-      throw new BadRequestException("Username, old password and new password are required");
-    }
-
-    User user = userService.getUserByUsername(username);
-    // Generic message on purpose: do not reveal whether the username exists.
-    if (user == null) {
-      throw new BadRequestException("Invalid username or password");
-    }
-
-    // Throttle repeated attempts against a single account (brute-force protection), reusing the
-    // account-recovery lockout. Registers an attempt and rejects once the threshold is exceeded.
-    checkRecoveryLock(user.getUsername());
-
-    // Caller must know the current (expired) password. Checked before the expiry guard below so
-    // that "Account is not expired" can only be observed by someone who knows the password.
-    if (!passwordManager.matches(oldPassword, user.getPassword())) {
-      throw new BadRequestException("Invalid username or password");
-    }
-
-    // This self-service path is ONLY for expired accounts.
-    if (userService.userNonExpired(user)) {
-      throw new BadRequestException("Account is not expired");
-    }
-
-    if (newPassword.trim().equals(username.trim())) {
-      throw new BadRequestException("Password cannot be equal to username");
-    }
-
-    // The stored hash is still the old password here, so this rejects an unchanged password.
-    if (passwordManager.matches(newPassword, user.getPassword())) {
-      throw new BadRequestException("New password must be different from the old password");
-    }
-
-    CredentialsInfo credentialsInfo =
-        CredentialsInfo.builder()
-            .username(user.getUsername())
-            .password(newPassword)
-            .email(StringUtils.trimToEmpty(user.getEmail()))
-            .newUser(false)
-            .build();
-
-    PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
-    if (!result.isValid()) {
-      throw new BadRequestException(result.getErrorMessage());
-    }
-
-    userService.encodeAndSetPassword(user, newPassword);
-    userService.updateUser(user, new SystemUser());
-
-    log.info("Expired password updated for user: {}", user.getUsername());
+    userAccountService.updateExpiredPassword(
+        request.getUsername(), request.getOldPassword(), request.getNewPassword());
     return ok("Password updated");
   }
 
@@ -282,33 +130,5 @@ public class UserAccountController {
 
     log.info("Invite confirmation successful");
     return ok("Account updated");
-  }
-
-  private void checkRecoveryLock(String username) throws ForbiddenException {
-    if (userService.isRecoveryLocked(username)) {
-      throw new ForbiddenException(
-          "The account recovery operation for the given user is temporarily locked due to too "
-              + "many calls to this endpoint in the last '"
-              + UserConstants.RECOVERY_LOCKOUT_MINS
-              + "' minutes. Username:"
-              + username);
-    } else {
-      userService.registerRecoveryAttempt(username);
-    }
-  }
-
-  private User getUser(String emailOrUsername) throws HiddenNotFoundException {
-    User user;
-
-    if (ValidationUtils.emailIsValid(emailOrUsername)) {
-      user = userService.getUserByEmail(emailOrUsername);
-    } else {
-      user = userService.getUserByUsername(emailOrUsername);
-    }
-    if (user == null) {
-      throw new HiddenNotFoundException("User does not exist: " + emailOrUsername);
-    }
-
-    return user;
   }
 }
