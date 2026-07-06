@@ -618,7 +618,9 @@ public abstract class AbstractFullReadOnlyController<
         new RelativePropertyContext(getEntityClass(), schemaService::getSchema);
     for (Fields.Field f : Fields.of(params.getFieldsJsonList())) {
       if (f.isPreset()) return false;
+      Property leaf = context.resolve(f.propertyPath());
       // TODO handle attribute picks
+      if (leaf == null) return false; // give up if we cannot find the property
       List<Property> path = context.resolvePath(f.propertyPath());
       if (path.size() > 2) return false;
       if (!canPropertyUseGistBridge(f, path.get(path.size() - 1), context)) return false;
@@ -629,8 +631,15 @@ public abstract class AbstractFullReadOnlyController<
       }
     }
     String filter = request.getParameter("filter");
-    if (filter == null) return true;
-    return !filter.contains("token") && !filter.contains("display");
+    if (filter != null) if (filter.contains("token") || filter.contains("display")) return false;
+
+    String order = request.getParameter("order");
+    if (order != null)
+      if (order.contains("iasc")
+          || order.contains("idesc")
+          || order.contains("IASC")
+          || order.contains("IDESC")) return false;
+    return true;
   }
 
   private static boolean canPropertyUseGistBridge(
