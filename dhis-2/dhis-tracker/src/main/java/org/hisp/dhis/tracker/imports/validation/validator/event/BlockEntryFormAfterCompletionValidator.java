@@ -36,6 +36,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -54,10 +56,29 @@ class BlockEntryFormAfterCompletionValidator implements Validator<Event> {
 
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
 
-    if (EventStatus.COMPLETED == event.getStatus()
-        && Boolean.TRUE.equals(programStage.getBlockEntryForm())) {
+    if (Boolean.TRUE.equals(programStage.getBlockEntryForm())
+        && EventStatus.COMPLETED == event.getStatus()
+        && EventStatus.COMPLETED == getSavedStatus(event, preheat)) {
       reporter.addError(event, E1326, event.getEvent());
     }
+  }
+
+  private EventStatus getSavedStatus(Event event, TrackerPreheat preheat) {
+    if (event instanceof TrackerEvent) {
+      org.hisp.dhis.tracker.model.TrackerEvent trackerEvent =
+          preheat.getTrackerEvent(event.getUID());
+      if (trackerEvent != null) {
+        return trackerEvent.getStatus();
+      }
+    }
+
+    if (event instanceof SingleEvent) {
+      org.hisp.dhis.tracker.model.SingleEvent singleEvent = preheat.getSingleEvent(event.getUID());
+      if (singleEvent != null) {
+        return singleEvent.getStatus();
+      }
+    }
+    return null;
   }
 
   @Override
