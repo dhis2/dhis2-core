@@ -1409,6 +1409,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = Integer.MAX_VALUE)
   public List<String> getRawPeriods() {
     return rawPeriods;
   }
