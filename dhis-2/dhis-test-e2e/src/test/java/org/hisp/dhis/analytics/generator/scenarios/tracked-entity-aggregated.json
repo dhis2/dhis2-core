@@ -1,8 +1,36 @@
 {
   "scenarios": [
     {
-      "name": "EXAMPLE",
-      "query": "/api/analytics/trackedEntities/aggregate/PROGRAM.json?PARAMS",
+      "name": "aggregateCountByOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou&asc=ou&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateAverageValueByOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou&value=lw1SqmMlnfh&aggregationType=AVERAGE&asc=ou&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateSumValueByOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou&value=lw1SqmMlnfh&aggregationType=SUM&asc=ou&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountOfNonNullValueByOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou&value=lw1SqmMlnfh&aggregationType=COUNT&asc=ou&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateAverageValueByOrgUnitAndGender",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou,cejWyOfXge6&value=lw1SqmMlnfh&aggregationType=AVERAGE&asc=ou,cejWyOfXge6&pageSize=5&totalPages=false",
       "version": {
         "min": 44
       }
