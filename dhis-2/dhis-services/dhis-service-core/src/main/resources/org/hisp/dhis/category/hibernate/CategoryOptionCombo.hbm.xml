@@ -19,7 +19,8 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <set name="categoryOptions" table="categoryoptioncombos_categoryoptions">
+    <!-- batch-size=1 overrides the global default_batch_fetch_size: batching this collection's loads corrupts merge flushes, since equals/hashCode are based on this same mutable field. -->
+    <set name="categoryOptions" table="categoryoptioncombos_categoryoptions" batch-size="1">
       <cache usage="read-write" />
       <key column="categoryoptioncomboid" foreign-key="fk_categoryoptioncombos_categoryoptions_categoryoptioncomboid" />
       <many-to-many class="org.hisp.dhis.category.CategoryOption" column="categoryoptionid"

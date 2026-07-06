@@ -168,8 +168,12 @@ public class CategoryOption extends BaseMetadataObject
   @BatchSize(size = 100)
   private Set<Category> categories = new HashSet<>();
 
+  // batch-size=1 overrides the global default_batch_fetch_size: batching this collection's
+  // loads corrupts merge flushes, since CategoryOptionCombo's equals/hashCode are content-based
+  // over its own mutable categoryOptions field.
   @ManyToMany(mappedBy = "categoryOptions")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @BatchSize(size = 1)
   private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
   @ManyToMany(mappedBy = "members")
