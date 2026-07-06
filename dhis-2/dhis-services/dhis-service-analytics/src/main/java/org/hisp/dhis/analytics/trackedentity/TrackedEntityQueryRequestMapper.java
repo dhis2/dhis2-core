@@ -39,6 +39,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7254;
 import static org.hisp.dhis.feedback.ErrorCode.E7255;
 import static org.hisp.dhis.feedback.ErrorCode.E7256;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,7 +72,7 @@ public class TrackedEntityQueryRequestMapper {
 
   /** The aggregation functions a tracked entity aggregate query supports. */
   private static final Set<AggregationType> SUPPORTED_AGGREGATION_TYPES =
-      Set.of(
+      EnumSet.of(
           AggregationType.COUNT,
           AggregationType.SUM,
           AggregationType.AVERAGE,
