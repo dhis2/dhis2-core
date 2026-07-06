@@ -86,12 +86,14 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -232,7 +234,7 @@ public abstract class AbstractFullReadOnlyController<
 
     String fields = params.getFieldsJsonList();
     if (!isAlwaysEmpty) {
-      if (additionalFilters.isEmpty() && canUseObjectListGistBridge(request, params)) {
+      if (additionalFilters.isEmpty() && canObjectListUseGistBridge(request, params)) {
         getObjectListGistBridge(params, request, response);
         return null; // response already created by Gist
       }
@@ -607,6 +609,43 @@ public abstract class AbstractFullReadOnlyController<
     getObjectListGist(p, request, response);
   }
 
+  private boolean canObjectListUseGistBridge(HttpServletRequest request, P params) {
+    if (!params.isPaging()) return false;
+    Boolean gist = params.getGist();
+    if (gist != null) return gist;
+    if (!canParamsUseGistBridge(request)) return false;
+    RelativePropertyContext context =
+        new RelativePropertyContext(getEntityClass(), schemaService::getSchema);
+    for (Fields.Field f : Fields.of(params.getFieldsJsonList())) {
+      if (f.isPreset()) return false;
+      // TODO handle attribute picks
+      List<Property> path = context.resolvePath(f.propertyPath());
+      if (path.size() > 2) return false;
+      if (!canPropertyUseGistBridge(f, path.get(path.size() - 1), context)) return false;
+      if (path.size() == 2) {
+        Property ref = path.get(0);
+        Class<?> refType = ref.isCollection() ? ref.getItemKlass() : ref.getKlass();
+        if (!IdentifiableObject.class.isAssignableFrom(refType)) return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean canPropertyUseGistBridge(
+      Fields.Field f, Property p, RelativePropertyContext context) {
+    if (!p.isPersisted()) {
+      if (p.getName().startsWith("display") && !f.isNested()) {
+        Property base = context.resolve(Property.resolveTranslationBasePropertyName(p.getName()));
+        return base != null && base.isTranslatable() && base.isPersisted();
+      }
+      return false;
+    }
+    if (p.isSimple()) return true;
+    if (p.isCollection() && !f.isNested() && f.isTransformed()) return true;
+    if (p.getKlass() == Access.class || p.getKlass() == Sharing.class) return true;
+    return false;
+  }
+
   /**
    * These URL parameters can generally can be handled by the Gist API, but anything not in this
    * list is likely to have special meaning in the metadata API so the bridge should not be used to
@@ -624,42 +663,12 @@ public abstract class AbstractFullReadOnlyController<
           "rootJunction",
           "gist");
 
-  private boolean canUseObjectListGistBridge(HttpServletRequest request, P params) {
-    if (!params.isPaging()) return false;
-    Boolean gist = params.getGist();
-    if (gist != null) return gist;
+  private static boolean canParamsUseGistBridge(HttpServletRequest request) {
     Iterator<String> iter = request.getParameterNames().asIterator();
     while (iter.hasNext()) {
       String name = iter.next();
       if (!GIST_BRIDE_PARAMS.contains(name)) return false;
     }
-    RelativePropertyContext context =
-        new RelativePropertyContext(getEntityClass(), schemaService::getSchema);
-    for (Fields.Field f : Fields.of(params.getFieldsJsonList())) {
-      if (f.isPreset()) return false;
-      List<Property> path = context.resolvePath(f.propertyPath());
-      if (path.size() > 2) return false;
-      if (!canUseGistBridge(f, path.get(path.size() - 1), context)) return false;
-      if (path.size() == 2) {
-        Property ref = path.get(0);
-        Class<?> refType = ref.isCollection() ? ref.getItemKlass() : ref.getKlass();
-        if (!IdentifiableObject.class.isAssignableFrom(refType)) return false;
-      }
-    }
     return true;
-  }
-
-  private static boolean canUseGistBridge(
-      Fields.Field f, Property p, RelativePropertyContext context) {
-    if (!p.isPersisted()) {
-      if (p.getName().startsWith("display") && !f.isNested()) {
-        Property base = context.resolve(Property.resolveTranslationBasePropertyName(p.getName()));
-        if (base != null && base.isTranslatable() && base.isPersisted()) return true;
-      }
-      return false;
-    }
-    if (p.isSimple()) return true;
-    if (p.isCollection() && !f.isNested() && f.isTransformed()) return true;
-    return false;
   }
 }

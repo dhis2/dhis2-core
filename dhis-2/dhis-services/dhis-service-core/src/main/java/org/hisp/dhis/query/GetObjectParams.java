@@ -68,6 +68,8 @@ public class GetObjectParams {
 
   @Setter @JsonProperty @Nonnull Defaults defaults = Defaults.INCLUDE;
 
+  @Setter
+  @JsonProperty
   @OpenApi.Description(
       "Force to use (`true`) or not use (`false`) gist API backend for metadata API, default (`null`) auto-detect based on `fields` and `filter`s")
   @OpenApi.Since(44)
