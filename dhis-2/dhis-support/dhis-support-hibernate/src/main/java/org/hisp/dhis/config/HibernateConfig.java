@@ -180,6 +180,10 @@ public class HibernateConfig {
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
 
+    // Coalesce lazy proxy/collection initialization into IN-clause batches instead of one
+    // SELECT per entity (e.g. DataSetElement.dataElement/categoryCombo lookups).
+    properties.put(AvailableSettings.DEFAULT_BATCH_FETCH_SIZE, "100");
+
     return properties;
   }
 }
