@@ -628,7 +628,9 @@ public abstract class AbstractFullReadOnlyController<
         if (!IdentifiableObject.class.isAssignableFrom(refType)) return false;
       }
     }
-    return true;
+    String filter = request.getParameter("filter");
+    if (filter == null) return true;
+    return !filter.contains("token") && !filter.contains("display");
   }
 
   private static boolean canPropertyUseGistBridge(
@@ -647,9 +649,8 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   /**
-   * These URL parameters can generally can be handled by the Gist API, but anything not in this
-   * list is likely to have special meaning in the metadata API so the bridge should not be used to
-   * be safe
+   * These URL parameters can generally be handled by the Gist API, but anything not in this list is
+   * likely to have special meaning in the metadata API so the bridge should not be used to be safe
    */
   private static final Set<String> GIST_BRIDE_PARAMS =
       Set.of(
