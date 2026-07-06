@@ -60,7 +60,7 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
             .add("asc=ou")
             .add("totalPages=false")
             .add("pageSize=5")
-            .add("dimension=ou");
+            .add("dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds");
 
     // When
     ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
@@ -84,13 +84,20 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"a5glgtnXJRG\":{\"name\":\"Magbanabom MCHP\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\",\"a1E6QWBTEwX\",\"a5glgtnXJRG\",\"aBfyTU5Wgds\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":true},\"items\":{\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"a5glgtnXJRG\":{\"name\":\"Magbanabom MCHP\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\",\"a1E6QWBTEwX\",\"a5glgtnXJRG\",\"aBfyTU5Wgds\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
-        response, actualHeaders, "ou", "OU", "TEXT", "java.lang.String", false, true);
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -122,7 +129,7 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
             .add("aggregationType=AVERAGE")
             .add("totalPages=false")
             .add("pageSize=5")
-            .add("dimension=ou")
+            .add("dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds")
             .add("value=lw1SqmMlnfh");
 
     // When
@@ -147,13 +154,20 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"a5glgtnXJRG\":{\"name\":\"Magbanabom MCHP\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\",\"a1E6QWBTEwX\",\"a5glgtnXJRG\",\"aBfyTU5Wgds\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":true},\"items\":{\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"a5glgtnXJRG\":{\"name\":\"Magbanabom MCHP\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\",\"a1E6QWBTEwX\",\"a5glgtnXJRG\",\"aBfyTU5Wgds\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
-        response, actualHeaders, "ou", "OU", "TEXT", "java.lang.String", false, true);
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -185,7 +199,7 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
             .add("aggregationType=SUM")
             .add("totalPages=false")
             .add("pageSize=5")
-            .add("dimension=ou")
+            .add("dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds")
             .add("value=lw1SqmMlnfh");
 
     // When
@@ -210,13 +224,20 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"a5glgtnXJRG\":{\"name\":\"Magbanabom MCHP\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\",\"a1E6QWBTEwX\",\"a5glgtnXJRG\",\"aBfyTU5Wgds\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":true},\"items\":{\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"a5glgtnXJRG\":{\"name\":\"Magbanabom MCHP\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\",\"a1E6QWBTEwX\",\"a5glgtnXJRG\",\"aBfyTU5Wgds\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
-        response, actualHeaders, "ou", "OU", "TEXT", "java.lang.String", false, true);
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -248,7 +269,7 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
             .add("aggregationType=COUNT")
             .add("totalPages=false")
             .add("pageSize=5")
-            .add("dimension=ou")
+            .add("dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds")
             .add("value=lw1SqmMlnfh");
 
     // When
@@ -273,13 +294,20 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"a5glgtnXJRG\":{\"name\":\"Magbanabom MCHP\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\",\"a1E6QWBTEwX\",\"a5glgtnXJRG\",\"aBfyTU5Wgds\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":true},\"items\":{\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"a5glgtnXJRG\":{\"name\":\"Magbanabom MCHP\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\",\"a1E6QWBTEwX\",\"a5glgtnXJRG\",\"aBfyTU5Wgds\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
-        response, actualHeaders, "ou", "OU", "TEXT", "java.lang.String", false, true);
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -311,7 +339,7 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
             .add("aggregationType=AVERAGE")
             .add("totalPages=false")
             .add("pageSize=5")
-            .add("dimension=ou,cejWyOfXge6")
+            .add("dimension=ou:a04CZxe0PSe;a1dP5m3Clw4,cejWyOfXge6")
             .add("value=lw1SqmMlnfh");
 
     // When
@@ -336,16 +364,20 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"a04CZxe0PSe\":{\"name\":\"Murray Town CHC\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"fDd25txQckK\":{\"name\":\"Provider Follow-up and Support Tool\"},\"a1dP5m3Clw4\":{\"name\":\"Baoma Kpenge CHP\"},\"PFDfvmGpsR3\":{\"name\":\"Care at birth\"},\"lST1OZ5BDJ2\":{\"name\":\"Provider Follow-up and Support Tool\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"PUZaKR0Jh2k\":{\"name\":\"Previous deliveries\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"Xgk8Wvl0jHr\":{\"name\":\"Delivery\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"bbKtnxRZKEP\":{\"name\":\"Postpartum care visit\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"edqlbukwRfQ\":{\"name\":\"Second antenatal care visit\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"oRySG82BKE6\":{\"name\":\"PNC Visit\"},\"grIfo3oOf4Y\":{\"name\":\"ANC Visit (2-4+)\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"eaDHS084uMp\":{\"name\":\"ANC 1st visit\"},\"uy2gU8kT1jF\":{\"name\":\"MNCH \\/ PNC (Adult Woman)\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"a04CZxe0PSe\",\"a1dP5m3Clw4\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-
-    System.out.println("Expected: " + expectedMetaData);
-    System.out.println("Actual: " + actualMetaData);
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
-        response, actualHeaders, "ou", "OU", "TEXT", "java.lang.String", false, true);
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
