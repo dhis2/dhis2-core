@@ -619,7 +619,7 @@ public abstract class AbstractFullReadOnlyController<
     for (Fields.Field f : Fields.of(params.getFieldsJsonList())) {
       if (f.isPreset()) return false;
       Property leaf = context.resolve(f.propertyPath());
-      // TODO handle attribute picks
+      // TODO support attribute picks
       if (leaf == null) return false; // give up if we cannot find the property
       List<Property> path = context.resolvePath(f.propertyPath());
       if (path.size() > 2) return false;
@@ -628,6 +628,12 @@ public abstract class AbstractFullReadOnlyController<
         Property ref = path.get(0);
         Class<?> refType = ref.isCollection() ? ref.getItemKlass() : ref.getKlass();
         if (!IdentifiableObject.class.isAssignableFrom(refType)) return false;
+      }
+      if (path.size() == 1) {
+        Property p = path.get(0);
+        // collections of non-identifiable relations are not supported in Gist API
+        if (p.isCollection() && !IdentifiableObject.class.isAssignableFrom(p.getItemKlass()))
+          return false;
       }
     }
     String filter = request.getParameter("filter");
