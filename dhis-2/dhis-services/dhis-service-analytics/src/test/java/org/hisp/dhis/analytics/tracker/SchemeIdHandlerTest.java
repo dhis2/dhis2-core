@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.analytics.tracker;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import static org.hisp.dhis.analytics.event.EventQueryParams.fromDataQueryParams;
+import static org.hisp.dhis.common.IdScheme.ID;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * This class is a wrapper for all possible parameters related to a tracked entity. All attributes
- * present here should be correctly typed and ready to be used by the service layers.
- *
- * @author maikel arabori
- */
-@Getter
-@Setter
-@Builder(toBuilder = true)
-public class TrackedEntityQueryParams {
-  private final TrackedEntityType trackedEntityType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.junit.jupiter.api.Test;
 
-  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
-  private boolean aggregate;
+class SchemeIdHandlerTest {
+
+  @Test
+  void schemeSettingsReturnsUIDWhenID() {
+    EventQueryParams params =
+        fromDataQueryParams(DataQueryParams.newBuilder().withOutputIdScheme(ID).build());
+
+    Settings settings = new SchemeIdHandler(null).schemeSettings(params);
+
+    assertEquals(UID, settings.getOutputIdScheme());
+  }
 }
