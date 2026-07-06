@@ -42,11 +42,17 @@ import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.http.HttpStatus.CONFLICT;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.hisp.dhis.http.HttpStatus.OK;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -64,6 +70,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -223,7 +230,6 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
 
     // Then
     JsonObject response = GET("/eventVisualizations/" + uid).content();
-    System.out.println(response.toString());
 
     assertThat(
         response.get("parentGraphMap").toString(), containsString(mockOrganisationUnit.getUid()));
@@ -1103,5 +1109,46 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(response.get("simpleDimensions").toString(), containsString("USER_ORGUNIT"));
     assertThat(response.get("rows").toString(), containsString(enrollmentOuDimension));
     assertThat(response.get("rows").toString(), containsString(mockProgram.getUid()));
+  }
+
+  @Test
+  void testManyPeriodsCanBeSavedIntoEventVisualization() {
+    // Setup test data
+    DataElement dataElementA = createDataElement('Y');
+    manager.save(dataElementA);
+    DataElement dataElementB = createDataElement('Z');
+    manager.save(dataElementB);
+
+    Program p = createProgram('X');
+    manager.save(p);
+
+    EventVisualization ev = createEventVisualization('R', p);
+    ev.addDataDimensionItem(dataElementA);
+    ev.addDataDimensionItem(dataElementB);
+    ev.setSharing(Sharing.builder().publicAccess(DEFAULT).build());
+    List<String> rawPeriods = new ArrayList<>();
+    rawPeriods.addAll(getAllDaysOfYear(2025));
+    rawPeriods.addAll(getAllDaysOfYear(2026));
+    ev.setRawPeriods(rawPeriods);
+    manager.save(ev, false);
+
+    JsonObject response = GET("/eventVisualizations/" + ev.getUid() + "?fields=*").content();
+
+    assertNotNull(response.get("rawPeriods"));
+    assertTrue(response.get("rawPeriods").size() == 730);
+  }
+
+  private List<String> getAllDaysOfYear(int year) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+    LocalDate date = LocalDate.of(year, 1, 1);
+
+    List<String> years = new ArrayList<>();
+
+    while (date.getYear() == year) {
+      years.add(date.format(formatter));
+      date = date.plusDays(1);
+    }
+
+    return years;
   }
 }
