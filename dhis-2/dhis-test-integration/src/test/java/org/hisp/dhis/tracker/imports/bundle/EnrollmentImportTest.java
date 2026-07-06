@@ -97,7 +97,7 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    dbmsManager.clearSession();
+    clearSession();
 
     assertNoErrors(importReport);
 

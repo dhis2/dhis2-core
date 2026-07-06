@@ -45,4 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @Builder(toBuilder = true)
 public class TrackedEntityQueryParams {
   private final TrackedEntityType trackedEntityType;
+
+  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
+  private boolean aggregate;
 }

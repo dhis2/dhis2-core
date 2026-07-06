@@ -86,9 +86,12 @@ public class TrackedEntity extends BaseTrackerObject
     implements IdentifiableObject, SoftDeletableEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(sequenceName = "trackedentityinstance_sequence")
   @Column(name = "trackedentityid")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "trackedentity_sequence")
+  @SequenceGenerator(
+      name = "trackedentity_sequence",
+      sequenceName = "trackedentity_sequence",
+      allocationSize = 1)
   private long id;
 
   private boolean deleted = false;

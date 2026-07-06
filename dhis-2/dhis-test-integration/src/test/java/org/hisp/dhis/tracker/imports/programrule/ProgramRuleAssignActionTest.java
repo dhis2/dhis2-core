@@ -235,7 +235,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    manager.clear();
+    clearSession();
 
     List<String> firstEventDataValues = getValueForAssignedDataElement(firstEventUid);
     List<String> secondEventDataValues = getValueForAssignedDataElement(secondEventUid);

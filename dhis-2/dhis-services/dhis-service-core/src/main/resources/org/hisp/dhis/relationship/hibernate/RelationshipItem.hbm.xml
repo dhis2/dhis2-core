@@ -12,7 +12,9 @@
              items via Hibernate. -->
 
         <id name="id" column="relationshipitemid">
-            <generator class="native" />
+            <generator class="sequence">
+                <param name="sequence_name">relationshipitem_sequence</param>
+            </generator>
         </id>
 
         <many-to-one name="relationship" class="org.hisp.dhis.tracker.model.Relationship"

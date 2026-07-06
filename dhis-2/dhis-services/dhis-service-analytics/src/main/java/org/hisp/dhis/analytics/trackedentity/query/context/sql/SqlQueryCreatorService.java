@@ -119,6 +119,7 @@ public class SqlQueryCreatorService {
       RenderableSqlQuery initial, RenderableSqlQuery contribution) {
     RenderableSqlQuery.RenderableSqlQueryBuilder sqlQueryContextBuilder = initial.toBuilder();
     contribution.getSelectFields().forEach(sqlQueryContextBuilder::selectField);
+    contribution.getGroupByFields().forEach(sqlQueryContextBuilder::groupByField);
     contribution.getLeftJoins().forEach(sqlQueryContextBuilder::leftJoin);
     contribution.getGroupableConditions().forEach(sqlQueryContextBuilder::groupableCondition);
     contribution.getOrderClauses().forEach(sqlQueryContextBuilder::orderClause);

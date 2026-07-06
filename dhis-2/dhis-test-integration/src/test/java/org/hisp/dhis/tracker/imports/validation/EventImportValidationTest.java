@@ -256,6 +256,18 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldBlockUpdateOfCompletedEventWhenBlockEntryFormIsTrue() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/single_completed_event.json");
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertNoErrors(importReport);
+
+    importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertHasOnlyErrors(importReport, ValidationCode.E1326);
+  }
+
+  @Test
   void testCategoryOptionComboNotFound() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
@@ -368,7 +380,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     // When -> Update the event and adds 3 more notes
     ImportReport importReport =
         createEvent("tracker/validations/events-with-notes-update-data.json");
-    manager.clear();
+    clearSession();
     // Then
     final TrackerEvent event = getEventFromReport(importReport);
     assertThat(event.getNotes(), hasSize(6));
@@ -421,8 +433,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
 
     assertNoErrors(importReport);
 
-    manager.flush();
-    manager.clear();
+    clearSession();
 
     TrackerObjects deleteTrackerObjects =
         testSetup.fromJson("tracker/validations/event-data-delete.json");
