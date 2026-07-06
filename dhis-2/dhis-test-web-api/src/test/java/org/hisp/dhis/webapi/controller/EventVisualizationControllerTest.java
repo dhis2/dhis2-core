@@ -1149,7 +1149,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject response = GET("/eventVisualizations/" + ev.getUid() + "?fields=*").content();
 
     assertNotNull(response.get("rawPeriods"));
-    assertEquals(730, response.get("rawPeriods").size());
+    assertEquals(730, response.getArray("rawPeriods").size());
   }
 
   private List<String> getAllDaysOfYear(int year) {
