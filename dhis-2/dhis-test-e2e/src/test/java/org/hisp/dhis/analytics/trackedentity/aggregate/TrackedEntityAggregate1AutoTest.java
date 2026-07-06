@@ -108,9 +108,10 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
     validateRowValueByName(response, actualHeaders, 0, "value", "54");
 
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "ou", "a1E6QWBTEwX");
-    validateRowValueByName(response, actualHeaders, 2, "value", "61");
+    // Validate selected values for row index 3 (collation-stable; index 2 swaps a1d/a1E under C
+    // collation)
+    validateRowValueByName(response, actualHeaders, 3, "ou", "a5glgtnXJRG");
+    validateRowValueByName(response, actualHeaders, 3, "value", "62");
 
     // Validate selected values for row index 4
     validateRowValueByName(response, actualHeaders, 4, "ou", "aBfyTU5Wgds");
@@ -178,9 +179,10 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
     validateRowValueByName(response, actualHeaders, 0, "value", "169.47");
 
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "ou", "a1E6QWBTEwX");
-    validateRowValueByName(response, actualHeaders, 2, "value", "168.9");
+    // Validate selected values for row index 3 (collation-stable; index 2 swaps a1d/a1E under C
+    // collation)
+    validateRowValueByName(response, actualHeaders, 3, "ou", "a5glgtnXJRG");
+    validateRowValueByName(response, actualHeaders, 3, "value", "172.36");
 
     // Validate selected values for row index 4
     validateRowValueByName(response, actualHeaders, 4, "ou", "aBfyTU5Wgds");
@@ -248,9 +250,10 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
     validateRowValueByName(response, actualHeaders, 0, "value", "6101");
 
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "ou", "a1E6QWBTEwX");
-    validateRowValueByName(response, actualHeaders, 2, "value", "7094");
+    // Validate selected values for row index 3 (collation-stable; index 2 swaps a1d/a1E under C
+    // collation)
+    validateRowValueByName(response, actualHeaders, 3, "ou", "a5glgtnXJRG");
+    validateRowValueByName(response, actualHeaders, 3, "value", "7756");
 
     // Validate selected values for row index 4
     validateRowValueByName(response, actualHeaders, 4, "ou", "aBfyTU5Wgds");
@@ -318,9 +321,10 @@ public class TrackedEntityAggregate1AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ou", "a04CZxe0PSe");
     validateRowValueByName(response, actualHeaders, 0, "value", "36");
 
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "ou", "a1E6QWBTEwX");
-    validateRowValueByName(response, actualHeaders, 2, "value", "42");
+    // Validate selected values for row index 3 (collation-stable; index 2 swaps a1d/a1E under C
+    // collation)
+    validateRowValueByName(response, actualHeaders, 3, "ou", "a5glgtnXJRG");
+    validateRowValueByName(response, actualHeaders, 3, "value", "45");
 
     // Validate selected values for row index 4
     validateRowValueByName(response, actualHeaders, 4, "ou", "aBfyTU5Wgds");
