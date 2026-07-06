@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.IdScheme.ID;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 import com.google.common.collect.Lists;
@@ -702,9 +703,27 @@ public class DimensionalObjectUtils {
     Map<String, String> map = Maps.newHashMap();
 
     objects.forEach(
-        obj -> map.put(obj.getDimensionItem(), obj.getDimensionItem(IdScheme.from(idScheme))));
+        obj ->
+            map.put(
+                obj.getDimensionItem(),
+                obj.getDimensionItem(getValidScheme(IdScheme.from(idScheme)))));
 
     return map;
+  }
+
+  /**
+   * It returns a valid IdScheme, switching ID by UID if applicable. IDs cannot be exposed to users
+   * as they are internal PKs at database level.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @return the {@link IdScheme}.
+   */
+  public static IdScheme getValidScheme(IdScheme idScheme) {
+    if (idScheme == ID) {
+      return IdScheme.UID;
+    }
+
+    return idScheme;
   }
 
   /**
