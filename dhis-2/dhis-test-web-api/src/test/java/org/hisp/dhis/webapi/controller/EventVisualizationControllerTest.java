@@ -46,7 +46,6 @@ import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -101,7 +100,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   private TrackedEntityType mockTrackerEntityType;
 
   @BeforeEach
-  public void beforeEach() throws JsonProcessingException {
+  void beforeEach() throws JsonProcessingException {
     mockProgram = createProgram('A');
     mockProgram.setUid("deabcdefghP");
     POST("/programs", jsonMapper.writeValueAsString(mockProgram)).content(CREATED);
@@ -1135,7 +1134,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject response = GET("/eventVisualizations/" + ev.getUid() + "?fields=*").content();
 
     assertNotNull(response.get("rawPeriods"));
-    assertTrue(response.get("rawPeriods").size() == 730);
+    assertEquals(730, response.get("rawPeriods").size());
   }
 
   private List<String> getAllDaysOfYear(int year) {
