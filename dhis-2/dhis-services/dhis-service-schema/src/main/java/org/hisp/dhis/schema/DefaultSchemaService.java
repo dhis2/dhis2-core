@@ -462,7 +462,7 @@ public class DefaultSchemaService implements SchemaService {
         .sorted(OrderComparator.INSTANCE)
         .toList();
   }
-  
+
   @Override
   public Set<String> collectAuthorities() {
     return getSchemas().stream()

@@ -38,7 +38,6 @@ import java.util.HashSet;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
-import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
