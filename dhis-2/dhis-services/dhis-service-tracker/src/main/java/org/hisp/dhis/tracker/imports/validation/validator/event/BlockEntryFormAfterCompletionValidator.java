@@ -52,8 +52,9 @@ class BlockEntryFormAfterCompletionValidator implements Validator<Event> {
 
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
 
-    if (EventStatus.COMPLETED == event.getStatus()
-        && Boolean.TRUE.equals(programStage.getBlockEntryForm())) {
+    if (Boolean.TRUE.equals(programStage.getBlockEntryForm())
+        && EventStatus.COMPLETED == event.getStatus()
+        && EventStatus.COMPLETED == preheat.getEvent(event.getUid()).getStatus()) {
       reporter.addError(event, E1326, event.getEvent());
     }
   }

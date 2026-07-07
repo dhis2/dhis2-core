@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
@@ -239,8 +240,12 @@ class EventImportValidationTest extends TrackerTest {
   @Test
   void shouldBlockUpdateOfCompletedEventWhenBlockEntryFormIsTrue() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/validations/single_completed_event.json");
+    TrackerObjects trackerObjects = fromJson("tracker/validations/single_active_event.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertNoErrors(importReport);
+
+    trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
+    importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
