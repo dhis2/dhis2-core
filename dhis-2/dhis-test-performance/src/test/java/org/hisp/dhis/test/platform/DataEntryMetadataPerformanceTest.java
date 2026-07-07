@@ -137,14 +137,15 @@ public class DataEntryMetadataPerformanceTest extends Simulation {
     ClosedInjectionStep injection =
         rampConcurrentUsers(0).to(CONCURRENT_USERS).during(RAMP_DURATION_SECONDS);
 
-    // Placeholder thresholds, pending recalibration against the session-login flow at the new
-    // default profile (1 concurrent user, 20 iterations). Overriding concurrentUsers/iterations
-    // for exploratory runs may legitimately trip these — that is informative, not a bug.
+    // Thresholds calibrated from 3 repeated single-user (default profile) runs on the SL demo DB,
+    // combined via gstat: fix/hibernate-fetch-size p95/p99 500/535ms, master p95/p99 585/609ms
+    // (worse of the two branches, matching the value this test is meant to guard against
+    // regressing on either branch), with headroom for run-to-run variance.
     setUp(scenario.injectClosed(injection))
         .protocols(httpProtocol)
         .assertions(
-            details(METADATA_REQUEST).responseTime().percentile(95).lt(1200),
-            details(METADATA_REQUEST).responseTime().max().lt(1500),
+            details(METADATA_REQUEST).responseTime().percentile(95).lt(800),
+            details(METADATA_REQUEST).responseTime().max().lt(900),
             details(METADATA_REQUEST).successfulRequests().percent().is(100D));
   }
 
