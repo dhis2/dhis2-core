@@ -167,7 +167,8 @@ class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("exportMetadataVersion never includes embedded objects such as MapView")
+  @DisplayName(
+      "exportMetadataVersion never includes embedded objects at root level such as MapView")
   void exportMetadataVersionExcludesEmbeddedObjects() throws IOException {
     MapView mapView = createMapView("A");
     org.hisp.dhis.mapping.Map map = new org.hisp.dhis.mapping.Map();
