@@ -35,9 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -180,5 +184,30 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Schema schema = schemaService.getSchema(Message.class);
     Property text = schema.getProperty("text");
     assertEquals(Integer.MAX_VALUE, text.getLength());
+  }
+
+  @Test
+  void testMapViewSchemaRegistered() {
+    Schema schema = schemaService.getSchema(MapView.class);
+    assertNotNull(schema);
+    assertEquals(MapView.class, schema.getKlass());
+    assertTrue(schema.isEmbeddedObject());
+  }
+
+  @Test
+  void testGetNonEmbeddedMetadataSchemas() {
+    Set<Schema> schemas = schemaService.getNonEmbeddedMetadataSchemas();
+    assertFalse(schemas.isEmpty());
+
+    // Every returned schema must be metadata, non-dynamic and non-embedded.
+    assertTrue(schemas.stream().allMatch(Schema::isMetadata));
+    assertTrue(schemas.stream().noneMatch(Schema::isDynamic));
+    assertTrue(schemas.stream().noneMatch(Schema::isEmbeddedObject));
+
+    Set<Class<?>> klasses = schemas.stream().map(Schema::getKlass).collect(Collectors.toSet());
+    // A regular metadata object is included.
+    assertTrue(klasses.contains(Map.class));
+    // Embedded objects such as MapView are excluded.
+    assertFalse(klasses.contains(MapView.class));
   }
 }

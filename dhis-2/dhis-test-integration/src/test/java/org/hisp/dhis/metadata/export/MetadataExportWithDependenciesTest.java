@@ -32,6 +32,7 @@ package org.hisp.dhis.metadata.export;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -164,5 +165,49 @@ class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
     org.hisp.dhis.mapping.Map exportMap =
         (org.hisp.dhis.mapping.Map) metadata.get(org.hisp.dhis.mapping.Map.class).get(0);
     assertNotNull(exportMap.getMapViews());
+  }
+
+  @Test
+  @DisplayName(
+      "exportMetadataVersion exports the full metadata version regardless of the classes set in params")
+  void exportMetadataVersionExportsFullVersion() throws IOException {
+    DataElement dataElement = createDataElement('A');
+    manager.save(dataElement);
+
+    // Params only request Map, but a metadata version snapshot must contain all metadata classes.
+    MetadataExportParams exportParams = new MetadataExportParams();
+    exportParams.addClass(org.hisp.dhis.mapping.Map.class);
+    ObjectNode exported = metadataExportService.exportMetadataVersion(exportParams);
+
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ByteArrayInputStream(jsonMapper.writeValueAsBytes(exported)), RenderFormat.JSON);
+
+    List<IdentifiableObject> dataElements = metadata.get(DataElement.class);
+    assertNotNull(
+        dataElements, "DataElement was not requested but must be present in the version snapshot");
+    assertTrue(
+        dataElements.stream().anyMatch(de -> dataElement.getUid().equals(de.getUid())),
+        "The saved DataElement should be part of the exported metadata version");
+  }
+
+  @Test
+  @DisplayName("exportMetadataVersion never includes embedded objects such as MapView")
+  void exportMetadataVersionExcludesEmbeddedObjects() throws IOException {
+    MapView mapView = createMapView("A");
+    org.hisp.dhis.mapping.Map map = new org.hisp.dhis.mapping.Map();
+    map.setName("MapA");
+    map.setMapViews(List.of(mapView));
+    map.setAutoFields();
+    manager.save(map);
+
+    ObjectNode exported = metadataExportService.exportMetadataVersion(new MetadataExportParams());
+
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ByteArrayInputStream(jsonMapper.writeValueAsBytes(exported)), RenderFormat.JSON);
+
+    assertNull(metadata.get(MapView.class));
+    assertNotNull(metadata.get(org.hisp.dhis.mapping.Map.class));
   }
 }
