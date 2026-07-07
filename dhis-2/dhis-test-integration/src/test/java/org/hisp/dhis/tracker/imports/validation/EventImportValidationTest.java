@@ -52,6 +52,7 @@ import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -261,8 +262,12 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   void shouldBlockUpdateOfCompletedEventWhenBlockEntryFormIsTrue() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
-        testSetup.fromJson("tracker/validations/single_completed_event.json");
+        testSetup.fromJson("tracker/validations/single_active_event.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertNoErrors(importReport);
+
+    trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
+    importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
