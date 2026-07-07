@@ -60,10 +60,10 @@ public class EventValidator implements Validator<TrackerBundle> {
                     new MetaValidator(),
                     new UpdatableFieldsValidator(),
                     new DataRelationsValidator(),
+                    new BlockEntryFormAfterCompletionValidator(),
                     new CategoryOptionComboValidator(),
                     new StatusValidator(),
-                    securityTrackerEventValidator,
-                    securitySingleEventValidator,
+                    all(securityTrackerEventValidator, securitySingleEventValidator),
                     all(
                         categoryOptValidator,
                         new DateValidator(),

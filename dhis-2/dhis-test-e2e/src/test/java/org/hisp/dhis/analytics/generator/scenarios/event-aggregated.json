@@ -237,6 +237,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "withSortOrderAndLimit",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_5_YEARS&stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&outputType=EVENT&sortOrder=asc&limit=2&relativePeriodDate=2026-06-23",
+      "version": {
+        "min": 41
+      }
     }
   ]
 }

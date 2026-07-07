@@ -218,6 +218,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "outputIdSchemeWithId",
+      "query": "/api/analytics.json?dimension=dx:cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG;fbfJHSPpUQD&dimension=ou:USER_ORGUNIT_CHILDREN&showHierarchy=false&hierarchyMeta=false&includeMetadataDetails=true&includeNumDen=true&skipRounding=false&completedOnly=false&outputIdScheme=ID&filter=pe:LAST_5_YEARS&relativePeriodDate=2026-06-01",
+      "version": {
+        "min": 41
+      }
     }
   ]
 }
