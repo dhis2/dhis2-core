@@ -38,7 +38,9 @@ import static org.hisp.dhis.feedback.ErrorCode.E7142;
 import static org.hisp.dhis.feedback.ErrorCode.E7254;
 import static org.hisp.dhis.feedback.ErrorCode.E7255;
 import static org.hisp.dhis.feedback.ErrorCode.E7256;
+import static org.hisp.dhis.feedback.ErrorCode.E7257;
 
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
@@ -49,10 +51,14 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper;
+import org.hisp.dhis.analytics.common.params.dimension.StringDimensionIdentifier;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -111,13 +117,36 @@ public class TrackedEntityQueryRequestMapper {
             getTrackedEntityAttributes(trackedEntityType).map(IdentifiableObject::getUid).toList());
 
     validateAggregationType(requestParams);
-    TrackedEntityAttribute value = resolveValue(requestParams, trackedEntityType);
+
+    List<Program> programs = List.copyOf(programService.getPrograms(requestParams.getProgram()));
+    TrackedEntityAttribute attributeValue = null;
+    EventValue eventValue = null;
+    String valueUid = requestParams.getValue();
+    if (valueUid != null) {
+      if (isProgramStageDataElement(valueUid)) {
+        eventValue = resolveEventValue(valueUid, programs);
+      } else {
+        attributeValue = resolveAttributeValue(valueUid, programs, trackedEntityType);
+      }
+    }
 
     return TrackedEntityQueryParams.builder()
         .trackedEntityType(trackedEntityType)
-        .value(value)
-        .aggregationType(aggregationTypeFor(requestParams.getAggregationType(), value))
+        .attributeValue(attributeValue)
+        .eventValue(eventValue)
+        .aggregationType(
+            aggregationTypeFor(
+                requestParams.getAggregationType(), attributeValue != null || eventValue != null))
         .build();
+  }
+
+  /**
+   * A {@code value} referencing a program-stage data element is qualified with a program and a
+   * program stage ({@code programUid.programStageUid.dataElementUid}); a bare UID references a
+   * tracked entity attribute.
+   */
+  private static boolean isProgramStageDataElement(String valueUid) {
+    return valueUid.indexOf(DimensionIdentifierHelper.DIMENSION_SEPARATOR) >= 0;
   }
 
   /**
@@ -144,26 +173,20 @@ public class TrackedEntityQueryRequestMapper {
   }
 
   /**
-   * Resolves the requested value UID into a numeric attribute to aggregate over. The candidates are
-   * the tracked entity type's own attributes and the attributes of the requested programs — the
-   * same set the analytics_te table flattens into columns, so both resolve to a bare {@code
-   * t_1."<uid>"} column. Data elements and program indicators are not accepted.
+   * Resolves a bare value UID into a numeric attribute to aggregate over. The candidates are the
+   * tracked entity type's own attributes and the attributes of the requested programs — the same
+   * set the analytics_te table flattens into columns, so both resolve to a bare {@code t_1."<uid>"}
+   * column. Data elements and program indicators are not accepted here.
    *
-   * @param requestParams the {@link CommonRequestParams} carrying the value UID and programs.
+   * @param valueUid the requested value UID.
+   * @param programs the requested programs.
    * @param trackedEntityType the {@link TrackedEntityType}.
-   * @return the resolved {@link TrackedEntityAttribute}, or null when no value was requested.
+   * @return the resolved {@link TrackedEntityAttribute}.
    * @throws IllegalQueryException if the UID does not refer to a numeric attribute of the tracked
    *     entity type or its programs.
    */
-  private TrackedEntityAttribute resolveValue(
-      CommonRequestParams requestParams, TrackedEntityType trackedEntityType) {
-    String valueUid = requestParams.getValue();
-    if (valueUid == null) {
-      return null;
-    }
-
-    List<Program> programs = List.copyOf(programService.getPrograms(requestParams.getProgram()));
-
+  private TrackedEntityAttribute resolveAttributeValue(
+      String valueUid, List<Program> programs, TrackedEntityType trackedEntityType) {
     return Stream.concat(
             getTrackedEntityAttributes(trackedEntityType), getProgramAttributes(programs))
         .filter(attribute -> valueUid.equals(attribute.getUid()))
@@ -173,17 +196,68 @@ public class TrackedEntityQueryRequestMapper {
   }
 
   /**
-   * Returns the aggregation function to apply: the requested one, falling back to AVERAGE when a
-   * value attribute is present — matching the event/enrollment aggregate contract. Without a value
-   * attribute the aggregate query counts TEIs, so no function is materialized.
+   * Resolves a {@code programUid.programStageUid.dataElementUid} value into the numeric
+   * program-stage data element to aggregate over. The program must be one of the requested
+   * programs, the stage must belong to that program, and the data element must belong to that stage
+   * and be numeric. The stage segment may carry an offset ({@code [n]}) selecting which occurrence
+   * to read; an offset on the program segment is not allowed.
+   *
+   * @param valueUid the fully qualified value in {@code programUid.programStageUid.dataElementUid}
+   *     form.
+   * @param programs the requested programs.
+   * @return the resolved {@link EventValue}.
+   * @throws IllegalQueryException if the value does not reference a numeric data element of a
+   *     program stage of the requested programs.
    */
-  private AggregationType aggregationTypeFor(
-      AggregationType requested, TrackedEntityAttribute value) {
+  private EventValue resolveEventValue(String valueUid, List<Program> programs) {
+    StringDimensionIdentifier parsed;
+    try {
+      parsed = DimensionIdentifierHelper.fromFullDimensionId(valueUid);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalQueryException(E7257, valueUid);
+    }
+
+    if (!parsed.getProgram().isPresent()
+        || !parsed.getProgramStage().isPresent()
+        || parsed.getProgram().hasOffset()) {
+      throw new IllegalQueryException(E7257, valueUid);
+    }
+
+    String programUid = parsed.getProgram().getElement().getUid();
+    String programStageUid = parsed.getProgramStage().getElement().getUid();
+    String dataElementUid = parsed.getDimension().getUid();
+    int offset = parsed.getProgramStage().getOffsetWithDefault();
+
+    ProgramStage programStage =
+        programs.stream()
+            .filter(program -> programUid.equals(program.getUid()))
+            .map(Program::getProgramStages)
+            .flatMap(Collection::stream)
+            .filter(stage -> programStageUid.equals(stage.getUid()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalQueryException(E7257, valueUid));
+
+    DataElement dataElement =
+        programStage.getDataElements().stream()
+            .filter(de -> dataElementUid.equals(de.getUid()))
+            .filter(de -> de.getValueType().isNumeric())
+            .findFirst()
+            .orElseThrow(() -> new IllegalQueryException(E7257, valueUid));
+
+    return new EventValue(programStage, dataElement, offset);
+  }
+
+  /**
+   * Returns the aggregation function to apply: the requested one, falling back to AVERAGE when a
+   * value is present — matching the event/enrollment aggregate contract. Without a value the
+   * aggregate query counts TEIs, so no function is materialized.
+   */
+  private AggregationType aggregationTypeFor(AggregationType requested, boolean hasValue) {
     if (requested != null) {
       return requested;
     }
 
-    return value != null ? AggregationType.AVERAGE : null;
+    return hasValue ? AggregationType.AVERAGE : null;
   }
 
   private Set<String> getProgramUidsFromTrackedEntityType(TrackedEntityType trackedEntityType) {

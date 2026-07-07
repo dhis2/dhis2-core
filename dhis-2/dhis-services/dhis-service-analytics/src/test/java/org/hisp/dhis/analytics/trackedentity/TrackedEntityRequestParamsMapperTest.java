@@ -41,9 +41,11 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -145,7 +147,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, requestParams);
 
-    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertEquals(attribute.getUid(), params.getAttributeValue().getUid());
     assertEquals(AggregationType.AVERAGE, params.getAggregationType());
   }
 
@@ -164,7 +166,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, requestParams);
 
-    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertEquals(attribute.getUid(), params.getAttributeValue().getUid());
     assertEquals(AggregationType.SUM, params.getAggregationType());
   }
 
@@ -185,7 +187,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, requestParams);
 
-    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertEquals(attribute.getUid(), params.getAttributeValue().getUid());
     assertEquals(AggregationType.AVERAGE, params.getAggregationType());
   }
 
@@ -288,8 +290,202 @@ class TrackedEntityRequestParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, new CommonRequestParams());
 
-    assertNull(params.getValue());
+    assertNull(params.getAttributeValue());
+    assertNull(params.getEventValue());
     assertNull(params.getAggregationType());
+  }
+
+  @Test
+  void testValueResolvesToProgramStageDataElementAndDefaultsToAverage() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    DataElement dataElement =
+        stubStageDataElement(program, "PsUidA00001", "DeUid000001", ValueType.NUMBER);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue("A.PsUidA00001.DeUid000001");
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, requestParams);
+
+    assertNull(params.getAttributeValue());
+    EventValue eventValue = params.getEventValue();
+    assertEquals("PsUidA00001", eventValue.programStage().getUid());
+    assertEquals(dataElement.getUid(), eventValue.dataElement().getUid());
+    assertEquals(0, eventValue.offset());
+    assertEquals(AggregationType.AVERAGE, params.getAggregationType());
+  }
+
+  @Test
+  void testEventValueStageOffsetIsParsed() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    stubStageDataElement(program, "PsUidA00001", "DeUid000001", ValueType.NUMBER);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue("A.PsUidA00001[-1].DeUid000001");
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, requestParams);
+
+    assertEquals(-1, params.getEventValue().offset());
+  }
+
+  @Test
+  void testEventValueProgramOffsetIsRejected() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    stubStageDataElement(program, "PsUidA00001", "DeUid000001", ValueType.NUMBER);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue("A[1].PsUidA00001.DeUid000001");
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7257, thrown.getErrorCode());
+  }
+
+  @Test
+  void testTwoSegmentValueIsRejected() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    stubStageDataElement(program, "PsUidA00001", "DeUid000001", ValueType.NUMBER);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue("A.DeUid000001");
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7257, thrown.getErrorCode());
+  }
+
+  @Test
+  void testEventValueUnknownProgramIsRejected() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    stubStageDataElement(program, "PsUidA00001", "DeUid000001", ValueType.NUMBER);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue("Xprogram001.PsUidA00001.DeUid000001");
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7257, thrown.getErrorCode());
+  }
+
+  @Test
+  void testEventValueStageNotInProgramIsRejected() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    stubStageDataElement(program, "PsUidA00001", "DeUid000001", ValueType.NUMBER);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue("A.PsUidZ99999.DeUid000001");
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7257, thrown.getErrorCode());
+  }
+
+  @Test
+  void testEventValueDataElementNotInStageIsRejected() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    stubStageDataElement(program, "PsUidA00001", "DeUid000001", ValueType.NUMBER);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue("A.PsUidA00001.DeUidZ99999");
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7257, thrown.getErrorCode());
+  }
+
+  @Test
+  void testEventValueNonNumericDataElementIsRejected() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    stubStageDataElement(program, "PsUidA00001", "DeUid000001", ValueType.TEXT);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue("A.PsUidA00001.DeUid000001");
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7257, thrown.getErrorCode());
+  }
+
+  private DataElement stubStageDataElement(
+      Program program, String stageUid, String dataElementUid, ValueType valueType) {
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(dataElementUid);
+    dataElement.setValueType(valueType);
+
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(stageUid);
+    programStage.setProgram(program);
+    programStage.addDataElement(dataElement, 1);
+
+    program.setProgramStages(Set.of(programStage));
+    return dataElement;
   }
 
   private TrackedEntityAttribute stubAttribute(
