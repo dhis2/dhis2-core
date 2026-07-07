@@ -262,9 +262,13 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
+    clearSession();
+
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
     importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
+
+    clearSession();
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
     assertHasOnlyErrors(importReport, ValidationCode.E1326);
