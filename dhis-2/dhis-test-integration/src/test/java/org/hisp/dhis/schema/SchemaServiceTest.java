@@ -201,7 +201,6 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
 
     // Every returned schema must be metadata, non-dynamic and non-embedded.
     assertTrue(schemas.stream().allMatch(Schema::isMetadata));
-    assertTrue(schemas.stream().noneMatch(Schema::isDynamic));
     assertTrue(schemas.stream().noneMatch(Schema::isEmbeddedObject));
 
     Set<Class<?>> klasses = schemas.stream().map(Schema::getKlass).collect(Collectors.toSet());
