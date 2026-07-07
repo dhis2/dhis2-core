@@ -120,18 +120,19 @@ public class DataEntryMetadataPerformanceTest extends Simulation {
             .warmUp(BASE_URL + "/api/ping")
             .disableCaching();
 
+    // Note: the repeated metadata request below is intentionally NOT wrapped in a `.group(...)`
+    // sharing its name. With a single virtual user, Gatling would then only have one sample of
+    // the group's *cumulative* duration (summed across all ITERATIONS requests), and
+    // `details(METADATA_REQUEST)` would resolve to that one bogus cumulative sample instead of
+    // the per-request distribution across all repeats.
     ScenarioBuilder scenario =
         scenario("DataEntry Metadata")
             .group("Authentication")
             .on(exec(loginChain()))
-            .group(METADATA_REQUEST)
+            .repeat(ITERATIONS)
             .on(
-                repeat(ITERATIONS)
-                    .on(
-                        exec(http(METADATA_REQUEST)
-                                .get("/api/dataEntry/metadata")
-                                .check(status().is(200)))
-                            .pause(1)));
+                exec(http(METADATA_REQUEST).get("/api/dataEntry/metadata").check(status().is(200)))
+                    .pause(1));
 
     ClosedInjectionStep injection =
         rampConcurrentUsers(0).to(CONCURRENT_USERS).during(RAMP_DURATION_SECONDS);
