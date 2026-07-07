@@ -123,7 +123,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     subject =
         new JdbcEnrollmentAnalyticsTableManager(
