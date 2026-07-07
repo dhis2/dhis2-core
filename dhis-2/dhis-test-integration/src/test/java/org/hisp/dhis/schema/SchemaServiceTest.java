@@ -35,8 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
@@ -192,21 +190,5 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(schema);
     assertEquals(MapView.class, schema.getKlass());
     assertTrue(schema.isEmbeddedObject());
-  }
-
-  @Test
-  void testGetNonEmbeddedMetadataSchemas() {
-    Set<Schema> schemas = schemaService.getNonEmbeddedMetadataSchemas();
-    assertFalse(schemas.isEmpty());
-
-    // Every returned schema must be metadata, non-dynamic and non-embedded.
-    assertTrue(schemas.stream().allMatch(Schema::isMetadata));
-    assertTrue(schemas.stream().noneMatch(Schema::isEmbeddedObject));
-
-    Set<Class<?>> klasses = schemas.stream().map(Schema::getKlass).collect(Collectors.toSet());
-    // A regular metadata object is included.
-    assertTrue(klasses.contains(Map.class));
-    // Embedded objects such as MapView are excluded.
-    assertFalse(klasses.contains(MapView.class));
   }
 }

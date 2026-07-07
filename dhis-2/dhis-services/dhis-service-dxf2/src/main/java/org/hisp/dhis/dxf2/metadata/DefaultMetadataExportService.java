@@ -223,7 +223,6 @@ public class DefaultMetadataExportService implements MetadataExportService {
   public static final Predicate<Schema> DEPRECATED_ANALYTICS_SCHEMAS =
       schema -> schema.getKlass() != EventChart.class && schema.getKlass() != EventReport.class;
 
-  /** This method is used by MetadataSyncService to export metadata version snapshot. */
   @Override
   @Transactional(readOnly = true)
   public ObjectNode exportMetadataVersion(MetadataExportParams params) {
@@ -238,8 +237,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
         .put(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.serverDate()));
 
     params.setClasses(
-        schemaService.getNonEmbeddedMetadataSchemas().stream()
-            .filter(schema -> schema.isIdentifiableObject() && schema.isPersisted())
+        schemaService.getMetadataSchemas().stream()
+            .filter(
+                schema ->
+                    !schema.isEmbeddedObject()
+                        && schema.isIdentifiableObject()
+                        && schema.isPersisted())
             .filter(s -> !s.isSecondaryMetadata())
             .filter(DEPRECATED_ANALYTICS_SCHEMAS)
             .map(Schema::getKlass)

@@ -462,16 +462,7 @@ public class DefaultSchemaService implements SchemaService {
         .sorted(OrderComparator.INSTANCE)
         .toList();
   }
-
-  @Override
-  public Set<Schema> getNonEmbeddedMetadataSchemas() {
-    return schemas.values().stream()
-        .filter(not(Schema::isDynamic))
-        .filter(Schema::isMetadata)
-        .filter(not(Schema::isEmbeddedObject))
-        .collect(toSet());
-  }
-
+  
   @Override
   public Set<String> collectAuthorities() {
     return getSchemas().stream()
