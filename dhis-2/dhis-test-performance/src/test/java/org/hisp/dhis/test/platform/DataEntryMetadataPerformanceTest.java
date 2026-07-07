@@ -32,6 +32,7 @@ package org.hisp.dhis.test.platform;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
+import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.ClosedInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
@@ -50,6 +51,12 @@ import java.util.Properties;
  * {@code If-None-Match} header, which this test never does, so every iteration measures a genuine
  * cold fetch.
  *
+ * <p>Each virtual user logs in once via {@code POST /api/auth/login} to establish a session, like a
+ * typical logged-in browser user (not HTTP Basic Auth, which re-authenticates on every request and
+ * would mix login cost into the endpoint measurement). The login step is tracked under a separate
+ * "Authentication" group, so the assertions below — scoped to {@code GET DataEntry - metadata} only
+ * — measure just the metadata endpoint on an already-authenticated session.
+ *
  * <p>Assumes a Sierra Leone demo database (richer metadata than the default dev DB) at {@code
  * localhost:8080} by default.
  *
@@ -60,7 +67,11 @@ import java.util.Properties;
  *   <li>{@code baseUrl} (default: {@code http://localhost:8080})
  *   <li>{@code username} (default: {@code admin})
  *   <li>{@code password} (default: {@code district})
- *   <li>{@code iterations} (default: {@code 5})
+ *   <li>{@code iterations} (default: {@code 20}) — requests per virtual user
+ *   <li>{@code concurrentUsers} (default: {@code 1}) — virtual users ramped up concurrently; total
+ *       requests = {@code concurrentUsers * iterations}
+ *   <li>{@code rampDurationSeconds} (default: {@code 1}) — time to ramp from 0 to {@code
+ *       concurrentUsers}
  * </ul>
  */
 public class DataEntryMetadataPerformanceTest extends Simulation {
@@ -95,7 +106,10 @@ public class DataEntryMetadataPerformanceTest extends Simulation {
   private static final String BASE_URL = prop("baseUrl", "http://localhost:8080");
   private static final String USERNAME = prop("username", "admin");
   private static final String PASSWORD = prop("password", "district");
-  private static final int ITERATIONS = Integer.parseInt(prop("iterations", "5"));
+  private static final int ITERATIONS = Integer.parseInt(prop("iterations", "20"));
+  private static final int CONCURRENT_USERS = Integer.parseInt(prop("concurrentUsers", "1"));
+  private static final int RAMP_DURATION_SECONDS =
+      Integer.parseInt(prop("rampDurationSeconds", "1"));
 
   private static final String METADATA_REQUEST = "GET DataEntry - metadata";
 
@@ -104,27 +118,42 @@ public class DataEntryMetadataPerformanceTest extends Simulation {
         http.baseUrl(BASE_URL)
             .acceptHeader("application/json")
             .warmUp(BASE_URL + "/api/ping")
-            .disableCaching()
-            .basicAuth(USERNAME, PASSWORD);
+            .disableCaching();
 
     ScenarioBuilder scenario =
         scenario("DataEntry Metadata")
-            .exec(flushCookieJar())
-            .repeat(ITERATIONS)
+            .group("Authentication")
+            .on(exec(loginChain()))
+            .group(METADATA_REQUEST)
             .on(
-                exec(http(METADATA_REQUEST).get("/api/dataEntry/metadata").check(status().is(200)))
-                    .pause(1));
+                repeat(ITERATIONS)
+                    .on(
+                        exec(http(METADATA_REQUEST)
+                                .get("/api/dataEntry/metadata")
+                                .check(status().is(200)))
+                            .pause(1)));
 
-    ClosedInjectionStep singleUser = rampConcurrentUsers(0).to(1).during(1);
+    ClosedInjectionStep injection =
+        rampConcurrentUsers(0).to(CONCURRENT_USERS).during(RAMP_DURATION_SECONDS);
 
-    // Thresholds calibrated against a Sierra Leone demo DB run on both
-    // fix/hibernate-fetch-size (p95/max 771ms) and master (p95/max 926ms), with headroom
-    // for run-to-run variance at this sample size (5 requests).
-    setUp(scenario.injectClosed(singleUser))
+    // Placeholder thresholds, pending recalibration against the session-login flow at the new
+    // default profile (1 concurrent user, 20 iterations). Overriding concurrentUsers/iterations
+    // for exploratory runs may legitimately trip these — that is informative, not a bug.
+    setUp(scenario.injectClosed(injection))
         .protocols(httpProtocol)
         .assertions(
             details(METADATA_REQUEST).responseTime().percentile(95).lt(1200),
             details(METADATA_REQUEST).responseTime().max().lt(1500),
             details(METADATA_REQUEST).successfulRequests().percent().is(100D));
+  }
+
+  private ChainBuilder loginChain() {
+    return exec(
+        http("Login")
+            .post("/api/auth/login")
+            .header("Content-Type", "application/json")
+            .body(
+                StringBody("{\"username\":\"" + USERNAME + "\",\"password\":\"" + PASSWORD + "\"}"))
+            .check(status().is(200)));
   }
 }
