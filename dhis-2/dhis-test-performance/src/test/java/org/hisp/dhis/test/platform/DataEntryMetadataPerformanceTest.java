@@ -117,13 +117,14 @@ public class DataEntryMetadataPerformanceTest extends Simulation {
 
     ClosedInjectionStep singleUser = rampConcurrentUsers(0).to(1).during(1);
 
-    // Placeholder thresholds — replaced with measured values in Task 5 of
-    // docs/superpowers/plans/2026-07-07-dataentry-metadata-perf-test.md
+    // Thresholds calibrated against a Sierra Leone demo DB run on both
+    // fix/hibernate-fetch-size (p95/max 771ms) and master (p95/max 926ms), with headroom
+    // for run-to-run variance at this sample size (5 requests).
     setUp(scenario.injectClosed(singleUser))
         .protocols(httpProtocol)
         .assertions(
-            details(METADATA_REQUEST).responseTime().percentile(95).lt(5000),
-            details(METADATA_REQUEST).responseTime().max().lt(10000),
+            details(METADATA_REQUEST).responseTime().percentile(95).lt(1200),
+            details(METADATA_REQUEST).responseTime().max().lt(1500),
             details(METADATA_REQUEST).successfulRequests().percent().is(100D));
   }
 }
