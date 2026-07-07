@@ -33,7 +33,7 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
-import jakarta.persistence.EntityManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -45,12 +45,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -59,10 +61,12 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -73,6 +77,30 @@ import org.springframework.stereotype.Component;
 public class SingleEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.SingleEvent, SingleEvent> {
+  public SingleEventPersister(
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
+  }
+
+  @Override
+  protected String sequenceName() {
+    return "singleevent_sequence";
+  }
+
+  @Override
+  protected void assignId(SingleEvent entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(SingleEvent entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(SingleEvent entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
+  }
 
   @Override
   protected void updatePreheat(TrackerPreheat preheat, SingleEvent event) {
@@ -145,31 +173,29 @@ public class SingleEventPersister
 
   @Override
   protected void updateAttributes(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent hibernateEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
   @Override
   protected void updateDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent payloadEntity,
       SingleEvent currentEntity,
       UserDetails user,
       ChangeLogAccumulator changeLogs) {
-    handleDataValues(
-        entityManager, preheat, event.getDataValues(), payloadEntity, user, changeLogs);
+    handleDataValues(preheat, event.getDataValues(), payloadEntity, user, changeLogs);
     logFieldChanges(currentEntity, payloadEntity, user.getUsername(), changeLogs);
   }
 
   private void handleDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
       SingleEvent event,
@@ -188,7 +214,7 @@ public class SingleEventPersister
           if (isNewDataValue(dbDataValue, dataValue)) {
             changeLogs.addSingleEventChangeLog(
                 event, dataElement, program, null, dataValue.getValue(), CREATE, username);
-            saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
+            saveDataValue(dataValue, event, dataElement, user, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
             changeLogs.addSingleEventChangeLog(
                 event,
@@ -198,12 +224,11 @@ public class SingleEventPersister
                 dataValue.getValue(),
                 UPDATE,
                 username);
-            updateDataValue(
-                dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
+            updateDataValue(dbDataValue, dataValue, event, dataElement, user, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
             changeLogs.addSingleEventChangeLog(
                 event, dataElement, program, dbDataValue.getValue(), null, DELETE, username);
-            deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
+            deleteDataValue(dbDataValue, event, dataElement, preheat);
           }
         });
   }
@@ -213,7 +238,6 @@ public class SingleEventPersister
       SingleEvent event,
       DataElement dataElement,
       UserDetails user,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     EventDataValue eventDataValue = new EventDataValue();
     eventDataValue.setDataElement(dataElement.getUid());
@@ -228,7 +252,7 @@ public class SingleEventPersister
     eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
 
     if (dataElement.isFileType()) {
-      assignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      assignFileResource(preheat, event.getUid(), eventDataValue.getValue());
     }
 
     event.getEventDataValues().add(eventDataValue);
@@ -240,14 +264,13 @@ public class SingleEventPersister
       SingleEvent event,
       DataElement dataElement,
       UserDetails user,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     eventDataValue.setLastUpdated(new Date());
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
 
     if (dataElement.isFileType()) {
-      unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
-      assignFileResource(entityManager, preheat, event.getUid(), dv.getValue());
+      unassignFileResource(preheat, event.getUid(), eventDataValue.getValue());
+      assignFileResource(preheat, event.getUid(), dv.getValue());
     }
 
     eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
@@ -258,10 +281,9 @@ public class SingleEventPersister
       EventDataValue eventDataValue,
       SingleEvent event,
       DataElement dataElement,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     if (dataElement.isFileType()) {
-      unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      unassignFileResource(preheat, event.getUid(), eventDataValue.getValue());
     }
 
     event.getEventDataValues().remove(eventDataValue);
@@ -271,7 +293,8 @@ public class SingleEventPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.SingleEvent trackerDto,
-      SingleEvent entity) {
+      SingleEvent entity,
+      EntityWriteBatch batch) {
     // DO NOTHING. Event creation does not create ownership records.
   }
 

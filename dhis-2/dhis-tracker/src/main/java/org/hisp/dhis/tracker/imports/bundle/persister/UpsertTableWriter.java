@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.test.IntegrationTest;
-import org.hisp.dhis.test.IntegrationTestBase;
-import org.hisp.dhis.test.config.PostgresTestConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.truncate;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Base class for all Spring based integration tests which use a Postgres DB running in a Docker
- * container. Extend this if you test Spring services or repositories.
- *
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Base for the per-entity writers that stage inserts and updates of a single top-level entity type
+ * (TrackedEntity, Enrollment, TrackerEvent, SingleEvent). Owns the two staging lists and the
+ * mark/rollback/clear lifecycle shared with {@link ChangeLogAccumulator}; subclasses supply the
+ * type-specific {@link #flush(Connection)} (multi-row INSERT, unnest UPDATE and any notes cascade).
  */
-@IntegrationTest
-@ContextConfiguration(classes = {PostgresTestConfig.class})
-public abstract class PostgresIntegrationTestBase extends IntegrationTestBase {
+abstract class UpsertTableWriter<E> {
 
-  @Autowired private DbmsManager dbmsManager;
+  protected final List<E> inserts = new ArrayList<>();
+  protected final List<E> updates = new ArrayList<>();
 
-  /**
-   * Flushes then detaches all Hibernate-managed entities. The tracker importer writes via JDBC,
-   * bypassing Hibernate, so entities loaded into the test's thread-bound session before an import
-   * linger there with stale pre-import state. Call this after importing tracker data whenever the
-   * test reads the import's outcome back through Hibernate. Only call it inside the test
-   * transaction (test methods of {@code @Transactional} tests) -- in {@code @BeforeAll} there is no
-   * transaction (the flush throws {@code TransactionRequiredException}) and no thread-bound session
-   * to clear in the first place.
-   */
-  protected final void clearSession() {
-    dbmsManager.clearSession();
+  void stageInsert(E entity) {
+    inserts.add(entity);
   }
+
+  void stageUpdate(E entity) {
+    updates.add(entity);
+  }
+
+  Mark mark() {
+    return new Mark(inserts.size(), updates.size());
+  }
+
+  void rollbackTo(Mark mark) {
+    truncate(inserts, mark.inserts());
+    truncate(updates, mark.updates());
+  }
+
+  void clear() {
+    inserts.clear();
+    updates.clear();
+  }
+
+  boolean isEmpty() {
+    return inserts.isEmpty() && updates.isEmpty();
+  }
+
+  /** Applies the staged inserts and updates via JDBC on {@code conn}. */
+  abstract void flush(Connection conn) throws SQLException;
+
+  record Mark(int inserts, int updates) {}
 }

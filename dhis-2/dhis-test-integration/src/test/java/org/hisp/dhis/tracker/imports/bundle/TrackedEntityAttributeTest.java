@@ -92,6 +92,8 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerPreheatService trackerPreheatService;
 
+  @Autowired private TrackerImportService trackerImportService;
+
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
@@ -99,8 +101,6 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private MetadataImportService metadataImportService;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   private User importUser;
 
@@ -151,6 +151,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   @Test
   void shouldUpdateExistingAttributeValueWhenImportingWithNonUidIdScheme() throws IOException {
     testSetup.importTrackerData("tracker/te_with_tea_data.json");
+    clearSession();
 
     // The persister must recognize the attribute value as existing (and route it to an UPDATE
     // instead of a duplicate INSERT, which would violate the composite PK) regardless of the
@@ -178,6 +179,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
             .build();
 
     assertNoErrors(trackerImportService.importTracker(params, update));
+    clearSession();
 
     TrackedEntity trackedEntity = manager.getAll(TrackedEntity.class).get(0);
     List<TrackedEntityAttributeValue> attributeValues =

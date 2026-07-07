@@ -287,9 +287,4 @@ class UserDatastoreEntryStoreTest extends PostgresIntegrationTestBase {
     userDatastoreStore.save(entry);
     return entry;
   }
-
-  private void clearSession() {
-    entityManager.flush();
-    entityManager.clear();
-  }
 }
