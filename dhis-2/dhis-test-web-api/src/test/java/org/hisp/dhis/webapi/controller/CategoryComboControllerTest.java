@@ -67,7 +67,7 @@ class CategoryComboControllerTest extends H2ControllerIntegrationTestBase {
       "Default CategoryCombo should be present in payload when defaults are INCLUDE by default")
   void getAllCatCombosIncludingDefaultsTest() {
     JsonArray categoryCombos =
-        GET("/categoryCombos").content(HttpStatus.OK).getArray("categoryCombos");
+        GET("/categoryCombos?gist=false").content(HttpStatus.OK).getArray("categoryCombos");
 
     assertEquals(
         Set.of("CategoryComboC", "CategoryComboB", "CategoryComboA", "default"),

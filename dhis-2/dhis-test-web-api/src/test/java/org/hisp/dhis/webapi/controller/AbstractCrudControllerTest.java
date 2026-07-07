@@ -722,7 +722,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
     assertWebMessage(
         "OK", 200, "OK", null, DELETE("/organisationUnits/" + ouId).content(HttpStatus.OK));
-    assertEquals(0, GET("/organisationUnits").content().getArray("organisationUnits").size());
+    assertEquals(
+        0, GET("/organisationUnits?gist=false").content().getArray("organisationUnits").size());
   }
 
   @Test
