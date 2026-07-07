@@ -78,7 +78,8 @@ public record GistObject(@Nonnull List<Property> properties, @CheckForNull Objec
    * @param properties the scope contained in the data
    * @param values the values for the properties in matching order
    */
-  public record Output(@Nonnull List<Property> properties, @Nonnull Object[] values) {
+  public record Output(
+      boolean unwrap, @Nonnull List<Property> properties, @Nonnull Object[] values) {
 
     public Output {
       requireNonNull(properties);

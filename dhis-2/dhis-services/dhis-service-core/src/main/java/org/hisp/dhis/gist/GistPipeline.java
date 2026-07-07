@@ -111,7 +111,8 @@ public class GistPipeline {
     GistObject obj = gistService.exportObject(query);
     Object[] values = obj.values();
     if (values == null) throw new NotFoundException(in.objectType(), in.id());
-    GistOutput.toJson(new GistObject.Output(obj.properties(), values), out.get());
+    boolean unwrap = in.params().isUnwrap();
+    GistOutput.toJson(new GistObject.Output(unwrap, obj.properties(), values), out.get());
   }
 
   @Transactional(readOnly = true)
@@ -121,7 +122,7 @@ public class GistPipeline {
     GistObject obj = gistService.exportObject(query);
     Object[] values = obj.values();
     if (values == null) throw new NotFoundException(in.objectType(), in.id());
-    GistOutput.toCsv(new GistObject.Output(obj.properties(), values), out.get());
+    GistOutput.toCsv(new GistObject.Output(false, obj.properties(), values), out.get());
   }
 
   @Transactional(readOnly = true)
@@ -179,6 +180,7 @@ public class GistPipeline {
   private GistObjectList.Output createObjectListOutput(
       GistObjectListParams params, Class<?> elementType, GistObjectList list) {
     return new GistObjectList.Output(
+        params.isUnwrap(),
         params.isHeadless(),
         list.pager(),
         getCollectionName(params, elementType),

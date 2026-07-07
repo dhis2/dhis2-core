@@ -606,6 +606,7 @@ public abstract class AbstractFullReadOnlyController<
     p.setTotalPages(true);
     p.setLocale(requestParameter("locale", request));
     p.setReferences(false);
+    p.setUnwrap(false);
     getObjectListGist(p, request, response);
   }
 
