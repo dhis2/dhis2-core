@@ -598,13 +598,13 @@ public abstract class AbstractFullReadOnlyController<
       throws BadRequestException {
     GistObjectListParams p = new GistObjectListParams();
     p.setFields(params.getFieldsJsonList());
-    p.setFilter(request.getParameter("filter"));
+    p.setFilter(requestParameter("filter", request));
     p.setPage(params.getPage());
     p.setPageSize(params.getPageSize());
-    p.setOrder(request.getParameter("order"));
+    p.setOrder(requestParameter("order", request));
     p.setRootJunction(params.getRootJunction());
     p.setTotalPages(true);
-    p.setLocale(request.getParameter("locale"));
+    p.setLocale(requestParameter("locale", request));
     p.setReferences(false);
     getObjectListGist(p, request, response);
   }
@@ -636,15 +636,14 @@ public abstract class AbstractFullReadOnlyController<
           return false;
       }
     }
-    String filter = request.getParameter("filter");
-    if (filter != null) if (filter.contains("token") || filter.contains("display")) return false;
+    String filter = requestParameter("filter", request);
+    if (filter.contains("token") || filter.contains("display")) return false;
 
-    String order = request.getParameter("order");
-    if (order != null)
-      if (order.contains("iasc")
-          || order.contains("idesc")
-          || order.contains("IASC")
-          || order.contains("IDESC")) return false;
+    String order = requestParameter("order", request);
+    if (order.contains("iasc")
+        || order.contains("idesc")
+        || order.contains("IASC")
+        || order.contains("IDESC")) return false;
     return true;
   }
 
@@ -686,5 +685,13 @@ public abstract class AbstractFullReadOnlyController<
       if (!GIST_BRIDE_PARAMS.contains(name)) return false;
     }
     return true;
+  }
+
+  @Nonnull
+  private static String requestParameter(String name, HttpServletRequest request) {
+    String[] values = request.getParameterValues(name);
+    if (values == null || values.length == 0) return "";
+    if (values.length == 1) return values[0];
+    return String.join(",", values);
   }
 }
