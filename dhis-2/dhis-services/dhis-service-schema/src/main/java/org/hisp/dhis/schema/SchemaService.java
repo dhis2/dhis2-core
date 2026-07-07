@@ -89,6 +89,8 @@ public interface SchemaService {
    */
   List<Schema> getMetadataSchemas();
 
+  Set<Schema> getNonEmbeddedMetadataSchemas();
+
   /**
    * Collect all authorities from schema descriptors.
    *
