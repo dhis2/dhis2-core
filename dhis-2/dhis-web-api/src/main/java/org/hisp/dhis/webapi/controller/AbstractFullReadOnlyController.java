@@ -44,7 +44,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +71,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-import org.hisp.dhis.gist.GistObjectListParams;
+import org.hisp.dhis.gist.GistBridge;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -83,17 +83,14 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.DefaultSchemaService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
-import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -139,6 +136,8 @@ public abstract class AbstractFullReadOnlyController<
   @Autowired protected CsvMapper csvMapper;
 
   @Autowired protected SchemaService schemaService;
+
+  @Autowired private GistBridge gistBridge;
 
   private Schema schema;
 
@@ -234,9 +233,12 @@ public abstract class AbstractFullReadOnlyController<
 
     String fields = params.getFieldsJsonList();
     if (!isAlwaysEmpty) {
-      if (additionalFilters.isEmpty() && canObjectListUseGistBridge(request, params)) {
-        getObjectListGistBridge(params, request, response);
-        return null; // response already created by Gist
+      if (additionalFilters.isEmpty()) {
+        GistBridge.GistBridgeParams p = toGistBridgeParams(params, request);
+        if (gistBridge.isSupportedObjectList(p)) {
+          getObjectListGist(GistBridge.toObjectListParams(p), request, response);
+          return null; // response already created by Gist
+        }
       }
       entities = getEntityList(params, additionalFilters);
       postProcessResponseEntities(entities, params);
@@ -590,102 +592,18 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   /*
-  Gist Backend Bridge
+  Gist Backend Bridge Support
    */
 
-  private void getObjectListGistBridge(
-      P params, HttpServletRequest request, HttpServletResponse response)
-      throws BadRequestException {
-    GistObjectListParams p = new GistObjectListParams();
-    p.setFields(params.getFieldsJsonList());
-    p.setFilter(requestParameter("filter", request));
-    p.setPage(params.getPage());
-    p.setPageSize(params.getPageSize());
-    p.setOrder(requestParameter("order", request));
-    p.setRootJunction(params.getRootJunction());
-    p.setTotalPages(true);
-    p.setLocale(requestParameter("locale", request));
-    p.setReferences(false);
-    p.setUnwrap(false);
-    getObjectListGist(p, request, response);
-  }
-
-  private boolean canObjectListUseGistBridge(HttpServletRequest request, P params) {
-    if (!params.isPaging()) return false;
-    Boolean gist = params.getGist();
-    if (gist != null) return gist;
-    if (!canParamsUseGistBridge(request)) return false;
-    RelativePropertyContext context =
-        new RelativePropertyContext(getEntityClass(), schemaService::getSchema);
-    for (Fields.Field f : Fields.of(params.getFieldsJsonList())) {
-      if (f.isPreset()) return false;
-      Property leaf = context.resolve(f.propertyPath());
-      // TODO support attribute picks
-      if (leaf == null) return false; // give up if we cannot find the property
-      List<Property> path = context.resolvePath(f.propertyPath());
-      if (path.size() > 2) return false;
-      if (!canPropertyUseGistBridge(f, path.get(path.size() - 1), context)) return false;
-      if (path.size() == 2) {
-        Property ref = path.get(0);
-        Class<?> refType = ref.isCollection() ? ref.getItemKlass() : ref.getKlass();
-        if (!IdentifiableObject.class.isAssignableFrom(refType)) return false;
-      }
-      if (path.size() == 1) {
-        Property p = path.get(0);
-        // collections of non-identifiable relations are not supported in Gist API
-        if (p.isCollection() && !IdentifiableObject.class.isAssignableFrom(p.getItemKlass()))
-          return false;
-      }
-    }
-    String filter = requestParameter("filter", request);
-    if (filter.contains("token") || filter.contains("display")) return false;
-
-    String order = requestParameter("order", request);
-    if (order.contains("iasc")
-        || order.contains("idesc")
-        || order.contains("IASC")
-        || order.contains("IDESC")) return false;
-    return true;
-  }
-
-  private static boolean canPropertyUseGistBridge(
-      Fields.Field f, Property p, RelativePropertyContext context) {
-    if (!p.isPersisted()) {
-      if (p.getName().startsWith("display") && !f.isNested()) {
-        Property base = context.resolve(Property.resolveTranslationBasePropertyName(p.getName()));
-        return base != null && base.isTranslatable() && base.isPersisted();
-      }
-      return false;
-    }
-    if (p.isSimple()) return true;
-    if (p.isCollection() && !f.isNested() && f.isTransformed()) return true;
-    if (p.getKlass() == Access.class || p.getKlass() == Sharing.class) return true;
-    return false;
-  }
-
-  /**
-   * These URL parameters can generally be handled by the Gist API, but anything not in this list is
-   * likely to have special meaning in the metadata API so the bridge should not be used to be safe
-   */
-  private static final Set<String> GIST_BRIDE_PARAMS =
-      Set.of(
-          "fields",
-          "filter",
-          "order",
-          "page",
-          "pageSize",
-          "paging",
-          "locale",
-          "rootJunction",
-          "gist");
-
-  private static boolean canParamsUseGistBridge(HttpServletRequest request) {
-    Iterator<String> iter = request.getParameterNames().asIterator();
-    while (iter.hasNext()) {
-      String name = iter.next();
-      if (!GIST_BRIDE_PARAMS.contains(name)) return false;
-    }
-    return true;
+  private GistBridge.GistBridgeParams toGistBridgeParams(P params, HttpServletRequest request) {
+    return new GistBridge.GistBridgeParams(
+        getEntityClass(),
+        params,
+        Set.copyOf(Collections.list(request.getParameterNames())),
+        params.getFieldsJsonList(),
+        requestParameter("filter", request),
+        requestParameter("order", request),
+        requestParameter("locale", request));
   }
 
   @Nonnull

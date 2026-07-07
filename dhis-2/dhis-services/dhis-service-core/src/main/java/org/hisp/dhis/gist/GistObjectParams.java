@@ -30,6 +30,7 @@
 package org.hisp.dhis.gist;
 
 import lombok.Data;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 
 @Data
@@ -64,6 +65,7 @@ public class GistObjectParams {
     When `fields` is selecting only 1 property the result is not wrapped in an object (`unwrap=true`),
     `false` to always wrap fields in objects.""")
   @OpenApi.Since(44)
+  @Maturity.Alpha
   boolean unwrap = true;
 
   @OpenApi.Description(
