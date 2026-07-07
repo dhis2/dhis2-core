@@ -471,6 +471,7 @@ public class DefaultSchemaService implements SchemaService {
         .filter(not(Schema::isEmbeddedObject))
         .collect(toSet());
   }
+
   @Override
   public Set<String> collectAuthorities() {
     return getSchemas().stream()
