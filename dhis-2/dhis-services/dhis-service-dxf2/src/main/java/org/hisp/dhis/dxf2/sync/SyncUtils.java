@@ -31,6 +31,10 @@ package org.hisp.dhis.dxf2.sync;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
@@ -50,6 +54,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RequestCallback;
@@ -102,6 +107,72 @@ public class SyncUtils {
     }
 
     return false;
+  }
+
+  public static <T> T runSyncRequest(
+      RestTemplate restTemplate,
+      RequestCallback requestCallback,
+      ResponseExtractor<T> responseExtractor,
+      String syncUrl,
+      int maxSyncAttempts) {
+    for (int attempt = 1; attempt <= maxSyncAttempts; attempt++) {
+      try {
+        return restTemplate.execute(syncUrl, HttpMethod.POST, requestCallback, responseExtractor);
+      } catch (HttpClientErrorException ex) {
+        // A 4xx still carries a body the caller's extractor knows how to parse. RestTemplate's
+        // default error handler throws before the extractor ever runs, so re-run it here against
+        // the body captured on the exception. Not retried: a client error won't resolve itself.
+        return extractFromErrorResponse(ex, responseExtractor);
+      } catch (HttpServerErrorException ex) {
+        log.error(
+            "Sync server error (attempt {}/{}): {}",
+            attempt,
+            maxSyncAttempts,
+            ex.getResponseBodyAsString(),
+            ex);
+        if (attempt >= maxSyncAttempts) {
+          throw ex;
+        }
+      }
+    }
+    throw new IllegalStateException("unreachable");
+  }
+
+  private static <T> T extractFromErrorResponse(
+      HttpClientErrorException ex, ResponseExtractor<T> responseExtractor) {
+    try {
+      return responseExtractor.extractData(toClientHttpResponse(ex));
+    } catch (IOException e) {
+      throw new UncheckedIOException("Failed to parse sync error response", e);
+    }
+  }
+
+  private static ClientHttpResponse toClientHttpResponse(HttpClientErrorException ex) {
+    return new ClientHttpResponse() {
+      @Override
+      public HttpStatusCode getStatusCode() {
+        return ex.getStatusCode();
+      }
+
+      @Override
+      public String getStatusText() {
+        return ex.getStatusText();
+      }
+
+      @Override
+      public void close() {}
+
+      @Override
+      public InputStream getBody() {
+        return new ByteArrayInputStream(ex.getResponseBodyAsByteArray());
+      }
+
+      @Override
+      public HttpHeaders getHeaders() {
+        HttpHeaders headers = ex.getResponseHeaders();
+        return headers != null ? headers : new HttpHeaders();
+      }
+    };
   }
 
   public static Optional<WebMessageResponse> runSyncRequest(

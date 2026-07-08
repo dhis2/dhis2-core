@@ -33,20 +33,31 @@ import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1082;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1113;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1114;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4017;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
@@ -55,28 +66,33 @@ import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -90,20 +106,34 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
 
+  private static final Set<String> ALREADY_DELETED_CODES =
+      Set.of(E1082.name(), E1113.name(), E1114.name(), E4017.name());
+
+  private record DeleteSyncResult(Set<String> syncedTeUids, Set<String> blockingFailedChildUids) {}
+
   private final TrackedEntityService trackedEntityService;
+  private final ProgramStageDataElementService programStageDataElementService;
   private final SystemSettingsService systemSettingsService;
   private final RestTemplate restTemplate;
   private final RenderService renderService;
 
   @Getter
   private static final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
+    private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
+    private final Set<UID> failedTrackedEntityUids = new HashSet<>();
+
     public TrackerSynchronizationContext(Date skipChangedBefore, int pageSize) {
-      this(skipChangedBefore, 0, null, pageSize);
+      this(skipChangedBefore, 0, null, pageSize, Map.of());
     }
 
     public TrackerSynchronizationContext(
-        Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance, int pageSize) {
+        Date skipChangedBefore,
+        long objectsToSynchronize,
+        SystemInstance instance,
+        int pageSize,
+        Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
+      this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
     }
 
     public boolean hasNoObjectsToSynchronize() {
@@ -158,7 +188,16 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
 
     return new TrackerSynchronizationContext(
-        skipChangedBefore, trackedEntityCount, instance, pageSize);
+        skipChangedBefore,
+        trackedEntityCount,
+        instance,
+        pageSize,
+        getSkipSyncDataElementsByProgramStage());
+  }
+
+  private Map<String, Set<String>> getSkipSyncDataElementsByProgramStage() {
+    return programStageDataElementService
+        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
   }
 
   private long countTrackedEntitiesForSynchronization(Date skipChangedBefore)
@@ -194,7 +233,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private void synchronizePageSafely(
       int page, TrackerSynchronizationContext context, SystemSettings settings) {
     try {
-      synchronizePage(page, context, settings);
+      synchronizePage(context, settings);
     } catch (Exception ex) {
       log.error("Failed to synchronize page {}", page, ex);
       throw new RuntimeException(
@@ -202,10 +241,9 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     }
   }
 
-  private void synchronizePage(
-      int page, TrackerSynchronizationContext context, SystemSettings settings)
+  private void synchronizePage(TrackerSynchronizationContext context, SystemSettings settings)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    List<TrackedEntity> trackedEntities = fetchTrackedEntitiesForPage(page, context);
+    List<TrackedEntity> trackedEntities = fetchTrackedEntitiesForPage(context);
 
     Map<Boolean, List<TrackedEntity>> partitionedTrackedEntities =
         partitionTrackedEntitiesByDeletionStatus(trackedEntities);
@@ -216,8 +254,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         activeTrackedEntities, deletedTrackedEntities, context, settings);
   }
 
-  private List<TrackedEntity> fetchTrackedEntitiesForPage(
-      int page, TrackerSynchronizationContext context)
+  private List<TrackedEntity> fetchTrackedEntitiesForPage(TrackerSynchronizationContext context)
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
@@ -225,9 +262,14 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             .synchronizationQuery(true)
             .includeDeleted(true)
             .fields(TrackedEntityFields.all())
+            .excludedTrackedEntities(Set.copyOf(context.getFailedTrackedEntityUids()))
             .build();
+    // Always query page 1: entities synced by a prior iteration drop out of the synchronization
+    // filter on their own, and entities that failed are additionally excluded above, so the next
+    // unsynced batch is always at the front of the result set. Using an offset here would skip
+    // entities, since the filtered set shrinks between iterations.
     return trackedEntityService
-        .findTrackedEntities(params, PageParams.of(page, context.getPageSize(), false))
+        .findTrackedEntities(params, PageParams.of(1, context.getPageSize(), false))
         .getItems();
   }
 
@@ -236,142 +278,533 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     return trackedEntities.stream().collect(Collectors.partitioningBy(TrackedEntity::isDeleted));
   }
 
+  private record SplitActiveTrackedEntities(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntities,
+      List<Enrollment> deletedEnrollments,
+      List<Event> deletedEvents,
+      Map<String, Relationship> deletedRelationshipsByUid,
+      Map<String, Set<String>> deletedChildUidsByTe) {}
+
   private void syncTrackedEntitiesByDeletionStatus(
-      List<TrackedEntity> activeTrackedEntities,
-      List<TrackedEntity> deletedTrackedEntities,
+      List<TrackedEntity> active,
+      List<TrackedEntity> deleted,
       TrackerSynchronizationContext context,
       SystemSettings settings) {
     Date syncTime = context.getStartTime();
     SystemInstance instance = context.getInstance();
 
+    Set<String> attemptedThisPage = new HashSet<>();
+    active.forEach(te -> attemptedThisPage.add(te.getUid()));
+    deleted.forEach(te -> attemptedThisPage.add(te.getUid()));
+    Set<String> syncedThisPage = new HashSet<>();
+
+    try {
+      SplitActiveTrackedEntities splitActiveEntities = splitActiveTrackedEntities(active, context);
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntities =
+          deleted.stream().map(this::toMinimalTrackedEntity).toList();
+
+      DeleteSyncResult deleteResult =
+          syncDeletedIfNeeded(deletedTrackedEntities, splitActiveEntities, instance, settings);
+
+      Set<String> activeSyncCandidateUids =
+          splitActiveEntities.activeTrackedEntities().isEmpty()
+              ? Set.of()
+              : syncActive(splitActiveEntities.activeTrackedEntities(), instance, settings);
+
+      Set<String> syncedActiveTeUids =
+          resolveSyncedActiveTeUids(
+              activeSyncCandidateUids, splitActiveEntities.deletedChildUidsByTe(), deleteResult);
+      Set<String> syncedDeletedTeUids =
+          deleteResult == null ? Set.of() : deleteResult.syncedTeUids();
+
+      syncedThisPage.addAll(
+          stampSyncTimestamp(deletedTrackedEntities, syncedDeletedTeUids, syncTime));
+      syncedThisPage.addAll(
+          stampSyncTimestamp(
+              splitActiveEntities.activeTrackedEntities(), syncedActiveTeUids, syncTime));
+    } finally {
+      // Whatever was attempted on this page but didn't end up confirmed synced above must be
+      // excluded from future page fetches this run, or it would keep being refetched.
+      attemptedThisPage.removeAll(syncedThisPage);
+      attemptedThisPage.forEach(uid -> context.getFailedTrackedEntityUids().add(UID.of(uid)));
+    }
+  }
+
+  private SplitActiveTrackedEntities splitActiveTrackedEntities(
+      List<TrackedEntity> active, TrackerSynchronizationContext context) {
     TrackerIdSchemeParams idSchemeParams =
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
 
-    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntityDtos =
-        activeTrackedEntities.stream()
-            .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntities =
+        active.stream().map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te)).toList();
+
+    List<Enrollment> deletedEnrollments = new ArrayList<>();
+    List<Event> deletedEvents = new ArrayList<>();
+    Map<String, Relationship> deletedRelationshipsByUid = new LinkedHashMap<>();
+    // Which deleted enrollment/event/relationship UIDs belong to which active TE, so a blocking
+    // (non idempotent) failure to delete one of them can withhold that TE's timestamp later.
+    Map<String, Set<String>> deletedChildUidsByTe = new HashMap<>();
+    if (!activeTrackedEntities.isEmpty()) {
+      stripDeletedChildren(
+          activeTrackedEntities,
+          deletedEnrollments,
+          deletedEvents,
+          deletedRelationshipsByUid,
+          deletedChildUidsByTe);
+      stripSkipSyncFields(
+          activeTrackedEntities,
+          skipSyncAttributeUids(active),
+          context.getSkipSyncDataElementsByProgramStage());
+    }
+
+    return new SplitActiveTrackedEntities(
+        activeTrackedEntities,
+        deletedEnrollments,
+        deletedEvents,
+        deletedRelationshipsByUid,
+        deletedChildUidsByTe);
+  }
+
+  private DeleteSyncResult syncDeletedIfNeeded(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntities,
+      SplitActiveTrackedEntities prepared,
+      SystemInstance instance,
+      SystemSettings settings) {
+    if (deletedTrackedEntities.isEmpty()
+        && prepared.deletedEnrollments().isEmpty()
+        && prepared.deletedEvents().isEmpty()
+        && prepared.deletedRelationshipsByUid().isEmpty()) {
+      return null;
+    }
+    return syncDeleted(
+        deletedTrackedEntities,
+        prepared.deletedEnrollments(),
+        prepared.deletedEvents(),
+        prepared.deletedRelationshipsByUid().values(),
+        instance,
+        settings);
+  }
+
+  private Set<String> resolveSyncedActiveTeUids(
+      Set<String> activeSyncCandidateUids,
+      Map<String, Set<String>> deletedChildUidsByTe,
+      DeleteSyncResult deleteResult) {
+    Set<String> blockingFailedChildUids =
+        deleteResult == null ? Set.of() : deleteResult.blockingFailedChildUids();
+    return activeSyncCandidateUids.stream()
+        .filter(
+            teUid ->
+                Collections.disjoint(
+                    deletedChildUidsByTe.getOrDefault(teUid, Set.of()), blockingFailedChildUids))
+        .collect(Collectors.toCollection(HashSet::new));
+  }
+
+  private Set<String> stampSyncTimestamp(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> candidates,
+      Set<String> syncedUids,
+      Date syncTime) {
+    if (syncedUids.isEmpty()) {
+      return syncedUids;
+    }
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> syncedTes =
+        candidates.stream()
+            .filter(te -> syncedUids.contains(te.getTrackedEntity().getValue()))
             .toList();
-
-    List<Enrollment> deletedEnrollmentDtos = new ArrayList<>();
-    List<Event> deletedEventDtos = new ArrayList<>();
-    if (!activeTrackedEntityDtos.isEmpty()) {
-      stripDeletedChildren(activeTrackedEntityDtos, deletedEnrollmentDtos, deletedEventDtos);
-    }
-
-    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
-        deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
-
-    if (!deletedTrackedEntityDtos.isEmpty()
-        || !deletedEnrollmentDtos.isEmpty()
-        || !deletedEventDtos.isEmpty()) {
-      syncDeleted(
-          deletedTrackedEntityDtos,
-          deletedEnrollmentDtos,
-          deletedEventDtos,
-          instance,
-          settings,
-          syncTime);
-    }
-
-    if (!activeTrackedEntityDtos.isEmpty()) {
-      syncTrackedEntities(activeTrackedEntityDtos, instance, settings, syncTime);
-    }
+    updateTrackedEntitiesSyncTimestamp(syncedTes, syncTime);
+    return syncedUids;
   }
 
   private void stripDeletedChildren(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntityDtos,
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       List<Enrollment> deletedEnrollments,
-      List<Event> deletedEvents) {
-    for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity teDto : trackedEntityDtos) {
-      List<Enrollment> enrollments = teDto.getEnrollments();
+      List<Event> deletedEvents,
+      Map<String, Relationship> deletedRelationshipsByUid,
+      Map<String, Set<String>> deletedChildUidsByTe) {
+    for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te : trackedEntities) {
+      Set<String> ownedDeletedChildUids =
+          deletedChildUidsByTe.computeIfAbsent(
+              te.getTrackedEntity().getValue(), k -> new HashSet<>());
 
-      deletedEnrollments.addAll(enrollments.stream().filter(Enrollment::isDeleted).toList());
-
+      List<Enrollment> enrollments = te.getEnrollments();
+      List<Enrollment> deletedEnrollmentsForTe =
+          enrollments.stream().filter(Enrollment::isDeleted).toList();
+      deletedEnrollments.addAll(deletedEnrollmentsForTe);
+      deletedEnrollmentsForTe.forEach(e -> ownedDeletedChildUids.add(e.getEnrollment().getValue()));
       List<Enrollment> activeEnrollments =
           enrollments.stream().filter(e -> !e.isDeleted()).toList();
-      teDto.setEnrollments(activeEnrollments);
+      te.setEnrollments(activeEnrollments);
 
       for (Enrollment enrollment : activeEnrollments) {
         List<Event> events = enrollment.getEvents();
-        deletedEvents.addAll(events.stream().filter(Event::isDeleted).toList());
-        enrollment.setEvents(events.stream().filter(e -> !e.isDeleted()).toList());
+        List<Event> deletedEventsForEnrollment = events.stream().filter(Event::isDeleted).toList();
+        deletedEvents.addAll(deletedEventsForEnrollment);
+        deletedEventsForEnrollment.forEach(e -> ownedDeletedChildUids.add(e.getEvent().getValue()));
+        List<Event> activeEvents = events.stream().filter(e -> !e.isDeleted()).toList();
+        enrollment.setEvents(activeEvents);
+
+        enrollment.setRelationships(
+            stripDeletedRelationships(
+                enrollment.getRelationships(), deletedRelationshipsByUid, ownedDeletedChildUids));
+        for (Event event : activeEvents) {
+          event.setRelationships(
+              stripDeletedRelationships(
+                  event.getRelationships(), deletedRelationshipsByUid, ownedDeletedChildUids));
+        }
+      }
+
+      te.setRelationships(
+          stripDeletedRelationships(
+              te.getRelationships(), deletedRelationshipsByUid, ownedDeletedChildUids));
+    }
+  }
+
+  private List<Relationship> stripDeletedRelationships(
+      List<Relationship> relationships,
+      Map<String, Relationship> deletedRelationshipsByUid,
+      Set<String> ownedDeletedChildUids) {
+    relationships.stream()
+        .filter(Relationship::isDeleted)
+        .forEach(
+            r -> {
+              deletedRelationshipsByUid.put(r.getRelationship().getValue(), r);
+              ownedDeletedChildUids.add(r.getRelationship().getValue());
+            });
+    return relationships.stream().filter(r -> !r.isDeleted()).toList();
+  }
+
+  private Set<String> skipSyncAttributeUids(List<TrackedEntity> trackedEntities) {
+    return trackedEntities.stream()
+        .flatMap(te -> te.getTrackedEntityAttributeValues().stream())
+        .map(TrackedEntityAttributeValue::getAttribute)
+        .filter(a -> Boolean.TRUE.equals(a.getSkipSynchronization()))
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toSet());
+  }
+
+  private void stripSkipSyncFields(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
+      Set<String> skipSyncAttributeUids,
+      Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+    for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te : trackedEntities) {
+      te.setAttributes(stripSkipSyncAttributes(te.getAttributes(), skipSyncAttributeUids));
+
+      for (Enrollment enrollment : te.getEnrollments()) {
+        enrollment.setAttributes(
+            stripSkipSyncAttributes(enrollment.getAttributes(), skipSyncAttributeUids));
+
+        for (Event event : enrollment.getEvents()) {
+          Set<String> skipDataElements =
+              skipSyncDataElementsByProgramStage.getOrDefault(event.getProgramStage(), Set.of());
+          if (!skipDataElements.isEmpty()) {
+            event.setDataValues(
+                event.getDataValues().stream()
+                    .filter(dv -> !skipDataElements.contains(dv.getDataElement()))
+                    .collect(Collectors.toSet()));
+          }
+        }
       }
     }
   }
 
-  private void syncDeleted(
+  private List<org.hisp.dhis.webapi.controller.tracker.view.Attribute> stripSkipSyncAttributes(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Attribute> attributes,
+      Set<String> skipSyncAttributeUids) {
+    if (skipSyncAttributeUids.isEmpty()) {
+      return attributes;
+    }
+    return attributes.stream()
+        .filter(a -> !skipSyncAttributeUids.contains(a.getAttribute()))
+        .toList();
+  }
+
+  private DeleteSyncResult syncDeleted(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntities,
       List<Enrollment> deletedEnrollments,
       List<Event> deletedEvents,
+      Collection<Relationship> deletedRelationships,
       SystemInstance instance,
-      SystemSettings settings,
-      Date syncTime) {
-    String url = instance.getUrl() + "?importStrategy=" + TrackerImportStrategy.DELETE;
+      SystemSettings settings) {
+    String url = instance.getUrl() + "?importStrategy=" + DELETE + "&async=false&atomicMode=OBJECT";
 
     Map<String, List<?>> payload =
         Map.of(
             "trackedEntities", deletedTrackedEntities,
             "enrollments", deletedEnrollments.stream().map(this::toMinimalEnrollment).toList(),
-            "events", deletedEvents.stream().map(this::toMinimalEvent).toList());
+            "events", deletedEvents.stream().map(this::toMinimalEvent).toList(),
+            "relationships",
+                deletedRelationships.stream().map(this::toMinimalRelationship).toList());
 
-    ImportSummary summary = sendTrackerRequest(payload, instance, settings, url);
+    ImportReport report = sendTrackerRequest(payload, instance, settings, url);
 
-    if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
-      throw new MetadataSyncServiceException("Tracker sync failed for deletes");
-    }
+    // An entity whose own delete came back "already deleted" achieved its goal, so it is treated as
+    // synced here too.
+    Set<String> syncedTeUids = alreadyDeletedOrSucceededUids(report, TrackerType.TRACKED_ENTITY);
+    Set<String> syncedEnrollmentUids =
+        alreadyDeletedOrSucceededUids(report, TrackerType.ENROLLMENT);
+    Set<String> syncedEventUids = alreadyDeletedOrSucceededUids(report, TrackerType.EVENT);
+    Set<String> syncedRelationshipUids =
+        alreadyDeletedOrSucceededUids(report, TrackerType.RELATIONSHIP);
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> syncedTes =
+        deletedTrackedEntities.stream()
+            .filter(te -> syncedTeUids.contains(te.getTrackedEntity().getValue()))
+            .toList();
+
+    Set<String> failedTeUids = blockingFailedUids(report, TrackerType.TRACKED_ENTITY);
+    Set<String> failedEnrollmentUids = blockingFailedUids(report, TrackerType.ENROLLMENT);
+    Set<String> failedEventUids = blockingFailedUids(report, TrackerType.EVENT);
+    Set<String> failedRelationshipUids = blockingFailedUids(report, TrackerType.RELATIONSHIP);
+
+    Set<String> blockingFailedChildUids = new HashSet<>();
+    Stream.of(failedEnrollmentUids, failedEventUids, failedRelationshipUids)
+        .forEach(blockingFailedChildUids::addAll);
 
     log.info(
-        "Tracker delete sync successful: TEs={}, enrollments={}, events={}",
+        "Tracker delete sync: TEs={}/{} synced{}, enrollments={}/{} synced{},"
+            + " events={}/{} synced{}, relationships={}/{} synced{}",
+        syncedTes.size(),
         deletedTrackedEntities.size(),
+        formatFailedUids(failedTeUids),
+        syncedEnrollmentUids.size(),
         deletedEnrollments.size(),
-        deletedEvents.size());
+        formatFailedUids(failedEnrollmentUids),
+        syncedEventUids.size(),
+        deletedEvents.size(),
+        formatFailedUids(failedEventUids),
+        syncedRelationshipUids.size(),
+        deletedRelationships.size(),
+        formatFailedUids(failedRelationshipUids));
 
-    if (!deletedTrackedEntities.isEmpty()) {
-      updateTrackedEntitiesSyncTimestamp(deletedTrackedEntities, syncTime);
-    }
+    return new DeleteSyncResult(syncedTeUids, blockingFailedChildUids);
   }
 
-  private void syncTrackedEntities(
+  private Set<String> syncActive(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       SystemInstance instance,
-      SystemSettings settings,
-      Date syncTime) {
+      SystemSettings settings) {
     String url =
         instance.getUrl()
             + "?importStrategy="
             + CREATE_AND_UPDATE
             + "&async=false&atomicMode=OBJECT";
 
-    ImportSummary summary =
+    ImportReport report =
         sendTrackerRequest(Map.of("trackedEntities", trackedEntities), instance, settings, url);
 
-    if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
-      throw new MetadataSyncServiceException(
-          format("Tracked Entity sync failed for importStrategy=%s", CREATE_AND_UPDATE));
-    }
+    Set<String> syncedTeUids =
+        getTrackedEntitiesWithAllChildrenSynchronized(report, trackedEntities);
+
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> syncedTes =
+        trackedEntities.stream()
+            .filter(te -> syncedTeUids.contains(te.getTrackedEntity().getValue()))
+            .toList();
+
+    List<Enrollment> enrollments =
+        trackedEntities.stream().flatMap(te -> te.getEnrollments().stream()).toList();
+    List<Event> events = enrollments.stream().flatMap(e -> e.getEvents().stream()).toList();
+    Set<String> relationshipUids = getAllRelationshipUids(trackedEntities);
+    Set<String> failedEnrollmentUids = failedUids(report, TrackerType.ENROLLMENT);
+    Set<String> failedEventUids = failedUids(report, TrackerType.EVENT);
+    Set<String> failedRelationshipUids = failedUids(report, TrackerType.RELATIONSHIP);
 
     log.info(
-        "Tracked Entity sync successful for importStrategy={}. Tracked entities count: {}",
-        CREATE_AND_UPDATE,
-        trackedEntities.size());
+        "Tracker create/update sync: TEs={}/{} synced, enrollments={}/{} synced{},"
+            + " events={}/{} synced{}, relationships={}/{} synced{}",
+        syncedTes.size(),
+        trackedEntities.size(),
+        successfullyProcessedUids(report, TrackerType.ENROLLMENT).size(),
+        enrollments.size(),
+        formatFailedUids(failedEnrollmentUids),
+        successfullyProcessedUids(report, TrackerType.EVENT).size(),
+        events.size(),
+        formatFailedUids(failedEventUids),
+        successfullyProcessedUids(report, TrackerType.RELATIONSHIP).size(),
+        relationshipUids.size(),
+        formatFailedUids(failedRelationshipUids));
 
-    updateTrackedEntitiesSyncTimestamp(trackedEntities, syncTime);
+    return syncedTeUids;
   }
 
-  private ImportSummary sendTrackerRequest(
+  private String formatFailedUids(Set<String> failedUids) {
+    return failedUids.isEmpty() ? "" : format(" (failed: %s)", failedUids);
+  }
+
+  private Set<String> getAllRelationshipUids(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities) {
+    // Deduplicate by UID because a relationship is attached to every entity that is one of its
+    // from/to parties, so the same
+    // relationship can appear under two different tracked entities.
+    Set<String> relationshipUids = new HashSet<>();
+    for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te : trackedEntities) {
+      te.getRelationships().forEach(r -> relationshipUids.add(r.getRelationship().getValue()));
+      for (Enrollment enrollment : te.getEnrollments()) {
+        enrollment
+            .getRelationships()
+            .forEach(r -> relationshipUids.add(r.getRelationship().getValue()));
+        for (Event event : enrollment.getEvents()) {
+          event
+              .getRelationships()
+              .forEach(r -> relationshipUids.add(r.getRelationship().getValue()));
+        }
+      }
+    }
+    return relationshipUids;
+  }
+
+  private ImportReport sendTrackerRequest(
       Map<String, ?> payload, SystemInstance instance, SystemSettings settings, String url) {
     RequestCallback requestCallback = createRequestCallback(payload, instance);
+    int maxAttempts = settings.getSyncMaxAttempts();
 
-    Optional<WebMessageResponse> response =
-        runSyncRequest(
-            restTemplate,
-            requestCallback,
-            SyncEndpoint.TRACKER_IMPORT.getKlass(),
-            url,
-            settings.getSyncMaxAttempts());
+    ResponseExtractor<ImportReport> extractor =
+        response -> {
+          try {
+            return renderService.fromJson(response.getBody(), ImportReport.class);
+          } catch (IOException e) {
+            throw new MetadataSyncServiceException("Failed to parse tracker import response", e);
+          }
+        };
 
-    return response.map(ImportSummary.class::cast).orElse(null);
+    ImportReport report =
+        runSyncRequest(restTemplate, requestCallback, extractor, url, maxAttempts);
+
+    if (report == null) {
+      throw new MetadataSyncServiceException("Tracker sync returned null response");
+    }
+    return report;
+  }
+
+  private Set<String> getTrackedEntitiesWithAllChildrenSynchronized(
+      ImportReport report,
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities) {
+    Set<String> succeededUids = successfullyProcessedUids(report, TrackerType.TRACKED_ENTITY);
+    if (succeededUids.isEmpty()) {
+      return succeededUids;
+    }
+
+    Set<String> failedEnrollments = failedUids(report, TrackerType.ENROLLMENT);
+    Set<String> failedEvents = failedUids(report, TrackerType.EVENT);
+    Set<String> failedRelationships = failedUids(report, TrackerType.RELATIONSHIP);
+    if (failedEnrollments.isEmpty() && failedEvents.isEmpty() && failedRelationships.isEmpty()) {
+      return succeededUids;
+    }
+
+    return trackedEntities.stream()
+        .filter(te -> succeededUids.contains(te.getTrackedEntity().getValue()))
+        .filter(te -> !hasFailedChild(te, failedEnrollments, failedEvents, failedRelationships))
+        .map(te -> te.getTrackedEntity().getValue())
+        .collect(Collectors.toCollection(HashSet::new));
+  }
+
+  private boolean hasFailedChild(
+      org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te,
+      Set<String> failedEnrollments,
+      Set<String> failedEvents,
+      Set<String> failedRelationships) {
+    if (hasFailedRelationship(te.getRelationships(), failedRelationships)) {
+      return true;
+    }
+    for (Enrollment enrollment : te.getEnrollments()) {
+      if (failedEnrollments.contains(enrollment.getEnrollment().getValue())
+          || hasFailedRelationship(enrollment.getRelationships(), failedRelationships)) {
+        return true;
+      }
+      for (Event event : enrollment.getEvents()) {
+        if (failedEvents.contains(event.getEvent().getValue())
+            || hasFailedRelationship(event.getRelationships(), failedRelationships)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private boolean hasFailedRelationship(
+      List<Relationship> relationships, Set<String> failedRelationships) {
+    return relationships.stream()
+        .anyMatch(r -> failedRelationships.contains(r.getRelationship().getValue()));
+  }
+
+  private Set<String> successfullyProcessedUids(ImportReport report, TrackerType type) {
+    if (report.getPersistenceReport() == null) {
+      return new HashSet<>();
+    }
+    TrackerTypeReport typeReport = report.getPersistenceReport().getTypeReportMap().get(type);
+    if (typeReport == null) {
+      return new HashSet<>();
+    }
+    return typeReport.getEntityReport().stream()
+        .filter(entity -> entity.getErrorReports().isEmpty())
+        .map(entity -> entity.getUid().getValue())
+        .collect(Collectors.toCollection(HashSet::new));
+  }
+
+  private Set<String> failedUids(ImportReport report, TrackerType type) {
+    Set<String> failed = new HashSet<>();
+
+    if (report.getValidationReport() != null) {
+      report.getValidationReport().getErrors().stream()
+          .filter(e -> type.name().equals(e.getTrackerType()))
+          .map(e -> e.getUid().getValue())
+          .forEach(failed::add);
+    }
+
+    if (report.getPersistenceReport() != null) {
+      TrackerTypeReport typeReport = report.getPersistenceReport().getTypeReportMap().get(type);
+      if (typeReport != null) {
+        typeReport.getEntityReport().stream()
+            .filter(entity -> !entity.getErrorReports().isEmpty())
+            .map(entity -> entity.getUid().getValue())
+            .forEach(failed::add);
+      }
+    }
+
+    return failed;
+  }
+
+  /**
+   * Like {@link #failedUids}, but excludes entities whose only error(s) are {@link
+   * #ALREADY_DELETED_CODES} — i.e. entities whose failure should block a parent TE's sync
+   * timestamp, as opposed to one that failed only because "the delete already happened". Only
+   * meaningful against a DELETE report.
+   */
+  private Set<String> blockingFailedUids(ImportReport report, TrackerType type) {
+    Set<String> blocking = new HashSet<>();
+
+    if (report.getValidationReport() != null) {
+      report.getValidationReport().getErrors().stream()
+          .filter(e -> type.name().equals(e.getTrackerType()))
+          .filter(e -> !ALREADY_DELETED_CODES.contains(e.getErrorCode()))
+          .map(e -> e.getUid().getValue())
+          .forEach(blocking::add);
+    }
+
+    if (report.getPersistenceReport() != null) {
+      TrackerTypeReport typeReport = report.getPersistenceReport().getTypeReportMap().get(type);
+      if (typeReport != null) {
+        typeReport.getEntityReport().stream()
+            .filter(
+                entity ->
+                    entity.getErrorReports().stream()
+                        .anyMatch(e -> !ALREADY_DELETED_CODES.contains(e.getErrorCode())))
+            .map(entity -> entity.getUid().getValue())
+            .forEach(blocking::add);
+      }
+    }
+
+    return blocking;
+  }
+
+  /**
+   * Entities that either succeeded outright, or whose only error(s) in a DELETE report are {@link
+   * #ALREADY_DELETED_CODES} — meaning the delete's goal was already achieved by an earlier attempt
+   * or an out-of-band delete. Only meaningful against a DELETE report.
+   */
+  private Set<String> alreadyDeletedOrSucceededUids(ImportReport report, TrackerType type) {
+    Set<String> result = new HashSet<>(successfullyProcessedUids(report, type));
+    Set<String> blocking = blockingFailedUids(report, type);
+    failedUids(report, type).stream().filter(uid -> !blocking.contains(uid)).forEach(result::add);
+    return result;
   }
 
   private RequestCallback createRequestCallback(Map<String, ?> payload, SystemInstance instance) {
@@ -406,6 +839,12 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private Enrollment toMinimalEnrollment(Enrollment enrollment) {
     Enrollment minimal = new Enrollment();
     minimal.setEnrollment(enrollment.getEnrollment());
+    return minimal;
+  }
+
+  private Relationship toMinimalRelationship(Relationship relationship) {
+    Relationship minimal = new Relationship();
+    minimal.setRelationship(relationship.getRelationship());
     return minimal;
   }
 
