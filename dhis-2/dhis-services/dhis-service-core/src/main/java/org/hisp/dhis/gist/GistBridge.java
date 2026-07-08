@@ -196,7 +196,10 @@ public class GistBridge {
     List<Property> path = getPropertyPath(order.getPropertyPath(), context);
     if (path.size() != 1) return false;
     Property p = path.get(0);
-    return p.isPersisted() && !p.isEmbeddedObject() && p.isSimple() && p.isSortable();
+    return !p.isEmbeddedObject()
+        && p.isSimple()
+        && p.isSortable()
+        && (p.isPersisted() || isTranslatedProperty(p, context));
   }
 
   /**
