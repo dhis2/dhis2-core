@@ -177,7 +177,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   }
 
   @Test
-  void verifyAttributeOptionCombosWhenPopulatingEventAnalyticsTable() {
+  void verifyAttributeOptionCombosWhenPopulatingEnrollmentAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
 
     Category category = createCategory('A', createCategoryOption('A'));
@@ -205,6 +205,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     String aocQuery = format("acs.%s", quote(category.getUid()));
 
     assertTrue(sql.getValue().contains(aocQuery));
+    assertTrue(sql.getValue().contains("acs.categoryoptioncombouid"));
     assertThat(
         sql.getValue(),
         containsString(
