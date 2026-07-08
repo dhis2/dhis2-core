@@ -652,7 +652,7 @@ class TrackerDataSynchronizationServiceTest {
   }
 
   private static ImportReport reportWith(Entity... entities) {
-    Map<TrackerType, TrackerTypeReport> typeReportMap = new java.util.HashMap<>();
+    Map<TrackerType, TrackerTypeReport> typeReportMap = new java.util.EnumMap<>(TrackerType.class);
     boolean hasErrors = false;
     for (Entity entity : entities) {
       TrackerTypeReport typeReport =

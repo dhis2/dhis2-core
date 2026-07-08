@@ -159,6 +159,7 @@ public class SyncUtils {
         return ex.getStatusText();
       }
 
+      // No underlying connection to release — this wraps an already-buffered exception body.
       @Override
       public void close() {}
 

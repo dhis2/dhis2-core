@@ -40,7 +40,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.CodeGenerator;
@@ -674,7 +674,7 @@ class TrackerDataSynchronizationServiceTest extends PostgresControllerIntegratio
     ImportReport report =
         ImportReport.builder()
             .status(status)
-            .persistenceReport(new PersistenceReport(new HashMap<>(typeReports)))
+            .persistenceReport(new PersistenceReport(new EnumMap<>(typeReports)))
             .stats(new Stats())
             .build();
     try {
