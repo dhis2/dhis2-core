@@ -2,91 +2,91 @@
   "scenarios": [
     {
       "name": "aggregateCountByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&asc=ou&pageSize=5&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&pageSize=5&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateAverageValueByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=AVERAGE&asc=ou&pageSize=5&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=AVERAGE&pageSize=5&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateSumValueByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=SUM&asc=ou&pageSize=5&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=SUM&pageSize=5&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateCountOfNonNullValueByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=COUNT&asc=ou&pageSize=5&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=COUNT&pageSize=5&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateAverageValueByOrgUnitAndGender",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4,cejWyOfXge6&value=lw1SqmMlnfh&aggregationType=AVERAGE&asc=ou,cejWyOfXge6&pageSize=5&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4,cejWyOfXge6&value=lw1SqmMlnfh&aggregationType=AVERAGE&pageSize=10&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateAverageOverDataElementValueByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:UAtEKSd5QTf;mVvEwzoFutG;uROAmk9ymNE;mMvt6zhCclb;IlMQTFvcq9r&value=WSGAb5XwJ3Y.edqlbukwRfQ.vANAXwtLwcT&aggregationType=AVERAGE&asc=ou&pageSize=10&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:UAtEKSd5QTf;mVvEwzoFutG;uROAmk9ymNE;mMvt6zhCclb;IlMQTFvcq9r&value=WSGAb5XwJ3Y.edqlbukwRfQ.vANAXwtLwcT&aggregationType=AVERAGE&pageSize=10&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateCountOverDataElementValueByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:UAtEKSd5QTf;mVvEwzoFutG;uROAmk9ymNE;mMvt6zhCclb;IlMQTFvcq9r&value=WSGAb5XwJ3Y.edqlbukwRfQ.vANAXwtLwcT&aggregationType=COUNT&asc=ou&pageSize=10&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:UAtEKSd5QTf;mVvEwzoFutG;uROAmk9ymNE;mMvt6zhCclb;IlMQTFvcq9r&value=WSGAb5XwJ3Y.edqlbukwRfQ.vANAXwtLwcT&aggregationType=COUNT&pageSize=10&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateSumBirthWeightByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=SUM&asc=ou&pageSize=10&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=SUM&pageSize=10&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateMinBirthWeightByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=MIN&asc=ou&pageSize=10&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=MIN&pageSize=10&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateMaxBirthWeightByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=MAX&asc=ou&pageSize=10&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=MAX&pageSize=10&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateAverageBirthWeightByOrgUnitAndGender",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m,cejWyOfXge6&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=AVERAGE&asc=ou,cejWyOfXge6&pageSize=20&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m,cejWyOfXge6&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=AVERAGE&pageSize=20&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateAverageBirthWeightByOrgUnitFilteredByFemale",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=AVERAGE&filter=cejWyOfXge6:IN:Female&asc=ou&pageSize=10&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=AVERAGE&filter=cejWyOfXge6:IN:Female&pageSize=10&totalPages=false",
       "version": {
         "min": 44
       }
     },
     {
       "name": "aggregateAverageFirstEventValueByOrgUnit",
-      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:UAtEKSd5QTf;mVvEwzoFutG;uROAmk9ymNE;mMvt6zhCclb;IlMQTFvcq9r&value=WSGAb5XwJ3Y.edqlbukwRfQ[1].vANAXwtLwcT&aggregationType=AVERAGE&asc=ou&pageSize=10&totalPages=false",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:UAtEKSd5QTf;mVvEwzoFutG;uROAmk9ymNE;mMvt6zhCclb;IlMQTFvcq9r&value=WSGAb5XwJ3Y.edqlbukwRfQ[1].vANAXwtLwcT&aggregationType=AVERAGE&pageSize=10&totalPages=false",
       "version": {
         "min": 44
       }
