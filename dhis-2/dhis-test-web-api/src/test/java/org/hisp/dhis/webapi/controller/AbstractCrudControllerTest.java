@@ -1120,7 +1120,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     manager.save(dataElementGroup);
 
     JsonMixed response =
-        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR"
+        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR&gist=false"
                 .formatted(dataElementGroup.getUid()))
             .content();
     assertFalse(response.getArray("dataElements").isEmpty());

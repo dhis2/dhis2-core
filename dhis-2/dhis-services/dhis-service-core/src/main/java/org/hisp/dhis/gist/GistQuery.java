@@ -65,11 +65,6 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class GistQuery {
-  /**
-   * Fields allow {@code property[sub,sub]} syntax where a comma occurs as part of the property
-   * name. These commas need to be ignored when splitting a {@code fields} parameter list.
-   */
-  static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
 
   /** Query properties about the owner of the collection property. */
   @Getter
@@ -332,6 +327,9 @@ public final class GistQuery {
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   public static final class Filter {
 
+    private static final String FILTERS_SPLIT =
+        ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
+
     @JsonProperty private final int group;
     @JsonProperty private final String propertyPath;
     @JsonProperty private final Comparison operator;
@@ -345,7 +343,7 @@ public final class GistQuery {
 
     @Nonnull
     public static List<Filter> ofList(String filter) {
-      return getStrings(filter, FIELD_SPLIT).stream().map(Filter::parse).toList();
+      return getStrings(filter, FILTERS_SPLIT).stream().map(Filter::parse).toList();
     }
 
     public Filter withPropertyPath(String path) {

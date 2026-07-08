@@ -133,14 +133,20 @@ public class GistBridge {
     if (fields.isEmpty()) return false;
     // check each field
     for (Fields.Field f : Fields.of(fields)) if (!isSupportedField(f, context)) return false;
+
     String filter = params.filter();
     if (filter.contains("token") || filter.contains("display")) return false;
+    for (GistQuery.Filter f : GistQuery.Filter.ofList(filter))
+      if (!isSupportedFilter(f, context)) return false;
 
     String order = params.order();
     if (order.contains("iasc")
         || order.contains("idesc")
         || order.contains("IASC")
         || order.contains("IDESC")) return false;
+
+    for (GistQuery.Order o : GistQuery.Order.ofList(order))
+      if (!isSupportedOrder(o, context)) return false;
     return true;
   }
 
@@ -150,45 +156,47 @@ public class GistBridge {
     return context.resolvePath(path);
   }
 
-  private static boolean isSupportedProperty(Property p) {
-    return !p.isEmbeddedObject();
-  }
-
-  private static boolean isSupportedField(Fields.Field f, RelativePropertyContext context) {
-    if (f.isPreset()) return false;
-    // TODO support attribute picks
-    List<Property> path = getPropertyPath(f.propertyPath(), context);
-    if (path.isEmpty()) return false;
-    if (!path.stream().allMatch(GistBridge::isSupportedProperty)) return false;
-    if (path.size() > 2) return false;
-    if (!isSupportedField(f, path.get(path.size() - 1), context)) return false;
+  private static boolean isSupportedField(Fields.Field field, RelativePropertyContext context) {
+    if (field.isPreset()) return false;
+    List<Property> path = getPropertyPath(field.propertyPath(), context);
+    if (path.isEmpty() || path.size() > 2) return false;
+    // any embedded is not supported
+    if (!path.stream().allMatch(Property::isEmbeddedObject)) return false;
+    // only identifiable objects are allowed as parent for a nested field
     if (path.size() == 2) {
       Property ref = path.get(0);
       Class<?> refType = ref.isCollection() ? ref.getItemKlass() : ref.getKlass();
       if (!IdentifiableObject.class.isAssignableFrom(refType)) return false;
+      // continue to check leaf
     }
-    if (path.size() == 1) {
-      Property p = path.get(0);
-      // collections of non-identifiable relations are not supported in Gist API
-      if (p.isCollection() && !IdentifiableObject.class.isAssignableFrom(p.getItemKlass()))
-        return false;
-    }
-    return true;
+    Property leaf = path.get(path.size() - 1);
+    if (leaf.isCollection()) return false;
+    Class<?> type = leaf.getKlass();
+    // non-persisted properties only allows (non-nested) translated properties
+    if (!leaf.isPersisted()) return path.size() == 1 && isTranslatedProperty(leaf, context);
+    return leaf.isSimple() || type == Access.class || type == Sharing.class;
   }
 
-  private static boolean isSupportedField(
-      Fields.Field f, Property p, RelativePropertyContext context) {
-    if (!p.isPersisted()) {
-      if (p.getName().startsWith("display") && !f.isNested()) {
-        Property base = context.resolve(Property.resolveTranslationBasePropertyName(p.getName()));
-        return base != null && base.isTranslatable() && base.isPersisted();
-      }
-      return false;
-    }
-    if (p.isSimple()) return true;
-    if (p.isCollection() && !f.isNested() && f.isTransformed()) return true;
-    if (p.getKlass() == Access.class || p.getKlass() == Sharing.class) return true;
-    return false;
+  private static boolean isTranslatedProperty(Property property, RelativePropertyContext context) {
+    if (!property.getName().startsWith("display")) return false;
+    Property base =
+        context.resolve(Property.resolveTranslationBasePropertyName(property.getName()));
+    return base != null && base.isTranslatable() && base.isPersisted();
+  }
+
+  private static boolean isSupportedFilter(
+      GistQuery.Filter filter, RelativePropertyContext context) {
+    List<Property> path = getPropertyPath(filter.getPropertyPath(), context);
+    if (path.size() != 1) return false;
+    Property p = path.get(0);
+    return p.isPersisted() && !p.isEmbeddedObject();
+  }
+
+  private static boolean isSupportedOrder(GistQuery.Order order, RelativePropertyContext context) {
+    List<Property> path = getPropertyPath(order.getPropertyPath(), context);
+    if (path.size() != 1) return false;
+    Property p = path.get(0);
+    return p.isPersisted() && !p.isEmbeddedObject() && p.isSimple() && p.isSortable();
   }
 
   /**
