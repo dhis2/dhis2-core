@@ -133,6 +133,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   private static final BaseDimensionalItemObject USER_OU_GRANDCHILDREN_ITEM_OBJ =
       buildDimItemObj(KEY_USER_ORGUNIT_GRANDCHILDREN, "User organisation unit grand children");
 
+  private static final int TEN_YEARS_OF_DAILY_PERIODS = 10 * 365;
+
   public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
 
   /** Line and axis labels. */
@@ -1336,6 +1338,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = TEN_YEARS_OF_DAILY_PERIODS)
   public List<String> getRawPeriods() {
     return rawPeriods;
   }
