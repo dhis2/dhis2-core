@@ -31,21 +31,17 @@ package org.hisp.dhis.merge;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.restassured.response.ValidatableResponse;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.UserActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
-import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +51,6 @@ class CategoryOptionMergeTest extends ApiTest {
 
   private RestApiActions categoryOptionApiActions;
   private MetadataActions metadataActions;
-  private RestApiActions maintenanceApiActions;
   private UserActions userActions;
   private LoginActions loginActions;
   private final String sourceUid1 = "UIDCatOpt1A";
@@ -68,7 +63,6 @@ class CategoryOptionMergeTest extends ApiTest {
     loginActions = new LoginActions();
     categoryOptionApiActions = new RestApiActions("categoryOptions");
     metadataActions = new MetadataActions();
-    maintenanceApiActions = new RestApiActions("maintenance");
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
@@ -90,69 +84,75 @@ class CategoryOptionMergeTest extends ApiTest {
 
   @Test
   @DisplayName(
-      "Valid CategoryOption merge completes successfully with all source CategoryOption refs replaced with target CategoryOption")
-  void validCategoryOptionMergeTest() {
-    // given
-    // generate category option combos
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(200);
-
-    // confirm state before merge
-    ValidatableResponse preMergeState =
-        categoryOptionApiActions.get(targetUid).validateStatus(200).validate();
-
-    preMergeState
-        .body("organisationUnits", hasSize(equalTo(1)))
-        .body("organisationUnits", hasItem(hasEntry("id", "OrgUnitUid3")))
-        .body("categories", hasSize(equalTo(1)))
-        .body("categories", hasItem(hasEntry("id", "UIDCatego03")))
-        .body("categoryOptionCombos", hasSize(equalTo(2)))
-        .body("categoryOptionGroups", hasSize(equalTo(1)))
-        .body("categoryOptionGroups", hasItem(hasEntry("id", "CatOptGrp03")));
+      "CategoryOption merge with multiple sources succeeds when all sources & target share identical Categories")
+  void categoryOptionMergeIdenticalCategoriesTest() {
+    // given 4 sources (UIDCatOpt3B/3C/3D/3E) and target (UIDCatOpt3A) which all belong to category
+    // 3
 
     // login as merge user
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
 
-    // when a category option request is submitted, deleting sources
-    ApiResponse response =
-        categoryOptionApiActions.post("merge", getMergeBody()).validateStatus(200);
+    // when a same-Category merge with multiple sources is submitted, deleting the sources
+    JsonObject body = new JsonObject();
+    JsonArray sources = new JsonArray();
+    sources.add("UIDCatOpt3B");
+    sources.add("UIDCatOpt3C");
+    sources.add("UIDCatOpt3D");
+    sources.add("UIDCatOpt3E");
+    body.add("sources", sources);
+    body.addProperty("target", targetUid);
+    body.addProperty("deleteSources", true);
 
-    // then a success response received, sources are deleted & source references were merged
+    ApiResponse response = categoryOptionApiActions.post("merge", body).validateStatus(200);
+
+    // then a success response is received and all sources are deleted
     response
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("CategoryOption merge complete"))
+        .body(
+            "response.mergeReport.message",
+            equalTo(
+                "CategoryOption merge complete. There will be duplicate CategoryOptionCombos as a result of the merge. "
+                    + "These should be merged immediately to help keep system integrity. Duplicates can be found using the data integrity check `category_option_combos_have_duplicates`"))
         .body("response.mergeReport.mergeErrors", empty())
         .body("response.mergeReport.mergeType", equalTo("CategoryOption"))
-        .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
+        .body(
+            "response.mergeReport.sourcesDeleted",
+            hasItems("UIDCatOpt3B", "UIDCatOpt3C", "UIDCatOpt3D", "UIDCatOpt3E"));
 
-    categoryOptionApiActions.get(sourceUid1).validateStatus(404);
-    categoryOptionApiActions.get(sourceUid2).validateStatus(404);
-    ValidatableResponse postMergeState =
-        categoryOptionApiActions.get(targetUid).validateStatus(200).validate();
+    categoryOptionApiActions.get("UIDCatOpt3B").validateStatus(404);
+    categoryOptionApiActions.get("UIDCatOpt3C").validateStatus(404);
+    categoryOptionApiActions.get("UIDCatOpt3D").validateStatus(404);
+    categoryOptionApiActions.get("UIDCatOpt3E").validateStatus(404);
+    categoryOptionApiActions.get(targetUid).validateStatus(200);
+  }
 
-    postMergeState
-        .body(
-            "organisationUnits",
-            hasItems(
-                hasEntry("id", "OrgUnitUid1"),
-                hasEntry("id", "OrgUnitUid2"),
-                hasEntry("id", "OrgUnitUid3")))
-        .body(
-            "categories",
-            hasItems(
-                hasEntry("id", "UIDCatego01"),
-                hasEntry("id", "UIDCatego02"),
-                hasEntry("id", "UIDCatego03")))
-        .body("categoryOptionCombos", hasSize(equalTo(5)))
-        .body(
-            "categoryOptionGroups",
-            hasItems(
-                hasEntry("id", "CatOptGrp01"),
-                hasEntry("id", "CatOptGrp02"),
-                hasEntry("id", "CatOptGrp03")));
+  @Test
+  @DisplayName("CategoryOption merge is rejected when source and target have different Categories")
+  void categoryOptionMergeDifferentCategoriesRejectedTest() {
+    // given sources (category 1 & 2) and target (category 3) which do not share identical
+    // Category membership
+
+    // login as merge user
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when a cross-Category merge is submitted
+    ApiResponse response =
+        categoryOptionApiActions.post("merge", getMergeBody()).validateStatus(409);
+
+    // then a validation error is returned and no merge is performed
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("WARNING"))
+        .body("response.mergeReport.mergeErrors", hasSize(equalTo(2)))
+        .body("response.mergeReport.mergeErrors.errorCode", hasItems("E1549"));
+
+    // sources are not deleted
+    categoryOptionApiActions.get(sourceUid1).validateStatus(200);
+    categoryOptionApiActions.get(sourceUid2).validateStatus(200);
   }
 
   private void setupMetadata() {
@@ -256,6 +256,36 @@ class CategoryOptionMergeTest extends ApiTest {
                     ]
                 },
                 {
+                    "id": "UIDCatOpt3C",
+                    "name": "cat option 3C",
+                    "shortName": "cat option 3C",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid3"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt3D",
+                    "name": "cat option 3D",
+                    "shortName": "cat option 3D",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid3"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt3E",
+                    "name": "cat option 3E",
+                    "shortName": "cat option 3E",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid3"
+                        }
+                    ]
+                },
+                {
                     "id": "UIDCatOpt4A",
                     "name": "cat option 4A",
                     "shortName": "cat option 4A",
@@ -316,6 +346,15 @@ class CategoryOptionMergeTest extends ApiTest {
                         },
                         {
                             "id": "UIDCatOpt3B"
+                        },
+                        {
+                            "id": "UIDCatOpt3C"
+                        },
+                        {
+                            "id": "UIDCatOpt3D"
+                        },
+                        {
+                            "id": "UIDCatOpt3E"
                         }
                     ]
                 },

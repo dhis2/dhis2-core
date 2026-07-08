@@ -31,13 +31,18 @@ package org.hisp.dhis.merge.category.option;
 
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
@@ -64,7 +69,58 @@ public class CategoryOptionMergeService implements MergeService {
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    return validator.validateUIDs(params, mergeReport, MergeType.CATEGORY_OPTION);
+    MergeRequest request = validator.validateUIDs(params, mergeReport, MergeType.CATEGORY_OPTION);
+
+    // if there are already errors, skip additional validation
+    if (mergeReport.hasErrorMessages()) {
+      return request;
+    }
+
+    // fetch the actual CategoryOptions for validation
+    List<CategoryOption> sources =
+        categoryService.getCategoryOptionsByUid(UID.toValueList(request.getSources()));
+    CategoryOption target = categoryService.getCategoryOption(request.getTarget().getValue());
+
+    // validate that each source has identical Categories to the target. This is required because
+    // CategoryOptionCombos are tied to specific Categories via their CategoryOptions.
+    validateIdenticalCategories(sources, target, mergeReport);
+
+    return request;
+  }
+
+  /**
+   * Validates that all source {@link CategoryOption}s have the same {@link
+   * org.hisp.dhis.category.Category Categories} as the target. This is required because {@link
+   * org.hisp.dhis.category.CategoryOptionCombo CategoryOptionCombo}s are tied to specific
+   * Categories via their CategoryOptions; merging a source into a target that belongs to a
+   * different Category would produce CategoryOptionCombos whose CategoryOptions no longer map
+   * one-to-one to the Categories of their CategoryCombo.
+   *
+   * @param sources list of source CategoryOptions
+   * @param target target CategoryOption
+   * @param mergeReport report to update with errors
+   */
+  protected static void validateIdenticalCategories(
+      @Nonnull List<CategoryOption> sources,
+      @Nonnull CategoryOption target,
+      @Nonnull MergeReport mergeReport) {
+    Set<UID> targetCategoryUids =
+        target.getCategories().stream().map(IdentifiableObject::getUID).collect(Collectors.toSet());
+
+    for (CategoryOption source : sources) {
+      Set<UID> sourceCategoryUids =
+          source.getCategories().stream()
+              .map(IdentifiableObject::getUID)
+              .collect(Collectors.toSet());
+
+      if (!sourceCategoryUids.equals(targetCategoryUids)) {
+        mergeReport.addErrorMessage(
+            new ErrorMessage(
+                ErrorCode.E1549,
+                source.getUid(),
+                String.join(", ", UID.toValueSet(sourceCategoryUids))));
+      }
+    }
   }
 
   @Override
