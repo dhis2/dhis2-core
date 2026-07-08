@@ -35,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataelement.DataElementDomain.TRACKER;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.web.HttpStatus.CONFLICT;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
@@ -42,9 +43,13 @@ import static org.hisp.dhis.web.HttpStatus.OK;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -58,6 +63,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.junit.jupiter.api.BeforeEach;
@@ -890,5 +896,46 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertEquals("ERROR", error.getStatus());
     assertEquals(
         "Cannot generate chart for multi-program visualization " + uid, error.getMessage());
+  }
+
+  @Test
+  void testManyPeriodsCanBeSavedIntoEventVisualization() {
+    // Setup test data
+    DataElement dataElementA = createDataElement('Y');
+    manager.save(dataElementA);
+    DataElement dataElementB = createDataElement('Z');
+    manager.save(dataElementB);
+
+    Program p = createProgram('X');
+    manager.save(p);
+
+    EventVisualization ev = createEventVisualization('R', p);
+    ev.addDataDimensionItem(dataElementA);
+    ev.addDataDimensionItem(dataElementB);
+    ev.setSharing(Sharing.builder().publicAccess(DEFAULT).build());
+    List<String> rawPeriods = new ArrayList<>();
+    rawPeriods.addAll(getAllDaysOfYear(2025));
+    rawPeriods.addAll(getAllDaysOfYear(2026));
+    ev.setRawPeriods(rawPeriods);
+    manager.save(ev, false);
+
+    JsonObject response = GET("/eventVisualizations/" + ev.getUid() + "?fields=*").content();
+
+    assertNotNull(response.get("rawPeriods"));
+    assertEquals(730, response.getArray("rawPeriods").size());
+  }
+
+  private List<String> getAllDaysOfYear(int year) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+    LocalDate date = LocalDate.of(year, 1, 1);
+
+    List<String> years = new ArrayList<>();
+
+    while (date.getYear() == year) {
+      years.add(date.format(formatter));
+      date = date.plusDays(1);
+    }
+
+    return years;
   }
 }
