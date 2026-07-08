@@ -76,7 +76,7 @@ class DefaultFieldFilterServiceTest {
   private DefaultFieldFilterService service;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     CacheProvider cacheProvider = mock(CacheProvider.class);
     when(cacheProvider.createPropertyTransformerCache()).thenReturn(new NoOpCache<>());
     service =

@@ -123,7 +123,7 @@ class DataElementOperandControllerTest {
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     injectSecurityContextNoSettings(new SystemUser());
 
     QueryService _queryService =
