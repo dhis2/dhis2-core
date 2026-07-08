@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.webapi.controller.security;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import lombok.NoArgsConstructor;
 
 /**
- * This class is a wrapper for all possible parameters related to a tracked entity. All attributes
- * present here should be correctly typed and ready to be used by the service layers.
- *
- * @author maikel arabori
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
-@Setter
-@Builder(toBuilder = true)
-public class TrackedEntityQueryParams {
-  private final TrackedEntityType trackedEntityType;
-
-  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
-  private boolean aggregate;
-
-  /**
-   * The numeric tracked entity attribute the aggregation function of an aggregate query applies to.
-   * When null, an aggregate query counts tracked entity instances.
-   */
-  private final TrackedEntityAttribute value;
-
-  /** The aggregation function applied to the value column of an aggregate query. */
-  private final AggregationType aggregationType;
+@Builder
+public class UpdatePasswordRequest {
+  @JsonProperty private String username;
+  @JsonProperty private String oldPassword;
+  @JsonProperty private String newPassword;
 }
