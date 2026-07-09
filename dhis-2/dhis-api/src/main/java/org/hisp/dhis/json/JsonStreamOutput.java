@@ -452,7 +452,7 @@ public final class JsonStreamOutput {
     return "%s.[%s].%s"
         .formatted(
             Stream.of(parts).limit(len - 2).map(Object::toString).collect(joining(".")),
-            parts.get(len - 1),
+            parts.get(len - 2),
             parts.get(len - 1));
   }
 
@@ -494,7 +494,9 @@ public final class JsonStreamOutput {
     return getGuardedAdder(
         Map.class,
         (obj, name, val) ->
-            obj.addObject(name, map -> ((Map<String, String>) val).forEach(map::addString)));
+            obj.addObject(
+                name,
+                map -> ((Map<?, String>) val).forEach((k, v) -> map.addString(k.toString(), v))));
   }
 
   @CheckForNull

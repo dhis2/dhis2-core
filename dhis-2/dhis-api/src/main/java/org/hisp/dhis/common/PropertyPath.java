@@ -47,7 +47,8 @@ import org.hisp.dhis.jsontree.Text;
  * @param parent the parent path (or null for root)
  * @param segment last segment in the path (without the dots)
  */
-public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segment) {
+public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segment)
+    implements Comparable<PropertyPath> {
 
   public PropertyPath {
     // enforce path pattern by construction
@@ -76,6 +77,33 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
       start = i;
     }
     return res;
+  }
+
+  /** For lexicographical sort order */
+  @Override
+  public int compareTo(@Nonnull PropertyPath b) {
+    PropertyPath a = this;
+    PropertyPath aParent = a.parent;
+    PropertyPath bParent = b.parent;
+    if (aParent == null && bParent == null) return a.segment.compareTo(b.segment);
+    if (aParent == null) return -1;
+    if (bParent == null) return 1;
+    int aLen = a.length();
+    int bLen = b.length();
+    if (aLen == bLen) {
+      int res = aParent.compareTo(bParent);
+      return res != 0 ? res : a.segment.compareTo(b.segment);
+    }
+    if (aLen < bLen) {
+      for (int i = 0; i < bLen - aLen; i++) b = bParent;
+      int res = aParent.compareTo(bParent);
+      if (res == 0) res = a.segment.compareTo(b.segment);
+      return res != 0 ? res : -1;
+    }
+    for (int i = 0; i < aLen - bLen; i++) a = aParent;
+    int res = aParent.compareTo(bParent);
+    if (res == 0) res = a.segment.compareTo(b.segment);
+    return res != 0 ? res : 1;
   }
 
   @Override

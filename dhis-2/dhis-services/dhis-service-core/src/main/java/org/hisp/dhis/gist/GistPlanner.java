@@ -254,7 +254,8 @@ final class GistPlanner {
                   }
                 });
       } else if (path.isExclude()) {
-        PropertyPath excluded = path.withTail(path.segment().subSequence(1, path.length()));
+        PropertyPath excluded =
+            path.withTail(path.segment().subSequence(1, path.segment().length()));
         expanded.removeIf(field -> field.propertyPath().equals(excluded));
       } else {
         expanded.add(f);

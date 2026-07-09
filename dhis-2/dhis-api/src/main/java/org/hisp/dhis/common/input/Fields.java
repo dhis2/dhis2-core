@@ -216,7 +216,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     public boolean isNested() {
-      return propertyPath.length() > 1;
+      return propertyPath.isNested();
     }
   }
 
