@@ -251,7 +251,7 @@ public class DataApprovalController {
       throws WebMessageException, BadRequestException {
     if (fields == null || fields.isEmpty()) {
       fields =
-          "period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]";
+          "*,period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]";
     }
 
     Set<DataSet> dataSets = parseDataSetsWithWorkflow(ds);

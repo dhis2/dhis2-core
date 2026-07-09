@@ -38,7 +38,6 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.stereotype.Component;
 
@@ -161,7 +160,7 @@ public class GistBridge {
     List<Property> path = getPropertyPath(field.propertyPath(), context);
     if (path.isEmpty() || path.size() > 2) return false;
     // any embedded is not supported
-    if (!path.stream().allMatch(Property::isEmbeddedObject)) return false;
+    if (path.stream().anyMatch(Property::isEmbeddedObject)) return false;
     // only identifiable objects are allowed as parent for a nested field
     if (path.size() == 2) {
       Property ref = path.get(0);
@@ -174,7 +173,7 @@ public class GistBridge {
     Class<?> type = leaf.getKlass();
     // non-persisted properties only allows (non-nested) translated properties
     if (!leaf.isPersisted()) return path.size() == 1 && isTranslatedProperty(leaf, context);
-    return leaf.isSimple() || type == Access.class || type == Sharing.class;
+    return leaf.isSimple() || type == Sharing.class;
   }
 
   private static boolean isTranslatedProperty(Property property, RelativePropertyContext context) {

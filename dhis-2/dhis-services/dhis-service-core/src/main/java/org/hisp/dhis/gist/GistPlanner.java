@@ -318,12 +318,11 @@ final class GistPlanner {
     List<Field> mapped = new ArrayList<>();
     for (Field f : fields) {
       String path = f.propertyPath();
-      if (isNestedPath(path) && context.resolveMandatory(parentPath(path)).isCollection()) {
-        String parentPath = parentPath(path);
+      String parentPath = parentPath(path);
+      if (isNestedPath(path) && context.resolveMandatory(parentPath).isCollection()) {
         String propertyName = path.substring(path.lastIndexOf('.') + 1);
         Property collection = context.resolveMandatory(parentPath);
-        if (collection.isCollection()
-            && "id".equals(propertyName)
+        if ("id".equals(propertyName)
             && PrimaryKeyObject.class.isAssignableFrom(collection.getItemKlass())) {
           mapped.add(
               f.withPropertyPath(parentPath)

@@ -76,8 +76,9 @@ public class GetObjectParams {
   Boolean gist;
 
   public void addField(String field) {
-    if (fields == null || fields.isEmpty()) fields = field;
-    fields += "," + field;
+    if (fields == null || fields.isEmpty()) {
+      fields = field;
+    } else fields += "," + field;
   }
 
   /**

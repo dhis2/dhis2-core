@@ -228,6 +228,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       String name = this.name.toString();
       boolean exclude = isExcludeMarker(name.charAt(0));
       if (exclude) name = name.substring(1);
+      if (name.isEmpty()) return Stream.empty(); // ignore empty name or bare exclude
       if ("*".equals(name)) name = ":all";
       boolean preset = isPresetMarker(name.charAt(0));
       if (preset) name = name.substring(1);
@@ -330,7 +331,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     while (i < len && isTransformMarker(fields.charAt(i))) {
       char c = fields.charAt(i);
       i++; // skip 1st marker
-      if (fields.charAt(i) == c) i++; // allow 2nd marker
+      if (i < len && fields.charAt(i) == c) i++; // allow 2nd marker
       int e = parseName(fields, i);
       if (e == i) throw expectedNameCharacter(fields, i);
       Text name = fields.subSequence(i, e);

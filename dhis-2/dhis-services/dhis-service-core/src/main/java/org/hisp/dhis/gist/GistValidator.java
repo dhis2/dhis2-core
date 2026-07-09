@@ -121,6 +121,11 @@ final class GistValidator {
         }
       }
     }
+    if (transformation == Transform.MEMBER || transformation == Transform.NOT_MEMBER) {
+      if (f.args().isEmpty())
+        throw new IllegalArgumentException(
+            "Member field transformation requires 1 argument for: " + f);
+    }
     if (transformation == Transform.FROM) {
       validateFromTransformation(context, field, transArgs);
     }

@@ -274,12 +274,13 @@ final class GistBuilder {
     Property property = context.resolveMandatory(path);
     String endpointRoot = getSameParentEndpointRoot(path);
     if (endpointRoot == null) return;
-    int idFieldIndex = getSameParentFieldIndex(path, ID_PROPERTY);
-    int refIndex = fieldIndexByPath.get(Fields.Field.REFS_PATH);
-    addTransformer(
-        row ->
-            addEndpointURL(
-                row, refIndex, field, toEndpointURL(endpointRoot, row[idFieldIndex], property)));
+    Integer idFieldIndex = getSameParentFieldIndex(path, ID_PROPERTY);
+    Integer refIndex = fieldIndexByPath.get(Fields.Field.REFS_PATH);
+    if (idFieldIndex != null && refIndex != null)
+      addTransformer(
+          row ->
+              addEndpointURL(
+                  row, refIndex, field, toEndpointURL(endpointRoot, row[idFieldIndex], property)));
   }
 
   private void addTransformer(Consumer<Object[]> transformer) {
@@ -451,15 +452,15 @@ final class GistBuilder {
   }
 
   private String createTranslatedFieldHQL(Field field, Property property) {
-    String locale = query.getTranslationLocale().toString();
-    if (!field.args().isEmpty()) locale = Locale.of(field.args().get(0)).toString();
+    Locale locale = query.getTranslationLocale();
+    if (!field.args().isEmpty()) locale = Locale.of(field.args().get(0));
     return replace(
         "coalesce(jsonb_get_translated_value(e.translations, '${key}', '${locale}'), e.${property})",
         Map.of(
             "key",
             property.getTranslationKey(),
             "locale",
-            locale,
+            locale == null ? Locale.ENGLISH.toString() : locale.toString(),
             "property",
             property.getFieldName()));
   }
