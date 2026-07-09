@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
@@ -59,7 +60,7 @@ public class HibernateTableEntityRegistry {
   }
 
   private final ObjectProvider<EntityManagerFactory> emfProvider;
-  private volatile Map<String, TableInfo> tableMap;
+  private final AtomicReference<Map<String, TableInfo>> tableMap = new AtomicReference<>();
 
   public HibernateTableEntityRegistry(ObjectProvider<EntityManagerFactory> emfProvider) {
     this.emfProvider = emfProvider;
@@ -67,10 +68,10 @@ public class HibernateTableEntityRegistry {
 
   /** Builds the registry once when Hibernate is fully initialized. */
   public void initialize() {
-    if (tableMap == null) {
+    if (tableMap.get() == null) {
       synchronized (this) {
-        if (tableMap == null) {
-          tableMap = buildTableMap();
+        if (tableMap.get() == null) {
+          tableMap.set(buildTableMap());
         }
       }
     }
@@ -79,7 +80,7 @@ public class HibernateTableEntityRegistry {
   /** Returns table info for the given SQL table name (lowercase), or null if not mapped. */
   public TableInfo getTableInfo(String tableName) {
     initialize();
-    return tableMap.get(tableName.toLowerCase());
+    return tableMap.get().get(tableName.toLowerCase());
   }
 
   private Map<String, TableInfo> buildTableMap() {

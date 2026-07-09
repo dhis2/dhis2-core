@@ -55,6 +55,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -287,17 +288,17 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
    */
   private final Supplier<Map<String, Set<Class<?>>>> metadataEndpointTypesSupplier =
       new Supplier<>() {
-        private volatile Map<String, Set<Class<?>>> value;
+        private final AtomicReference<Map<String, Set<Class<?>>>> value = new AtomicReference<>();
 
         @Override
         public Map<String, Set<Class<?>>> get() {
-          Map<String, Set<Class<?>>> result = value;
+          Map<String, Set<Class<?>>> result = value.get();
           if (result == null) {
             synchronized (this) {
-              result = value;
+              result = value.get();
               if (result == null) {
                 result = buildMetadataEndpointTypes(schemaService.getMetadataSchemas());
-                value = result;
+                value.set(result);
                 log.info(
                     "ETag interceptor initialized with {} metadata endpoint types", result.size());
               }
@@ -540,27 +541,24 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     return true;
   }
 
-  private static final ThreadLocal<MessageDigest> SHA256_DIGEST =
-      ThreadLocal.withInitial(
-          () -> {
-            try {
-              return MessageDigest.getInstance("SHA-256");
-            } catch (NoSuchAlgorithmException e) {
-              throw new IllegalStateException("SHA-256 not available", e);
-            }
-          });
-
   /** Combines the base ETag with the query string into a single hash. */
   private static String hashWithQuery(String baseETag, String queryString) {
     if (queryString == null || queryString.isEmpty()) {
       return baseETag;
     }
-    MessageDigest digest = SHA256_DIGEST.get();
-    digest.reset();
+    MessageDigest digest = newSha256Digest();
     digest.update(baseETag.getBytes(StandardCharsets.UTF_8));
     digest.update((byte) '?');
     digest.update(queryString.getBytes(StandardCharsets.UTF_8));
     return HexFormat.of().formatHex(digest.digest());
+  }
+
+  private static MessageDigest newSha256Digest() {
+    try {
+      return MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException("SHA-256 not available", e);
+    }
   }
 
   private static void addObservedMetadataDependency(
