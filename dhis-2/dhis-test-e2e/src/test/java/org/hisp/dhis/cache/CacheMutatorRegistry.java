@@ -70,7 +70,9 @@ final class CacheMutatorRegistry {
           "programIndicators",
           "programStages",
           "programStageWorkingLists",
-          "oAuth2Clients");
+          "oAuth2Clients",
+          "mapViews",
+          "reports");
 
   private final LoginActions loginActions = new LoginActions();
   private final UserActions userActions = new UserActions();
