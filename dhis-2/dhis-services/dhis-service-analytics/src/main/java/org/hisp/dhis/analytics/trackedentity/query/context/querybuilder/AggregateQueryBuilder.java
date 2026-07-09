@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 
 import java.util.List;
@@ -95,9 +96,32 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
             });
 
     // The aggregate value column is the last select column and is not grouped.
-    builder.selectField(Field.ofUnquoted("", () -> "count(1)", "value"));
+    builder.selectField(
+        Field.ofUnquoted("", () -> valueExpression(queryContext.getContextParams()), "value"));
 
     return builder.build();
+  }
+
+  /**
+   * Returns the SQL expression of the aggregate value column. Without a value attribute the query
+   * counts TEIs; with one, the aggregation function is applied to the attribute column — including
+   * an explicit COUNT, which then counts non-null attribute values, matching the event/enrollment
+   * aggregate contract.
+   */
+  private static String valueExpression(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    TrackedEntityQueryParams params = contextParams.getTypedParsed();
+
+    if (params.getValue() == null) {
+      return "count(1)";
+    }
+
+    return params.getAggregationType().getValue()
+        + "("
+        + TRACKED_ENTITY_ALIAS
+        + ".\""
+        + params.getValue().getUid()
+        + "\")";
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.analytics.generator.impl;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.analytics.generator.Generator;
 
 /**
- * This class is a wrapper for all possible parameters related to a tracked entity. All attributes
- * present here should be correctly typed and ready to be used by the service layers.
- *
- * @author maikel arabori
+ * Set of behavior and settings required by the test generation of
+ * "/analytics/trackedEntities/aggregate/{trackedEntityType}?" endpoint.
  */
-@Getter
-@Setter
-@Builder(toBuilder = true)
-public class TrackedEntityQueryParams {
-  private final TrackedEntityType trackedEntityType;
+public class TrackedEntityAggregatedGenerator implements Generator {
+  private String[] scenarios = new String[] {};
 
-  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
-  private boolean aggregate;
+  public TrackedEntityAggregatedGenerator() {}
 
-  /**
-   * The numeric tracked entity attribute the aggregation function of an aggregate query applies to.
-   * When null, an aggregate query counts tracked entity instances.
-   */
-  private final TrackedEntityAttribute value;
+  public TrackedEntityAggregatedGenerator(String... scenarios) {
+    this.scenarios = scenarios;
+  }
 
-  /** The aggregation function applied to the value column of an aggregate query. */
-  private final AggregationType aggregationType;
+  @Override
+  public String[] getScenarios() {
+    return scenarios;
+  }
+
+  @Override
+  public int getMaxTestsPerClass() {
+    return 4;
+  }
+
+  @Override
+  public String getAction() {
+    return "aggregate";
+  }
+
+  @Override
+  public String getClassNamePrefix() {
+    return "TrackedEntityAggregate";
+  }
+
+  @Override
+  public String getScenarioFile() {
+    return "tracked-entity-aggregated.json";
+  }
+
+  @Override
+  public String getActionDeclaration() {
+    return "private AnalyticsTrackedEntityActions actions = new AnalyticsTrackedEntityActions();";
+  }
+
+  @Override
+  public String getPackage() {
+    return "org.hisp.dhis.analytics.trackedentity";
+  }
+
+  @Override
+  public String getTopClassComment() {
+    return "Groups e2e tests for \"/trackedEntities/aggregate\" endpoint.";
+  }
+
+  @Override
+  public boolean assertMetaData() {
+    return true;
+  }
+
+  @Override
+  public boolean assertRowIndex() {
+    return true;
+  }
 }
