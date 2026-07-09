@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.
 
 import java.util.List;
 import java.util.Optional;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionAliases;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
@@ -61,18 +62,47 @@ public class DimensionIdentifierConverter {
 
     StringDimensionIdentifier parsed = fromFullDimensionId(fullDimensionId);
 
+    DimensionIdentifier<StringUid> dimensionIdentifier;
+
     // Case 1: dimension only (e.g., "jklm")
     if (!parsed.getProgram().isPresent()) {
-      return handleDimensionOnly(parsed);
+      dimensionIdentifier = handleDimensionOnly(parsed);
     }
-
     // Case 2: fully scoped (e.g., "programUid.stageUid.dimensionId")
-    if (parsed.getProgramStage().isPresent()) {
-      return handleFullyScoped(allowedPrograms, parsed);
+    else if (parsed.getProgramStage().isPresent()) {
+      dimensionIdentifier = handleFullyScoped(allowedPrograms, parsed);
+    }
+    // Case 3 & 4: two-part format (e.g., "xxx.dimension")
+    else {
+      dimensionIdentifier = handleTwoPartFormat(allowedPrograms, parsed);
     }
 
-    // Case 3 & 4: two-part format (e.g., "xxx.dimension")
-    return handleTwoPartFormat(allowedPrograms, parsed);
+    return canonicalizeKeyword(dimensionIdentifier);
+  }
+
+  /**
+   * Replaces an exact keyword alias (e.g. {@code ENROLLMENT_OU}) with its canonical dimension id
+   * (e.g. {@code ou}) so that every downstream consumer (dimension resolution, headers, metadata)
+   * sees the canonical dimension. Non-alias dimensions are returned unchanged.
+   */
+  private DimensionIdentifier<StringUid> canonicalizeKeyword(
+      DimensionIdentifier<StringUid> dimensionIdentifier) {
+    StringUid dimension = dimensionIdentifier.getDimension();
+
+    if (dimension == null) {
+      return dimensionIdentifier;
+    }
+
+    String canonical = DimensionAliases.canonicalize(dimension.getUid());
+
+    if (canonical.equals(dimension.getUid())) {
+      return dimensionIdentifier;
+    }
+
+    return DimensionIdentifier.of(
+        dimensionIdentifier.getProgram(),
+        dimensionIdentifier.getProgramStage(),
+        StringUid.of(canonical));
   }
 
   /** Handles dimension-only case where no program or stage is specified. */

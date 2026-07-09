@@ -27,36 +27,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.analytics.common.params.dimension;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import java.util.Map;
 
 /**
- * This class is a wrapper for all possible parameters related to a tracked entity. All attributes
- * present here should be correctly typed and ready to be used by the service layers.
- *
- * @author maikel arabori
+ * Exact, case-sensitive keyword aliases mapping a keyword to the canonical dimension id it stands
+ * for. Used at the tracked entity level so that {@code programId.ENROLLMENT_OU} behaves as {@code
+ * programId.ou} and {@code programId.enrollmentouname} as {@code programId.ouname}, mirroring the
+ * event pipeline. Only the literal spelling/case is aliased; any other casing is left untouched and
+ * rejected downstream.
  */
-@Getter
-@Setter
-@Builder(toBuilder = true)
-public class TrackedEntityQueryParams {
-  private final TrackedEntityType trackedEntityType;
+public final class DimensionAliases {
+  private DimensionAliases() {}
 
-  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
-  private boolean aggregate;
+  private static final Map<String, String> ALIASES =
+      Map.of("ENROLLMENT_OU", "ou", "enrollmentouname", "ouname");
+
+  /** Returns the canonical dimension id for an exact keyword alias, or the input unchanged. */
+  public static String canonicalize(String dimensionId) {
+    if (dimensionId == null) {
+      return null;
+    }
+    return ALIASES.getOrDefault(dimensionId, dimensionId);
+  }
 
   /**
-   * The numeric tracked entity attribute the aggregation function of an aggregate query applies to.
-   * When null, an aggregate query counts tracked entity instances.
+   * Canonicalizes the dimension segment (the part after the last {@code .}) of a possibly
+   * program/stage-prefixed header string, leaving the prefix untouched. For example {@code
+   * programId.enrollmentouname} becomes {@code programId.ouname}.
    */
-  private final TrackedEntityAttribute value;
+  public static String canonicalizeHeader(String header) {
+    if (header == null) {
+      return null;
+    }
 
-  /** The aggregation function applied to the value column of an aggregate query. */
-  private final AggregationType aggregationType;
+    int lastDot = header.lastIndexOf('.');
+
+    if (lastDot < 0) {
+      return canonicalize(header);
+    }
+
+    return header.substring(0, lastDot + 1) + canonicalize(header.substring(lastDot + 1));
+  }
 }

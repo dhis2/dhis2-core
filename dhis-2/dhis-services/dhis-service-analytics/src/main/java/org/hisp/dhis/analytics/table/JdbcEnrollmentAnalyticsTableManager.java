@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -41,11 +42,13 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -159,6 +162,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
+            inner join analytics_rs_categorystructure acs on en.attributeoptioncomboid=acs.categoryoptioncomboid \
             ${attributeJoinClause}\
             where pr.programid = ${programId} \
             and en.organisationunitid is not null \
@@ -194,8 +198,34 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(getTrackedEntityAttributeColumns(program));
     columns.addAll(getTrackedEntityColumns(program));
+    columns.addAll(getAttributeCategoryColumns(program));
 
     return filterDimensionColumns(columns);
+  }
+
+  /**
+   * Returns columns for attribute categories of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getAttributeCategoryColumns(Program program) {
+    if (program.hasNonDefaultCategoryCombo()) {
+      List<Category> categories = program.getCategoryCombo().getDataDimensionCategories();
+      return categories.stream()
+          .map(
+              category ->
+                  AnalyticsTableColumn.builder()
+                      .name(category.getUid())
+                      .dimensionType(AnalyticsDimensionType.DYNAMIC)
+                      .dataType(CHARACTER_11)
+                      .selectExpression("acs." + quote(category.getUid()))
+                      .created(category.getCreated())
+                      .build())
+          .toList();
+    }
+
+    return List.of();
   }
 
   /**
