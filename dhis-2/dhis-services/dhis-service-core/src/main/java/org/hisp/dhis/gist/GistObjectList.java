@@ -85,6 +85,7 @@ public record GistObjectList(
    * @param values a stream of value object of the result list
    */
   public record Output(
+      boolean unwrap,
       boolean headless,
       @CheckForNull GistPager pager,
       @Nonnull String collectionName,

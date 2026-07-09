@@ -106,7 +106,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     }
 
     for (FieldPath fieldPath : fieldPaths) {
-      if (fieldPath.toFullPath().equals(ctx.getFullPath())) {
+      if (fieldPath.getFullPath().equals(ctx.getFullPath())) {
         return true;
       }
     }

@@ -27,44 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfilter;
+package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.user.UserDetails;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.input.Fields;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * FieldFilterParser parses <a href=
+ * "https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter">metadata
+ * field filters</a>. For example <code>"dataSets[id,name]"</code> will result in three {@link
+ * FieldPath}'s for <code>id</code> and <code>name</code> with path <code>dataSet</code> and one for
+ * <code>dataSets</code>.
+ *
+ * @author Morten Olav Hansen
  */
-@Getter
-public final class FieldFilterParams {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class FieldFilterParser {
 
-  @Setter private UserDetails userDetails;
-
-  /** List of object(s) to filter through. If more than one, a wrapper is required. */
-  private final List<?> objects;
-
-  /** Fields to filter by. */
-  private final String fields;
-
-  /** Filters out sharing fields if true */
-  private final boolean skipSharing;
-
-  private final Defaults defaults;
-
-  public FieldFilterParams(List<?> objects, String fields) {
-    this(objects, fields, Defaults.INCLUDE, false);
-  }
-
-  public FieldFilterParams(List<?> objects, String fields, Defaults defaults) {
-    this(objects, fields, defaults, false);
-  }
-
-  public FieldFilterParams(List<?> objects, String fields, Defaults defaults, boolean skipSharing) {
-    this.objects = objects;
-    this.fields = fields;
-    this.defaults = defaults;
-    this.skipSharing = skipSharing;
+  public static List<FieldPath> parse(String fields) {
+    // just a redirect to new parser
+    return Fields.parse(fields);
   }
 }

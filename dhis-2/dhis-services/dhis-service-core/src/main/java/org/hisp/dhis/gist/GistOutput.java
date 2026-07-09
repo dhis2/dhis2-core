@@ -73,7 +73,7 @@ public final class GistOutput {
 
   public static void toJson(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
     List<ObjectOutput.Property> properties = obj.properties();
-    if (properties.size() == 1) {
+    if (obj.unwrap() && properties.size() == 1) {
       // only write the property value itself
       // by first writing the array of objects (to a string buffer)
       // and then navigating to the value,
@@ -113,6 +113,7 @@ public final class GistOutput {
                   p.addString("prevPage", pager.prevPage());
                   p.addString("nextPage", pager.nextPage());
                 });
+          obj.addBoolean("gist", true);
           obj.addArray(list.collectionName(), addObjectListElements(list, values));
         });
   }
@@ -122,7 +123,7 @@ public final class GistOutput {
       GistObjectList.Output list, Stream<IntFunction<Object>> values) {
     List<ObjectOutput.Property> properties = list.properties();
     return arr -> {
-      if (properties.size() == 1) {
+      if (list.unwrap() && properties.size() == 1) {
         // list each only as the property itself
         // to do that, first list objects but to written to a string
         // then iterate the values from the array

@@ -52,7 +52,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -109,16 +108,12 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
   @GetMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody RootNode getLockExceptions(
       @RequestParam(required = false) String key,
+      @RequestParam(defaultValue = "*") String fields,
       @RequestParam Map<String, String> rpParameters,
       HttpServletRequest request,
       HttpServletResponse response)
       throws WebMessageException {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
 
     List<LockException> lockExceptions = new ArrayList<>();
 
@@ -160,14 +155,8 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
   }
 
   @GetMapping(value = "/combinations", produces = ContextUtils.CONTENT_TYPE_JSON)
-  public @ResponseBody RootNode getLockExceptionCombinations() {
-
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
-
+  public @ResponseBody RootNode getLockExceptionCombinations(
+      @RequestParam(defaultValue = "*") String fields) {
     List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
 
     Collections.sort(lockExceptions, new LockExceptionNameComparator());

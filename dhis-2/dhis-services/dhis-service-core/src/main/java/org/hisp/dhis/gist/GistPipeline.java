@@ -47,6 +47,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.object.ObjectOutput.Property;
@@ -90,7 +91,7 @@ public class GistPipeline {
   @Transactional(readOnly = true)
   public void exportAsCsv(@Nonnull GistObjectList.Input in, @Nonnull Supplier<OutputStream> out)
       throws BadRequestException {
-    GistQuery query = createListQuery(in).withoutTypedAttributeValues();
+    GistQuery query = createListQuery(in);
     GistObjectList list = listObjects(in, query);
     GistOutput.toCsv(createObjectListOutput(in.params(), in.elementType(), list), out.get());
   }
@@ -110,17 +111,18 @@ public class GistPipeline {
     GistObject obj = gistService.exportObject(query);
     Object[] values = obj.values();
     if (values == null) throw new NotFoundException(in.objectType(), in.id());
-    GistOutput.toJson(new GistObject.Output(obj.properties(), values), out.get());
+    boolean unwrap = in.params().isUnwrap();
+    GistOutput.toJson(new GistObject.Output(unwrap, obj.properties(), values), out.get());
   }
 
   @Transactional(readOnly = true)
   public void exportAsCsv(GistObject.Input in, Supplier<OutputStream> out)
       throws BadRequestException, NotFoundException {
-    GistQuery query = createObjectQuery(in).withoutTypedAttributeValues();
+    GistQuery query = createObjectQuery(in);
     GistObject obj = gistService.exportObject(query);
     Object[] values = obj.values();
     if (values == null) throw new NotFoundException(in.objectType(), in.id());
-    GistOutput.toCsv(new GistObject.Output(obj.properties(), values), out.get());
+    GistOutput.toCsv(new GistObject.Output(false, obj.properties(), values), out.get());
   }
 
   @Transactional(readOnly = true)
@@ -159,7 +161,7 @@ public class GistPipeline {
       @SuppressWarnings("unchecked")
       Class<? extends PrimaryKeyObject> elementType =
           (Class<? extends PrimaryKeyObject>) property.getItemKlass();
-      GistQuery query = createPropertyListQuery(in, elementType).withoutTypedAttributeValues();
+      GistQuery query = createPropertyListQuery(in, elementType);
       GistObjectList list = gistService.exportPropertyObjectList(query);
       GistOutput.toCsv(createObjectListOutput(in.params(), elementType, list), out.get());
     }
@@ -178,6 +180,7 @@ public class GistPipeline {
   private GistObjectList.Output createObjectListOutput(
       GistObjectListParams params, Class<?> elementType, GistObjectList list) {
     return new GistObjectList.Output(
+        params.isUnwrap(),
         params.isHeadless(),
         list.pager(),
         getCollectionName(params, elementType),
@@ -191,11 +194,9 @@ public class GistPipeline {
         .elementType(input.objectType())
         .autoType(params.getAuto(GistAutoType.L))
         .translationLocale(getTranslationLocale(params.getLocale()))
-        .typedAttributeValues(true)
-        .translate(params.isTranslate())
         .references(params.isReferences())
         .absoluteUrls(params.isAbsoluteUrls())
-        .fields(GistQuery.Field.ofList(input.params().fields))
+        .fields(Fields.of(input.params().fields))
         .filters(List.of(new GistQuery.Filter("id", EQ, input.id().getValue())))
         .build();
   }
@@ -212,18 +213,16 @@ public class GistPipeline {
         .contextRoot(input.contextRoot())
         .requestURL(input.requestURL())
         .translationLocale(getTranslationLocale(params.getLocale()))
-        .typedAttributeValues(true)
         .total(params.isCountTotalPages())
         .paging(true)
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
-        .translate(params.isTranslate())
         .absoluteUrls(params.isAbsoluteUrls())
         .headless(params.isHeadless())
         .references(params.isReferences())
         .inverse(params.isInverse())
         .filters(GistQuery.Filter.ofList(params.getFilter()))
-        .fields(GistQuery.Field.ofList(input.params().getFields()))
+        .fields(Fields.of(input.params().getFields()))
         .owner(
             GistQuery.Owner.builder()
                 .id(input.id().getValue())
@@ -256,24 +255,22 @@ public class GistPipeline {
         .contextRoot(input.contextRoot())
         .requestURL(input.requestURL())
         .translationLocale(getTranslationLocale(params.getLocale()))
-        .typedAttributeValues(true)
         .paging(!offline)
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
-        .translate(params.isTranslate())
         .total(params.isCountTotalPages())
         .absoluteUrls(params.isAbsoluteUrls())
         .headless(params.isHeadless())
         .references(!tree && !offline && params.isReferences())
         .anyFilter(params.getRootJunction() == Junction.Type.OR)
-        .fields(GistQuery.Field.ofList(fields))
+        .fields(Fields.of(fields))
         .filters(GistQuery.Filter.ofList(params.getFilter()))
         .orders(GistQuery.Order.ofList(order))
         .build();
   }
 
   private static Locale getTranslationLocale(String locale) {
-    return !locale.isEmpty()
+    return locale != null && !locale.isEmpty()
         ? Locale.of(locale)
         : UserSettings.getCurrentSettings().getUserDbLocale();
   }
@@ -325,7 +322,6 @@ public class GistPipeline {
             .exportObjectList(
                 GistQuery.builder()
                     .elementType(query.getElementType())
-                    .translate(query.isTranslate())
                     .translationLocale(query.getTranslationLocale())
                     .paging(false)
                     .filters(

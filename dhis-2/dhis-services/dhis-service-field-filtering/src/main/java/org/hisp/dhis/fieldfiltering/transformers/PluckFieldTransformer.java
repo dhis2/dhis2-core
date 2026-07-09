@@ -57,8 +57,8 @@ public class PluckFieldTransformer implements FieldTransformer {
 
     String pluckFieldName = "id";
 
-    if (!fieldPathTransformer.getParameters().isEmpty()) {
-      pluckFieldName = fieldPathTransformer.getParameters().get(0);
+    if (!fieldPathTransformer.parameters().isEmpty()) {
+      pluckFieldName = fieldPathTransformer.parameters().get(0);
     }
 
     String fieldName = getFieldName(path);

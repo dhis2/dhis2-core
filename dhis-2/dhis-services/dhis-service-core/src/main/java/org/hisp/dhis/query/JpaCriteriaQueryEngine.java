@@ -77,8 +77,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JpaCriteriaQueryEngine implements QueryEngine {
 
-  private static final String DISPLAY_PREFIX = "display";
-
   private final SchemaService schemaService;
   private final List<IdentifiableObjectStore<?>> hibernateGenericStores;
   private final QueryCacheManager queryCacheManager;
@@ -229,11 +227,11 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       CriteriaBuilder builder, Root<T> root, Schema schema, Property property, Order order) {
     String propertyName = order.getProperty();
 
-    if (propertyName.startsWith(DISPLAY_PREFIX)) {
+    if (propertyName.startsWith("display")) {
       return handleDisplayProperty(builder, root, schema, property, order);
     }
 
-    if (isTranslatable(property)) {
+    if (property.canBeTranslated()) {
       return getTranslatableOrderJsonBPredicate(builder, root, property, order);
     }
 
@@ -242,10 +240,10 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
   private <T extends IdentifiableObject> jakarta.persistence.criteria.Order handleDisplayProperty(
       CriteriaBuilder builder, Root<T> root, Schema schema, Property property, Order order) {
-    String basePropertyName = getBasePropertyName(order.getProperty());
+    String basePropertyName = Property.resolveTranslationBasePropertyName(order.getProperty());
     Property baseProperty = schema.getProperty(basePropertyName);
 
-    if (baseProperty != null && isTranslatable(baseProperty)) {
+    if (baseProperty != null && baseProperty.canBeTranslated()) {
       return getTranslatableOrderJsonBPredicate(builder, root, baseProperty, order);
     }
 
@@ -254,10 +252,6 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     }
 
     return getRegularOrder(builder, root, property, order);
-  }
-
-  private boolean isTranslatable(Property property) {
-    return property.isTranslatable() && property.getTranslationKey() != null;
   }
 
   private <T extends IdentifiableObject> jakarta.persistence.criteria.Order getRegularOrder(
@@ -302,7 +296,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             builder.literal(translationKey),
             builder.literal(locale.toString()));
 
-    String basePropertyName = getBasePropertyName(property.getName());
+    String basePropertyName = Property.resolveTranslationBasePropertyName(property.getName());
     Expression<String> baseValue = root.get(basePropertyName);
 
     Expression<String> coalescedValue = builder.coalesce(translatedValue, baseValue);
@@ -311,21 +305,6 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
         order.isIgnoreCase() ? builder.lower(coalescedValue) : coalescedValue;
 
     return order.isAscending() ? builder.asc(orderExpression) : builder.desc(orderExpression);
-  }
-
-  /**
-   * Maps display property names to their base property names by removing the "display" prefix.
-   *
-   * @param displayPropertyName the display property name (e.g., "displayName")
-   * @return the base property name (e.g., "name")
-   */
-  private String getBasePropertyName(String displayPropertyName) {
-    if (displayPropertyName.startsWith(DISPLAY_PREFIX)
-        && displayPropertyName.length() > DISPLAY_PREFIX.length()) {
-      String basePropertyName = displayPropertyName.substring(DISPLAY_PREFIX.length());
-      return basePropertyName.substring(0, 1).toLowerCase() + basePropertyName.substring(1);
-    }
-    return displayPropertyName;
   }
 
   private void initStoreMap() {
@@ -384,8 +363,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       String filterPath = filter.getPath();
       // Map display properties to their base properties
       PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
-      if (path == null && filterPath.startsWith(DISPLAY_PREFIX)) {
-        filterPath = getBasePropertyName(filterPath);
+      if (path == null && filterPath.startsWith("display")) {
+        filterPath = Property.resolveTranslationBasePropertyName(filterPath);
         filter = new Filter(filterPath, filter.getOperator());
         path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
       }
