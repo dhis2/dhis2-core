@@ -229,7 +229,7 @@ public class CodeGenerator {
    * @param code the code to validate.
    * @return true if the code is valid.
    */
-  public static boolean isValidUid(String code) {
+  public static boolean isValidUid(CharSequence code) {
     return code != null && UID_PATTERN.matcher(code).matches();
   }
 }

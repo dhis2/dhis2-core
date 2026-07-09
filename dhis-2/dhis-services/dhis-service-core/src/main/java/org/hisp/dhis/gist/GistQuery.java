@@ -46,6 +46,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
@@ -172,8 +173,10 @@ public final class GistQuery {
     return asList(value.split(splitRegex));
   }
 
-  public GistQuery addField(String path) {
-    return toBuilder().fields(fields.add(Fields.Field.of(path))).build();
+  public GistQuery addField(PropertyPath path) {
+    return toBuilder()
+        .fields(fields.add(new Fields.Field(path, null, Transform.AUTO, List.of())))
+        .build();
   }
 
   public GistQuery withFields(List<Fields.Field> fields) {
@@ -297,17 +300,17 @@ public final class GistQuery {
   @Builder
   @AllArgsConstructor
   public static final class Order {
-    @JsonProperty private final String propertyPath;
+    @JsonProperty private final PropertyPath propertyPath;
 
     @JsonProperty @Builder.Default private final Direction direction = Direction.ASC;
 
     public static Order parse(String order) {
       String[] parts = order.split("(?:::|:|~|@)");
       if (parts.length == 1) {
-        return new Order(order, Direction.ASC);
+        return new Order(PropertyPath.of(order), Direction.ASC);
       }
       if (parts.length == 2) {
-        return new Order(parts[0], Direction.valueOf(parts[1].toUpperCase()));
+        return new Order(PropertyPath.of(parts[0]), Direction.valueOf(parts[1].toUpperCase()));
       }
       throw new IllegalArgumentException("Not a valid order expression: " + order);
     }
@@ -331,14 +334,14 @@ public final class GistQuery {
         ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
 
     @JsonProperty private final int group;
-    @JsonProperty private final String propertyPath;
+    @JsonProperty private final PropertyPath propertyPath;
     @JsonProperty private final Comparison operator;
     @JsonProperty private final String[] value;
     @JsonProperty private final boolean attribute;
     @JsonProperty private final boolean subSelect;
 
     public Filter(String propertyPath, Comparison operator, String... value) {
-      this(0, propertyPath, operator, value, false, false);
+      this(0, PropertyPath.of(propertyPath), operator, value, false, false);
     }
 
     @Nonnull
@@ -347,11 +350,11 @@ public final class GistQuery {
     }
 
     public Filter withPropertyPath(String path) {
-      return new Filter(path, operator, value);
+      return new Filter(group, PropertyPath.of(path), operator, value, false, false);
     }
 
     public Filter withValue(String... value) {
-      return new Filter(propertyPath, operator, value);
+      return new Filter(group, propertyPath, operator, value, false, false);
     }
 
     /**

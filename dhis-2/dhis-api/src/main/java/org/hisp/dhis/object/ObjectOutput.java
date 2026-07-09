@@ -36,6 +36,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.PropertyPath;
+import org.hisp.dhis.jsontree.Text;
 
 /**
  * Utility for generic output handling. In this context this means converting form domain objects to
@@ -91,7 +93,7 @@ public final class ObjectOutput {
    * @param arrayAggregate true for array properties that originally are simple properties array
    *     aggregated for the parent property which itself was the original collection property
    */
-  public record Property(String path, Type type, boolean arrayAggregate) {
+  public record Property(PropertyPath path, Type type, boolean arrayAggregate) {
 
     public Property {
       requireNonNull(path);
@@ -105,7 +107,7 @@ public final class ObjectOutput {
      *     part)
      */
     public String name() {
-      return name(path);
+      return path.segment().toString();
     }
 
     /**
@@ -113,7 +115,9 @@ public final class ObjectOutput {
      *     this property
      */
     public List<String> parentPath() {
-      return parentPath(path);
+      if (!path.isNested()) return List.of();
+      List<Text> segments = path.segments();
+      return segments.stream().limit(segments.size() - 1).map(Text::toString).toList();
     }
 
     @Nonnull
