@@ -73,8 +73,8 @@ class DateValidator implements Validator<Event> {
     }
 
     validateCompletedDateIsSetOnlyForSupportedStatus(reporter, event);
-    validateCompletionExpiryDays(reporter, event, program, bundle.getUser());
     validateExpiryPeriodType(reporter, event, program, bundle.getUser());
+    validateCompletionExpiryDays(reporter, preheat, event, program, bundle.getUser());
   }
 
   private void validateCompletedDateIsSetOnlyForSupportedStatus(Reporter reporter, Event event) {
@@ -84,17 +84,47 @@ class DateValidator implements Validator<Event> {
   }
 
   private void validateCompletionExpiryDays(
-      Reporter reporter, Event event, Program program, UserDetails user) {
-    if (event.getCompletedAt() == null || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+      Reporter reporter, TrackerPreheat preheat, Event event, Program program, UserDetails user) {
+    if (program.getCompleteEventsExpiryDays() == 0
+        || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 
-    if (program.getCompleteEventsExpiryDays() > 0
-        && EventStatus.COMPLETED == event.getStatus()
-        && now()
-            .isAfter(event.getCompletedAt().plus(ofDays(program.getCompleteEventsExpiryDays())))) {
+    Instant completedAt = getCompletedDate(preheat, event);
+
+    if (completedAt != null
+        && now().isAfter(completedAt.plus(ofDays(program.getCompleteEventsExpiryDays())))) {
       reporter.addError(event, E1043, event);
     }
+  }
+
+  /**
+   * Returns the completion date the expiry check should be anchored to, or {@code null} if the
+   * event is not completed.
+   *
+   * <p>When the event is already completed in the database, the persisted completion date is used.
+   * This makes the expiry check work even when the update payload does not include {@code
+   * completedAt}, and prevents the payload from resetting the expiry clock on an already completed
+   * event. Otherwise, when the payload itself completes the event, its completion date is used.
+   */
+  private Instant getCompletedDate(TrackerPreheat preheat, Event event) {
+    Date persistedCompletedDate = getPersistedCompletedDate(preheat, event);
+    if (persistedCompletedDate != null) {
+      return persistedCompletedDate.toInstant();
+    }
+
+    if (EventStatus.COMPLETED == event.getStatus()) {
+      return event.getCompletedAt();
+    }
+
+    return null;
+  }
+
+  private Date getPersistedCompletedDate(TrackerPreheat preheat, Event event) {
+    org.hisp.dhis.program.Event persisted = preheat.getEvent(event.getEvent());
+    return persisted != null && EventStatus.COMPLETED == persisted.getStatus()
+        ? persisted.getCompletedDate()
+        : null;
   }
 
   private void validateExpiryPeriodType(
