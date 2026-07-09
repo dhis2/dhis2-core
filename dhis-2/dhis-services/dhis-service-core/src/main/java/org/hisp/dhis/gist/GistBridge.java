@@ -32,6 +32,7 @@ package org.hisp.dhis.gist;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -122,6 +123,8 @@ public class GistBridge {
     if (gist != null) return gist;
     // ATM bridge does only support paged results
     if (!mdp.isPaging()) return false;
+    // Attributes have nasty persistence mapping so we give up
+    if (params.entityType() == Attribute.class) return false;
     // check request parameters in general
     for (String name : params.requestParametersNames())
       if (!isSupportedRequestParameter(name)) return false;
