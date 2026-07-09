@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -224,7 +225,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   @Override
   @Transactional(readOnly = true)
-  public ObjectNode getMetadataAsObjectNode(MetadataExportParams params) {
+  public ObjectNode exportMetadataVersion(MetadataExportParams params) {
     ObjectNode rootNode = fieldFilterService.createObjectNode();
     SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
 
@@ -234,6 +235,20 @@ public class DefaultMetadataExportService implements MetadataExportService {
         .put(SYSTEM_REVISION, systemInfo.revision())
         .put(SYSTEM_VERSION, systemInfo.version())
         .put(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.serverDate()));
+
+    params.setClasses(
+        schemaService.getMetadataSchemas().stream()
+            .filter(
+                schema ->
+                    !schema.isEmbeddedObject()
+                        && schema.isIdentifiableObject()
+                        && schema.isPersisted())
+            .filter(s -> !s.isSecondaryMetadata())
+            .filter(DEPRECATED_ANALYTICS_SCHEMAS)
+            .map(Schema::getKlass)
+            .filter(IdentifiableObject.class::isAssignableFrom)
+            .map(klass -> (Class<? extends IdentifiableObject>) klass)
+            .collect(Collectors.toSet()));
 
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         getMetadata(params);
