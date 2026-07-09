@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -117,7 +117,13 @@ public class PageLoadSimulation extends Simulation {
             http("login")
                 .post("/api/auth/login")
                 .header("Content-Type", "application/json")
-                .body(StringBody("{\"username\":\"" + adminUser + "\",\"password\":\"" + adminPassword + "\"}"))
+                .body(
+                    StringBody(
+                        "{\"username\":\""
+                            + adminUser
+                            + "\",\"password\":\""
+                            + adminPassword
+                            + "\"}"))
                 .check(status().in(200, 302)));
 
     // -- Shared bootstrap requests (common across all apps) --
@@ -125,26 +131,23 @@ public class PageLoadSimulation extends Simulation {
         group("bootstrap")
             .on(
                 exec(
-                    http("me").get(api + "/me?fields=authorities,avatar,name,settings,username")
+                    http("me")
+                        .get(api + "/me?fields=authorities,avatar,name,settings,username")
                         .check(status().in(200, 304)),
-                    http("systemSettings").get(api + "/systemSettings")
+                    http("systemSettings")
+                        .get(api + "/systemSettings")
                         .check(status().in(200, 304)),
-                    http("userSettings").get(api + "/userSettings")
-                        .check(status().in(200, 304)),
+                    http("userSettings").get(api + "/userSettings").check(status().in(200, 304)),
                     http("systemSettings/applicationTitle")
                         .get(api + "/systemSettings/applicationTitle")
                         .check(status().in(200, 304)),
                     http("systemSettings/helpPageLink")
                         .get(api + "/systemSettings/helpPageLink")
                         .check(status().in(200, 304)),
-                    http("apps").get(api + "/apps")
-                        .check(status().in(200, 304)),
-                    http("apps/menu").get(api + "/apps/menu")
-                        .check(status().in(200, 304)),
-                    http("me/dashboard").get(api + "/me/dashboard")
-                        .check(status().in(200, 304)),
-                    http("system/info").get("/api/system/info")
-                        .check(status().in(200, 304))));
+                    http("apps").get(api + "/apps").check(status().in(200, 304)),
+                    http("apps/menu").get(api + "/apps/menu").check(status().in(200, 304)),
+                    http("me/dashboard").get(api + "/me/dashboard").check(status().in(200, 304)),
+                    http("system/info").get("/api/system/info").check(status().in(200, 304))));
 
     // -- Maintenance app requests --
     ChainBuilder maintenanceApp =
@@ -162,7 +165,9 @@ public class PageLoadSimulation extends Simulation {
                             .get(api + "/me?fields=authorities,avatar,email,name,settings,username")
                             .check(status().in(200, 304)),
                         http("organisationUnits")
-                            .get(api + "/organisationUnits?fields=id,access,displayName,level,path&paging=false")
+                            .get(
+                                api
+                                    + "/organisationUnits?fields=id,access,displayName,level,path&paging=false")
                             .check(status().in(200, 304))));
 
     // -- Dashboard app requests --
@@ -194,9 +199,9 @@ public class PageLoadSimulation extends Simulation {
                         http("dataStore/custom-translations")
                             .get(api + "/dataStore/custom-translations/controller")
                             .check(status().in(200, 304, 404)),
-                        http("locales/db").get(api + "/locales/db")
-                            .check(status().in(200, 304)),
-                        http("periodTypes").get(api + "/periodTypes")
+                        http("locales/db").get(api + "/locales/db").check(status().in(200, 304)),
+                        http("periodTypes")
+                            .get(api + "/periodTypes")
                             .check(status().in(200, 304))));
 
     // -- Capture app requests --
@@ -215,9 +220,7 @@ public class PageLoadSimulation extends Simulation {
                                     + "/trackedEntityInstanceFilters?filter=program.id:eq:IpHINAT79UW")
                             .check(status().in(200, 304)),
                         http("programStageWorkingLists")
-                            .get(
-                                api
-                                    + "/programStageWorkingLists?filter=program.id:eq:IpHINAT79UW")
+                            .get(api + "/programStageWorkingLists?filter=program.id:eq:IpHINAT79UW")
                             .check(status().in(200, 304))));
 
     // -- Full user session: cycle through all three apps --
@@ -247,9 +250,7 @@ public class PageLoadSimulation extends Simulation {
     ScenarioBuilder pageLoadScenario;
     if (profile == Profile.SMOKE) {
       pageLoadScenario =
-          scenario("Page Load with ETag Cache")
-              .exec(login)
-              .exec(repeat(appCycles).on(appCycle));
+          scenario("Page Load with ETag Cache").exec(login).exec(repeat(appCycles).on(appCycle));
     } else {
       pageLoadScenario =
           scenario("Page Load with ETag Cache")
@@ -266,7 +267,9 @@ public class PageLoadSimulation extends Simulation {
       case SMOKE:
         population =
             pageLoadScenario
-                .injectClosed(constantConcurrentUsers(concurrentUsers).during(Duration.ofSeconds(durationSec)))
+                .injectClosed(
+                    constantConcurrentUsers(concurrentUsers)
+                        .during(Duration.ofSeconds(durationSec)))
                 .protocols(httpProtocol);
         break;
       case LOAD:
