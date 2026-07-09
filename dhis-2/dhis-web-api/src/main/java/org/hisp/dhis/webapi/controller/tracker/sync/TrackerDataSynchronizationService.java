@@ -81,6 +81,8 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.imports.report.Entity;
+import org.hisp.dhis.tracker.imports.report.Error;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
@@ -109,7 +111,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private static final Set<String> ALREADY_DELETED_CODES =
       Set.of(E1082.name(), E1113.name(), E1114.name(), E4017.name());
 
-  private record DeleteSyncResult(Set<String> syncedTeUids, Set<String> blockingFailedChildUids) {}
+  private record DeleteSyncResult(Set<UID> syncedTeUids, Set<UID> blockingFailedChildUids) {}
 
   private final TrackedEntityService trackedEntityService;
   private final ProgramStageDataElementService programStageDataElementService;
@@ -282,8 +284,8 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntities,
       List<Enrollment> deletedEnrollments,
       List<Event> deletedEvents,
-      Map<String, Relationship> deletedRelationshipsByUid,
-      Map<String, Set<String>> deletedChildUidsByTe) {}
+      Map<UID, Relationship> deletedRelationshipsByUid,
+      Map<UID, Set<UID>> deletedChildUidsByTe) {}
 
   private void syncTrackedEntitiesByDeletionStatus(
       List<TrackedEntity> active,
@@ -293,10 +295,10 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     Date syncTime = context.getStartTime();
     SystemInstance instance = context.getInstance();
 
-    Set<String> attemptedThisPage = new HashSet<>();
-    active.forEach(te -> attemptedThisPage.add(te.getUid()));
-    deleted.forEach(te -> attemptedThisPage.add(te.getUid()));
-    Set<String> syncedThisPage = new HashSet<>();
+    Set<UID> attemptedThisPage = new HashSet<>();
+    active.forEach(te -> attemptedThisPage.add(UID.of(te.getUid())));
+    deleted.forEach(te -> attemptedThisPage.add(UID.of(te.getUid())));
+    Set<UID> syncedThisPage = new HashSet<>();
 
     try {
       SplitActiveTrackedEntities splitActiveEntities = splitActiveTrackedEntities(active, context);
@@ -306,16 +308,15 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       DeleteSyncResult deleteResult =
           syncDeletedIfNeeded(deletedTrackedEntities, splitActiveEntities, instance, settings);
 
-      Set<String> activeSyncCandidateUids =
+      Set<UID> activeSyncCandidateUids =
           splitActiveEntities.activeTrackedEntities().isEmpty()
               ? Set.of()
               : syncActive(splitActiveEntities.activeTrackedEntities(), instance, settings);
 
-      Set<String> syncedActiveTeUids =
+      Set<UID> syncedActiveTeUids =
           resolveSyncedActiveTeUids(
               activeSyncCandidateUids, splitActiveEntities.deletedChildUidsByTe(), deleteResult);
-      Set<String> syncedDeletedTeUids =
-          deleteResult == null ? Set.of() : deleteResult.syncedTeUids();
+      Set<UID> syncedDeletedTeUids = deleteResult == null ? Set.of() : deleteResult.syncedTeUids();
 
       syncedThisPage.addAll(
           stampSyncTimestamp(deletedTrackedEntities, syncedDeletedTeUids, syncTime));
@@ -326,7 +327,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       // Whatever was attempted on this page but didn't end up confirmed synced above must be
       // excluded from future page fetches this run, or it would keep being refetched.
       attemptedThisPage.removeAll(syncedThisPage);
-      attemptedThisPage.forEach(uid -> context.getFailedTrackedEntityUids().add(UID.of(uid)));
+      context.getFailedTrackedEntityUids().addAll(attemptedThisPage);
     }
   }
 
@@ -341,10 +342,10 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
     List<Enrollment> deletedEnrollments = new ArrayList<>();
     List<Event> deletedEvents = new ArrayList<>();
-    Map<String, Relationship> deletedRelationshipsByUid = new LinkedHashMap<>();
+    Map<UID, Relationship> deletedRelationshipsByUid = new LinkedHashMap<>();
     // Which deleted enrollment/event/relationship UIDs belong to which active TE, so a blocking
     // (non idempotent) failure to delete one of them can withhold that TE's timestamp later.
-    Map<String, Set<String>> deletedChildUidsByTe = new HashMap<>();
+    Map<UID, Set<UID>> deletedChildUidsByTe = new HashMap<>();
     if (!activeTrackedEntities.isEmpty()) {
       stripDeletedChildren(
           activeTrackedEntities,
@@ -386,11 +387,11 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         settings);
   }
 
-  private Set<String> resolveSyncedActiveTeUids(
-      Set<String> activeSyncCandidateUids,
-      Map<String, Set<String>> deletedChildUidsByTe,
+  private Set<UID> resolveSyncedActiveTeUids(
+      Set<UID> activeSyncCandidateUids,
+      Map<UID, Set<UID>> deletedChildUidsByTe,
       DeleteSyncResult deleteResult) {
-    Set<String> blockingFailedChildUids =
+    Set<UID> blockingFailedChildUids =
         deleteResult == null ? Set.of() : deleteResult.blockingFailedChildUids();
     return activeSyncCandidateUids.stream()
         .filter(
@@ -400,17 +401,15 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         .collect(Collectors.toCollection(HashSet::new));
   }
 
-  private Set<String> stampSyncTimestamp(
+  private Set<UID> stampSyncTimestamp(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> candidates,
-      Set<String> syncedUids,
+      Set<UID> syncedUids,
       Date syncTime) {
     if (syncedUids.isEmpty()) {
       return syncedUids;
     }
     List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> syncedTes =
-        candidates.stream()
-            .filter(te -> syncedUids.contains(te.getTrackedEntity().getValue()))
-            .toList();
+        candidates.stream().filter(te -> syncedUids.contains(te.getTrackedEntity())).toList();
     updateTrackedEntitiesSyncTimestamp(syncedTes, syncTime);
     return syncedUids;
   }
@@ -419,18 +418,17 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       List<Enrollment> deletedEnrollments,
       List<Event> deletedEvents,
-      Map<String, Relationship> deletedRelationshipsByUid,
-      Map<String, Set<String>> deletedChildUidsByTe) {
+      Map<UID, Relationship> deletedRelationshipsByUid,
+      Map<UID, Set<UID>> deletedChildUidsByTe) {
     for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te : trackedEntities) {
-      Set<String> ownedDeletedChildUids =
-          deletedChildUidsByTe.computeIfAbsent(
-              te.getTrackedEntity().getValue(), k -> new HashSet<>());
+      Set<UID> ownedDeletedChildUids =
+          deletedChildUidsByTe.computeIfAbsent(te.getTrackedEntity(), k -> new HashSet<>());
 
       List<Enrollment> enrollments = te.getEnrollments();
       List<Enrollment> deletedEnrollmentsForTe =
           enrollments.stream().filter(Enrollment::isDeleted).toList();
       deletedEnrollments.addAll(deletedEnrollmentsForTe);
-      deletedEnrollmentsForTe.forEach(e -> ownedDeletedChildUids.add(e.getEnrollment().getValue()));
+      deletedEnrollmentsForTe.forEach(e -> ownedDeletedChildUids.add(e.getEnrollment()));
       List<Enrollment> activeEnrollments =
           enrollments.stream().filter(e -> !e.isDeleted()).toList();
       te.setEnrollments(activeEnrollments);
@@ -439,7 +437,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         List<Event> events = enrollment.getEvents();
         List<Event> deletedEventsForEnrollment = events.stream().filter(Event::isDeleted).toList();
         deletedEvents.addAll(deletedEventsForEnrollment);
-        deletedEventsForEnrollment.forEach(e -> ownedDeletedChildUids.add(e.getEvent().getValue()));
+        deletedEventsForEnrollment.forEach(e -> ownedDeletedChildUids.add(e.getEvent()));
         List<Event> activeEvents = events.stream().filter(e -> !e.isDeleted()).toList();
         enrollment.setEvents(activeEvents);
 
@@ -461,14 +459,14 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
   private List<Relationship> stripDeletedRelationships(
       List<Relationship> relationships,
-      Map<String, Relationship> deletedRelationshipsByUid,
-      Set<String> ownedDeletedChildUids) {
+      Map<UID, Relationship> deletedRelationshipsByUid,
+      Set<UID> ownedDeletedChildUids) {
     relationships.stream()
         .filter(Relationship::isDeleted)
         .forEach(
             r -> {
-              deletedRelationshipsByUid.put(r.getRelationship().getValue(), r);
-              ownedDeletedChildUids.add(r.getRelationship().getValue());
+              deletedRelationshipsByUid.put(r.getRelationship(), r);
+              ownedDeletedChildUids.add(r.getRelationship());
             });
     return relationships.stream().filter(r -> !r.isDeleted()).toList();
   }
@@ -539,23 +537,22 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
     // An entity whose own delete came back "already deleted" achieved its goal, so it is treated as
     // synced here too.
-    Set<String> syncedTeUids = alreadyDeletedOrSucceededUids(report, TrackerType.TRACKED_ENTITY);
-    Set<String> syncedEnrollmentUids =
-        alreadyDeletedOrSucceededUids(report, TrackerType.ENROLLMENT);
-    Set<String> syncedEventUids = alreadyDeletedOrSucceededUids(report, TrackerType.EVENT);
-    Set<String> syncedRelationshipUids =
+    Set<UID> syncedTeUids = alreadyDeletedOrSucceededUids(report, TrackerType.TRACKED_ENTITY);
+    Set<UID> syncedEnrollmentUids = alreadyDeletedOrSucceededUids(report, TrackerType.ENROLLMENT);
+    Set<UID> syncedEventUids = alreadyDeletedOrSucceededUids(report, TrackerType.EVENT);
+    Set<UID> syncedRelationshipUids =
         alreadyDeletedOrSucceededUids(report, TrackerType.RELATIONSHIP);
     List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> syncedTes =
         deletedTrackedEntities.stream()
-            .filter(te -> syncedTeUids.contains(te.getTrackedEntity().getValue()))
+            .filter(te -> syncedTeUids.contains(te.getTrackedEntity()))
             .toList();
 
-    Set<String> failedTeUids = blockingFailedUids(report, TrackerType.TRACKED_ENTITY);
-    Set<String> failedEnrollmentUids = blockingFailedUids(report, TrackerType.ENROLLMENT);
-    Set<String> failedEventUids = blockingFailedUids(report, TrackerType.EVENT);
-    Set<String> failedRelationshipUids = blockingFailedUids(report, TrackerType.RELATIONSHIP);
+    Set<UID> failedTeUids = blockingFailedUids(report, TrackerType.TRACKED_ENTITY);
+    Set<UID> failedEnrollmentUids = blockingFailedUids(report, TrackerType.ENROLLMENT);
+    Set<UID> failedEventUids = blockingFailedUids(report, TrackerType.EVENT);
+    Set<UID> failedRelationshipUids = blockingFailedUids(report, TrackerType.RELATIONSHIP);
 
-    Set<String> blockingFailedChildUids = new HashSet<>();
+    Set<UID> blockingFailedChildUids = new HashSet<>();
     Stream.of(failedEnrollmentUids, failedEventUids, failedRelationshipUids)
         .forEach(blockingFailedChildUids::addAll);
 
@@ -578,7 +575,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     return new DeleteSyncResult(syncedTeUids, blockingFailedChildUids);
   }
 
-  private Set<String> syncActive(
+  private Set<UID> syncActive(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       SystemInstance instance,
       SystemSettings settings) {
@@ -591,21 +588,20 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     ImportReport report =
         sendTrackerRequest(Map.of("trackedEntities", trackedEntities), instance, settings, url);
 
-    Set<String> syncedTeUids =
-        getTrackedEntitiesWithAllChildrenSynchronized(report, trackedEntities);
+    Set<UID> syncedTeUids = getTrackedEntitiesWithAllChildrenSynchronized(report, trackedEntities);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> syncedTes =
         trackedEntities.stream()
-            .filter(te -> syncedTeUids.contains(te.getTrackedEntity().getValue()))
+            .filter(te -> syncedTeUids.contains(te.getTrackedEntity()))
             .toList();
 
     List<Enrollment> enrollments =
         trackedEntities.stream().flatMap(te -> te.getEnrollments().stream()).toList();
     List<Event> events = enrollments.stream().flatMap(e -> e.getEvents().stream()).toList();
-    Set<String> relationshipUids = getAllRelationshipUids(trackedEntities);
-    Set<String> failedEnrollmentUids = failedUids(report, TrackerType.ENROLLMENT);
-    Set<String> failedEventUids = failedUids(report, TrackerType.EVENT);
-    Set<String> failedRelationshipUids = failedUids(report, TrackerType.RELATIONSHIP);
+    Set<UID> relationshipUids = getAllRelationshipUids(trackedEntities);
+    Set<UID> failedEnrollmentUids = failedUids(report, TrackerType.ENROLLMENT);
+    Set<UID> failedEventUids = failedUids(report, TrackerType.EVENT);
+    Set<UID> failedRelationshipUids = failedUids(report, TrackerType.RELATIONSHIP);
 
     log.info(
         "Tracker create/update sync: TEs={}/{} synced, enrollments={}/{} synced{},"
@@ -625,26 +621,22 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     return syncedTeUids;
   }
 
-  private String formatFailedUids(Set<String> failedUids) {
+  private String formatFailedUids(Set<UID> failedUids) {
     return failedUids.isEmpty() ? "" : format(" (failed: %s)", failedUids);
   }
 
-  private Set<String> getAllRelationshipUids(
+  private Set<UID> getAllRelationshipUids(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities) {
     // Deduplicate by UID because a relationship is attached to every entity that is one of its
     // from/to parties, so the same
     // relationship can appear under two different tracked entities.
-    Set<String> relationshipUids = new HashSet<>();
+    Set<UID> relationshipUids = new HashSet<>();
     for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te : trackedEntities) {
-      te.getRelationships().forEach(r -> relationshipUids.add(r.getRelationship().getValue()));
+      te.getRelationships().forEach(r -> relationshipUids.add(r.getRelationship()));
       for (Enrollment enrollment : te.getEnrollments()) {
-        enrollment
-            .getRelationships()
-            .forEach(r -> relationshipUids.add(r.getRelationship().getValue()));
+        enrollment.getRelationships().forEach(r -> relationshipUids.add(r.getRelationship()));
         for (Event event : enrollment.getEvents()) {
-          event
-              .getRelationships()
-              .forEach(r -> relationshipUids.add(r.getRelationship().getValue()));
+          event.getRelationships().forEach(r -> relationshipUids.add(r.getRelationship()));
         }
       }
     }
@@ -674,43 +666,43 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     return report;
   }
 
-  private Set<String> getTrackedEntitiesWithAllChildrenSynchronized(
+  private Set<UID> getTrackedEntitiesWithAllChildrenSynchronized(
       ImportReport report,
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities) {
-    Set<String> succeededUids = successfullyProcessedUids(report, TrackerType.TRACKED_ENTITY);
+    Set<UID> succeededUids = successfullyProcessedUids(report, TrackerType.TRACKED_ENTITY);
     if (succeededUids.isEmpty()) {
       return succeededUids;
     }
 
-    Set<String> failedEnrollments = failedUids(report, TrackerType.ENROLLMENT);
-    Set<String> failedEvents = failedUids(report, TrackerType.EVENT);
-    Set<String> failedRelationships = failedUids(report, TrackerType.RELATIONSHIP);
+    Set<UID> failedEnrollments = failedUids(report, TrackerType.ENROLLMENT);
+    Set<UID> failedEvents = failedUids(report, TrackerType.EVENT);
+    Set<UID> failedRelationships = failedUids(report, TrackerType.RELATIONSHIP);
     if (failedEnrollments.isEmpty() && failedEvents.isEmpty() && failedRelationships.isEmpty()) {
       return succeededUids;
     }
 
     return trackedEntities.stream()
-        .filter(te -> succeededUids.contains(te.getTrackedEntity().getValue()))
+        .filter(te -> succeededUids.contains(te.getTrackedEntity()))
         .filter(te -> !hasFailedChild(te, failedEnrollments, failedEvents, failedRelationships))
-        .map(te -> te.getTrackedEntity().getValue())
+        .map(org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity::getTrackedEntity)
         .collect(Collectors.toCollection(HashSet::new));
   }
 
   private boolean hasFailedChild(
       org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te,
-      Set<String> failedEnrollments,
-      Set<String> failedEvents,
-      Set<String> failedRelationships) {
+      Set<UID> failedEnrollments,
+      Set<UID> failedEvents,
+      Set<UID> failedRelationships) {
     if (hasFailedRelationship(te.getRelationships(), failedRelationships)) {
       return true;
     }
     for (Enrollment enrollment : te.getEnrollments()) {
-      if (failedEnrollments.contains(enrollment.getEnrollment().getValue())
+      if (failedEnrollments.contains(enrollment.getEnrollment())
           || hasFailedRelationship(enrollment.getRelationships(), failedRelationships)) {
         return true;
       }
       for (Event event : enrollment.getEvents()) {
-        if (failedEvents.contains(event.getEvent().getValue())
+        if (failedEvents.contains(event.getEvent())
             || hasFailedRelationship(event.getRelationships(), failedRelationships)) {
           return true;
         }
@@ -720,12 +712,11 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   }
 
   private boolean hasFailedRelationship(
-      List<Relationship> relationships, Set<String> failedRelationships) {
-    return relationships.stream()
-        .anyMatch(r -> failedRelationships.contains(r.getRelationship().getValue()));
+      List<Relationship> relationships, Set<UID> failedRelationships) {
+    return relationships.stream().anyMatch(r -> failedRelationships.contains(r.getRelationship()));
   }
 
-  private Set<String> successfullyProcessedUids(ImportReport report, TrackerType type) {
+  private Set<UID> successfullyProcessedUids(ImportReport report, TrackerType type) {
     if (report.getPersistenceReport() == null) {
       return new HashSet<>();
     }
@@ -735,17 +726,17 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     }
     return typeReport.getEntityReport().stream()
         .filter(entity -> entity.getErrorReports().isEmpty())
-        .map(entity -> entity.getUid().getValue())
+        .map(Entity::getUid)
         .collect(Collectors.toCollection(HashSet::new));
   }
 
-  private Set<String> failedUids(ImportReport report, TrackerType type) {
-    Set<String> failed = new HashSet<>();
+  private Set<UID> failedUids(ImportReport report, TrackerType type) {
+    Set<UID> failed = new HashSet<>();
 
     if (report.getValidationReport() != null) {
       report.getValidationReport().getErrors().stream()
           .filter(e -> type.name().equals(e.getTrackerType()))
-          .map(e -> e.getUid().getValue())
+          .map(Error::getUid)
           .forEach(failed::add);
     }
 
@@ -754,7 +745,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       if (typeReport != null) {
         typeReport.getEntityReport().stream()
             .filter(entity -> !entity.getErrorReports().isEmpty())
-            .map(entity -> entity.getUid().getValue())
+            .map(Entity::getUid)
             .forEach(failed::add);
       }
     }
@@ -768,14 +759,14 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
    * timestamp, as opposed to one that failed only because "the delete already happened". Only
    * meaningful against a DELETE report.
    */
-  private Set<String> blockingFailedUids(ImportReport report, TrackerType type) {
-    Set<String> blocking = new HashSet<>();
+  private Set<UID> blockingFailedUids(ImportReport report, TrackerType type) {
+    Set<UID> blocking = new HashSet<>();
 
     if (report.getValidationReport() != null) {
       report.getValidationReport().getErrors().stream()
           .filter(e -> type.name().equals(e.getTrackerType()))
           .filter(e -> !ALREADY_DELETED_CODES.contains(e.getErrorCode()))
-          .map(e -> e.getUid().getValue())
+          .map(Error::getUid)
           .forEach(blocking::add);
     }
 
@@ -787,7 +778,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
                 entity ->
                     entity.getErrorReports().stream()
                         .anyMatch(e -> !ALREADY_DELETED_CODES.contains(e.getErrorCode())))
-            .map(entity -> entity.getUid().getValue())
+            .map(Entity::getUid)
             .forEach(blocking::add);
       }
     }
@@ -800,9 +791,9 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
    * #ALREADY_DELETED_CODES} — meaning the delete's goal was already achieved by an earlier attempt
    * or an out-of-band delete. Only meaningful against a DELETE report.
    */
-  private Set<String> alreadyDeletedOrSucceededUids(ImportReport report, TrackerType type) {
-    Set<String> result = new HashSet<>(successfullyProcessedUids(report, type));
-    Set<String> blocking = blockingFailedUids(report, type);
+  private Set<UID> alreadyDeletedOrSucceededUids(ImportReport report, TrackerType type) {
+    Set<UID> result = new HashSet<>(successfullyProcessedUids(report, type));
+    Set<UID> blocking = blockingFailedUids(report, type);
     failedUids(report, type).stream().filter(uid -> !blocking.contains(uid)).forEach(result::add);
     return result;
   }
@@ -822,10 +813,12 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private void updateTrackedEntitiesSyncTimestamp(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       Date syncTime) {
-    List<String> trackedEntityUids =
-        trackedEntities.stream().map(te -> te.getTrackedEntity().getValue()).toList();
+    Set<UID> trackedEntityUids =
+        trackedEntities.stream()
+            .map(org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity::getTrackedEntity)
+            .collect(Collectors.toSet());
 
-    trackedEntityService.updateTrackedEntitiesSyncTimestamp(UID.of(trackedEntityUids), syncTime);
+    trackedEntityService.updateTrackedEntitiesSyncTimestamp(trackedEntityUids, syncTime);
   }
 
   private org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalTrackedEntity(
