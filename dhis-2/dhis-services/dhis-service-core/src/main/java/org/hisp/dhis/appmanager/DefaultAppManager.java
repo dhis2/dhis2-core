@@ -36,6 +36,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.*;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -47,12 +48,16 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -87,7 +92,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -101,13 +105,20 @@ public class DefaultAppManager implements AppManager {
   public static final String INVALID_FILTER_MSG = "Invalid filter: ";
   private static final Set<String> EXCLUSION_APPS = Set.of("Line Listing");
 
+  /**
+   * Max number of bundled apps installed concurrently on startup. File uploads across all of these
+   * share a single bounded pool in {@link BlobStoreAppStorageService}, so this only governs how
+   * many app zips are read/decompressed at once, not total upload concurrency.
+   */
+  private static final int APP_INSTALL_PARALLELISM = 16;
+
   @Autowired private UserService userService;
   @Autowired private ObjectMapper jsonMapper;
   @Autowired private LocaleManager localeManager;
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
   private final AppHubService appHubService;
-  private final AppStorageService jCloudsAppStorageService;
+  private final AppStorageService blobStoreAppStorageService;
   private final DatastoreService datastoreService;
   private final BundledAppManager bundledAppManager;
   private final I18nManager i18nManager;
@@ -122,8 +133,7 @@ public class DefaultAppManager implements AppManager {
   public DefaultAppManager(
       DhisConfigurationProvider dhisConfigurationProvider,
       AppHubService appHubService,
-      @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
-          AppStorageService jCloudsAppStorageService,
+      AppStorageService blobStoreAppStorageService,
       DatastoreService datastoreService,
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,
@@ -132,7 +142,7 @@ public class DefaultAppManager implements AppManager {
       ETagService eTagService) {
 
     checkNotNull(dhisConfigurationProvider);
-    checkNotNull(jCloudsAppStorageService);
+    checkNotNull(blobStoreAppStorageService);
     checkNotNull(datastoreService);
     checkNotNull(cacheBuilderProvider);
     checkNotNull(i18nManager);
@@ -142,7 +152,7 @@ public class DefaultAppManager implements AppManager {
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
-    this.jCloudsAppStorageService = jCloudsAppStorageService;
+    this.blobStoreAppStorageService = blobStoreAppStorageService;
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
     this.i18nManager = i18nManager;
@@ -159,9 +169,13 @@ public class DefaultAppManager implements AppManager {
   @PostConstruct
   public void reloadApps() {
     Map<String, Pair<App, BundledAppInfo>> installedApps =
-        jCloudsAppStorageService.discoverInstalledApps();
+        blobStoreAppStorageService.discoverInstalledApps();
 
-    installBundledApps(installedApps);
+    // When the store starts empty (typical first startup) there can be no pre-existing apps to
+    // replace, so the per-app duplicate-removal scan is skipped to avoid an expensive O(n^2)
+    // rescan of storage during bundled app installation.
+    boolean storeStartedEmpty = installedApps.isEmpty();
+    installBundledApps(installedApps, storeStartedEmpty);
     // Invalidate the previous app cache
     appCache.invalidateAll();
     // Cache all discovered apps
@@ -170,40 +184,110 @@ public class DefaultAppManager implements AppManager {
   }
 
   /**
+   * A bundled app that needs to be (re)installed, together with its zip resource and the zip's
+   * compressed size in bytes (computed once; used to order installs largest-first).
+   */
+  private record BundledAppInstall(
+      String appKey, BundledAppInfo bundledAppInfo, Resource zipFileResource, long zipSize) {}
+
+  /**
    * Installs bundled apps, by looking in the classpath for app .zip files. If the bundled app is
    * already installed, it can be overwritten with a newer one if the Etag is different.
    *
+   * <p>Apps are installed concurrently: each app is large enough that its files already upload in
+   * parallel, but the apps themselves used to install one-after-another, so the many small apps
+   * waited behind the few large ones. Installing apps in parallel lets the small apps upload in the
+   * shadow of the large ones (each app reads its own zip, so decompression also parallelizes). The
+   * shared upload pool in {@link BlobStoreAppStorageService} keeps total in-flight uploads bounded.
+   *
    * @param installedApps the Map with all existing apps, we overwrite existing apps in this Map
    *     with new ones.
+   * @param storeStartedEmpty whether the app store was empty before this install run; when {@code
+   *     true} the per-app duplicate-removal scan is skipped as there can be nothing to replace.
    */
-  private void installBundledApps(@Nonnull Map<String, Pair<App, BundledAppInfo>> installedApps) {
+  private void installBundledApps(
+      @Nonnull Map<String, Pair<App, BundledAppInfo>> installedApps, boolean storeStartedEmpty) {
+    boolean removeExisting = !storeStartedEmpty;
+
+    // First collect which bundled apps actually need (re)installing, without touching storage. An
+    // app is (re)installed if it isn't installed yet, or if its installed Etag differs from the
+    // bundled one. Apps that are already up to date keep their existing map entry untouched.
+    List<BundledAppInstall> appsToInstall = new ArrayList<>();
     bundledAppManager.installBundledApps(
         (app, bundledAppInfo, zipFileResource) -> {
-          String appKey = app.getKey();
-          installedApps.computeIfAbsent(
-              appKey,
-              x ->
-                  Pair.of(
-                      installBundledAppResource(zipFileResource, bundledAppInfo), bundledAppInfo));
-
-          // If the bundled app is already installed and the Etag is different, overwrite the
-          // existing.
-          if (installedApps.containsKey(appKey)) {
-            BundledAppInfo installedAppInfo = installedApps.get(appKey).getRight();
-            if (installedAppInfo != null
-                && installedAppInfo.getEtag() != null
-                && !installedAppInfo.getEtag().equals(bundledAppInfo.getEtag())) {
-              installedApps.put(
-                  appKey,
-                  Pair.of(
-                      installBundledAppResource(zipFileResource, bundledAppInfo), bundledAppInfo));
-
+          Pair<App, BundledAppInfo> existing = installedApps.get(app.getKey());
+          if (needsInstall(existing, bundledAppInfo)) {
+            if (existing != null) {
               log.info(
-                  "A bundled app with a different Etag was installed and replaced the existing one. App name: '{}'",
-                  installedAppInfo.getName());
+                  "Bundled app '{}' has a different Etag than the installed one and will replace it",
+                  bundledAppInfo.getName());
             }
+            appsToInstall.add(
+                new BundledAppInstall(
+                    app.getKey(), bundledAppInfo, zipFileResource, zipSize(zipFileResource)));
           }
         });
+
+    if (appsToInstall.isEmpty()) return;
+
+    // Install the largest apps first. A few apps (e.g. Maintenance) are far bigger than the rest,
+    // if they start last they end up running alone at the tail with no smaller apps left to overlap
+    // them. Starting them first lets the many small apps install in their shadow, so total time
+    // approaches the largest app's runtime rather than largest + the rest.
+    appsToInstall.sort(Comparator.comparingLong(BundledAppInstall::zipSize).reversed());
+
+    // Install in parallel, then merge results into the map on this thread (single-writer).
+    ExecutorService appExecutor =
+        Executors.newFixedThreadPool(
+            Math.min(APP_INSTALL_PARALLELISM, appsToInstall.size()),
+            new ThreadFactoryBuilder().setNameFormat("app-install-%d").setDaemon(true).build());
+    try {
+      List<CompletableFuture<Map.Entry<String, Pair<App, BundledAppInfo>>>> futures =
+          new ArrayList<>(appsToInstall.size());
+      for (BundledAppInstall item : appsToInstall) {
+        futures.add(
+            CompletableFuture.supplyAsync(
+                () ->
+                    Map.entry(
+                        item.appKey(),
+                        Pair.of(
+                            installBundledAppResource(
+                                item.zipFileResource(), item.bundledAppInfo(), removeExisting),
+                            item.bundledAppInfo())),
+                appExecutor));
+      }
+      CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+      for (CompletableFuture<Map.Entry<String, Pair<App, BundledAppInfo>>> future : futures) {
+        Map.Entry<String, Pair<App, BundledAppInfo>> result = future.join();
+        installedApps.put(result.getKey(), result.getValue());
+      }
+    } finally {
+      appExecutor.shutdown();
+    }
+  }
+
+  /**
+   * Whether a bundled app needs to be (re)installed: {@code true} when it is not yet installed, or
+   * when its installed bundled-app Etag differs from the one being offered.
+   */
+  private static boolean needsInstall(
+      @CheckForNull Pair<App, BundledAppInfo> existing, @Nonnull BundledAppInfo bundledAppInfo) {
+    if (existing == null) {
+      return true;
+    }
+    BundledAppInfo installedAppInfo = existing.getRight();
+    return installedAppInfo != null
+        && installedAppInfo.getEtag() != null
+        && !installedAppInfo.getEtag().equals(bundledAppInfo.getEtag());
+  }
+
+  /** Compressed size of the app's zip in bytes, or {@code 0} when it cannot be determined. */
+  private static long zipSize(Resource zipFileResource) {
+    try {
+      return zipFileResource.contentLength();
+    } catch (IOException e) {
+      return 0L;
+    }
   }
 
   private void cacheApp(@Nonnull App app) {
@@ -441,12 +525,14 @@ public class DefaultAppManager implements AppManager {
   @Override
   @Nonnull
   public App installApp(@Nonnull File file) {
-    return installAppZipFile(file, null);
+    // User-initiated installs may be upgrading an existing app, so always remove duplicates.
+    return installAppZipFile(file, null, true);
   }
 
   @Nonnull
-  private App installAppZipFile(@Nonnull File file, @CheckForNull BundledAppInfo bundledAppInfo) {
-    App app = jCloudsAppStorageService.installApp(file, appCache, bundledAppInfo);
+  private App installAppZipFile(
+      @Nonnull File file, @CheckForNull BundledAppInfo bundledAppInfo, boolean removeExisting) {
+    App app = blobStoreAppStorageService.installApp(file, appCache, bundledAppInfo, removeExisting);
     log.debug(
         String.format(
             "Installed App with AppHub ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
@@ -457,12 +543,12 @@ public class DefaultAppManager implements AppManager {
 
   @Nonnull
   public App installBundledAppResource(
-      @Nonnull Resource resource, @Nonnull BundledAppInfo bundledAppInfo) {
+      @Nonnull Resource resource, @Nonnull BundledAppInfo bundledAppInfo, boolean removeExisting) {
     try {
       Path tempFile = Files.createTempFile("tmp-bundled-app-", CodeGenerator.generateUid());
       Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
       try {
-        return installAppZipFile(tempFile.toFile(), bundledAppInfo);
+        return installAppZipFile(tempFile.toFile(), bundledAppInfo, removeExisting);
       } finally {
         Files.deleteIfExists(tempFile);
       }
@@ -532,7 +618,7 @@ public class DefaultAppManager implements AppManager {
     App appFromCache = appOpt.get();
     appCache.put(app.getKey(), appFromCache);
 
-    jCloudsAppStorageService.deleteApp(app);
+    blobStoreAppStorageService.deleteApp(app);
     reloadApps();
     eTagService.incrementNamedVersion("installedApps");
 
@@ -572,7 +658,7 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public ResourceResult getRawAppResource(App app, String pageName) throws IOException {
-    return jCloudsAppStorageService.getAppResource(app, pageName);
+    return blobStoreAppStorageService.getAppResource(app, pageName);
   }
 
   @Override
@@ -639,10 +725,9 @@ public class DefaultAppManager implements AppManager {
     try {
       if (resource.isFile()) {
         return (int) resource.contentLength();
-      } else {
-        URLConnection urlConnection = resource.getURL().openConnection();
-        return urlConnection.getContentLength();
       }
+      URLConnection urlConnection = resource.getURL().openConnection();
+      return urlConnection.getContentLength();
     } catch (IOException e) {
       log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
       return -1;

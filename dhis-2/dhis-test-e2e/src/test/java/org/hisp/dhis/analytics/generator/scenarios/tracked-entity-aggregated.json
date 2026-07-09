@@ -1,0 +1,39 @@
+{
+  "scenarios": [
+    {
+      "name": "aggregateCountByOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&asc=ou&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateAverageValueByOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=AVERAGE&asc=ou&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateSumValueByOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=SUM&asc=ou&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountOfNonNullValueByOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4;a1E6QWBTEwX;a5glgtnXJRG;aBfyTU5Wgds&value=lw1SqmMlnfh&aggregationType=COUNT&asc=ou&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateAverageValueByOrgUnitAndGender",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:a04CZxe0PSe;a1dP5m3Clw4,cejWyOfXge6&value=lw1SqmMlnfh&aggregationType=AVERAGE&asc=ou,cejWyOfXge6&pageSize=5&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    }
+  ]
+}

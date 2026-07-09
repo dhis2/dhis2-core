@@ -105,7 +105,9 @@ public class UniqueAttributesCheck implements ObjectValidationCheck {
     object
         .getAttributeValues()
         .forEach(
-            (attributeId, value) -> {
+            (key, val) -> {
+              String attributeId = key.toString();
+              String value = val.toString();
               Attribute attribute = preheat.get(identifier, Attribute.class, attributeId);
 
               if (attribute == null || !attribute.isUnique() || StringUtils.isEmpty(value)) {

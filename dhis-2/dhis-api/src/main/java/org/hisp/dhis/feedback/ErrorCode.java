@@ -338,6 +338,11 @@ public enum ErrorCode {
   E4057("The Program Rule name {0} already exist in Program {1}"),
 
   E4058("Program Rule `{0}` with Action Type `{1}` has irrelevant reference objects"),
+  E4059("ProgramRuleVariable `{0}` with source type `{1}` requires a data element"),
+  E4089("ProgramRuleVariable `{0}` with source type `{1}` requires a tracked entity attribute"),
+  E4090("ProgramRuleVariable `{0}` is missing a source type"),
+  E4091("ProgramRuleVariable `{0}` with source type `{1}` requires a program stage"),
+  E4092("ProgramRuleVariable `{0}` with source type `{1}` requires a value type"),
 
   /* Metadata Validation (continued) */
   E4060("Object could not be deleted: {0}"),
@@ -436,6 +441,7 @@ public enum ErrorCode {
   E6020("AttributeValue `{0}` is an invalid username"),
   E6021("AttributeValue `{0}` is an invalid phone number"),
   E6022("Object cannot reference itself by property `{0}`"),
+  E6023("Type `{0}` cannot be imported via metadata"),
 
   /* File resource */
   E6100("Filename not present"),
@@ -526,6 +532,7 @@ public enum ErrorCode {
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
+  E7136("Query exceeded the maximum allowed execution time"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
   E7139("Parameters programStatus and enrollmentStatus cannot be used together"),
@@ -606,8 +613,12 @@ public enum ErrorCode {
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
+  E7252("Sorting is only supported on grouped dimensions in an aggregate query: `{0}`"),
   E7253(
       "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
+  E7254("Aggregation type is not supported by tracked entity aggregate queries: `{0}`"),
+  E7255("Aggregation type `{0}` requires the `value` parameter"),
+  E7256("Value `{0}` is not a numeric tracked entity attribute of tracked entity type `{1}`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

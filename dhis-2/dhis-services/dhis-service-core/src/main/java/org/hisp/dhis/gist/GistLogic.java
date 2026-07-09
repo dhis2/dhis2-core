@@ -131,10 +131,11 @@ final class GistLogic {
     Comparison op = filter.getOperator();
     return property.isSimple()
         && property.getKlass() == String.class
+        && property.getPropertyType() == PropertyType.TEXT
         && (op.isEmptinessCompare()
             || (op.isOrderCompare()
                 && filter.getValue().length == 1
-                && filter.getValue()[0].matches("[0-9]+")));
+                && filter.getValue()[0].matches("[0-9]{1,5}")));
   }
 
   static Transform effectiveTransform(Property property, Transform fallback, Transform target) {

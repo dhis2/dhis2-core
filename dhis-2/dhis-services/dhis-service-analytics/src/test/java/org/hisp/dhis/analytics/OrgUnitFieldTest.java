@@ -50,6 +50,8 @@ class OrgUnitFieldTest {
 
   private static final OrgUnitField DEFALT = new OrgUnitField(null);
 
+  private static final OrgUnitField EVEN = new OrgUnitField("EVENT").withSqlBuilder(sqlBuilder);
+
   private static final OrgUnitField ATTRIB =
       new OrgUnitField("attributeId").withSqlBuilder(sqlBuilder);
 
@@ -68,6 +70,7 @@ class OrgUnitFieldTest {
   @Test
   void testIsJoinOrgUnitTables() {
     assertFalse(DEFALT.isJoinOrgUnitTables(EVENT));
+    assertFalse(EVEN.isJoinOrgUnitTables(EVENT));
     assertTrue(ATTRIB.isJoinOrgUnitTables(EVENT));
     assertTrue(REGIST.isJoinOrgUnitTables(EVENT));
     assertTrue(ENROLL.isJoinOrgUnitTables(EVENT));
@@ -75,6 +78,7 @@ class OrgUnitFieldTest {
     assertTrue(OEND.isJoinOrgUnitTables(EVENT));
 
     assertFalse(DEFALT.isJoinOrgUnitTables(ENROLLMENT));
+    assertFalse(EVEN.isJoinOrgUnitTables(ENROLLMENT));
     assertTrue(ATTRIB.isJoinOrgUnitTables(ENROLLMENT));
     assertTrue(REGIST.isJoinOrgUnitTables(ENROLLMENT));
     assertFalse(ENROLL.isJoinOrgUnitTables(ENROLLMENT));
@@ -84,24 +88,31 @@ class OrgUnitFieldTest {
 
   @Test
   void testGetOrgUnitStructColForEvent() {
-    assertEquals("ax.\"abc\"", DEFALT.getOrgUnitStructCol("abc", EVENT, false));
+    assertEquals("ax.\"abc\" as abc", DEFALT.getOrgUnitStructCol("abc", EVENT, false));
     assertEquals("ax.\"abc\"", DEFALT.getOrgUnitStructCol("abc", EVENT, true));
-    assertEquals("ax.\"ou\"", DEFALT.getOrgUnitStructCol("ou", EVENT, false));
+    assertEquals("ax.\"ou\" as ou", DEFALT.getOrgUnitStructCol("ou", EVENT, false));
     assertEquals("ax.\"ou\"", DEFALT.getOrgUnitStructCol("ou", EVENT, true));
 
-    assertEquals("ous.\"abc\"", ATTRIB.getOrgUnitStructCol("abc", EVENT, false));
+    assertEquals("ax.\"abc\" as abc", EVEN.getOrgUnitStructCol("abc", EVENT, false));
+    assertEquals("ax.\"abc\"", EVEN.getOrgUnitStructCol("abc", EVENT, true));
+    assertEquals("ax.\"ou\" as ou", EVEN.getOrgUnitStructCol("ou", EVENT, false));
+    assertEquals("ax.\"ou\"", EVEN.getOrgUnitStructCol("ou", EVENT, true));
+
+    assertEquals("ous.\"abc\" as abc", ATTRIB.getOrgUnitStructCol("abc", EVENT, false));
+
+    assertEquals("ous.\"abc\" as abc", ATTRIB.getOrgUnitStructCol("abc", EVENT, false));
     assertEquals("ous.\"abc\"", ATTRIB.getOrgUnitStructCol("abc", EVENT, true));
     assertEquals(
         "ous.\"organisationunituid\" as ou", ATTRIB.getOrgUnitStructCol("ou", EVENT, false));
     assertEquals("ous.\"organisationunituid\"", ATTRIB.getOrgUnitStructCol("ou", EVENT, true));
 
-    assertEquals("ous.\"abc\"", REGIST.getOrgUnitStructCol("abc", EVENT, false));
+    assertEquals("ous.\"abc\" as abc", REGIST.getOrgUnitStructCol("abc", EVENT, false));
     assertEquals("ous.\"abc\"", REGIST.getOrgUnitStructCol("abc", EVENT, true));
     assertEquals(
         "ous.\"organisationunituid\" as ou", REGIST.getOrgUnitStructCol("ou", EVENT, false));
     assertEquals("ous.\"organisationunituid\"", REGIST.getOrgUnitStructCol("ou", EVENT, true));
 
-    assertEquals("ous.\"abc\"", ENROLL.getOrgUnitStructCol("abc", EVENT, false));
+    assertEquals("ous.\"abc\" as abc", ENROLL.getOrgUnitStructCol("abc", EVENT, false));
     assertEquals("ous.\"abc\"", ENROLL.getOrgUnitStructCol("abc", EVENT, true));
     assertEquals(
         "ous.\"organisationunituid\" as ou", ENROLL.getOrgUnitStructCol("ou", EVENT, false));
@@ -132,26 +143,32 @@ class OrgUnitFieldTest {
 
   @Test
   void testGetOrgUnitStructColForEnrollment() {
-    assertEquals("ax.\"abc\"", DEFALT.getOrgUnitStructCol("abc", ENROLLMENT, false));
+    assertEquals("ax.\"abc\" as abc", DEFALT.getOrgUnitStructCol("abc", ENROLLMENT, false));
     assertEquals("ax.\"abc\"", DEFALT.getOrgUnitStructCol("abc", ENROLLMENT, true));
-    assertEquals("ax.\"ou\"", DEFALT.getOrgUnitStructCol("ou", ENROLLMENT, false));
+    assertEquals("ax.\"ou\" as ou", DEFALT.getOrgUnitStructCol("ou", ENROLLMENT, false));
     assertEquals("ax.\"ou\"", DEFALT.getOrgUnitStructCol("ou", ENROLLMENT, true));
 
-    assertEquals("ous.\"abc\"", ATTRIB.getOrgUnitStructCol("abc", ENROLLMENT, false));
+    assertEquals("ax.\"abc\" as abc", EVEN.getOrgUnitStructCol("abc", ENROLLMENT, false));
+    assertEquals("ax.\"abc\"", EVEN.getOrgUnitStructCol("abc", ENROLLMENT, true));
+    assertEquals("ax.\"ou\" as ou", EVEN.getOrgUnitStructCol("ou", ENROLLMENT, false));
+    assertEquals("ax.\"ou\"", EVEN.getOrgUnitStructCol("ou", ENROLLMENT, true));
+
+    assertEquals("ous.\"abc\" as abc", ATTRIB.getOrgUnitStructCol("abc", ENROLLMENT, false));
+    assertEquals("ous.\"abc\" as abc", ATTRIB.getOrgUnitStructCol("abc", ENROLLMENT, false));
     assertEquals("ous.\"abc\"", ATTRIB.getOrgUnitStructCol("abc", ENROLLMENT, true));
     assertEquals(
         "ous.\"organisationunituid\" as ou", ATTRIB.getOrgUnitStructCol("ou", ENROLLMENT, false));
     assertEquals("ous.\"organisationunituid\"", ATTRIB.getOrgUnitStructCol("ou", ENROLLMENT, true));
 
-    assertEquals("ous.\"abc\"", REGIST.getOrgUnitStructCol("abc", ENROLLMENT, false));
+    assertEquals("ous.\"abc\" as abc", REGIST.getOrgUnitStructCol("abc", ENROLLMENT, false));
     assertEquals("ous.\"abc\"", REGIST.getOrgUnitStructCol("abc", ENROLLMENT, true));
     assertEquals(
         "ous.\"organisationunituid\" as ou", REGIST.getOrgUnitStructCol("ou", ENROLLMENT, false));
     assertEquals("ous.\"organisationunituid\"", REGIST.getOrgUnitStructCol("ou", ENROLLMENT, true));
 
-    assertEquals("ax.\"abc\"", ENROLL.getOrgUnitStructCol("abc", ENROLLMENT, false));
+    assertEquals("ax.\"abc\" as abc", ENROLL.getOrgUnitStructCol("abc", ENROLLMENT, false));
     assertEquals("ax.\"abc\"", ENROLL.getOrgUnitStructCol("abc", ENROLLMENT, true));
-    assertEquals("ax.\"ou\"", ENROLL.getOrgUnitStructCol("ou", ENROLLMENT, false));
+    assertEquals("ax.\"ou\" as ou", ENROLL.getOrgUnitStructCol("ou", ENROLLMENT, false));
     assertEquals("ax.\"ou\"", ENROLL.getOrgUnitStructCol("ou", ENROLLMENT, true));
 
     assertEquals(
@@ -182,6 +199,10 @@ class OrgUnitFieldTest {
     assertEquals("ax.\"uidlevel2\"", DEFALT.getOrgUnitLevelCol(2, EVENT));
     assertEquals("ax.\"uidlevel3\"", DEFALT.getOrgUnitLevelCol(3, EVENT));
 
+    assertEquals("ax.\"uidlevel1\"", EVEN.getOrgUnitLevelCol(1, EVENT));
+    assertEquals("ax.\"uidlevel2\"", EVEN.getOrgUnitLevelCol(2, EVENT));
+    assertEquals("ax.\"uidlevel3\"", EVEN.getOrgUnitLevelCol(3, EVENT));
+
     assertEquals("ous.\"uidlevel1\"", ATTRIB.getOrgUnitLevelCol(1, EVENT));
     assertEquals("ous.\"uidlevel1\"", REGIST.getOrgUnitLevelCol(1, EVENT));
     assertEquals("ous.\"uidlevel1\"", ENROLL.getOrgUnitLevelCol(1, EVENT));
@@ -191,6 +212,7 @@ class OrgUnitFieldTest {
         "coalesce(own.\"uidlevel1\",ous.\"uidlevel1\")", OEND.getOrgUnitLevelCol(1, EVENT));
 
     assertEquals("ax.\"uidlevel1\"", DEFALT.getOrgUnitLevelCol(1, ENROLLMENT));
+    assertEquals("ax.\"uidlevel1\"", EVEN.getOrgUnitLevelCol(1, ENROLLMENT));
     assertEquals("ous.\"uidlevel1\"", ATTRIB.getOrgUnitLevelCol(1, ENROLLMENT));
     assertEquals("ous.\"uidlevel1\"", REGIST.getOrgUnitLevelCol(1, ENROLLMENT));
     assertEquals("ax.\"uidlevel1\"", ENROLL.getOrgUnitLevelCol(1, ENROLLMENT));
@@ -203,6 +225,7 @@ class OrgUnitFieldTest {
   @Test
   void testGetOrgUnitJoinCol() {
     assertEquals("ax.\"ou\"", DEFALT.getOrgUnitJoinCol(EVENT));
+    assertEquals("ax.\"ou\"", EVEN.getOrgUnitJoinCol(EVENT));
     assertEquals("ax.\"attributeId\"", ATTRIB.getOrgUnitJoinCol(EVENT));
     assertEquals("ax.\"registrationou\"", REGIST.getOrgUnitJoinCol(EVENT));
     assertEquals("ax.\"enrollmentou\"", ENROLL.getOrgUnitJoinCol(EVENT));
@@ -210,6 +233,7 @@ class OrgUnitFieldTest {
     assertEquals("ax.\"enrollmentou\"", OEND.getOrgUnitJoinCol(EVENT));
 
     assertEquals("ax.\"ou\"", DEFALT.getOrgUnitJoinCol(ENROLLMENT));
+    assertEquals("ax.\"ou\"", EVEN.getOrgUnitJoinCol(ENROLLMENT));
     assertEquals("ax.\"attributeId\"", ATTRIB.getOrgUnitJoinCol(ENROLLMENT));
     assertEquals("ax.\"registrationou\"", REGIST.getOrgUnitJoinCol(ENROLLMENT));
     assertEquals("ax.\"ou\"", ENROLL.getOrgUnitJoinCol(ENROLLMENT));
@@ -220,6 +244,7 @@ class OrgUnitFieldTest {
   @Test
   void testGetOrgUnitWhereCol() {
     assertEquals("ax.\"ou\"", DEFALT.getOrgUnitWhereCol(EVENT));
+    assertEquals("ax.\"ou\"", EVEN.getOrgUnitWhereCol(EVENT));
     assertEquals("ax.\"attributeId\"", ATTRIB.getOrgUnitWhereCol(EVENT));
     assertEquals("ax.\"registrationou\"", REGIST.getOrgUnitWhereCol(EVENT));
     assertEquals("ax.\"enrollmentou\"", ENROLL.getOrgUnitWhereCol(EVENT));
@@ -229,6 +254,7 @@ class OrgUnitFieldTest {
         "coalesce(own.\"enrollmentou\",ax.\"enrollmentou\")", OEND.getOrgUnitWhereCol(EVENT));
 
     assertEquals("ax.\"ou\"", DEFALT.getOrgUnitWhereCol(ENROLLMENT));
+    assertEquals("ax.\"ou\"", EVEN.getOrgUnitWhereCol(ENROLLMENT));
     assertEquals("ax.\"attributeId\"", ATTRIB.getOrgUnitWhereCol(ENROLLMENT));
     assertEquals("ax.\"registrationou\"", REGIST.getOrgUnitWhereCol(ENROLLMENT));
     assertEquals("ax.\"ou\"", ENROLL.getOrgUnitWhereCol(ENROLLMENT));

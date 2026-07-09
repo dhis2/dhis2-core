@@ -69,7 +69,7 @@ public class DefaultTrackedEntityAttributeValueService
     trackedEntityChangeLogService.addTrackedEntityChangeLog(
         attributeValue.getTrackedEntity(),
         attributeValue.getAttribute(),
-        attributeValue.getPlainValue(),
+        attributeValue.getValue(),
         null,
         DELETE,
         getCurrentUsername());
@@ -94,12 +94,6 @@ public class DefaultTrackedEntityAttributeValueService
       throw new IllegalQueryException("Attribute or type is null or empty");
     }
 
-    if (attributeValue.getAttribute().isConfidentialBool()
-        && !config.getEncryptionStatus().isOk()) {
-      throw new IllegalStateException(
-          "Unable to encrypt data, encryption is not correctly configured");
-    }
-
     String result =
         valueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
 
@@ -118,12 +112,6 @@ public class DefaultTrackedEntityAttributeValueService
 
     if (attributeValue.getValue() != null) {
       attributeValueStore.saveVoid(attributeValue);
-
-      if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
-          && attributeValue.getAttribute().getTextPattern() != null) {
-        reservedValueService.useReservedValue(
-            attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-      }
     }
   }
 

@@ -30,9 +30,8 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -59,20 +58,18 @@ public class MetadataSyncDelegate {
 
   private final SystemService systemService;
 
-  public boolean shouldStopSync(String metadataVersionSnapshot) {
+  public boolean shouldStopSync(InputStream metadataVersionSnapshot) {
     String systemVersion = systemService.getSystemInfoVersion();
     if (StringUtils.isEmpty(systemVersion)
         || !metadataSystemSettingService.getStopMetadataSyncSetting()) {
       return false;
     }
 
-    ByteArrayInputStream byteArrayInputStream =
-        new ByteArrayInputStream(metadataVersionSnapshot.getBytes(StandardCharsets.UTF_8));
     String remoteVersion = "";
 
     try {
       JsonNode systemObject =
-          renderService.getSystemObject(byteArrayInputStream, RenderFormat.JSON);
+          renderService.getSystemObject(metadataVersionSnapshot, RenderFormat.JSON);
 
       if (systemObject == null) {
         return false;
@@ -84,7 +81,7 @@ public class MetadataSyncDelegate {
         return false;
       }
     } catch (IOException e) {
-      log.error("Exception occurred when parsing the metadata snapshot" + e.getMessage());
+      log.error("Exception occurred when parsing the metadata snapshot", e);
     }
 
     return !systemVersion.trim().equals(remoteVersion.trim());

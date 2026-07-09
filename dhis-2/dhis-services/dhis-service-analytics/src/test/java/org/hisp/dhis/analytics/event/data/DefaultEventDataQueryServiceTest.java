@@ -71,6 +71,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -353,13 +354,14 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestParsesProgramStatusDimensionForEventQuery() {
+  void getFromRequestParsesProgramStatusDimensionForEventQueryAsEnrollmentStatusFilter() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, EVENT).dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE"))).build();
 
     EventQueryParams params = subject.getFromRequest(request);
 
     assertEquals(Set.of(EnrollmentStatus.ACTIVE), params.getEnrollmentStatus());
+    assertNoProgramStatusDimension(params);
   }
 
   @Test
@@ -371,13 +373,11 @@ class DefaultEventDataQueryServiceTest {
 
     EventQueryParams params = subject.getFromRequest(request);
 
-    assertEquals(
-        Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED, EnrollmentStatus.CANCELLED),
-        params.getEnrollmentStatus());
+    assertProgramStatusDimension(params, "ACTIVE", "COMPLETED", "CANCELLED");
   }
 
   @Test
-  void getFromRequestMergesProgramStatusDimensionWithProgramStatusRequestParam() {
+  void getFromRequestMergesProgramStatusDimensionWithProgramStatusRequestParamForQuery() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, EVENT)
             .dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE")))
@@ -388,6 +388,7 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(
         Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED), params.getEnrollmentStatus());
+    assertNoProgramStatusDimension(params);
   }
 
   @Test
@@ -401,7 +402,30 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestParsesProgramStatusDimensionForEnrollmentEndpoint() {
+  void getFromRequestAcceptsProgramStatusDimensionWithoutValue() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .dimension(Set.of(Set.of("PROGRAM_STATUS")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    DimensionalObject dim = findStatusDimension(params, DimensionType.PROGRAM_STATUS);
+    assertEquals("programstatus", dim.getDimension());
+    assertEquals(EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME, dim.getDimensionName());
+    assertTrue(dim.getItems().isEmpty(), "Dimension items should be empty for group-by only");
+  }
+
+  @Test
+  void getFromRequestRejectsProgramStatusFilterWithoutValue() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT).filter(Set.of(Set.of("PROGRAM_STATUS"))).build();
+
+    assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+  }
+
+  @Test
+  void getFromRequestParsesProgramStatusDimensionForEnrollmentQueryAsEnrollmentStatusFilter() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, ENROLLMENT)
             .dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE")))
@@ -410,10 +434,11 @@ class DefaultEventDataQueryServiceTest {
     EventQueryParams params = subject.getFromRequest(request);
 
     assertEquals(Set.of(EnrollmentStatus.ACTIVE), params.getEnrollmentStatus());
+    assertNoProgramStatusDimension(params);
   }
 
   @Test
-  void getFromRequestParsesProgramStatusFilterForEnrollmentEndpoint() {
+  void getFromRequestParsesProgramStatusFilterForEnrollmentQueryAsEnrollmentStatusFilter() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, ENROLLMENT)
             .filter(Set.of(Set.of("PROGRAM_STATUS:ACTIVE;COMPLETED")))
@@ -423,6 +448,36 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(
         Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED), params.getEnrollmentStatus());
+    assertNoProgramStatusFilter(params);
+  }
+
+  private DimensionalObject findStatusDimension(EventQueryParams params, DimensionType type) {
+    return params.getDimensions().stream()
+        .filter(d -> d.getDimensionType() == type)
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("No dimension of type " + type + " in params"));
+  }
+
+  private void assertProgramStatusDimension(EventQueryParams params, String... expectedUids) {
+    DimensionalObject dim = findStatusDimension(params, DimensionType.PROGRAM_STATUS);
+    Set<String> actual =
+        dim.getItems().stream()
+            .map(BaseDimensionalItemObject.class::cast)
+            .map(BaseDimensionalItemObject::getUid)
+            .collect(java.util.stream.Collectors.toSet());
+    assertEquals(Set.of(expectedUids), actual);
+  }
+
+  private void assertNoProgramStatusDimension(EventQueryParams params) {
+    assertTrue(
+        params.getDimensions().stream()
+            .noneMatch(d -> d.getDimensionType() == DimensionType.PROGRAM_STATUS));
+  }
+
+  private void assertNoProgramStatusFilter(EventQueryParams params) {
+    assertTrue(
+        params.getFilters().stream()
+            .noneMatch(d -> d.getDimensionType() == DimensionType.PROGRAM_STATUS));
   }
 
   @Test
@@ -811,6 +866,518 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(trueOnlyElement.getUid(), params.getValue().getUid());
     assertTrue(params.hasBooleanValueDimension());
+  }
+
+  @Test
+  void getFromRequestPromotesStagePrefixedHeaderIntoItemWhenNotInDimensions() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);
+    QueryItem dataElementItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(dataElement.getUid()),
+            program,
+            null,
+            ValueType.NUMBER,
+            AggregationType.SUM,
+            null);
+    dataElementItem.setProgramStage(programStage);
+
+    String headerAlias = programStage.getUid() + "." + dataElement.getUid();
+    when(queryItemLocator.getQueryItemFromDimension(headerAlias, program, EventOutputType.EVENT))
+        .thenReturn(dataElementItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .headers(new LinkedHashSet<>(List.of("enrollmentouname", headerAlias)))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(dataElement.getUid(), params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteStagePrefixedHeaderWhenSuffixIsStaticColumn() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    String headerAlias = programStage.getUid() + ".eventstatus";
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of(headerAlias)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq(headerAlias), any(), any());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteStagePrefixedHeaderAlreadyPresentAsItem() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);
+    QueryItem dataElementItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(dataElement.getUid()),
+            program,
+            null,
+            ValueType.NUMBER,
+            AggregationType.SUM,
+            null);
+    dataElementItem.setProgramStage(programStage);
+
+    String alias = programStage.getUid() + "." + dataElement.getUid();
+    when(queryItemLocator.getQueryItemFromDimension(alias, program, EventOutputType.EVENT))
+        .thenReturn(dataElementItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of(alias)))
+            .headers(Set.of(alias))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+  }
+
+  @Test
+  void getFromRequestSwallowsLocatorFailureForUnresolvableHeaderSuffix() {
+    ProgramStage programStage = createProgramStage('S', program);
+    String headerAlias = programStage.getUid() + ".notADataElement";
+
+    when(queryItemLocator.getQueryItemFromDimension(headerAlias, program, EventOutputType.EVENT))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, headerAlias));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of(headerAlias)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+  }
+
+  @Test
+  void getFromRequestPromotesStageOuDimensionFromStagePrefixedOuNameHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageOuQueryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            program,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuQueryItem.setProgramStage(programStage);
+
+    String stageOuDim = programStage.getUid() + "." + EventAnalyticsColumnName.OU_COLUMN_NAME;
+    String stageOuNameHeader = programStage.getUid() + ".ouname";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageOuDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageOuQueryItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT)
+            .headers(new LinkedHashSet<>(List.of("ouname", stageOuNameHeader)))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(EventAnalyticsColumnName.OU_COLUMN_NAME, params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
+  void getFromRequestPromotesStageOuDimensionFromStagePrefixedOuCodeHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageOuQueryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            program,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuQueryItem.setProgramStage(programStage);
+
+    String stageOuDim = programStage.getUid() + "." + EventAnalyticsColumnName.OU_COLUMN_NAME;
+    String stageOuCodeHeader = programStage.getUid() + ".oucode";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageOuDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageOuQueryItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of(stageOuCodeHeader)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(EventAnalyticsColumnName.OU_COLUMN_NAME, params.getItems().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestDoesNotDuplicateStageOuItemWhenAlreadyPresent() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageOuQueryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            program,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuQueryItem.setProgramStage(programStage);
+
+    String stageOuDim = programStage.getUid() + "." + EventAnalyticsColumnName.OU_COLUMN_NAME;
+    String stageOuNameHeader = programStage.getUid() + ".ouname";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageOuDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageOuQueryItem);
+
+    // Force addDimensionsToParams to fall through to the QueryItem path so the stage.ou
+    // dimension ends up in params.getItems() (matches real production behaviour — the central
+    // dataQueryService does not recognise stage-prefixed ou dimensions).
+    when(dataQueryService.getDimension(
+            eq(stageOuDim),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(null);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT)
+            .dimension(Set.of(Set.of(stageOuDim)))
+            .headers(Set.of(stageOuNameHeader))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+  }
+
+  @Test
+  void getFromRequestPromotesFlatTrackedEntityAttributeHeaderIntoItem() {
+    QueryItem teaItem =
+        new QueryItem(
+            new BaseDimensionalItemObject("cejWyOfXge6"),
+            program,
+            null,
+            ValueType.TEXT,
+            AggregationType.NONE,
+            null);
+
+    when(queryItemLocator.getQueryItemFromDimension("cejWyOfXge6", program, EventOutputType.EVENT))
+        .thenReturn(teaItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of("cejWyOfXge6")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals("cejWyOfXge6", params.getItems().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestPromotesFlatTrackedEntityAttributeHeaderForEnrollmentEndpoint() {
+    QueryItem teaItem =
+        new QueryItem(
+            new BaseDimensionalItemObject("cejWyOfXge6"),
+            program,
+            null,
+            ValueType.TEXT,
+            AggregationType.NONE,
+            null);
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            "cejWyOfXge6", program, EventOutputType.ENROLLMENT))
+        .thenReturn(teaItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of("cejWyOfXge6")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals("cejWyOfXge6", params.getItems().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteFlatHeaderWhenStaticColumn() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of("eventdate")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq("eventdate"), any(), any());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteFlatHeaderAlreadyPresentAsItem() {
+    QueryItem teaItem =
+        new QueryItem(
+            new BaseDimensionalItemObject("cejWyOfXge6"),
+            program,
+            null,
+            ValueType.TEXT,
+            AggregationType.NONE,
+            null);
+
+    when(queryItemLocator.getQueryItemFromDimension("cejWyOfXge6", program, EventOutputType.EVENT))
+        .thenReturn(teaItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of("cejWyOfXge6")))
+            .headers(Set.of("cejWyOfXge6"))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+  }
+
+  @Test
+  void getFromRequestSwallowsLocatorFailureForUnresolvableFlatHeader() {
+    when(queryItemLocator.getQueryItemFromDimension("notReal", program, EventOutputType.EVENT))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, "notReal"));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of("notReal")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteRepeatableStageOffsetHeaderAlreadyPresentAsItem() {
+    // Repeatable-stage offset dimensions like uvMKOn1oWvd[0].DX4LVYeP7bw land on
+    // params.getItems() with their RepeatableStageParams set. Headers using the same [N].uid
+    // notation must dedup against them, otherwise a second QueryItem with the same offset is
+    // promoted and the validator raises E7243 (duplicate stage dimension identifier).
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);
+
+    String offsetDim0 = programStage.getUid() + "[0]." + dataElement.getUid();
+    String offsetDim1 = programStage.getUid() + "[1]." + dataElement.getUid();
+
+    // Force the dimension path to fall through to getQueryItem so the offset items land on
+    // params.getItems() with their RepeatableStageParams — matching production behaviour where
+    // dataQueryService.getDimension does not recognise stage-offset notation.
+    when(dataQueryService.getDimension(
+            eq(offsetDim0),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(null);
+    when(dataQueryService.getDimension(
+            eq(offsetDim1),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(null);
+
+    when(queryItemLocator.getQueryItemFromDimension(offsetDim0, program, EventOutputType.EVENT))
+        .thenAnswer(inv -> newOffsetItem(programStage, dataElement, 0, offsetDim0));
+    when(queryItemLocator.getQueryItemFromDimension(offsetDim1, program, EventOutputType.EVENT))
+        .thenAnswer(inv -> newOffsetItem(programStage, dataElement, 1, offsetDim1));
+
+    Set<Set<String>> dimension = new LinkedHashSet<>();
+    dimension.add(Set.of(offsetDim0));
+    dimension.add(Set.of(offsetDim1));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(dimension)
+            .headers(new LinkedHashSet<>(List.of(offsetDim0, offsetDim1)))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(2, params.getItems().size());
+    assertTrue(params.getDuplicateStageDimensionIdentifiers().isEmpty());
+  }
+
+  private QueryItem newOffsetItem(
+      ProgramStage stage, DataElement de, int offset, String dimension) {
+    QueryItem qi =
+        new QueryItem(
+            new BaseDimensionalItemObject(de.getUid()),
+            program,
+            null,
+            ValueType.NUMBER,
+            AggregationType.SUM,
+            null);
+    qi.setProgramStage(stage);
+    qi.setRepeatableStageParams(RepeatableStageParams.of(offset, dimension));
+    return qi;
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteStagePrefixedHeaderAlreadyPresentAsDimension() {
+    // Stage-prefixed category / COGS dimensions are stored on params.getDimensions(), not on
+    // params.getItems(). The header dedup must still recognise them so we don't synthesise a
+    // duplicate (and value-type-less) QueryItem that crashes downstream grid header building.
+    String stageCategory = "kO3z4Dhc038.LFsZ8v5v7rq";
+
+    BaseDimensionalObject stageCategoryDim = new BaseDimensionalObject();
+    stageCategoryDim.setUid(stageCategory);
+    stageCategoryDim.setDimensionType(DimensionType.CATEGORY);
+    stageCategoryDim.setDimensionName("LFsZ8v5v7rq");
+
+    when(dataQueryService.getDimension(
+            eq(stageCategory),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(stageCategoryDim);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of(stageCategory + ":CW81uF03hvV;B3nxOazOO2G")))
+            .headers(Set.of(stageCategory))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq(stageCategory), any(), any());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteFlatHeaderOnEventAggregateEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).headers(Set.of("cejWyOfXge6")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq("cejWyOfXge6"), any(), any());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteFlatHeaderOnEnrollmentAggregateEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT).headers(Set.of("cejWyOfXge6")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq("cejWyOfXge6"), any(), any());
+  }
+
+  @Test
+  void getFromRequestPromotesStageEventDateDimensionFromStagePrefixedEventDateHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageEventDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageEventDateItem.setProgramStage(programStage);
+
+    String stageEventDateDim = programStage.getUid() + ".EVENT_DATE";
+    String stageEventDateHeader = programStage.getUid() + ".eventdate";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageEventDateDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageEventDateItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of(stageEventDateHeader)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(
+        EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
+  void getFromRequestPromotesStageEventStatusDimensionFromStagePrefixedEventStatusHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageEventStatusItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME),
+            program,
+            null,
+            ValueType.TEXT,
+            AggregationType.NONE,
+            null);
+    stageEventStatusItem.setProgramStage(programStage);
+
+    String stageEventStatusDim = programStage.getUid() + ".EVENT_STATUS";
+    String stageEventStatusHeader = programStage.getUid() + ".eventstatus";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageEventStatusDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageEventStatusItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of(stageEventStatusHeader)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(
+        EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME, params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
+  void getFromRequestPromotesStageScheduledDateDimensionFromStagePrefixedScheduledDateHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageScheduledDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageScheduledDateItem.setProgramStage(programStage);
+
+    String stageScheduledDateDim = programStage.getUid() + ".SCHEDULED_DATE";
+    String stageScheduledDateHeader = programStage.getUid() + ".scheduleddate";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageScheduledDateDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageScheduledDateItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of(stageScheduledDateHeader)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(
+        EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
   }
 
   @Test

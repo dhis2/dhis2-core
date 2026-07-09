@@ -32,13 +32,10 @@ package org.hisp.dhis.gist;
 import static java.lang.Integer.parseInt;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -49,6 +46,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -67,11 +65,6 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class GistQuery {
-  /**
-   * Fields allow {@code property[sub,sub]} syntax where a comma occurs as part of the property
-   * name. These commas need to be ignored when splitting a {@code fields} parameter list.
-   */
-  static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
 
   /** Query properties about the owner of the collection property. */
   @Getter
@@ -115,9 +108,6 @@ public final class GistQuery {
   /** Not the elements contained in the collection but those not contained (yet). Default false. */
   @JsonProperty private final boolean inverse;
 
-  /** Apply translations to translatable properties? Default true. */
-  @JsonProperty private final boolean translate;
-
   /**
    * Use absolute URLs when referring to other APIs in pager and {@code apiEndpoints}? Default
    * false.
@@ -142,14 +132,12 @@ public final class GistQuery {
   /** Weather or not to include the API endpoints references */
   @JsonProperty private final boolean references;
 
-  private final boolean typedAttributeValues;
-
   /** The extend to which fields are included by default */
   @JsonProperty(value = "auto")
   private final GistAutoType autoType;
 
   /** Names of those properties that should be included in the response. */
-  @JsonProperty @Builder.Default private final List<Field> fields = emptyList();
+  @JsonProperty @Builder.Default private final Fields fields = Fields.DEFAULT;
 
   /**
    * List of filter property expressions. An expression has the format {@code
@@ -160,7 +148,7 @@ public final class GistQuery {
   @JsonProperty @Builder.Default private final List<Order> orders = emptyList();
 
   public List<String> getFieldNames() {
-    return fields.stream().map(Field::getName).collect(toList());
+    return fields.names();
   }
 
   public Transform getDefaultTransformation() {
@@ -175,33 +163,25 @@ public final class GistQuery {
     return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
   }
 
+  public boolean hasTranslationContext() {
+    return translationLocale != null;
+  }
+
   private static List<String> getStrings(String value, String splitRegex) {
     if (value == null || value.isEmpty()) return List.of();
     return asList(value.split(splitRegex));
   }
 
-  public GistQuery withoutTypedAttributeValues() {
-    return toBuilder().typedAttributeValues(false).build();
-  }
-
   public GistQuery addField(String path) {
-    return withAddedItem(
-        new Field(path, getDefaultTransformation()), getFields(), GistQueryBuilder::fields);
+    return toBuilder().fields(fields.add(Fields.Field.of(path))).build();
   }
 
-  public GistQuery withFields(List<Field> fields) {
-    return toBuilder().fields(fields).build();
+  public GistQuery withFields(List<Fields.Field> fields) {
+    return toBuilder().fields(new Fields(fields)).build();
   }
 
   public GistQuery withFilters(List<Filter> filters) {
     return toBuilder().filters(filters).build();
-  }
-
-  private <E> GistQuery withAddedItem(
-      E e, List<E> collection, BiFunction<GistQueryBuilder, List<E>, GistQueryBuilder> setter) {
-    List<E> plus1 = new ArrayList<>(collection);
-    plus1.add(e);
-    return setter.apply(toBuilder(), plus1).build();
   }
 
   public enum Direction {
@@ -314,96 +294,6 @@ public final class GistQuery {
   }
 
   @Getter
-  @Builder(toBuilder = true)
-  @AllArgsConstructor
-  public static final class Field {
-
-    public static final String REFS_PATH = "__refs__";
-    public static final String ALL_PATH = "*";
-    public static final Field ALL = new Field(ALL_PATH, Transform.NONE);
-
-    @JsonProperty private final String propertyPath;
-    @JsonProperty private final Transform transformation;
-    @JsonProperty private final String alias;
-    @JsonProperty private final String transformationArgument;
-    @JsonProperty private final boolean translate;
-    @JsonProperty private final boolean attribute;
-
-    public Field(String propertyPath, Transform transformation) {
-      this(propertyPath, transformation, "", null, false, false);
-    }
-
-    @Nonnull
-    public static List<Field> ofList(String fields) {
-      return getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList();
-    }
-
-    @JsonProperty
-    public String getName() {
-      return alias.isEmpty() ? propertyPath : alias;
-    }
-
-    public Field withTransformation(Transform transform) {
-      return toBuilder().transformation(transform).build();
-    }
-
-    public Field withPropertyPath(String path) {
-      return toBuilder().propertyPath(path).build();
-    }
-
-    public Field withAlias(String alias) {
-      return toBuilder().alias(alias).build();
-    }
-
-    public Field withTranslate() {
-      return toBuilder().translate(true).build();
-    }
-
-    public Field asAttribute() {
-      return toBuilder().attribute(true).build();
-    }
-
-    public boolean isMultiPluck() {
-      return transformation == Transform.PLUCK
-          && transformationArgument != null
-          && transformationArgument.contains(",");
-    }
-
-    @Override
-    public String toString() {
-      return transformation == Transform.NONE
-          ? propertyPath
-          : propertyPath + "::" + transformation.name().toLowerCase().replace('_', '-');
-    }
-
-    public static Field parse(String field) {
-      String[] parts = field.split("(?:::|~|@)(?![^\\[\\]]*\\])");
-      if (parts.length == 1) {
-        return new Field(field, Transform.AUTO);
-      }
-      Transform transform = Transform.AUTO;
-      String alias = "";
-      String arg = null;
-      for (int i = 1; i < parts.length; i++) {
-        String part = parts[i];
-        if (part.startsWith("rename")) {
-          alias = parseArgument(part);
-        } else {
-          transform = Transform.parse(part);
-          if (part.indexOf('(') >= 0) {
-            arg = parseArgument(part);
-          }
-        }
-      }
-      return new Field(parts[0], transform, alias, arg, false, false);
-    }
-
-    private static String parseArgument(String part) {
-      return part.substring(part.indexOf('(') + 1, part.lastIndexOf(')'));
-    }
-  }
-
-  @Getter
   @Builder
   @AllArgsConstructor
   public static final class Order {
@@ -437,6 +327,9 @@ public final class GistQuery {
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   public static final class Filter {
 
+    private static final String FILTERS_SPLIT =
+        ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
+
     @JsonProperty private final int group;
     @JsonProperty private final String propertyPath;
     @JsonProperty private final Comparison operator;
@@ -450,7 +343,7 @@ public final class GistQuery {
 
     @Nonnull
     public static List<Filter> ofList(String filter) {
-      return getStrings(filter, FIELD_SPLIT).stream().map(Filter::parse).toList();
+      return getStrings(filter, FILTERS_SPLIT).stream().map(Filter::parse).toList();
     }
 
     public Filter withPropertyPath(String path) {

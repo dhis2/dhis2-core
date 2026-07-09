@@ -72,7 +72,7 @@ class HibernateTrackedEntityAttributeValueStore
   public List<TrackedEntityAttributeValue> get(
       TrackedEntityAttribute attribute, Collection<String> values) {
     String query =
-        " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) in :values";
+        " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.value) in :values";
 
     Query<TrackedEntityAttributeValue> typedQuery =
         getQuery(query)

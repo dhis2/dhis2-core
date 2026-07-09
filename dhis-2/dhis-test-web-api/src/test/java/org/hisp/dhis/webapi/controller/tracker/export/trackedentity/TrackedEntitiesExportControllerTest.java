@@ -119,7 +119,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String TEA_MULTI_TEXT = "multitxtAtr";
-  private static final String TE_UID_RBG = "QS6w44flWSS"; // "red,blue,Green" as multi text value
+  private static final String TE_UID_RBG = "QS6w44flWSS"; // "red, blue ,Green" as multi text value
   private static final String TE_UID_RWY = "QS6w44flWTT"; // "red,white,yellow" as multi text value
   private static final String TE_UID_EMPTY_STRING = "QS6w44flWUU"; // "" as multi text value
   public static final List<String> TE_UID_NULL =
@@ -314,7 +314,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     assertContainsAll(
         List.of(tea1.getUid(), tea2.getUid()), attributes, JsonAttribute::getAttribute);
-    assertContainsAll(List.of("rainy day", "70"), attributes, JsonAttribute::getValue);
+    assertContainsAll(List.of("rainy day", "70"), attributes, JsonAttribute::value);
   }
 
   @Test
@@ -340,8 +340,28 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
         List.of(tea1.getUid(), tea2.getUid(), tea3.getUid()),
         attributes,
         JsonAttribute::getAttribute);
-    assertContainsAll(
-        List.of("rainy day", "70", "Frank PTEA"), attributes, JsonAttribute::getValue);
+    assertContainsAll(List.of("rainy day", "70", "Frank PTEA"), attributes, JsonAttribute::value);
+  }
+
+  @Test
+  void shouldReturnUpdatedByOnAttributeWhenTrackedEntityAttributeValueIsExported() {
+    TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
+
+    JsonList<JsonAttribute> attributes =
+        GET(
+                "/tracker/trackedEntities/{id}?fields=attributes[attribute,value,updatedBy]",
+                te.getUid())
+            .content(HttpStatus.OK)
+            .getList("attributes", JsonAttribute.class);
+
+    assertNotEmpty(attributes.stream().toList());
+    attributes.stream()
+        .forEach(
+            a ->
+                assertEquals(
+                    "trackeradmin",
+                    a.updatedBy(),
+                    "updatedBy mismatch on attribute " + a.getAttribute()));
   }
 
   @Test
@@ -577,7 +597,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
     assertStartsWith(
         """
-    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
+    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
     """,
         csvResponse);
     // TEAV order is not deterministic
@@ -602,7 +622,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             Boolean.toString(te.isInactive()),
             Boolean.toString(te.isDeleted()),
             Boolean.toString(te.isPotentialDuplicate()),
-            ",,,",
+            ",,",
             importUser.getUsername(),
             importUser.getUsername())
         + ","
@@ -1157,7 +1177,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
                     te.getAttributes().stream()
                         .filter(attr -> "multitxtAtr".equals(attr.getAttribute()))
                         .findFirst()
-                        .map(JsonAttribute::getValue)
+                        .map(JsonAttribute::value)
                         .orElse(null))
             .toList());
   }
@@ -1550,23 +1570,33 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
    */
   private static Stream<Arguments> provideMultiTextFilterTestCases() {
     return Stream.of(
-        Arguments.of("sw:bl", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
-        Arguments.of("ew:een", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("sw: bl", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ew:een", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
         Arguments.of("like:ellow", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
         Arguments.of("like:ello", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
         Arguments.of("ew:bl", List.of(), List.of()), // no match
-        Arguments.of("ilike:green", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ilike:green", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
         Arguments.of(
             "in:red",
-            List.of("red,blue,Green", "red,white,yellow"),
+            List.of("red, blue ,Green", "red,white,yellow"),
             List.of(TE_UID_RBG, TE_UID_RWY)),
         Arguments.of(
             "like:red",
-            List.of("red,blue,Green", "red,white,yellow"),
+            List.of("red, blue ,Green", "red,white,yellow"),
             List.of(TE_UID_RBG, TE_UID_RWY)),
         Arguments.of(
             "!null",
-            List.of("red,blue,Green", "red,white,yellow"),
-            List.of(TE_UID_RBG, TE_UID_RWY)));
+            List.of("red, blue ,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)),
+        Arguments.of("eq: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("eq:blue", List.of(), List.of()),
+        Arguments.of("in: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("in:blue", List.of(), List.of()),
+        Arguments.of("sw: blue", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("sw:blue", List.of(), List.of()),
+        Arguments.of("ew:blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ew:blue", List.of(), List.of()),
+        Arguments.of("like: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("like:blue", List.of("red, blue ,Green"), List.of(TE_UID_RBG)));
   }
 }

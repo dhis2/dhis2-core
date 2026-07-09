@@ -148,6 +148,12 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter(
+            "LegacyDhisWebLoginRedirectFilter",
+            new DelegatingFilterProxy("legacyDhisWebLoginRedirectFilter"))
+        .addMappingForUrlPatterns(null, false, "/dhis-web-login", "/dhis-web-login/*");
+
+    context
+        .addFilter(
             "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 

@@ -155,7 +155,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
   public void sendScheduledNotificationsForDay(Date notificationDate, JobProgress progress) {
     progress.startingStage("Fetching and filtering scheduled templates ");
     List<ProgramNotificationTemplate> scheduledTemplates =
-        progress.runStage(List.of(), this::getScheduledTemplates);
+        progress.runStage(List.of(), notificationTemplateService::getScheduledTemplates);
 
     progress.startingStage(
         "Processing ProgramStageNotification messages",
@@ -473,12 +473,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
     return null;
   }
 
-  private List<ProgramNotificationTemplate> getScheduledTemplates() {
-    return manager.getAll(ProgramNotificationTemplate.class).stream()
-        .filter(n -> n.getNotificationTrigger().isScheduled())
-        .collect(toList());
-  }
-
   private void sendEnrollmentNotifications(Enrollment enrollment, NotificationTrigger trigger) {
     if (enrollment == null) {
       return;
@@ -722,7 +716,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
                           .getRecipientProgramAttribute()
                           .getUid()
                           .equals(av.getAttribute().getUid()))
-              .map(TrackedEntityAttributeValue::getPlainValue)
+              .map(TrackedEntityAttributeValue::getValue)
               .toList();
 
       if (template.getDeliveryChannels().contains(DeliveryChannel.SMS)) {

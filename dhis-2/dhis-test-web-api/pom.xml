@@ -262,6 +262,11 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-config</artifactId>
       <scope>test</scope>
     </dependency>
@@ -385,7 +390,7 @@
     <dependency>
       <groupId>org.openapitools</groupId>
       <artifactId>openapi-generator</artifactId>
-      <version>7.14.0</version>
+      <version>7.22.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>

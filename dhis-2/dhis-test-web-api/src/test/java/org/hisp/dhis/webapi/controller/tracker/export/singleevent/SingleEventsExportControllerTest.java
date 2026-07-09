@@ -303,7 +303,7 @@ class SingleEventsExportControllerTest extends PostgresControllerIntegrationTest
 
     JsonNote jsonNote = jsonEvent.getNotes().get(0);
     assertEquals("r8Ge3bH7aF9", jsonNote.getNote());
-    assertEquals("single event comment value", jsonNote.getValue());
+    assertEquals("single event comment value", jsonNote.value());
   }
 
   @Test

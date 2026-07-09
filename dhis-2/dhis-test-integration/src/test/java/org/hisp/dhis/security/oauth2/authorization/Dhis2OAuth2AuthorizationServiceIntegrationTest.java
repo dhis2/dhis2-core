@@ -30,25 +30,36 @@
 package org.hisp.dhis.security.oauth2.authorization;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.security.Principal;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientStore;
+import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -113,6 +124,46 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
+  void testSaveDerivesNameFromPrincipalName() {
+    // The Spring OAuth2Authorization domain object has no name field; the DHIS2
+    // entity derives `name` from `principalName` to satisfy the NOT NULL
+    // constraint required by BaseIdentifiableObject.
+    String uid = CodeGenerator.generateUid();
+    OAuth2Authorization authorization =
+        OAuth2Authorization.withRegisteredClient(registeredClient)
+            .principalName("principal-with-derived-name")
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .id(uid)
+            .build();
+
+    authorizationService.save(authorization);
+
+    Dhis2OAuth2Authorization entity = authorizationStore.getByUidNoAcl(uid);
+    assertNotNull(entity);
+    assertEquals("principal-with-derived-name", entity.getName());
+  }
+
+  @Test
+  void testSaveTruncatesLongPrincipalNameToNameColumnLength() {
+    // principal_name is varchar(255); name is varchar(230). Verify truncation.
+    String longPrincipal = "p".repeat(255);
+    String uid = CodeGenerator.generateUid();
+    OAuth2Authorization authorization =
+        OAuth2Authorization.withRegisteredClient(registeredClient)
+            .principalName(longPrincipal)
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .id(uid)
+            .build();
+
+    authorizationService.save(authorization);
+
+    Dhis2OAuth2Authorization entity = authorizationStore.getByUidNoAcl(uid);
+    assertNotNull(entity);
+    assertEquals(230, entity.getName().length());
+    assertEquals(longPrincipal, entity.getPrincipalName());
+  }
+
+  @Test
   void testFindByAuthorizationCode() {
     // Given
     Instant now = Instant.now();
@@ -131,11 +182,6 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
 
     // When
     authorizationService.save(authorization);
-
-    List<Dhis2OAuth2Authorization> all = authorizationService.getAll();
-    for (Dhis2OAuth2Authorization oAuth2Authorization : all) {
-      System.out.println(oAuth2Authorization);
-    }
 
     OAuth2Authorization foundAuthorization =
         authorizationService.findByToken(
@@ -296,5 +342,67 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
     // Then
     assertNotNull(foundBeforeRemove);
     assertNull(foundAfterRemove);
+  }
+
+  @Test
+  void testFindByAuthorizationCodeWithOidcUserPrincipal() {
+    // Regression test for the /oauth2/token 500: an external-OIDC login presents an
+    // OAuth2AuthenticationToken whose principal is a DhisOidcUser (wrapping a UserDetailsImpl). The
+    // persistence layer must store a lean, Spring-native principal so the read side (the token
+    // exchange) never trips Spring Security's Jackson deserialization allowlist.
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    Instant now = Instant.now();
+    Instant expiresAt = now.plusSeconds(300);
+
+    Map<String, Object> claims =
+        Map.of(IdTokenClaimNames.SUB, currentUser.getUsername(), "email", "oidc@example.com");
+    OidcIdToken idToken =
+        OidcIdToken.withTokenValue("oidc-id-token-value")
+            .issuedAt(now)
+            .expiresAt(expiresAt)
+            .subject(currentUser.getUsername())
+            .claims(c -> c.putAll(claims))
+            .build();
+    DhisOidcUser oidcPrincipal =
+        new DhisOidcUser(currentUser, claims, IdTokenClaimNames.SUB, idToken);
+    OAuth2AuthenticationToken authentication =
+        new OAuth2AuthenticationToken(oidcPrincipal, oidcPrincipal.getAuthorities(), "google");
+
+    OAuth2AuthorizationCode authorizationCode =
+        new OAuth2AuthorizationCode("oidc-code-value", now, expiresAt);
+    OAuth2Authorization authorization =
+        OAuth2Authorization.withRegisteredClient(registeredClient)
+            .principalName(currentUser.getUsername())
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .token(authorizationCode)
+            .attribute(Principal.class.getName(), authentication)
+            .id(CodeGenerator.generateUid())
+            .build();
+
+    // When
+    authorizationService.save(authorization);
+    OAuth2Authorization found =
+        authorizationService.findByToken(
+            "oidc-code-value", new OAuth2TokenType(OAuth2ParameterNames.CODE));
+
+    // Then: the heavyweight OIDC principal was persisted as a lean, Spring-native
+    // UsernamePasswordAuthenticationToken (no DHIS2-custom types in the row), carrying the DHIS2
+    // username and authorities. getName() is the DHIS2 username — what the token customizer emits
+    // as
+    // the username claim and what the resource server resolves the user by.
+    assertNotNull(found);
+    Object principalAttribute = found.getAttribute(Principal.class.getName());
+    assertInstanceOf(UsernamePasswordAuthenticationToken.class, principalAttribute);
+    UsernamePasswordAuthenticationToken roundTripped =
+        (UsernamePasswordAuthenticationToken) principalAttribute;
+    assertEquals(currentUser.getUsername(), roundTripped.getName());
+    assertTrue(roundTripped.isAuthenticated());
+    assertEquals(
+        currentUser.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toSet()),
+        roundTripped.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toSet()));
   }
 }

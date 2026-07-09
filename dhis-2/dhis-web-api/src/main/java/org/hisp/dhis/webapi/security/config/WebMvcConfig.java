@@ -47,6 +47,7 @@ import org.hisp.dhis.webapi.fields.FieldsConverter;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
+import org.hisp.dhis.webapi.mvc.UrlParamsMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.ConditionalETagInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor;
@@ -107,12 +108,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
           Pattern.compile("/api/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
           Pattern.compile("/api/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
 
-  @Autowired
-  private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+  @Autowired private CurrentUserHandlerMethodArgumentResolver currentUserArgResolver;
 
   @Autowired
-  private CurrentSystemSettingsHandlerMethodArgumentResolver
-      currentSystemSettingsHandlerMethodArgumentResolver;
+  private CurrentSystemSettingsHandlerMethodArgumentResolver currentSystemSettingsArgResolver;
+
+  @Autowired private UrlParamsMethodArgumentResolver urlParamsArgResolver;
 
   @Autowired private FieldsConverter fieldsConverter;
 
@@ -159,8 +160,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(currentUserHandlerMethodArgumentResolver);
-    resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
+    resolvers.add(currentUserArgResolver);
+    resolvers.add(currentSystemSettingsArgResolver);
+    resolvers.add(urlParamsArgResolver);
   }
 
   @Bean

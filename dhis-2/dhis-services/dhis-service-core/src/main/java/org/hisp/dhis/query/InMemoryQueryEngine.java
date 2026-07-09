@@ -51,7 +51,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
@@ -263,12 +262,12 @@ public class InMemoryQueryEngine implements QueryEngine {
 
   private Predicate<Object> filterMatch(Property p, Filter f) {
     Operator<?> op = f.getOperator();
-    return obj -> op.test(ReflectionUtils.invokeMethod(obj, p.getGetterMethod()));
+    return obj -> op.test(safeInvoke(obj, p.getGetterMethod()));
   }
 
   private Predicate<Object> filterMatch(Property p, Predicate<Object> tail) {
     return obj -> {
-      Object value = ReflectionUtils.invokeMethod(obj, p.getGetterMethod());
+      Object value = safeInvoke(obj, p.getGetterMethod());
       return p.isCollection() && value instanceof Collection<?> c
           ? c.stream().anyMatch(tail)
           : tail.test(value);

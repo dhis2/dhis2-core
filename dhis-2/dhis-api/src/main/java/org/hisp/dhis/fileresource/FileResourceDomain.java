@@ -30,6 +30,7 @@
 package org.hisp.dhis.fileresource;
 
 import java.util.Set;
+import org.hisp.dhis.storage.BlobKeyPrefix;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -55,6 +56,16 @@ public enum FileResourceDomain {
 
   public String getContainerName() {
     return containerName;
+  }
+
+  /**
+   * Returns a {@link BlobKeyPrefix} for this domain's storage namespace. Use this when listing or
+   * bulk-deleting all blobs that belong to this domain (e.g. to find all icon blobs, pass {@code
+   * FileResourceDomain.ICON.asBlobKeyPrefix()} to {@link
+   * org.hisp.dhis.storage.BlobStoreService#listKeys}).
+   */
+  public BlobKeyPrefix asBlobKeyPrefix() {
+    return BlobKeyPrefix.of(containerName);
   }
 
   public static boolean isDomainForMultipleImages(FileResourceDomain domain) {

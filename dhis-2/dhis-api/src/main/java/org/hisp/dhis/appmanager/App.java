@@ -82,8 +82,6 @@ public class App implements Serializable {
 
   private String defaultLocale;
 
-  private AppStorageSource appStorageSource;
-
   private String folderName;
 
   /** Optional. */
@@ -388,6 +386,12 @@ public class App implements Serializable {
     this.folderName = folderName;
   }
 
+  /** Returns the blob-store folder for this app. Only valid after {@link #setFolderName}. */
+  @JsonIgnore
+  public AppFolderName appFolder() {
+    return new AppFolderName(folderName);
+  }
+
   @JsonProperty
   public String getLaunchUrl() {
     return launchUrl;
@@ -410,18 +414,8 @@ public class App implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AppStorageSource getAppStorageSource() {
-    return appStorageSource;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public List<AppShortcut> getShortcuts() {
     return shortcuts;
-  }
-
-  public void setAppStorageSource(AppStorageSource appStorageSource) {
-    this.appStorageSource = appStorageSource;
   }
 
   @JsonProperty

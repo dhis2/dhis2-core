@@ -29,93 +29,140 @@
  */
 package org.hisp.dhis.storage;
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
- * Provider-agnostic abstraction over a blob/object store. Implementations exist for JClouds
- * (current) and will be added for other backends (e.g. MinIO SDK + NIO filesystem) when JClouds is
- * replaced.
+ * Provider-agnostic abstraction over a blob/object store. Implementations: {@link
+ * S3BlobStoreService} (AWS SDK v2, for {@code s3} / {@code aws-s3}), {@link
+ * FileSystemBlobStoreService} (NIO, for {@code filesystem}), and {@link TransientBlobStoreService}
+ * (in-memory, for {@code transient}). Selection is performed at startup by {@link BlobStoreConfig}.
  *
  * <p>All methods operate against a single container/bucket configured at startup. Keys are
  * path-like strings (e.g. {@code apps/my-app/index.html}).
  */
 public interface BlobStoreService {
 
+  /**
+   * The value of an HTTP {@code Content-Disposition} header stored alongside a blob — tells
+   * browsers how to handle a downloaded file.
+   */
+  record ContentDisposition(String value) {
+    /**
+     * Returns a {@code filename=<name>} disposition, which instructs browsers to save the file
+     * under the given name.
+     */
+    public static ContentDisposition filename(String name) {
+      return new ContentDisposition("filename=" + name);
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+      return value;
+    }
+  }
+
   /** Returns {@code true} if a blob with the given key exists in the container. */
-  boolean blobExists(String key);
+  boolean blobExists(BlobKey key);
 
   /**
    * Opens a stream for the blob content. Returns {@code null} if no blob exists for the key.
    * Callers are responsible for closing the returned stream.
    */
   @CheckForNull
-  InputStream openStream(String key);
+  InputStream openStream(BlobKey key);
 
   /** Returns the content length in bytes of the blob, or {@code 0} if the blob does not exist. */
-  long contentLength(String key);
+  long contentLength(BlobKey key);
 
   /**
-   * Stores a byte-array payload. {@code contentMd5} is the hex-encoded MD5 hash and may be {@code
-   * null} if not known.
+   * Stores a streaming payload under the given key.
+   *
+   * <p>The caller is responsible for closing {@code content} after this method returns. The
+   * supplied stream is consumed exactly once and need not support {@code mark/reset};
+   * implementations buffer internally if their backend requires re-reads (e.g. SDK retries on the
+   * S3 backend).
+   *
+   * @param key identifies the blob within the container; acts as a path-like object-store key (e.g.
+   *     {@code apps/my-app/index.html})
+   * @param content the data to store; must be open and positioned at the start when passed in;
+   *     exactly {@code contentLength} bytes will be read
+   * @param contentLength the number of bytes in {@code content}; required by some backends (e.g.
+   *     S3) to set the {@code Content-Length} header — pass the file size, array length, or zip
+   *     entry size as appropriate
+   * @param contentType MIME type of the blob (e.g. {@code "image/png"}); pass {@code null} when
+   *     unknown and the backend will use a default
+   * @param contentDisposition how the blob should be presented when downloaded (e.g. {@code
+   *     attachment; filename="report.pdf"}); pass {@code null} when no disposition header is needed
+   * @param contentHash MD5 hash of the blob content used for integrity verification; pass {@code
+   *     null} when the hash is unavailable or verification is not required
    */
   void putBlob(
-      String key,
-      byte[] content,
-      String contentType,
-      String contentDisposition,
-      @CheckForNull String contentMd5);
-
-  /**
-   * Stores a file payload. {@code contentMd5} is the hex-encoded MD5 hash and may be {@code null}
-   * if not known.
-   */
-  void putBlob(
-      String key,
-      File content,
-      String contentType,
-      String contentDisposition,
-      @CheckForNull String contentMd5);
-
-  /**
-   * Stores a streaming payload. {@code contentType} may be {@code null} when unknown (e.g. entries
-   * extracted from a zip archive).
-   */
-  void putBlob(
-      String key, InputStream content, long contentLength, @CheckForNull String contentType);
+      BlobKey key,
+      InputStream content,
+      long contentLength,
+      @CheckForNull String contentType,
+      @CheckForNull ContentDisposition contentDisposition,
+      @CheckForNull ContentHash contentHash);
 
   /** Deletes the blob with the given key. A no-op if the blob does not exist. */
-  void deleteBlob(String key);
+  void deleteBlob(BlobKey key);
 
   /**
    * Recursively deletes all blobs whose key starts with {@code prefix}. On filesystem backends this
    * maps to a directory delete; on object-store backends it performs per-key deletion.
    */
-  void deleteDirectory(String prefix);
+  void deleteDirectory(BlobKeyPrefix prefix);
 
   /**
    * Lists the names of immediate child "folders" under {@code prefix} (non-recursive, equivalent to
-   * a delimiter-{@code /} list). Returned names include the trailing {@code /}.
+   * a delimiter-{@code /} list). Returned prefixes do not include a trailing {@code /}.
    */
-  Iterable<String> listFolders(String prefix);
+  Iterable<BlobKeyPrefix> listFolders(BlobKeyPrefix prefix);
 
   /**
    * Lists all blob keys whose key starts with {@code prefix} (recursive). May return an empty
-   * iterable if no matching blobs exist.
+   * iterable if no matching blobs exist. Returned keys identify real blobs only — synthetic
+   * directory marker entries (values ending with {@code /}) must not be returned.
    */
-  Iterable<String> listKeys(String prefix);
+  Iterable<BlobKey> listKeys(BlobKeyPrefix prefix);
+
+  /**
+   * Returns {@code true} if a directory exists at {@code prefix} — either because a real blob is
+   * stored under it, or because it was explicitly materialised via {@link
+   * #createDirectory(BlobKeyPrefix)}. Used by the app serving path to decide whether a request for
+   * {@code /someDir} should redirect to {@code /someDir/} or fall through to a 404.
+   *
+   * <p>Filesystem backends report directory existence directly. Object-store backends emulate
+   * directories: any object whose key starts with {@code prefix + "/"} causes this method to return
+   * {@code true}.
+   */
+  boolean directoryExists(BlobKeyPrefix prefix);
+
+  /**
+   * Records the existence of a (possibly empty) directory at {@code prefix}. Idempotent — calling
+   * this for an already-existing or non-empty directory is a no-op.
+   *
+   * <p>Filesystem backends create a real directory on disk. Object-store backends, which have no
+   * native directory concept, write a zero-byte placeholder object at {@code prefix + "/"} (the
+   * de-facto S3 convention) so that subsequent {@link #directoryExists(BlobKeyPrefix)} calls return
+   * {@code true} even when no real blobs have been stored beneath the prefix. The placeholder is
+   * never returned from {@link #listKeys(BlobKeyPrefix)}.
+   */
+  void createDirectory(BlobKeyPrefix prefix);
 
   /**
    * Returns a pre-signed GET URI valid for {@code expirationSeconds} seconds, or {@code null} if
    * the backend does not support request signing (e.g. local filesystem).
    */
   @CheckForNull
-  URI signedGetUri(String key, long expirationSeconds);
+  URI signedGetUri(BlobKey key, long expirationSeconds);
 
   /** Returns the name of the container/bucket all blobs are stored in. */
-  String container();
+  BlobContainerName container();
 
   /** Returns {@code true} if this service is backed by the local filesystem. */
   boolean isFilesystem();

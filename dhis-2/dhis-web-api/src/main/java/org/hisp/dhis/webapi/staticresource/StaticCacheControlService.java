@@ -34,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
@@ -215,19 +214,11 @@ public class StaticCacheControlService {
   /**
    * Detects hashed filenames produced by common bundlers. Webpack uses dot-separated lowercase hex
    * ({@code main.abc12345.js}). Vite/Rollup uses dash-separated base64url ({@code
-   * main-Dhu2pmiS.js}, {@code main-D-tfNpnx.js}). The Vite pattern requires at least one uppercase
-   * letter to distinguish hashes from normal dash-separated filenames like {@code
-   * main-component.js}.
+   * main-Dhu2pmiS.js}, {@code main-zwggxcug.js}).
    */
-  private static boolean looksLikeHashedFilename(String uri) {
+  static boolean looksLikeHashedFilename(String uri) {
     if (WEBPACK_HASH.matcher(uri).find()) return true;
-
-    Matcher m = VITE_HASH.matcher(uri);
-    if (m.find()) {
-      String candidate = m.group(1);
-      return candidate.chars().anyMatch(Character::isUpperCase);
-    }
-    return false;
+    return VITE_HASH.matcher(uri).find();
   }
 
   private boolean isHtmlPath(String uri) {

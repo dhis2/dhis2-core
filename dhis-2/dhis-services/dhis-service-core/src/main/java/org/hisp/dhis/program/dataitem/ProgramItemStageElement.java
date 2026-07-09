@@ -106,7 +106,7 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
     ProgramIndicator programIndicator = progParams.getProgramIndicator();
     AnalyticsType analyticsType = programIndicator.getAnalyticsType();
     // no need to emit a placeholder for event analytics
-    if (!visitor.isUseExperimentalSqlEngine() || AnalyticsType.EVENT == analyticsType) {
+    if (AnalyticsType.EVENT == analyticsType) {
       return getSqlLegacy(ctx, visitor);
     }
 

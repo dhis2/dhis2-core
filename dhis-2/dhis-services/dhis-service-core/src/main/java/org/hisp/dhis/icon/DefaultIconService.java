@@ -142,8 +142,7 @@ public class DefaultIconService implements IconService {
     try {
       List<Icon> icons = getIcons(params);
       for (Icon i : icons) {
-        if (!fileResourceContentStore.fileResourceContentExists(
-            i.getFileResource().getStorageKey())) {
+        if (!fileResourceContentStore.fileResourceContentExists(i.getFileResource().asBlobKey())) {
           try (InputStream image = getDefaultIconResource(i.getKey()).getInputStream()) {
             fileResourceService.syncSaveFileResource(i.getFileResource(), image);
           }
@@ -185,7 +184,7 @@ public class DefaultIconService implements IconService {
     if (icon == null) throw new NotFoundException(Icon.class, key);
     FileResource image = icon.getFileResource();
     if (image == null) throw new NotFoundException(Icon.class, key);
-    if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey()))
+    if (!fileResourceContentStore.fileResourceContentExists(image.asBlobKey()))
       throw new NotFoundException(Icon.class, key);
     return icon;
   }

@@ -145,7 +145,7 @@ public class FieldFilterService {
    */
   public boolean filterIncludes(Class<?> rootClass, List<FieldPath> filter, String path) {
     return fieldPathHelper.apply(filter, rootClass).stream()
-        .anyMatch(f -> f.toFullPath().equals(path));
+        .anyMatch(f -> f.getFullPath().equals(path));
   }
 
   public static class IgnoreJsonSerializerRefinementAnnotationInspector
@@ -188,7 +188,7 @@ public class FieldFilterService {
       return objectNodes;
     }
 
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFilters());
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFields());
     return toObjectNodes(params.getObjects(), fieldPaths, params.getUser(), params.isSkipSharing());
   }
 
@@ -323,7 +323,7 @@ public class FieldFilterService {
    */
   private static List<FieldPath> getAttributePropertyPathsInAttributeValues(List<FieldPath> paths) {
     return paths.stream()
-        .filter(path -> ATTRIBUTE_VALUES_PATH.matcher(path.toFullPath()).matches())
+        .filter(path -> ATTRIBUTE_VALUES_PATH.matcher(path.getFullPath()).matches())
         .toList();
   }
 
@@ -342,7 +342,7 @@ public class FieldFilterService {
     if (params.getObjects().isEmpty()) {
       return;
     }
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFilters());
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFields());
 
     try {
       toObjectNodes(
@@ -379,14 +379,15 @@ public class FieldFilterService {
     source
         .getAttributeValues()
         .forEach(
-            (attributeId, value) -> {
+            (key, value) -> {
+              String attributeId = key.toString();
               ObjectNode attrValueNode = attributes.addObject();
-              attrValueNode.put("value", value);
+              attrValueNode.put("value", value.toString());
               attrValueNode.set(
                   "attribute",
                   attributeProperties.computeIfAbsent(
                       attributeId,
-                      key -> {
+                      k -> {
                         Attribute attribute = attributeService.getAttribute(attributeId);
                         List<ObjectNode> res = new ArrayList<>(1);
                         toObjectNodes(
@@ -455,7 +456,7 @@ public class FieldFilterService {
 
     fieldPaths.forEach(
         fp -> {
-          if (filter.test(fp.toFullPath())) {
+          if (filter.test(fp.getFullPath())) {
             fieldPathHelper.visitFieldPaths(object, List.of(fp), consumer);
           }
         });
@@ -517,12 +518,12 @@ public class FieldFilterService {
 
     for (FieldPath fieldPath : fieldPaths) {
       List<FieldTransformer> fieldTransformers = new ArrayList<>();
-      String fullPath = fieldPath.toFullPath();
+      String fullPath = fieldPath.getFullPath();
 
       transformerMap.put(fullPath, fieldTransformers);
 
       for (FieldPathTransformer fieldPathTransformer : fieldPath.getTransformers()) {
-        switch (fieldPathTransformer.getName()) {
+        switch (fieldPathTransformer.name()) {
           case "rename" -> fieldTransformers.add(new RenameFieldTransformer(fieldPathTransformer));
           case "size" -> fieldTransformers.add(SizeFieldTransformer.INSTANCE);
           case "isEmpty" -> fieldTransformers.add(IsEmptyFieldTransformer.INSTANCE);

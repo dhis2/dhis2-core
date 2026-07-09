@@ -50,14 +50,14 @@ public class RenameFieldTransformer implements FieldTransformer {
 
   @Override
   public JsonNode apply(String path, JsonNode value, JsonNode parent) {
-    if (fieldPathTransformer.getParameters().isEmpty() && !parent.isObject()) {
+    if (fieldPathTransformer.parameters().isEmpty() && !parent.isObject()) {
       return value;
     }
 
     String fieldName = getFieldName(path);
 
     value = ((ObjectNode) parent).remove(fieldName);
-    ((ObjectNode) parent).set(fieldPathTransformer.getParameters().get(0), value);
+    ((ObjectNode) parent).set(fieldPathTransformer.parameters().get(0), value);
 
     return value;
   }

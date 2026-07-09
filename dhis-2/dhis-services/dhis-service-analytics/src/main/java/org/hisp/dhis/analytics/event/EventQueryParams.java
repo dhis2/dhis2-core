@@ -142,6 +142,8 @@ public class EventQueryParams extends DataQueryParams {
 
   public static final String TRACKER_COORDINATE_FIELD = "TRACKER";
 
+  public record GeometrySource(String coordinateField, String source) {}
+
   /** The query items. */
   private List<QueryItem> items = new ArrayList<>();
 
@@ -226,6 +228,9 @@ public class EventQueryParams extends DataQueryParams {
    * fields.
    */
   private List<String> coordinateFields;
+
+  /** The ordered source labels for resolved coordinate fields. */
+  private List<GeometrySource> geometrySources = List.of();
 
   /** Bounding box for events to include in clustering. */
   private String bbox;
@@ -340,6 +345,7 @@ public class EventQueryParams extends DataQueryParams {
     params.aggregateData = this.aggregateData;
     params.clusterSize = this.clusterSize;
     params.coordinateFields = this.coordinateFields;
+    params.geometrySources = new ArrayList<>(this.geometrySources);
     params.bbox = this.bbox;
     params.includeClusterPoints = this.includeClusterPoints;
     params.enrollmentStatus = new LinkedHashSet<>(this.enrollmentStatus);
@@ -631,6 +637,7 @@ public class EventQueryParams extends DataQueryParams {
         .addIgnoreNull("aggregateData", aggregateData)
         .addIgnoreNull("clusterSize", clusterSize)
         .addIgnoreNull("coordinateFields", coordinateFields)
+        .addIgnoreNull("geometrySources", geometrySources.isEmpty() ? null : geometrySources)
         .addIgnoreNull("bbox", bbox)
         .addIgnoreNull("includeClusterPoints", includeClusterPoints)
         .addIgnoreNull("enrollmentStatus", enrollmentStatus)
@@ -1495,6 +1502,14 @@ public class EventQueryParams extends DataQueryParams {
     return coordinateFields;
   }
 
+  public List<GeometrySource> getGeometrySources() {
+    return geometrySources;
+  }
+
+  public boolean hasGeometrySources() {
+    return isNotEmpty(geometrySources);
+  }
+
   public String getBbox() {
     return bbox;
   }
@@ -1614,6 +1629,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder removeItems() {
       this.params.items.clear();
+      return this;
+    }
+
+    public Builder removeItemFilters() {
+      this.params.itemFilters.clear();
       return this;
     }
 
@@ -1804,6 +1824,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withCoordinateFields(List<String> coordinateFields) {
       this.params.coordinateFields = coordinateFields;
+      return this;
+    }
+
+    public Builder withGeometrySources(List<GeometrySource> geometrySources) {
+      this.params.geometrySources = geometrySources == null ? List.of() : geometrySources;
       return this;
     }
 

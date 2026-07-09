@@ -64,6 +64,7 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "featureType")
   @Mapping(target = "sharing")
   @Mapping(target = "notificationTemplates")
+  @Mapping(target = "blockEntryForm")
   ProgramStage map(ProgramStage programStage);
 
   @Named("program")
