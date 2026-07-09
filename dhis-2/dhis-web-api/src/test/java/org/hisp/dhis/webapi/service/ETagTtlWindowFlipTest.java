@@ -92,36 +92,6 @@ class ETagTtlWindowFlipTest {
     when(eTagVersionService.getTtlMinutes()).thenReturn(TTL_MINUTES);
   }
 
-  // ── Global ETag ──
-
-  @Test
-  @DisplayName("Global ETag stays the same within the same TTL bucket")
-  void globalETag_stableWithinBucket() {
-    // 5 minutes after boundary — same bucket
-    ConditionalETagService serviceAt5 = serviceAt(BUCKET_BOUNDARY.plusMillis(5 * 60_000));
-    // 30 minutes after boundary — still same bucket
-    ConditionalETagService serviceAt30 = serviceAt(BUCKET_BOUNDARY.plusMillis(30 * 60_000));
-
-    String etag5 = serviceAt5.generateETag(userDetails);
-    String etag30 = serviceAt30.generateETag(userDetails);
-
-    assertEquals(etag5, etag30, "ETags within the same 60-min bucket must be identical");
-  }
-
-  @Test
-  @DisplayName("Global ETag changes when the TTL bucket flips")
-  void globalETag_changesOnBucketFlip() {
-    // 1 millisecond before the next boundary — still current bucket
-    ConditionalETagService serviceBefore = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS - 1));
-    // Exactly on the next boundary — new bucket
-    ConditionalETagService serviceAfter = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
-
-    String etagBefore = serviceBefore.generateETag(userDetails);
-    String etagAfter = serviceAfter.generateETag(userDetails);
-
-    assertNotEquals(etagBefore, etagAfter, "ETag must change when the TTL bucket flips");
-  }
-
   // ── Entity-type ETag ──
 
   @Test

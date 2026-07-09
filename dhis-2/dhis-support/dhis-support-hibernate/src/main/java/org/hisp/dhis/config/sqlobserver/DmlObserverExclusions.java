@@ -52,9 +52,9 @@ public class DmlObserverExclusions {
    *   <li>{@code messageconversation_*} — messaging join tables, high churn, not cached in API
    *   <li>{@code datavalue} — highest-volume table in DHIS2 (possibly millions of rows during
    *       imports)
-   *   <li>{@code trackedentityattributevalue}, {@code eventdatavalue} — tracker data, very high
-   *       volume
-   *   <li>{@code programstageinstance}, {@code programinstance} — tracker event/enrollment tables
+   *   <li>{@code trackedentityattributevalue}: tracker attribute values, very high volume
+   *   <li>{@code trackerevent}, {@code singleevent}, {@code enrollment}: tracker event and
+   *       enrollment tables, very high volume
    * </ul>
    */
   private static final Set<String> EXCLUDED_TABLES =
@@ -71,9 +71,9 @@ public class DmlObserverExclusions {
           // High-volume data tables — excluding here avoids unnecessary SQL parsing during imports.
           "datavalue",
           "trackedentityattributevalue",
-          "eventdatavalue",
-          "programstageinstance",
-          "programinstance");
+          "trackerevent",
+          "singleevent",
+          "enrollment");
 
   /** Returns true if the given table name should be excluded from DML observation. */
   public static boolean isExcluded(String tableName) {

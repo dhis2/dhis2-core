@@ -60,6 +60,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
 import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.junit.jupiter.api.AfterEach;
@@ -268,6 +269,18 @@ class ConditionalETagInterceptorTest {
   }
 
   @Test
+  void testResolveCompositeEndpointTypes_me() {
+    // /api/me embeds the user's own profile, roles, groups, settings and org units, so it must
+    // invalidate on User, UserRole, UserGroup, UserSetting and OrganisationUnit DML.
+    Set<Class<?>> expectedTypes =
+        Set.of(
+            User.class, UserRole.class, UserGroup.class, UserSetting.class, OrganisationUnit.class);
+    assertEquals(expectedTypes, ConditionalETagInterceptor.getCompositeEndpointTypes("me"));
+    assertEquals(
+        expectedTypes, ConditionalETagInterceptor.resolveCompositeEndpointTypes("/api/me"));
+  }
+
+  @Test
   void testResolveCompositeEndpointTypesSkippedRoutesReturnEmpty() {
     // /api/me is now a composite endpoint — moved to testResolveCompositeEndpointTypes_me
     assertTrue(
@@ -390,7 +403,6 @@ class ConditionalETagInterceptorTest {
     boolean result = interceptor.preHandle(request, response, new Object());
 
     assertTrue(result);
-    verify(conditionalETagService, never()).generateETag(any(UserDetails.class));
     verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Class.class));
     verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Set.class));
   }
@@ -409,7 +421,6 @@ class ConditionalETagInterceptorTest {
     boolean result = interceptor.preHandle(request, response, new Object());
 
     assertTrue(result);
-    verify(conditionalETagService, never()).generateETag(any(UserDetails.class));
     verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Class.class));
     verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Set.class));
   }

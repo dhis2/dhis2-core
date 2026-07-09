@@ -33,12 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.gson.JsonObject;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
  * E2E tests for /api/me endpoint ETag caching. The /api/me endpoint is a composite endpoint
- * depending on User, UserRole, UserGroup, and OrganisationUnit entity types.
+ * depending on User, UserRole, UserGroup, UserSetting, and OrganisationUnit entity types.
  */
 class MeEndpointCacheTest extends CacheApiTest {
 
@@ -103,5 +106,71 @@ class MeEndpointCacheTest extends CacheApiTest {
     CacheProbeUser.ADMIN.login(loginActions);
     CacheProbe.CacheResponse adminConditional = probe.getIfNoneMatch("/me", superuserEtag);
     assertEquals(200, adminConditional.statusCode(), "User A's ETag should not 304 for User B");
+  }
+
+  @Test
+  void selfEditInvalidatesMe() {
+    CacheProbeUser.SUPERUSER.login(loginActions);
+    CacheProbe.CacheResponse initial = probe.get("/me");
+    CacheAssertions.assertCacheHeaders(initial);
+
+    CacheProbeUser.SUPERUSER.login(loginActions);
+    CacheAssertions.assertNotModified(probe.getIfNoneMatch("/me", initial.etag()), initial.etag());
+
+    editOwnFirstName();
+
+    CacheProbe.CacheResponse invalidated =
+        CacheAwait.awaitInvalidation(
+            probe, CacheProbeUser.SUPERUSER, loginActions, "/me", initial.etag());
+    assertNotEquals(
+        initial.etag(), invalidated.etag(), "Editing own user should invalidate the /me ETag");
+  }
+
+  @Test
+  void userRoleMutationInvalidatesMe() {
+    CacheProbeUser.SUPERUSER.login(loginActions);
+    CacheProbe.CacheResponse initial = probe.get("/me");
+    CacheAssertions.assertCacheHeaders(initial);
+
+    CacheProbeUser.SUPERUSER.login(loginActions);
+    CacheAssertions.assertNotModified(probe.getIfNoneMatch("/me", initial.etag()), initial.etag());
+
+    mutators.mutate(CacheDependency.USER_ROLE);
+
+    CacheProbe.CacheResponse invalidated =
+        CacheAwait.awaitInvalidation(
+            probe, CacheProbeUser.SUPERUSER, loginActions, "/me", initial.etag());
+    assertNotEquals(
+        initial.etag(), invalidated.etag(), "A UserRole mutation should invalidate the /me ETag");
+  }
+
+  @Test
+  void userDataStoreMutationDoesNotInvalidateMe() {
+    CacheProbeUser.SUPERUSER.login(loginActions);
+    CacheProbe.CacheResponse initial = probe.get("/me");
+    CacheAssertions.assertCacheHeaders(initial);
+
+    // Advance the async invalidation pipeline with a real dependency mutation first, so any
+    // pending processing has flushed before we assert the negative control below.
+    mutators.mutate(CacheDependency.USER_ROLE);
+    CacheProbe.CacheResponse invalidated =
+        CacheAwait.awaitInvalidation(
+            probe, CacheProbeUser.SUPERUSER, loginActions, "/me", initial.etag());
+    assertNotEquals(initial.etag(), invalidated.etag());
+
+    // A user datastore entry is not part of the /me dependency set, so it must not invalidate.
+    mutators.mutate(CacheDependency.USER_DATASTORE_ENTRY);
+    CacheProbeUser.SUPERUSER.login(loginActions);
+    CacheAssertions.assertNotModified(
+        probe.getIfNoneMatch("/me", invalidated.etag()), invalidated.etag());
+  }
+
+  private void editOwnFirstName() {
+    CacheProbeUser.SUPERUSER.login(loginActions);
+    UserActions userActions = new UserActions();
+    String userId = loginActions.getLoggedInUserId();
+    JsonObject user = userActions.get(userId).getBody();
+    user.addProperty("firstName", "Cache" + DataGenerator.randomString());
+    userActions.update(userId, user).validate().statusCode(200);
   }
 }

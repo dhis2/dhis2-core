@@ -67,9 +67,9 @@ class DmlObserverExclusionsTest {
   void highVolumeDataTablesAreExcluded() {
     assertTrue(DmlObserverExclusions.isExcluded("datavalue"));
     assertTrue(DmlObserverExclusions.isExcluded("trackedentityattributevalue"));
-    assertTrue(DmlObserverExclusions.isExcluded("eventdatavalue"));
-    assertTrue(DmlObserverExclusions.isExcluded("programstageinstance"));
-    assertTrue(DmlObserverExclusions.isExcluded("programinstance"));
+    assertTrue(DmlObserverExclusions.isExcluded("trackerevent"));
+    assertTrue(DmlObserverExclusions.isExcluded("singleevent"));
+    assertTrue(DmlObserverExclusions.isExcluded("enrollment"));
   }
 
   @Test

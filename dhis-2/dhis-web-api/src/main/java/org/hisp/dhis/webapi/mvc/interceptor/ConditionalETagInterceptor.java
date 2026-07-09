@@ -129,7 +129,14 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   /** Non-CRUD endpoints mapped to their entity-type dependencies. */
   private static final Map<String, Set<Class<?>>> COMPOSITE_ENDPOINTS =
       Map.ofEntries(
-          Map.entry("me", Set.of(OrganisationUnit.class)),
+          Map.entry(
+              "me",
+              Set.of(
+                  User.class,
+                  UserRole.class,
+                  UserGroup.class,
+                  UserSetting.class,
+                  OrganisationUnit.class)),
           Map.entry(
               "systemSettings",
               Set.of(SystemSetting.class, DatastoreEntry.class, UserSetting.class)),

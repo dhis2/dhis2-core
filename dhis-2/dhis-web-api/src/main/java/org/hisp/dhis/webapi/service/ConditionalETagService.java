@@ -48,15 +48,12 @@ import java.util.HexFormat;
 import java.util.Properties;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 /**
@@ -116,25 +113,6 @@ public class ConditionalETagService {
    */
   public boolean isEnabled() {
     return eTagVersionService.isEnabled();
-  }
-
-  /**
-   * Generates an ETag for the given user using the all-cache version. The ETag format is: {@code
-   * {userUid}-{buildRevision}-{timeWindow}-{allCacheVersion}}
-   *
-   * <p><b>Note:</b> Prefer using {@link #generateETag(UserDetails, Class)} with a specific entity
-   * type for more granular cache invalidation.
-   *
-   * @param userDetails the current user details
-   * @return the generated ETag value (without quotes)
-   */
-  public String generateETag(@Nonnull UserDetails userDetails) {
-    String userUid = userDetails.getUid();
-    long timeWindow = calculateTimeWindow();
-    long allCacheVersion = eTagVersionService.getAllCacheVersion();
-
-    return hashETag(
-        String.format("%s-%s-%d-%d", userUid, buildRevision, timeWindow, allCacheVersion));
   }
 
   /**
@@ -281,212 +259,6 @@ public class ConditionalETagService {
     value = removeStart(trim(value), "W/");
     value = strip(value, "\"");
     return value;
-  }
-
-  /**
-   * Returns a {@link ResponseEntity} with conditional ETag caching using the global version.
-   *
-   * <p><b>Note:</b> Prefer using {@link #withConditionalETagCaching(UserDetails,
-   * HttpServletRequest, Class, Supplier)} with a specific entity type for more granular cache
-   * invalidation.
-   *
-   * @param <T> the response body type
-   * @param userDetails the current user details
-   * @param request the HTTP request
-   * @param bodySupplier the supplier for the response body (only called if ETag doesn't match)
-   * @return a ResponseEntity with either 304 Not Modified or 200 OK with the body
-   */
-  public <T> ResponseEntity<T> withConditionalETagCaching(
-      @Nonnull UserDetails userDetails,
-      @Nonnull HttpServletRequest request,
-      @Nonnull Supplier<T> bodySupplier) {
-
-    if (!isEnabled()) {
-      return ResponseEntity.ok().body(bodySupplier.get());
-    }
-
-    String currentETag = generateETag(userDetails);
-    return executeWithETag(userDetails, request, currentETag, bodySupplier);
-  }
-
-  /**
-   * Returns a {@link ResponseEntity} with conditional ETag caching for a specific entity type. If
-   * the request's ETag matches the current ETag, returns 304 Not Modified without executing the
-   * body supplier. Otherwise, executes the body supplier and returns 200 OK with the new ETag.
-   *
-   * <p>This provides granular cache invalidation - changes to one entity type won't invalidate
-   * caches for other entity types.
-   *
-   * @param <T> the response body type
-   * @param userDetails the current user details
-   * @param request the HTTP request
-   * @param entityType the entity class for granular versioning (e.g., OrganisationUnit.class)
-   * @param bodySupplier the supplier for the response body (only called if ETag doesn't match)
-   * @return a ResponseEntity with either 304 Not Modified or 200 OK with the body
-   */
-  public <T> ResponseEntity<T> withConditionalETagCaching(
-      @Nonnull UserDetails userDetails,
-      @Nonnull HttpServletRequest request,
-      @Nonnull Class<?> entityType,
-      @Nonnull Supplier<T> bodySupplier) {
-
-    if (!isEnabled()) {
-      return ResponseEntity.ok().body(bodySupplier.get());
-    }
-
-    String currentETag = generateETag(userDetails, entityType);
-    return executeWithETag(userDetails, request, currentETag, bodySupplier);
-  }
-
-  private <T> ResponseEntity<T> executeWithETag(
-      UserDetails userDetails,
-      HttpServletRequest request,
-      String currentETag,
-      Supplier<T> bodySupplier) {
-
-    if (checkNotModified(request, currentETag)) {
-      log.debug("ETag match - returning 304 Not Modified for user {}", userDetails.getUid());
-      return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-          .cacheControl(buildCacheControl())
-          .eTag(quote(currentETag))
-          .header(HttpHeaders.VARY, "Cookie", "Authorization")
-          .build();
-    }
-
-    log.debug("ETag mismatch - executing body supplier for user {}", userDetails.getUid());
-    T body = bodySupplier.get();
-
-    return ResponseEntity.ok()
-        .cacheControl(buildCacheControl())
-        .eTag(quote(currentETag))
-        .header(HttpHeaders.VARY, "Cookie", "Authorization")
-        .body(body);
-  }
-
-  /**
-   * Checks if the request should return 304 Not Modified using the global version.
-   *
-   * <p><b>Note:</b> Prefer using {@link #checkNotModifiedResponse(UserDetails, HttpServletRequest,
-   * Class)} with a specific entity type for more granular cache invalidation.
-   *
-   * @param <T> the response body type
-   * @param userDetails the current user details
-   * @param request the HTTP request
-   * @return Optional containing 304 response if ETag matches, empty Optional otherwise
-   */
-  public <T> java.util.Optional<ResponseEntity<T>> checkNotModifiedResponse(
-      @Nonnull UserDetails userDetails, @Nonnull HttpServletRequest request) {
-
-    if (!isEnabled()) {
-      return java.util.Optional.empty();
-    }
-
-    String currentETag = generateETag(userDetails);
-    return checkNotModifiedWithETag(userDetails, request, currentETag);
-  }
-
-  /**
-   * Checks if the request should return 304 Not Modified for a specific entity type. If so, returns
-   * an Optional containing the 304 response. Otherwise, returns empty Optional and the caller
-   * should proceed with computing the response.
-   *
-   * <p>This provides granular cache invalidation - changes to one entity type won't invalidate
-   * caches for other entity types.
-   *
-   * @param <T> the response body type
-   * @param userDetails the current user details
-   * @param request the HTTP request
-   * @param entityType the entity class for granular versioning (e.g., OrganisationUnit.class)
-   * @return Optional containing 304 response if ETag matches, empty Optional otherwise
-   */
-  public <T> java.util.Optional<ResponseEntity<T>> checkNotModifiedResponse(
-      @Nonnull UserDetails userDetails,
-      @Nonnull HttpServletRequest request,
-      @Nonnull Class<?> entityType) {
-
-    if (!isEnabled()) {
-      return java.util.Optional.empty();
-    }
-
-    String currentETag = generateETag(userDetails, entityType);
-    return checkNotModifiedWithETag(userDetails, request, currentETag);
-  }
-
-  private <T> java.util.Optional<ResponseEntity<T>> checkNotModifiedWithETag(
-      UserDetails userDetails, HttpServletRequest request, String currentETag) {
-    if (checkNotModified(request, currentETag)) {
-      log.debug("ETag match - returning 304 Not Modified for user {}", userDetails.getUid());
-      ResponseEntity<T> response =
-          ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-              .cacheControl(buildCacheControl())
-              .eTag(quote(currentETag))
-              .header(HttpHeaders.VARY, "Cookie", "Authorization")
-              .build();
-      return java.util.Optional.of(response);
-    }
-
-    return java.util.Optional.empty();
-  }
-
-  /**
-   * Sets ETag headers on an existing ResponseEntity builder using the global version.
-   *
-   * <p><b>Note:</b> Prefer using {@link #setETagHeaders(UserDetails, HttpServletResponse, Class)}
-   * with a specific entity type for more granular cache invalidation.
-   *
-   * @param userDetails the current user details
-   * @param response the HTTP response to set headers on
-   */
-  public void setETagHeaders(
-      @Nonnull UserDetails userDetails, @Nonnull HttpServletResponse response) {
-    if (!isEnabled()) {
-      return;
-    }
-
-    String currentETag = generateETag(userDetails);
-    setETagHeaders(response, currentETag);
-  }
-
-  /**
-   * Sets ETag headers on an existing ResponseEntity builder for a specific entity type. Use this
-   * when building streaming responses where you need to set headers before the body is streamed.
-   *
-   * <p>This provides granular cache invalidation - changes to one entity type won't invalidate
-   * caches for other entity types.
-   *
-   * @param userDetails the current user details
-   * @param response the HTTP response to set headers on
-   * @param entityType the entity class for granular versioning (e.g., OrganisationUnit.class)
-   */
-  public void setETagHeaders(
-      @Nonnull UserDetails userDetails,
-      @Nonnull HttpServletResponse response,
-      @Nonnull Class<?> entityType) {
-    if (!isEnabled()) {
-      return;
-    }
-
-    String currentETag = generateETag(userDetails, entityType);
-    setETagHeaders(response, currentETag);
-  }
-
-  /**
-   * Sets ETag headers on response for a composite endpoint that depends on multiple entity types.
-   * Use this when building streaming responses for composite endpoints.
-   *
-   * @param userDetails the current user details
-   * @param response the HTTP response to set headers on
-   * @param entityTypes the entity classes this endpoint depends on
-   */
-  public void setETagHeaders(
-      @Nonnull UserDetails userDetails,
-      @Nonnull HttpServletResponse response,
-      @Nonnull Collection<Class<?>> entityTypes) {
-    if (!isEnabled()) {
-      return;
-    }
-    String currentETag = generateETag(userDetails, entityTypes);
-    setETagHeaders(response, currentETag);
   }
 
   /**
