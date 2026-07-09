@@ -91,6 +91,8 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
+import org.hisp.dhis.webapi.mvc.interceptor.ConditionalETagInterceptor;
+import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -138,6 +140,9 @@ public abstract class AbstractFullReadOnlyController<
   @Autowired protected SchemaService schemaService;
 
   @Autowired private GistBridge gistBridge;
+
+  @Autowired(required = false)
+  private ConditionalETagService conditionalETagService;
 
   private Schema schema;
 
@@ -236,6 +241,10 @@ public abstract class AbstractFullReadOnlyController<
       if (additionalFilters.isEmpty()) {
         GistBridge.GistBridgeParams p = toGistBridgeParams(params, request);
         if (gistBridge.isSupportedObjectList(p)) {
+          // Gist writes the body directly and this handler returns null, so the response never
+          // passes through ConditionalETagResponseBodyAdvice; ETag headers must be applied
+          // before the response is committed.
+          applyStoredETagHeaders(request, response);
           getObjectListGist(GistBridge.toObjectListParams(p), request, response);
           return null; // response already created by Gist
         }
@@ -543,6 +552,16 @@ public abstract class AbstractFullReadOnlyController<
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL,
         noCache().cachePrivate().mustRevalidate().getHeaderValue());
+  }
+
+  private void applyStoredETagHeaders(HttpServletRequest request, HttpServletResponse response) {
+    if (conditionalETagService == null) {
+      return;
+    }
+    String storedETag = ConditionalETagInterceptor.getStoredETag(request);
+    if (storedETag != null) {
+      conditionalETagService.setETagHeaders(response, storedETag);
+    }
   }
 
   private boolean hasHref(String fields) {

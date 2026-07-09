@@ -458,7 +458,14 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
         extractApiRelativePath(uri), compileCompositeEndpointPatterns(compositeEndpoints));
   }
 
-  static String getStoredETag(HttpServletRequest request) {
+  /**
+   * Returns the ETag stored by {@link #preHandle} for the current request, or null when no ETag was
+   * generated. Consumed by {@link ConditionalETagResponseBodyAdvice} and by controllers that write
+   * the response body directly, bypassing the message converter pipeline (the Gist bridge in
+   * AbstractFullReadOnlyController), where the advice never runs and headers must be applied before
+   * the response is committed.
+   */
+  public static String getStoredETag(HttpServletRequest request) {
     return (String) request.getAttribute(ETAG_ATTR);
   }
 
