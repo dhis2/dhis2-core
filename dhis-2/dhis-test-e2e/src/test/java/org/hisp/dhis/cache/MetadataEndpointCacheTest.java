@@ -119,8 +119,7 @@ class MetadataEndpointCacheTest extends CacheApiTest {
     CacheAssertions.assertCacheHeaders(initialResponse);
 
     CacheProbeUser.SUPERUSER.login(loginActions);
-    CacheAssertions.assertNotModified(
-        probe.getIfNoneMatch(path, initialResponse.etag()), initialResponse.etag());
+    initialResponse = assertNotModifiedAllowingOneRefresh(path, initialResponse);
 
     mutators.mutateMetadataSchema(schema);
     CacheProbe.CacheResponse invalidatedResponse =
@@ -128,6 +127,30 @@ class MetadataEndpointCacheTest extends CacheApiTest {
             probe, CacheProbeUser.SUPERUSER, loginActions, path, initialResponse.etag());
 
     assertNotEquals(initialResponse.etag(), invalidatedResponse.etag());
+  }
+
+  /**
+   * Asserts the conditional GET returns 304 for the current ETag. Between the initial GET and the
+   * conditional GET the ETag can legitimately move without any test-driven mutation: the TTL time
+   * window can roll over, or a background job can write an observed entity type. In that case the
+   * handshake is re-established once with a fresh ETag before failing. This must only be used for
+   * the pure GET-then-304 handshake, never after a negative-control mutation, where a moving ETag
+   * would mask an over-invalidation bug.
+   */
+  private CacheProbe.CacheResponse assertNotModifiedAllowingOneRefresh(
+      String path, CacheProbe.CacheResponse initialResponse) {
+    CacheProbe.CacheResponse conditional = probe.getIfNoneMatch(path, initialResponse.etag());
+    if (conditional.statusCode() == 200
+        && conditional.etag() != null
+        && !conditional.etag().equals(initialResponse.etag())) {
+      CacheProbe.CacheResponse refreshed = probe.get(path);
+      CacheAssertions.assertCacheHeaders(refreshed);
+      CacheAssertions.assertNotModified(
+          probe.getIfNoneMatch(path, refreshed.etag()), refreshed.etag());
+      return refreshed;
+    }
+    CacheAssertions.assertNotModified(conditional, initialResponse.etag());
+    return initialResponse;
   }
 
   private void assertDependencyInvalidates(String path, CacheDependency dependency) {
