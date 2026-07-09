@@ -54,6 +54,8 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
 
@@ -82,10 +84,15 @@ class DmlObserverListenerTest {
     activateListener(listener);
   }
 
-  @Test
-  void afterQuery_selectDoesNotBumpVersions() {
-    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
-    List<QueryInfo> queries = List.of(createQueryInfo("SELECT * FROM dataelement"));
+  @ParameterizedTest(name = "[{index}] autoCommit={0}, sql={1}")
+  @CsvSource({
+    "true, SELECT * FROM dataelement",
+    "true, INSERT INTO audit (data) VALUES (?)",
+    "false, INSERT INTO dataelement (uid) VALUES (?)"
+  })
+  void afterQuery_doesNotBumpVersions(boolean autoCommit, String sql) {
+    ExecutionInfo execInfo = createSuccessExecutionInfo(autoCommit);
+    List<QueryInfo> queries = List.of(createQueryInfo(sql));
 
     listener.afterQuery(execInfo, queries);
 
@@ -116,16 +123,6 @@ class DmlObserverListenerTest {
   }
 
   @Test
-  void afterQuery_excludedTableDoesNotBumpVersions() {
-    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
-    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO audit (data) VALUES (?)"));
-
-    listener.afterQuery(execInfo, queries);
-
-    verifyNoInteractions(eTagService);
-  }
-
-  @Test
   void afterQuery_insertOnAutoCommitBumpsVersionImmediately() {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
@@ -133,17 +130,6 @@ class DmlObserverListenerTest {
     listener.afterQuery(execInfo, queries);
 
     verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
-  }
-
-  @Test
-  void afterQuery_insertOnNonAutoCommitAccumulatesEvents() {
-    ExecutionInfo execInfo = createSuccessExecutionInfo(false);
-    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
-
-    listener.afterQuery(execInfo, queries);
-
-    // No version bump yet (waiting for commit)
-    verifyNoInteractions(eTagService);
   }
 
   @Test

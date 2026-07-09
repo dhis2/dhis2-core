@@ -30,6 +30,7 @@
 package org.hisp.dhis.config.sqlobserver;
 
 import java.util.Optional;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -61,6 +62,9 @@ public class DmlSqlParser {
           .eternal(true)
           .permitNullValues(true)
           .build();
+
+  /** Pre-compiled splitter for tokenizing SQL on runs of whitespace, hoisted off the parse path. */
+  private static final Pattern WHITESPACE_SPLIT_PATTERN = Pattern.compile("\\s+");
 
   /**
    * When {@code true}, SQL statements may carry a leading {@code /* MDC context *\/} block comment
@@ -104,7 +108,7 @@ public class DmlSqlParser {
   }
 
   private static Optional<DmlFastResult> doParseFast(String sql) {
-    String[] tokens = sql.split("\\s+", 4);
+    String[] tokens = WHITESPACE_SPLIT_PATTERN.split(sql, 4);
     if (tokens.length < 2) {
       return Optional.empty();
     }

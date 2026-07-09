@@ -201,86 +201,122 @@ public class DmlObserverListener
     boolean autoCommit = isAutoCommit(execInfo);
 
     for (QueryInfo queryInfo : queryInfoList) {
-      String query = queryInfo.getQuery();
-
-      // Skip statements explicitly marked to bypass DML observation
-      if (DmlSqlParser.isDmlSkipMarked(query)) {
-        if (statementsSkippedExcluded != null) statementsSkippedExcluded.increment();
-        continue;
-      }
-
-      // Fast-path: skip non-DML
-      if (!DmlSqlParser.isPossibleDml(query)) {
-        if (statementsSkippedNonDml != null) statementsSkippedNonDml.increment();
-        continue;
-      }
-
-      Optional<DmlSqlParser.DmlFastResult> parsed = DmlSqlParser.parseFast(query);
-      if (parsed.isEmpty()) {
-        if (statementsSkippedNonDml != null) statementsSkippedNonDml.increment();
-        continue;
-      }
-
-      DmlSqlParser.DmlFastResult result = parsed.get();
-
-      // Check exclusions
-      if (DmlObserverExclusions.isExcluded(result.tableName())) {
-        if (statementsSkippedExcluded != null) statementsSkippedExcluded.increment();
-        continue;
-      }
-
-      // Map table → entity
-      TableInfo tableInfo = registry.getTableInfo(result.tableName());
-      String entityClassName = tableInfo != null ? tableInfo.entityClass().getName() : null;
-
-      // Dedup key: "tablename:OPERATION" — one event per table/operation combo per transaction.
-      String dedupeKey = result.tableName() + ":" + result.operation();
-
-      DmlEvent event =
-          new DmlEvent(
-              result.operation(), result.tableName(), entityClassName, Instant.now(), connectionId);
-
-      if (statementsObserved != null) statementsObserved.increment();
-
-      // For auto-commit connections, bump ETag versions immediately
-      if (autoCommit) {
-        log.debug(
-            "DML observed (auto-commit): op={}, table={}, entity={}",
-            event.operation(),
-            event.tableName(),
-            event.entityClassName());
-        bumpETagVersions(List.of(event));
-      } else {
-        // compute() holds the segment lock, preventing a race between
-        // publishAndClear() and batch creation/event addition.
-        pendingBatches.compute(
-            connectionId,
-            (k, existing) -> {
-              PendingBatch batch =
-                  existing != null
-                      ? existing
-                      : new PendingBatch(
-                          Collections.synchronizedList(new ArrayList<>()),
-                          Collections.synchronizedSet(new HashSet<>()),
-                          System.nanoTime());
-              // Only add if we haven't seen this table+operation combo yet in this transaction
-              if (batch.seenTableOps().add(dedupeKey)) {
-                batch.events().add(event);
-                log.debug(
-                    "DML observed: op={}, table={}, entity={}",
-                    event.operation(),
-                    event.tableName(),
-                    event.entityClassName());
-              }
-              return batch;
-            });
-      }
+      processStatement(queryInfo.getQuery(), connectionId, autoCommit);
     }
 
     // Periodically sweep stale pending batches to prevent memory leaks from abandoned connections
     if (queryCounter.incrementAndGet() % SWEEP_INTERVAL == 0) {
       sweepStaleBatches();
     }
+  }
+
+  /**
+   * Processes a single statement: runs the fast-path filters and, when the statement is a tracked
+   * DML statement, dispatches the resulting event.
+   */
+  private void processStatement(String query, String connectionId, boolean autoCommit) {
+    DmlSqlParser.DmlFastResult result = classifyStatement(query);
+    if (result == null) {
+      return;
+    }
+    dispatchDmlEvent(result, connectionId, autoCommit);
+  }
+
+  /**
+   * Runs the ordered fast-path checks and increments the matching skip counter. Returns the parsed
+   * DML result when the statement should be observed, or {@code null} when it was skipped. The
+   * check order (skip marker, possible-DML, parse, exclusion) is performance-relevant and must not
+   * change.
+   */
+  private DmlSqlParser.DmlFastResult classifyStatement(String query) {
+    // Skip statements explicitly marked to bypass DML observation
+    if (DmlSqlParser.isDmlSkipMarked(query)) {
+      if (statementsSkippedExcluded != null) statementsSkippedExcluded.increment();
+      return null;
+    }
+
+    // Fast-path: skip non-DML
+    if (!DmlSqlParser.isPossibleDml(query)) {
+      if (statementsSkippedNonDml != null) statementsSkippedNonDml.increment();
+      return null;
+    }
+
+    Optional<DmlSqlParser.DmlFastResult> parsed = DmlSqlParser.parseFast(query);
+    if (parsed.isEmpty()) {
+      if (statementsSkippedNonDml != null) statementsSkippedNonDml.increment();
+      return null;
+    }
+
+    DmlSqlParser.DmlFastResult result = parsed.get();
+
+    // Check exclusions
+    if (DmlObserverExclusions.isExcluded(result.tableName())) {
+      if (statementsSkippedExcluded != null) statementsSkippedExcluded.increment();
+      return null;
+    }
+
+    return result;
+  }
+
+  /**
+   * Builds the {@link DmlEvent} for an observed statement and either bumps ETag versions
+   * immediately (auto-commit) or accumulates it on the connection's pending batch for commit time.
+   */
+  private void dispatchDmlEvent(
+      DmlSqlParser.DmlFastResult result, String connectionId, boolean autoCommit) {
+    // Map table → entity
+    TableInfo tableInfo = registry.getTableInfo(result.tableName());
+    String entityClassName = tableInfo != null ? tableInfo.entityClass().getName() : null;
+
+    // Dedup key: "tablename:OPERATION" — one event per table/operation combo per transaction.
+    String dedupeKey = result.tableName() + ":" + result.operation();
+
+    DmlEvent event =
+        new DmlEvent(
+            result.operation(), result.tableName(), entityClassName, Instant.now(), connectionId);
+
+    if (statementsObserved != null) statementsObserved.increment();
+
+    // For auto-commit connections, bump ETag versions immediately
+    if (autoCommit) {
+      log.debug(
+          "DML observed (auto-commit): op={}, table={}, entity={}",
+          event.operation(),
+          event.tableName(),
+          event.entityClassName());
+      bumpETagVersions(List.of(event));
+    } else {
+      accumulateEvent(connectionId, dedupeKey, event);
+    }
+  }
+
+  /**
+   * Adds an event to the connection's pending batch, creating the batch on first use. {@code
+   * compute()} holds the segment lock, preventing a race between {@link #publishAndClear} and batch
+   * creation/event addition. Only the first event per table+operation combo is kept.
+   */
+  private void accumulateEvent(String connectionId, String dedupeKey, DmlEvent event) {
+    pendingBatches.compute(
+        connectionId,
+        (k, existing) -> {
+          PendingBatch batch =
+              existing != null
+                  ? existing
+                  : new PendingBatch(
+                      Collections.synchronizedList(new ArrayList<>()),
+                      Collections.synchronizedSet(new HashSet<>()),
+                      System.nanoTime());
+          // Only add if we haven't seen this table+operation combo yet in this transaction
+          if (batch.seenTableOps().add(dedupeKey)) {
+            batch.events().add(event);
+            log.debug(
+                "DML observed: op={}, table={}, entity={}",
+                event.operation(),
+                event.tableName(),
+                event.entityClassName());
+          }
+          return batch;
+        });
   }
 
   @Override
@@ -360,43 +396,57 @@ public class DmlObserverListener
     try {
       Set<Class<?>> bumpedTypes = new HashSet<>();
       for (DmlEvent event : events) {
-        String entityClassName = event.entityClassName();
-        if (entityClassName == null) {
-          if (eventsSkippedNull != null) eventsSkippedNull.increment();
-          continue;
-        }
-
-        Class<?> entityClass = resolveEntityClass(entityClassName);
-        if (entityClass == null) {
-          if (eventsSkippedNull != null) eventsSkippedNull.increment();
-          continue;
-        }
-
-        if (!ETagObservedEntityTypes.isObservedType(entityClass)) {
-          if (eventsSkippedUntracked != null) eventsSkippedUntracked.increment();
-          continue;
-        }
-
-        // Deduplicate within batch: one version bump per entity type per transaction
-        if (bumpedTypes.add(entityClass)) {
-          eTagService.incrementEntityTypeVersion(entityClass);
-          if (eventsProcessed != null) eventsProcessed.increment();
-          if (meterRegistry != null) {
-            entityTypeBumpCounters
-                .computeIfAbsent(
-                    entityClass.getSimpleName(),
-                    name ->
-                        Counter.builder(ETAG_VERSION_BUMPS)
-                            .tag(TAG_ENTITY_TYPE, name)
-                            .register(meterRegistry))
-                .increment();
-          }
-          log.debug("Bumped ETag version for entity type: {}", entityClass.getSimpleName());
-        }
+        bumpVersionForEvent(event, bumpedTypes);
       }
     } catch (Exception e) {
       log.error("Failed to bump ETag versions for DML events", e);
     }
+  }
+
+  /**
+   * Resolves and validates the entity class for a single event, then bumps its ETag version once
+   * per batch. {@code bumpedTypes} deduplicates so each entity type is bumped at most once per
+   * transaction. Skipped events increment the matching skip counter.
+   */
+  private void bumpVersionForEvent(DmlEvent event, Set<Class<?>> bumpedTypes) {
+    String entityClassName = event.entityClassName();
+    if (entityClassName == null) {
+      if (eventsSkippedNull != null) eventsSkippedNull.increment();
+      return;
+    }
+
+    Class<?> entityClass = resolveEntityClass(entityClassName);
+    if (entityClass == null) {
+      if (eventsSkippedNull != null) eventsSkippedNull.increment();
+      return;
+    }
+
+    if (!ETagObservedEntityTypes.isObservedType(entityClass)) {
+      if (eventsSkippedUntracked != null) eventsSkippedUntracked.increment();
+      return;
+    }
+
+    // Deduplicate within batch: one version bump per entity type per transaction
+    if (bumpedTypes.add(entityClass)) {
+      recordVersionBump(entityClass);
+    }
+  }
+
+  /** Bumps the ETag version for one entity type and records the associated metrics. */
+  private void recordVersionBump(Class<?> entityClass) {
+    eTagService.incrementEntityTypeVersion(entityClass);
+    if (eventsProcessed != null) eventsProcessed.increment();
+    if (meterRegistry != null) {
+      entityTypeBumpCounters
+          .computeIfAbsent(
+              entityClass.getSimpleName(),
+              name ->
+                  Counter.builder(ETAG_VERSION_BUMPS)
+                      .tag(TAG_ENTITY_TYPE, name)
+                      .register(meterRegistry))
+          .increment();
+    }
+    log.debug("Bumped ETag version for entity type: {}", entityClass.getSimpleName());
   }
 
   private Class<?> resolveEntityClass(String className) {

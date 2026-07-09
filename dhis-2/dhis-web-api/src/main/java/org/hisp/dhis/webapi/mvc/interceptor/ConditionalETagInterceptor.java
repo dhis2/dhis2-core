@@ -112,6 +112,12 @@ import org.springframework.web.util.pattern.PathPatternParser;
 public class ConditionalETagInterceptor implements HandlerInterceptor {
 
   private static final String ETAG_ATTR = ConditionalETagInterceptor.class.getName() + ".etag";
+
+  /**
+   * Leading separator prepended to an API-relative path before it is parsed as an absolute path.
+   */
+  private static final String PATH_SEPARATOR = "/";
+
   private static final Pattern API_PATH_PATTERN = Pattern.compile("^/api(?:/\\d{2})?(?:/(.*))?$");
   private static final Set<String> FORMAT_EXTENSIONS = Set.of(".json", ".xml", ".csv", ".xls");
   private static final PathPatternParser PATH_PATTERN_PARSER = new PathPatternParser();
@@ -314,19 +320,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       @Nonnull HttpServletResponse response,
       @Nonnull Object handler) {
 
-    if (!conditionalETagService.isEnabled()) {
-      if (cacheSkip != null) cacheSkip.increment();
-      return true;
-    }
-
-    String method = request.getMethod();
-    if (!"GET".equals(method) && !"HEAD".equals(method)) {
-      if (cacheSkip != null) cacheSkip.increment();
-      return true;
-    }
-
-    if (!CurrentUserUtil.hasCurrentUser()) {
-      if (cacheSkip != null) cacheSkip.increment();
+    if (!isCacheableRequest(request)) {
       return true;
     }
 
@@ -337,7 +331,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
     // Check uncached patterns first — these should never be cached regardless of other matches
     if (matchesAny(apiRelativePath, UNCACHED_PATH_PATTERNS)) {
-      if (cacheSkip != null) cacheSkip.increment();
+      incrementSkip();
       return true;
     }
 
@@ -360,19 +354,50 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
     String resourceName = extractResourceNameFromApiRelativePath(apiRelativePath);
     if (resourceName == null) {
-      if (cacheSkip != null) cacheSkip.increment();
+      incrementSkip();
       return true;
     }
 
     Set<Class<?>> metadataTypes =
         resolveMetadataEndpointTypes(resourceName, metadataEndpointTypesSupplier.get());
     if (metadataTypes.isEmpty()) {
-      if (cacheSkip != null) cacheSkip.increment();
+      incrementSkip();
       return true;
     }
 
     if (endpointMetadata != null) endpointMetadata.increment();
     return handleConditionalRequest(request, response, userDetails, metadataTypes);
+  }
+
+  /**
+   * Guard chain shared by every request: caching must be enabled, the method must be GET or HEAD,
+   * and a current user must be present. Increments the skip counter and returns {@code false} for
+   * the first failing check, preserving the original early-exit order.
+   */
+  private boolean isCacheableRequest(@Nonnull HttpServletRequest request) {
+    if (!conditionalETagService.isEnabled()) {
+      incrementSkip();
+      return false;
+    }
+
+    String method = request.getMethod();
+    if (!"GET".equals(method) && !"HEAD".equals(method)) {
+      incrementSkip();
+      return false;
+    }
+
+    if (!CurrentUserUtil.hasCurrentUser()) {
+      incrementSkip();
+      return false;
+    }
+
+    return true;
+  }
+
+  private void incrementSkip() {
+    if (cacheSkip != null) {
+      cacheSkip.increment();
+    }
   }
 
   /**
@@ -414,33 +439,43 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
         continue;
       }
 
-      LinkedHashSet<Class<?>> dependencyTypes = new LinkedHashSet<>();
-      addObservedMetadataDependency(dependencyTypes, schema.getKlass());
-
-      for (Class<?> referenceType : schema.getReferences()) {
-        if (referenceType == User.class) continue;
-        addObservedMetadataDependency(dependencyTypes, referenceType);
-      }
-
-      if (schema.isShareable() || schema.isDataShareable()) {
-        dependencyTypes.add(UserGroup.class);
-      }
-
-      if (schema.hasAttributeValues()) {
-        dependencyTypes.add(Attribute.class);
-      }
-
-      Set<Class<?>> overrides = METADATA_ENDPOINT_OVERRIDES.get(resourceName);
-      if (overrides != null) {
-        dependencyTypes.addAll(overrides);
-      }
-
+      Set<Class<?>> dependencyTypes = buildDependencyTypes(schema, resourceName);
       if (!dependencyTypes.isEmpty()) {
         metadataEndpointTypes.put(resourceName, Set.copyOf(dependencyTypes));
       }
     }
 
     return Collections.unmodifiableMap(metadataEndpointTypes);
+  }
+
+  /**
+   * Builds the ordered dependency-type set for a single metadata schema. Insertion order is
+   * preserved (schema class, then non-user references, then shareable/attribute/override additions)
+   * so composite ETag generation stays deterministic.
+   */
+  private static Set<Class<?>> buildDependencyTypes(Schema schema, String resourceName) {
+    LinkedHashSet<Class<?>> dependencyTypes = new LinkedHashSet<>();
+    addObservedMetadataDependency(dependencyTypes, schema.getKlass());
+
+    for (Class<?> referenceType : schema.getReferences()) {
+      if (referenceType == User.class) continue;
+      addObservedMetadataDependency(dependencyTypes, referenceType);
+    }
+
+    if (schema.isShareable() || schema.isDataShareable()) {
+      dependencyTypes.add(UserGroup.class);
+    }
+
+    if (schema.hasAttributeValues()) {
+      dependencyTypes.add(Attribute.class);
+    }
+
+    Set<Class<?>> overrides = METADATA_ENDPOINT_OVERRIDES.get(resourceName);
+    if (overrides != null) {
+      dependencyTypes.addAll(overrides);
+    }
+
+    return dependencyTypes;
   }
 
   static Set<Class<?>> resolveMetadataEndpointTypes(
@@ -583,7 +618,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       return Set.of();
     }
 
-    PathContainer pathContainer = PathContainer.parsePath("/" + apiRelativePath);
+    PathContainer pathContainer = PathContainer.parsePath(PATH_SEPARATOR + apiRelativePath);
 
     for (CompositeEndpointPattern compositeEndpointPattern : compositeEndpointPatterns) {
       if (compositeEndpointPattern.pathPattern().matches(pathContainer)) {
@@ -599,7 +634,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       return false;
     }
 
-    PathContainer pathContainer = PathContainer.parsePath("/" + apiRelativePath);
+    PathContainer pathContainer = PathContainer.parsePath(PATH_SEPARATOR + apiRelativePath);
 
     for (PathPattern pattern : patterns) {
       if (pattern.matches(pathContainer)) {
@@ -718,7 +753,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     if (apiRelativePath == null) {
       return null;
     }
-    PathContainer pathContainer = PathContainer.parsePath("/" + apiRelativePath);
+    PathContainer pathContainer = PathContainer.parsePath(PATH_SEPARATOR + apiRelativePath);
     for (NamedEndpointPattern nep : patterns) {
       if (nep.pathPattern().matches(pathContainer)) {
         return nep.deps();
