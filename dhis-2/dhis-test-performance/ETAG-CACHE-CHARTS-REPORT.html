@@ -127,25 +127,21 @@
       <div class="chips">
         <span class="chip">PR <code>#23200</code></span>
         <span class="chip">Jira <code>DHIS2-20736</code></span>
-        <span class="chip">Load stamp <code>20260710T084534Z</code></span>
+        <span class="chip">Charts data stamp <code>20260710T084534Z</code></span>
+        <span class="chip">Preferred headline stamp <code>20260710T182124Z</code></span>
         <span class="chip">Load: 10 users, realistic think-time</span>
-        <span class="chip">Primary data: load m2+m3 pooled glog</span>
         <span class="chip">Branch <code>api_cache_dml_wip</code></span>
-        <span class="chip">Numbers reconciled <code>2026-07-11</code></span>
+        <span class="chip">Headline revised <code>2026-07-11</code></span>
       </div>
       <div class="note">
-        <strong style="color:var(--text)">Source of truth for charts:</strong>
-        request-level OK samples from
-        <code>pageloadsimulation-*-etag-off-m2/m3</code> and
-        <code>*-etag-on-m2/m3</code> (load profile, stamp
-        <code>20260710T084534Z</code>). KPI p95 is the <strong>pooled-sample</strong>
-        percentile (OFF 36 ms / ON 7 ms / −81%), matching
-        <code>BENCHMARKS-etag.md</code> after the 2026-07-11 reconciliation
-        (supersedes the earlier hand-averaged console 32 / 7.5 / −77% figures).
-        SQL and alloc sizes come from the same session’s postgresql logs /
-        async-profiler JFR files. Dataset is embedded inline in this HTML
-        (standalone <code>etag-chart-data.json</code> was removed as a duplicate).
-        Needs network once to load Chart.js from CDN.
+        <strong style="color:var(--text)">Operational headline (MEASURED=5, stamp
+        <code>20260710T182124Z</code>):</strong>
+        OFF p95 <strong>40 ms</strong> / ON <strong>11 ms</strong> /
+        <strong>−72.5%</strong> (glog pooled and median-of-runs agree).
+        Charts and KPI tiles below still plot the earlier n=2 stamp
+        <code>20260710T084534Z</code> (36 / 7 / −81%) as a historical visualization —
+        see <code>BENCHMARKS-etag.md</code> §2026-07-11a for the preferred numbers.
+        Needs network once to load Chart.js from CDN (blank offline).
       </div>
     </header>
 

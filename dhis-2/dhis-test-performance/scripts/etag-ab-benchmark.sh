@@ -21,6 +21,10 @@
 #   SKIP_OFF        set non-empty to only run ON side (debug)
 #   SKIP_ON         set non-empty to only run OFF side
 #   MVN_EXTRA       extra -D flags for Gatling (appended)
+#   ETAG_EXPECT     override PageLoadSimulation -Detag.expect (on|off|none).
+#                   Default: same as side (on/off). Use none for miss-tax (APP_CYCLES=1).
+#   POSTGRES_HOST_PORT  host port for compose Postgres (default 5432). Use e.g. 15432 when
+#                   another process already binds 5432.
 #
 # Results land under target/gatling/ and are summarized into target/etag-ab/<timestamp>/.
 # Author: Morten Svanaes
@@ -87,7 +91,8 @@ run_side() {
       suffix="etag-${side}-warmup${i}"
     fi
 
-    log "=== side=${side} run=${i}/${total} warmup=${is_warmup} conf=${conf} etag.expect=${side} ==="
+    local expect="${ETAG_EXPECT:-$side}"
+    log "=== side=${side} run=${i}/${total} warmup=${is_warmup} conf=${conf} etag.expect=${expect} ==="
 
     local sql_flag=()
     if [[ -n "$CAPTURE_SQL" && "$is_warmup" -eq 0 ]]; then
@@ -97,13 +102,15 @@ run_side() {
     # run-simulation always does its own internal warmups via WARMUP=; we want one container
     # lifecycle per measured sample, so set WARMUP=0 here and control warmups externally.
     # -Detag.expect=on|off enables 304-share assertions in PageLoadSimulation (default none).
+    # Compose expands POSTGRES_HOST_PORT from the environment (default 5432).
     env \
       DHIS2_IMAGE="$DHIS2_IMAGE" \
       SIMULATION_CLASS="$SIMULATION_CLASS" \
       DHIS_CONF_FILE="dhis-etag-${side}.conf" \
       WARMUP=0 \
       REPORT_SUFFIX="$suffix" \
-      MVN_ARGS="-Dprofile=${PROFILE} -Dfast=${FAST} -Detag.expect=${side} ${MVN_EXTRA}" \
+      POSTGRES_HOST_PORT="${POSTGRES_HOST_PORT:-5432}" \
+      MVN_ARGS="-Dprofile=${PROFILE} -Dfast=${FAST} -Detag.expect=${expect} ${MVN_EXTRA}" \
       "${sql_flag[@]}" \
       ./run-simulation.sh | tee "$OUT_DIR/${suffix}.console.log"
 
@@ -222,65 +229,47 @@ from pathlib import Path
 path, label, rundir = sys.argv[1], sys.argv[2], sys.argv[3]
 times = []
 with open(path, newline="", encoding="utf-8", errors="replace") as f:
-    sample = f.read(4096)
-    f.seek(0)
-    # Prefer header-aware parse; fall back to last numeric column heuristics.
-    try:
-        reader = csv.DictReader(f)
-        fields = reader.fieldnames or []
-        # Common glog / Gatling CSV names
-        candidates = [
-            "responseTime",
-            "Response Time",
-            "response time",
-            "latency",
-            "OK",
-            "responseTimeInMs",
-        ]
-        col = next((c for c in candidates if c in fields), None)
-        status_col = next(
-            (c for c in ("status", "Status", "responseCode", "Response Code") if c in fields),
-            None,
-        )
-        if col is None:
-            # last field that looks numeric in first row
-            rows = list(reader)
-            if not rows:
-                print(f"| `{label}` | 0 | | | | `{Path(rundir).name}` |")
-                raise SystemExit
-            for k, v in rows[0].items():
-                try:
-                    float(v)
-                    col = k
-                except (TypeError, ValueError):
-                    pass
-            f.seek(0)
-            reader = csv.DictReader(f)
-        for row in reader:
-            if status_col is not None:
-                st = str(row.get(status_col, "")).strip()
-                if st and st not in ("200", "304", "OK", "ok"):
-                    # keep 200/304 only when status known
-                    if st.isdigit() and int(st) not in (200, 304):
-                        continue
-            try:
-                times.append(float(row[col]))
-            except (KeyError, TypeError, ValueError):
+    reader = csv.DictReader(f)
+    fields = reader.fieldnames or []
+    # glog / Gatling request rows: prefer response_time_ms (not start/end timestamps).
+    candidates = [
+        "response_time_ms",
+        "responseTime",
+        "responseTimeInMs",
+        "Response Time",
+        "response time",
+        "latency",
+    ]
+    col = next((c for c in candidates if c in fields), None)
+    if col is None:
+        print(f"| `{label}` | 0 | | | | `{Path(rundir).name}` (no response_time column) |")
+        raise SystemExit(0)
+    for row in reader:
+        # Skip user/group lifecycle rows; only HTTP request records have latencies.
+        rtype = (row.get("record_type") or row.get("type") or "").strip().lower()
+        if rtype and rtype not in ("request", "http", ""):
+            if rtype in ("user", "group", "run"):
                 continue
-    except SystemExit:
-        raise
-    except Exception:
-        f.seek(0)
-        for line in f:
-            parts = line.strip().split(",")
-            if len(parts) < 2:
+        if rtype == "request" or row.get("request_name") or row.get("name"):
+            pass
+        elif rtype:
+            continue
+        st = (row.get("status") or row.get("Status") or "").strip()
+        # Gatling uses OK/KO; keep OK only.
+        if st and st.upper() not in ("OK", "200", "304"):
+            if st.upper() == "KO" or (st.isdigit() and int(st) >= 400):
                 continue
-            for token in reversed(parts):
-                try:
-                    times.append(float(token))
-                    break
-                except ValueError:
-                    continue
+        raw = row.get(col, "")
+        if raw is None or str(raw).strip() == "":
+            continue
+        try:
+            t = float(raw)
+        except (TypeError, ValueError):
+            continue
+        # Guard against timestamp columns if mis-selected (epoch ms ~1e12).
+        if t > 1_000_000:
+            continue
+        times.append(t)
 
 if not times:
     print(f"| `{label}` | 0 | | | | `{Path(rundir).name}` (no times parsed) |")

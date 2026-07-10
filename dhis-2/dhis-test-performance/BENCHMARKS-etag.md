@@ -51,6 +51,86 @@ Compare Gatling console globals or HTML reports under `target/gatling/`.
 
 ---
 
+## Run 2026-07-11a: load variance campaign (`MEASURED=5`) — **preferred operational headline**
+
+### Environment
+
+| Item | Value |
+|---|---|
+| Host | `minibox` (Fedora, 16 cores, 27 GiB) |
+| Available RAM at start | **~20 GiB** (preflight); dipped to ~12 GiB under 10G heap load; no OOM |
+| Image | `dhis2/core-pr:etag-ab-local` pin **`sha256:8419b0880a7d…`** @ **`c09faa3057e`** |
+| DB image | `localhost/dhis2-postgres:14-3.5-sierra-leone-dev` pin **`sha256:be1562a601dc…`** |
+| Stack | stock compose (10G heap); `POSTGRES_HOST_PORT=15432` (host 5432 owned by another service) |
+| Profile | **`load`**, `FAST=false`, `WARMUP=1 MEASURED=5` |
+| Assertions | `-Detag.expect=on\|off` on every run (batch-3) |
+| Stamp | `target/etag-ab/20260710T182124Z` |
+| Wall clock | ~52 minutes |
+| git | `c09faa3057e` dirty=yes (untracked local files on minibox; tip matches pin) |
+
+### Per-run glog OK request stats (`response_time_ms`, `record_type=request`)
+
+| Side | Run | n | mean | p50 | **p95** | 304 share (`etag.expect`) |
+|---|---|---:|---:|---:|---:|---:|
+| OFF | m2 | 4880 | 11.99 | 8.0 | **40.0** | 0.0% (assert ok) |
+| OFF | m3 | 4925 | 11.88 | 8.0 | **40.0** | 0.0% |
+| OFF | m4 | 4906 | 12.02 | 8.0 | **39.0** | 0.0% |
+| OFF | m5 | 4951 | 11.83 | 8.0 | **42.0** | 0.0% |
+| OFF | m6 | 4854 | 11.99 | 8.0 | **40.0** | 0.0% |
+| ON | m2 | 4911 | 7.59 | 7.0 | **11.0** | **80.6%** (assert ok) |
+| ON | m3 | 4928 | 7.53 | 7.0 | **11.0** | **80.7%** |
+| ON | m4 | 4952 | 7.55 | 7.0 | **11.0** | **80.7%** |
+| ON | m5 | 4886 | 7.57 | 7.0 | **11.0** | **80.6%** |
+| ON | m6 | 4906 | 8.01 | 7.0 | **12.0** | **76.4%** |
+
+Warmup ON 304 share 76.5% (assert ok). All 12 stack cycles **BUILD SUCCESS**.
+
+### Variance summary (measured p95)
+
+| Side | min | **median** | max | pooled n | pooled mean | pooled p50 | **pooled p95** |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OFF | 39 | **40** | 42 | 24 516 | 11.94 | 8.0 | **40.0** |
+| ON | 11 | **11** | 12 | 24 583 | 7.65 | 7.0 | **11.0** |
+| Delta (median / pooled) | | **−72.5%** | | | −36% | −12% | **−72.5%** |
+
+Variance is small (OFF p95 span 3 ms; ON span 1 ms). Median-of-runs and pooled-sample p95 agree.
+
+### Does the 2026-07-10c headline (36 / 7 / −81%) still stand?
+
+- **As a historical stamp for `20260710T084534Z` (n=2 measured):** yes — leave that section as-is for that campaign.
+- **As the preferred operational headline:** **revised.** With `MEASURED=5` at tip `c09faa3057e`, the better-supported load win is **OFF p95 40 ms / ON 11 ms / −72.5%** (glog). Direction unchanged; absolute win is a bit softer than the n=2 −81% figure. Use **40 / 11 / −72%** going forward for load multi-cycle benefit.
+
+Artifacts: `target/etag-ab/20260710T182124Z/{meta.env,results.md,*.console.log,*.runpath}`.
+
+---
+
+## Run 2026-07-11b: isolated miss tax (`APP_CYCLES=1`)
+
+### Environment
+
+| Item | Value |
+|---|---|
+| Same image/stack as 2026-07-11a | pin `sha256:8419b0880a7d…` @ `c09faa3057e` |
+| Profile | **`smoke`**, `FAST=true`, `WARMUP=1 MEASURED=2`, **`appCycles=1`** |
+| Assertions | `ETAG_EXPECT=none` (single cycle has almost no 304s; 304-share assert would fail) |
+| Stamp | `target/etag-ab/20260710T191726Z` |
+| Preflight RAM | ~20 GiB available |
+
+### Measured glog / console (single app cycle per VU — miss path dominant)
+
+| Side | Run | n | mean | p50 | **p95** |
+|---|---|---:|---:|---:|---:|
+| OFF | m2 | 1092 | 15.71 | 10.0 | **55.0** |
+| OFF | m3 | 1092 | 15.95 | 10.0 | **55.0** |
+| ON | m2 | 1134 | 15.15 | 9.0 | **54.0** |
+| ON | m3 | 1092 | 15.27 | 9.0 | **55.0** |
+
+**Miss-tax delta (ON − OFF) on p95:** about **0 to −1 ms** (within noise). Mean ON is ~0.5–0.8 ms lower than OFF.
+
+**Honest framing:** enabling the ETag cache does **not** show a material first-cycle penalty on this page-load mix. The load-campaign win is from multi-cycle **304** short-circuits, not from making misses faster. Remaining open cost: **write/import path** (DML observer), not first GET miss.
+
+---
+
 ## Run 2026-07-10d: minibox **CPU flamegraphs** (load + async-profiler)
 
 ### Environment
@@ -263,10 +343,8 @@ Same request volume both sides: **1,236 OK / 0 KO**.
 
 ## Next measurements (still open)
 
-1. **Miss path:** `APP_CYCLES=1` ON vs OFF, same profile, report p95 delta.  
-2. **Load profile:** `PROFILE=load` on a machine that can run `run-simulation.sh` (or live with higher users).  
-3. **Import tax:** tracker + metadata import timings with observer on vs off.  
-4. **Commit CI recipe:** document dispatch of `performance-tests-compare.yml` with ON/OFF images or confs once an image build is cheap enough.
+1. **Import / write-path tax:** tracker + metadata import timings with DML observer on vs off (page-load miss tax closed in 2026-07-11b; multi-cycle load variance closed in 2026-07-11a).  
+2. **Commit CI recipe:** optional dispatch of `performance-tests-compare.yml` with ON/OFF confs once an image build is cheap enough.
 
 ---
 
