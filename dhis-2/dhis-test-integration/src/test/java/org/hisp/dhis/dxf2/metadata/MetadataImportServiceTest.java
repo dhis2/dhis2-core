@@ -906,6 +906,11 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("#ddeeff", mapView.getNoDataColor());
     assertEquals("#aabbcc", mapView.getOrganisationUnitColor());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
+    // The favorite format carries the analytical dimensions in the transient columns/rows/filters
+    // only; the import must decompose them into the persisted dimension identifiers so the MapView
+    // round-trips (regression test for [DHIS2-21608]).
+    assertEquals(List.of("dx"), mapView.getColumnDimensions());
+    assertEquals(List.of("pe"), mapView.getFilterDimensions());
     metadata =
         renderService.fromMetadata(
             new ClassPathResource("dxf2/map_update.json").getInputStream(), RenderFormat.JSON);
@@ -922,6 +927,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("#ddeeff", mapView.getNoDataColor());
     assertEquals("#aabbcc", mapView.getOrganisationUnitColor());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
+    assertEquals(List.of("dx"), mapView.getColumnDimensions());
+    assertEquals(List.of("pe"), mapView.getFilterDimensions());
   }
 
   /**
