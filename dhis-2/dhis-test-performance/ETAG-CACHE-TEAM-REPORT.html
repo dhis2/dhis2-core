@@ -353,6 +353,8 @@
         <span>Jira <code>DHIS2-20736</code></span>
         <span>Branch <code>api_cache_dml_wip</code></span>
         <span>Evidence date <code>2026-07-10</code></span>
+        <span>Load stamp <code>20260710T084534Z</code></span>
+        <span>Numbers reconciled <code>2026-07-11</code></span>
         <span>Author <code>Morten Svanaes</code></span>
       </div>
 
@@ -360,12 +362,12 @@
         <div class="tldr-card">
           <div class="label">Faster?</div>
           <div class="value">Yes</div>
-          <div class="detail">~70–77% lower p95 on page-load A/B (cache ON vs OFF)</div>
+          <div class="detail">~81% lower pooled p95 on load A/B (cache ON vs OFF; glog samples)</div>
         </div>
         <div class="tldr-card">
           <div class="label">More RAM?</div>
           <div class="value">No</div>
-          <div class="detail">No body cache. Kilobyte-scale maps. Alloc profile smaller when ON</div>
+          <div class="detail">No body cache. ~tens of KiB design bound. JFR size is alloc-rate proxy only</div>
         </div>
         <div class="tldr-card">
           <div class="label">Clusters?</div>
@@ -429,42 +431,50 @@
       </p>
 
       <h3>Load profile (10 concurrent users, realistic think-time)</h3>
-      <p class="muted">Best “day in the life” number. Average of two measured runs per side.</p>
+      <p class="muted">
+        Best “day in the life” number.
+        <strong>Stamp <code>20260710T084534Z</code>.</strong>
+        Canonical method: <strong>pooled-sample percentiles</strong> from glog
+        <code>simulation.csv</code> (measured m2+m3 concatenated per side).
+        Numbers reconciled <strong>2026-07-11</strong> (supersedes the 2026-07-10
+        hand-averaged Gatling-console figures of 32 / 7.5 ms / −77%).
+      </p>
 
       <div class="compare">
         <div class="side off">
           <h4>Cache OFF</h4>
-          <div class="big">32 <span class="unit">ms p95</span></div>
+          <div class="big">36 <span class="unit">ms p95</span></div>
           <ul>
-            <li>mean ~10 ms</li>
-            <li>p50 ~6 ms</li>
-            <li>~23 rps (think-time limited)</li>
+            <li>mean 9.93 ms</li>
+            <li>p50 6.0 ms</li>
+            <li>n = 9 891 OK requests (pooled)</li>
             <li>~50–57k SQL log events / run</li>
           </ul>
         </div>
         <div class="side on">
           <h4>Cache ON</h4>
-          <div class="big">7.5 <span class="unit">ms p95</span></div>
+          <div class="big">7 <span class="unit">ms p95</span></div>
           <ul>
-            <li>mean ~5 ms</li>
-            <li>p50 ~4 ms</li>
-            <li>~23.6 rps</li>
+            <li>mean 5.31 ms</li>
+            <li>p50 4.0 ms</li>
+            <li>n = 10 102 OK requests (pooled)</li>
             <li>~12–17k SQL log events / run</li>
           </ul>
         </div>
       </div>
 
-      <p><strong>Headline:</strong> about <strong>77% lower p95</strong> with cache ON. Throughput barely changes (users wait between pages); the win is latency and DB work.</p>
+      <p><strong>Headline:</strong> about <strong>81% lower p95</strong> with cache ON
+        ((36 − 7) / 36). Throughput barely changes (users wait between pages); the win is latency and DB work.</p>
 
       <div class="bar-row">
         <span>OFF p95</span>
         <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
-        <span class="mono">32 ms</span>
+        <span class="mono">36 ms</span>
       </div>
       <div class="bar-row">
         <span>ON p95</span>
-        <div class="bar-track"><div class="bar-fill on" style="width:23%"></div></div>
-        <span class="mono">7.5 ms</span>
+        <div class="bar-track"><div class="bar-fill on" style="width:19%"></div></div>
+        <span class="mono">7 ms</span>
       </div>
 
       <h3>SQL volume (same load runs)</h3>

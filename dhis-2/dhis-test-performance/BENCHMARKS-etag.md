@@ -63,6 +63,7 @@ Compare Gatling console globals or HTML reports under `target/gatling/`.
 | Also captured | `pgbadger.html`, `simulation.csv`, `gc.log` |
 | Stamp | `target/etag-ab/20260710T102642Z` |
 | Wall clock | ~18 minutes |
+| Host RAM headroom | **not recorded at run time** (P3-13; unlike 2026-07-10b/c, no free-RAM row was captured for this stamp) |
 
 ### Latency (sanity, matches prior load run)
 
@@ -109,7 +110,22 @@ PROFILE=load WARMUP=1 MEASURED=1 FAST=false \
 | Stamp | `target/etag-ab/20260710T084534Z` |
 | Wall clock | ~26 minutes |
 
-### Global HTTP response times (Gatling; measured m2/m3)
+### Canonical headline (pooled glog samples, measured m2+m3 only)
+
+**Method:** concatenate all OK request latencies from glog `simulation.csv` for measured runs m2 and m3, then compute mean / p50 / p95 on the combined sample. This is the canonical aggregation going forward (not the average of per-run Gatling console percentiles).  
+**Stamp:** `20260710T084534Z` · **Reconciled:** 2026-07-11 (supersedes 2026-07-10 hand-averaged 32 / 7.5 ms / −77%).
+
+| Side | n req (pooled) | mean | p50 | **p95** |
+|---|---:|---:|---:|---:|
+| OFF | 9 891 | 9.93 ms | 6.0 | **36.0** |
+| ON | 10 102 | 5.31 ms | 4.0 | **7.0** |
+| Delta ON vs OFF | | −46% | −33% | **−81%** |
+
+With 10 users and realistic think-time, ETag **ON** cuts pooled p95 by about **four fifths** (−81%). Throughput is similar (think-time limited); the win is latency and SQL volume, not max RPS.
+
+### Per-run Gatling console percentiles (not the canonical headline)
+
+These are what Gatling printed per run. They differ slightly from glog pooled percentiles (console OFF p95 31/33 vs glog 36.0). Keep for audit; do not average them into the headline.
 
 | Side | Run | n req | mean | p50 | **p95** | p99 | rps |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -120,15 +136,7 @@ PROFILE=load WARMUP=1 MEASURED=1 FAST=false \
 | ON | **m2** | 5051 | **5** | **4** | **7** | 21 | 23.4 |
 | ON | **m3** | 5051 | **5** | **4** | **8** | 38 | 23.8 |
 
-**Measured-only average (m2+m3):**
-
-| Side | mean | p50 | **p95** | rps |
-|---|---:|---:|---:|---:|
-| OFF | 10 ms | 6 | **32** | 23.2 |
-| ON | **5 ms** | **4** | **7.5** | **23.6** |
-| Delta ON vs OFF | −50% | −33% | **−77%** | +2% |
-
-With 10 users and realistic think-time, ETag **ON** still cuts p95 by roughly **three quarters**. Throughput is similar (think-time limited); the win is latency, not max RPS.
+Per-run console average of measured p95 only (historical, non-canonical): OFF ~32 ms, ON ~7.5 ms, about −77%.
 
 ### SQL volume (postgresql.log size / duration-statement lines)
 
