@@ -51,6 +51,48 @@ Compare Gatling console globals or HTML reports under `target/gatling/`.
 
 ---
 
+## Run 2026-07-10d: minibox **CPU flamegraphs** (load + async-profiler)
+
+### Environment
+
+| Item | Value |
+|---|---|
+| Same image/stack as 2026-07-10c | `dhis2/core-pr:etag-ab-local` @ `52d8dabe6b1`, stock 10G heap |
+| Profile | load, `FAST=false`, `WARMUP=1 MEASURED=1` |
+| Profiler | `PROF_ARGS="-e cpu"` via `docker-compose.profile.yml` (async-profiler 4.x in container) |
+| Also captured | `pgbadger.html`, `simulation.csv`, `gc.log` |
+| Stamp | `target/etag-ab/20260710T102642Z` |
+| Wall clock | ~18 minutes |
+
+### Latency (sanity, matches prior load run)
+
+| Side | measured | mean | p50 | p95 | rps |
+|---|---|---:|---:|---:|---:|
+| OFF | m2 | 11 | 6 | **34** | 22.8 |
+| ON | m2 | 6 | 5 | **8** | 23.2 |
+
+### Flamegraph artifacts (open in a browser)
+
+| Side | `profile.html` (on minibox under `dhis-test-performance/`) |
+|---|---|
+| OFF measured | `target/gatling/pageloadsimulation-20260710103140402-etag-off-m2/profile.html` |
+| ON measured | `target/gatling/pageloadsimulation-20260710104028263-etag-on-m2/profile.html` |
+
+Also: `profile.jfr`, `profile.collapsed` in the same dirs.
+
+**How to read:** OFF flamegraph should spend relatively more samples under controller/service/Hibernate for the page-load paths. ON should show a larger share of short-circuit 304 work and less deep controller trees. ETag interceptor/observer frames should be visible but not dominate CPU.
+
+Reproduce:
+
+```sh
+PROF_ARGS="-e cpu" CAPTURE_SQL=1 \
+DHIS2_IMAGE=dhis2/core-pr:etag-ab-local \
+PROFILE=load WARMUP=1 MEASURED=1 FAST=false \
+./scripts/etag-ab-benchmark.sh
+```
+
+---
+
 ## Run 2026-07-10c: minibox **full Docker load** profile (stock stack + pgbadger + glog)
 
 ### Environment
