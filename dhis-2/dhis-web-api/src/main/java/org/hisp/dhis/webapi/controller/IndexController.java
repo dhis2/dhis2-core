@@ -41,6 +41,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.IndexResource;
@@ -62,6 +63,7 @@ public class IndexController {
   private final SchemaService schemaService;
   private final ContextService contextService;
   private final AppManager appManager;
+  private final SystemSettingsProvider settingsProvider;
 
   @GetMapping("/")
   public void getIndexWithSlash(
@@ -82,7 +84,14 @@ public class IndexController {
       App app = appManager.getApp(sanitizedStartModule, contextPath);
 
       if (app != null) {
-        redirectUrl = app.getLaunchUrl();
+        boolean canonicalPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+        if (canonicalPaths) {
+          // Redirect to the global shell entry point, not the app's direct launchUrl,
+          // so the app loads inside the global shell wrapper.
+          redirectUrl = contextPath + "/apps/" + app.getKey();
+        } else {
+          redirectUrl = app.getLaunchUrl();
+        }
       }
     }
 
