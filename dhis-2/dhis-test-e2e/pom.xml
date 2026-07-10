@@ -296,7 +296,8 @@
   </build>
 
   <profiles>
-    <!-- Default profile runs general e2e tests. analytics and cache have dedicated CI jobs. -->
+    <!-- Default profile runs general e2e tests (excludes analytics + cache). Analytics uses a
+         separate workflow; cache runs as a second compose step in run-api-tests.yml api-test. -->
     <profile>
       <id>default</id>
       <activation>

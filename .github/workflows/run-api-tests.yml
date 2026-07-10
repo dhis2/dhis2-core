@@ -30,7 +30,12 @@ permissions:
   contents: read
 
 jobs:
+  # Single image build, then two compose suites against the same tag:
+  #   1) default e2e (excludes JUnit group "cache")
+  #   2) cache/ETag e2e (docker-compose.e2e-cache.yml → -Pcache only)
+  # Folded from a separate cache-api-test job that re-built the image (P2-13/P2-14).
   api-test:
+    timeout-minutes: 90
     env:
       # We only publish to Dockerhub on PRs from https://github.com/dhis2/dhis2-core. PRs from forks or dependabot cannot access secrets.
       DOCKERHUB_PUSH: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
@@ -70,48 +75,35 @@ jobs:
               -Djib.to.image=$CORE_IMAGE_NAME
           fi
 
-      - name: Run tests
+      - name: Run default e2e tests
+        id: default-e2e
         run: |
           cd dhis-2/dhis-test-e2e
           SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
 
-      - name: Upload logs
-        if: failure()
+      - name: Upload default e2e logs
+        if: failure() && steps.default-e2e.outcome == 'failure'
         run: |
           cd dhis-2/dhis-test-e2e
-          docker compose logs web > ~/logs.txt
+          docker compose -f docker-compose.yml -f docker-compose.e2e.yml logs web > ~/logs.txt
 
       - uses: actions/upload-artifact@v7
-        if: failure()
+        if: failure() && steps.default-e2e.outcome == 'failure'
         with:
           name: "tomcat_logs"
           path: "~/logs.txt"
 
-  # Dedicated cache/ETag e2e suite (JUnit group "cache"). Independent of api-test so a general
-  # e2e failure does not hide cache regressions (and vice versa). Server config already has
-  # cache.api.etag.enabled=on in dhis-test-e2e/config/dhis2_home/dhis.conf.
-  # Builds a local image only (no Docker Hub publish); api-test owns PR image publish.
-  cache-api-test:
-    env:
-      CORE_IMAGE_NAME: "dhis2/core-pr:cache-${{ github.event_name == 'pull_request' && github.event.number || 'local' }}"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
-        with:
-          java-version: 17
-          distribution: temurin
-          cache: maven
-
-      - name: Build container image
+      - name: Tear down default e2e stack
+        if: always()
         run: |
-          mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
-            -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
-            --projects dhis-web-server --also-make --activate-profiles embedded,jibDockerBuild \
-            -Djib.to.image=$CORE_IMAGE_NAME
+          cd dhis-2/dhis-test-e2e
+          docker compose -f docker-compose.yml -f docker-compose.e2e.yml down --remove-orphans || true
 
+      # Cache/ETag suite (JUnit group "cache"). Server config already has
+      # cache.api.etag.enabled=on in dhis-test-e2e/config/dhis2_home/dhis.conf.
+      # Reuses the image from "Build container image"; default e2e must pass first.
       - name: Run cache e2e tests
+        id: cache-e2e
         run: |
           cd dhis-2/dhis-test-e2e
           DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose \
@@ -121,7 +113,7 @@ jobs:
             up --remove-orphans --exit-code-from test
 
       - name: Upload cache e2e logs
-        if: failure()
+        if: failure() && steps.cache-e2e.outcome == 'failure'
         run: |
           cd dhis-2/dhis-test-e2e
           docker compose \
@@ -131,10 +123,20 @@ jobs:
             logs web > ~/cache_e2e_logs.txt
 
       - uses: actions/upload-artifact@v7
-        if: failure()
+        if: failure() && steps.cache-e2e.outcome == 'failure'
         with:
           name: "cache_e2e_tomcat_logs"
           path: "~/cache_e2e_logs.txt"
+
+      - name: Tear down cache e2e stack
+        if: always() && steps.cache-e2e.outcome != 'skipped'
+        run: |
+          cd dhis-2/dhis-test-e2e
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.e2e.yml \
+            -f docker-compose.e2e-cache.yml \
+            down --remove-orphans || true
 
   send-slack-message:
     runs-on: ubuntu-latest
@@ -143,7 +145,7 @@ jobs:
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 
-    needs: [api-test, cache-api-test]
+    needs: [api-test]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:

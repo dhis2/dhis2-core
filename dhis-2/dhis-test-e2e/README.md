@@ -33,8 +33,9 @@ cache.api.etag.enabled=on
 ```
 
 The e2e docker `dhis.conf` already sets that flag. The suite is tagged `cache` and is **excluded
-from the default e2e profile** (same pattern as analytics). CI runs it as the `cache-api-test` job
-in `.github/workflows/run-api-tests.yml`.
+from the default e2e profile** (same pattern as analytics). CI runs it as the
+**Run cache e2e tests** step of the `api-test` job in `.github/workflows/run-api-tests.yml`
+(same image build as the default e2e suite; `docker-compose.e2e-cache.yml` activates `-Pcache`).
 
 Run only the cache-tagged suite against a live instance:
 
