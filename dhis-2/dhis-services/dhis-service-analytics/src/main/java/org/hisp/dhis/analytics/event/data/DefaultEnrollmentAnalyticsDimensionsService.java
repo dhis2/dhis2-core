@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationTy
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
 import static org.hisp.dhis.common.PrefixedDimensions.ofProgramStageDataElements;
 
@@ -44,6 +45,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.DimensionsServiceCommon;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -77,11 +81,23 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                             program.getProgramIndicators().stream()
                                 .filter(pi -> aclService.canRead(currentUserDetails, pi))
                                 .collect(Collectors.toSet())),
-                        getProgramStageDataElements(QUERY, program),
+                        ofItemsWithProgram(program, getCategories(program)),
                         filterByValueType(
                             QUERY,
                             ofItemsWithProgram(
                                 program, getTeasIfRegistrationAndNotSkipped(program))))))
+        .orElse(List.of());
+  }
+
+  private boolean isTypeAttribute(CategoryOptionGroupSet categoryOptionGroupSet) {
+    return ATTRIBUTE == categoryOptionGroupSet.getDataDimensionType();
+  }
+
+  private List<Category> getCategories(Program program) {
+    return Optional.of(program)
+        .filter(Program::hasNonDefaultCategoryCombo)
+        .map(Program::getCategoryCombo)
+        .map(CategoryCombo::getCategories)
         .orElse(List.of());
   }
 

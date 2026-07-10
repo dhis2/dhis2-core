@@ -457,10 +457,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                 DimensionType.PROGRAM_STATUS));
 
     for (DimensionalObject dim : dynamicDimensions) {
-      // Skip attribute categories for enrollments
-      if (dim.getDimensionType() == DimensionType.CATEGORY && isAttributeCategory(dim)) {
-        continue;
-      }
       // PROGRAM_STATUS without items means group-by only — the column comes from the generic
       // dimension SELECT loop; there is no IN-list to filter on.
       DimensionType type = dim.getDimensionType();
