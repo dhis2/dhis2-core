@@ -90,21 +90,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
   /**
    * Reconstructs the persisted dimension state of an analytical object from its transient {@code
-   * columns}/{@code rows}/{@code filters} when the payload uses the analytics-app ("favorite")
-   * format.
-   *
-   * <p>The analytics apps serialize the analytical dimensions as the transient {@code
-   * columns}/{@code rows}/{@code filters} arrays and omit the persisted identifiers (e.g. {@code
-   * columnDimensions}/{@code filterDimensions}, organisation unit levels). Unlike the {@code
-   * MapController}, which decomposes those transient arrays before saving, the metadata import path
-   * historically did not - so importing such a payload silently dropped the {@code
-   * columns}/{@code rows}/{@code filters} on read-back. This mirrors {@code
-   * MapController.mergeMapView} so a Map imported through metadata import round-trips like one saved
-   * through the API.
-   *
-   * <p>Only applied to {@link MapView} for now, and only when the transient arrays are populated -
-   * the raw metadata format populates the persisted collections and identifiers directly and must
-   * be left untouched (guarding here also preserves that behaviour for the existing import tests).
+   * columns}/{@code rows}/{@code filters}
    */
   private void handleAnalyticalDimensions(BaseAnalyticalObject analyticalObject) {
     if (!(analyticalObject instanceof MapView mapView) || !hasAnalyticalDimensions(mapView)) {
@@ -117,8 +103,12 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     mapView.getColumnDimensions().clear();
     mapView.getFilterDimensions().clear();
 
-    mapView.getColumnDimensions().addAll(DimensionalObjectUtils.getDimensions(mapView.getColumns()));
-    mapView.getFilterDimensions().addAll(DimensionalObjectUtils.getDimensions(mapView.getFilters()));
+    mapView
+        .getColumnDimensions()
+        .addAll(DimensionalObjectUtils.getDimensions(mapView.getColumns()));
+    mapView
+        .getFilterDimensions()
+        .addAll(DimensionalObjectUtils.getDimensions(mapView.getFilters()));
   }
 
   private boolean hasAnalyticalDimensions(BaseAnalyticalObject analyticalObject) {
