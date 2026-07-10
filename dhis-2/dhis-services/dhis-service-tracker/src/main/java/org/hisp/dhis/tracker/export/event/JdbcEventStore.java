@@ -1030,12 +1030,16 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" (au.uid in (").append(":au_uid").append(")) ");
     }
 
+    // Filter on ev.assigneduserid rather than au.uid: au is LEFT JOINed on assigneduserid, so the
+    // two are equivalent, but "au.uid is null" makes the planner estimate the join output with
+    // userinfo.uid's null_frac (0) instead of event.assigneduserid's, collapsing the row estimate
+    // to 1 and flipping the plan to nested loops that rescan the full event set.
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is null) ");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is not null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is not null) ");
     }
 
     if (!params.isIncludeDeleted()) {
