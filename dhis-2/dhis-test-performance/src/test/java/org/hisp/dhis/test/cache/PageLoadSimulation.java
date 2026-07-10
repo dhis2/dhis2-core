@@ -54,9 +54,10 @@ import org.slf4j.LoggerFactory;
  * cache (200 responses); subsequent cycles benefit from ETag caching (304 responses). Gatling's
  * built-in HTTP cache stores ETags and sends {@code If-None-Match} automatically.
  *
- * <p><b>A/B comparison:</b> Run once with {@code cache.api.etag.enabled=on} (default) and once with
- * {@code off} in dhis.conf. Compare Gatling reports for: response times, 304 ratio, throughput.
- * Combine with {@code run-simulation.sh} for server-side metrics (SQL count, CPU, memory).
+ * <p><b>A/B comparison:</b> Run once with {@code cache.api.etag.enabled=on} and once with {@code
+ * off} in dhis.conf (see {@code scripts/etag-ab-benchmark.sh} or {@code scripts/etag-ab-live.sh}).
+ * Compare Gatling reports for: response times, 304 ratio, throughput. Combine with {@code
+ * run-simulation.sh} for server-side metrics (SQL count, CPU, memory).
  *
  * <p><b>Profiles:</b>
  *

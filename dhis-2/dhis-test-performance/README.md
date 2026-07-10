@@ -14,6 +14,14 @@ SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \
 
 Run `./run-simulation.sh` for full usage including profiling and database options.
 
+### ETag cache A/B (`PageLoadSimulation`)
+
+Protocol, dated numbers, and scripts:
+
+* [`BENCHMARKS-etag.md`](./BENCHMARKS-etag.md) — results + how to reproduce  
+* `scripts/etag-ab-benchmark.sh` — Docker ON vs OFF via `docker/dhis-etag-on.conf` / `dhis-etag-off.conf`  
+* `scripts/etag-ab-live.sh` — against an already-running instance (e.g. minibox)
+
 ## CI
 
 CI workflows use `./run-simulation.sh` the same way as local runs:
