@@ -114,12 +114,17 @@ public class LocalETagService implements ETagService, InitializingBean {
         || !configurationProvider.isEnabled(ConfigurationKey.MONITORING_CACHE_ETAG_ENABLED)) {
       return;
     }
-    Gauge.builder(ETAG_ENTITY_VERSIONS_SIZE, entityTypeVersions, ConcurrentHashMap::size)
-        .description("Number of entity-type version keys in LocalETagService")
-        .register(meterRegistry);
-    Gauge.builder(ETAG_NAMED_VERSIONS_SIZE, namedVersions, ConcurrentHashMap::size)
-        .description("Number of named version keys in LocalETagService")
-        .register(meterRegistry);
+    // Idempotent: Spring should call afterPropertiesSet once, but re-entry must not throw.
+    if (meterRegistry.find(ETAG_ENTITY_VERSIONS_SIZE).gauge() == null) {
+      Gauge.builder(ETAG_ENTITY_VERSIONS_SIZE, entityTypeVersions, ConcurrentHashMap::size)
+          .description("Number of entity-type version keys in LocalETagService")
+          .register(meterRegistry);
+    }
+    if (meterRegistry.find(ETAG_NAMED_VERSIONS_SIZE).gauge() == null) {
+      Gauge.builder(ETAG_NAMED_VERSIONS_SIZE, namedVersions, ConcurrentHashMap::size)
+          .description("Number of named version keys in LocalETagService")
+          .register(meterRegistry);
+    }
   }
 
   @Override

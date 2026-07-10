@@ -204,11 +204,6 @@ public class DmlObserverListener
     return total;
   }
 
-  /** Number of pending connection batches (for tests). */
-  int pendingBatchCount() {
-    return pendingBatches.size();
-  }
-
   @Override
   public void beforeQuery(ExecutionInfo execInfo, List<QueryInfo> queryInfoList) {
     // No-op
