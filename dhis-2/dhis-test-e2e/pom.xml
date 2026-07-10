@@ -296,7 +296,7 @@
   </build>
 
   <profiles>
-    <!-- Default profile will run all e2e tests except the analytics ones -->
+    <!-- Default profile runs general e2e tests. analytics and cache have dedicated CI jobs. -->
     <profile>
       <id>default</id>
       <activation>
@@ -308,7 +308,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <excludedGroups>analytics</excludedGroups>
+              <excludedGroups>analytics,cache</excludedGroups>
             </configuration>
           </plugin>
         </plugins>

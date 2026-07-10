@@ -32,7 +32,11 @@ test must run with:
 cache.api.etag.enabled=on
 ```
 
-Run only the cache-tagged suite:
+The e2e docker `dhis.conf` already sets that flag. The suite is tagged `cache` and is **excluded
+from the default e2e profile** (same pattern as analytics). CI runs it as the `cache-api-test` job
+in `.github/workflows/run-api-tests.yml`.
+
+Run only the cache-tagged suite against a live instance:
 
 ```sh
 mvn -Pcache test \
@@ -41,6 +45,16 @@ mvn -Pcache test \
     -Duser.default.username=admin \
     -Duser.default.password=district \
     -Dtest.track_called_endpoints=true
+```
+
+Or via docker compose (same path CI uses; requires `DHIS2_IMAGE` pointing at a built core image):
+
+```sh
+DHIS2_IMAGE=dhis2/core-dev:local docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.e2e.yml \
+  -f docker-compose.e2e-cache.yml \
+  up --remove-orphans --exit-code-from test
 ```
 
 For fast ad hoc debugging against a running local server, use the smoke script:
