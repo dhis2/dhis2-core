@@ -403,12 +403,29 @@ class SelectBuilderTest {
     }
 
     @Test
+    @DisplayName("should build query without LIMIT")
+    void shouldBuildQueryWithoutLimit() {
+      String sql = new SelectBuilder().addColumn("name").from("users", "u").limit(0).build();
+
+      assertEquals("select name from users as u", sql);
+    }
+
+    @Test
     @DisplayName("should build query with LIMIT and OFFSET")
     void shouldBuildQueryWithLimitAndOffset() {
       String sql =
           new SelectBuilder().addColumn("name").from("users", "u").limit(10).offset(20).build();
 
       assertEquals("select name from users as u limit 10 offset 20", sql);
+    }
+
+    @Test
+    @DisplayName("should build query without LIMIT and OFFSET")
+    void shouldBuildQueryWithoutLimitAndOffset() {
+      String sql =
+          new SelectBuilder().addColumn("name").from("users", "u").limit(0).offset(20).build();
+
+      assertEquals("select name from users as u offset 20", sql);
     }
 
     @Test
@@ -421,12 +438,29 @@ class SelectBuilderTest {
     }
 
     @Test
+    @DisplayName("should build query without LIMIT plus one")
+    void shouldBuildQueryWithoutLimitPlusOne() {
+      String sql = new SelectBuilder().addColumn("name").from("users", "u").limitPlusOne(0).build();
+
+      assertEquals("select name from users as u", sql);
+    }
+
+    @Test
     @DisplayName("should build query with max LIMIT")
     void shouldBuildQueryWithMaxLimit() {
       String sql =
           new SelectBuilder().addColumn("name").from("users", "u").limitWithMax(100, 50).build();
 
       assertEquals("select name from users as u limit 50", sql);
+    }
+
+    @Test
+    @DisplayName("should build query without max LIMIT")
+    void shouldBuildQueryWithoutMaxLimit() {
+      String sql =
+          new SelectBuilder().addColumn("name").from("users", "u").limitWithMax(100, 0).build();
+
+      assertEquals("select name from users as u", sql);
     }
   }
 
