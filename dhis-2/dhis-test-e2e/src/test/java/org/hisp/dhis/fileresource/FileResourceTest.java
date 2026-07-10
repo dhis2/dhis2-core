@@ -82,15 +82,14 @@ class FileResourceTest extends ApiTest {
     documentApi
         .post(
             """
-          {
-            "id":"docUid000x1",
-            "name": "doc1",
-            "type": "UPLOAD_FILE",
-            "attachment": false,
-            "external": false,
-            "url": "%s"
-          }
-          """
+              {
+                "id":"docUid000x1",
+                "name": "doc1",
+                "type": "UPLOAD_FILE",
+                "attachment": false,
+                "url": "%s"
+              }
+              """
                 .formatted(frUid))
         .validate()
         .statusCode(201);

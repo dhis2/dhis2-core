@@ -39,11 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -52,6 +54,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -66,6 +69,8 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private EnrollmentService enrollmentService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private User importUser;
 
@@ -117,6 +122,20 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
         enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUid());
 
     assertEnrollmentCompletedData(enrollment);
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForTrackedEntity() throws IOException {
+    testSetup.importTrackerData();
+    TrackedEntity te = manager.get(TrackedEntity.class, "QS6w44flWAf");
+    assertEquals(importUser.getUsername(), te.getStoredBy());
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForEnrollment() throws IOException {
+    testSetup.importTrackerData();
+    Enrollment enrollment = manager.get(Enrollment.class, "TvctPPhpD8z");
+    assertEquals(importUser.getUsername(), enrollment.getStoredBy());
   }
 
   public Stream<Arguments> statuses() {

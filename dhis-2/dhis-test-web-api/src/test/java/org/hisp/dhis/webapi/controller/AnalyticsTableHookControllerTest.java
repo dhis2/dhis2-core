@@ -53,6 +53,21 @@ class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void canUpdateHookNameWithoutDuplicateError() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/analyticsTableHooks/",
+                "{'name':'OriginalName', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=1'}"));
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/analyticsTableHooks/" + uid,
+            "{'name':'NewName', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=1'}"));
+  }
+
+  @Test
   void cannotImportDuplicateTableHook() {
 
     assertStatus(

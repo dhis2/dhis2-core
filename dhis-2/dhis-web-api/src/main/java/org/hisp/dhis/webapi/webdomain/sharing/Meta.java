@@ -45,5 +45,4 @@ import org.hisp.dhis.common.OpenApi;
 public class Meta {
 
   @JsonProperty private boolean allowPublicAccess;
-  @JsonProperty private boolean allowExternalAccess;
 }

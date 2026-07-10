@@ -71,8 +71,6 @@ public class Event implements TrackerDto, Serializable {
 
   @JsonProperty private Instant scheduledAt;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private Instant createdAtClient;
 
   @JsonProperty private Instant updatedAtClient;

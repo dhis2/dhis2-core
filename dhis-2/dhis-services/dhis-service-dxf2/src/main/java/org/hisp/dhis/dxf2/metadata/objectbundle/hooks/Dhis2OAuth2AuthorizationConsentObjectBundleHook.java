@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.Map;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import java.util.function.Consumer;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Kristian Wærstad <kristian@dhis2.org>
+ * Reject any attempt to create or update {@link Dhis2OAuth2AuthorizationConsent} via the metadata
+ * import pipeline. Consents record which scopes a principal granted to a registered client and are
+ * written exclusively by Spring Authorization Server through {@code
+ * Dhis2OAuth2AuthorizationConsentServiceImpl.save(OAuth2AuthorizationConsent)}. Allowing {@code
+ * /api/metadata} to POST arbitrary consent rows would let an admin fabricate scope grants on behalf
+ * of any principal, bypassing the user-facing consent screen.
+ *
+ * <p>The read-only {@code OAuth2AuthorizationConsentController} still exposes GET, and Spring AS
+ * keeps its own persistence path. This hook only closes the metadata-import write path.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class ExternalFileResourceDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(ExternalFileResource.class);
+public class Dhis2OAuth2AuthorizationConsentObjectBundleHook
+    extends AbstractObjectBundleHook<Dhis2OAuth2AuthorizationConsent> {
 
   @Override
-  protected void register() {
-    whenVetoing(FileResource.class, this::allowDeleteFileResource);
-    whenDeleting(FileResource.class, this::deleteFileResource);
-  }
-
-  private DeletionVeto allowDeleteFileResource(FileResource fileResource) {
-    if (fileResource.getStorageStatus() != FileResourceStorageStatus.STORED) {
-      return ACCEPT;
-    }
-    String sql = "select 1 from externalfileresource where fileresourceid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", fileResource.getId()));
-  }
-
-  private void deleteFileResource(FileResource fileResource) {
-    delete(
-        "delete from externalfileresource where fileresourceid=:id",
-        Map.of("id", fileResource.getId()));
+  public void validate(
+      Dhis2OAuth2AuthorizationConsent object,
+      ObjectBundle bundle,
+      Consumer<ErrorReport> addReports) {
+    addReports.accept(
+        new ErrorReport(
+            Dhis2OAuth2AuthorizationConsent.class,
+            ErrorCode.E6023,
+            Dhis2OAuth2AuthorizationConsent.class.getSimpleName()));
   }
 }

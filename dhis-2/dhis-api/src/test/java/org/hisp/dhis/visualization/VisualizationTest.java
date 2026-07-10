@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.visualization;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.CodeGenerator;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Stian Sandvold
- */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.fileresource.ExternalFileResourceService")
-public class DefaultExternalFileResourceService implements ExternalFileResourceService {
-  private final ExternalFileResourceStore externalFileResourceStore;
+import java.util.Map;
+import org.hisp.dhis.common.MetadataItem;
+import org.junit.jupiter.api.Test;
 
-  @Override
-  @Transactional(readOnly = true)
-  public ExternalFileResource getExternalFileResourceByAccessToken(String accessToken) {
-    return externalFileResourceStore.getExternalFileResourceByAccessToken(accessToken);
+class VisualizationTest {
+
+  @Test
+  void extractDimensionNameHappyFlow() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem("itemName1"));
+
+    String value = Visualization.extractDimensionName(metaData, "uid1");
+
+    assertEquals("itemName1", value);
   }
 
-  @Override
-  @Transactional
-  public String saveExternalFileResource(ExternalFileResource externalFileResource) {
-    Assert.notNull(externalFileResource, "External file resource cannot be null");
-    Assert.notNull(
-        externalFileResource.getFileResource(), "External file resource entity cannot be null");
+  @Test
+  void extractDimensionWhenNameIsBlank() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem(" "));
 
-    externalFileResource.setAccessToken(CodeGenerator.getRandomSecureToken());
+    String value = Visualization.extractDimensionName(metaData, "uid1");
 
-    externalFileResourceStore.save(externalFileResource);
+    assertEquals("uid1", value);
+  }
 
-    return externalFileResource.getAccessToken();
+  @Test
+  void extractDimensionWhenNameIsNull() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem(null));
+
+    String value = Visualization.extractDimensionName(metaData, "uid1");
+
+    assertEquals("uid1", value);
   }
 }

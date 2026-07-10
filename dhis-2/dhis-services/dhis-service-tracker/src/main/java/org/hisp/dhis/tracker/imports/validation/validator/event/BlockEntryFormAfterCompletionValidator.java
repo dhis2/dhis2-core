@@ -27,36 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource.hibernate;
+package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import jakarta.persistence.EntityManager;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.fileresource.ExternalFileResourceStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1326;
+
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.Validator;
 
 /**
- * @author Stian Sandvold
+ * Rejects updates to a completed event when its {@link ProgramStage} has {@code blockEntryForm}
+ * enabled. With that setting on, the entry form is locked once the event is completed, so the event
+ * must be reopened (its status changed away from {@link EventStatus#COMPLETED}) before it can be
+ * modified.
  */
-@Repository("org.hisp.dhis.fileresource.ExternalFileResourceStore")
-public class HibernateExternalFileResourceStore
-    extends HibernateIdentifiableObjectStore<ExternalFileResource>
-    implements ExternalFileResourceStore {
-  public HibernateExternalFileResourceStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, ExternalFileResource.class, aclService, false);
+class BlockEntryFormAfterCompletionValidator implements Validator<Event> {
+
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    TrackerPreheat preheat = bundle.getPreheat();
+
+    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
+
+    if (Boolean.TRUE.equals(programStage.getBlockEntryForm())
+        && EventStatus.COMPLETED == event.getStatus()
+        && EventStatus.COMPLETED == preheat.getEvent(event.getUid()).getStatus()) {
+      reporter.addError(event, E1326, event.getEvent());
+    }
   }
 
   @Override
-  public ExternalFileResource getExternalFileResourceByAccessToken(String accessToken) {
-    return getQuery("from ExternalFileResource where accessToken = :accessToken")
-        .setParameter("accessToken", accessToken)
-        .uniqueResult();
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == TrackerImportStrategy.UPDATE;
   }
 }

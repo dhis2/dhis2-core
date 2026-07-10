@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.config;
+package org.hisp.dhis.analytics.data.handler;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import static org.hisp.dhis.common.IdScheme.ID;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Condition that matches to true if redis.enabled property is set to true in dhis.conf.
- *
- * @author Ameen Mohamed
- */
-public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (!isTestRun(context)) {
-      return getConfiguration().isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED);
-    }
-    return false;
-  }
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
+import org.junit.jupiter.api.Test;
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.REGISTER_BEAN;
+class MetadataHandlerTest {
+
+  @Test
+  void schemeSettingsReturnsUIDWhenID() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withOutputIdScheme(ID)
+            .withOutputDataElementIdScheme(ID)
+            .withOutputDataItemIdScheme(ID)
+            .withOutputOrgUnitIdScheme(ID)
+            .build();
+
+    Settings settings = new MetadataHandler(null, null, null).schemeSettings(params);
+
+    assertTrue(params.hasCustomIdSchemeSet());
+    assertEquals(UID, settings.getOutputIdScheme());
+    assertEquals(UID, settings.getOutputDataElementIdScheme());
+    assertEquals(UID, settings.getOutputDataItemIdScheme());
+    assertEquals(UID, settings.getOutputOrgUnitIdScheme());
   }
 }

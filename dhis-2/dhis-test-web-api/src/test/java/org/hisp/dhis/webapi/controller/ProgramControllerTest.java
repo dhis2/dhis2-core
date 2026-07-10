@@ -371,23 +371,29 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testDeleteWithMapView() {
-    String mapViewJson =
+
+    String mapJson =
         """
         {
-          "name": "test mapview",
-          "id": "mVIVRd23Jm9",
-          "organisationUnitLevels": [],
-          "maps": [],
-          "layer": "event",
-          "program": {
-            "id": "PrZMWi7rBga"
-          },
-          "programStage": {
-            "id": "PSzMWi7rBga"
-          }
+          "name": "test map",
+          "id": "mAPVRd23Jm9",
+          "mapViews": [
+            {
+              "name": "test mapview",
+              "id": "mVIVRd23Jm9",
+              "organisationUnitLevels": [],
+              "layer": "event",
+              "program": {
+                "id": "PrZMWi7rBga"
+              },
+              "programStage": {
+                "id": "PSzMWi7rBga"
+              }
+            }
+          ]
         }
         """;
-    POST("/mapViews", mapViewJson).content(HttpStatus.CREATED);
+    POST("/maps", mapJson).content(HttpStatus.CREATED);
 
     assertStatus(HttpStatus.OK, DELETE("/programs/%s".formatted(PROGRAM_UID)));
     assertStatus(HttpStatus.NOT_FOUND, GET("/programs/%s".formatted(PROGRAM_UID)));

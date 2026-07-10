@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.webapi.security.config;
 
-public class Constants {
-  public static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
+import org.springframework.security.oauth2.core.OAuth2Token;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
-  public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+/**
+ * Custom validator for JWT claims.
+ *
+ * <p>Placeholder for custom claim validation logic to come.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Service
+public final class CustomClaimValidator<T extends OAuth2Token>
+    implements OAuth2TokenValidator<Jwt> {
 
-  public static final int RANDOM_GENERATION_CHUNK = 10;
+  @Override
+  public OAuth2TokenValidatorResult validate(Jwt token) {
+    Assert.notNull(token, "token cannot be null");
+    return OAuth2TokenValidatorResult.success();
+  }
 }

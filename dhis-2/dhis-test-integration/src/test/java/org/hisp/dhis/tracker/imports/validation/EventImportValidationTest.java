@@ -40,7 +40,6 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -53,6 +52,7 @@ import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -259,6 +259,22 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldBlockUpdateOfCompletedEventWhenBlockEntryFormIsTrue() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/single_active_event.json");
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertNoErrors(importReport);
+
+    trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
+    importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertNoErrors(importReport);
+
+    importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertHasOnlyErrors(importReport, ValidationCode.E1326);
+  }
+
+  @Test
   void testCategoryOptionComboNotFound() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
@@ -359,7 +375,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
               Note note = getByNote(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
-              assertNull(note.getCreator());
+              assertEquals(importUser.getUsername(), note.getCreator());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
             });
   }
@@ -382,7 +398,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
               Note note = getByNote(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
-              assertNull(note.getCreator());
+              assertEquals(importUser.getUsername(), note.getCreator());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
             });
   }

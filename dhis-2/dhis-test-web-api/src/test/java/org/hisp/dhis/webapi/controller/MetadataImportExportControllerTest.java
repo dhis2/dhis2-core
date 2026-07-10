@@ -592,7 +592,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             [{"op":"add", "path":"/sharing",
             "value":{"owner": "GOLswS44mh8",
               "public": "rw------",
-              "external": false,
               "users": {"%s": {"id": "%s", "access": "rw------"}}}}]"""
                 .formatted(userA.getUid(), userA.getUid()))
         .content(HttpStatus.OK);
@@ -883,6 +882,27 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .map(JsonIdentifiableObject::getId)
             .toList()
             .contains("IndUid000x1"));
+  }
+
+  @Test
+  void testSaveNotificationTemplateWithDeliveryChannels() {
+    POST("/metadata", Path.of("program/program_notification_template.json")).content(HttpStatus.OK);
+    JsonObject template =
+        GET("/programNotificationTemplates/uivYkvFEOss")
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
+    assertNotNull(template);
+    assertEquals(1, template.getArray("deliveryChannels").size());
+
+    // Update the template with an additional delivery channel
+    POST("/metadata", Path.of("program/program_notification_template_update.json"))
+        .content(HttpStatus.OK);
+    template =
+        GET("/programNotificationTemplates/uivYkvFEOss")
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
+    assertNotNull(template);
+    assertEquals(2, template.getArray("deliveryChannels").size());
   }
 
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
-
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+package org.hisp.dhis.security.oauth2;
 
 /**
- * @author Stian Sandvold
+ * Shared constants for the DHIS2 OAuth2 authorization server integration.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ExternalFileResourceSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "externalFileResource";
+public final class OAuth2Constants {
 
-  public static final String PLURAL = "externalFileResources";
+  private OAuth2Constants() {}
 
-  public static final String API_ENDPOINT = "/" + PLURAL;
+  /**
+   * Reserved clientId for the bootstrap client that the DCR flow uses to mint initial access tokens
+   * for new device registrations. Created and managed by {@code OAuth2DcrService.init()}; the
+   * REST/metadata pipelines must never allow an end user to create or rename a client to this
+   * value.
+   */
+  public static final String SYSTEM_REGISTRAR_CLIENTID = "system-dcr-registrar-client";
 
-  @Override
-  public Schema getSchema() {
-    Schema schema = new Schema(ExternalFileResource.class, SINGULAR, PLURAL);
-    schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(1000);
-
-    return schema;
-  }
+  /**
+   * Max length of the persisted {@code oauth2_client.name} column; kept in sync with the HBM
+   * mapping.
+   */
+  public static final int CLIENT_NAME_MAX_LENGTH = 230;
 }

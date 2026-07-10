@@ -833,4 +833,30 @@ public non-sealed interface SystemSettings extends Settings {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
   }
+
+  /**
+   * @since 2.42
+   * @return a set of redirect urls that are allowed in device client enrollment and registration,
+   *     delimited by comma. Defaults to the DHIS2 Android app's custom-scheme redirect URI.
+   */
+  default String getDeviceEnrollmentRedirectAllowlist() {
+    return asString("deviceEnrollmentRedirectAllowlist", "dhis2oauth://oauth");
+  }
+
+  /**
+   * @since 2.42
+   * @return a set of user groups (by name) that are allowed to enroll devices, delimited by comma.
+   *     Default is empty string which means all users can enroll devices.
+   */
+  default String getDeviceEnrollmentAllowedUserGroups() {
+    return asString("deviceEnrollmentAllowedUserGroups", "");
+  }
+
+  /**
+   * @since 2.42
+   * @return the time to live in seconds for the device enrollment IAT (issued at) claim.
+   */
+  default int getDeviceEnrollmentIATTtlSeconds() {
+    return asInt("deviceEnrollmentIATTtlSeconds", 60);
+  }
 }

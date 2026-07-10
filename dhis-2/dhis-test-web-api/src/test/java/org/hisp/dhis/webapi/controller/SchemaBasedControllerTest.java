@@ -76,7 +76,6 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
       Set.of(
           "categoryOptionCombo", // can't POST/create a new COC, should use /metadata. PUT & PATCH
           // also have custom impl
-          "externalFileResource", // can't POST files
           "identifiableObject", // depends on files
           "dashboard", // uses JSONB functions (improve test setup)
           "pushanalysis", // uses dashboards (see above)
@@ -90,6 +89,7 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
           "jobConfiguration", // API requires configurable=true
           "messageConversation", // needs recipients (not a required field)
           "programRuleAction", // needs DataElement and TrackedEntityAttribute
+          "programRuleVariable", // needs DataElement and TrackedEntityAttribute
           "validationRule", // generator insufficient (embedded fields)
           "programStage", // body request does not include mandatory field programId
           "programStageWorkingList", // same reason as programStage

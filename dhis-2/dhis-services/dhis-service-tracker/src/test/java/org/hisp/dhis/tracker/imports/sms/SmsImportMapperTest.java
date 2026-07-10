@@ -79,7 +79,7 @@ class SmsImportMapperTest extends TestBase {
     input.setEnrollment(CodeGenerator.generateUid());
     input.setEnrollmentStatus(SmsEnrollmentStatus.COMPLETED);
 
-    TrackerObjects actual = map(input, program(), null, "francis");
+    TrackerObjects actual = map(input, program(), null);
 
     TrackerObjects expected =
         TrackerObjects.builder()
@@ -116,7 +116,7 @@ class SmsImportMapperTest extends TestBase {
     // non-program attribute values are mapped onto the tracked entity
     input.setValues(List.of(new SmsAttributeValue("fN8skWVI8JS", "soap")));
 
-    TrackerObjects actual = map(input, program("YjToz9y10ZZ"), null, "francis");
+    TrackerObjects actual = map(input, program("YjToz9y10ZZ"), null);
 
     TrackerObjects expected =
         TrackerObjects.builder()
@@ -163,7 +163,7 @@ class SmsImportMapperTest extends TestBase {
     input.setIncidentDate(occurredDate);
     input.setCoordinates(new GeoPoint(48.8575f, 2.3514f));
 
-    TrackerObjects actual = map(input, program(), null, "francis");
+    TrackerObjects actual = map(input, program(), null);
 
     List<Enrollment> expected =
         List.of(
@@ -202,7 +202,7 @@ class SmsImportMapperTest extends TestBase {
         List.of(new SmsDataValue(CodeGenerator.generateUid(), "oHvZHthw9Y0", "hello")));
     input.setEvents(List.of(smsEvent));
 
-    TrackerObjects actual = map(input, program(), null, "francis");
+    TrackerObjects actual = map(input, program(), null);
 
     List<Event> expected =
         List.of(
@@ -213,13 +213,11 @@ class SmsImportMapperTest extends TestBase {
                 .attributeOptionCombo(
                     MetadataIdentifier.ofUid(smsEvent.getAttributeOptionCombo().getUid()))
                 .status(EventStatus.SCHEDULE)
-                .storedBy("francis")
                 .dataValues(
                     Set.of(
                         DataValue.builder()
                             .dataElement(MetadataIdentifier.ofUid("oHvZHthw9Y0"))
                             .value("hello")
-                            .storedBy("francis")
                             .build()))
                 .enrollment(UID.of(input.getEnrollment().getUid()))
                 .build());
@@ -253,7 +251,7 @@ class SmsImportMapperTest extends TestBase {
             new SmsAttributeValue("cCR4QVathUM", "twoWasUpdated"),
             new SmsAttributeValue("zjOPAEZyQxu", "threeWasAdded")));
 
-    TrackerObjects actual = map(input, program("YjToz9y10ZZ"), trackedEntity, "francis");
+    TrackerObjects actual = map(input, program("YjToz9y10ZZ"), trackedEntity);
 
     List<Attribute> expected =
         List.of(
@@ -339,7 +337,7 @@ class SmsImportMapperTest extends TestBase {
     input.setAttributeOptionCombo(CodeGenerator.generateUid());
     input.setEventStatus(SmsEventStatus.COMPLETED);
 
-    TrackerObjects actual = map(input, "francis");
+    TrackerObjects actual = map(input);
 
     Event expected =
         Event.builder()
@@ -350,7 +348,6 @@ class SmsImportMapperTest extends TestBase {
             .attributeOptionCombo(
                 MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
             .status(EventStatus.COMPLETED)
-            .storedBy("francis")
             .build();
     assertContainsOnly(List.of(expected), actual.getEvents());
   }
@@ -373,7 +370,7 @@ class SmsImportMapperTest extends TestBase {
     // that is necessary though.
     input.setValues(List.of(new SmsDataValue(CodeGenerator.generateUid(), "oHvZHthw9Y0", "hello")));
 
-    TrackerObjects actual = map(input, "francis");
+    TrackerObjects actual = map(input);
 
     Event expected =
         Event.builder()
@@ -384,7 +381,6 @@ class SmsImportMapperTest extends TestBase {
             .attributeOptionCombo(
                 MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
             .status(EventStatus.ACTIVE)
-            .storedBy("francis")
             .occurredAt(occurredDate.toInstant())
             .scheduledAt(scheduledDate.toInstant())
             .geometry(new GeometryFactory().createPoint(new Coordinate(2.3514f, 48.8575f)))
@@ -393,7 +389,6 @@ class SmsImportMapperTest extends TestBase {
                     DataValue.builder()
                         .dataElement(MetadataIdentifier.ofUid("oHvZHthw9Y0"))
                         .value("hello")
-                        .storedBy("francis")
                         .build()))
             .build();
     assertContainsOnly(List.of(expected), actual.getEvents());

@@ -32,7 +32,6 @@ package org.hisp.dhis.reservedvalue;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -47,11 +46,7 @@ public interface ReservedValueService {
       Date expires)
       throws ReserveValueException, TextPatternGenerationException;
 
-  boolean useReservedValue(TextPattern textPattern, String value);
-
-  boolean isReserved(TextPattern textPattern, String value);
-
   void deleteReservedValueByUid(String uid);
 
-  void removeUsedOrExpiredReservations();
+  int removeUsedOrExpiredReservations();
 }

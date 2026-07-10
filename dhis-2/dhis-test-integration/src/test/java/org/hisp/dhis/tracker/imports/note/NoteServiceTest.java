@@ -188,6 +188,30 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
         NotFoundException.class, () -> noteService.addNoteForEvent(note, UID.of("pTzf9KYMk72")));
   }
 
+  @Test
+  void shouldSetCreatorToAuthenticatedUserForEnrollmentNote() throws NotFoundException {
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of("TvctPPhpD8z"));
+    org.hisp.dhis.note.Note note =
+        enrollment.getNotes().stream()
+            .filter(n -> "f9423652692".equals(n.getUid()))
+            .findFirst()
+            .orElseThrow();
+
+    assertEquals(userDetails.getUsername(), note.getCreator());
+  }
+
+  @Test
+  void shouldSetCreatorToAuthenticatedUserForEventNote() throws NotFoundException {
+    Event event = eventService.getEvent(UID.of("pTzf9KYMk72"));
+    org.hisp.dhis.note.Note note =
+        event.getNotes().stream()
+            .filter(n -> "SGuCABkhpgn".equals(n.getUid()))
+            .findFirst()
+            .orElseThrow();
+
+    assertEquals(userDetails.getUsername(), note.getCreator());
+  }
+
   private void assertNotes(
       List<Note> notes, List<org.hisp.dhis.note.Note> dbNotes, UserDetails updatedBy) {
     for (Note note : notes) {
@@ -198,16 +222,12 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
               .orElse(null);
       assertNotNull(dbNote);
       assertEquals(note.getValue(), dbNote.getNoteText());
-      assertEquals(note.getStoredBy(), dbNote.getCreator());
+      assertEquals(updatedBy.getUsername(), dbNote.getCreator());
       assertEquals(updatedBy.getUid(), dbNote.getLastUpdatedBy().getUid());
     }
   }
 
   private Note note() {
-    return Note.builder()
-        .note(UID.generate())
-        .storedBy("This is the creator")
-        .value("This is a note")
-        .build();
+    return Note.builder().note(UID.generate()).value("This is a note").build();
   }
 }

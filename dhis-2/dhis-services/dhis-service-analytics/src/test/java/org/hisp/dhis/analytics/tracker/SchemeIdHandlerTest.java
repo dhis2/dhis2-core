@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.analytics.tracker;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import static org.hisp.dhis.analytics.event.EventQueryParams.fromDataQueryParams;
+import static org.hisp.dhis.common.IdScheme.ID;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * @author Stian Sandvold
- */
-public interface ExternalFileResourceStore extends IdentifiableObjectStore<ExternalFileResource> {
-  /**
-   * Returns a single ExternalFileResource with the given (unique) accessToken.
-   *
-   * @param accessToken unique string belonging to a single ExternalFileResource.
-   * @return ExternalFileResource
-   */
-  ExternalFileResource getExternalFileResourceByAccessToken(String accessToken);
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.junit.jupiter.api.Test;
+
+class SchemeIdHandlerTest {
+
+  @Test
+  void schemeSettingsReturnsUIDWhenID() {
+    EventQueryParams params =
+        fromDataQueryParams(DataQueryParams.newBuilder().withOutputIdScheme(ID).build());
+
+    Settings settings = new SchemeIdHandler(null).schemeSettings(params);
+
+    assertEquals(UID, settings.getOutputIdScheme());
+  }
 }

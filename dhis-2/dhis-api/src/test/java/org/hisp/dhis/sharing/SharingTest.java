@@ -32,7 +32,6 @@ package org.hisp.dhis.sharing;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -86,13 +85,6 @@ class SharingTest {
     Sharing original = new Sharing();
     original.setOwner("userid");
     assertEquals("userid", original.withAccess(Sharing::copyMetadataToData).getOwner());
-  }
-
-  @Test
-  void withAccessKeepsExternal() {
-    Sharing original = new Sharing();
-    original.setExternal(true);
-    assertTrue(original.withAccess(Sharing::copyMetadataToData).isExternal());
   }
 
   @Test
