@@ -82,6 +82,22 @@ public final class DmlETagMetrics {
   public static final String ETAG_CACHE_ENDPOINT_TYPE = "dhis2_etag_cache_endpoint_type_total";
 
   // ---------------------------------------------------------------------------
+  // Memory / cardinality gauges (LocalETagService, DmlObserverListener)
+  // ---------------------------------------------------------------------------
+
+  /** Number of entity-type version keys currently held in {@code LocalETagService}. */
+  public static final String ETAG_ENTITY_VERSIONS_SIZE = "dhis2_etag_entity_versions_size";
+
+  /** Number of named version keys currently held in {@code LocalETagService}. */
+  public static final String ETAG_NAMED_VERSIONS_SIZE = "dhis2_etag_named_versions_size";
+
+  /** Number of in-flight DML pending batches (keyed by connection). */
+  public static final String DML_OBSERVER_PENDING_BATCHES = "dhis2_dml_observer_pending_batches";
+
+  /** Total DmlEvent instances held across all pending batches. */
+  public static final String DML_OBSERVER_PENDING_EVENTS = "dhis2_dml_observer_pending_events_total";
+
+  // ---------------------------------------------------------------------------
   // Tag keys
   // ---------------------------------------------------------------------------
 

@@ -71,6 +71,10 @@
       <artifactId>hibernate-core-jakarta</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
     </dependency>

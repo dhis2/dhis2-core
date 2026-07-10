@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,6 +29,12 @@
  */
 package org.hisp.dhis.cacheinvalidation.etag;
 
+import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_ENTITY_VERSIONS_SIZE;
+import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_NAMED_VERSIONS_SIZE;
+
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nonnull;
@@ -44,8 +50,11 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 /**
- * In-memory implementation of {@link ETagService} backed by a ConcurrentHashMap. Process-local
- * only; not registered when DHIS2 clustering is enabled (see {@link ApiETagCacheActivation}).
+ * In-memory implementation of {@link ETagService} backed by ConcurrentHashMaps. Process-local only;
+ * not registered when DHIS2 clustering is enabled (see {@link ApiETagCacheActivation}).
+ *
+ * <p>Memory is bounded by design: one {@link AtomicLong} per observed entity type name and per
+ * registered named key (apps, static content, …), not per row or per request.
  *
  * @author Morten Svanæs
  */
@@ -54,17 +63,24 @@ import org.springframework.stereotype.Service;
 @Conditional(value = ApiCacheEnabledCondition.class)
 public class LocalETagService implements ETagService, InitializingBean {
 
-  /** Entity type versions — bounded by the number of Hibernate-mapped entity classes (~200). */
+  /** Entity type versions — keys are FQCNs; bounded by mapped/observed entity types. */
   private final ConcurrentHashMap<String, AtomicLong> entityTypeVersions =
       new ConcurrentHashMap<>();
+
+  /** Named versions — keys like {@code installedApps}; small fixed set of named endpoints. */
+  private final ConcurrentHashMap<String, AtomicLong> namedVersions = new ConcurrentHashMap<>();
 
   private final AtomicLong allCacheVersion = new AtomicLong(0);
 
   @Autowired private DhisConfigurationProvider configurationProvider;
 
+  @Autowired(required = false)
+  private MeterRegistry meterRegistry;
+
   @Override
   public void afterPropertiesSet() {
     validateTtlMinutes();
+    registerMemoryGauges();
   }
 
   private void validateTtlMinutes() {
@@ -90,6 +106,19 @@ public class LocalETagService implements ETagService, InitializingBean {
               + " for key "
               + ConfigurationKey.CACHE_API_ETAG_TTL_MINUTES.getKey());
     }
+  }
+
+  private void registerMemoryGauges() {
+    if (meterRegistry == null
+        || !configurationProvider.isEnabled(ConfigurationKey.MONITORING_CACHE_ETAG_ENABLED)) {
+      return;
+    }
+    Gauge.builder(ETAG_ENTITY_VERSIONS_SIZE, entityTypeVersions, ConcurrentHashMap::size)
+        .description("Number of entity-type version keys in LocalETagService")
+        .register(meterRegistry);
+    Gauge.builder(ETAG_NAMED_VERSIONS_SIZE, namedVersions, ConcurrentHashMap::size)
+        .description("Number of named version keys in LocalETagService")
+        .register(meterRegistry);
   }
 
   @Override
@@ -119,14 +148,13 @@ public class LocalETagService implements ETagService, InitializingBean {
 
   @Override
   public long getNamedVersion(@Nonnull String key) {
-    AtomicLong version = entityTypeVersions.get(key);
+    AtomicLong version = namedVersions.get(key);
     return version != null ? version.get() : 0L;
   }
 
   @Override
   public long incrementNamedVersion(@Nonnull String key) {
-    long newVersion =
-        entityTypeVersions.computeIfAbsent(key, k -> new AtomicLong(0)).incrementAndGet();
+    long newVersion = namedVersions.computeIfAbsent(key, k -> new AtomicLong(0)).incrementAndGet();
     log.debug("Incremented named version for {} to {}", key, newVersion);
     return newVersion;
   }
@@ -150,5 +178,25 @@ public class LocalETagService implements ETagService, InitializingBean {
         configurationProvider.getPropertyOrDefault(
             ConfigurationKey.CACHE_API_ETAG_STALE_SECONDS,
             ConfigurationKey.CACHE_API_ETAG_STALE_SECONDS.getDefaultValue()));
+  }
+
+  /** Package-private for unit tests / cardinality checks. */
+  int entityTypeVersionMapSize() {
+    return entityTypeVersions.size();
+  }
+
+  /** Package-private for unit tests / cardinality checks. */
+  int namedVersionMapSize() {
+    return namedVersions.size();
+  }
+
+  /** Package-private for unit tests. */
+  Set<String> entityTypeVersionKeys() {
+    return Set.copyOf(entityTypeVersions.keySet());
+  }
+
+  /** Package-private for unit tests. */
+  Set<String> namedVersionKeys() {
+    return Set.copyOf(namedVersions.keySet());
   }
 }

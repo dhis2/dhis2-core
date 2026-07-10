@@ -32,6 +32,8 @@ package org.hisp.dhis.config.sqlobserver;
 import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_BATCHES_DISCARDED;
 import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_BATCHES_PUBLISHED;
 import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_BATCH_SIZE;
+import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_PENDING_BATCHES;
+import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_PENDING_EVENTS;
 import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_STALE_SWEEPS;
 import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_STATEMENTS;
 import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_BRIDGE_EVENTS;
@@ -48,6 +50,7 @@ import static org.hisp.dhis.dml.DmlETagMetrics.TAG_STATUS;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -171,6 +174,13 @@ public class DmlObserverListener
           Counter.builder(ETAG_BRIDGE_EVENTS)
               .tag(TAG_STATUS, STATUS_SKIPPED_NULL)
               .register(meterRegistry);
+
+      Gauge.builder(DML_OBSERVER_PENDING_BATCHES, pendingBatches, ConcurrentHashMap::size)
+          .description("In-flight DML pending batches keyed by connection")
+          .register(meterRegistry);
+      Gauge.builder(DML_OBSERVER_PENDING_EVENTS, this, DmlObserverListener::pendingEventCount)
+          .description("Total DmlEvent instances held across all pending batches")
+          .register(meterRegistry);
     } else {
       statementsObserved = null;
       statementsSkippedNonDml = null;
@@ -183,6 +193,20 @@ public class DmlObserverListener
       eventsSkippedUntracked = null;
       eventsSkippedNull = null;
     }
+  }
+
+  /** Sum of events across all pending connection batches (for memory gauges / tests). */
+  int pendingEventCount() {
+    int total = 0;
+    for (PendingBatch batch : pendingBatches.values()) {
+      total += batch.events().size();
+    }
+    return total;
+  }
+
+  /** Number of pending connection batches (for tests). */
+  int pendingBatchCount() {
+    return pendingBatches.size();
   }
 
   @Override
