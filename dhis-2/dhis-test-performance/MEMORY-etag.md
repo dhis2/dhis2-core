@@ -16,7 +16,7 @@
 | Entity-type versions | `LocalETagService.entityTypeVersions` | One entry per **distinct FQCN** that has been bumped (observed metadata types) |
 | Named versions | `LocalETagService.namedVersions` | One entry per named key (`installedApps`, `staticContent`, …) |
 | Global bump | `allCacheVersion` | Single `AtomicLong` |
-| Pending DML batches | `DmlObserverListener.pendingBatches` | One batch per open JDBC connection; events **deduped by table+operation**; stale batches swept after 5 minutes |
+| Pending DML batches | `DmlObserverListener.pendingBatches` | One batch per open JDBC connection; events **deduped by table+operation**; stale batches swept when older than 5 minutes, checked every 1000th observed query (not a wall-clock timer) |
 
 **Not stored:** response bodies, ETag strings per client, or per-row versions.
 

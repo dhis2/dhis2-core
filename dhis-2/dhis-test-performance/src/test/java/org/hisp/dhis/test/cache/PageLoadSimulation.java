@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -35,7 +35,9 @@ import static io.gatling.javaapi.http.HttpDsl.*;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +61,11 @@ import org.slf4j.LoggerFactory;
  * Compare Gatling reports for: response times, 304 ratio, throughput. Combine with {@code
  * run-simulation.sh} for server-side metrics (SQL count, CPU, memory).
  *
+ * <p><b>etag.expect</b> (system property, default {@code none}): optional post-run assertion on the
+ * share of cacheable API responses that returned HTTP 304. {@code on} requires a minimum 304 share
+ * so a broken cache fails; {@code off} requires ~zero 304s so a label swap fails; {@code none}
+ * keeps historical behavior (success-rate only). Wired by the A/B scripts per side.
+ *
  * <p><b>Profiles:</b>
  *
  * <ul>
@@ -73,11 +80,23 @@ import org.slf4j.LoggerFactory;
  * mvn gatling:test \
  *   -Dgatling.simulationClass=org.hisp.dhis.test.cache.PageLoadSimulation \
  *   -Dinstance=http://localhost:8080 \
- *   -Dprofile=load -DconcurrentUsers=20
+ *   -Dprofile=load -DconcurrentUsers=20 -Detag.expect=on
  * }</pre>
  */
 public class PageLoadSimulation extends Simulation {
   private static final Logger log = LoggerFactory.getLogger(PageLoadSimulation.class);
+
+  /**
+   * Floor for 304 share when {@code etag.expect=on}. Smoke with 5 cycles has ~4/5 cycles as
+   * revalidations; load over minutes is higher. Keep conservative to avoid host flakiness.
+   */
+  private static final double MIN_304_SHARE_WHEN_ON = 0.25;
+
+  /** Ceiling for 304 share when {@code etag.expect=off} (noise / odd redirects only). */
+  private static final double MAX_304_SHARE_WHEN_OFF = 0.02;
+
+  private static final AtomicLong CACHEABLE_RESPONSES = new AtomicLong();
+  private static final AtomicLong NOT_MODIFIED_RESPONSES = new AtomicLong();
 
   // -- Configuration via system properties --
   private final String instance = prop("instance", "http://localhost:8080");
@@ -85,6 +104,7 @@ public class PageLoadSimulation extends Simulation {
   private final String adminPassword = prop("adminPassword", "district");
   private final String apiVersion = prop("apiVersion", "44");
   private final Profile profile = Profile.fromString(prop("profile", "smoke"));
+  private final EtagExpect etagExpect = EtagExpect.fromString(prop("etag.expect", "none"));
   private final int concurrentUsers = intProp("concurrentUsers", profile.defaultUsers);
   private final int appCycles = intProp("appCycles", profile.defaultCycles);
   private final int durationSec = intProp("durationSec", profile.defaultDurationSec);
@@ -94,11 +114,16 @@ public class PageLoadSimulation extends Simulation {
   private final String dashboardUid = prop("dashboardUid", "nghVC4wtyzi");
 
   public PageLoadSimulation() {
+    // Fresh counters each simulation instance (Gatling may reuse the classloader).
+    CACHEABLE_RESPONSES.set(0);
+    NOT_MODIFIED_RESPONSES.set(0);
+
     log.info(
-        "ETag Cache Performance Test: profile={}, users={}, cycles={}, instance={}",
+        "ETag Cache Performance Test: profile={}, users={}, cycles={}, etag.expect={}, instance={}",
         profile,
         concurrentUsers,
         appCycles,
+        etagExpect,
         instance);
 
     String api = "/api/" + apiVersion;
@@ -134,21 +159,21 @@ public class PageLoadSimulation extends Simulation {
                 exec(
                     http("me")
                         .get(api + "/me?fields=authorities,avatar,name,settings,username")
-                        .check(status().in(200, 304)),
+                        .check(cacheableStatus()),
                     http("systemSettings")
                         .get(api + "/systemSettings")
-                        .check(status().in(200, 304)),
-                    http("userSettings").get(api + "/userSettings").check(status().in(200, 304)),
+                        .check(cacheableStatus()),
+                    http("userSettings").get(api + "/userSettings").check(cacheableStatus()),
                     http("systemSettings/applicationTitle")
                         .get(api + "/systemSettings/applicationTitle")
-                        .check(status().in(200, 304)),
+                        .check(cacheableStatus()),
                     http("systemSettings/helpPageLink")
                         .get(api + "/systemSettings/helpPageLink")
-                        .check(status().in(200, 304)),
-                    http("apps").get(api + "/apps").check(status().in(200, 304)),
-                    http("apps/menu").get(api + "/apps/menu").check(status().in(200, 304)),
-                    http("me/dashboard").get(api + "/me/dashboard").check(status().in(200, 304)),
-                    http("system/info").get("/api/system/info").check(status().in(200, 304))));
+                        .check(cacheableStatus()),
+                    http("apps").get(api + "/apps").check(cacheableStatus()),
+                    http("apps/menu").get(api + "/apps/menu").check(cacheableStatus()),
+                    http("me/dashboard").get(api + "/me/dashboard").check(cacheableStatus()),
+                    http("system/info").get("/api/system/info").check(cacheableStatus())));
 
     // -- Maintenance app requests --
     ChainBuilder maintenanceApp =
@@ -161,15 +186,15 @@ public class PageLoadSimulation extends Simulation {
                             .get(
                                 api
                                     + "/schemas?fields=authorities,displayName,name,plural,singular,translatable,properties,shareable,dataShareable")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("me/authorities")
                             .get(api + "/me?fields=authorities,avatar,email,name,settings,username")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("organisationUnits")
                             .get(
                                 api
                                     + "/organisationUnits?fields=id,access,displayName,level,path&paging=false")
-                            .check(status().in(200, 304))));
+                            .check(cacheableStatus())));
 
     // -- Dashboard app requests --
     ChainBuilder dashboardApp =
@@ -180,30 +205,30 @@ public class PageLoadSimulation extends Simulation {
                     .exec(
                         http("dashboards")
                             .get(api + "/dashboards?fields=id,displayName,favorite&paging=false")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("dashboard/" + dashboardUid)
                             .get(
                                 api
                                     + "/dashboards/"
                                     + dashboardUid
                                     + "?fields=id,displayName,dashboardItems[*]")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("organisationUnitLevels")
                             .get(api + "/organisationUnitLevels")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("systemSettings/analyticsRelativePeriod")
                             .get(api + "/systemSettings/keyAnalysisRelativePeriod")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("systemSettings/financialYearStart")
                             .get(api + "/systemSettings/analyticsFinancialYearStart")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("dataStore/custom-translations")
                             .get(api + "/dataStore/custom-translations/controller")
                             .check(status().in(200, 304, 404)),
-                        http("locales/db").get(api + "/locales/db").check(status().in(200, 304)),
+                        http("locales/db").get(api + "/locales/db").check(cacheableStatus()),
                         http("periodTypes")
                             .get(api + "/periodTypes")
-                            .check(status().in(200, 304))));
+                            .check(cacheableStatus())));
 
     // -- Capture app requests --
     ChainBuilder captureApp =
@@ -214,15 +239,15 @@ public class PageLoadSimulation extends Simulation {
                     .exec(
                         http("me/settings")
                             .get(api + "/me?fields=settings[keyUiLocale]")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("trackedEntityInstanceFilters")
                             .get(
                                 api
                                     + "/trackedEntityInstanceFilters?filter=program.id:eq:IpHINAT79UW")
-                            .check(status().in(200, 304)),
+                            .check(cacheableStatus()),
                         http("programStageWorkingLists")
                             .get(api + "/programStageWorkingLists?filter=program.id:eq:IpHINAT79UW")
-                            .check(status().in(200, 304))));
+                            .check(cacheableStatus())));
 
     // -- Full user session: cycle through all three apps --
     // Think-time configurable: "fast" for stress testing, "realistic" for real-world simulation
@@ -261,7 +286,8 @@ public class PageLoadSimulation extends Simulation {
     }
 
     // -- Injection profile --
-    List<Assertion> assertions = List.of(forAll().successfulRequests().percent().gte(95.0));
+    List<Assertion> assertions = new ArrayList<>();
+    assertions.add(forAll().successfulRequests().percent().gte(95.0));
 
     PopulationBuilder population;
     switch (profile) {
@@ -301,7 +327,68 @@ public class PageLoadSimulation extends Simulation {
     setUp(population).assertions(assertions);
   }
 
+  @Override
+  public void after() {
+    long total = CACHEABLE_RESPONSES.get();
+    long n304 = NOT_MODIFIED_RESPONSES.get();
+    double share = total == 0 ? 0.0 : (double) n304 / (double) total;
+    log.info(
+        "etag.expect={} cacheableResponses={} notModified={} share={}%",
+        etagExpect, total, n304, String.format("%.1f", share * 100.0));
+
+    switch (etagExpect) {
+      case NONE -> {
+        // Historical behavior: success-rate assertion only.
+      }
+      case ON -> {
+        if (total < 20) {
+          throw new AssertionError(
+              "etag.expect=on: too few cacheable responses to judge 304 share (n="
+                  + total
+                  + "). Need a multi-cycle or load profile.");
+        }
+        if (share < MIN_304_SHARE_WHEN_ON) {
+          throw new AssertionError(
+              String.format(
+                  "etag.expect=on: 304 share %.1f%% (n=%d/ %d) is below minimum %.0f%% — cache may be broken or disabled",
+                  share * 100.0, n304, total, MIN_304_SHARE_WHEN_ON * 100.0));
+        }
+      }
+      case OFF -> {
+        if (total < 20) {
+          throw new AssertionError(
+              "etag.expect=off: too few cacheable responses to judge 304 share (n=" + total + ")");
+        }
+        if (share > MAX_304_SHARE_WHEN_OFF) {
+          throw new AssertionError(
+              String.format(
+                  "etag.expect=off: 304 share %.1f%% (n=%d / %d) exceeds %.0f%% — labels may be swapped or ETag still on",
+                  share * 100.0, n304, total, MAX_304_SHARE_WHEN_OFF * 100.0));
+        }
+      }
+    }
+  }
+
   // -- Helpers --
+
+  /**
+   * Accept 200/304 and, when {@code etag.expect} is not {@code none}, count the status for the
+   * post-run 304-share assertion.
+   */
+  private CheckBuilder.Final cacheableStatus() {
+    return status()
+        .transform(
+            code -> {
+              if (etagExpect != EtagExpect.NONE && (code == 200 || code == 304)) {
+                CACHEABLE_RESPONSES.incrementAndGet();
+                if (code == 304) {
+                  NOT_MODIFIED_RESPONSES.incrementAndGet();
+                }
+              }
+              return code;
+            })
+        .in(200, 304);
+  }
 
   private static String prop(String key, String defaultValue) {
     return System.getProperty(key, defaultValue);
@@ -309,6 +396,24 @@ public class PageLoadSimulation extends Simulation {
 
   private static int intProp(String key, int defaultValue) {
     return Integer.parseInt(System.getProperty(key, String.valueOf(defaultValue)));
+  }
+
+  private enum EtagExpect {
+    NONE,
+    ON,
+    OFF;
+
+    static EtagExpect fromString(String s) {
+      if (s == null || s.isBlank() || "none".equalsIgnoreCase(s)) {
+        return NONE;
+      }
+      return switch (s.toLowerCase()) {
+        case "on" -> ON;
+        case "off" -> OFF;
+        default -> throw new IllegalArgumentException(
+            "Unknown etag.expect: " + s + ". Valid: none, on, off");
+      };
+    }
   }
 
   private enum Profile {

@@ -64,6 +64,12 @@ MVN_ARGS=(
   -Dgatling.core.directory.results="target/gatling"
 )
 
+# When SIDE is on|off, enable 304-share assertions (see PageLoadSimulation etag.expect).
+# Other labels (miss/hit/custom) leave the default none so miss-tax runs stay valid.
+if [[ "$SIDE" == "on" || "$SIDE" == "off" ]]; then
+  MVN_ARGS+=(-Detag.expect="$SIDE")
+fi
+
 if [[ -n "$APP_CYCLES" && "$APP_CYCLES" != "0" ]]; then
   MVN_ARGS+=(-DappCycles="$APP_CYCLES")
 fi

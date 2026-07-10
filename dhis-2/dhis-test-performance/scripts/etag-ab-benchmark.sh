@@ -6,6 +6,7 @@
 #
 # Requires: Docker, Maven, a build of this branch as DHIS2_IMAGE.
 # Optional: gstat (https://github.com/dhis2/gatling-statistics) for markdown compare tables.
+# Optional: glog for simulation.csv (enables per-run percentile tables in results.md).
 #
 # Usage (from dhis-test-performance/):
 #   DHIS2_IMAGE=dhis2/core-pr:local ./scripts/etag-ab-benchmark.sh
@@ -59,6 +60,9 @@ case "$PROFILE" in
     ;;
 esac
 
+# First measured run uses this index (shared loop: warmups 1..WARMUP, then WARMUP+1..)
+FIRST_MEASURED_INDEX=$((WARMUP + 1))
+
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT_DIR="${OUT_DIR:-$ROOT/target/etag-ab/$STAMP}"
 mkdir -p "$OUT_DIR"
@@ -83,7 +87,7 @@ run_side() {
       suffix="etag-${side}-warmup${i}"
     fi
 
-    log "=== side=${side} run=${i}/${total} warmup=${is_warmup} conf=${conf} ==="
+    log "=== side=${side} run=${i}/${total} warmup=${is_warmup} conf=${conf} etag.expect=${side} ==="
 
     local sql_flag=()
     if [[ -n "$CAPTURE_SQL" && "$is_warmup" -eq 0 ]]; then
@@ -92,13 +96,14 @@ run_side() {
 
     # run-simulation always does its own internal warmups via WARMUP=; we want one container
     # lifecycle per measured sample, so set WARMUP=0 here and control warmups externally.
+    # -Detag.expect=on|off enables 304-share assertions in PageLoadSimulation (default none).
     env \
       DHIS2_IMAGE="$DHIS2_IMAGE" \
       SIMULATION_CLASS="$SIMULATION_CLASS" \
       DHIS_CONF_FILE="dhis-etag-${side}.conf" \
       WARMUP=0 \
       REPORT_SUFFIX="$suffix" \
-      MVN_ARGS="-Dprofile=${PROFILE} -Dfast=${FAST} ${MVN_EXTRA}" \
+      MVN_ARGS="-Dprofile=${PROFILE} -Dfast=${FAST} -Detag.expect=${side} ${MVN_EXTRA}" \
       "${sql_flag[@]}" \
       ./run-simulation.sh | tee "$OUT_DIR/${suffix}.console.log"
 
@@ -112,6 +117,151 @@ run_side() {
   done
 }
 
+# Resolve first measured runpath: prefer exact m$((WARMUP+1)), else newest etag-<side>-m*.runpath
+first_measured_runpath() {
+  local side="$1"
+  local exact="$OUT_DIR/etag-${side}-m${FIRST_MEASURED_INDEX}.runpath"
+  if [[ -f "$exact" ]]; then
+    cat "$exact"
+    return 0
+  fi
+  local newest
+  newest="$(ls -1 "$OUT_DIR"/etag-"${side}"-m*.runpath 2>/dev/null | sort -V | tail -1 || true)"
+  if [[ -n "$newest" && -f "$newest" ]]; then
+    cat "$newest"
+    return 0
+  fi
+  return 1
+}
+
+# Emit markdown tables from glog simulation.csv (if present) or note missing data.
+# Writes $OUT_DIR/results.md so doc tables can be copied rather than hand-typed.
+write_results_md() {
+  local results="$OUT_DIR/results.md"
+  {
+    echo "# ETag A/B results"
+    echo
+    echo "- stamp: \`$STAMP\`"
+    echo "- profile: \`$PROFILE\` fast=\`$FAST\`"
+    echo "- warmup: $WARMUP measured: $MEASURED (first measured index m${FIRST_MEASURED_INDEX})"
+    echo "- image: \`$DHIS2_IMAGE\`"
+    echo "- method: per-run OK latencies from \`simulation.csv\` (glog) when present; else runpath only"
+    echo
+  } >"$results"
+
+  local side
+  for side in off on; do
+    echo "## Side \`$side\` (measured runs)" >>"$results"
+    echo >>"$results"
+    echo "| run | n | mean | p50 | p95 | runpath |" >>"$results"
+    echo "|---|---:|---:|---:|---:|---|" >>"$results"
+
+    local rp
+    for rp in "$OUT_DIR"/etag-"${side}"-m*.runpath; do
+      [[ -f "$rp" ]] || continue
+      local run_label dir
+      run_label="$(basename "$rp" .runpath)"
+      dir="$(cat "$rp" 2>/dev/null || true)"
+      if [[ -z "$dir" || ! -d "$dir" ]]; then
+        echo "| \`$run_label\` | | | | | (missing dir) |" >>"$results"
+        continue
+      fi
+      local csv="$dir/simulation.csv"
+      if [[ -f "$csv" ]]; then
+        python3 - "$csv" "$run_label" "$dir" >>"$results" <<'PY'
+import csv, sys
+from pathlib import Path
+
+path, label, rundir = sys.argv[1], sys.argv[2], sys.argv[3]
+times = []
+with open(path, newline="", encoding="utf-8", errors="replace") as f:
+    sample = f.read(4096)
+    f.seek(0)
+    # Prefer header-aware parse; fall back to last numeric column heuristics.
+    try:
+        reader = csv.DictReader(f)
+        fields = reader.fieldnames or []
+        # Common glog / Gatling CSV names
+        candidates = [
+            "responseTime",
+            "Response Time",
+            "response time",
+            "latency",
+            "OK",
+            "responseTimeInMs",
+        ]
+        col = next((c for c in candidates if c in fields), None)
+        status_col = next(
+            (c for c in ("status", "Status", "responseCode", "Response Code") if c in fields),
+            None,
+        )
+        if col is None:
+            # last field that looks numeric in first row
+            rows = list(reader)
+            if not rows:
+                print(f"| `{label}` | 0 | | | | `{Path(rundir).name}` |")
+                raise SystemExit
+            for k, v in rows[0].items():
+                try:
+                    float(v)
+                    col = k
+                except (TypeError, ValueError):
+                    pass
+            f.seek(0)
+            reader = csv.DictReader(f)
+        for row in reader:
+            if status_col is not None:
+                st = str(row.get(status_col, "")).strip()
+                if st and st not in ("200", "304", "OK", "ok"):
+                    # keep 200/304 only when status known
+                    if st.isdigit() and int(st) not in (200, 304):
+                        continue
+            try:
+                times.append(float(row[col]))
+            except (KeyError, TypeError, ValueError):
+                continue
+    except SystemExit:
+        raise
+    except Exception:
+        f.seek(0)
+        for line in f:
+            parts = line.strip().split(",")
+            if len(parts) < 2:
+                continue
+            for token in reversed(parts):
+                try:
+                    times.append(float(token))
+                    break
+                except ValueError:
+                    continue
+
+if not times:
+    print(f"| `{label}` | 0 | | | | `{Path(rundir).name}` (no times parsed) |")
+else:
+    times.sort()
+    n = len(times)
+    mean = sum(times) / n
+    p50 = times[int(0.50 * (n - 1))]
+    p95 = times[int(0.95 * (n - 1))]
+    print(
+        f"| `{label}` | {n} | {mean:.2f} | {p50:.1f} | {p95:.1f} | `{Path(rundir).name}` |"
+    )
+PY
+      else
+        echo "| \`$run_label\` | | | | | \`$(basename "$dir")\` (no simulation.csv) |" >>"$results"
+      fi
+    done
+    echo >>"$results"
+  done
+
+  echo "## Notes" >>"$results"
+  echo >>"$results"
+  echo "- Canonical multi-run headline: pool measured \`simulation.csv\` OK samples per side (see BENCHMARKS-etag.md)." >>"$results"
+  echo "- PageLoadSimulation uses \`-Detag.expect=on|off\` so a broken cache (no 304s on ON) fails the run." >>"$results"
+  echo "- First measured suffix for this protocol: \`m${FIRST_MEASURED_INDEX}\` (not m1 when WARMUP>=1)." >>"$results"
+  log "Wrote $results"
+}
+
 meta() {
   {
     echo "stamp=$STAMP"
@@ -121,6 +271,7 @@ meta() {
     echo "fast=$FAST"
     echo "warmup=$WARMUP"
     echo "measured=$MEASURED"
+    echo "first_measured_index=$FIRST_MEASURED_INDEX"
     echo "git_head=$(git -C "$ROOT/../.." rev-parse HEAD 2>/dev/null || git -C "$ROOT/.." rev-parse HEAD 2>/dev/null || echo unknown)"
     echo "host=$(hostname)"
     echo "date_utc=$(date -u -Iseconds)"
@@ -136,15 +287,19 @@ if [[ -z "${SKIP_ON:-}" ]]; then
   run_side on
 fi
 
-# Optional gstat compare of last measured dirs per side
+write_results_md
+
+# Optional gstat compare of first measured dirs per side (fixed m$((WARMUP+1)) index)
 if command -v gstat >/dev/null 2>&1; then
-  off_path="$(cat "$OUT_DIR/etag-off-m1.runpath" 2>/dev/null || true)"
-  on_path="$(cat "$OUT_DIR/etag-on-m1.runpath" 2>/dev/null || true)"
-  if [[ -n "$off_path" && -n "$on_path" && -d "$off_path" && -d "$on_path" ]]; then
-    log "gstat compare OFF vs ON (first measured run each)"
-    gstat compare "$off_path" "$on_path" | tee "$OUT_DIR/gstat-compare-m1.md" || true
+  off_path="$(first_measured_runpath off || true)"
+  on_path="$(first_measured_runpath on || true)"
+  if [[ -n "${off_path:-}" && -n "${on_path:-}" && -d "$off_path" && -d "$on_path" ]]; then
+    log "gstat compare OFF vs ON (first measured run each: m${FIRST_MEASURED_INDEX})"
+    gstat compare "$off_path" "$on_path" | tee "$OUT_DIR/gstat-compare-m${FIRST_MEASURED_INDEX}.md" || true
+  else
+    log "gstat compare skipped (missing first measured runpath for one or both sides)"
   fi
 fi
 
 log "Done. Artifacts: $OUT_DIR"
-log "Fill BENCHMARKS-etag.md from Gatling index.html + gstat-compare-m1.md"
+log "See $OUT_DIR/results.md (and gstat-compare-m${FIRST_MEASURED_INDEX}.md if gstat ran)"
