@@ -18,6 +18,7 @@ Run `./run-simulation.sh` for full usage including profiling and database option
 
 Protocol, dated numbers, and scripts:
 
+* [`ETAG-CACHE-TEAM-REPORT.html`](./ETAG-CACHE-TEAM-REPORT.html) — **pretty team handout** (open in a browser)  
 * [`BENCHMARKS-etag.md`](./BENCHMARKS-etag.md) — latency/SQL/flamegraph results + how to reproduce  
 * [`MEMORY-etag.md`](./MEMORY-etag.md) — RAM design bounds, gauges, alloc A/B  
 * `scripts/etag-ab-benchmark.sh` — Docker ON vs OFF via `docker/dhis-etag-on.conf` / `dhis-etag-off.conf`  

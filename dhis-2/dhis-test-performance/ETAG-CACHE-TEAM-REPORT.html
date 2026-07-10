@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>API ETag Cache — Team Report (PR #23200)</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #334155;
+      --text: #e8eef6;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --good: #34d399;
+      --good-bg: rgba(52, 211, 153, 0.12);
+      --warn: #fbbf24;
+      --warn-bg: rgba(251, 191, 36, 0.12);
+      --bad: #f87171;
+      --off: #94a3b8;
+      --on: #34d399;
+      --radius: 12px;
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      font-size: 16px;
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    header.hero {
+      background: linear-gradient(145deg, #1e3a5f 0%, #0f1419 55%, #12261f 100%);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 4px);
+      padding: 2rem 1.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    header.hero h1 {
+      margin: 0 0 0.4rem;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+
+    header.hero .subtitle {
+      color: var(--muted);
+      margin: 0 0 1.25rem;
+      font-size: 1.05rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .meta code {
+      font-family: var(--mono);
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    .tldr {
+      display: grid;
+      gap: 0.75rem;
+      margin: 1.5rem 0 0;
+    }
+
+    @media (min-width: 640px) {
+      .tldr { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .tldr-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+    }
+
+    .tldr-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .tldr-card .value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--good);
+      letter-spacing: -0.02em;
+    }
+
+    .tldr-card .detail {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    nav.toc strong {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    nav.toc ol {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+
+    nav.toc a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    nav.toc a:hover { text-decoration: underline; }
+
+    section {
+      margin-bottom: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      margin: 0 0 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      margin: 1.5rem 0 0.6rem;
+      color: var(--text);
+    }
+
+    p { margin: 0.6rem 0; color: var(--text); }
+    .muted { color: var(--muted); }
+
+    .callout {
+      border-radius: var(--radius);
+      padding: 1rem 1.15rem;
+      margin: 1rem 0;
+      border: 1px solid var(--border);
+    }
+
+    .callout.good {
+      background: var(--good-bg);
+      border-color: rgba(52, 211, 153, 0.35);
+    }
+
+    .callout.warn {
+      background: var(--warn-bg);
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .callout strong { display: block; margin-bottom: 0.25rem; }
+
+    .compare {
+      display: grid;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    @media (min-width: 560px) {
+      .compare { grid-template-columns: 1fr 1fr; }
+    }
+
+    .side {
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .side.off { border-top: 3px solid var(--off); }
+    .side.on { border-top: 3px solid var(--on); }
+
+    .side h4 {
+      margin: 0 0 0.75rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .side .big {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .side.off .big { color: var(--off); }
+    .side.on .big { color: var(--good); }
+
+    .side .unit {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .side ul {
+      margin: 0.75rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .side li { margin: 0.25rem 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 0.75rem 0 1rem;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    th, td {
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--surface2);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.85rem; }
+    td.good { color: var(--good); font-weight: 600; }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 4rem 1fr 4.5rem;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0.45rem 0;
+      font-size: 0.9rem;
+    }
+
+    .bar-track {
+      height: 10px;
+      background: var(--surface2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--off);
+    }
+
+    .bar-fill.on { background: var(--good); }
+
+    code, .mono {
+      font-family: var(--mono);
+      font-size: 0.85em;
+    }
+
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    ul.plain {
+      margin: 0.5rem 0;
+      padding-left: 1.2rem;
+    }
+
+    ul.plain li { margin: 0.35rem 0; }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--accent); }
+
+    @media print {
+      body { background: #fff; color: #111; }
+      header.hero, .tldr-card, .side, table, pre, nav.toc, .callout {
+        background: #fff;
+        border-color: #ccc;
+        color: #111;
+      }
+      .muted, .tldr-card .detail, .side h4, th { color: #444; }
+      .tldr-card .value, .side.on .big, td.good { color: #067a45; }
+      a { color: #0645ad; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>API ETag Cache</h1>
+      <p class="subtitle">
+        What it is, why it is safe for RAM, and what we measured — for any DHIS2 developer.
+      </p>
+      <div class="meta">
+        <span>PR <code>#23200</code></span>
+        <span>Jira <code>DHIS2-20736</code></span>
+        <span>Branch <code>api_cache_dml_wip</code></span>
+        <span>Evidence date <code>2026-07-10</code></span>
+        <span>Author <code>Morten Svanaes</code></span>
+      </div>
+
+      <div class="tldr">
+        <div class="tldr-card">
+          <div class="label">Faster?</div>
+          <div class="value">Yes</div>
+          <div class="detail">~70–77% lower p95 on page-load A/B (cache ON vs OFF)</div>
+        </div>
+        <div class="tldr-card">
+          <div class="label">More RAM?</div>
+          <div class="value">No</div>
+          <div class="detail">No body cache. Kilobyte-scale maps. Alloc profile smaller when ON</div>
+        </div>
+        <div class="tldr-card">
+          <div class="label">Clusters?</div>
+          <div class="value">Forced off</div>
+          <div class="detail">If DHIS2 clustering is configured, ETag cache disables itself</div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="toc" aria-label="Contents">
+      <strong>Contents</strong>
+      <ol>
+        <li><a href="#what">What does this feature do?</a></li>
+        <li><a href="#not">What it does <em>not</em> do</a></li>
+        <li><a href="#perf">Is it faster?</a></li>
+        <li><a href="#memory">Will it use a lot of RAM?</a></li>
+        <li><a href="#cluster">Clustering decision</a></li>
+        <li><a href="#verify">How to verify yourself</a></li>
+        <li><a href="#docs">Source docs in the repo</a></li>
+      </ol>
+    </nav>
+
+    <section id="what">
+      <h2>1. What does this feature do?</h2>
+      <p>
+        When <code>cache.api.etag.enabled=on</code> (default for single-node), metadata and composite
+        API GETs get a content-version <strong>ETag</strong>. Browsers and clients send
+        <code>If-None-Match</code>; if nothing relevant changed, the server returns
+        <strong>304 Not Modified</strong> <em>before</em> running the heavy controller path.
+      </p>
+      <p>
+        Invalidation is driven by a <strong>JDBC DML observer</strong>: INSERT/UPDATE/DELETE on observed
+        tables bumps small in-memory version counters. The next ETag for that type changes, so
+        clients re-fetch once.
+      </p>
+      <ul class="plain">
+        <li>One config switch gates both the observer and the ETag interceptor.</li>
+        <li>CI runs a dedicated <code>cache-api-test</code> e2e job (JUnit group <code>cache</code>).</li>
+        <li>Metrics (optional): <code>monitoring.cache.etag.enabled=on</code>.</li>
+      </ul>
+    </section>
+
+    <section id="not">
+      <h2>2. What it does <em>not</em> do</h2>
+      <div class="callout warn">
+        <strong>Important for the RAM discussion</strong>
+        This is <em>not</em> a response-body cache (not Redis of JSON payloads, not a CDN blob store).
+      </div>
+      <ul class="plain">
+        <li>Does not store response bodies.</li>
+        <li>Does not cache tracker/analytics bulk data paths the same way.</li>
+        <li>Does not share version counters across cluster nodes (see clustering below).</li>
+      </ul>
+    </section>
+
+    <section id="perf">
+      <h2>3. Is it faster?</h2>
+      <p class="muted">
+        Measured on minibox with stock Docker perf stack (Sierra Leone demo DB, 10G heap),
+        Gatling <code>PageLoadSimulation</code> (Maintenance + Dashboard + Capture page patterns).
+      </p>
+
+      <h3>Load profile (10 concurrent users, realistic think-time)</h3>
+      <p class="muted">Best “day in the life” number. Average of two measured runs per side.</p>
+
+      <div class="compare">
+        <div class="side off">
+          <h4>Cache OFF</h4>
+          <div class="big">32 <span class="unit">ms p95</span></div>
+          <ul>
+            <li>mean ~10 ms</li>
+            <li>p50 ~6 ms</li>
+            <li>~23 rps (think-time limited)</li>
+            <li>~50–57k SQL log events / run</li>
+          </ul>
+        </div>
+        <div class="side on">
+          <h4>Cache ON</h4>
+          <div class="big">7.5 <span class="unit">ms p95</span></div>
+          <ul>
+            <li>mean ~5 ms</li>
+            <li>p50 ~4 ms</li>
+            <li>~23.6 rps</li>
+            <li>~12–17k SQL log events / run</li>
+          </ul>
+        </div>
+      </div>
+
+      <p><strong>Headline:</strong> about <strong>77% lower p95</strong> with cache ON. Throughput barely changes (users wait between pages); the win is latency and DB work.</p>
+
+      <div class="bar-row">
+        <span>OFF p95</span>
+        <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+        <span class="mono">32 ms</span>
+      </div>
+      <div class="bar-row">
+        <span>ON p95</span>
+        <div class="bar-track"><div class="bar-fill on" style="width:23%"></div></div>
+        <span class="mono">7.5 ms</span>
+      </div>
+
+      <h3>SQL volume (same load runs)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Side</th>
+            <th>SQL “duration/statement” hits</th>
+            <th>postgresql.log size</th>
+            <th>Unique queries (approx)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OFF</td>
+            <td class="num">~51–57k</td>
+            <td class="num">~58–66 MB</td>
+            <td class="num">~26–29k</td>
+          </tr>
+          <tr>
+            <td>ON</td>
+            <td class="num good">~12–17k</td>
+            <td class="num good">~8–15 MB</td>
+            <td class="num good">~6.5–9k</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted">Roughly <strong>3–4× fewer</strong> SQL log events with ETag ON (304s skip controller + much of the ORM work).</p>
+
+      <h3>Docker smoke (1 user, fast think-time) — same story</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Side</th>
+            <th>mean</th>
+            <th>p50</th>
+            <th>p95</th>
+            <th>rps</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OFF (avg of 2 measured)</td>
+            <td class="num">12 ms</td>
+            <td class="num">7</td>
+            <td class="num">38.5</td>
+            <td class="num">18.7</td>
+          </tr>
+          <tr>
+            <td>ON (avg of 2 measured)</td>
+            <td class="num good">8 ms</td>
+            <td class="num good">5</td>
+            <td class="num good">11.5</td>
+            <td class="num good">20.6</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted">~70% p95 improvement. Full tables and reproduction: <code>BENCHMARKS-etag.md</code>.</p>
+    </section>
+
+    <section id="memory">
+      <h2>4. Will it use a lot of RAM?</h2>
+
+      <div class="callout good">
+        <strong>Short answer for the team</strong>
+        No. There is no response-body cache. Under the same load, the process allocated
+        <em>less</em> with the feature ON (more short-circuit 304s), not more.
+      </div>
+
+      <h3>What lives in memory</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Structure</th>
+            <th>What it is</th>
+            <th>How it grows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>entityTypeVersions</code></td>
+            <td>Map FQCN → AtomicLong</td>
+            <td>One entry per entity <em>type</em> ever bumped</td>
+          </tr>
+          <tr>
+            <td><code>namedVersions</code></td>
+            <td>Map name → AtomicLong</td>
+            <td>Tiny fixed set (e.g. apps, staticContent)</td>
+          </tr>
+          <tr>
+            <td><code>allCacheVersion</code></td>
+            <td>One AtomicLong</td>
+            <td>Manual maintenance clear only</td>
+          </tr>
+          <tr>
+            <td><code>pendingBatches</code></td>
+            <td>In-flight DML per JDBC connection</td>
+            <td>Deduped by table+op; swept after 5 min</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Design bound: on the order of <strong>kilobytes</strong>, not “size of all API JSON”.
+        Unit test: 10&nbsp;000 bumps of the same type → map size stays <strong>1</strong>
+        (<code>LocalETagServiceCardinalityTest</code>).
+      </p>
+
+      <h3>Allocation profiling (load, same shape as latency A/B)</h3>
+      <div class="compare">
+        <div class="side off">
+          <h4>Alloc profile OFF</h4>
+          <div class="big">~11 <span class="unit">MB JFR</span></div>
+          <ul>
+            <li>async-profiler <code>-e alloc</code></li>
+            <li>Larger allocation sample file</li>
+          </ul>
+        </div>
+        <div class="side on">
+          <h4>Alloc profile ON</h4>
+          <div class="big">~3.7 <span class="unit">MB JFR</span></div>
+          <ul>
+            <li>~3× smaller than OFF</li>
+            <li>Consistent with fewer full responses</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Observability gauges (optional)</h3>
+      <p>
+        When <code>monitoring.cache.etag.enabled=on</code>, Micrometer exposes:
+      </p>
+      <ul class="plain">
+        <li><code>dhis2_etag_entity_versions_size</code></li>
+        <li><code>dhis2_etag_named_versions_size</code></li>
+        <li><code>dhis2_dml_observer_pending_batches</code></li>
+        <li><code>dhis2_dml_observer_pending_events_total</code></li>
+      </ul>
+      <p class="muted">
+        These should stay small and flat in production. Full write-up:
+        <code>MEMORY-etag.md</code>.
+      </p>
+
+      <div class="callout warn">
+        <strong>Honesty box</strong>
+        We have not yet published a multi-hour soak chart. The bound is by design + unit tests +
+        alloc A/B under load. A long soak would refine confidence, not rewrite the model.
+      </div>
+    </section>
+
+    <section id="cluster">
+      <h2>5. Clustering decision</h2>
+      <p>
+        Version counters are <strong>process-local</strong>. In a multi-node DHIS2 cluster they would
+        not stay coherent without a shared version store (not built yet).
+      </p>
+      <div class="callout good">
+        <strong>Product decision (2026-07-10)</strong>
+        Keep default <code>on</code> for single-node (the common case).
+        If DHIS2 clustering is configured (<code>cluster.members</code> + <code>cluster.hostname</code>),
+        the ETag cache and DML observer are <strong>forced off</strong> at startup with a WARN log
+        (<code>ApiETagCacheActivation</code>. Shared-version propagation can come later.
+      </div>
+    </section>
+
+    <section id="verify">
+      <h2>6. How to verify yourself</h2>
+
+      <h3>Re-run latency A/B (Docker)</h3>
+      <pre>cd dhis-2/dhis-test-performance
+# Build a local core image of this branch first, then:
+DHIS2_IMAGE=dhis2/core-pr:etag-ab-local \
+PROFILE=load WARMUP=1 MEASURED=2 FAST=false CAPTURE_SQL=1 \
+./scripts/etag-ab-benchmark.sh</pre>
+
+      <h3>Re-run alloc / CPU flamegraphs</h3>
+      <pre># Allocation (memory story)
+PROF_ARGS="-e alloc" CAPTURE_SQL=1 \
+DHIS2_IMAGE=dhis2/core-pr:etag-ab-local \
+PROFILE=load WARMUP=1 MEASURED=1 FAST=false \
+./scripts/etag-ab-benchmark.sh
+
+# CPU
+PROF_ARGS="-e cpu" ... same as above</pre>
+
+      <h3>Unit tests (cardinality / concurrency)</h3>
+      <pre>mvn -pl dhis-support/dhis-support-cache-invalidation test \
+  -Dtest=LocalETagServiceCardinalityTest,LocalETagServiceConcurrencyTest</pre>
+
+      <h3>Cache e2e suite</h3>
+      <pre># Against a live instance with cache.api.etag.enabled=on
+cd dhis-2/dhis-test-e2e
+mvn -Pcache test -Dinstance.url=http://HOST:PORT/api ...</pre>
+      <p class="muted">CI: parallel job <code>cache-api-test</code> in <code>run-api-tests.yml</code>.</p>
+    </section>
+
+    <section id="docs">
+      <h2>7. Source docs in the repo</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Contents</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>dhis-test-performance/BENCHMARKS-etag.md</code></td>
+            <td>Dated latency, SQL, CPU flamegraph runs + protocols</td>
+          </tr>
+          <tr>
+            <td><code>dhis-test-performance/MEMORY-etag.md</code></td>
+            <td>RAM design, gauges, alloc A/B, honesty gaps</td>
+          </tr>
+          <tr>
+            <td><code>dhis-test-performance/scripts/etag-ab-benchmark.sh</code></td>
+            <td>Docker ON vs OFF harness</td>
+          </tr>
+          <tr>
+            <td><code>PR #23200</code> description</td>
+            <td>Architecture + clustering note for reviewers</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>
+        Generated as a static handout for the DHIS2 backend team.
+        Evidence collected 2026-07-10 on minibox; numbers are dated — re-run scripts after
+        material changes to the interceptor, observer, or exclusions.
+      </p>
+      <p>
+        Open this file in any browser (no server required). Print to PDF works via the browser print dialog.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
