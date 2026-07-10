@@ -50,7 +50,7 @@
       <element type="string" column="corswhitelist" />
     </set>
 
-    <set name="dataOutputPeriodTypes" table="configuration_dataoutputperiodtype">
+    <set name="dataOutputPeriodTypes" table="configuration_dataoutputperiodtype" lazy="false">
       <cache usage="read-write" />
       <key column="configurationid" foreign-key="fk_configuration_dataoutputperiodtype_configurationid" not-null="true" />
       <many-to-many class="org.hisp.dhis.period.PeriodType" column="periodtypeid" foreign-key="fk_configuration_dataoutputperiodtype_periodtypeid" />
