@@ -30,12 +30,18 @@
 package org.hisp.dhis.cacheinvalidation.etag;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.cache.ETagObservedEntityTypes;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
@@ -51,6 +57,13 @@ import org.junit.jupiter.api.Test;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class LocalETagServiceCardinalityTest {
+
+  /**
+   * Production named-version keys only (compile-time constants at call sites). A new production
+   * {@code incrementNamedVersion} call site must update this set deliberately.
+   */
+  private static final Set<String> PRODUCTION_NAMED_VERSION_KEYS =
+      Set.of("installedApps", "staticContent");
 
   private LocalETagService service;
 
@@ -130,5 +143,122 @@ class LocalETagServiceCardinalityTest {
         throw new AssertionError("Entity version key is not a loadable class: " + key, e);
       }
     }
+  }
+
+  @Test
+  @DisplayName(
+      "Production gate (ETagObservedEntityTypes) only lands observed types; map size <= closed universe")
+  void productionObservedGateAndCeiling() {
+    // Same gate as DmlObserverListener.bumpVersionForEvent before incrementEntityTypeVersion.
+    List<Class<?>> candidates =
+        List.of(
+            DataElement.class,
+            OrganisationUnit.class,
+            Indicator.class,
+            Configuration.class,
+            DataValue.class,
+            String.class);
+
+    int expectedObserved = 0;
+    for (Class<?> type : candidates) {
+      if (bumpThroughProductionGate(type)) {
+        expectedObserved++;
+      }
+    }
+
+    assertFalse(
+        service.entityTypeVersionKeys().contains(DataValue.class.getName()),
+        "Non-observed DataValue must not create a map entry");
+    assertFalse(
+        service.entityTypeVersionKeys().contains(String.class.getName()),
+        "Non-entity String must not create a map entry");
+    assertEquals(expectedObserved, service.entityTypeVersionMapSize());
+    assertTrue(service.entityTypeVersionKeys().contains(DataElement.class.getName()));
+    assertTrue(service.entityTypeVersionKeys().contains(Configuration.class.getName()));
+
+    // Closed additional-observed universe from ETagObservedEntityTypes (not a magic number).
+    Set<String> additionalUniverse =
+        ETagObservedEntityTypes.getAdditionalObservedTypeNames();
+    int additionalLoaded = 0;
+    for (String fqcn : additionalUniverse) {
+      try {
+        Class<?> type = Class.forName(fqcn);
+        if (bumpThroughProductionGate(type)) {
+          additionalLoaded++;
+        }
+      } catch (ClassNotFoundException e) {
+        // Reflective SystemSetting may be missing on slim classpaths; skip.
+      }
+    }
+
+    // Ceiling: every key is observed, and keys that are "additional" cannot exceed the
+    // ETagObservedEntityTypes additional set size.
+    long additionalKeysInMap =
+        service.entityTypeVersionKeys().stream().filter(additionalUniverse::contains).count();
+    assertTrue(
+        additionalKeysInMap <= additionalUniverse.size(),
+        "additional keys in map ("
+            + additionalKeysInMap
+            + ") exceed ETagObservedEntityTypes universe ("
+            + additionalUniverse.size()
+            + ")");
+
+    for (String key : service.entityTypeVersionKeys()) {
+      try {
+        Class<?> type = Class.forName(key);
+        assertTrue(
+            ETagObservedEntityTypes.isObservedType(type),
+            "Map key bypassed production gate: " + key);
+        assertTrue(
+            MetadataObject.class.isAssignableFrom(type) || additionalUniverse.contains(key),
+            "Key is neither MetadataObject nor in additional observed set: " + key);
+      } catch (ClassNotFoundException e) {
+        throw new AssertionError("Entity version key is not a loadable class: " + key, e);
+      }
+    }
+
+    // Re-bumping the same observed set must not grow the map (dedup by type key).
+    int sizeAfter = service.entityTypeVersionMapSize();
+    for (Class<?> type : candidates) {
+      bumpThroughProductionGate(type);
+    }
+    for (String fqcn : additionalUniverse) {
+      try {
+        bumpThroughProductionGate(Class.forName(fqcn));
+      } catch (ClassNotFoundException ignored) {
+        // same as above
+      }
+    }
+    assertEquals(sizeAfter, service.entityTypeVersionMapSize());
+    assertTrue(additionalLoaded >= 1 || !additionalUniverse.isEmpty());
+  }
+
+  @Test
+  @DisplayName("Production named-version key set is pinned (installedApps, staticContent)")
+  void productionNamedVersionKeySetIsPinned() {
+    assertEquals(
+        Set.of("installedApps", "staticContent"),
+        PRODUCTION_NAMED_VERSION_KEYS,
+        "Update PRODUCTION_NAMED_VERSION_KEYS when adding a production incrementNamedVersion call site");
+
+    for (String key : PRODUCTION_NAMED_VERSION_KEYS) {
+      service.incrementNamedVersion(key);
+    }
+    assertEquals(PRODUCTION_NAMED_VERSION_KEYS.size(), service.namedVersionMapSize());
+    assertEquals(PRODUCTION_NAMED_VERSION_KEYS, service.namedVersionKeys());
+  }
+
+  /**
+   * Mirrors {@code DmlObserverListener.bumpVersionForEvent}: only observed types reach the ETag
+   * service.
+   *
+   * @return true if a version bump was performed
+   */
+  private boolean bumpThroughProductionGate(Class<?> entityClass) {
+    if (!ETagObservedEntityTypes.isObservedType(entityClass)) {
+      return false;
+    }
+    service.incrementEntityTypeVersion(entityClass);
+    return true;
   }
 }

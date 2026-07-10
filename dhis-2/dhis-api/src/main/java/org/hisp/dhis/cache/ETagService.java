@@ -80,6 +80,10 @@ public interface ETagService {
    * Increments the version for a named (non-entity) cache key. Call this when the underlying data
    * changes outside the DML observer pipeline (e.g. app install/uninstall).
    *
+   * <p>Memory is bounded only by call-site convention: pass a compile-time constant string from the
+   * small production set ({@code "installedApps"}, {@code "staticContent"}). There is no runtime
+   * allowlist; new keys require a conscious call-site addition and test update.
+   *
    * @param key the version key name
    * @return the new version number after increment
    */

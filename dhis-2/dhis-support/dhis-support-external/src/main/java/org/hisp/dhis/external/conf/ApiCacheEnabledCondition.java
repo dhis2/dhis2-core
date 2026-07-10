@@ -30,8 +30,6 @@
 package org.hisp.dhis.external.conf;
 
 import java.util.Arrays;
-import org.hisp.dhis.external.config.ServiceConfig;
-import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
@@ -54,11 +52,7 @@ public class ApiCacheEnabledCondition implements ConfigurationCondition {
     if (Arrays.asList(context.getEnvironment().getActiveProfiles()).contains("test")) {
       return false;
     }
-    DefaultLocationManager locationManager =
-        (DefaultLocationManager) new ServiceConfig().locationManager();
-    locationManager.init();
-    DefaultDhisConfigurationProvider config = new DefaultDhisConfigurationProvider(locationManager);
-    config.init();
+    DhisConfigurationProvider config = ApiETagCacheActivation.loadConfig();
     ApiETagCacheActivation.logIfClusterIncompatible(config);
     return ApiETagCacheActivation.isEffectivelyEnabled(config);
   }

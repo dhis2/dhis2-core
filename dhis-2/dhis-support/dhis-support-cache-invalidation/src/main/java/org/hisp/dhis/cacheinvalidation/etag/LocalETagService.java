@@ -158,6 +158,14 @@ public class LocalETagService implements ETagService, InitializingBean {
     return version != null ? version.get() : 0L;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>The named-version map is bounded only by convention: production call sites must use a small
+   * fixed set of compile-time string constants ({@code "installedApps"}, {@code "staticContent"}).
+   * This method does not validate keys at runtime; a new call site is a conscious change and should
+   * update the pinned key-set test in {@code LocalETagServiceCardinalityTest}.
+   */
   @Override
   public long incrementNamedVersion(@Nonnull String key) {
     long newVersion = namedVersions.computeIfAbsent(key, k -> new AtomicLong(0)).incrementAndGet();

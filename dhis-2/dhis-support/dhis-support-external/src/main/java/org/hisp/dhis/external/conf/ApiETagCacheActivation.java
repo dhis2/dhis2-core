@@ -32,6 +32,8 @@ package org.hisp.dhis.external.conf;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.config.ServiceConfig;
+import org.hisp.dhis.external.location.DefaultLocationManager;
 
 /**
  * Effective activation rules for the API ETag cache and its DML observer.
@@ -61,6 +63,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ApiETagCacheActivation {
+
+  /**
+   * Loads {@code dhis.conf} the same way the Spring {@code ConfigurationCondition}s do: location
+   * manager from {@link ServiceConfig}, then {@link DefaultDhisConfigurationProvider#init()}. Shared
+   * so Enabled/Disabled stay exact inverses without duplicating bootstrap.
+   */
+  public static DhisConfigurationProvider loadConfig() {
+    DefaultLocationManager locationManager =
+        (DefaultLocationManager) new ServiceConfig().locationManager();
+    locationManager.init();
+    DefaultDhisConfigurationProvider config = new DefaultDhisConfigurationProvider(locationManager);
+    config.init();
+    return config;
+  }
 
   /**
    * @return {@code true} when the config key is on and no multi-node force-off signal is present
