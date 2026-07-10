@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -160,9 +160,7 @@ public class PageLoadSimulation extends Simulation {
                     http("me")
                         .get(api + "/me?fields=authorities,avatar,name,settings,username")
                         .check(cacheableStatus()),
-                    http("systemSettings")
-                        .get(api + "/systemSettings")
-                        .check(cacheableStatus()),
+                    http("systemSettings").get(api + "/systemSettings").check(cacheableStatus()),
                     http("userSettings").get(api + "/userSettings").check(cacheableStatus()),
                     http("systemSettings/applicationTitle")
                         .get(api + "/systemSettings/applicationTitle")
@@ -226,9 +224,7 @@ public class PageLoadSimulation extends Simulation {
                             .get(api + "/dataStore/custom-translations/controller")
                             .check(status().in(200, 304, 404)),
                         http("locales/db").get(api + "/locales/db").check(cacheableStatus()),
-                        http("periodTypes")
-                            .get(api + "/periodTypes")
-                            .check(cacheableStatus())));
+                        http("periodTypes").get(api + "/periodTypes").check(cacheableStatus())));
 
     // -- Capture app requests --
     ChainBuilder captureApp =
@@ -410,8 +406,9 @@ public class PageLoadSimulation extends Simulation {
       return switch (s.toLowerCase()) {
         case "on" -> ON;
         case "off" -> OFF;
-        default -> throw new IllegalArgumentException(
-            "Unknown etag.expect: " + s + ". Valid: none, on, off");
+        default ->
+            throw new IllegalArgumentException(
+                "Unknown etag.expect: " + s + ". Valid: none, on, off");
       };
     }
   }

@@ -95,7 +95,8 @@ public final class DmlETagMetrics {
   public static final String DML_OBSERVER_PENDING_BATCHES = "dhis2_dml_observer_pending_batches";
 
   /** Total DmlEvent instances held across all pending batches. */
-  public static final String DML_OBSERVER_PENDING_EVENTS = "dhis2_dml_observer_pending_events_total";
+  public static final String DML_OBSERVER_PENDING_EVENTS =
+      "dhis2_dml_observer_pending_events_total";
 
   // ---------------------------------------------------------------------------
   // Tag keys
