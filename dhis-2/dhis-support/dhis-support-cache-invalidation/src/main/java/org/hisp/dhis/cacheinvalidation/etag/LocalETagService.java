@@ -51,7 +51,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * In-memory implementation of {@link ETagService} backed by ConcurrentHashMaps. Process-local only;
- * not registered when DHIS2 clustering is enabled (see {@link ApiETagCacheActivation}).
+ * not registered when multi-node force-off applies (DHIS2 clustering or Redis cache invalidation;
+ * see {@link ApiETagCacheActivation}).
  *
  * <p>Memory is bounded by design: one {@link AtomicLong} per observed entity type name and per
  * registered named key (apps, static content, …), not per row or per request.

@@ -42,7 +42,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * invalidation, and the DML observer serves no purpose without the ETag cache.
  *
  * <p>Satisfied when {@link ApiETagCacheActivation#isEffectivelyEnabled} is true and the active
- * Spring profile is not {@code "test"}. Clustering forces the feature off; see that class.
+ * Spring profile is not {@code "test"}. Multi-node signals (DHIS2 clustering or Redis cache
+ * invalidation) force the feature off; see that class.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

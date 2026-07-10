@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,40 +29,106 @@
  */
 package org.hisp.dhis.external.conf;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Proxy;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * Mockito is not a dependency of dhis-support-external; use a JDK proxy stub for the two methods
- * {@link ApiETagCacheActivation} reads.
+ * Mockito is not a dependency of dhis-support-external; use a JDK proxy stub for the methods {@link
+ * ApiETagCacheActivation} reads.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class ApiETagCacheActivationTest {
 
-  @Test
-  @DisplayName("On and not clustered => effectively enabled")
-  void enabledWhenOnAndNotClustered() {
-    assertTrue(ApiETagCacheActivation.isEffectivelyEnabled(stub(true, false)));
+  @ParameterizedTest(name = "etagOn={0} clustered={1} redisInvalidation={2} => enabled={3}")
+  @MethodSource("activationTruthTable")
+  @DisplayName("isEffectivelyEnabled truth table including redis cache invalidation")
+  void activationTruthTable(
+      boolean etagOn, boolean clustered, boolean redisInvalidation, boolean expectedEnabled) {
+    DhisConfigurationProvider config = stub(etagOn, clustered, redisInvalidation);
+    assertEquals(expectedEnabled, ApiETagCacheActivation.isEffectivelyEnabled(config));
+    assertEquals(
+        clustered || redisInvalidation, ApiETagCacheActivation.isMultiNodeIncompatible(config));
+  }
+
+  static Stream<Arguments> activationTruthTable() {
+    // etagOn, clustered, redisInvalidation, expectedEnabled
+    return Stream.of(
+        Arguments.of(true, false, false, true),
+        Arguments.of(false, false, false, false),
+        Arguments.of(true, true, false, false),
+        Arguments.of(true, false, true, false),
+        Arguments.of(true, true, true, false),
+        Arguments.of(false, true, false, false),
+        Arguments.of(false, false, true, false),
+        Arguments.of(false, true, true, false));
   }
 
   @Test
-  @DisplayName("Config off => effectively disabled even without clustering")
-  void disabledWhenConfigOff() {
-    assertFalse(ApiETagCacheActivation.isEffectivelyEnabled(stub(false, false)));
+  @DisplayName("Plain redis.enabled alone does not force the feature off")
+  void plainRedisEnabledDoesNotForceOff() {
+    // Documented product choice: redis.enabled is a single-node-valid cache backend, not a
+    // multi-node coherence signal. Activation must not consult REDIS_ENABLED.
+    DhisConfigurationProvider config =
+        (DhisConfigurationProvider)
+            Proxy.newProxyInstance(
+                DhisConfigurationProvider.class.getClassLoader(),
+                new Class<?>[] {DhisConfigurationProvider.class},
+                (proxy, method, args) -> {
+                  String name = method.getName();
+                  if ("isEnabled".equals(name)
+                      && args != null
+                      && args.length == 1
+                      && args[0] == ConfigurationKey.CACHE_API_ETAG_ENABLED) {
+                    return true;
+                  }
+                  if ("isEnabled".equals(name)
+                      && args != null
+                      && args.length == 1
+                      && args[0] == ConfigurationKey.REDIS_ENABLED) {
+                    return true;
+                  }
+                  if ("isEnabled".equals(name)
+                      && args != null
+                      && args.length == 1
+                      && args[0] == ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED) {
+                    return false;
+                  }
+                  if ("isClusterEnabled".equals(name)) {
+                    return false;
+                  }
+                  if ("toString".equals(name)) {
+                    return "stub(redis.enabled=on only)";
+                  }
+                  if (method.getReturnType() == boolean.class) {
+                    return false;
+                  }
+                  if (method.getReturnType() == int.class) {
+                    return 0;
+                  }
+                  return null;
+                });
+
+    assertTrue(ApiETagCacheActivation.isEffectivelyEnabled(config));
   }
 
   @Test
-  @DisplayName("On + clustering => forced off (unsupported combination)")
-  void forcedOffWhenClustered() {
-    assertFalse(ApiETagCacheActivation.isEffectivelyEnabled(stub(true, true)));
+  @DisplayName("On + redis cache invalidation => forced off")
+  void forcedOffWhenRedisCacheInvalidationEnabled() {
+    assertFalse(ApiETagCacheActivation.isEffectivelyEnabled(stub(true, false, true)));
   }
 
-  private static DhisConfigurationProvider stub(boolean etagOn, boolean clustered) {
+  private static DhisConfigurationProvider stub(
+      boolean etagOn, boolean clustered, boolean redisInvalidation) {
     return (DhisConfigurationProvider)
         Proxy.newProxyInstance(
             DhisConfigurationProvider.class.getClassLoader(),
@@ -75,11 +141,23 @@ class ApiETagCacheActivationTest {
                   && args[0] == ConfigurationKey.CACHE_API_ETAG_ENABLED) {
                 return etagOn;
               }
+              if ("isEnabled".equals(name)
+                  && args != null
+                  && args.length == 1
+                  && args[0] == ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED) {
+                return redisInvalidation;
+              }
               if ("isClusterEnabled".equals(name)) {
                 return clustered;
               }
               if ("toString".equals(name)) {
-                return "stub(etagOn=" + etagOn + ", clustered=" + clustered + ")";
+                return "stub(etagOn="
+                    + etagOn
+                    + ", clustered="
+                    + clustered
+                    + ", redisInvalidation="
+                    + redisInvalidation
+                    + ")";
               }
               if (method.getReturnType() == boolean.class) {
                 return false;
