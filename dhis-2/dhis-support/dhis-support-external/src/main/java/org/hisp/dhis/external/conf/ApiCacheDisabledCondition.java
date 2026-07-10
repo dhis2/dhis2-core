@@ -37,8 +37,10 @@ import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Inverse of {@link ApiCacheEnabledCondition}. Satisfied when the API cache feature is disabled or
- * the active Spring profile is {@code "test"}.
+ * Inverse of {@link ApiCacheEnabledCondition}. Satisfied when the API ETag cache is not effectively
+ * enabled (config off, clustering forces it off, or the active Spring profile is {@code "test"}).
+ * Must stay the exact inverse of {@link ApiCacheEnabledCondition} so exactly one of {@code
+ * LocalETagService} / {@code NoOpETagService} is registered.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -54,7 +56,7 @@ public class ApiCacheDisabledCondition implements ConfigurationCondition {
     locationManager.init();
     DefaultDhisConfigurationProvider config = new DefaultDhisConfigurationProvider(locationManager);
     config.init();
-    return !config.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED);
+    return !ApiETagCacheActivation.isEffectivelyEnabled(config);
   }
 
   @Override

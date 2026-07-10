@@ -211,8 +211,11 @@ public class ConditionalETagService {
   }
 
   /**
-   * Calculates the current time window by dividing epoch millis by the TTL duration. All servers
-   * with synced clocks compute the same bucket, ensuring consistent ETags in clustered deployments.
+   * Calculates the current time window by dividing epoch millis by the TTL duration. Servers with
+   * synced clocks share the same bucket index, which is a safety net that eventually refreshes
+   * ETags even when a DML event is missed. It does <strong>not</strong> make process-local version
+   * counters coherent across a cluster; the API ETag cache is forced off when DHIS2 clustering is
+   * enabled (see {@code ApiETagCacheActivation}).
    */
   private long calculateTimeWindow() {
     int ttlMinutes = eTagVersionService.getTtlMinutes();

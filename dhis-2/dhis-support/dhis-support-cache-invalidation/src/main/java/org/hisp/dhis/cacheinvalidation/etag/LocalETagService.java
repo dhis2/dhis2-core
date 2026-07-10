@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.external.conf.ApiCacheEnabledCondition;
+import org.hisp.dhis.external.conf.ApiETagCacheActivation;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -43,8 +44,8 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 /**
- * In-memory implementation of {@link ETagService} backed by a ConcurrentHashMap. Independent of
- * Redis; suitable for single-instance deployments.
+ * In-memory implementation of {@link ETagService} backed by a ConcurrentHashMap. Process-local
+ * only; not registered when DHIS2 clustering is enabled (see {@link ApiETagCacheActivation}).
  *
  * @author Morten Svanæs
  */
@@ -132,7 +133,7 @@ public class LocalETagService implements ETagService, InitializingBean {
 
   @Override
   public boolean isEnabled() {
-    return configurationProvider.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED);
+    return ApiETagCacheActivation.isEffectivelyEnabled(configurationProvider);
   }
 
   @Override

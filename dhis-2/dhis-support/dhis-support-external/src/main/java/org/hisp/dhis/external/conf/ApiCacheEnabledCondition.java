@@ -41,8 +41,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * features are tightly coupled: the ETag cache relies on the DML observer for real-time
  * invalidation, and the DML observer serves no purpose without the ETag cache.
  *
- * <p>Satisfied when {@link ConfigurationKey#CACHE_API_ETAG_ENABLED} is {@code on} and the active
- * Spring profile is not {@code "test"}.
+ * <p>Satisfied when {@link ApiETagCacheActivation#isEffectivelyEnabled} is true and the active
+ * Spring profile is not {@code "test"}. Clustering forces the feature off; see that class.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -58,7 +58,8 @@ public class ApiCacheEnabledCondition implements ConfigurationCondition {
     locationManager.init();
     DefaultDhisConfigurationProvider config = new DefaultDhisConfigurationProvider(locationManager);
     config.init();
-    return config.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED);
+    ApiETagCacheActivation.logIfClusterIncompatible(config);
+    return ApiETagCacheActivation.isEffectivelyEnabled(config);
   }
 
   @Override

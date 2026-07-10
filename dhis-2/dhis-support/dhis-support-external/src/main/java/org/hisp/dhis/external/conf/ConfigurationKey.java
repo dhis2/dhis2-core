@@ -812,9 +812,13 @@ public enum ConfigurationKey {
 
   /**
    * Enable conditional ETag caching for API responses and the SQL DML observer that drives
-   * real-time cache invalidation. This provides efficient HTTP caching where ETags are validated
-   * BEFORE heavy computations, using local in-memory version tracking for cache invalidation.
-   * (default: on)
+   * real-time cache invalidation. ETags are validated before heavy controller work using
+   * process-local in-memory version counters. (default: on)
+   *
+   * <p><strong>Not supported with DHIS2 clustering.</strong> When {@code cluster.members} and
+   * {@code cluster.hostname} are set, the feature is forced off at startup even if this key is
+   * {@code on} (see {@link ApiETagCacheActivation}). Multi-node version propagation is not
+   * implemented yet.
    */
   CACHE_API_ETAG_ENABLED("cache.api.etag.enabled", Constants.ON, false),
 
