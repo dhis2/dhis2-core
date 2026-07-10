@@ -134,6 +134,48 @@ first_measured_runpath() {
   return 1
 }
 
+# Prefer RepoDigest (registry pin), else local image Id. Dependency-free (docker CLI only).
+image_pin() {
+  local ref="$1"
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "unknown(no-docker)"
+    return
+  fi
+  local digest id
+  digest="$(docker image inspect --format '{{if .RepoDigests}}{{index .RepoDigests 0}}{{end}}' "$ref" 2>/dev/null || true)"
+  if [[ -n "$digest" ]]; then
+    echo "$digest"
+    return
+  fi
+  id="$(docker image inspect --format '{{.Id}}' "$ref" 2>/dev/null || true)"
+  if [[ -n "$id" ]]; then
+    echo "$id"
+    return
+  fi
+  echo "unknown(image-not-local:$ref)"
+}
+
+resolve_git_pin() {
+  local repo
+  for repo in "$ROOT/../.." "$ROOT/.." "$ROOT"; do
+    if git -C "$repo" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      GIT_HEAD="$(git -C "$repo" rev-parse HEAD 2>/dev/null || echo unknown)"
+      GIT_DIRTY_COUNT="$(git -C "$repo" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+      if [[ "${GIT_DIRTY_COUNT:-0}" -gt 0 ]]; then
+        GIT_DIRTY=yes
+      else
+        GIT_DIRTY=no
+      fi
+      GIT_REPO="$repo"
+      return
+    fi
+  done
+  GIT_HEAD=unknown
+  GIT_DIRTY_COUNT=0
+  GIT_DIRTY=unknown
+  GIT_REPO=unknown
+}
+
 # Emit markdown tables from glog simulation.csv (if present) or note missing data.
 # Writes $OUT_DIR/results.md so doc tables can be copied rather than hand-typed.
 write_results_md() {
@@ -144,7 +186,12 @@ write_results_md() {
     echo "- stamp: \`$STAMP\`"
     echo "- profile: \`$PROFILE\` fast=\`$FAST\`"
     echo "- warmup: $WARMUP measured: $MEASURED (first measured index m${FIRST_MEASURED_INDEX})"
-    echo "- image: \`$DHIS2_IMAGE\`"
+    echo "- dhis2_image: \`$DHIS2_IMAGE\`"
+    echo "- dhis2_image_pin: \`${DHIS2_IMAGE_PIN:-unknown}\`"
+    echo "- db_image: \`${DB_IMAGE_REF:-unknown}\`"
+    echo "- db_image_pin: \`${DB_IMAGE_PIN:-unknown}\`"
+    echo "- git_head: \`${GIT_HEAD:-unknown}\`"
+    echo "- git_dirty: \`${GIT_DIRTY:-unknown}\` (porcelain lines: ${GIT_DIRTY_COUNT:-0})"
     echo "- method: per-run OK latencies from \`simulation.csv\` (glog) when present; else runpath only"
     echo
   } >"$results"
@@ -263,16 +310,29 @@ PY
 }
 
 meta() {
+  resolve_git_pin
+  # Match docker-compose.yml defaults for the postgres service image.
+  DB_TYPE="${DB_TYPE:-sierra-leone}"
+  DB_VERSION="${DB_VERSION:-dev}"
+  DB_IMAGE_REF="${DB_IMAGE_REF:-localhost/dhis2-postgres:14-3.5-${DB_TYPE}-${DB_VERSION}}"
+  DHIS2_IMAGE_PIN="$(image_pin "$DHIS2_IMAGE")"
+  DB_IMAGE_PIN="$(image_pin "$DB_IMAGE_REF")"
+
   {
     echo "stamp=$STAMP"
     echo "dhis2_image=$DHIS2_IMAGE"
+    echo "dhis2_image_pin=$DHIS2_IMAGE_PIN"
+    echo "db_image=$DB_IMAGE_REF"
+    echo "db_image_pin=$DB_IMAGE_PIN"
     echo "simulation=$SIMULATION_CLASS"
     echo "profile=$PROFILE"
     echo "fast=$FAST"
     echo "warmup=$WARMUP"
     echo "measured=$MEASURED"
     echo "first_measured_index=$FIRST_MEASURED_INDEX"
-    echo "git_head=$(git -C "$ROOT/../.." rev-parse HEAD 2>/dev/null || git -C "$ROOT/.." rev-parse HEAD 2>/dev/null || echo unknown)"
+    echo "git_head=$GIT_HEAD"
+    echo "git_dirty=$GIT_DIRTY"
+    echo "git_dirty_count=$GIT_DIRTY_COUNT"
     echo "host=$(hostname)"
     echo "date_utc=$(date -u -Iseconds)"
   } | tee "$OUT_DIR/meta.env"
