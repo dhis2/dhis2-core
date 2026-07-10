@@ -51,6 +51,13 @@ class MetadataEndpointCacheTest extends CacheApiTest {
           "categoryOptionCombos",
           "jobConfigurations");
 
+  /**
+   * Extra handshake re-baselines after the first conditional GET when the ETag has moved. CI has
+   * shown a single refresh is insufficient for high fan-in roots (e.g. organisationUnits) when
+   * suite fixture churn bumps shared observed deps mid-handshake.
+   */
+  private static final int MAX_HANDSHAKE_REFRESHES = 3;
+
   private SchemasActions schemasActions;
 
   @BeforeAll
@@ -119,7 +126,7 @@ class MetadataEndpointCacheTest extends CacheApiTest {
     CacheAssertions.assertCacheHeaders(initialResponse);
 
     CacheProbeUser.SUPERUSER.login(loginActions);
-    initialResponse = assertNotModifiedAllowingOneRefresh(path, initialResponse);
+    initialResponse = assertNotModifiedAllowingRefresh(path, initialResponse);
 
     mutators.mutateMetadataSchema(schema);
     CacheProbe.CacheResponse invalidatedResponse =
@@ -132,25 +139,42 @@ class MetadataEndpointCacheTest extends CacheApiTest {
   /**
    * Asserts the conditional GET returns 304 for the current ETag. Between the initial GET and the
    * conditional GET the ETag can legitimately move without any test-driven mutation: the TTL time
-   * window can roll over, or a background job can write an observed entity type. In that case the
-   * handshake is re-established once with a fresh ETag before failing. This must only be used for
-   * the pure GET-then-304 handshake, never after a negative-control mutation, where a moving ETag
-   * would mask an over-invalidation bug.
+   * window can roll over, a background job can write an observed dependency type, or (in this
+   * suite) an earlier schema's fixture churn can bump a shared dependency such as {@code
+   * FileResource} / {@code UserGroup} while the handshake is in flight. High fan-in endpoints like
+   * {@code /organisationUnits} are especially exposed.
+   *
+   * <p>When a conditional GET returns 200 with a <em>different</em> ETag, the handshake is
+   * re-baselined from that response (its ETag is already the server's current value) and retried.
+   * Further refreshes are allowed only while the ETag keeps changing, up to {@link
+   * #MAX_HANDSHAKE_REFRESHES}. That gate preserves the strict negative control: a broken cache that
+   * returns 200 with the <em>same</em> ETag still fails immediately, and a cache that never
+   * stabilizes fails after the refresh budget instead of looping forever. Never use this after a
+   * negative-control mutation, where a moving ETag would mask an over-invalidation bug.
    */
-  private CacheProbe.CacheResponse assertNotModifiedAllowingOneRefresh(
+  private CacheProbe.CacheResponse assertNotModifiedAllowingRefresh(
       String path, CacheProbe.CacheResponse initialResponse) {
-    CacheProbe.CacheResponse conditional = probe.getIfNoneMatch(path, initialResponse.etag());
-    if (conditional.statusCode() == 200
-        && conditional.etag() != null
-        && !conditional.etag().equals(initialResponse.etag())) {
-      CacheProbe.CacheResponse refreshed = probe.get(path);
-      CacheAssertions.assertCacheHeaders(refreshed);
-      CacheAssertions.assertNotModified(
-          probe.getIfNoneMatch(path, refreshed.etag()), refreshed.etag());
-      return refreshed;
+    CacheProbe.CacheResponse current = initialResponse;
+    for (int refresh = 0; ; refresh++) {
+      CacheProbe.CacheResponse conditional = probe.getIfNoneMatch(path, current.etag());
+      if (conditional.statusCode() == 304) {
+        CacheAssertions.assertNotModified(conditional, current.etag());
+        return current;
+      }
+      boolean etagMoved =
+          conditional.statusCode() == 200
+              && conditional.etag() != null
+              && !conditional.etag().equals(current.etag());
+      if (etagMoved && refresh < MAX_HANDSHAKE_REFRESHES) {
+        // The 200 body already carries the current ETag; re-baseline without an extra GET that
+        // would only widen the race window for another version bump.
+        CacheAssertions.assertCacheHeaders(conditional);
+        current = conditional;
+        continue;
+      }
+      CacheAssertions.assertNotModified(conditional, current.etag());
+      return current;
     }
-    CacheAssertions.assertNotModified(conditional, initialResponse.etag());
-    return initialResponse;
   }
 
   private void assertDependencyInvalidates(String path, CacheDependency dependency) {
