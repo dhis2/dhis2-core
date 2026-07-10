@@ -905,6 +905,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("#ddeeff", mapView.getNoDataColor());
     assertEquals("#aabbcc", mapView.getOrganisationUnitColor());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
+    assertEquals(List.of("dx"), mapView.getColumnDimensions());
+    assertEquals(List.of("pe"), mapView.getFilterDimensions());
     metadata =
         renderService.fromMetadata(
             new ClassPathResource("dxf2/map_update.json").getInputStream(), RenderFormat.JSON);
@@ -921,6 +923,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("#ddeeff", mapView.getNoDataColor());
     assertEquals("#aabbcc", mapView.getOrganisationUnitColor());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
+    assertEquals(List.of("dx"), mapView.getColumnDimensions());
+    assertEquals(List.of("pe"), mapView.getFilterDimensions());
   }
 
   /**
