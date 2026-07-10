@@ -66,8 +66,8 @@ public final class ApiETagCacheActivation {
 
   /**
    * Loads {@code dhis.conf} the same way the Spring {@code ConfigurationCondition}s do: location
-   * manager from {@link ServiceConfig}, then {@link DefaultDhisConfigurationProvider#init()}. Shared
-   * so Enabled/Disabled stay exact inverses without duplicating bootstrap.
+   * manager from {@link ServiceConfig}, then {@link DefaultDhisConfigurationProvider#init()}.
+   * Shared so Enabled/Disabled stay exact inverses without duplicating bootstrap.
    */
   public static DhisConfigurationProvider loadConfig() {
     DefaultLocationManager locationManager =
@@ -83,13 +83,8 @@ public final class ApiETagCacheActivation {
    *     (neither DHIS2 clustering nor Redis cache invalidation)
    */
   public static boolean isEffectivelyEnabled(DhisConfigurationProvider config) {
-    if (!config.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED)) {
-      return false;
-    }
-    if (isMultiNodeIncompatible(config)) {
-      return false;
-    }
-    return true;
+    return config.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED)
+        && !isMultiNodeIncompatible(config);
   }
 
   /**

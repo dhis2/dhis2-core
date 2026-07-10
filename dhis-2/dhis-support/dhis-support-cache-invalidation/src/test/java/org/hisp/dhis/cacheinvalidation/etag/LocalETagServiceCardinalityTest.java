@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -177,8 +177,7 @@ class LocalETagServiceCardinalityTest {
     assertTrue(service.entityTypeVersionKeys().contains(Configuration.class.getName()));
 
     // Closed additional-observed universe from ETagObservedEntityTypes (not a magic number).
-    Set<String> additionalUniverse =
-        ETagObservedEntityTypes.getAdditionalObservedTypeNames();
+    Set<String> additionalUniverse = ETagObservedEntityTypes.getAdditionalObservedTypeNames();
     int additionalLoaded = 0;
     for (String fqcn : additionalUniverse) {
       try {
@@ -237,8 +236,8 @@ class LocalETagServiceCardinalityTest {
   @DisplayName("Production named-version key set is pinned (installedApps, staticContent)")
   void productionNamedVersionKeySetIsPinned() {
     assertEquals(
-        Set.of("installedApps", "staticContent"),
         PRODUCTION_NAMED_VERSION_KEYS,
+        Set.of("installedApps", "staticContent"),
         "Update PRODUCTION_NAMED_VERSION_KEYS when adding a production incrementNamedVersion call site");
 
     for (String key : PRODUCTION_NAMED_VERSION_KEYS) {
