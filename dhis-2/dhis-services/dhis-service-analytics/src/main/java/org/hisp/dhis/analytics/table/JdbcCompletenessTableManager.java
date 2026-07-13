@@ -178,23 +178,39 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
-        replaceQualify(
-            sqlBuilder,
-            """
-            delete from ${tableName} ax \
-            where ax.id in ( \
-            select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id \
-            from ${completedatasetregistration} cdr \
-            inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
-            inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
-            inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
-            inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
-            where cdr.lastupdated >= '${startDate}' \
-            and cdr.lastupdated < '${endDate}');""",
-            Map.of(
-                "tableName", quote(getAnalyticsTableType().getTableName()),
-                "startDate", toLongDate(partition.getStartDate()),
-                "endDate", toLongDate(partition.getEndDate())));
+        sqlBuilder.requiresUniqueKeyAnalyticsTables()
+            ? replaceQualify(
+                sqlBuilder,
+                """
+                delete from ${tableName} ax \
+                using ${completedatasetregistration} cdr \
+                inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
+                inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
+                inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
+                inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
+                where ax.id = concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) \
+                and cdr.lastupdated >= '${startDate}' and cdr.lastupdated < '${endDate}';""",
+                Map.of(
+                    "tableName", quote(getAnalyticsTableType().getTableName()),
+                    "startDate", toLongDate(partition.getStartDate()),
+                    "endDate", toLongDate(partition.getEndDate())))
+            : replaceQualify(
+                sqlBuilder,
+                """
+                delete from ${tableName} ax \
+                where ax.id in ( \
+                select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id \
+                from ${completedatasetregistration} cdr \
+                inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
+                inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
+                inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
+                inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
+                where cdr.lastupdated >= '${startDate}' \
+                and cdr.lastupdated < '${endDate}');""",
+                Map.of(
+                    "tableName", quote(getAnalyticsTableType().getTableName()),
+                    "startDate", toLongDate(partition.getStartDate()),
+                    "endDate", toLongDate(partition.getEndDate())));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }
