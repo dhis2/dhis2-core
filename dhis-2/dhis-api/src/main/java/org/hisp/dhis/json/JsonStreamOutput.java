@@ -446,7 +446,7 @@ public final class JsonStreamOutput {
     if (!property.arrayAggregate()) return property.path().toString();
     PropertyPath path = property.path();
     if (!path.isNested()) return path.toString();
-    List<Text> parts = path.segments();
+    List<Text> parts = path.segments().toList();
     int len = parts.size();
     if (len == 2) return "[" + parts.get(0) + "]." + parts.get(1);
     return "%s.[%s].%s"

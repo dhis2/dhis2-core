@@ -243,8 +243,10 @@ class PropertyPathTest {
         segments.length,
         actual.length(),
         "number of segments should be the same as a regex split on dot");
-    for (int i = 0; i < segments.length; i++)
-      assertEquals(segments[i], actual.segments().get(i).toString());
+    List<Text> actualSegments = actual.segments().toList();
+    for (int i = 0; i < segments.length; i++) {
+      assertEquals(segments[i], actualSegments.get(i).toString());
+    }
   }
 
   private static void assertIllegalPath(String path) {

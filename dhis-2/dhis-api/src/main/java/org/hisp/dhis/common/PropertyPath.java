@@ -31,7 +31,7 @@ package org.hisp.dhis.common;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.List;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -203,8 +203,8 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
   }
 
   @Nonnull
-  public List<Text> segments() {
-    if (parent == null) return List.of(segment);
+  public Stream<Text> segments() {
+    if (parent == null) return Stream.of(segment);
     int n = length();
     PropertyPath path = this;
     Text[] res = new Text[n];
@@ -213,7 +213,7 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
       res[i--] = path.segment;
       path = path.parent;
     }
-    return Stream.of(res).toList();
+    return Stream.of(res);
   }
 
   @Nonnull
@@ -226,7 +226,8 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
   public PropertyPath concat(@Nonnull PropertyPath subPath) {
     if (subPath.parent == null) return concat(subPath.segment);
     PropertyPath res = this;
-    for (Text segment : subPath.segments()) res = new PropertyPath(res, segment);
+    Iterator<Text> iter = subPath.segments().iterator();
+    while (iter.hasNext()) res = new PropertyPath(res, iter.next());
     return res;
   }
 
