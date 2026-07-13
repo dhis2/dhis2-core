@@ -36,11 +36,8 @@ import java.security.SecureRandom;
  */
 public class IdGenerator extends RestApiActions {
   private static final String LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
   private static final String ALLOWED_CHARS = "0123456789" + LETTERS;
-
   private static final int CODE_SIZE = 11;
-
   private static final SecureRandom RANDOM = new SecureRandom();
 
   public IdGenerator() {

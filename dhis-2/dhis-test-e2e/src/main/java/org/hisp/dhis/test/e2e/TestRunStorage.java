@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.test.e2e;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -67,7 +65,7 @@ public class TestRunStorage {
     return getCreatedEntities().entrySet().stream()
         .filter(entrySet -> resource.equals(entrySet.getValue()))
         .map(Entry::getKey)
-        .collect(toList());
+        .toList();
   }
 
   public static void removeEntity(final String resource, final String id) {
