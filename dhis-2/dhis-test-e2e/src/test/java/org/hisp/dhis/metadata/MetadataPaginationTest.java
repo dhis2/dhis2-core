@@ -32,15 +32,18 @@ package org.hisp.dhis.metadata;
 import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FIELDS;
 import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FILTER;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.Collections;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions;
-import org.hisp.dhis.test.e2e.actions.metadata.OptionActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
-import org.junit.jupiter.api.BeforeEach;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,18 +56,29 @@ public class MetadataPaginationTest extends ApiTest {
 
   private int pageSize = 5;
 
-  @BeforeEach
+  @BeforeAll
   public void setUp() {
-    LoginActions loginActions = new LoginActions();
-    OptionActions optionActions = new OptionActions();
+    new LoginActions().loginAsSuperUser();
     paginationActions = new MetadataPaginationActions("/optionSets");
-    loginActions.loginAsSuperUser();
 
-    // Creates 100 Option Sets
+    // The pagination assertions only require that at least 100 option sets exist (the pager's
+    // total/pageCount are checked with greaterThanOrEqualTo), so the fixture is created once for
+    // the
+    // whole class rather than per test method, and in a single bulk metadata import instead of 100
+    // sequential POSTs per @BeforeEach run.
+    JsonArray optionSets = new JsonArray();
     for (int i = 0; i < 100; i++) {
-      optionActions.createOptionSet(
-          RandomStringUtils.randomAlphabetic(10), "INTEGER", (String[]) null);
+      optionSets.add(
+          new JsonObjectBuilder()
+              .addProperty("name", RandomStringUtils.randomAlphabetic(10) + i)
+              .addProperty("valueType", "INTEGER")
+              .build());
     }
+
+    JsonObject metadata = new JsonObject();
+    metadata.add("optionSets", optionSets);
+
+    new MetadataActions().importAndValidateMetadata(metadata);
   }
 
   @Test

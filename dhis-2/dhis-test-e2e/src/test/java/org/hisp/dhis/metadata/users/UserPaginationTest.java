@@ -32,16 +32,20 @@ package org.hisp.dhis.metadata.users;
 import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FIELDS;
 import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FILTER;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.Collections;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.PasswordGenerator;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
-import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.UserRoleActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.test.e2e.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,30 +54,41 @@ import org.junit.jupiter.api.Test;
 public class UserPaginationTest extends ApiTest {
   private MetadataPaginationActions paginationActions;
 
-  private UserActions userActions;
-
   private int startPage = 2;
 
   private int pageSize = 5;
 
   private int total = 50;
 
-  @BeforeEach
+  @BeforeAll
   public void setUp() {
-    LoginActions loginActions = new LoginActions();
-    userActions = new UserActions();
-
+    new LoginActions().loginAsSuperUser();
     paginationActions = new MetadataPaginationActions("/users");
-    loginActions.loginAsSuperUser();
 
-    // Creates Users
+    // The pagination assertions only require that at least `total` users exist (the pager's
+    // total/pageCount are checked with greaterThanOrEqualTo), so the fixture is created once for
+    // the
+    // whole class rather than per test method. All users share a single role and are created in one
+    // bulk metadata import, replacing what used to be ~300 sequential POSTs (a role + a user per
+    // iteration, times three @BeforeEach runs).
+    String roleUid = new UserRoleActions().createWithAuthorities();
+
+    JsonArray users = new JsonArray();
     for (int i = 0; i < total; i++) {
-      userActions.addUserFull(
-          DataGenerator.randomString() + i,
-          DataGenerator.randomString() + i,
-          (DataGenerator.randomString() + i).toLowerCase(),
-          new String(PasswordGenerator.generateValidPassword(12)));
+      users.add(
+          new JsonObjectBuilder()
+              .addProperty("firstName", DataGenerator.randomString() + i)
+              .addProperty("surname", DataGenerator.randomString() + i)
+              .addProperty("username", (DataGenerator.randomString() + i).toLowerCase())
+              .addProperty("password", new String(PasswordGenerator.generateValidPassword(12)))
+              .addArray("userRoles", new JsonObjectBuilder().addProperty("id", roleUid).build())
+              .build());
     }
+
+    JsonObject metadata = new JsonObject();
+    metadata.add("users", users);
+
+    new MetadataActions().importAndValidateMetadata(metadata);
   }
 
   @Test
