@@ -80,6 +80,7 @@ class PropertyPathTest {
     assertIllegalPath("-foo.-bar");
     assertIllegalPath(":foo.:bar");
     assertIllegalPath("!foo.!bar");
+    assertIllegalPath("foo.:bar.baz");
   }
 
   @Test
@@ -219,6 +220,7 @@ class PropertyPathTest {
   @Test
   void testConcat() {
     assertEquals(PropertyPath.of("foo.bar"), PropertyPath.of("foo").concat(Text.of("bar")));
+    assertEquals(PropertyPath.of("foo.:all"), PropertyPath.of("foo").concat(Text.of("*")));
     assertEquals(
         PropertyPath.of("foo.bar.baz"), PropertyPath.of("foo").concat(PropertyPath.of("bar.baz")));
 

@@ -66,7 +66,8 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
     requireNonNull(segment);
     requireNonEmpty(segment);
     requirePathChars(segment);
-    requireBarePathModifier(parent, segment);
+    requireExcludeIsExclusive(parent, segment);
+    requirePresetIsTail(parent);
   }
 
   @Nonnull
@@ -161,12 +162,12 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
   }
 
   public boolean isPreset() {
-    return parent == null && segment.charAt(0) == ':';
+    return isPresetModifier(segment.charAt(0));
   }
 
   public boolean isAll() {
     // note that * would have been changed to all during parsing
-    return parent == null && segment.contentEquals(":all");
+    return segment.contentEquals(":all");
   }
 
   /**
@@ -212,6 +213,7 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
 
   @Nonnull
   public PropertyPath concat(@Nonnull Text segment) {
+    if (segment.contentEquals("*")) return concat(Text.of(":all"));
     return new PropertyPath(this, segment);
   }
 
@@ -249,25 +251,31 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
   }
 
   private static boolean isPathModifier(char c) {
-    // presets and excludes need this so we allow it
-    return c == ':' || isExcludeModifier(c);
+    return isPresetModifier(c) || isExcludeModifier(c);
+  }
+
+  private static boolean isPresetModifier(char c) {
+    return c == ':';
   }
 
   private static boolean isExcludeModifier(char c) {
     return c == '-' || c == '!';
   }
 
-  /** Only the head segment may have a modifier */
-  private static void requireBarePathModifier(PropertyPath parent, Text segment) {
-    int c = isPathModifier(segment.charAt(0)) ? 1 : 0;
-    PropertyPath p = parent;
-    while (p != null) {
-      if (isPathModifier(p.segment.charAt(0))) c++;
-      p = p.parent;
-    }
-    if (c > 1)
+  private static void requireExcludeIsExclusive(PropertyPath parent, Text segment) {
+    if (parent == null) return;
+    if (!isExcludeModifier(segment.charAt(0))) return;
+    if (parent.isExclude())
       throw new IllegalArgumentException(
           "A property path can only have one exclude or preset modifier");
+  }
+
+  /** A preset modifier must always be at the tail segment of a path */
+  private static void requirePresetIsTail(PropertyPath parent) {
+    if (parent == null) return;
+    if (parent.isPreset())
+      throw new IllegalArgumentException(
+          "A property path with preset must always feature the preset at the tail");
   }
 
   @Nonnull
