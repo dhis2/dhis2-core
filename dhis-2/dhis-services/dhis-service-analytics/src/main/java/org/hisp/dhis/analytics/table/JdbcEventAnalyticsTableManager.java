@@ -111,6 +111,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
+  private static final List<String> PRIMARY_KEY = List.of("event");
+
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -195,7 +197,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
+          new AnalyticsTable(
+              getAnalyticsTableType(),
+              getColumns(program),
+              sqlBuilder.requiresUniqueKeyAnalyticsTables() ? PRIMARY_KEY : List.of(),
+              logged,
+              program);
 
       for (Integer year : yearsForPartitionTables) {
         List<String> checks = getPartitionChecks(year, PartitionUtils.getEndDate(calendar, year));
@@ -251,7 +258,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       if (hasUpdatedData) {
         AnalyticsTable table =
-            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
+            new AnalyticsTable(
+                getAnalyticsTableType(),
+                getColumns(program),
+                sqlBuilder.requiresUniqueKeyAnalyticsTables() ? PRIMARY_KEY : List.of(),
+                logged,
+                program);
         table.addTablePartition(
             List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
@@ -363,25 +375,42 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTablePartition partition = table.getLatestTablePartition();
       String sql = null;
       Program program = table.getProgram();
+      boolean uniqueKey = sqlBuilder.requiresUniqueKeyAnalyticsTables();
 
       if (table.getProgram().isRegistration()) {
         sql =
-            replaceQualify(
-                sqlBuilder,
-                """
-                    delete from ${tableName} ax \
-                    where ax.event in ( \
-                    select ev.uid \
-                    from ${trackerevent} ev \
-                    inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-                    where en.programid = ${programId} \
-                    and ev.lastupdated >= '${startDate}' \
-                    and ev.lastupdated < '${endDate}');""",
-                Map.of(
-                    "tableName", sqlBuilder.qualifyTable(table.getMainName()),
-                    "programId", String.valueOf(program.getId()),
-                    "startDate", toLongDate(partition.getStartDate()),
-                    "endDate", toLongDate(partition.getEndDate())));
+            uniqueKey
+                ? replaceQualify(
+                    sqlBuilder,
+                    """
+                        delete from ${tableName} ax \
+                        using ${trackerevent} ev \
+                        inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+                        where ax.event = ev.uid \
+                        and en.programid = ${programId} \
+                        and ev.lastupdated >= '${startDate}' \
+                        and ev.lastupdated < '${endDate}';""",
+                    Map.of(
+                        "tableName", quote(table.getMainName()),
+                        "programId", String.valueOf(program.getId()),
+                        "startDate", toLongDate(partition.getStartDate()),
+                        "endDate", toLongDate(partition.getEndDate())))
+                : replaceQualify(
+                    sqlBuilder,
+                    """
+                        delete from ${tableName} ax \
+                        where ax.event in ( \
+                        select ev.uid \
+                        from ${trackerevent} ev \
+                        inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+                        where en.programid = ${programId} \
+                        and ev.lastupdated >= '${startDate}' \
+                        and ev.lastupdated < '${endDate}');""",
+                    Map.of(
+                        "tableName", sqlBuilder.qualifyTable(table.getMainName()),
+                        "programId", String.valueOf(program.getId()),
+                        "startDate", toLongDate(partition.getStartDate()),
+                        "endDate", toLongDate(partition.getEndDate())));
       } else {
         if (isEmpty(program.getProgramStages()) || program.getProgramStages().size() > 1) {
           log.warn("Single event program {}, must have one stage", program.getUid());
@@ -392,21 +421,36 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                       ? program.getProgramStages().stream().toList().get(0).getId()
                       : EMPTY);
           sql =
-              replaceQualify(
-                  sqlBuilder,
-                  """
-                    delete from ${tableName} ax \
-                    where ax.event in ( \
-                    select ev.uid \
-                    from ${singleevent} ev \
-                    where ev.programstageid = ${programStageId} \
-                    and ev.lastupdated >= '${startDate}' \
-                    and ev.lastupdated < '${endDate}');""",
-                  Map.of(
-                      "tableName", sqlBuilder.qualifyTable(table.getMainName()),
-                      "programStageId", String.valueOf(programStageId),
-                      "startDate", toLongDate(partition.getStartDate()),
-                      "endDate", toLongDate(partition.getEndDate())));
+              uniqueKey
+                  ? replaceQualify(
+                      sqlBuilder,
+                      """
+                        delete from ${tableName} ax \
+                        using ${singleevent} ev \
+                        where ax.event = ev.uid \
+                        and ev.programstageid = ${programStageId} \
+                        and ev.lastupdated >= '${startDate}' \
+                        and ev.lastupdated < '${endDate}';""",
+                      Map.of(
+                          "tableName", quote(table.getMainName()),
+                          "programStageId", String.valueOf(programStageId),
+                          "startDate", toLongDate(partition.getStartDate()),
+                          "endDate", toLongDate(partition.getEndDate())))
+                  : replaceQualify(
+                      sqlBuilder,
+                      """
+                        delete from ${tableName} ax \
+                        where ax.event in ( \
+                        select ev.uid \
+                        from ${singleevent} ev \
+                        where ev.programstageid = ${programStageId} \
+                        and ev.lastupdated >= '${startDate}' \
+                        and ev.lastupdated < '${endDate}');""",
+                      Map.of(
+                          "tableName", sqlBuilder.qualifyTable(table.getMainName()),
+                          "programStageId", String.valueOf(programStageId),
+                          "startDate", toLongDate(partition.getStartDate()),
+                          "endDate", toLongDate(partition.getEndDate())));
         }
       }
 
