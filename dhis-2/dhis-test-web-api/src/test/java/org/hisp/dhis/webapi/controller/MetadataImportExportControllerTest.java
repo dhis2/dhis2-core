@@ -953,7 +953,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // And 5 COCs now exist
     assertEquals(
         5,
-        GET("/categoryOptionCombos")
+        GET("/categoryOptionCombos?gist=false")
             .content(HttpStatus.OK)
             .getObject("pager")
             .getNumber("total")
@@ -981,7 +981,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // And no extra COCs have been generated unknowingly in the system
     assertEquals(
         5,
-        GET("/categoryOptionCombos")
+        GET("/categoryOptionCombos?gist=false")
             .content(HttpStatus.OK)
             .getObject("pager")
             .getNumber("total")

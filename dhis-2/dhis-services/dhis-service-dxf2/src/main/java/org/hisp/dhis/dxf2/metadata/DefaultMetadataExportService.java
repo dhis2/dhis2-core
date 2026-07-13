@@ -256,11 +256,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
     for (Map.Entry<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> entry :
         metadata.entrySet()) {
       FieldFilterParams<?> fieldFilterParams =
-          FieldFilterParams.builder()
-              .objects(new ArrayList<>(entry.getValue()))
-              .filters(params.getFields(entry.getKey()))
-              .skipSharing(params.getSkipSharing())
-              .build();
+          FieldFilterParams.of(
+              new ArrayList<>(entry.getValue()),
+              String.join(",", params.getFields(entry.getKey())),
+              params.getSkipSharing());
 
       List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(fieldFilterParams);
 
@@ -306,12 +305,11 @@ public class DefaultMetadataExportService implements MetadataExportService {
         }
 
         FieldFilterParams<?> fieldFilterParams =
-            FieldFilterParams.builder()
-                .objects(objects)
-                .filters(params.getFields(klass))
-                .skipSharing(params.getSkipSharing())
-                .user(CurrentUserUtil.getCurrentUserDetails())
-                .build();
+            new FieldFilterParams<>(
+                objects,
+                String.join(",", params.getFields(klass)),
+                params.getSkipSharing(),
+                CurrentUserUtil.getCurrentUserDetails());
 
         String plural = schemaService.getSchema(klass).getPlural();
         generator.writeArrayFieldStart(plural);
@@ -343,14 +341,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
       generator.writeEndObject();
 
       for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
-        FieldFilterParams<?> fieldFilterParams =
-            FieldFilterParams.builder()
-                .objects(new ArrayList<>(metadata.get(klass)))
-                .filters(":owner")
-                .skipSharing(params.getSkipSharing())
-                .build();
-
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(fieldFilterParams);
+        List<ObjectNode> objectNodes =
+            fieldFilterService.toObjectNodes(
+                FieldFilterParams.of(
+                    new ArrayList<>(metadata.get(klass)), ":owner", params.getSkipSharing()));
 
         if (!objectNodes.isEmpty()) {
           String plural = schemaService.getSchema(klass).getPlural();
@@ -380,14 +374,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
         getMetadataWithDependencies(object);
 
     for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
-      FieldFilterParams<?> fieldFilterParams =
-          FieldFilterParams.builder()
-              .objects(new ArrayList<>(metadata.get(klass)))
-              .filters(":owner")
-              .skipSharing(params.getSkipSharing())
-              .build();
-
-      List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(fieldFilterParams);
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(
+              FieldFilterParams.of(
+                  new ArrayList<>(metadata.get(klass)), ":owner", params.getSkipSharing()));
 
       if (!objectNodes.isEmpty()) {
         String plural = schemaService.getSchema(klass).getPlural();

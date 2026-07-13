@@ -39,12 +39,15 @@ import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
@@ -66,12 +69,15 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
   private final IdentifiableObjectManager objectManager;
 
+  private final DimensionService dimensionService;
+
   @Override
   public void handleAnalyticalObject(
       EntityManager entityManager,
       Schema schema,
       BaseAnalyticalObject analyticalObject,
       ObjectBundle bundle) {
+    handleAnalyticalDimensions(analyticalObject);
     handleDataDimensionItems(entityManager, schema, analyticalObject, bundle);
     handleCategoryDimensions(entityManager, schema, analyticalObject, bundle);
     handleDataElementDimensions(entityManager, schema, analyticalObject, bundle);
@@ -80,6 +86,35 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     handleAnalyticalLegendSet(schema, analyticalObject, bundle);
     handleRelativePeriods(schema, analyticalObject);
     handleOrgUnitGroupSetDimensions(entityManager, schema, analyticalObject, bundle);
+  }
+
+  /**
+   * Reconstructs the persisted dimension state of an analytical object from its transient {@code
+   * columns}/{@code rows}/{@code filters}
+   */
+  private void handleAnalyticalDimensions(BaseAnalyticalObject analyticalObject) {
+    if (!(analyticalObject instanceof MapView mapView) || !hasAnalyticalDimensions(mapView)) {
+      return;
+    }
+
+    dimensionService.mergeAnalyticalObject(mapView);
+    dimensionService.mergeEventAnalyticalObject(mapView);
+
+    mapView.getColumnDimensions().clear();
+    mapView.getFilterDimensions().clear();
+
+    mapView
+        .getColumnDimensions()
+        .addAll(DimensionalObjectUtils.getDimensions(mapView.getColumns()));
+    mapView
+        .getFilterDimensions()
+        .addAll(DimensionalObjectUtils.getDimensions(mapView.getFilters()));
+  }
+
+  private boolean hasAnalyticalDimensions(BaseAnalyticalObject analyticalObject) {
+    return !analyticalObject.getColumns().isEmpty()
+        || !analyticalObject.getRows().isEmpty()
+        || !analyticalObject.getFilters().isEmpty();
   }
 
   /**

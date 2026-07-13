@@ -31,19 +31,27 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen
  */
-@Data
-@RequiredArgsConstructor
+@ToString
+@EqualsAndHashCode
+@Getter
 public class FieldPath {
+
+  public static FieldPath ofPath(String path) {
+    int lastDot = path.lastIndexOf('.');
+    if (lastDot < 0) return new FieldPath(path);
+    String name = path.substring(lastDot + 1);
+    return new FieldPath(name, List.of(path.substring(0, lastDot).split("\\.")));
+  }
+
   public static final String FIELD_PATH_SEPARATOR = ".";
 
   /** Name of field (excluding path). */
@@ -70,40 +78,42 @@ public class FieldPath {
   private final List<FieldPathTransformer> transformers;
 
   /** Schema Property if present (added by {@link FieldPathHelper}). */
-  @ToString.Exclude @EqualsAndHashCode.Exclude private Property property;
+  @Setter @ToString.Exclude @EqualsAndHashCode.Exclude private Property property;
 
   /** Fully calculated dot separated path for FieldPath. */
-  private String fullPath;
+  @EqualsAndHashCode.Exclude private final String fullPath;
+
+  public FieldPath(String name) {
+    this(name, List.of());
+  }
 
   public FieldPath(String name, List<String> path) {
-    this.name = name;
-    this.path = path;
-    this.exclude = false;
-    this.preset = false;
-    this.transformers = new ArrayList<>();
+    this(name, path, false, false);
   }
 
   public FieldPath(String name, List<String> path, boolean exclude, boolean preset) {
+    this(name, path, exclude, preset, new ArrayList<>());
+  }
+
+  public FieldPath(String name, List<String> path, List<FieldPathTransformer> transformers) {
+    this(name, path, false, false, transformers);
+  }
+
+  public FieldPath(
+      String name,
+      List<String> path,
+      boolean exclude,
+      boolean preset,
+      List<FieldPathTransformer> transformers) {
     this.name = name;
     this.path = path;
+    this.fullPath =
+        path.isEmpty()
+            ? name
+            : String.join(FIELD_PATH_SEPARATOR, path) + FIELD_PATH_SEPARATOR + name;
     this.exclude = exclude;
     this.preset = preset;
-    this.transformers = new ArrayList<>();
-  }
-
-  /**
-   * @return Dot separated path + field name (i.e. path.to.field)
-   */
-  public String toFullPath() {
-    if (fullPath == null) {
-      fullPath = path.isEmpty() ? name : toPath() + FIELD_PATH_SEPARATOR + name;
-    }
-
-    return fullPath;
-  }
-
-  public String toPath() {
-    return StringUtils.join(path, FIELD_PATH_SEPARATOR);
+    this.transformers = transformers;
   }
 
   public FieldPath relativeTo(String parentSegment) {

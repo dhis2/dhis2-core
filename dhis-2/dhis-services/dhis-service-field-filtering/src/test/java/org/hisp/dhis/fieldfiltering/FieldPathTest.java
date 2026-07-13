@@ -46,6 +46,6 @@ class FieldPathTest {
     assertEquals("field", fieldPath.getName());
     assertTrue(fieldPath.getPath().contains("a"));
     assertTrue(fieldPath.getPath().contains("b"));
-    assertEquals("a.b.field", fieldPath.toFullPath());
+    assertEquals("a.b.field", fieldPath.getFullPath());
   }
 }
