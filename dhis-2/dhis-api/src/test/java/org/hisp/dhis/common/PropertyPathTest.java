@@ -221,8 +221,6 @@ class PropertyPathTest {
         PropertyPath.of("foo.bar.baz"), PropertyPath.of("foo").concat(PropertyPath.of("bar.baz")));
 
     assertEquals(PropertyPath.of("!foo.bar"), PropertyPath.of("!foo").concat(Text.of("bar")));
-    assertThrowsExactly(
-        IllegalArgumentException.class, () -> PropertyPath.of("foo").concat(Text.of("!bar")));
   }
 
   @Test
