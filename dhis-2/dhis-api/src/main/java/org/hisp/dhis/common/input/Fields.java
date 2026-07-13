@@ -131,8 +131,12 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
             List.of());
     public static final Field ALL = new Field(":all", Transform.NONE);
 
-    public Field(String propertyPath) {
+    public Field(@Nonnull String propertyPath) {
       this(propertyPath, Transform.AUTO);
+    }
+
+    public Field(@Nonnull PropertyPath propertyPath) {
+      this(propertyPath, null, Transform.AUTO, List.of());
     }
 
     public Field(String propertyPath, Transform transformation) {
@@ -261,20 +265,20 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     Stream<Field> toFields(PropertyPath parentPath, PropertyPath parentRenamedPath) {
-      String name = this.name.toString();
+      Text name = this.name;
       if (name.length() >= 2 && isExcludeMarker(name.charAt(0)) && isPresetMarker(name.charAt(1)))
-        name = name.substring(1); // drop negation of preset
-      if ("*".equals(name)) name = ":all"; // unify * to :all
+        name = name.subSequence(1, name.length()); // drop negation of preset
+      if (name.contentEquals("*")) name = Text.of(":all"); // unify * to :all
       Field f = new Field(chain(parentPath, name));
-      String renamedName = "";
+      Text renamedName = null;
       for (TransformExp t : transforms)
-        if (t.type.contentEquals("rename")) renamedName = t.args.get(0).toString();
-      if (!renamedName.isEmpty() || parentRenamedPath != null)
+        if (t.type.contentEquals("rename")) renamedName = t.args.get(0);
+      if (renamedName != null || parentRenamedPath != null)
         f =
             f.withRenamedPath(
                 chain(
                     parentRenamedPath == null ? parentPath : parentRenamedPath,
-                    renamedName.isEmpty() ? name : renamedName));
+                    renamedName == null ? name : renamedName));
       if (transforms.isEmpty() && children.isEmpty()) return Stream.of(f);
       Field base = f;
       boolean noTransform = transforms.isEmpty() || base.isRenamed() && transforms.size() == 1;
@@ -293,8 +297,8 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       return noTransform ? childrenRes : Stream.concat(transformRes, childrenRes);
     }
 
-    static String chain(PropertyPath parent, String child) {
-      return parent == null ? child : parent.concat(Text.of(child)).toString();
+    static PropertyPath chain(PropertyPath parent, Text property) {
+      return parent == null ? PropertyPath.of(property) : parent.concat(property);
     }
   }
 
