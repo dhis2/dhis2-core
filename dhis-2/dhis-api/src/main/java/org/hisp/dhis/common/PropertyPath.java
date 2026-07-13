@@ -101,6 +101,11 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
     return res;
   }
 
+  @Nonnull
+  public static PropertyPath concat(@CheckForNull PropertyPath parent, @Nonnull Text property) {
+    return parent == null ? of(property) : parent.concat(property);
+  }
+
   /**
    * Value was chosen to give some protection against attacks abusing very long paths but long
    * enough to allow for even seriously nested paths with long segment names.

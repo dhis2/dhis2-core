@@ -268,15 +268,14 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       Text name = this.name;
       if (name.length() >= 2 && isExcludeMarker(name.charAt(0)) && isPresetMarker(name.charAt(1)))
         name = name.subSequence(1, name.length()); // drop negation of preset
-      if (name.contentEquals("*")) name = Text.of(":all"); // unify * to :all
-      Field f = new Field(chain(parentPath, name));
+      Field f = new Field(PropertyPath.concat(parentPath, name));
       Text renamedName = null;
       for (TransformExp t : transforms)
         if (t.type.contentEquals("rename")) renamedName = t.args.get(0);
       if (renamedName != null || parentRenamedPath != null)
         f =
             f.withRenamedPath(
-                chain(
+                PropertyPath.concat(
                     parentRenamedPath == null ? parentPath : parentRenamedPath,
                     renamedName == null ? name : renamedName));
       if (transforms.isEmpty() && children.isEmpty()) return Stream.of(f);
@@ -295,10 +294,6 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       Stream<Field> childrenRes =
           children.stream().flatMap(e -> e.toFields(parent.propertyPath(), parent.renamedPath()));
       return noTransform ? childrenRes : Stream.concat(transformRes, childrenRes);
-    }
-
-    static PropertyPath chain(PropertyPath parent, Text property) {
-      return parent == null ? PropertyPath.of(property) : parent.concat(property);
     }
   }
 
