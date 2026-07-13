@@ -51,17 +51,17 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class UserPaginationTest extends ApiTest {
+class UserPaginationTest extends ApiTest {
   private MetadataPaginationActions paginationActions;
 
-  private int startPage = 2;
+  private final int startPage = 2;
 
-  private int pageSize = 5;
+  private final int pageSize = 5;
 
-  private int total = 50;
+  private final int total = 50;
 
   @BeforeAll
-  public void setUp() {
+  void setUp() {
     new LoginActions().loginAsSuperUser();
     paginationActions = new MetadataPaginationActions("/users");
 
@@ -92,7 +92,7 @@ public class UserPaginationTest extends ApiTest {
   }
 
   @Test
-  public void checkPaginationResultsForcingInMemoryPagination() {
+  void checkPaginationResultsForcingInMemoryPagination() {
     // this test forces the metadata query engine to execute an "in memory"
     // sorting and pagination
     // since the sort ("order") value is set to 'displayName' that is a
@@ -111,7 +111,7 @@ public class UserPaginationTest extends ApiTest {
   }
 
   @Test
-  public void checkPaginationResultsWithBothDatabaseAndInMemory() {
+  void checkPaginationResultsWithBothDatabaseAndInMemory() {
     ApiResponse response =
         paginationActions.getPaginatedWithFiltersOnly(
             Arrays.asList(DEFAULT_METADATA_FILTER.split(",")), startPage, pageSize);
@@ -123,7 +123,7 @@ public class UserPaginationTest extends ApiTest {
   }
 
   @Test
-  public void checkPaginationResultsForcingDatabaseOnlyPagination() {
+  void checkPaginationResultsForcingDatabaseOnlyPagination() {
     // this test forces the metadata query engine to execute the query
     // (including pagination) on the database only.
     // The sort ("order") value is set to 'id' that is mapped to a DB

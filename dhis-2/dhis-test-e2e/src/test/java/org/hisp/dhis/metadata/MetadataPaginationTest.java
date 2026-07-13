@@ -49,15 +49,15 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-public class MetadataPaginationTest extends ApiTest {
+class MetadataPaginationTest extends ApiTest {
   private MetadataPaginationActions paginationActions;
 
-  private int startPage = 1;
+  private final int startPage = 1;
 
-  private int pageSize = 5;
+  private final int pageSize = 5;
 
   @BeforeAll
-  public void setUp() {
+  void setUp() {
     new LoginActions().loginAsSuperUser();
     paginationActions = new MetadataPaginationActions("/optionSets");
 
@@ -82,7 +82,7 @@ public class MetadataPaginationTest extends ApiTest {
   }
 
   @Test
-  public void checkPaginationResultsForcingInMemoryPagination() {
+  void checkPaginationResultsForcingInMemoryPagination() {
     // this test forces the metadata query engine to execute an "in memory"
     // sorting and pagination
     // since the sort ("order") value is set to 'displayName' that is a
@@ -101,7 +101,7 @@ public class MetadataPaginationTest extends ApiTest {
   }
 
   @Test
-  public void checkPaginationResultsForcingDatabaseOnlyPagination() {
+  void checkPaginationResultsForcingDatabaseOnlyPagination() {
     // this test forces the metadata query engine to execute the query
     // (including pagination) on the database only.
     // The sort ("order") value is set to 'id' that is mapped to a DB
