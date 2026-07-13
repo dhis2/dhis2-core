@@ -212,6 +212,21 @@ public interface SqlBuilder {
   boolean requiresIndexesForAnalytics();
 
   /**
+   * @return true if the DBMS supports continuous (incremental latest-partition) analytics table
+   *     updates.
+   */
+  boolean supportsContinuousAnalytics();
+
+  /**
+   * @return true if analytics tables must be created with a real unique key for continuous
+   *     analytics table updates to work correctly on this DBMS. When true, the natural key column
+   *     of the affected analytics table types (e.g. {@code event}, {@code id}) is passed as the
+   *     table's primary key so the DBMS can use it for both deduplication on insert and DELETE
+   *     statements that join back to operational tables.
+   */
+  boolean requiresUniqueKeyAnalyticsTables();
+
+  /**
    * The percentile_cont function is a statistical function that calculates the continuous
    * percentile value for a given set of data.
    *

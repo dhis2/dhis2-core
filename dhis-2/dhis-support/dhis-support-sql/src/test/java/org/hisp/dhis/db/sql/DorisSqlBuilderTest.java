@@ -32,6 +32,7 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
@@ -134,6 +135,16 @@ class DorisSqlBuilderTest {
   @Test
   void testSupportsVacuum() {
     assertFalse(sqlBuilder.supportsVacuum());
+  }
+
+  @Test
+  void testSupportsContinuousAnalytics() {
+    assertTrue(sqlBuilder.supportsContinuousAnalytics());
+  }
+
+  @Test
+  void testRequiresUniqueKeyAnalyticsTables() {
+    assertTrue(sqlBuilder.requiresUniqueKeyAnalyticsTables());
   }
 
   // Utilities
