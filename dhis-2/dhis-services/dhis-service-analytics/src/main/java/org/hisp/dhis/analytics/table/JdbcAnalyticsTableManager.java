@@ -259,23 +259,40 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
-        replaceQualify(
-            sqlBuilder,
-            """
-            delete from ${tableName} ax \
-            where ax.id in ( \
-            select concat(des.dataelementuid,'-',ps.iso,'-',ous.organisationunituid,'-',dcs.categoryoptioncombouid,'-',acs.categoryoptioncombouid) as id \
-            from ${datavalue} dv \
-            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
-            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
-            inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
-            inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
-            where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
-            Map.of(
-                "tableName", sqlBuilder.qualifyTable(getAnalyticsTableType().getTableName()),
-                "startDate", toLongDate(partition.getStartDate()),
-                "endDate", toLongDate(partition.getEndDate())));
+        sqlBuilder.requiresUniqueKeyAnalyticsTables()
+            ? replaceQualify(
+                sqlBuilder,
+                """
+                delete from ${tableName} ax \
+                using ${datavalue} dv \
+                inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
+                inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+                inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+                inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+                inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
+                where ax.id = concat(des.dataelementuid,'-',ps.iso,'-',ous.organisationunituid,'-',dcs.categoryoptioncombouid,'-',acs.categoryoptioncombouid) \
+                and dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}';""",
+                Map.of(
+                    "tableName", quote(getAnalyticsTableType().getTableName()),
+                    "startDate", toLongDate(partition.getStartDate()),
+                    "endDate", toLongDate(partition.getEndDate())))
+            : replaceQualify(
+                sqlBuilder,
+                """
+                delete from ${tableName} ax \
+                where ax.id in ( \
+                select concat(des.dataelementuid,'-',ps.iso,'-',ous.organisationunituid,'-',dcs.categoryoptioncombouid,'-',acs.categoryoptioncombouid) as id \
+                from ${datavalue} dv \
+                inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
+                inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+                inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+                inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+                inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
+                where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
+                Map.of(
+                    "tableName", sqlBuilder.qualifyTable(getAnalyticsTableType().getTableName()),
+                    "startDate", toLongDate(partition.getStartDate()),
+                    "endDate", toLongDate(partition.getEndDate())));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }

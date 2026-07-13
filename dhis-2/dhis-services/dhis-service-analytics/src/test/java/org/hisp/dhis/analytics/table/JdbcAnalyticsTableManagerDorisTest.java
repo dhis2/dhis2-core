@@ -35,8 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -131,5 +133,38 @@ class JdbcAnalyticsTableManagerDorisTest {
     assertTrue(table.hasPrimaryKey());
     assertEquals(List.of("id"), table.getPrimaryKey());
     assertTrue(sqlBuilder.createTable(table).contains("unique key (`id`)"));
+  }
+
+  @Test
+  void testRemoveUpdatedDataUsesUsingJoinNotSubquery() {
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("dataelementid", 1));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastLatestPartitionUpdate);
+    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+    assertEquals(1, tables.size());
+
+    subject.removeUpdatedData(tables);
+
+    org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
+    org.mockito.Mockito.verify(jdbcTemplate).execute(sql.capture());
+
+    assertTrue(sql.getValue().contains("using"));
+    assertTrue(sql.getValue().contains("ax.id ="));
+    assertTrue(!sql.getValue().contains("in ("));
   }
 }
