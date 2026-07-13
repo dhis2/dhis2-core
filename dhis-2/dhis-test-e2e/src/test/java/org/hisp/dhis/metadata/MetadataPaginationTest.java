@@ -61,11 +61,7 @@ class MetadataPaginationTest extends ApiTest {
     new LoginActions().loginAsSuperUser();
     paginationActions = new MetadataPaginationActions("/optionSets");
 
-    // The pagination assertions only require that at least 100 option sets exist (the pager's
-    // total/pageCount are checked with greaterThanOrEqualTo), so the fixture is created once for
-    // the
-    // whole class rather than per test method, and in a single bulk metadata import instead of 100
-    // sequential POSTs per @BeforeEach run.
+    // Create all optionsets once for the whole class in one bulk import.
     JsonArray optionSets = new JsonArray();
     for (int i = 0; i < 100; i++) {
       optionSets.add(

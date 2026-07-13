@@ -65,14 +65,8 @@ class UserPaginationTest extends ApiTest {
     new LoginActions().loginAsSuperUser();
     paginationActions = new MetadataPaginationActions("/users");
 
-    // The pagination assertions only require that at least `total` users exist (the pager's
-    // total/pageCount are checked with greaterThanOrEqualTo), so the fixture is created once for
-    // the
-    // whole class rather than per test method. All users share a single role and are created in one
-    // bulk metadata import, replacing what used to be ~300 sequential POSTs (a role + a user per
-    // iteration, times three @BeforeEach runs).
+    // Create all users once for the whole class, sharing a single role, in one bulk import.
     String roleUid = new UserRoleActions().createWithAuthorities();
-
     JsonArray users = new JsonArray();
     for (int i = 0; i < total; i++) {
       users.add(
