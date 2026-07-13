@@ -155,10 +155,9 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
     return parent != null;
   }
 
+  /** An exclude is marked with {@code !} or {@code -} (dash) either at head or tail segment. */
   public boolean isExclude() {
-    if (parent != null) return parent.isExclude();
-    char c0 = segment.charAt(0);
-    return c0 == '-' || c0 == '!';
+    return isExcludeModifier(segment.charAt(0)) || parent != null && parent.isExclude();
   }
 
   public boolean isPreset() {
@@ -188,7 +187,7 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
    * @return the property name the path ends with
    */
   public String property() {
-    return parent == null && isExclude()
+    return isExcludeModifier(segment.charAt(0))
         ? segment.subSequence(1, segment.length()).toString()
         : segment.toString();
   }
@@ -251,7 +250,11 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
 
   private static boolean isPathModifier(char c) {
     // presets and excludes need this so we allow it
-    return c == '-' || c == ':' || c == '!';
+    return c == ':' || isExcludeModifier(c);
+  }
+
+  private static boolean isExcludeModifier(char c) {
+    return c == '-' || c == '!';
   }
 
   /** Only the head segment may have a modifier */

@@ -131,6 +131,7 @@ class PropertyPathTest {
 
     assertTrue(PropertyPath.of("-a.b").isExclude());
     assertTrue(PropertyPath.of("-foo").isExclude());
+    assertTrue(PropertyPath.of("foo.-bar").isExclude());
 
     assertFalse(PropertyPath.of(":foo").isExclude());
   }
@@ -204,6 +205,7 @@ class PropertyPathTest {
     assertEquals("foo", PropertyPath.of("!foo").property());
     assertEquals("bar", PropertyPath.of("!foo.bar").property());
     assertEquals("baz", PropertyPath.of("!foo.bar.baz").property());
+    assertEquals("baz", PropertyPath.of("foo.bar.!baz").property());
     assertEquals("foo", PropertyPath.of("-foo").property());
   }
 
