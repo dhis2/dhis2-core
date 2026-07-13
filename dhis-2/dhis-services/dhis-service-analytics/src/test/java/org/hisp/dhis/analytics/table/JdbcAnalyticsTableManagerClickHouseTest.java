@@ -29,14 +29,11 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -49,12 +46,11 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -65,17 +61,25 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+/**
+ * Covers the {@code swapTable()} branch for databases with declarative partitioning that do NOT
+ * support continuous analytics (e.g. ClickHouse): staging data must not be inserted into the main
+ * table, the staging table is simply dropped, same as before the Doris continuous-analytics
+ * pipeline was wired up.
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class JdbcAnalyticsTableManagerDorisTest {
+class JdbcAnalyticsTableManagerClickHouseTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private OrganisationUnitService organisationUnitService;
@@ -102,11 +106,9 @@ class JdbcAnalyticsTableManagerDorisTest {
 
   @Mock private ConfigurationService configurationService;
 
-  @Mock private Configuration configuration;
-
   @Mock private DataElementService dataElementService;
 
-  @Spy private SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
+  @Spy private SqlBuilder sqlBuilder = new ClickHouseSqlBuilder("dhis2");
 
   @InjectMocks private JdbcAnalyticsTableManager subject;
 
@@ -117,63 +119,7 @@ class JdbcAnalyticsTableManagerDorisTest {
   }
 
   @Test
-  void testGetRegularAnalyticsTableHasUniqueKeyOnId() {
-    AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .startTime(new DateTime(2020, 1, 1, 0, 0).toDate())
-            .build();
-
-    when(jdbcTemplate.queryForList(
-            org.mockito.Mockito.anyString(), org.mockito.Mockito.eq(Integer.class)))
-        .thenReturn(List.of(2020));
-    when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypes())
-        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
-
-    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
-
-    assertEquals(1, tables.size());
-    AnalyticsTable table = tables.get(0);
-    assertTrue(table.hasPrimaryKey());
-    assertEquals(List.of("id"), table.getPrimaryKey());
-    assertTrue(sqlBuilder.createTable(table).contains("unique key (`id`)"));
-  }
-
-  @Test
-  void testRemoveUpdatedDataUsesUsingJoinNotSubquery() {
-    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
-    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
-    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
-
-    AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
-
-    List<Map<String, Object>> queryResp = new ArrayList<>();
-    queryResp.add(Map.of("dataelementid", 1));
-
-    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
-    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
-        .thenReturn(lastLatestPartitionUpdate);
-    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
-    when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypes())
-        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
-
-    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
-    assertEquals(1, tables.size());
-
-    subject.removeUpdatedData(tables);
-
-    org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate).execute(sql.capture());
-
-    assertTrue(sql.getValue().contains("using"));
-    assertTrue(sql.getValue().contains("ax.id ="));
-    assertTrue(!sql.getValue().contains("in ("));
-  }
-
-  @Test
-  void testSwapTableInsertsStagingDataIntoMainTableWhenSkippingMasterTable() {
+  void testSwapTableDoesNotInsertStagingDataWhenContinuousAnalyticsNotSupported() {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
@@ -192,19 +138,22 @@ class JdbcAnalyticsTableManagerDorisTest {
 
     // Main table already exists, and params.isPartialUpdate() (via withLatestPartition()) plus
     // AnalyticsTableType.DATA_VALUE.isLatestPartition()==true together push swapTable() into the
-    // skipMasterTable branch.
+    // skipMasterTable branch. ClickHouse supports declarative partitioning but not continuous
+    // analytics, so neither the reparenting branch nor the new insert-into-main branch should
+    // fire here.
     when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
         .thenReturn(List.of(Map.of("table_name", "analytics")));
 
     subject.swapTable(params, table);
 
-    org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.times(2)).execute(sql.capture());
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    Mockito.verify(jdbcTemplate, Mockito.times(1)).execute(sql.capture());
 
-    List<String> statements = sql.getAllValues();
+    String statement = sql.getValue();
+    assertFalse(
+        statement.startsWith("insert into"), () -> "Unexpected insert statement: " + statement);
     assertTrue(
-        statements.stream()
-            .anyMatch(s -> s.startsWith("insert into `analytics`") && s.contains("analytics_temp")),
-        () -> "Expected an insert-into-main-from-staging statement, got: " + statements);
+        statement.contains("drop table"),
+        () -> "Expected a drop-table statement, got: " + statement);
   }
 }
