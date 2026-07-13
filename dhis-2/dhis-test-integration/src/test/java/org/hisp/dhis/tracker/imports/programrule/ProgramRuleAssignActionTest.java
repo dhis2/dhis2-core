@@ -58,7 +58,10 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -85,6 +88,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
   @Autowired private ProgramRuleVariableService programRuleVariableService;
 
   @Autowired private SystemSettingManager systemSettingManager;
+
+  @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   private Program program;
 
@@ -143,6 +148,34 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyWarnings(importReport, E1310);
+  }
+
+  @Test
+  void shouldImportWhenAttributeUsedToCalculateAssignedValueIsUpdatedInEnrollment()
+      throws IOException {
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
+    TrackedEntityAttribute attribute2 = manager.get(TrackedEntityAttribute.class, "fRGt4l6yIRb");
+    attributeValueService.addTrackedEntityAttributeValue(
+        new TrackedEntityAttributeValue(attribute1, trackedEntity, "Tom"));
+    attributeValueService.addTrackedEntityAttributeValue(
+        new TrackedEntityAttributeValue(attribute2, trackedEntity, "Tom"));
+    assignProgramRule();
+    dbmsManager.clearSession();
+
+    TrackerImportParams params = new TrackerImportParams();
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/te_enrollment_update_attribute_different_value.json");
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasOnlyWarnings(importReport, E1310);
+    List<String> attributeValues =
+        manager.get(TrackedEntity.class, "IOR1AXXl24H").getTrackedEntityAttributeValues().stream()
+            .filter(av -> av.getAttribute().getUid().equals("dIVt4l5vIOa"))
+            .map(TrackedEntityAttributeValue::getValue)
+            .toList();
+    assertContainsOnly(List.of("John"), attributeValues);
   }
 
   @ParameterizedTest
