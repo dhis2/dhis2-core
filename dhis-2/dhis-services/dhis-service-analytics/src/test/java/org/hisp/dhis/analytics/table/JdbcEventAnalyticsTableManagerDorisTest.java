@@ -367,4 +367,46 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     assertTrue(sql.getValue().contains("ax.event = ev.uid"));
     assertTrue(!sql.getValue().contains("in ("));
   }
+
+  @Test
+  @DisplayName("removeUpdatedData emits DELETE...USING for a single event program on Doris")
+  void testRemoveUpdatedDataUsesUsingJoinForSingleEvent() {
+    ProgramStage psA = new ProgramStage();
+    psA.setId(123456);
+
+    Program program = createProgram('A');
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    program.setProgramStages(Set.of(psA));
+
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("eventid", 1));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastLatestPartitionUpdate);
+    when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+    assertThat(tables, hasSize(1));
+
+    subject.removeUpdatedData(tables);
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).execute(sql.capture());
+
+    assertTrue(sql.getValue().contains("using"));
+    assertTrue(sql.getValue().contains("ax.event ="));
+    assertTrue(!sql.getValue().contains("in ("));
+  }
 }
