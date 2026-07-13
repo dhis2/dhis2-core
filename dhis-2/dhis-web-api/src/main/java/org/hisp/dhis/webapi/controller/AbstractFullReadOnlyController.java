@@ -378,7 +378,7 @@ public abstract class AbstractFullReadOnlyController<
       Property property = getSchema().getProperty(path.toString());
       if (property == null) {
         if (path.isUID()) {
-          String fieldName = path.segment().toString();
+          String fieldName = path.property();
           schemaBuilder.addColumn(fieldName);
           obj2valueByProperty.put(fieldName, obj -> getAttributeValue(obj, fieldName));
         }

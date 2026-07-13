@@ -786,7 +786,7 @@ final class GistBuilder {
   private String createFilterHQL(int index, Filter filter) {
     PropertyPath propertyPath = filter.getPropertyPath();
     if (isAttributeValuesAttributePropertyPath(propertyPath)) {
-      filter = filter.withPropertyPath(propertyPath.segment().toString());
+      filter = filter.withPropertyPath(propertyPath.property());
       return replace(
           "jsonb_exists_any(e.attributeValues, (select array_agg(uid) from Attribute a where ${filter})) = true",
           Map.of("filter", createFilterHQL(index, filter, "a." + filter.getPropertyPath())));

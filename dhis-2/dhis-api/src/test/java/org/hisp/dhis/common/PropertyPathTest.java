@@ -30,9 +30,20 @@
 package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.stream.Stream;
+import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests the {@link PropertyPath} value class.
+ *
+ * @author Jan Bernitt
+ */
 class PropertyPathTest {
 
   @Test
@@ -40,6 +51,186 @@ class PropertyPathTest {
     assertPropertyPath("foo");
     assertPropertyPath("foo.bar");
     assertPropertyPath("foo.bar.baz");
+    // more uncommon cases with special 1st character
+    assertPropertyPath(":all");
+    assertPropertyPath("-foo");
+    assertPropertyPath("!foo");
+    assertPropertyPath("-foo.bar");
+    assertPropertyPath("!foo.bar");
+  }
+
+  @Test
+  void testOf_Star() {
+    assertEquals(":all", PropertyPath.of("*").toString(), "* should become :all");
+  }
+
+  @Test
+  void testOf_Varagrs() {
+    assertEquals(PropertyPath.of("foo.bar"), PropertyPath.of("foo", "bar"));
+    assertEquals(PropertyPath.of("foo.bar.baz"), PropertyPath.of("foo", "bar", "baz"));
+  }
+
+  @Test
+  void testOf_Illegal() {
+    assertIllegalPath("");
+    assertIllegalPath("**");
+    assertIllegalPath("!!foo");
+    assertIllegalPath("::all");
+    assertIllegalPath("foo..bar");
+    assertIllegalPath("-foo.-bar");
+    assertIllegalPath(":foo.:bar");
+    assertIllegalPath("!foo.!bar");
+  }
+
+  @Test
+  void testOf_IllegalEmpty() {
+    assertThrowsExactly(IllegalArgumentException.class, PropertyPath::of);
+  }
+
+  @Test
+  void testCompareTo() {
+    assertEquals(
+        List.of(
+            PropertyPath.of("a"),
+            PropertyPath.of("abc"),
+            PropertyPath.of("b"),
+            PropertyPath.of("a.a"),
+            PropertyPath.of("a.b"),
+            PropertyPath.of("a.a.c"),
+            PropertyPath.of("a.b.b")),
+        Stream.of(
+                PropertyPath.of("b"),
+                PropertyPath.of("a.a.c"),
+                PropertyPath.of("abc"),
+                PropertyPath.of("a.b"),
+                PropertyPath.of("a.a"),
+                PropertyPath.of("a.b.b"),
+                PropertyPath.of("a"))
+            .sorted()
+            .toList());
+  }
+
+  @Test
+  void testIsNested() {
+    assertTrue(PropertyPath.of("a.b").isNested());
+    assertTrue(PropertyPath.of("!a.b").isNested());
+
+    assertFalse(PropertyPath.of("foo").isNested());
+    assertFalse(PropertyPath.of("!foo").isNested());
+
+    assertFalse(PropertyPath.of(":foo").isNested());
+  }
+
+  @Test
+  void testIsExclude() {
+    assertFalse(PropertyPath.of("a.b").isExclude());
+    assertFalse(PropertyPath.of("foo").isExclude());
+
+    assertTrue(PropertyPath.of("!a.b").isExclude());
+    assertTrue(PropertyPath.of("!foo").isExclude());
+
+    assertTrue(PropertyPath.of("-a.b").isExclude());
+    assertTrue(PropertyPath.of("-foo").isExclude());
+
+    assertFalse(PropertyPath.of(":foo").isExclude());
+  }
+
+  @Test
+  void testIsPreset() {
+    assertFalse(PropertyPath.of("a.b").isPreset());
+    assertFalse(PropertyPath.of("foo").isPreset());
+
+    assertFalse(PropertyPath.of("!a.b").isPreset());
+    assertFalse(PropertyPath.of("!foo").isPreset());
+
+    assertFalse(PropertyPath.of("-a.b").isPreset());
+    assertFalse(PropertyPath.of("-foo").isPreset());
+
+    assertTrue(PropertyPath.of(":foo").isPreset());
+  }
+
+  @Test
+  void testIsAll() {
+    assertFalse(PropertyPath.of("a.b").isAll());
+    assertFalse(PropertyPath.of("foo").isAll());
+
+    assertFalse(PropertyPath.of("!a.b").isAll());
+    assertFalse(PropertyPath.of("!foo").isAll());
+
+    assertFalse(PropertyPath.of("-a.b").isAll());
+    assertFalse(PropertyPath.of("-foo").isAll());
+
+    assertFalse(PropertyPath.of(":foo").isAll());
+
+    assertTrue(PropertyPath.of(":all").isAll());
+    assertTrue(PropertyPath.of("*").isAll());
+  }
+
+  @Test
+  void testIsUID() {
+    assertFalse(PropertyPath.of("a.b").isUID());
+    assertFalse(PropertyPath.of("foo").isUID());
+
+    assertFalse(PropertyPath.of("!a.b").isUID());
+    assertFalse(PropertyPath.of("!foo").isUID());
+
+    assertFalse(PropertyPath.of("-a.b").isUID());
+    assertFalse(PropertyPath.of("-foo").isUID());
+
+    assertFalse(PropertyPath.of(":foo").isUID());
+    assertFalse(PropertyPath.of(":all").isUID());
+    assertFalse(PropertyPath.of("*").isUID());
+
+    assertTrue(PropertyPath.of("ou123456789").isUID());
+  }
+
+  @Test
+  void testLength() {
+    assertEquals(1, PropertyPath.of("foo").length());
+    assertEquals(2, PropertyPath.of("foo.bar").length());
+    assertEquals(3, PropertyPath.of("foo.bar.baz").length());
+
+    assertEquals(2, PropertyPath.of("!a.b").length());
+    assertEquals(1, PropertyPath.of("!foo").length());
+    assertEquals(2, PropertyPath.of("-a.b").length());
+    assertEquals(1, PropertyPath.of("-foo").length());
+  }
+
+  @Test
+  void testProperty() {
+    assertEquals("foo", PropertyPath.of("foo").property());
+    assertEquals("bar", PropertyPath.of("foo.bar").property());
+    assertEquals("baz", PropertyPath.of("foo.bar.baz").property());
+    assertEquals("foo", PropertyPath.of("!foo").property());
+    assertEquals("bar", PropertyPath.of("!foo.bar").property());
+    assertEquals("baz", PropertyPath.of("!foo.bar.baz").property());
+    assertEquals("foo", PropertyPath.of("-foo").property());
+  }
+
+  @Test
+  void testHead() {
+    assertEquals(Text.of("foo"), PropertyPath.of("foo").head());
+    assertEquals(Text.of("foo"), PropertyPath.of("foo.bar").head());
+    assertEquals(Text.of("foo"), PropertyPath.of("foo.bar.baz").head());
+  }
+
+  @Test
+  void testConcat() {
+    assertEquals(PropertyPath.of("foo.bar"), PropertyPath.of("foo").concat(Text.of("bar")));
+    assertEquals(
+        PropertyPath.of("foo.bar.baz"), PropertyPath.of("foo").concat(PropertyPath.of("bar.baz")));
+
+    assertEquals(PropertyPath.of("!foo.bar"), PropertyPath.of("!foo").concat(Text.of("bar")));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PropertyPath.of("foo").concat(Text.of("!bar")));
+  }
+
+  @Test
+  void testWithTail() {
+    assertEquals(PropertyPath.of("y"), PropertyPath.of("foo").withTail("y"));
+    assertEquals(PropertyPath.of("foo.y"), PropertyPath.of("foo.bar").withTail("y"));
+    assertEquals(
+        PropertyPath.of("foo.bar.y"), PropertyPath.of("foo.bar.baz").withTail(Text.of("y")));
   }
 
   private static void assertPropertyPath(String path) {
@@ -52,5 +243,18 @@ class PropertyPathTest {
         "number of segments should be the same as a regex split on dot");
     for (int i = 0; i < segments.length; i++)
       assertEquals(segments[i], actual.segments().get(i).toString());
+  }
+
+  private static void assertIllegalPath(String path) {
+    assertThrowsExactly(
+        IllegalArgumentException.class,
+        () -> PropertyPath.of(path),
+        "of %s should not be a valid path".formatted(path));
+    assertThrowsExactly(
+        IllegalArgumentException.class,
+        () -> new PropertyPath(null, Text.of(path)),
+        "new with %s should not be a valid path".formatted(path));
+    String[] segments = path.split("\\.");
+    assertThrowsExactly(IllegalArgumentException.class, () -> PropertyPath.of(segments));
   }
 }

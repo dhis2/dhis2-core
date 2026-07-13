@@ -33,6 +33,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.jsontree.Text;
@@ -44,6 +45,16 @@ import org.hisp.dhis.jsontree.Text;
  * valid paths are possible to construct which indirectly validates user supplied path values so
  * such inputs cannot be abused for e.g. SQL injection.
  *
+ * <p>A {@linkplain PropertyPath} is a sequence of path {@link #segment}s. Each segment is an
+ * alphanumerical {@link Text} (underscore is allowed to). One segment in the sequence may have a
+ * {@link #isPathModifier(char)} to make the segment an {@link #isExclude()} or {@link #isPreset()}.
+ *
+ * <p>The {@code *} alias for {@code :all} is specially handled by {@link #of(CharSequence)} by
+ * replacing it with {@code :all} so on the character level {@code * is not a valid character for a
+ * path}. This means {@code new PropertyPath(null, Text.of("*"))} will result in an error.
+ *
+ * @author Jan Bernitt
+ * @since 2.44
  * @param parent the parent path (or null for root)
  * @param segment last segment in the path (without the dots)
  */
@@ -55,19 +66,21 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
     requireNonNull(segment);
     requireNonEmpty(segment);
     requirePathChars(segment);
+    requireBarePathModifier(parent, segment);
   }
 
   @Nonnull
-  public static PropertyPath of(@CheckForNull String path) {
-    if (path == null || path.isEmpty())
-      throw new IllegalArgumentException("A property path cannot be null or empty");
-    if ("*".equals(path)) return of(":all");
+  public static PropertyPath of(@CheckForNull CharSequence path) {
+    if (path == null || path.isEmpty()) throw illegalEmpty();
     Text p = Text.of(path);
+    if (p.contentEquals("*")) return of(":all");
     int start = 0;
     int end = path.length();
+    if (end > MAX_LENGTH) throw illegalTooLong();
     int i = start;
     PropertyPath res = null;
     while (i < end) {
+      if (isPathModifier(p.charAt(i))) i++;
       while (i < end && isPathChar(p.charAt(i))) i++;
       Text seg = p.subSequence(start, i);
       if (seg.isEmpty()) throw illegalEmptySegment();
@@ -76,8 +89,22 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
       i++;
       start = i;
     }
+    if (res == null) throw illegalEmpty();
     return res;
   }
+
+  public static PropertyPath of(CharSequence... segments) {
+    if (segments == null || segments.length == 0) throw illegalEmpty();
+    PropertyPath res = PropertyPath.of(segments[0]);
+    for (int i = 1; i < segments.length; i++) res = res.concat(Text.of(segments[i]));
+    return res;
+  }
+
+  /**
+   * Value was chosen to give some protection against attacks abusing very long paths but long
+   * enough to allow for even seriously nested paths with long segment names.
+   */
+  private static final int MAX_LENGTH = 1024;
 
   /** For lexicographical sort order */
   @Override
@@ -129,6 +156,7 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
   }
 
   public boolean isExclude() {
+    if (parent != null) return parent.isExclude();
     char c0 = segment.charAt(0);
     return c0 == '-' || c0 == '!';
   }
@@ -156,6 +184,15 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
     return parent == null ? 1 : parent.length() + 1;
   }
 
+  /**
+   * @return the property name the path ends with
+   */
+  public String property() {
+    return parent == null && isExclude()
+        ? segment.subSequence(1, segment.length()).toString()
+        : segment.toString();
+  }
+
   public Text head() {
     return parent == null ? segment : parent.head();
   }
@@ -164,13 +201,14 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
   public List<Text> segments() {
     if (parent == null) return List.of(segment);
     int n = length();
-    PropertyPath p = this;
+    PropertyPath path = this;
     Text[] res = new Text[n];
-    for (int i = n - 1; i >= 0; i--) {
-      res[i] = p.segment;
-      p = p.parent;
+    int i = n - 1;
+    while (path != null) {
+      res[i--] = path.segment;
+      path = path.parent;
     }
-    return List.of(res);
+    return Stream.of(res).toList();
   }
 
   @Nonnull
@@ -199,19 +237,45 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
   }
 
   private static void requirePathChars(Text segment) {
-    for (int i = 0; i < segment.length(); i++)
+    char c0 = segment.charAt(0);
+    if (!isPathChar(c0) && !isPathModifier(c0)) throw illegalCharacter(c0);
+    int len = segment.length();
+    if (len == 1 && !isPathChar(c0)) throw illegalEmptySegment();
+    for (int i = 1; i < len; i++)
       if (!isPathChar(segment.charAt(i))) throw illegalCharacter(segment.charAt(i));
   }
 
   private static boolean isPathChar(char c) {
-    return c == '_'
-        || c == '-'
-        || c >= 'a' && c <= 'z'
-        || c >= 'A' && c <= 'Z'
-        || c >= '0' && c <= '9'
-        // presets and excludes need this so we allow it
-        || c == ':'
-        || c == '!';
+    return c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9';
+  }
+
+  private static boolean isPathModifier(char c) {
+    // presets and excludes need this so we allow it
+    return c == '-' || c == ':' || c == '!';
+  }
+
+  /** Only the head segment may have a modifier */
+  private static void requireBarePathModifier(PropertyPath parent, Text segment) {
+    int c = isPathModifier(segment.charAt(0)) ? 1 : 0;
+    PropertyPath p = parent;
+    while (p != null) {
+      if (isPathModifier(p.segment.charAt(0))) c++;
+      p = p.parent;
+    }
+    if (c > 1)
+      throw new IllegalArgumentException(
+          "A property path can only have one exclude or preset modifier");
+  }
+
+  @Nonnull
+  private static IllegalArgumentException illegalEmpty() {
+    return new IllegalArgumentException("A property path cannot be null or empty");
+  }
+
+  @Nonnull
+  private static IllegalArgumentException illegalTooLong() {
+    return new IllegalArgumentException(
+        "A property path cannot be longer than %d characters".formatted(MAX_LENGTH));
   }
 
   @Nonnull

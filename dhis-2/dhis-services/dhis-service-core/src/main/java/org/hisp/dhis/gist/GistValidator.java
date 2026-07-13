@@ -198,8 +198,7 @@ final class GistValidator {
   private void validateFilterPath(Filter f, RelativePropertyContext context) {
     PropertyPath propertyPath = f.getPropertyPath();
     if (isAttributeValuesAttributePropertyPath(propertyPath)) {
-      Property p =
-          context.switchedTo(Attribute.class).resolveMandatory(propertyPath.segment().toString());
+      Property p = context.switchedTo(Attribute.class).resolveMandatory(propertyPath.property());
       if (!p.isPersisted())
         throw createIllegalProperty(
             p, "Property `%s` cannot be used as an attribute filter property");

@@ -37,7 +37,6 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.PropertyPath;
-import org.hisp.dhis.jsontree.Text;
 
 /**
  * Utility for generic output handling. In this context this means converting form domain objects to
@@ -107,17 +106,7 @@ public final class ObjectOutput {
      *     part)
      */
     public String name() {
-      return path.segment().toString();
-    }
-
-    /**
-     * @return the segments of the {@link #path()} that make drill down into the parent (owner) of
-     *     this property
-     */
-    public List<String> parentPath() {
-      if (!path.isNested()) return List.of();
-      List<Text> segments = path.segments();
-      return segments.stream().limit(segments.size() - 1).map(Text::toString).toList();
+      return path.property();
     }
 
     @Nonnull
