@@ -96,6 +96,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private static final List<String> SORT_KEY = List.of("dx");
 
+  private static final List<String> PRIMARY_KEY = List.of("id");
+
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -134,10 +136,14 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    List<String> primaryKey =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables() ? PRIMARY_KEY : List.of();
+
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getColumns())
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), SORT_KEY);
+            ? getLatestAnalyticsTable(params, getColumns(), primaryKey)
+            : getRegularAnalyticsTable(
+                params, getDataYears(params), getColumns(), SORT_KEY, primaryKey);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }

@@ -168,6 +168,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<String> SORT_KEY = List.of("dx", "co");
 
+  private static final List<String> PRIMARY_KEY = List.of("id");
+
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -210,10 +212,14 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    List<String> primaryKey =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables() ? PRIMARY_KEY : List.of();
+
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getColumns(params))
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params), SORT_KEY);
+            ? getLatestAnalyticsTable(params, getColumns(params), primaryKey)
+            : getRegularAnalyticsTable(
+                params, getDataYears(params), getColumns(params), SORT_KEY, primaryKey);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }
