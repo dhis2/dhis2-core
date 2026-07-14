@@ -449,7 +449,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
     if (trackedEntity != null) {
       List<String> payloadAttributeValuesIds =
-          payloadAttributeValues.stream().map(av -> av.getAttribute().getUid()).toList();
+          attributeValues.stream().map(av -> av.getAttribute().getUid()).toList();
 
       attributeValues.addAll(
           trackedEntity.getTrackedEntityAttributeValues().stream()
