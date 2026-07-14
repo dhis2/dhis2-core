@@ -246,7 +246,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       if (!sqlBuilder.supportsDeclarativePartitioning()) {
         swappedPartitions.forEach(
             partition -> swapParentTable(partition, table.getName(), table.getMainName()));
-      } else if (sqlBuilder.supportsContinuousAnalytics()) {
+      } else if (params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics()) {
         // For databases with declarative partitioning that support continuous analytics (e.g.
         // Doris): staging data must be inserted directly into the main table since there is no
         // inheritance-based partition attachment. Stale rows are already removed by

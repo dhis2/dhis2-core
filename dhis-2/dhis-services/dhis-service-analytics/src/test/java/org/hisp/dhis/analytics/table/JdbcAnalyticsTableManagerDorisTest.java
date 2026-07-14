@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -215,5 +216,47 @@ class JdbcAnalyticsTableManagerDorisTest {
         () ->
             "Staging table reference must not carry the federated catalog prefix, got: "
                 + statements);
+  }
+
+  @Test
+  void testSwapTableDoesNotInsertStagingDataForBoundedYearsUpdate() {
+    // lastYears(1) (a normal bounded-years rebuild) makes isPartialUpdate()==true but
+    // isLatestUpdate()==false -- distinct from the "latest partition" (lastYears=0) case the
+    // insert-into-main branch is scoped to. removeUpdatedData() never runs for this case (it's
+    // gated on isLatestUpdate()), so merging staging data into main here would leave deleted rows
+    // behind forever. The insert branch must not fire.
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .lastYears(1)
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build();
+
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("dx")
+                .dataType(TEXT)
+                .selectExpression("dx")
+                .build());
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
+
+    // Same skipMasterTable=true preconditions as the positive test: main table already exists,
+    // params.isPartialUpdate()==true (via lastYears(1)), and DATA_VALUE.isLatestPartition()==true.
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+
+    subject.swapTable(params, table);
+
+    org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
+    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.times(1)).execute(sql.capture());
+
+    String statement = sql.getValue();
+    assertFalse(
+        statement.startsWith("insert into"),
+        () -> "Unexpected insert statement for a bounded-years update: " + statement);
+    assertTrue(
+        statement.contains("drop table"),
+        () -> "Expected a drop-table statement only, got: " + statement);
   }
 }
