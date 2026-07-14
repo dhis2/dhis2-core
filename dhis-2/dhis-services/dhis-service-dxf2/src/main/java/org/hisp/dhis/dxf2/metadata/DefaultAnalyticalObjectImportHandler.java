@@ -218,10 +218,6 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
    * ({@link CategoryOptionGroupSet}) and its items ({@link CategoryOptionGroup}) are cascade
    * persisted from the analytical object while still referencing transient, deserialized instances.
    *
-   * <p>This mirrors {@link #handleOrgUnitGroupSetDimensions}: for both the dimension and each item,
-   * use the instance from the bundle preheat if available, otherwise fall back to the persisted
-   * instance (adding it to the preheat for {@code connectReferences}).
-   *
    * @param entityManager entityManager to save object
    * @param schema schema to check object property
    * @param analyticalObject object that needs custom handling
