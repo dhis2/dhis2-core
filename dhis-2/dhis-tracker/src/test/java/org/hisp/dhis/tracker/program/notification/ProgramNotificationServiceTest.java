@@ -171,7 +171,7 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
   private ProgramNotificationInstance programNotificationInstaceForToday;
 
   @BeforeEach
-  public void initTest() {
+  void initTest() {
     programNotificationService =
         new DefaultProgramNotificationService(
             this.programMessageService,
