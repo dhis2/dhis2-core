@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -797,8 +798,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     // import (as produced by a metadata dependency export)
     JsonImportSummary report =
         POST(
-            "/metadata",
-            Path.of("metadata/metadata_map_mapview_with_cat_option_group_set_dimension.json"))
+                "/metadata",
+                Path.of("metadata/metadata_map_mapview_with_cat_option_group_set_dimension.json"))
             .content()
             .get("response")
             .as(JsonImportSummary.class);
