@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -380,7 +381,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Columns
 
     if (table.hasColumns()) {
-      String columns = toCommaSeparated(table.getColumns(), this::toColumnString);
+      String columns = toCommaSeparated(getOrderedColumns(table), this::toColumnString);
 
       sql.append("(").append(columns).append(") engine = olap ");
     }
@@ -455,6 +456,38 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
       }
     }
     return partitionClause.substring(0, partitionClause.length() - 1) + ") ";
+  }
+
+  /**
+   * Returns the table's columns ordered so that primary key columns appear first, in their declared
+   * order, followed by the remaining columns in their original order. Doris requires key columns
+   * (for both the unique key and duplicate key models) to be an ordered leading prefix of the table
+   * schema.
+   *
+   * @param table the {@link Table}.
+   * @return the ordered list of {@link Column}.
+   */
+  private List<Column> getOrderedColumns(Table table) {
+    if (!table.hasPrimaryKey()) {
+      return table.getColumns();
+    }
+
+    List<String> primaryKey = table.getPrimaryKey();
+    List<Column> keyColumns = new ArrayList<>();
+    List<Column> otherColumns = new ArrayList<>();
+
+    for (Column column : table.getColumns()) {
+      if (primaryKey.contains(column.getName())) {
+        keyColumns.add(column);
+      } else {
+        otherColumns.add(column);
+      }
+    }
+
+    List<Column> orderedColumns = new ArrayList<>(keyColumns);
+    orderedColumns.addAll(otherColumns);
+
+    return orderedColumns;
   }
 
   /**

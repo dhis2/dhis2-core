@@ -251,7 +251,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         // Doris): staging data must be inserted directly into the main table since there is no
         // inheritance-based partition attachment. Stale rows are already removed by
         // removeUpdatedData().
-        String fromTable = sqlBuilder.qualifyTable(table.getName());
+        String fromTable = sqlBuilder.quote(table.getName());
         jdbcTemplate.execute(sqlBuilder.insertIntoSelectFrom(table.fromStaging(), fromTable));
       }
       dropTable(table);

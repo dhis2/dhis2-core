@@ -99,6 +99,24 @@ class DorisSqlBuilderTest {
     return new Table("immunization", columns, List.of(), sortKey, List.of(), Logged.LOGGED);
   }
 
+  /**
+   * A table whose primary key column ("id") is not the first column, mirroring the aggregate
+   * (JdbcAnalyticsTableManager) and completeness (JdbcCompletenessTableManager) analytics tables,
+   * where "id" is not a leading column.
+   */
+  private Table getTableE() {
+    List<Column> columns =
+        List.of(
+            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
+            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("value", DataType.DOUBLE));
+
+    List<String> primaryKey = List.of("id");
+
+    return new Table("immunization", columns, primaryKey, Logged.LOGGED);
+  }
+
   // Data types
 
   @Test
@@ -231,6 +249,23 @@ class DorisSqlBuilderTest {
         `period` varchar(200) not null,`value` double null) \
         engine = olap \
         duplicate key (`id`) \
+        distributed by hash(`id`) \
+        buckets 10 \
+        properties ("replication_num" = "1");""";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
+
+  @Test
+  void testCreateTableOrdersPrimaryKeyColumnFirst() {
+    Table table = getTableE();
+
+    String expected =
+        """
+        create table `immunization` (`id` bigint not null,`data` char(11) not null,\
+        `period` varchar(200) not null,`value` double null) \
+        engine = olap \
+        unique key (`id`) \
         distributed by hash(`id`) \
         buckets 10 \
         properties ("replication_num" = "1");""";

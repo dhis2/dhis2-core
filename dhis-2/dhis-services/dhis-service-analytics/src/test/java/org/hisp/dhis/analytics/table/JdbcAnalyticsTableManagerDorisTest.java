@@ -204,7 +204,16 @@ class JdbcAnalyticsTableManagerDorisTest {
     List<String> statements = sql.getAllValues();
     assertTrue(
         statements.stream()
-            .anyMatch(s -> s.startsWith("insert into `analytics`") && s.contains("analytics_temp")),
+            .anyMatch(
+                s ->
+                    s.startsWith("insert into `analytics`") && s.contains("from `analytics_temp`")),
         () -> "Expected an insert-into-main-from-staging statement, got: " + statements);
+    // The staging table is a native Doris table, not a federated one, so the FROM reference must
+    // NOT be qualified with the federated catalog prefix that qualifyTable() would add.
+    assertTrue(
+        statements.stream().noneMatch(s -> s.contains("dhis2.public.")),
+        () ->
+            "Staging table reference must not carry the federated catalog prefix, got: "
+                + statements);
   }
 }
