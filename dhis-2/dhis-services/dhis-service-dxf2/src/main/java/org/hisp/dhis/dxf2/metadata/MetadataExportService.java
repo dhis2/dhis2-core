@@ -57,7 +57,7 @@ public interface MetadataExportService {
    * @param params Export parameters
    * @return RootNode instance with children containing all exported objects
    */
-  ObjectNode getMetadataAsObjectNode(MetadataExportParams params);
+  ObjectNode exportMetadataVersion(MetadataExportParams params);
 
   /**
    * Returns same result as getMetadata, but metadata is written to outputStream instead.

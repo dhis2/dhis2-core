@@ -75,7 +75,7 @@ public class ValidationResultQuery {
       "Optional filter to select only results that have been created on or after the given date")
   private Date createdDate;
 
-  private List<String> fields;
+  private String fields;
 
   public ValidationResultQuery() {}
 

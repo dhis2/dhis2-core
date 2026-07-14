@@ -76,7 +76,7 @@ class DefaultFieldFilterServiceTest {
   private DefaultFieldFilterService service;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     CacheProvider cacheProvider = mock(CacheProvider.class);
     when(cacheProvider.createPropertyTransformerCache()).thenReturn(new NoOpCache<>());
     service =
@@ -108,8 +108,7 @@ class DefaultFieldFilterServiceTest {
     Mockito.when(schemaService.getSchema(Mockito.eq(boolean.class))).thenReturn(booleanSchema);
 
     final FieldFilterParams params =
-        new FieldFilterParams(
-            Collections.singletonList(attribute), Collections.emptyList(), Defaults.INCLUDE, true);
+        new FieldFilterParams(Collections.singletonList(attribute), "", Defaults.INCLUDE, true);
 
     CollectionNode node = service.toCollectionNode(Attribute.class, params);
     Assertions.assertEquals(1, node.getChildren().size());
@@ -143,10 +142,7 @@ class DefaultFieldFilterServiceTest {
 
     final FieldFilterParams params =
         new FieldFilterParams(
-            Collections.singletonList(attribute),
-            Collections.singletonList(":owner"),
-            Defaults.INCLUDE,
-            true);
+            Collections.singletonList(attribute), ":owner", Defaults.INCLUDE, true);
 
     CollectionNode node = service.toCollectionNode(Attribute.class, params);
     Assertions.assertEquals(1, node.getChildren().size());

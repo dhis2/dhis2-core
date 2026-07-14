@@ -64,7 +64,8 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
     createClient("list-test-a", "Alpha Client");
 
     JsonObject response =
-        GET("/oAuth2Clients?order=displayName&fields=id,name,clientId").content(HttpStatus.OK);
+        GET("/oAuth2Clients?order=displayName&fields=id,name,clientId&gist=false")
+            .content(HttpStatus.OK);
     List<String> names =
         response.getList("oAuth2Clients", JsonObject.class).stream()
             .filter(c -> c.getString("clientId").string().startsWith("list-test-"))

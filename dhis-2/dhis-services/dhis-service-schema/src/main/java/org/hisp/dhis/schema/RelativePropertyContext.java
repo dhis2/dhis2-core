@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.PropertyPath;
 
 /**
  * A utility to resolve the {@link Property} for a given path.
@@ -92,12 +93,21 @@ public final class RelativePropertyContext {
             homeType, home -> new RelativePropertyContext(home, schemaLookup, byHomeType));
   }
 
+  public RelativePropertyContext switchedTo(PropertyPath path) {
+    return switchedTo(path.toString());
+  }
+
   public RelativePropertyContext switchedTo(String path) {
     if (path.indexOf('.') < 0) {
       return this;
     }
     List<Property> segments = resolvePath(path);
     return switchedTo(segments.get(segments.size() - 2).getKlass());
+  }
+
+  @Nonnull
+  public Property resolveMandatory(@Nonnull PropertyPath path) {
+    return resolveMandatory(path.toString());
   }
 
   @Nonnull
@@ -110,6 +120,11 @@ public final class RelativePropertyContext {
   }
 
   @CheckForNull
+  public Property resolve(@Nonnull PropertyPath path) {
+    return resolve(path.toString());
+  }
+
+  @CheckForNull
   public Property resolve(String path) {
     if (path.indexOf('.') < 0) {
       // just for performance do simple and common case first
@@ -117,6 +132,11 @@ public final class RelativePropertyContext {
       return homeSchema.getProperty(path);
     }
     return cache.computeIfAbsent(path, key -> resolvePath(key, null));
+  }
+
+  @Nonnull
+  public List<Property> resolvePath(@Nonnull PropertyPath path) {
+    return resolvePath(path.toString());
   }
 
   @Nonnull
