@@ -29,100 +29,72 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import java.util.ArrayList;
 import java.util.List;
-import lombok.EqualsAndHashCode;
+import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
+import org.hisp.dhis.common.PropertyPath;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen
  */
-@ToString
-@EqualsAndHashCode
 @Getter
-public class FieldPath {
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public final class FieldPath {
 
-  public static FieldPath ofPath(String path) {
-    int lastDot = path.lastIndexOf('.');
-    if (lastDot < 0) return new FieldPath(path);
-    String name = path.substring(lastDot + 1);
-    return new FieldPath(name, List.of(path.substring(0, lastDot).split("\\.")));
+  public static FieldPath of(CharSequence path) {
+    return of(PropertyPath.of(path));
+  }
+
+  public static FieldPath of(PropertyPath path) {
+    return new FieldPath(path, List.of(), null);
   }
 
   public static final String FIELD_PATH_SEPARATOR = ".";
 
-  /** Name of field (excluding path). */
-  private final String name;
-
-  /** Path to reach field name, can be empty for root level fields. */
-  private final List<String> path;
-
-  /**
-   * True if field path should be excluded (removed) from the set of paths to include. In the API
-   * this is exposed as "?fields=id,name,!do_not_include" where "!" marks the path as not to be
-   * included.
-   */
-  private final boolean exclude;
-
-  /**
-   * True if the field path should be handled as a preset path, which means we have to expand before
-   * going into the filtering process. For example ":owner" would be expanded to include all
-   * properties where "property.owner=true".
-   */
-  private final boolean preset;
+  private final PropertyPath path;
 
   /** Transformers to apply to field, can be empty. */
   private final List<FieldPathTransformer> transformers;
 
   /** Schema Property if present (added by {@link FieldPathHelper}). */
-  @Setter @ToString.Exclude @EqualsAndHashCode.Exclude private Property property;
+  @Setter private Property property;
 
-  /** Fully calculated dot separated path for FieldPath. */
-  @EqualsAndHashCode.Exclude private final String fullPath;
-
-  public FieldPath(String name) {
-    this(name, List.of());
+  public FieldPath withTransformers(FieldPathTransformer... transformers) {
+    return withTransformers(List.of(transformers));
   }
 
-  public FieldPath(String name, List<String> path) {
-    this(name, path, false, false);
+  public FieldPath withTransformers(@Nonnull List<FieldPathTransformer> transformers) {
+    return new FieldPath(path, transformers, property);
   }
 
-  public FieldPath(String name, List<String> path, boolean exclude, boolean preset) {
-    this(name, path, exclude, preset, new ArrayList<>());
+  public FieldPath relativeTo(@Nonnull CharSequence parentSegment) {
+    return new FieldPath(path.relativeTo(Text.of(parentSegment)), transformers, property);
   }
 
-  public FieldPath(String name, List<String> path, List<FieldPathTransformer> transformers) {
-    this(name, path, false, false, transformers);
+  public String getName() {
+    return path.property().toString();
   }
 
-  public FieldPath(
-      String name,
-      List<String> path,
-      boolean exclude,
-      boolean preset,
-      List<FieldPathTransformer> transformers) {
-    this.name = name;
-    this.path = path;
-    this.fullPath =
-        path.isEmpty()
-            ? name
-            : String.join(FIELD_PATH_SEPARATOR, path) + FIELD_PATH_SEPARATOR + name;
-    this.exclude = exclude;
-    this.preset = preset;
-    this.transformers = transformers;
+  public String getFullPath() {
+    // FIXME this would include markers but the caller might expect a clean property name path
+    return toString();
   }
 
-  public FieldPath relativeTo(String parentSegment) {
-    return new FieldPath(
-        name,
-        path.subList(path.indexOf(parentSegment) + 1, path.size()),
-        exclude,
-        preset,
-        transformers);
+  public List<String> properties() {
+    return path.properties().map(Text::toString).toList();
+  }
+
+  public boolean isPreset() {
+    return path.isPreset();
+  }
+
+  public boolean isExclude() {
+    return path.isExclude();
   }
 
   /**
@@ -132,10 +104,18 @@ public class FieldPath {
     return transformers != null && !transformers.isEmpty();
   }
 
-  /**
-   * @return true if name is the root of the path
-   */
-  public boolean isRoot() {
-    return path.isEmpty();
+  @Override
+  public String toString() {
+    return path.toString();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof FieldPath p && path.equals(p.path);
+  }
+
+  @Override
+  public int hashCode() {
+    return path.hashCode();
   }
 }

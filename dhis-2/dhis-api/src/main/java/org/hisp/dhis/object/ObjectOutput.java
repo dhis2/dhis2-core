@@ -106,7 +106,7 @@ public final class ObjectOutput {
      *     part)
      */
     public String name() {
-      return path.property();
+      return path.property().toString();
     }
 
     @Nonnull

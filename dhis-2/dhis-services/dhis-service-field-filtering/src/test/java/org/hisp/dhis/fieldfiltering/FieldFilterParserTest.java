@@ -43,19 +43,18 @@ class FieldFilterParserTest {
   @Test
   void testDepth0Filters() {
     assertFieldsEquals(
-        List.of(new FieldPath("id"), new FieldPath("name"), new FieldPath("abc")),
-        "id, name,    abc");
+        List.of(FieldPath.of("id"), FieldPath.of("name"), FieldPath.of("abc")), "id, name,    abc");
   }
 
   @Test
   void testDepth1Filters() {
     assertFieldsEquals(
         List.of(
-            FieldPath.ofPath("id"),
-            FieldPath.ofPath("name"),
-            FieldPath.ofPath("group"),
-            FieldPath.ofPath("group.id"),
-            FieldPath.ofPath("group.name")),
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("group"),
+            FieldPath.of("group.id"),
+            FieldPath.of("group.name")),
         "id,name,group[id,name]");
   }
 
@@ -63,37 +62,31 @@ class FieldFilterParserTest {
   void testDepthXFilters() {
     assertFieldsEquals(
         List.of(
-            FieldPath.ofPath("id"),
-            FieldPath.ofPath("name"),
-            FieldPath.ofPath("group"),
-            FieldPath.ofPath("group.id"),
-            FieldPath.ofPath("group.name"),
-            FieldPath.ofPath("group.group"),
-            FieldPath.ofPath("group.group.id"),
-            FieldPath.ofPath("group.group.name"),
-            FieldPath.ofPath("group.group.group"),
-            FieldPath.ofPath("group.group.group.id"),
-            FieldPath.ofPath("group.group.group.name")),
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("group"),
+            FieldPath.of("group.id"),
+            FieldPath.of("group.name"),
+            FieldPath.of("group.group"),
+            FieldPath.of("group.group.id"),
+            FieldPath.of("group.group.name"),
+            FieldPath.of("group.group.group"),
+            FieldPath.of("group.group.group.id"),
+            FieldPath.of("group.group.group.name")),
         "id,name,group[id,name],group[id,name,group[id,name,group[id,name]]]");
   }
 
   @Test
   void testOnlyBlockFilters() {
     assertFieldsEquals(
-        List.of(
-            FieldPath.ofPath("group"),
-            FieldPath.ofPath("group.id"),
-            FieldPath.ofPath("group.name")),
+        List.of(FieldPath.of("group"), FieldPath.of("group.id"), FieldPath.of("group.name")),
         "group[id,name]");
   }
 
   @Test
   void testOnlySpringBlockFilters() {
     assertFieldsEquals(
-        List.of(
-            FieldPath.ofPath("group"),
-            FieldPath.ofPath("group.id"),
-            FieldPath.ofPath("group.name")),
+        List.of(FieldPath.of("group"), FieldPath.of("group.id"), FieldPath.of("group.name")),
         "group[id,name]");
   }
 
@@ -101,11 +94,10 @@ class FieldFilterParserTest {
   void testParseWithTransformer1() {
     assertFieldsEquals(
         List.of(
-            new FieldPath(
-                "name", List.of(), List.of(new FieldPathTransformer("x", List.of("a", "b")))),
-            new FieldPath(
-                "id", List.of(), List.of(new FieldPathTransformer("y", List.of("a", "b", "c")))),
-            new FieldPath("code", List.of(), List.of(new FieldPathTransformer("z", List.of("t"))))),
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("x", List.of("a", "b"))),
+            FieldPath.of("id")
+                .withTransformers(new FieldPathTransformer("y", List.of("a", "b", "c"))),
+            FieldPath.of("code").withTransformers(new FieldPathTransformer("z", List.of("t")))),
         "name::x(a;b),id~y(a;b;c),code|z(t)");
   }
 
@@ -113,11 +105,9 @@ class FieldFilterParserTest {
   void testParseWithTransformer2() {
     assertFieldsEquals(
         List.of(
-            new FieldPath("groups"),
-            new FieldPath(
-                "name",
-                List.of("groups"),
-                List.of(new FieldPathTransformer("x", List.of("a", "b"))))),
+            FieldPath.of("groups"),
+            FieldPath.of("groups.name")
+                .withTransformers(new FieldPathTransformer("x", List.of("a", "b")))),
         "groups[name::x(a;b)]");
   }
 
@@ -125,13 +115,11 @@ class FieldFilterParserTest {
   void testParseWithTransformer3() {
     assertFieldsEquals(
         List.of(
-            new FieldPath("groups"),
-            new FieldPath(
-                "name",
-                List.of("groups"),
-                List.of(new FieldPathTransformer("x", List.of("a", "b")))),
-            new FieldPath(
-                "code", List.of("groups"), List.of(new FieldPathTransformer("y", List.of("a"))))),
+            FieldPath.of("groups"),
+            FieldPath.of("groups.name")
+                .withTransformers(new FieldPathTransformer("x", List.of("a", "b"))),
+            FieldPath.of("groups.code")
+                .withTransformers(new FieldPathTransformer("y", List.of("a")))),
         "groups[name::x(a;b), code~y(a)]");
   }
 
@@ -139,10 +127,9 @@ class FieldFilterParserTest {
   void testParseWithTransformer4() {
     assertFieldsEquals(
         List.of(
-            new FieldPath(
-                "name", List.of(), List.of(new FieldPathTransformer("rename", List.of("n")))),
-            new FieldPath("groups"),
-            new FieldPath("name", List.of("groups"))),
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("rename", List.of("n"))),
+            FieldPath.of("groups"),
+            FieldPath.of("groups.name")),
         "name::rename(n),groups[name]");
   }
 
@@ -150,14 +137,11 @@ class FieldFilterParserTest {
   void testParseWithTransformer5() {
     assertFieldsEquals(
         List.of(
-            new FieldPath(
-                "name", List.of(), List.of(new FieldPathTransformer("rename", List.of("n")))),
-            new FieldPath(
-                "groups", List.of(), List.of(new FieldPathTransformer("rename", List.of("g")))),
-            new FieldPath(
-                "name",
-                List.of("groups"),
-                List.of(new FieldPathTransformer("rename", List.of("n"))))),
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("rename", List.of("n"))),
+            FieldPath.of("groups")
+                .withTransformers(new FieldPathTransformer("rename", List.of("g"))),
+            FieldPath.of("groups.name")
+                .withTransformers(new FieldPathTransformer("rename", List.of("n")))),
         "name::rename(n),groups::rename(g)[name::rename(n)]");
   }
 
@@ -165,11 +149,10 @@ class FieldFilterParserTest {
   void testParseWithTransformer6() {
     assertFieldsEquals(
         List.of(
-            new FieldPath(
-                "name", List.of(), List.of(new FieldPathTransformer("rename", List.of("n")))),
-            new FieldPath(
-                "groups", List.of(), List.of(new FieldPathTransformer("rename", List.of("g")))),
-            new FieldPath("name", List.of("groups"))),
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("rename", List.of("n"))),
+            FieldPath.of("groups")
+                .withTransformers(new FieldPathTransformer("rename", List.of("g"))),
+            FieldPath.of("groups.name")),
         "name::rename(n),groups::rename(g)[name]");
   }
 
@@ -177,8 +160,8 @@ class FieldFilterParserTest {
   void testParseWithTransformer7() {
     assertFieldsEquals(
         List.of(
-            new FieldPath("name", List.of(), List.of(new FieldPathTransformer("size"))),
-            new FieldPath("group", List.of(), List.of(new FieldPathTransformer("isEmpty")))),
+            FieldPath.of("name").withTransformers(new FieldPathTransformer("size")),
+            FieldPath.of("group").withTransformers(new FieldPathTransformer("isEmpty"))),
         "name::size,group::isEmpty");
   }
 
@@ -186,8 +169,8 @@ class FieldFilterParserTest {
   void testParseWithTransformer8() {
     assertFieldsEquals(
         List.of(
-            new FieldPath(
-                "name", List.of(), List.of(new FieldPathTransformer("rename", List.of("n"))))),
+            FieldPath.of("name")
+                .withTransformers(new FieldPathTransformer("rename", List.of("n")))),
         "name::rename(n)");
   }
 
@@ -195,12 +178,10 @@ class FieldFilterParserTest {
   void testParseWithMultipleTransformers() {
     assertFieldsEquals(
         List.of(
-            new FieldPath(
-                "name",
-                List.of(),
-                List.of(
+            FieldPath.of("name")
+                .withTransformers(
                     new FieldPathTransformer("size"),
-                    new FieldPathTransformer("rename", List.of("n"))))),
+                    new FieldPathTransformer("rename", List.of("n")))),
         "name::size::rename(n)");
   }
 
@@ -208,10 +189,10 @@ class FieldFilterParserTest {
   void testParseWithPresetAndExclude1() {
     assertFieldsEquals(
         List.of(
-            new FieldPath("id"),
-            new FieldPath("name"),
-            new FieldPath("code", List.of(), true, false),
-            new FieldPath("owner", List.of(), false, true)),
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("!code"),
+            FieldPath.of(":owner")),
         "id,name,!code,:owner");
   }
 
@@ -219,35 +200,31 @@ class FieldFilterParserTest {
   void testParseWithPresetAndExclude() {
     assertFieldsEquals(
         List.of(
-            new FieldPath("id"),
-            new FieldPath("name"),
-            new FieldPath("code", List.of(), true, false),
-            new FieldPath("owner", List.of(), false, true),
-            new FieldPath("group"),
-            new FieldPath("owner", List.of("group"), false, true),
-            new FieldPath("all", List.of("group"), false, true),
-            new FieldPath("code", List.of("group"), true, false),
-            new FieldPath("hello", List.of("group"))),
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("!code"),
+            FieldPath.of(":owner"),
+            FieldPath.of("group"),
+            FieldPath.of("group.:owner"),
+            FieldPath.of("group.:all"),
+            FieldPath.of("group.!code"),
+            FieldPath.of("group.hello")),
         "id,name,!code,:owner,group[:owner,:all,!code,hello]");
   }
 
   @Test
   void testParseWithAsterisk1() {
-    assertFieldsEquals(
-        List.of(
-            new FieldPath("all", List.of(), false, true),
-            new FieldPath("code", List.of(), true, false)),
-        "*,!code");
+    assertFieldsEquals(List.of(FieldPath.of(":all"), FieldPath.of("!code")), "*,!code");
   }
 
   @Test
   void testParseWithAsterisk2() {
     assertFieldsEquals(
         List.of(
-            new FieldPath("all", List.of(), false, true),
-            new FieldPath("code", List.of(), true, false),
-            new FieldPath("group"),
-            new FieldPath("all", List.of("group"), false, true)),
+            FieldPath.of(":all"),
+            FieldPath.of("!code"),
+            FieldPath.of("group"),
+            FieldPath.of("group.:all")),
         "*,!code,group[*]");
   }
 
@@ -255,12 +232,12 @@ class FieldFilterParserTest {
   void testMixedBlockSingleFields() {
     assertFieldsEquals(
         List.of(
-            new FieldPath("id"),
-            new FieldPath("name"),
-            new FieldPath("group"),
-            new FieldPath("id", List.of("group")),
-            new FieldPath("name", List.of("group")),
-            new FieldPath("code")),
+            FieldPath.of("id"),
+            FieldPath.of("name"),
+            FieldPath.of("group"),
+            FieldPath.of("group.id"),
+            FieldPath.of("group.name"),
+            FieldPath.of("code")),
         "id,name,group[id,name],code");
   }
 
@@ -268,13 +245,11 @@ class FieldFilterParserTest {
   void testMixedBlockWithTransformation() {
     assertFieldsEquals(
         List.of(
-            new FieldPath("id"),
-            new FieldPath("categoryCombo"),
-            new FieldPath(
-                "categoryOptionCombos",
-                List.of("categoryCombo"),
-                List.of(new FieldPathTransformer("size"))),
-            new FieldPath("displayName")),
+            FieldPath.of("id"),
+            FieldPath.of("categoryCombo"),
+            FieldPath.of("categoryCombo.categoryOptionCombos")
+                .withTransformers(new FieldPathTransformer("size")),
+            FieldPath.of("displayName")),
         "id,categoryCombo[categoryOptionCombos~size],displayName");
   }
 

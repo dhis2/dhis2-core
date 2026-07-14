@@ -49,13 +49,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.KeyByFieldTransformer;
@@ -439,12 +440,8 @@ public class FieldFilterService {
   }
 
   private void applyFieldPathVisitor(
-      Object object,
-      List<FieldPath> fieldPaths,
-      boolean isSkipSharing,
-      Predicate<String> filter,
-      Consumer<Object> consumer) {
-    if (object == null || isSkipSharing) {
+      Object object, List<FieldPath> fieldPaths, BiConsumer<Object, PropertyPath> visitor) {
+    if (object == null) {
       return;
     }
 
@@ -454,12 +451,7 @@ public class FieldFilterService {
       return;
     }
 
-    fieldPaths.forEach(
-        fp -> {
-          if (filter.test(fp.getFullPath())) {
-            fieldPathHelper.visitFieldPaths(object, List.of(fp), consumer);
-          }
-        });
+    fieldPathHelper.visitFieldPaths(object, fieldPaths, visitor);
   }
 
   public ObjectNode createObjectNode() {
@@ -544,31 +536,21 @@ public class FieldFilterService {
 
   private void applySharingDisplayNames(
       Object root, List<FieldPath> fieldPaths, boolean isSkipSharing) {
+    if (isSkipSharing) return;
     applyFieldPathVisitor(
         root,
         fieldPaths,
-        isSkipSharing,
-        s -> s.contains("sharing"),
-        o -> {
-          if (root instanceof IdentifiableObject rootObject && rootObject.hasSharing()) {
-            rootObject
+        (obj, path) -> {
+          if (obj instanceof IdentifiableObject object
+              && object.hasSharing()
+              && path.segment().contentEquals("sharing")) {
+            object
                 .getSharing()
                 .getUserGroups()
                 .values()
                 .forEach(uga -> uga.setDisplayName(userGroupService.getDisplayName(uga.getId())));
-            rootObject
+            object
                 .getSharing()
-                .getUsers()
-                .values()
-                .forEach(ua -> ua.setDisplayName(userService.getDisplayName(ua.getId())));
-          }
-
-          if (o instanceof IdentifiableObject obj && obj.hasSharing()) {
-            obj.getSharing()
-                .getUserGroups()
-                .values()
-                .forEach(uga -> uga.setDisplayName(userGroupService.getDisplayName(uga.getId())));
-            obj.getSharing()
                 .getUsers()
                 .values()
                 .forEach(ua -> ua.setDisplayName(userService.getDisplayName(ua.getId())));
@@ -577,15 +559,14 @@ public class FieldFilterService {
   }
 
   private void applyAccess(
-      Object object, List<FieldPath> fieldPaths, boolean isSkipSharing, UserDetails userDetails) {
+      Object root, List<FieldPath> fieldPaths, boolean isSkipSharing, UserDetails userDetails) {
+    if (isSkipSharing) return;
     applyFieldPathVisitor(
-        object,
+        root,
         fieldPaths,
-        isSkipSharing,
-        s -> s.equals("access") || s.endsWith(".access"),
-        o -> {
-          if (o instanceof IdentifiableObject identifiableObject) {
-            identifiableObject.setAccess(aclService.getAccess(identifiableObject, userDetails));
+        (obj, path) -> {
+          if (obj instanceof IdentifiableObject object && path.segment().contentEquals("access")) {
+            object.setAccess(aclService.getAccess(object, userDetails));
           }
         });
   }

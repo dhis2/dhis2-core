@@ -200,14 +200,14 @@ class PropertyPathTest {
 
   @Test
   void testProperty() {
-    assertEquals("foo", PropertyPath.of("foo").property());
-    assertEquals("bar", PropertyPath.of("foo.bar").property());
-    assertEquals("baz", PropertyPath.of("foo.bar.baz").property());
-    assertEquals("foo", PropertyPath.of("!foo").property());
-    assertEquals("bar", PropertyPath.of("!foo.bar").property());
-    assertEquals("baz", PropertyPath.of("!foo.bar.baz").property());
-    assertEquals("baz", PropertyPath.of("foo.bar.!baz").property());
-    assertEquals("foo", PropertyPath.of("-foo").property());
+    assertEquals("foo", PropertyPath.of("foo").property().toString());
+    assertEquals("bar", PropertyPath.of("foo.bar").property().toString());
+    assertEquals("baz", PropertyPath.of("foo.bar.baz").property().toString());
+    assertEquals("foo", PropertyPath.of("!foo").property().toString());
+    assertEquals("bar", PropertyPath.of("!foo.bar").property().toString());
+    assertEquals("baz", PropertyPath.of("!foo.bar.baz").property().toString());
+    assertEquals("baz", PropertyPath.of("foo.bar.!baz").property().toString());
+    assertEquals("foo", PropertyPath.of("-foo").property().toString());
   }
 
   @Test
@@ -219,20 +219,19 @@ class PropertyPathTest {
 
   @Test
   void testConcat() {
-    assertEquals(PropertyPath.of("foo.bar"), PropertyPath.of("foo").concat(Text.of("bar")));
-    assertEquals(PropertyPath.of("foo.:all"), PropertyPath.of("foo").concat(Text.of("*")));
+    assertEquals(PropertyPath.of("foo.bar"), PropertyPath.of("foo").concat("bar"));
+    assertEquals(PropertyPath.of("foo.:all"), PropertyPath.of("foo").concat("*"));
     assertEquals(
         PropertyPath.of("foo.bar.baz"), PropertyPath.of("foo").concat(PropertyPath.of("bar.baz")));
 
-    assertEquals(PropertyPath.of("!foo.bar"), PropertyPath.of("!foo").concat(Text.of("bar")));
+    assertEquals(PropertyPath.of("!foo.bar"), PropertyPath.of("!foo").concat("bar"));
   }
 
   @Test
   void testWithTail() {
     assertEquals(PropertyPath.of("y"), PropertyPath.of("foo").withTail("y"));
     assertEquals(PropertyPath.of("foo.y"), PropertyPath.of("foo.bar").withTail("y"));
-    assertEquals(
-        PropertyPath.of("foo.bar.y"), PropertyPath.of("foo.bar.baz").withTail(Text.of("y")));
+    assertEquals(PropertyPath.of("foo.bar.y"), PropertyPath.of("foo.bar.baz").withTail("y"));
   }
 
   private static void assertPropertyPath(String path) {
