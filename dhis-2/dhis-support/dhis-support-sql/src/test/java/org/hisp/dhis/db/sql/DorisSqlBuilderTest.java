@@ -370,7 +370,7 @@ class DorisSqlBuilderTest {
         """
         select t.table_name \
         from information_schema.tables t \
-        where t.table_schema = 'public' \
+        where t.table_schema = database() \
         and t.table_name = 'immunization';""";
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));

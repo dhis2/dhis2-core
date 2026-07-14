@@ -548,7 +548,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         """
         select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' \
+        where t.table_schema = database() \
         and t.table_name = %s;""",
         singleQuote(name));
   }
