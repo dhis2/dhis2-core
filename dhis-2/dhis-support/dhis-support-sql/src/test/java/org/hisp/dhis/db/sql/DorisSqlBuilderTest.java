@@ -142,6 +142,11 @@ class DorisSqlBuilderTest {
     assertEquals("double", sqlBuilder.dataTypeDouble());
     assertEquals("datetime(3)", sqlBuilder.dataTypeTimestamp());
     assertEquals("json", sqlBuilder.dataTypeJson());
+    // Doris' "string" type is unbounded and rejected as a key column on any key model (errCode =
+    // 2, "String Type should not be used in key column"). Callers that need a column to be a key
+    // (e.g. analytics table managers building a synthetic "id" key column) must use a bounded
+    // type (e.g. VARCHAR_255) instead of TEXT on Doris.
+    assertEquals("string", sqlBuilder.dataTypeText());
   }
 
   @Test

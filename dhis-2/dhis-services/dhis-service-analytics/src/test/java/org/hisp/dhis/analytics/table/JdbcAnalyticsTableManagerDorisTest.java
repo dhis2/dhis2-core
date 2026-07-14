@@ -137,7 +137,20 @@ class JdbcAnalyticsTableManagerDorisTest {
     AnalyticsTable table = tables.get(0);
     assertTrue(table.hasPrimaryKey());
     assertEquals(List.of("id", "year"), table.getPrimaryKey());
-    assertTrue(sqlBuilder.createTable(table).contains("unique key (`id`,`year`)"));
+    String createTableSql = sqlBuilder.createTable(table);
+    assertTrue(createTableSql.contains("unique key (`id`,`year`)"));
+    // Doris rejects unbounded string/text types as key columns on any key model (errCode = 2,
+    // "String Type should not be used in key column"). The id column (a concat(...) of several
+    // dimension UIDs) must be given a bounded type on Doris, unlike Postgres/ClickHouse where it
+    // stays TEXT.
+    assertTrue(
+        createTableSql.contains("`id` varchar(1020)"),
+        () -> "Expected id column to use a bounded varchar type, got: " + createTableSql);
+    assertFalse(
+        createTableSql.contains("`id` string"),
+        () ->
+            "id column must not use the unbounded string type as a key column, got: "
+                + createTableSql);
   }
 
   @Test

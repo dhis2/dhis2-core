@@ -554,7 +554,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     columns.add(
         AnalyticsTableColumn.builder()
             .name("id")
-            .dataType(TEXT)
+            .dataType(sqlBuilder.requiresUniqueKeyAnalyticsTables() ? VARCHAR_255 : TEXT)
             .selectExpression(idColAlias)
             .build());
     columns.addAll(getDataElementGroupSetColumns());

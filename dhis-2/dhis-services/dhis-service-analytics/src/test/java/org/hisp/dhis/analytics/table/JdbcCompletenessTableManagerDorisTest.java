@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.table;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.verify;
@@ -138,7 +139,20 @@ class JdbcCompletenessTableManagerDorisTest {
     AnalyticsTable table = tables.get(0);
     assertTrue(table.hasPrimaryKey());
     assertEquals(List.of("id", "year"), table.getPrimaryKey());
-    assertTrue(sqlBuilder.createTable(table).contains("unique key (`id`,`year`)"));
+    String createTableSql = sqlBuilder.createTable(table);
+    assertTrue(createTableSql.contains("unique key (`id`,`year`)"));
+    // Doris rejects unbounded string/text types as key columns on any key model (errCode = 2,
+    // "String Type should not be used in key column"). The id column (a concat(...) of several
+    // dimension UIDs) must be given a bounded type on Doris, unlike Postgres/ClickHouse where it
+    // stays TEXT.
+    assertTrue(
+        createTableSql.contains("`id` varchar(1020)"),
+        () -> "Expected id column to use a bounded varchar type, got: " + createTableSql);
+    assertFalse(
+        createTableSql.contains("`id` string"),
+        () ->
+            "id column must not use the unbounded string type as a key column, got: "
+                + createTableSql);
   }
 
   @Test

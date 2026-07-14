@@ -41,6 +41,7 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.SECONDS_PER_DAY;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -289,7 +290,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.add(
         AnalyticsTableColumn.builder()
             .name("id")
-            .dataType(TEXT)
+            .dataType(sqlBuilder.requiresUniqueKeyAnalyticsTables() ? VARCHAR_255 : TEXT)
             .selectExpression(idColAlias)
             .build());
     columns.addAll(getOrganisationUnitGroupSetColumns());
