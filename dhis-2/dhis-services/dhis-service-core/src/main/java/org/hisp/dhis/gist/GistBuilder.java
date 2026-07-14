@@ -37,7 +37,6 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.collection.CollectionUtils.merge;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
-import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
@@ -45,12 +44,9 @@ import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPat
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isJsonCollectionFilter;
-import static org.hisp.dhis.gist.GistLogic.isNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
 import static org.hisp.dhis.gist.GistLogic.isStringLengthFilter;
-import static org.hisp.dhis.gist.GistLogic.parentPath;
-import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.Method;
@@ -76,6 +72,7 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.common.input.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -83,6 +80,7 @@ import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -134,8 +132,6 @@ final class GistBuilder {
    */
   private static final String HQL_NULL = "cast(null as char)";
 
-  private static final String TRANSLATIONS_PROPERTY = "translations";
-
   private static final String ID_PROPERTY = "id";
 
   private static final String SHARING_PROPERTY = "sharing";
@@ -170,7 +166,7 @@ final class GistBuilder {
 
   private final List<Consumer<Object[]>> fieldResultTransformers = new ArrayList<>();
 
-  private final Map<String, Integer> fieldIndexByPath = new HashMap<>();
+  private final Map<PropertyPath, Integer> fieldIndexByPath = new HashMap<>();
 
   /**
    * Depending on what fields should be listed other fields are needed to fully compute the
@@ -197,19 +193,19 @@ final class GistBuilder {
     // ID column not present but ID column required?
     if ((isPersistentCollectionField(p) || isHrefProperty(p))
         && !existsSameParentField(query, f, ID_PROPERTY)) {
-      return query.addField(pathOnSameParent(f.propertyPath(), ID_PROPERTY));
+      return query.addField(f.propertyPath().withTail(ID_PROPERTY));
     }
 
     // Access based on Sharing
     if (isAccessProperty(p) && !existsSameParentField(query, f, SHARING_PROPERTY)) {
-      return query.addField(pathOnSameParent(f.propertyPath(), SHARING_PROPERTY));
+      return query.addField(f.propertyPath().withTail(SHARING_PROPERTY));
     }
 
     // flags on Attribute map to/from objectTypes set
     if (query.getElementType() == Attribute.class
         && isAttributeFlagProperty(p)
         && !existsSameParentField(query, f, OBJECT_TYPES)) {
-      return query.addField(pathOnSameParent(f.propertyPath(), OBJECT_TYPES));
+      return query.addField(f.propertyPath().withTail(OBJECT_TYPES));
     }
 
     return addFromTransformationSupportFields(query, f);
@@ -219,7 +215,7 @@ final class GistBuilder {
     if (f.transformation() == Transform.FROM) {
       for (String propertyName : f.args()) {
         if (!existsSameParentField(query, f, propertyName)) {
-          query = query.addField(pathOnSameParent(f.propertyPath(), propertyName));
+          query = query.addField(f.propertyPath().withTail(propertyName));
         }
       }
     }
@@ -227,12 +223,13 @@ final class GistBuilder {
   }
 
   private static boolean existsSameParentField(GistQuery query, Field field, String property) {
-    String parentPath = parentPath(field.propertyPath());
-    String requiredPath = parentPath.isEmpty() ? property : parentPath + "." + property;
+    PropertyPath parentPath = field.propertyPath().parent();
+    PropertyPath requiredPath =
+        parentPath == null ? PropertyPath.of(property) : parentPath.concat(Text.of(property));
     return query.getFields().fields().stream().anyMatch(f -> f.propertyPath().equals(requiredPath));
   }
 
-  private String getMemberPath(String property) {
+  private String getMemberPath(PropertyPath property) {
     List<Property> path = context.resolvePath(property);
     return path.size() == 1
         ? path.get(0).getFieldName()
@@ -269,13 +266,13 @@ final class GistBuilder {
   }
 
   private void addRefsTransformer(Field field) {
-    String path = field.propertyPath();
+    PropertyPath path = field.propertyPath();
     if (!query.isReferences()) return;
     Property property = context.resolveMandatory(path);
     String endpointRoot = getSameParentEndpointRoot(path);
     if (endpointRoot == null) return;
     Integer idFieldIndex = getSameParentFieldIndex(path, ID_PROPERTY);
-    Integer refIndex = fieldIndexByPath.get(Fields.Field.REFS_PATH);
+    Integer refIndex = fieldIndexByPath.get(Fields.Field.REFS.propertyPath());
     if (idFieldIndex != null && refIndex != null)
       addTransformer(
           row ->
@@ -384,7 +381,7 @@ final class GistBuilder {
 
   private String createFieldHQL(int index, Field field) {
     if (field.isRefs()) return HQL_NULL;
-    String path = field.propertyPath();
+    PropertyPath path = field.propertyPath();
     if (field.isAttribute()) {
       if (field.isAttributeAsJson()) {
         addTransformer(row -> row[index] = JsonNode.of((String) row[index]));
@@ -419,7 +416,7 @@ final class GistBuilder {
       @SuppressWarnings("unchecked")
       Class<? extends IdentifiableObject> objType =
           (Class<? extends IdentifiableObject>)
-              (!isNestedPath(path) ? query.getElementType() : property.getKlass());
+              (!path.isNested() ? query.getElementType() : property.getKlass());
       addTransformer(
           row -> row[index] = access.asAccess(objType, (Sharing) row[sharingFieldIndex]));
       return HQL_NULL;
@@ -466,7 +463,7 @@ final class GistBuilder {
   }
 
   private void createFromTransformedFieldHQL(
-      int index, Field field, String path, Property property) {
+      int index, Field field, PropertyPath path, Property property) {
     Object bean = newQueryElementInstance();
     if (bean == null) {
       return;
@@ -493,7 +490,7 @@ final class GistBuilder {
   }
 
   private String createReferenceFieldHQL(int index, Field field) {
-    String path = field.propertyPath();
+    PropertyPath path = field.propertyPath();
     Property property = context.resolveMandatory(path);
     Class<?> table = property.getKlass();
     RelativePropertyContext fieldContext = context.switchedTo(table);
@@ -700,7 +697,7 @@ final class GistBuilder {
             entry("alias", alias),
             entry("table", table.getSimpleName()),
             entry("path", getMemberPath(field.propertyPath())),
-            entry("property", field.propertyPath()),
+            entry("property", field.propertyPath().toString()),
             entry("compare", compare));
     return replace(
         "(select count(*) ${compare} from ${table} ${alias} where ${alias} in elements(e.${path}) and ${alias}.uid = :p_${property} and ${access})",
@@ -715,7 +712,7 @@ final class GistBuilder {
     if (row[refIndex] == null) {
       row[refIndex] = new TreeMap<>();
     }
-    ((Map<String, String>) row[refIndex]).put(field.path(), url);
+    ((Map<PropertyPath, String>) row[refIndex]).put(field.path(), url);
   }
 
   private String toEndpointURL(String endpointRoot, Object id) {
@@ -746,11 +743,11 @@ final class GistBuilder {
         || obj instanceof Number && ((Number) obj).intValue() == 0;
   }
 
-  private Integer getSameParentFieldIndex(String path, String property) {
-    return fieldIndexByPath.get(pathOnSameParent(path, property));
+  private Integer getSameParentFieldIndex(PropertyPath path, String property) {
+    return fieldIndexByPath.get(path.withTail(property));
   }
 
-  private String getSameParentEndpointRoot(String path) {
+  private String getSameParentEndpointRoot(PropertyPath path) {
     return getEndpointRoot(context.switchedTo(path).getHome());
   }
 
@@ -787,14 +784,14 @@ final class GistBuilder {
   }
 
   private String createFilterHQL(int index, Filter filter) {
-    String propertyPath = filter.getPropertyPath();
+    PropertyPath propertyPath = filter.getPropertyPath();
     if (isAttributeValuesAttributePropertyPath(propertyPath)) {
-      filter = filter.withPropertyPath(attributePath(propertyPath));
+      filter = filter.withPropertyPath(propertyPath.property());
       return replace(
           "jsonb_exists_any(e.attributeValues, (select array_agg(uid) from Attribute a where ${filter})) = true",
           Map.of("filter", createFilterHQL(index, filter, "a." + filter.getPropertyPath())));
     }
-    if (isNestedPath(propertyPath)) {
+    if (propertyPath.isNested()) {
       List<Property> path = context.resolvePath(propertyPath);
       if (filter.isSubSelect()) {
         return createSubSelectFilterHQL(index, filter, path);
@@ -906,7 +903,7 @@ final class GistBuilder {
   }
 
   private String createAccessFilterHQL(int index, Filter filter, String property) {
-    String path = filter.getPropertyPath();
+    PropertyPath path = filter.getPropertyPath();
     Property p = context.resolveMandatory(path);
     Class<?> table = p.getItemKlass();
     String alias = alias(table, index);
@@ -926,7 +923,7 @@ final class GistBuilder {
       return replace(
           "${property} in (select ${alias} from ${table} ${alias} where ${filter})", variables);
     }
-    if (isNestedPath(path)) {
+    if (path.isNested()) {
       throw new UnsupportedOperationException("Access filter not supported for property: " + path);
     }
     // trivial case: the filter property is a non nested non-identifiable
@@ -981,10 +978,11 @@ final class GistBuilder {
   }
 
   private String createOrderByHQL(Integer index, GistQuery.Order order) {
-    String propertyPath = order.getPropertyPath();
+    PropertyPath propertyPath = order.getPropertyPath();
     String dir = order.getDirection().name().toLowerCase();
     Property property =
-        context.resolve(Property.resolveTranslationBasePropertyName(order.getPropertyPath()));
+        context.resolve(
+            Property.resolveTranslationBasePropertyName(order.getPropertyPath().toString()));
     if (property != null && property.canBeTranslated()) {
       return "coalesce(jsonb_get_translated_value(e.translations, '%s', '%s'), e.%s) %s"
           .formatted(

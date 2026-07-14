@@ -47,6 +47,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -282,7 +283,8 @@ public class GistPipeline {
         elementType, key -> schemaService.getSchema(key).getCollectionName());
   }
 
-  private static final Property MATCH = new Property("match", new Type(Boolean.class), false);
+  private static final Property MATCH =
+      new Property(PropertyPath.of("match"), new Type(Boolean.class), false);
 
   /**
    * @implNote When listing OU with their ancestors the main query just matches using filters as

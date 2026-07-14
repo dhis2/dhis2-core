@@ -34,7 +34,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.hisp.dhis.jsontree.Text;
@@ -66,7 +68,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     if (fields == null || fields.isEmpty()) return DEFAULT;
     List<FieldExp> res = new ArrayList<>();
     parseFields(Text.of(fields), 0, res);
-    return new Fields(res.stream().flatMap(e -> e.toFields("", "")).toList());
+    return new Fields(res.stream().flatMap(e -> e.toFields(null, null)).toList());
   }
 
   /**
@@ -83,7 +85,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
   }
 
   public List<String> names() {
-    return fields.stream().map(Fields.Field::path).toList();
+    return fields.stream().map(Fields.Field::path).map(PropertyPath::toString).toList();
   }
 
   public Fields add(Field f) {
@@ -112,8 +114,8 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
    * @param args transformation arguments
    */
   public record Field(
-      @Nonnull String propertyPath,
-      @Nonnull String renamedPath,
+      @Nonnull PropertyPath propertyPath,
+      @CheckForNull PropertyPath renamedPath,
       @Nonnull Transform transformation,
       @Nonnull List<String> args) {
 
@@ -121,12 +123,20 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       return Fields.of(field).fields.get(0);
     }
 
-    public static final String REFS_PATH = "__refs__";
-    public static final String ALL_PATH = "*";
-    public static final Field ALL = new Field(ALL_PATH, Transform.NONE);
+    public static final Field REFS =
+        new Field(
+            PropertyPath.of("__refs__"),
+            PropertyPath.of("apiEndpoints"),
+            Transform.NONE,
+            List.of());
+    public static final Field ALL = new Field(":all", Transform.NONE);
 
-    public Field(String propertyPath) {
+    public Field(@Nonnull String propertyPath) {
       this(propertyPath, Transform.AUTO);
+    }
+
+    public Field(@Nonnull PropertyPath propertyPath) {
+      this(propertyPath, null, Transform.AUTO, List.of());
     }
 
     public Field(String propertyPath, Transform transformation) {
@@ -134,14 +144,14 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     public Field(String propertyPath, Transform transformation, List<String> args) {
-      this(propertyPath, "", transformation, args);
+      this(PropertyPath.of(propertyPath), null, transformation, args);
     }
 
     /**
      * @return the effective path to render in the output
      */
     @Nonnull
-    public String path() {
+    public PropertyPath path() {
       return isRenamed() ? renamedPath : propertyPath;
     }
 
@@ -154,10 +164,18 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     public Field withPropertyPath(String path) {
+      return withPropertyPath(PropertyPath.of(path));
+    }
+
+    public Field withPropertyPath(PropertyPath path) {
       return new Field(path, renamedPath, transformation, args);
     }
 
     public Field withRenamedPath(String path) {
+      return withRenamedPath(PropertyPath.of(path));
+    }
+
+    public Field withRenamedPath(PropertyPath path) {
       return new Field(propertyPath, path, transformation, args);
     }
 
@@ -178,7 +196,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     public boolean isRefs() {
-      return REFS_PATH.equals(propertyPath);
+      return propertyPath.equals(REFS.propertyPath);
     }
 
     public boolean isMultiPluck() {
@@ -186,15 +204,15 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     public boolean isExclude() {
-      return isExcludeMarker(propertyPath.charAt(propertyPath.lastIndexOf('.') + 1));
+      return propertyPath.isExclude();
     }
 
     public boolean isPreset() {
-      return isPresetMarker(propertyPath.charAt(propertyPath.lastIndexOf('.') + 1));
+      return propertyPath.isPreset();
     }
 
     public boolean isRenamed() {
-      return !renamedPath.isEmpty();
+      return renamedPath != null;
     }
 
     public boolean isTransformed() {
@@ -202,7 +220,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     }
 
     public boolean isNested() {
-      return propertyPath.indexOf('.') >= 0;
+      return propertyPath.isNested();
     }
   }
 
@@ -246,21 +264,20 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       return Stream.concat(Stream.of(f), children.stream().flatMap(c -> c.toFieldPaths(path)));
     }
 
-    Stream<Field> toFields(String parentPath, String parentRenamedPath) {
-      String name = this.name.toString();
+    Stream<Field> toFields(PropertyPath parentPath, PropertyPath parentRenamedPath) {
+      Text name = this.name;
       if (name.length() >= 2 && isExcludeMarker(name.charAt(0)) && isPresetMarker(name.charAt(1)))
-        name = name.substring(1); // drop negation of preset
-      if ("*".equals(name)) name = ":all"; // unify * to :all
-      Field f = new Field(chain(parentPath, name));
-      String renamedName = "";
+        name = name.subSequence(1, name.length()); // drop negation of preset
+      Field f = new Field(PropertyPath.concat(parentPath, name));
+      Text renamedName = null;
       for (TransformExp t : transforms)
-        if (t.type.contentEquals("rename")) renamedName = t.args.get(0).toString();
-      if (!renamedName.isEmpty() || !parentRenamedPath.isEmpty())
+        if (t.type.contentEquals("rename")) renamedName = t.args.get(0);
+      if (renamedName != null || parentRenamedPath != null)
         f =
             f.withRenamedPath(
-                chain(
-                    parentRenamedPath.isEmpty() ? parentPath : parentRenamedPath,
-                    renamedName.isEmpty() ? name : renamedName));
+                PropertyPath.concat(
+                    parentRenamedPath == null ? parentPath : parentRenamedPath,
+                    renamedName == null ? name : renamedName));
       if (transforms.isEmpty() && children.isEmpty()) return Stream.of(f);
       Field base = f;
       boolean noTransform = transforms.isEmpty() || base.isRenamed() && transforms.size() == 1;
@@ -277,10 +294,6 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       Stream<Field> childrenRes =
           children.stream().flatMap(e -> e.toFields(parent.propertyPath(), parent.renamedPath()));
       return noTransform ? childrenRes : Stream.concat(transformRes, childrenRes);
-    }
-
-    static String chain(String parent, String child) {
-      return parent.isEmpty() ? child : parent + "." + child;
     }
   }
 
