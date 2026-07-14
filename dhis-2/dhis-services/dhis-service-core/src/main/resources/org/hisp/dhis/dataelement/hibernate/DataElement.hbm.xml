@@ -5,7 +5,10 @@
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataelement.DataElement" table="dataelement">
+  <!-- batch-size: coalesce one-at-a-time lazy proxy inits into IN(...) batches. Targets the
+       DataElement proxy N+1 on GET /api/dataEntry/metadata (DHIS2-21757). Scoped to this entity
+       (not global, cf. closed PR #24380); does not touch CategoryOption(Combo) collections. -->
+  <class name="org.hisp.dhis.dataelement.DataElement" table="dataelement" batch-size="100">
 
     <cache usage="read-write" />
 

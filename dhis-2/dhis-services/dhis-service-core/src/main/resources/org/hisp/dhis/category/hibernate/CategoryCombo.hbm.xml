@@ -6,7 +6,11 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.category.CategoryCombo" table="categorycombo">
+  <!-- batch-size: coalesce one-at-a-time lazy proxy inits into IN(...) batches. Targets the
+       CategoryCombo proxy N+1 on GET /api/dataEntry/metadata (DHIS2-21757), reached via
+       DataSetElement.categoryCombo and DataElement.categoryCombo. Scoped to this entity
+       (not global, cf. closed PR #24380); does not touch CategoryOption(Combo) collections. -->
+  <class name="org.hisp.dhis.category.CategoryCombo" table="categorycombo" batch-size="100">
 
     <cache usage="read-write" />
 
