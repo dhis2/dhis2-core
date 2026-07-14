@@ -245,6 +245,46 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldIncludeDeletedEventInSyncQueryWhenNotYetSynchronized()
+      throws ForbiddenException, BadRequestException {
+    Event event = get(Event.class, "D9PbzJY8bJM");
+    event.setDeleted(true);
+    manager.update(event);
+    manager.flush();
+
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .events(Set.of(UID.of("D9PbzJY8bJM")))
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .build();
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), getEvents(params));
+  }
+
+  @Test
+  void shouldExcludeDeletedEventFromSyncQueryWhenAlreadySynchronized()
+      throws ForbiddenException, BadRequestException {
+    Event event = get(Event.class, "D9PbzJY8bJM");
+    event.setDeleted(true);
+    manager.update(event);
+    manager.flush();
+
+    eventService.updateEventsSyncTimestamp(
+        List.of("D9PbzJY8bJM"), new Date(System.currentTimeMillis() + 60_000));
+    manager.flush();
+
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .events(Set.of(UID.of("D9PbzJY8bJM")))
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .build();
+
+    assertIsEmpty(getEvents(params));
+  }
+
+  @Test
   void testExportEvents() throws ForbiddenException, BadRequestException {
     EventOperationParams params = operationParamsBuilder.programStage(programStage).build();
 

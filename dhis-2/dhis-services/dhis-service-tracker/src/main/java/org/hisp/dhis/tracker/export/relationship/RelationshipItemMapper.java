@@ -92,6 +92,7 @@ public interface RelationshipItemMapper {
     result.setCreated(relationship.getCreated());
     result.setCreatedAtClient(relationship.getCreatedAtClient());
     result.setLastUpdated(relationship.getLastUpdated());
+    result.setDeleted(relationship.isDeleted());
     result.setFrom(
         mapRelationshipItemWithoutRelationship(fields.getFromFields(), relationship.getFrom()));
     result.setTo(

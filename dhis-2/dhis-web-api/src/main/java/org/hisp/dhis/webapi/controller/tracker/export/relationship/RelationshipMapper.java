@@ -61,6 +61,7 @@ public abstract class RelationshipMapper {
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "deleted", source = "deleted")
   public abstract Relationship map(org.hisp.dhis.relationship.Relationship relationship);
 
   /**
