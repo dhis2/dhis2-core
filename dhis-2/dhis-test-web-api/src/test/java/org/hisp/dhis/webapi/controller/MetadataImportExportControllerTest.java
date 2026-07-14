@@ -826,8 +826,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // import (as produced by a metadata dependency export)
     JsonImportSummary report =
         POST(
-            "/metadata",
-            Path.of("metadata/metadata_map_mapview_with_cat_option_group_set_dimension.json"))
+                "/metadata",
+                Path.of("metadata/metadata_map_mapview_with_cat_option_group_set_dimension.json"))
             .content()
             .get("response")
             .as(JsonImportSummary.class);
