@@ -578,12 +578,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(toLongDate(params.getSkipChangedBefore()))
             .append(SINGLE_QUOTE);
       }
-      if (params.hasExcludedTrackedEntities()) {
-        trackedEntity
-            .append(" AND TE.uid NOT IN (")
-            .append(encodeAndQuote(UID.toValueSet(params.getExcludedTrackedEntities())))
-            .append(") ");
-      }
     }
 
     if (!params.isIncludeDeleted()) {

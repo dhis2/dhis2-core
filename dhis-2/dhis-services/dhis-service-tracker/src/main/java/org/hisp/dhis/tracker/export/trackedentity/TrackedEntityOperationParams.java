@@ -114,13 +114,6 @@ public class TrackedEntityOperationParams {
   /** Set of te uids to explicitly select. */
   @Builder.Default private Set<UID> trackedEntities = new HashSet<>();
 
-  /**
-   * Set of te uids to explicitly exclude. Only applied when {@link #synchronizationQuery} is set,
-   * to let a sync run skip tracked entities it already attempted (and failed to sync) earlier in
-   * the same run, rather than refetching the same "page 1" batch on every iteration.
-   */
-  @Builder.Default private Set<UID> excludedTrackedEntities = new HashSet<>();
-
   /** ProgramStage to be used in conjunction with eventstatus. */
   private UID programStage;
 
