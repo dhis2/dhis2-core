@@ -168,7 +168,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<String> SORT_KEY = List.of("dx", "co");
 
-  private static final List<String> PRIMARY_KEY = List.of("id");
+  private static final List<String> PRIMARY_KEY = List.of("id", "year");
 
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,

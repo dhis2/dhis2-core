@@ -117,6 +117,24 @@ class DorisSqlBuilderTest {
     return new Table("immunization", columns, primaryKey, Logged.LOGGED);
   }
 
+  /**
+   * A table with a composite primary key ("id", "year") where the natural column order (`year`
+   * before `id`) does not match the declared key order (`id` before `year`) — mirrors the
+   * aggregate/completeness analytics tables, where `year` is a `FIXED_COLS` entry appended before
+   * the `id` column, but the Doris unique key clause must declare `id` first.
+   */
+  private Table getTableF() {
+    List<Column> columns =
+        List.of(
+            new Column("year", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL));
+
+    List<String> primaryKey = List.of("id", "year");
+
+    return new Table("immunization", columns, primaryKey, Logged.LOGGED);
+  }
+
   // Data types
 
   @Test
@@ -266,6 +284,23 @@ class DorisSqlBuilderTest {
         `period` varchar(200) not null,`value` double null) \
         engine = olap \
         unique key (`id`) \
+        distributed by hash(`id`) \
+        buckets 10 \
+        properties ("replication_num" = "1");""";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
+
+  @Test
+  void testCreateTableOrdersCompositePrimaryKeyByDeclaredKeyOrder() {
+    Table table = getTableF();
+
+    String expected =
+        """
+        create table `immunization` (`id` bigint not null,`year` int not null,\
+        `data` char(11) not null) \
+        engine = olap \
+        unique key (`id`,`year`) \
         distributed by hash(`id`) \
         buckets 10 \
         properties ("replication_num" = "1");""";

@@ -137,8 +137,8 @@ class JdbcCompletenessTableManagerDorisTest {
     assertEquals(1, tables.size());
     AnalyticsTable table = tables.get(0);
     assertTrue(table.hasPrimaryKey());
-    assertEquals(List.of("id"), table.getPrimaryKey());
-    assertTrue(sqlBuilder.createTable(table).contains("unique key (`id`)"));
+    assertEquals(List.of("id", "year"), table.getPrimaryKey());
+    assertTrue(sqlBuilder.createTable(table).contains("unique key (`id`,`year`)"));
   }
 
   @Test

@@ -326,8 +326,8 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     assertThat(tables, hasSize(1));
     AnalyticsTable table = tables.get(0);
     assertTrue(table.hasPrimaryKey());
-    assertEquals(List.of("event"), table.getPrimaryKey());
-    assertTrue(sqlBuilder.createTable(table).contains("unique key (`event`)"));
+    assertEquals(List.of("event", "year"), table.getPrimaryKey());
+    assertTrue(sqlBuilder.createTable(table).contains("unique key (`event`,`year`)"));
   }
 
   @Test

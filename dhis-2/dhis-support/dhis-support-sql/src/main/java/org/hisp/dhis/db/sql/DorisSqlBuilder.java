@@ -472,17 +472,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
       return table.getColumns();
     }
 
-    List<String> primaryKey = table.getPrimaryKey();
-    List<Column> keyColumns = new ArrayList<>();
-    List<Column> otherColumns = new ArrayList<>();
+    Map<String, Column> columnsByName =
+        table.getColumns().stream().collect(Collectors.toMap(Column::getName, c -> c));
 
-    for (Column column : table.getColumns()) {
-      if (primaryKey.contains(column.getName())) {
-        keyColumns.add(column);
-      } else {
-        otherColumns.add(column);
-      }
-    }
+    List<Column> keyColumns =
+        table.getPrimaryKey().stream().map(columnsByName::get).collect(Collectors.toList());
+
+    List<Column> otherColumns =
+        table.getColumns().stream()
+            .filter(c -> !table.getPrimaryKey().contains(c.getName()))
+            .collect(Collectors.toList());
 
     List<Column> orderedColumns = new ArrayList<>(keyColumns);
     orderedColumns.addAll(otherColumns);

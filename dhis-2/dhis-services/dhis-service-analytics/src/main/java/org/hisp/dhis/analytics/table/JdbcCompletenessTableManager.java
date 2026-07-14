@@ -96,7 +96,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private static final List<String> SORT_KEY = List.of("dx");
 
-  private static final List<String> PRIMARY_KEY = List.of("id");
+  private static final List<String> PRIMARY_KEY = List.of("id", "year");
 
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,

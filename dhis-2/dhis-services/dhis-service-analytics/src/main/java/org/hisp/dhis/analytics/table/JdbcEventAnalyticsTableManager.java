@@ -111,7 +111,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  private static final List<String> PRIMARY_KEY = List.of("event");
+  private static final List<String> PRIMARY_KEY = List.of("event", "year");
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
