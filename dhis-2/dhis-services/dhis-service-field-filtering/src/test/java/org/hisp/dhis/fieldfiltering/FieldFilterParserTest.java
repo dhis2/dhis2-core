@@ -261,6 +261,6 @@ class FieldFilterParserTest {
   }
 
   private static String list(List<FieldPath> fields) {
-    return fields.stream().map(FieldPath::getFullPath).collect(joining(","));
+    return fields.stream().map(FieldPath::toString).collect(joining(","));
   }
 }

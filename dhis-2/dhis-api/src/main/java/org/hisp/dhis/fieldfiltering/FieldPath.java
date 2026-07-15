@@ -80,11 +80,6 @@ public final class FieldPath {
     return path.property().toString();
   }
 
-  public String getFullPath() {
-    // FIXME this would include markers but the caller might expect a clean property name path
-    return toString();
-  }
-
   public List<String> properties() {
     return path.properties().map(Text::toString).toList();
   }

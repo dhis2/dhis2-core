@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toUnmodifiableSet;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
@@ -49,9 +52,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -123,30 +126,6 @@ public class FieldFilterService {
     objectMapper.setAnnotationIntrospector(new IgnoreJsonSerializerRefinementAnnotationInspector());
 
     return objectMapper;
-  }
-
-  /**
-   * Determines whether given path is included in the resulting ObjectNodes after applying {@link
-   * #toObjectNode(Object, List)}. This obviously requires that the actual data contains such path
-   * when filtered.
-   *
-   * <p>For example given a structure like
-   *
-   * <p><code>{"event": "relationships": [] }</code> and a
-   *
-   * <p><code>filter="*,first[second[!third]]"</code>
-   *
-   * <p>both paths<code>first</code> and <code>first.second</code> will result in true as they will
-   * be included in the filtered result. While <code>first.second.third</code> will result in false.
-   *
-   * @param rootClass class the filter will be applied on
-   * @param filter field paths to be applied on the class
-   * @param path path to check for inclusion in the filter
-   * @return true if path is included in filter
-   */
-  public boolean filterIncludes(Class<?> rootClass, List<FieldPath> filter, String path) {
-    return fieldPathHelper.apply(filter, rootClass).stream()
-        .anyMatch(f -> f.getFullPath().equals(path));
   }
 
   public static class IgnoreJsonSerializerRefinementAnnotationInspector
@@ -258,7 +237,7 @@ public class FieldFilterService {
     // other object mappers (running across other threads)
     ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider(filterProvider);
 
-    Map<String, List<FieldTransformer>> fieldTransformers = getTransformers(paths);
+    Map<PropertyPath, List<FieldTransformer>> fieldTransformers = getTransformers(paths);
     List<FieldPath> absoluteAttributePaths = getAttributePropertyPathsInAttributeValues(paths);
     List<FieldPath> relativeAttributePaths =
         absoluteAttributePaths.stream().map(e -> e.relativeTo("attribute")).toList();
@@ -273,7 +252,7 @@ public class FieldFilterService {
       addAttributeFieldsInAttributeValues(
           object, objectNode, relativeAttributePaths, attributeProperties);
       applyAttributeAsPropertyFields(object, objectNode, paths);
-      applyTransformers(objectNode, null, "", fieldTransformers);
+      applyTransformers(objectNode, fieldTransformers);
 
       if (excludeDefaults) removeEmptyObjects(objectNode);
 
@@ -314,8 +293,8 @@ public class FieldFilterService {
     }
   }
 
-  private static final Pattern ATTRIBUTE_VALUES_PATH =
-      Pattern.compile("attributeValues\\.attribute\\.(?!id).*");
+  private static final PropertyPath ATTRIBUTE_VALUES_PATH =
+      PropertyPath.of("attributeValues.attribute");
 
   /**
    * @param paths all paths requested
@@ -324,7 +303,14 @@ public class FieldFilterService {
    */
   private static List<FieldPath> getAttributePropertyPathsInAttributeValues(List<FieldPath> paths) {
     return paths.stream()
-        .filter(path -> ATTRIBUTE_VALUES_PATH.matcher(path.getFullPath()).matches())
+        .filter(
+            path -> {
+              PropertyPath p = path.getPath();
+              if (p.length() != 4) return false;
+              if (!p.isParent(ATTRIBUTE_VALUES_PATH)) return false;
+              PropertyPath parent = p.parent();
+              return parent != null && !parent.segment().contentEquals("id");
+            })
         .toList();
   }
 
@@ -416,7 +402,7 @@ public class FieldFilterService {
 
   private void applyAttributeAsPropertyField(
       IdentifiableObject object, ObjectNode node, FieldPath path) {
-    String attributeId = path.getFullPath();
+    String attributeId = path.getPath().property().toString();
     if (path.getProperty() != null || !CodeGenerator.isValidUid(attributeId)) {
       return;
     }
@@ -462,57 +448,63 @@ public class FieldFilterService {
     return jsonMapper.createArrayNode();
   }
 
+  private void applyTransformers(
+      JsonNode root, Map<PropertyPath, List<FieldTransformer>> fieldTransformers) {
+    if (fieldTransformers.isEmpty()) return;
+    fieldTransformers.forEach((path, transformers) -> applyTransformers(root, path, transformers));
+  }
+
   /** Recursively applies FieldTransformers to a Json node. */
   private void applyTransformers(
-      JsonNode node,
-      JsonNode parent,
-      String path,
-      Map<String, List<FieldTransformer>> fieldTransformers) {
-    if (parent != null && !parent.isArray() && !path.isEmpty()) {
-      List<FieldTransformer> transformers = fieldTransformers.get(path.substring(1));
-
-      if (transformers != null) {
-        transformers.forEach(tf -> tf.apply(path.substring(1), node, parent));
+      JsonNode parent, PropertyPath path, List<FieldTransformer> transformers) {
+    if (path == null) return; // just to make null checker happy
+    if (path.parent() != null) {
+      // need to drill down
+      String name = path.head().toString();
+      JsonNode node = parent.get(name);
+      if (node == null || node.isNull()) return; // done here
+      if (node.isObject()) {
+        applyTransformers(node, path.dropHead(), transformers);
+      } else if (node.isArray()) {
+        PropertyPath subPath = path.dropHead();
+        Iterator<JsonNode> iter = node.elements();
+        while (iter.hasNext()) applyTransformers(iter.next(), subPath, transformers);
       }
-    }
-
-    if (node.isObject()) {
-      ObjectNode objectNode = (ObjectNode) node;
-
-      List<String> fieldNames = new ArrayList<>();
-      objectNode.fieldNames().forEachRemaining(fieldNames::add);
-
-      for (String fieldName : fieldNames) {
-        applyTransformers(
-            objectNode.get(fieldName), objectNode, path + "." + fieldName, fieldTransformers);
-      }
-    } else if (node.isArray()) {
-      ArrayNode arrayNode = (ArrayNode) node;
-
-      for (JsonNode item : arrayNode) {
-        applyTransformers(item, arrayNode, path, fieldTransformers);
-      }
+    } else {
+      // need to apply the transformers
+      if (!parent.isObject()) return; // must be an object, otherwise ignore
+      String name = path.property().toString();
+      JsonNode target = parent.get(name);
+      if (target == null || target.isNull()) return; // nothing to do here
+      transformers.forEach(t -> t.apply(path, target, parent));
     }
   }
 
   private SimpleFilterProvider getSimpleFilterProvider(
       List<FieldPath> fieldPaths, boolean skipSharing, boolean excludeDefaults) {
     SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+    Set<String> includePaths =
+        fieldPaths.stream()
+            .map(p -> p.getPath().properties().collect(joining(".")))
+            .collect(toUnmodifiableSet());
+    Set<String> skipPaths =
+        skipSharing
+            ? Set.of("user", "publicAccess", "userGroupAccesses", "userAccesses", "sharing")
+            : Set.of();
     filterProvider.addFilter(
         "field-filter",
-        new FieldFilterSimpleBeanPropertyFilter(fieldPaths, skipSharing, excludeDefaults));
+        new FieldFilterSimpleBeanPropertyFilter(includePaths, skipPaths, excludeDefaults));
 
     return filterProvider;
   }
 
-  private Map<String, List<FieldTransformer>> getTransformers(List<FieldPath> fieldPaths) {
-    Map<String, List<FieldTransformer>> transformerMap = new HashMap<>();
+  private Map<PropertyPath, List<FieldTransformer>> getTransformers(List<FieldPath> fieldPaths) {
+    Map<PropertyPath, List<FieldTransformer>> transformerMap = new HashMap<>();
 
     for (FieldPath fieldPath : fieldPaths) {
       List<FieldTransformer> fieldTransformers = new ArrayList<>();
-      String fullPath = fieldPath.getFullPath();
 
-      transformerMap.put(fullPath, fieldTransformers);
+      transformerMap.put(fieldPath.getPath(), fieldTransformers);
 
       for (FieldPathTransformer fieldPathTransformer : fieldPath.getTransformers()) {
         switch (fieldPathTransformer.name()) {

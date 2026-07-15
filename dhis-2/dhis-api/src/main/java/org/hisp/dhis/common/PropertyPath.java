@@ -184,6 +184,10 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
     return segment.length() == 11 && CodeGenerator.isValidUid(segment);
   }
 
+  public boolean isExcluded(CharSequence path) {
+    return isExcluded(PropertyPath.of(path));
+  }
+
   /**
    * @param other the path to test for exclusion by this path
    * @return when this path {@link #isExclude()} and the given path is referring to the same
@@ -191,27 +195,35 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
    */
   public boolean isExcluded(PropertyPath other) {
     if (!isExclude()) return false;
-    // if the exclude targets something more nested it cannot apply to the given path
-    int lenExclude = length();
-    int lenOther = other.length();
-    if (lenExclude > lenOther) return false;
+    return other.isParent(this);
+  }
+
+  public boolean isParent(PropertyPath other) {
+    int len = length();
+    int len2 = other.length();
+    if (len2 > len) return false; // cannot be a parent
     // drop parents until equal length
-    PropertyPath test = other;
-    int drop = lenOther - lenExclude;
-    while (test != null && drop > 0) {
-      test = test.parent;
+    PropertyPath a = this;
+    int drop = len - len2;
+    while (a != null && drop > 0) {
+      a = a.parent;
       drop--;
     }
     // the properties of exclude and test now must be the same for a match
-    PropertyPath exclude = this;
-    while (test != null && exclude != null) {
-      if (!test.property().equals(exclude.property())) return false;
-      test = test.parent;
-      exclude = exclude.parent;
+    PropertyPath b = other;
+    while (a != null && b != null) {
+      if (!a.property().equals(b.property())) return false;
+      a = a.parent;
+      b = b.parent;
     }
     return true;
   }
 
+  /**
+   * @param segment a segment to look for
+   * @return true, if one {@link #segment} in this path matches the given segment exactly (markers
+   *     included)
+   */
   public boolean contains(CharSequence segment) {
     return this.segment.contentEquals(segment) || parent != null && parent.contains(segment);
   }
@@ -285,15 +297,18 @@ public record PropertyPath(@CheckForNull PropertyPath parent, @Nonnull Text segm
   }
 
   /**
-   * Drops parents up and including the given parent segment.
+   * Drops parents from start up to and including the given parent segment. If this path does not
+   * have the given parent the result is equal to this path. If the given parent path matches the
+   * tail null is returned
    *
-   * @param segment a segment found at some level of parent for this path
+   * @param parent a segment found at some level of parent for this path
    * @return
    */
-  @Nonnull
-  public PropertyPath relativeTo(@Nonnull Text segment) {
-    // TODO
-    return this;
+  @CheckForNull
+  public PropertyPath relativeTo(@Nonnull CharSequence parent) {
+    if (segment.contentEquals(parent)) return null;
+    if (this.parent == null) return this;
+    return new PropertyPath(this.parent.relativeTo(parent), segment);
   }
 
   private static void requireNonEmpty(Text segment) {
