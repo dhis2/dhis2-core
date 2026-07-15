@@ -149,7 +149,6 @@ class TrackedEntityOperationParamsMapper {
         .setEventEndDate(operationParams.getEventEndDate())
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setTrackedEntities(operationParams.getTrackedEntities())
-        .setExcludedTrackedEntities(operationParams.getExcludedTrackedEntities())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 

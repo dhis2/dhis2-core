@@ -126,9 +126,6 @@ public class TrackedEntityQueryParams {
   /** Set of te uids to explicitly select. */
   @Getter private Set<UID> trackedEntities = new HashSet<>();
 
-  /** Set of te uids to explicitly exclude. Only applied when {@link #synchronizationQuery}. */
-  @Getter private Set<UID> excludedTrackedEntities = new HashSet<>();
-
   /** ProgramStage to be used in conjunction with eventstatus. */
   @Getter private ProgramStage programStage;
 
@@ -168,10 +165,6 @@ public class TrackedEntityQueryParams {
 
   public boolean hasTrackedEntities() {
     return CollectionUtils.isNotEmpty(this.trackedEntities);
-  }
-
-  public boolean hasExcludedTrackedEntities() {
-    return CollectionUtils.isNotEmpty(this.excludedTrackedEntities);
   }
 
   public boolean hasFilterForEvents() {
@@ -470,11 +463,6 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setTrackedEntities(Set<UID> trackedEntities) {
     this.trackedEntities = trackedEntities;
-    return this;
-  }
-
-  public TrackedEntityQueryParams setExcludedTrackedEntities(Set<UID> excludedTrackedEntities) {
-    this.excludedTrackedEntities = excludedTrackedEntities;
     return this;
   }
 

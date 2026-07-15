@@ -400,61 +400,6 @@ class TrackerDataSynchronizationServiceTest {
   }
 
   @Test
-  void shouldExcludeAlreadyAttemptedTrackedEntitiesFromSubsequentPageFetches() throws Exception {
-    TrackedEntity firstTe = buildTeWithEnrollmentContaining("FailEvtUidA", null);
-    firstTe.setUid("FrstTeUidAB");
-    firstTe.getEnrollments().forEach(e -> e.setUid("FrstEnUidAB"));
-
-    TrackedEntity secondTe = buildTeWithEnrollmentContaining("OkEvtUidAB2", null);
-    secondTe.setUid("ScndTeUidAB");
-    secondTe.getEnrollments().forEach(e -> e.setUid("ScndEnUidAB"));
-
-    when(trackedEntityService.getTrackedEntityCount(any())).thenReturn(2L);
-    when(trackedEntityService.findTrackedEntities(any(), any()))
-        .thenReturn(new Page<>(List.of(firstTe), 1, 1, 2L, null, null))
-        .thenReturn(new Page<>(List.of(secondTe), 1, 1, 2L, null, null));
-    when(programStageDataElementService
-            .getProgramStageDataElementsWithSkipSynchronizationSetToTrue())
-        .thenReturn(Map.of());
-
-    ImportReport firstPageReport =
-        reportWith(
-            successEntity(TrackerType.TRACKED_ENTITY, "FrstTeUidAB"),
-            failedEntity(TrackerType.EVENT, "FailEvtUidA", "E1032", "Event validation failed"));
-    ImportReport secondPageReport =
-        reportWith(successEntity(TrackerType.TRACKED_ENTITY, "ScndTeUidAB"));
-
-    mockServer
-        .expect(requestTo(Matchers.containsString("/api/system/ping")))
-        .andExpect(method(HttpMethod.GET))
-        .andRespond(withSuccess(PING_RESPONSE, MediaType.TEXT_PLAIN));
-    mockServer
-        .expect(requestTo(Matchers.containsString("importStrategy=CREATE_AND_UPDATE")))
-        .andExpect(method(HttpMethod.POST))
-        .andRespond(respondWith(firstPageReport));
-    mockServer
-        .expect(requestTo(Matchers.containsString("importStrategy=CREATE_AND_UPDATE")))
-        .andExpect(method(HttpMethod.POST))
-        .andRespond(respondWith(secondPageReport));
-
-    ArgumentCaptor<org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams>
-        paramsCaptor =
-            ArgumentCaptor.forClass(
-                org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.class);
-
-    service.synchronizeTrackerData(1, JobProgress.noop());
-
-    mockServer.verify();
-    verify(trackedEntityService, times(2)).findTrackedEntities(paramsCaptor.capture(), any());
-    List<org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams> capturedParams =
-        paramsCaptor.getAllValues();
-    // firstTe failed remotely (its event errored out), so the second "page 1" fetch must exclude
-    // it, or it would be refetched forever instead of ever reaching secondTe.
-    assertEquals(Set.of(), capturedParams.get(0).getExcludedTrackedEntities());
-    assertEquals(Set.of(UID.of("FrstTeUidAB")), capturedParams.get(1).getExcludedTrackedEntities());
-  }
-
-  @Test
   void shouldMarkDeletedTrackedEntitySyncedOnlyWhenDeleteSucceededRemotely() throws Exception {
     TrackedEntity deletedTe = new TrackedEntity();
     deletedTe.setUid("DeletedTeAB");

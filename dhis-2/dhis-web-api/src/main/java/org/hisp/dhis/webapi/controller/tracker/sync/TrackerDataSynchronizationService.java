@@ -267,12 +267,13 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             .synchronizationQuery(true)
             .includeDeleted(true)
             .fields(TrackedEntityFields.all())
-            .excludedTrackedEntities(Set.copyOf(context.getFailedTrackedEntityUids()))
             .build();
     // Always query page 1: entities synced by a prior iteration drop out of the synchronization
-    // filter on their own, and entities that failed are additionally excluded above, so the next
-    // unsynced batch is always at the front of the result set. Using an offset here would skip
-    // entities, since the filtered set shrinks between iterations.
+    // filter on their own, so the next unsynced batch is always at the front of the result set.
+    // Using an offset here would skip entities, since the filtered set shrinks between iterations.
+    // Entities that failed to sync are not excluded, so they are retried on every subsequent
+    // page 1 fetch this run, potentially crowding out backlog entities that never get attempted
+    // at all.
     return trackedEntityService
         .findTrackedEntities(params, PageParams.of(1, context.getPageSize(), false))
         .getItems();
@@ -304,35 +305,25 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     context.getAttemptedTrackedEntityUids().addAll(attemptedThisPage);
     Set<UID> syncedThisPage = new HashSet<>();
 
-    try {
-      SplitActiveTrackedEntities splitActiveEntities = splitActiveTrackedEntities(active, context);
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntities =
-          deleted.stream().map(this::toMinimalTrackedEntity).toList();
+    SplitActiveTrackedEntities splitActiveEntities = splitActiveTrackedEntities(active, context);
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntities =
+        deleted.stream().map(this::toMinimalTrackedEntity).toList();
 
-      DeleteSyncResult deleteResult =
-          syncDeletedIfNeeded(deletedTrackedEntities, splitActiveEntities, instance, settings);
+    DeleteSyncResult deleteResult =
+        syncDeletedIfNeeded(deletedTrackedEntities, splitActiveEntities, instance, settings);
 
-      Set<UID> activeSyncCandidateUids =
-          splitActiveEntities.activeTrackedEntities().isEmpty()
-              ? Set.of()
-              : syncActive(splitActiveEntities.activeTrackedEntities(), instance, settings);
+    Set<UID> activeSyncCandidateUids =
+        splitActiveEntities.activeTrackedEntities().isEmpty()
+            ? Set.of()
+            : syncActive(splitActiveEntities.activeTrackedEntities(), instance, settings);
 
-      Set<UID> syncedActiveTeUids =
-          resolveSyncedActiveTeUids(
-              activeSyncCandidateUids, splitActiveEntities.deletedChildUidsByTe(), deleteResult);
-      Set<UID> syncedDeletedTeUids = deleteResult == null ? Set.of() : deleteResult.syncedTeUids();
+    Set<UID> syncedActiveTeUids =
+        resolveSyncedActiveTeUids(
+            activeSyncCandidateUids, splitActiveEntities.deletedChildUidsByTe(), deleteResult);
+    Set<UID> syncedDeletedTeUids = deleteResult == null ? Set.of() : deleteResult.syncedTeUids();
 
-      syncedThisPage.addAll(
-          stampSyncTimestamp(deletedTrackedEntities, syncedDeletedTeUids, syncTime));
-      syncedThisPage.addAll(
-          stampSyncTimestamp(
-              splitActiveEntities.activeTrackedEntities(), syncedActiveTeUids, syncTime));
-    } finally {
-      // Whatever was attempted on this page but didn't end up confirmed synced above must be
-      // excluded from future page fetches this run, or it would keep being refetched.
-      attemptedThisPage.removeAll(syncedThisPage);
-      context.getFailedTrackedEntityUids().addAll(attemptedThisPage);
-    }
+    stampSyncTimestamp(deletedTrackedEntities, syncedDeletedTeUids, syncTime);
+    stampSyncTimestamp(splitActiveEntities.activeTrackedEntities(), syncedActiveTeUids, syncTime);
   }
 
   private SplitActiveTrackedEntities splitActiveTrackedEntities(
@@ -405,17 +396,16 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         .collect(Collectors.toCollection(HashSet::new));
   }
 
-  private Set<UID> stampSyncTimestamp(
+  private void stampSyncTimestamp(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> candidates,
       Set<UID> syncedUids,
       Date syncTime) {
     if (syncedUids.isEmpty()) {
-      return syncedUids;
+      return;
     }
     List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> syncedTes =
         candidates.stream().filter(te -> syncedUids.contains(te.getTrackedEntity())).toList();
     updateTrackedEntitiesSyncTimestamp(syncedTes, syncTime);
-    return syncedUids;
   }
 
   private void stripDeletedChildren(
