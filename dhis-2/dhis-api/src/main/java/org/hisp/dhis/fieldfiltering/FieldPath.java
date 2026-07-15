@@ -30,13 +30,13 @@
 package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.PropertyPath;
-import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -56,13 +56,13 @@ public final class FieldPath {
 
   public static final String FIELD_PATH_SEPARATOR = ".";
 
-  private final PropertyPath path;
+  @Nonnull private final PropertyPath path;
 
   /** Transformers to apply to field, can be empty. */
-  private final List<FieldPathTransformer> transformers;
+  @Nonnull private final List<FieldPathTransformer> transformers;
 
   /** Schema Property if present (added by {@link FieldPathHelper}). */
-  @Setter private Property property;
+  @CheckForNull @Setter private Property property;
 
   public FieldPath withTransformers(FieldPathTransformer... transformers) {
     return withTransformers(List.of(transformers));
@@ -73,15 +73,17 @@ public final class FieldPath {
   }
 
   public FieldPath relativeTo(@Nonnull CharSequence parentSegment) {
-    return new FieldPath(path.relativeTo(Text.of(parentSegment)), transformers, property);
+    PropertyPath relativePath = path.relativeTo(parentSegment);
+    if (relativePath == null)
+      throw new IllegalArgumentException("Relative path leads to empty path");
+    return new FieldPath(relativePath, transformers, property);
   }
 
-  public String getName() {
+  /**
+   * @return the name of the property the path points to (tail or leaf of the path)
+   */
+  public String getPropertyName() {
     return path.property().toString();
-  }
-
-  public List<String> properties() {
-    return path.properties().map(Text::toString).toList();
   }
 
   public boolean isPreset() {
@@ -96,7 +98,7 @@ public final class FieldPath {
    * @return true if we have at least one field path transformer
    */
   public boolean isTransformer() {
-    return transformers != null && !transformers.isEmpty();
+    return !transformers.isEmpty();
   }
 
   @Override

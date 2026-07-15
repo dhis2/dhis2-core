@@ -42,7 +42,7 @@ class FieldPathTest {
   @Test
   void testFieldPathToFullPath() {
     FieldPath fieldPath = FieldPath.of("a.b.field");
-    assertEquals("field", fieldPath.getName());
+    assertEquals("field", fieldPath.getPropertyName());
     assertTrue(fieldPath.getPath().contains("a"));
     assertTrue(fieldPath.getPath().contains("b"));
     assertEquals("a.b.field", fieldPath.toString());

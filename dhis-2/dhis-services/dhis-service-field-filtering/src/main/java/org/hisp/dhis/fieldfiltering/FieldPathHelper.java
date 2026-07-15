@@ -174,7 +174,7 @@ public class FieldPathHelper {
               Schema schema = getSchemaByPath(fp.getPath().parent(), rootKlass);
 
               if (schema != null) {
-                fp.setProperty(schema.getProperty(fp.getName()));
+                fp.setProperty(schema.getProperty(fp.getPropertyName()));
               }
             });
   }
@@ -253,10 +253,9 @@ public class FieldPathHelper {
 
     if (property.isCollection()) {
       Collection<?> c = safeInvoke(object, property.getGetterMethod());
+      if (c == null || c.isEmpty()) return;
       PropertyPath cPath = path.dropHead();
-      for (Object e : c) {
-        visitFieldPath(e, cPath, visitor);
-      }
+      for (Object e : c) visitFieldPath(e, cPath, visitor);
     } else {
       Object currentObject = safeInvoke(object, property.getGetterMethod());
       visitFieldPath(currentObject, path.dropHead(), visitor);

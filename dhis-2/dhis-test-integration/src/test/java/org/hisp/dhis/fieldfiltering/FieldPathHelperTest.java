@@ -123,7 +123,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     assertEquals(58, result.size()); // all user properties
     assertTrue(
         result.stream()
-            .map(FieldPath::getName)
+            .map(FieldPath::getPropertyName)
             .toList()
             .containsAll(List.of("username", "userRoles")));
   }
@@ -143,7 +143,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     assertTrue(
         FieldPreset.NAMEABLE
             .getFields()
-            .containsAll(fieldPathMap.values().stream().map(FieldPath::getName).toList()));
+            .containsAll(fieldPathMap.values().stream().map(FieldPath::getPropertyName).toList()));
   }
 
   @Test
@@ -164,6 +164,6 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
       String propertyName, Map<PropertyPath, FieldPath> fieldMapPath) {
     PropertyPath path = PropertyPath.of(propertyName);
     assertNotNull(fieldMapPath.get(path));
-    assertEquals(propertyName, fieldMapPath.get(path).getName());
+    assertEquals(propertyName, fieldMapPath.get(path).getPropertyName());
   }
 }

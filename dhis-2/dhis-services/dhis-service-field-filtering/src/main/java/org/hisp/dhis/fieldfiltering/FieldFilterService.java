@@ -306,10 +306,9 @@ public class FieldFilterService {
         .filter(
             path -> {
               PropertyPath p = path.getPath();
-              if (p.length() != 4) return false;
+              if (p.length() != 3) return false;
               if (!p.isParent(ATTRIBUTE_VALUES_PATH)) return false;
-              PropertyPath parent = p.parent();
-              return parent != null && !parent.segment().contentEquals("id");
+              return !p.segment().contentEquals("id");
             })
         .toList();
   }
@@ -402,7 +401,7 @@ public class FieldFilterService {
 
   private void applyAttributeAsPropertyField(
       IdentifiableObject object, ObjectNode node, FieldPath path) {
-    String attributeId = path.getPath().property().toString();
+    String attributeId = path.getPropertyName();
     if (path.getProperty() != null || !CodeGenerator.isValidUid(attributeId)) {
       return;
     }
@@ -507,13 +506,13 @@ public class FieldFilterService {
       transformerMap.put(fieldPath.getPath(), fieldTransformers);
 
       for (FieldPathTransformer fieldPathTransformer : fieldPath.getTransformers()) {
-        switch (fieldPathTransformer.name()) {
+        switch (fieldPathTransformer.name().toLowerCase()) {
           case "rename" -> fieldTransformers.add(new RenameFieldTransformer(fieldPathTransformer));
           case "size" -> fieldTransformers.add(SizeFieldTransformer.INSTANCE);
-          case "isEmpty" -> fieldTransformers.add(IsEmptyFieldTransformer.INSTANCE);
-          case "isNotEmpty" -> fieldTransformers.add(IsNotEmptyFieldTransformer.INSTANCE);
+          case "isempty" -> fieldTransformers.add(IsEmptyFieldTransformer.INSTANCE);
+          case "isnotempty" -> fieldTransformers.add(IsNotEmptyFieldTransformer.INSTANCE);
           case "pluck" -> fieldTransformers.add(new PluckFieldTransformer(fieldPathTransformer));
-          case "keyBy" -> fieldTransformers.add(new KeyByFieldTransformer(fieldPathTransformer));
+          case "keyby" -> fieldTransformers.add(new KeyByFieldTransformer(fieldPathTransformer));
           default -> {
             // invalid transformer
           }
