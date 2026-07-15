@@ -303,7 +303,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     active.forEach(te -> attemptedThisPage.add(UID.of(te.getUid())));
     deleted.forEach(te -> attemptedThisPage.add(UID.of(te.getUid())));
     context.getAttemptedTrackedEntityUids().addAll(attemptedThisPage);
-    Set<UID> syncedThisPage = new HashSet<>();
 
     SplitActiveTrackedEntities splitActiveEntities = splitActiveTrackedEntities(active, context);
     List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntities =
