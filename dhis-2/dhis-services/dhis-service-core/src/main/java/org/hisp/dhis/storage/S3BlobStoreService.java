@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.storage;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -42,8 +44,6 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import javax.annotation.CheckForNull;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
