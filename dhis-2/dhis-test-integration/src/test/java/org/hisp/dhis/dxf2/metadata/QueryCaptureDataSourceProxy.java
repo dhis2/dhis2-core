@@ -42,15 +42,19 @@ import net.ttddyy.dsproxy.listener.DataSourceQueryCountListener;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.stereotype.Component;
 
 /**
  * Test data-source proxy that both feeds {@code QueryCountHolder} (aggregate select/insert/...
  * counts) and captures the executed SQL text, so a test can assert how many statements match a
  * given pattern (e.g. a specific join table) during a service call. Enable by adding
  * {@code @ContextConfiguration(classes = {QueryCaptureDataSourceProxy.class})} to the test.
+ *
+ * <p>Deliberately <b>not</b> a {@code @Component}: this class lives in a production-scanned package
+ * ({@code org.hisp.dhis.dxf2.metadata}), so annotating it would register it in every integration
+ * test's application context and double-wrap the data source alongside {@code
+ * QueryCountDataSourceProxy}, doubling every query count. Registered only via {@code
+ * @ContextConfiguration(classes = ...)} on the test that needs it.
  */
-@Component
 public class QueryCaptureDataSourceProxy implements BeanPostProcessor {
 
   private static final List<String> CAPTURED = Collections.synchronizedList(new ArrayList<>());
@@ -75,6 +79,8 @@ public class QueryCaptureDataSourceProxy implements BeanPostProcessor {
       listener.addListener(new DataSourceQueryCountListener());
       listener.addListener(
           new QueryExecutionListener() {
+            // No-op: we only record SQL once it has actually executed (afterQuery). Capturing in
+            // beforeQuery would count statements that error out or never run.
             @Override
             public void beforeQuery(ExecutionInfo execInfo, List<QueryInfo> queryInfoList) {}
 
