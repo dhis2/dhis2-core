@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,7 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author david mackessy
  */
 @Transactional
-@ContextConfiguration(classes = {QueryCaptureDataSourceProxy.class})
+@ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
 class DataSetMetadataExportServiceQueryCountTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataSetMetadataExportService exportService;
@@ -135,14 +136,14 @@ class DataSetMetadataExportServiceQueryCountTest extends PostgresIntegrationTest
         "the combo must have multiple option combos to exercise the per-combo N+1");
 
     clearSession();
-    QueryCaptureDataSourceProxy.reset();
+    QueryCountDataSourceProxy.clearCapturedSql();
     exportService.getDataSetMetadata();
 
     // The preload fetch-joins every exported combo's category options in one statement, so the
     // categoryoptioncombos_categoryoptions join table is touched at most once. Without the preload
     // it is queried once per option combo (WHERE categoryoptioncomboid = ?).
     long categoryOptionComboOptionQueries =
-        QueryCaptureDataSourceProxy.countMatching("categoryoptioncombos_categoryoptions");
+        QueryCountDataSourceProxy.countCapturedSqlMatching("categoryoptioncombos_categoryoptions");
     assertTrue(
         categoryOptionComboOptionQueries <= 1,
         "category option combo options must be batch-loaded, but the join table was queried "
