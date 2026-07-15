@@ -112,6 +112,11 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private static final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
     private final Set<UID> failedTrackedEntityUids = new HashSet<>();
+    // Distinct tracked entity uids fetched across all pages this run, so the run's completion can
+    // report how many entities in the backlog were never attempted at all (see
+    // executeSynchronizationWithPaging), e.g. because repeatedly failing entities kept occupying
+    // page 1 slots and crowded out entities further back in the queue.
+    private final Set<UID> attemptedTrackedEntityUids = new HashSet<>();
 
     public TrackerSynchronizationContext(Date skipChangedBefore, int pageSize) {
       this(skipChangedBefore, 0, null, pageSize, Map.of());
@@ -218,6 +223,15 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         page -> format("Syncing page %d (size %d)", page, context.getPageSize()),
         page -> synchronizePageSafely(page, context, settings));
 
+    long unprocessed =
+        context.getObjectsToSynchronize() - context.getAttemptedTrackedEntityUids().size();
+    if (unprocessed > 0) {
+      log.info(
+          "Tracker data synchronization: {} of {} tracked entities were never attempted this run",
+          unprocessed,
+          context.getObjectsToSynchronize());
+    }
+
     return !progress.isSkipCurrentStage();
   }
 
@@ -287,6 +301,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     Set<UID> attemptedThisPage = new HashSet<>();
     active.forEach(te -> attemptedThisPage.add(UID.of(te.getUid())));
     deleted.forEach(te -> attemptedThisPage.add(UID.of(te.getUid())));
+    context.getAttemptedTrackedEntityUids().addAll(attemptedThisPage);
     Set<UID> syncedThisPage = new HashSet<>();
 
     try {
