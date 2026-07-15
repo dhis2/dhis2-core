@@ -80,7 +80,6 @@ import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -225,7 +224,7 @@ final class GistBuilder {
   private static boolean existsSameParentField(GistQuery query, Field field, String property) {
     PropertyPath parentPath = field.propertyPath().parent();
     PropertyPath requiredPath =
-        parentPath == null ? PropertyPath.of(property) : parentPath.concat(Text.of(property));
+        parentPath == null ? PropertyPath.of(property) : parentPath.concat(property);
     return query.getFields().fields().stream().anyMatch(f -> f.propertyPath().equals(requiredPath));
   }
 

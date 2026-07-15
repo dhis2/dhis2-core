@@ -81,7 +81,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     if (fields == null || fields.isEmpty()) return List.of();
     List<FieldExp> res = new ArrayList<>();
     parseFields(Text.of(fields), 0, res);
-    return res.stream().flatMap(e -> e.toFieldPaths(List.of())).distinct().toList();
+    return res.stream().flatMap(e -> e.toFieldPaths(null)).distinct().toList();
   }
 
   public List<String> names() {
@@ -242,15 +242,8 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
    */
   private record FieldExp(Text name, List<TransformExp> transforms, List<FieldExp> children) {
 
-    Stream<FieldPath> toFieldPaths(List<String> parentPath) {
-      String name = this.name.toString();
-      boolean exclude = isExcludeMarker(name.charAt(0));
-      if (exclude) name = name.substring(1);
-      if (name.isEmpty()) return Stream.empty(); // ignore empty name or bare exclude
-      if ("*".equals(name)) name = ":all";
-      boolean preset = isPresetMarker(name.charAt(0));
-      if (preset) name = name.substring(1);
-      if (preset && exclude) exclude = false;
+    Stream<FieldPath> toFieldPaths(@CheckForNull PropertyPath parentPath) {
+      Text name = unifiedName();
       List<FieldPathTransformer> transformers =
           this.transforms.stream()
               .map(
@@ -258,16 +251,15 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
                       new FieldPathTransformer(
                           t.type.toString(), t.args.stream().map(Text::toString).toList()))
               .toList();
-      FieldPath f = new FieldPath(name, parentPath, exclude, preset, transformers);
+      PropertyPath path = PropertyPath.concat(parentPath, name);
+      FieldPath f = FieldPath.of(path).withTransformers(transformers);
       if (children.isEmpty()) return Stream.of(f);
-      List<String> path = Stream.concat(parentPath.stream(), Stream.of(name)).toList();
       return Stream.concat(Stream.of(f), children.stream().flatMap(c -> c.toFieldPaths(path)));
     }
 
-    Stream<Field> toFields(PropertyPath parentPath, PropertyPath parentRenamedPath) {
-      Text name = this.name;
-      if (name.length() >= 2 && isExcludeMarker(name.charAt(0)) && isPresetMarker(name.charAt(1)))
-        name = name.subSequence(1, name.length()); // drop negation of preset
+    Stream<Field> toFields(
+        @CheckForNull PropertyPath parentPath, @CheckForNull PropertyPath parentRenamedPath) {
+      Text name = unifiedName();
       Field f = new Field(PropertyPath.concat(parentPath, name));
       Text renamedName = null;
       for (TransformExp t : transforms)
@@ -294,6 +286,14 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
       Stream<Field> childrenRes =
           children.stream().flatMap(e -> e.toFields(parent.propertyPath(), parent.renamedPath()));
       return noTransform ? childrenRes : Stream.concat(transformRes, childrenRes);
+    }
+
+    @Nonnull
+    private Text unifiedName() {
+      Text name = this.name;
+      if (name.length() >= 2 && isExcludeMarker(name.charAt(0)) && isPresetMarker(name.charAt(1)))
+        name = name.subSequence(1, name.length()); // drop negation of preset
+      return name;
     }
   }
 

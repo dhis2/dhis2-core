@@ -349,7 +349,7 @@ public final class GistQuery {
       return getStrings(filter, FILTERS_SPLIT).stream().map(Filter::parse).toList();
     }
 
-    public Filter withPropertyPath(String path) {
+    public Filter withPropertyPath(CharSequence path) {
       return new Filter(group, PropertyPath.of(path), operator, value, false, false);
     }
 
