@@ -71,6 +71,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultTrackerBundleService implements TrackerBundleService {
+
+  public static final int LAST_UPDATED_PARTITION_SIZE = 20_000;
+
   private final TrackerPreheatService trackerPreheatService;
 
   private final EntityManager entityManager;
@@ -142,6 +145,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   @Transactional
   public void postCommit(@Nonnull TrackerBundle bundle) {
     updateTrackedEntitiesLastUpdated(bundle);
+    updateSingleEventsLastUpdated(bundle);
   }
 
   private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
@@ -150,25 +154,59 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     }
 
     List<List<UID>> uidsPartitions =
-        Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000);
+        Lists.partition(
+            Lists.newArrayList(bundle.getUpdatedTrackedEntities()), LAST_UPDATED_PARTITION_SIZE);
 
     try (Session session = entityManager.unwrap(Session.class)) {
       for (List<UID> trackedEntities : uidsPartitions) {
         if (trackedEntities.isEmpty()) {
           continue;
         }
-        executeLastUpdatedQuery(session, UID.toValueList(trackedEntities), bundle.getUser());
+        executeLastUpdatedQuery(
+            session,
+            "updateTrackedEntitiesLastUpdated",
+            "trackedEntities",
+            UID.toValueList(trackedEntities),
+            bundle.getUser());
+      }
+    }
+  }
+
+  private void updateSingleEventsLastUpdated(TrackerBundle bundle) {
+    if (bundle.getUpdatedSingleEvents().isEmpty()) {
+      return;
+    }
+
+    List<List<UID>> uidsPartitions =
+        Lists.partition(
+            Lists.newArrayList(bundle.getUpdatedSingleEvents()), LAST_UPDATED_PARTITION_SIZE);
+
+    try (Session session = entityManager.unwrap(Session.class)) {
+      for (List<UID> events : uidsPartitions) {
+        if (events.isEmpty()) {
+          continue;
+        }
+        executeLastUpdatedQuery(
+            session,
+            "updateEventsLastUpdated",
+            "events",
+            UID.toValueList(events),
+            bundle.getUser());
       }
     }
   }
 
   private void executeLastUpdatedQuery(
-      Session session, List<String> trackedEntities, UserDetails user) {
+      Session session,
+      String namedQuery,
+      String uidsParameter,
+      List<String> uids,
+      UserDetails user) {
     try {
       UserInfoSnapshot userInfo = UserInfoSnapshot.from(user);
       session
-          .getNamedQuery("updateTrackedEntitiesLastUpdated")
-          .setParameter("trackedEntities", trackedEntities)
+          .getNamedQuery(namedQuery)
+          .setParameter(uidsParameter, uids)
           .setParameter("lastUpdated", new Date())
           .setParameter("lastupdatedbyuserinfo", mapper.writeValueAsString(userInfo))
           .executeUpdate();

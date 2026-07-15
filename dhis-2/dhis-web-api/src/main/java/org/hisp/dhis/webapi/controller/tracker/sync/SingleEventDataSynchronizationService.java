@@ -30,13 +30,24 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.alreadyDeletedOrSucceededUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.formatFailedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.sendTrackerRequest;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.successfullyProcessedUids;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,9 +55,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
@@ -60,17 +68,16 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.factory.Mappers;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -83,15 +90,22 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private static final String PROCESS_NAME = "Single event programs data synchronization";
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
 
+  private record DeleteSyncResult(Set<UID> syncedEventUids, Set<UID> blockingFailedChildUids) {}
+
   private final EventService eventService;
+  private final ProgramStageDataElementService programStageDataElementService;
   private final SystemSettingsService systemSettingsService;
   private final RestTemplate restTemplate;
   private final RenderService renderService;
-  private final ProgramStageDataElementService programStageDataElementService;
 
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
+    // Distinct event uids fetched across all pages this run, so the run's completion can report
+    // how many events in the backlog were never attempted at all (see
+    // executeSynchronizationWithPaging), e.g. because repeatedly failing events kept occupying
+    // page 1 slots and crowded out events further back in the queue.
+    private final Set<UID> attemptedEventUids = new HashSet<>();
 
     public EventSynchronizationContext(Date skipChangedBefore, int pageSize) {
       this(skipChangedBefore, 0, null, pageSize, Map.of());
@@ -196,13 +210,21 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         page -> format("Syncing page %d (size %d)", page, context.getPageSize()),
         page -> synchronizePageSafely(page, context, settings));
 
+    long unprocessed = context.getObjectsToSynchronize() - context.getAttemptedEventUids().size();
+    if (unprocessed > 0) {
+      log.info(
+          "Single event data synchronization: {} of {} events were never attempted this run",
+          unprocessed,
+          context.getObjectsToSynchronize());
+    }
+
     return !progress.isSkipCurrentStage();
   }
 
   private void synchronizePageSafely(
       int page, EventSynchronizationContext context, SystemSettings settings) {
     try {
-      synchronizePage(page, context, settings);
+      synchronizePage(context, settings);
     } catch (Exception ex) {
       log.error("Failed to synchronize page {}", page, ex);
       throw new RuntimeException(
@@ -210,10 +232,9 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     }
   }
 
-  private void synchronizePage(
-      int page, EventSynchronizationContext context, SystemSettings settings)
+  private void synchronizePage(EventSynchronizationContext context, SystemSettings settings)
       throws ForbiddenException, BadRequestException {
-    List<Event> events = fetchEventsForPage(page, context);
+    List<Event> events = fetchEventsForPage(context);
 
     Map<Boolean, List<Event>> partitionedEvents = partitionEventsByDeletionStatus(events);
     List<Event> deletedEvents = partitionedEvents.get(true);
@@ -222,18 +243,25 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     syncEventsByDeletionStatus(activeEvents, deletedEvents, context, settings);
   }
 
-  private List<Event> fetchEventsForPage(int page, EventSynchronizationContext context)
+  private List<Event> fetchEventsForPage(EventSynchronizationContext context)
       throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .programType(ProgramType.WITHOUT_REGISTRATION)
+            .skipChangedBefore(context.getSkipChangedBefore())
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .fields(EventFields.all())
+            .withSkipSyncDataElements(context.getSkipSyncDataElementsByProgramStage())
+            .build();
+    // Always query page 1: events synced by a prior iteration drop out of the synchronization
+    // filter on their own, so the next unsynced batch is always at the front of the result set.
+    // Using an offset here would skip events, since the filtered set shrinks between iterations.
+    // Events that failed to sync are not excluded, so they are retried on every subsequent
+    // page 1 fetch this run, potentially crowding out backlog events that never get attempted at
+    // all.
     return eventService
-        .findEvents(
-            EventOperationParams.builder()
-                .programType(ProgramType.WITHOUT_REGISTRATION)
-                .skipChangedBefore(context.getSkipChangedBefore())
-                .synchronizationQuery(true)
-                .includeDeleted(true)
-                .withSkipSyncDataElements(context.getSkipSyncDataElementsByProgramStage())
-                .build(),
-            PageParams.of(page, context.getPageSize(), false))
+        .findEvents(params, PageParams.of(1, context.getPageSize(), false))
         .getItems();
   }
 
@@ -241,86 +269,231 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     return events.stream().collect(Collectors.partitioningBy(Event::isDeleted));
   }
 
+  private record SplitActiveEvents(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEvents,
+      Map<UID, Relationship> deletedRelationshipsByUid,
+      Map<UID, Set<UID>> deletedChildUidsByEvent) {}
+
   private void syncEventsByDeletionStatus(
-      List<Event> activeEvents,
-      List<Event> deletedEvents,
+      List<Event> active,
+      List<Event> deleted,
       EventSynchronizationContext context,
       SystemSettings settings) {
     Date syncTime = context.getStartTime();
     SystemInstance instance = context.getInstance();
 
-    if (!activeEvents.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEventDtos =
-          activeEvents.stream().map(EVENT_MAPPER::map).toList();
-      syncEvents(
-          activeEventDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
-    }
+    active.forEach(event -> context.getAttemptedEventUids().add(UID.of(event.getUid())));
+    deleted.forEach(event -> context.getAttemptedEventUids().add(UID.of(event.getUid())));
 
-    if (!deletedEvents.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos =
-          deletedEvents.stream().map(this::toMinimalEvent).toList();
-      syncEvents(deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
-    }
+    SplitActiveEvents splitActiveEvents = splitActiveEvents(active);
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos =
+        deleted.stream().map(this::toMinimalEvent).toList();
+
+    DeleteSyncResult deleteResult =
+        syncDeletedIfNeeded(deletedEventDtos, splitActiveEvents, instance, settings);
+
+    Set<UID> activeSyncCandidateUids =
+        splitActiveEvents.activeEvents().isEmpty()
+            ? Set.of()
+            : syncActive(splitActiveEvents.activeEvents(), instance, settings);
+
+    Set<UID> syncedActiveEventUids =
+        resolveSyncedActiveEventUids(
+            activeSyncCandidateUids, splitActiveEvents.deletedChildUidsByEvent(), deleteResult);
+    Set<UID> syncedDeletedEventUids =
+        deleteResult == null ? Set.of() : deleteResult.syncedEventUids();
+
+    stampSyncTimestamp(deletedEventDtos, syncedDeletedEventUids, syncTime);
+    stampSyncTimestamp(splitActiveEvents.activeEvents(), syncedActiveEventUids, syncTime);
   }
 
-  private void syncEvents(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
-      SystemInstance instance,
-      SystemSettings settings,
-      Date syncTime,
-      TrackerImportStrategy importStrategy) {
-    String url = instance.getUrl() + "?importStrategy=" + importStrategy;
+  private SplitActiveEvents splitActiveEvents(List<Event> active) {
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEvents =
+        active.stream().map(EVENT_MAPPER::map).toList();
 
-    ImportSummary summary = sendTrackerRequest(events, instance, settings, url);
-
-    if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
-      throw new MetadataSyncServiceException(
-          format("Single Event sync failed for importStrategy=%s", importStrategy));
+    Map<UID, Relationship> deletedRelationshipsByUid = new LinkedHashMap<>();
+    // Which deleted relationship UIDs belong to which active event, so a blocking (non idempotent)
+    // failure to delete one of them can withhold that event's sync timestamp later.
+    Map<UID, Set<UID>> deletedChildUidsByEvent = new HashMap<>();
+    for (org.hisp.dhis.webapi.controller.tracker.view.Event event : activeEvents) {
+      Set<UID> ownedDeletedChildUids =
+          deletedChildUidsByEvent.computeIfAbsent(event.getEvent(), k -> new HashSet<>());
+      event.setRelationships(
+          stripDeletedRelationships(
+              event.getRelationships(), deletedRelationshipsByUid, ownedDeletedChildUids));
     }
+
+    return new SplitActiveEvents(activeEvents, deletedRelationshipsByUid, deletedChildUidsByEvent);
+  }
+
+  private DeleteSyncResult syncDeletedIfNeeded(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos,
+      SplitActiveEvents prepared,
+      SystemInstance instance,
+      SystemSettings settings) {
+    if (deletedEventDtos.isEmpty() && prepared.deletedRelationshipsByUid().isEmpty()) {
+      return null;
+    }
+    return syncDeleted(
+        deletedEventDtos, prepared.deletedRelationshipsByUid().values(), instance, settings);
+  }
+
+  private Set<UID> resolveSyncedActiveEventUids(
+      Set<UID> activeSyncCandidateUids,
+      Map<UID, Set<UID>> deletedChildUidsByEvent,
+      DeleteSyncResult deleteResult) {
+    Set<UID> blockingFailedChildUids =
+        deleteResult == null ? Set.of() : deleteResult.blockingFailedChildUids();
+    return activeSyncCandidateUids.stream()
+        .filter(
+            eventUid ->
+                Collections.disjoint(
+                    deletedChildUidsByEvent.getOrDefault(eventUid, Set.of()),
+                    blockingFailedChildUids))
+        .collect(Collectors.toCollection(HashSet::new));
+  }
+
+  private void stampSyncTimestamp(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> candidates,
+      Set<UID> syncedUids,
+      Date syncTime) {
+    if (syncedUids.isEmpty()) {
+      return;
+    }
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> syncedEvents =
+        candidates.stream().filter(event -> syncedUids.contains(event.getEvent())).toList();
+    updateEventsSyncTimestamp(syncedEvents, syncTime);
+  }
+
+  private List<Relationship> stripDeletedRelationships(
+      List<Relationship> relationships,
+      Map<UID, Relationship> deletedRelationshipsByUid,
+      Set<UID> ownedDeletedChildUids) {
+    relationships.stream()
+        .filter(Relationship::isDeleted)
+        .forEach(
+            r -> {
+              deletedRelationshipsByUid.put(r.getRelationship(), r);
+              ownedDeletedChildUids.add(r.getRelationship());
+            });
+    return relationships.stream().filter(r -> !r.isDeleted()).toList();
+  }
+
+  private DeleteSyncResult syncDeleted(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos,
+      Collection<Relationship> deletedRelationships,
+      SystemInstance instance,
+      SystemSettings settings) {
+    String url = instance.getUrl() + "?importStrategy=" + DELETE + "&async=false&atomicMode=OBJECT";
+
+    Map<String, List<?>> payload =
+        Map.of(
+            "events",
+            deletedEventDtos,
+            "relationships",
+            deletedRelationships.stream().map(this::toMinimalRelationship).toList());
+
+    ImportReport report =
+        sendTrackerRequest(restTemplate, renderService, payload, instance, settings, url);
+
+    Set<UID> syncedEventUids = alreadyDeletedOrSucceededUids(report, TrackerType.EVENT);
+    Set<UID> syncedRelationshipUids =
+        alreadyDeletedOrSucceededUids(report, TrackerType.RELATIONSHIP);
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> syncedEvents =
+        deletedEventDtos.stream()
+            .filter(event -> syncedEventUids.contains(event.getEvent()))
+            .toList();
+
+    Set<UID> failedEventUids = blockingFailedUids(report, TrackerType.EVENT);
+    Set<UID> failedRelationshipUids = blockingFailedUids(report, TrackerType.RELATIONSHIP);
 
     log.info(
-        "Single Event sync successful for importStrategy={}. Events count: {}",
-        importStrategy,
-        events.size());
+        "Single Event delete sync: events={}/{} synced{}, relationships={}/{} synced{}",
+        syncedEvents.size(),
+        deletedEventDtos.size(),
+        formatFailedUids(failedEventUids),
+        syncedRelationshipUids.size(),
+        deletedRelationships.size(),
+        formatFailedUids(failedRelationshipUids));
 
-    updateEventsSyncTimestamp(events, syncTime);
+    return new DeleteSyncResult(syncedEventUids, failedRelationshipUids);
   }
 
-  private ImportSummary sendTrackerRequest(
+  private Set<UID> syncActive(
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
       SystemInstance instance,
-      SystemSettings settings,
-      String url) {
-    RequestCallback requestCallback = createRequestCallback(events, instance);
+      SystemSettings settings) {
+    String url =
+        instance.getUrl()
+            + "?importStrategy="
+            + CREATE_AND_UPDATE
+            + "&async=false&atomicMode=OBJECT";
 
-    Optional<WebMessageResponse> response =
-        runSyncRequest(
-            restTemplate,
-            requestCallback,
-            SyncEndpoint.TRACKER_IMPORT.getKlass(),
-            url,
-            settings.getSyncMaxAttempts());
+    ImportReport report =
+        sendTrackerRequest(
+            restTemplate, renderService, Map.of("events", events), instance, settings, url);
 
-    return response.map(ImportSummary.class::cast).orElse(null);
+    Set<UID> syncedEventUids = getEventsWithAllRelationshipsSynchronized(report, events);
+
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> syncedEvents =
+        events.stream().filter(event -> syncedEventUids.contains(event.getEvent())).toList();
+
+    Set<UID> relationshipUids = getAllRelationshipUids(events);
+    Set<UID> failedRelationshipUids = failedUids(report, TrackerType.RELATIONSHIP);
+
+    log.info(
+        "Single Event create/update sync: events={}/{} synced, relationships={}/{} synced{}",
+        syncedEvents.size(),
+        events.size(),
+        successfullyProcessedUids(report, TrackerType.RELATIONSHIP).size(),
+        relationshipUids.size(),
+        formatFailedUids(failedRelationshipUids));
+
+    return syncedEventUids;
   }
 
-  private RequestCallback createRequestCallback(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, SystemInstance instance) {
-    return request -> {
-      request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      request
-          .getHeaders()
-          .set(
-              SyncUtils.HEADER_AUTHORIZATION,
-              CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
+  private Set<UID> getAllRelationshipUids(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events) {
+    // Deduplicate by UID because a relationship is attached to every entity that is one of its
+    // from/to parties, so the same relationship can appear under two different events.
+    Set<UID> relationshipUids = new HashSet<>();
+    for (org.hisp.dhis.webapi.controller.tracker.view.Event event : events) {
+      event.getRelationships().forEach(r -> relationshipUids.add(r.getRelationship()));
+    }
+    return relationshipUids;
+  }
 
-      renderService.toJson(request.getBody(), Map.of("events", events));
-    };
+  private Set<UID> getEventsWithAllRelationshipsSynchronized(
+      ImportReport report, List<org.hisp.dhis.webapi.controller.tracker.view.Event> events) {
+    Set<UID> succeededUids = successfullyProcessedUids(report, TrackerType.EVENT);
+    if (succeededUids.isEmpty()) {
+      return succeededUids;
+    }
+
+    Set<UID> failedRelationships = failedUids(report, TrackerType.RELATIONSHIP);
+    if (failedRelationships.isEmpty()) {
+      return succeededUids;
+    }
+
+    return events.stream()
+        .filter(event -> succeededUids.contains(event.getEvent()))
+        .filter(event -> !hasFailedRelationship(event.getRelationships(), failedRelationships))
+        .map(org.hisp.dhis.webapi.controller.tracker.view.Event::getEvent)
+        .collect(Collectors.toCollection(HashSet::new));
+  }
+
+  private boolean hasFailedRelationship(
+      List<Relationship> relationships, Set<UID> failedRelationships) {
+    return relationships.stream().anyMatch(r -> failedRelationships.contains(r.getRelationship()));
   }
 
   private void updateEventsSyncTimestamp(
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
-    List<String> eventUids = events.stream().map(event -> event.getEvent().getValue()).toList();
+    List<String> eventUids =
+        events.stream()
+            .map(org.hisp.dhis.webapi.controller.tracker.view.Event::getEvent)
+            .map(UID::getValue)
+            .toList();
     eventService.updateEventsSyncTimestamp(eventUids, syncTime);
   }
 
@@ -329,5 +502,11 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         new org.hisp.dhis.webapi.controller.tracker.view.Event();
     minimalEvent.setEvent(UID.of(event.getUid()));
     return minimalEvent;
+  }
+
+  private Relationship toMinimalRelationship(Relationship relationship) {
+    Relationship minimal = new Relationship();
+    minimal.setRelationship(relationship.getRelationship());
+    return minimal;
   }
 }

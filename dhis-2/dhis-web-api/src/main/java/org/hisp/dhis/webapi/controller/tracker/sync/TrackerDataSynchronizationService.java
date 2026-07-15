@@ -30,16 +30,16 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1082;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1113;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1114;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4017;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.alreadyDeletedOrSucceededUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.formatFailedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.sendTrackerRequest;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.successfullyProcessedUids;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,7 +58,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
@@ -71,7 +70,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.PageParams;
@@ -81,20 +79,14 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.imports.report.Entity;
-import org.hisp.dhis.tracker.imports.report.Error;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.factory.Mappers;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -107,9 +99,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private static final String PROCESS_NAME = "Tracker data synchronization";
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
-
-  private static final Set<String> ALREADY_DELETED_CODES =
-      Set.of(E1082.name(), E1113.name(), E1114.name(), E4017.name());
 
   private record DeleteSyncResult(Set<UID> syncedTeUids, Set<UID> blockingFailedChildUids) {}
 
@@ -533,7 +522,8 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             "relationships",
                 deletedRelationships.stream().map(this::toMinimalRelationship).toList());
 
-    ImportReport report = sendTrackerRequest(payload, instance, settings, url);
+    ImportReport report =
+        sendTrackerRequest(restTemplate, renderService, payload, instance, settings, url);
 
     // An entity whose own delete came back "already deleted" achieved its goal, so it is treated as
     // synced here too.
@@ -586,7 +576,13 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             + "&async=false&atomicMode=OBJECT";
 
     ImportReport report =
-        sendTrackerRequest(Map.of("trackedEntities", trackedEntities), instance, settings, url);
+        sendTrackerRequest(
+            restTemplate,
+            renderService,
+            Map.of("trackedEntities", trackedEntities),
+            instance,
+            settings,
+            url);
 
     Set<UID> syncedTeUids = getTrackedEntitiesWithAllChildrenSynchronized(report, trackedEntities);
 
@@ -621,10 +617,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     return syncedTeUids;
   }
 
-  private String formatFailedUids(Set<UID> failedUids) {
-    return failedUids.isEmpty() ? "" : format(" (failed: %s)", failedUids);
-  }
-
   private Set<UID> getAllRelationshipUids(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities) {
     // Deduplicate by UID because a relationship is attached to every entity that is one of its
@@ -641,29 +633,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       }
     }
     return relationshipUids;
-  }
-
-  private ImportReport sendTrackerRequest(
-      Map<String, ?> payload, SystemInstance instance, SystemSettings settings, String url) {
-    RequestCallback requestCallback = createRequestCallback(payload, instance);
-    int maxAttempts = settings.getSyncMaxAttempts();
-
-    ResponseExtractor<ImportReport> extractor =
-        response -> {
-          try {
-            return renderService.fromJson(response.getBody(), ImportReport.class);
-          } catch (IOException e) {
-            throw new MetadataSyncServiceException("Failed to parse tracker import response", e);
-          }
-        };
-
-    ImportReport report =
-        runSyncRequest(restTemplate, requestCallback, extractor, url, maxAttempts);
-
-    if (report == null) {
-      throw new MetadataSyncServiceException("Tracker sync returned null response");
-    }
-    return report;
   }
 
   private Set<UID> getTrackedEntitiesWithAllChildrenSynchronized(
@@ -714,100 +683,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private boolean hasFailedRelationship(
       List<Relationship> relationships, Set<UID> failedRelationships) {
     return relationships.stream().anyMatch(r -> failedRelationships.contains(r.getRelationship()));
-  }
-
-  private Set<UID> successfullyProcessedUids(ImportReport report, TrackerType type) {
-    if (report.getPersistenceReport() == null) {
-      return new HashSet<>();
-    }
-    TrackerTypeReport typeReport = report.getPersistenceReport().getTypeReportMap().get(type);
-    if (typeReport == null) {
-      return new HashSet<>();
-    }
-    return typeReport.getEntityReport().stream()
-        .filter(entity -> entity.getErrorReports().isEmpty())
-        .map(Entity::getUid)
-        .collect(Collectors.toCollection(HashSet::new));
-  }
-
-  private Set<UID> failedUids(ImportReport report, TrackerType type) {
-    Set<UID> failed = new HashSet<>();
-
-    if (report.getValidationReport() != null) {
-      report.getValidationReport().getErrors().stream()
-          .filter(e -> type.name().equals(e.getTrackerType()))
-          .map(Error::getUid)
-          .forEach(failed::add);
-    }
-
-    if (report.getPersistenceReport() != null) {
-      TrackerTypeReport typeReport = report.getPersistenceReport().getTypeReportMap().get(type);
-      if (typeReport != null) {
-        typeReport.getEntityReport().stream()
-            .filter(entity -> !entity.getErrorReports().isEmpty())
-            .map(Entity::getUid)
-            .forEach(failed::add);
-      }
-    }
-
-    return failed;
-  }
-
-  /**
-   * Like {@link #failedUids}, but excludes entities whose only error(s) are {@link
-   * #ALREADY_DELETED_CODES} — i.e. entities whose failure should block a parent TE's sync
-   * timestamp, as opposed to one that failed only because "the delete already happened". Only
-   * meaningful against a DELETE report.
-   */
-  private Set<UID> blockingFailedUids(ImportReport report, TrackerType type) {
-    Set<UID> blocking = new HashSet<>();
-
-    if (report.getValidationReport() != null) {
-      report.getValidationReport().getErrors().stream()
-          .filter(e -> type.name().equals(e.getTrackerType()))
-          .filter(e -> !ALREADY_DELETED_CODES.contains(e.getErrorCode()))
-          .map(Error::getUid)
-          .forEach(blocking::add);
-    }
-
-    if (report.getPersistenceReport() != null) {
-      TrackerTypeReport typeReport = report.getPersistenceReport().getTypeReportMap().get(type);
-      if (typeReport != null) {
-        typeReport.getEntityReport().stream()
-            .filter(
-                entity ->
-                    entity.getErrorReports().stream()
-                        .anyMatch(e -> !ALREADY_DELETED_CODES.contains(e.getErrorCode())))
-            .map(Entity::getUid)
-            .forEach(blocking::add);
-      }
-    }
-
-    return blocking;
-  }
-
-  /**
-   * Entities that either succeeded outright, or whose only error(s) in a DELETE report are {@link
-   * #ALREADY_DELETED_CODES} — meaning the delete's goal was already achieved by an earlier attempt
-   * or an out-of-band delete. Only meaningful against a DELETE report.
-   */
-  private Set<UID> alreadyDeletedOrSucceededUids(ImportReport report, TrackerType type) {
-    Set<UID> result = new HashSet<>(successfullyProcessedUids(report, type));
-    Set<UID> blocking = blockingFailedUids(report, type);
-    failedUids(report, type).stream().filter(uid -> !blocking.contains(uid)).forEach(result::add);
-    return result;
-  }
-
-  private RequestCallback createRequestCallback(Map<String, ?> payload, SystemInstance instance) {
-    return request -> {
-      request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      request
-          .getHeaders()
-          .set(
-              SyncUtils.HEADER_AUTHORIZATION,
-              CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
-      renderService.toJson(request.getBody(), payload);
-    };
   }
 
   private void updateTrackedEntitiesSyncTimestamp(
