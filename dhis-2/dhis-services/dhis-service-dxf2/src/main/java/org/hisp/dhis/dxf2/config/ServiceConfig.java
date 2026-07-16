@@ -67,9 +67,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
+import org.springframework.util.backoff.ExponentialBackOff;
 
 /**
  * @author Luciano Fiandesio
@@ -98,18 +98,18 @@ public class ServiceConfig {
 
   @Bean
   public RetryTemplate retryTemplate() {
-    ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+    // spring-retry SimpleRetryPolicy(maxAttempts) counted total attempts (incl. first).
+    // Spring Framework 7 RetryPolicy.maxRetries counts retries after the first attempt.
+    int configuredMaxAttempts = Integer.parseInt((String) maxAttempts.getObject());
+    long maxRetries = Math.max(0L, configuredMaxAttempts - 1L);
+    long initialDelayMs = Long.parseLong((String) initialInterval.getObject());
 
-    backOffPolicy.setInitialInterval(Long.parseLong((String) initialInterval.getObject()));
+    ExponentialBackOff backOff = new ExponentialBackOff();
+    backOff.setInitialInterval(initialDelayMs);
 
-    SimpleRetryPolicy simpleRetryPolicy =
-        new SimpleRetryPolicy(Integer.parseInt((String) maxAttempts.getObject()));
+    RetryPolicy retryPolicy = RetryPolicy.builder().maxRetries(maxRetries).backOff(backOff).build();
 
-    RetryTemplate retryTemplate = new RetryTemplate();
-    retryTemplate.setBackOffPolicy(backOffPolicy);
-    retryTemplate.setRetryPolicy(simpleRetryPolicy);
-
-    return retryTemplate;
+    return new RetryTemplate(retryPolicy);
   }
 
   @Bean

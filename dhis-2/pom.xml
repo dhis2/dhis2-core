@@ -117,7 +117,6 @@
     <spring-session-core.version>4.0.4</spring-session-core.version>
     <spring-data-redis.version>4.0.6</spring-data-redis.version>
     <spring-session-data-redis.version>4.0.4</spring-session-data-redis.version>
-    <spring-retry.version>2.0.12</spring-retry.version>
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>2.6.1.Final</cache2k-api.version>
@@ -502,11 +501,6 @@
         <groupId>org.springframework</groupId>
         <artifactId>spring-aop</artifactId>
         <version>${spring.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.retry</groupId>
-        <artifactId>spring-retry</artifactId>
-        <version>${spring-retry.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.ldap</groupId>
