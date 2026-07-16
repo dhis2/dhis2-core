@@ -183,6 +183,11 @@ public class EnrollmentPersister
   }
 
   @Override
+  protected Set<UID> getUpdatedSingleEvents(Enrollment entity) {
+    return Set.of();
+  }
+
+  @Override
   protected Enrollment cloneEntityProperties(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto) {
     return null;

@@ -249,6 +249,15 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
                 manager.update(trackedEntity);
               });
 
+      relationship
+          .getSingleEventOrigins()
+          .forEach(
+              eventUid -> {
+                Event event = manager.get(Event.class, eventUid);
+                event.setLastUpdatedByUserInfo(userInfoSnapshot);
+                manager.update(event);
+              });
+
       manager.delete(relationship);
 
       typeReport.getStats().incDeleted();

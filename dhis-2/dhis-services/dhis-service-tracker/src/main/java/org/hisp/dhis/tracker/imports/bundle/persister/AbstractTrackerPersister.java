@@ -156,6 +156,7 @@ public abstract class AbstractTrackerPersister<
               bundle.getUser(),
               changeLogs);
           bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
+          bundle.addUpdatedSingleEvents(getUpdatedSingleEvents(convertedDto));
         } else {
           if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
             typeReport.getStats().incIgnored();
@@ -180,6 +181,7 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incUpdated();
             typeReport.addEntity(objectReport);
             bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
+            bundle.addUpdatedSingleEvents(getUpdatedSingleEvents(convertedDto));
           }
         }
 
@@ -244,6 +246,9 @@ public abstract class AbstractTrackerPersister<
    * Get Tracked Entities for enrollments, events or relationships that have been created or updated
    */
   protected abstract Set<UID> getUpdatedTrackedEntities(V entity);
+
+  /** Get single events that have been created or updated via a relationship pointing at them. */
+  protected abstract Set<UID> getUpdatedSingleEvents(V entity);
 
   /** Clones the event properties that may potentially be change logged */
   protected abstract V cloneEntityProperties(TrackerPreheat preheat, T trackerDto);

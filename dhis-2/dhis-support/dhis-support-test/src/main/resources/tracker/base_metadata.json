@@ -1917,6 +1917,63 @@
           "id": "BFcipDERJnf"
         }
       }
+    },
+    {
+      "id": "SnglEvtRelT",
+      "name": "Single event to single event",
+      "fromToName": "linked single event",
+      "toFromName": "linked single event",
+      "bidirectional": true,
+      "sharing": {
+        "owner": "tTgjgobT1oS",
+        "public": "rwrwrw--"
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "BFcipDERJne"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSe"
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "BFcipDERJne"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSe"
+        }
+      }
+    },
+    {
+      "id": "SnglEvtUniT",
+      "name": "Single event to single event unidirectional",
+      "fromToName": "linked single event",
+      "bidirectional": false,
+      "sharing": {
+        "owner": "tTgjgobT1oS",
+        "public": "rwrwrw--"
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "BFcipDERJne"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSe"
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "BFcipDERJne"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSe"
+        }
+      }
     }
   ],
   "trackedEntityAttributes": [

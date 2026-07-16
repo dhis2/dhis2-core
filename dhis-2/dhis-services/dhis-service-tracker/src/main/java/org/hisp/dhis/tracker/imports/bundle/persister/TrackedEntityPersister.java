@@ -118,6 +118,11 @@ public class TrackedEntityPersister
   }
 
   @Override
+  protected Set<UID> getUpdatedSingleEvents(TrackedEntity entity) {
+    return Set.of();
+  }
+
+  @Override
   protected TrackedEntity cloneEntityProperties(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto) {
     return null;
