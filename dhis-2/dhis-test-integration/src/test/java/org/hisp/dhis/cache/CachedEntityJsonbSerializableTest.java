@@ -63,13 +63,20 @@ import org.springframework.test.context.ContextConfiguration;
 /**
  * Guard test for the Ehcache L2 second-level cache.
  *
- * <p>Since the Ehcache bump to 3.12 (see #23834 / #24002) the on-heap store uses {@code
- * SerializingCopier}, which performs real Java serialization of cached entity state. JSONB columns
- * are mapped with {@link JsonBinaryType} and its subclasses, whose {@code disassemble()} stores the
- * deep-copied Java value object (or, for list/set types, its elements) directly in the cache entry.
- * Ehcache then serializes that object graph, so every JSONB value type living on an L2-cached
- * entity MUST implement {@link Serializable} (a missing one throws {@code NotSerializableException}
- * at runtime, e.g. the {@code ApiTokenAttribute} regression fixed in #24002).
+ * <p>Every JSONB value type living on an L2-cached entity MUST implement {@link Serializable}. This
+ * holds regardless of the cache copier: {@link org.hibernate.usertype.UserType#disassemble} returns
+ * a {@link Serializable} and {@link JsonBinaryType#disassemble(Object)} casts its deep copy to it,
+ * and Hibernate stores entity cache state as a {@code Serializable[]}. So a non-serializable
+ * top-level JSONB value type fails at disassemble time even when nothing is Java-serialized.
+ *
+ * <p>Additionally, wherever the on-heap store uses {@code SerializingCopier} (the JSR-107
+ * store-by-value default, active for any auto-created region and for this test), the WHOLE JSONB
+ * object graph is Java-serialized on every get/putFromLoad, so nested field types must be
+ * serializable too (e.g. the {@code ApiTokenAttribute} regression fixed in #24002, introduced by
+ * the Ehcache 3.12 bump #23834 / #24002). Note the production {@code ehcache.xml} configures {@code
+ * IdentityCopier} (store-by-reference) on {@code defaultCacheTemplate}, so the mapped entity regions
+ * no longer Java-serialize; this test still runs with the store-by-value default because it uses an
+ * empty {@code cache.ehcache.config.file}, keeping it a strict guard.
  *
  * <p>This test walks the live Hibernate metamodel rather than a hard-coded list, so any JSONB
  * column added to a cached entity in the future is checked automatically.

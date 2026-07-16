@@ -15,6 +15,21 @@
   <!-- Cache template definition (referenced by jsr107:defaults and potentially explicit caches) -->
   <!-- Based on old defaultCache settings -->
   <cache-template name="defaultCacheTemplate">
+    <!--
+      Store cache entries by reference (IdentityCopier) instead of the JSR-107 default
+      store-by-value. The default (since the Ehcache 3.12 bump, #23834 / #24002) uses
+      SerializingCopier, which performs a full Java serialize/deserialize round-trip on
+      EVERY get and putFromLoad. Under a READ_WRITE strategy this dominated concurrent
+      tracker imports (see profiling on DHIS2-21800): ~50% of samples serializing under the
+      AbstractReadWriteAccess ReentrantReadWriteLock, plus heavy transient allocation driving
+      young-gen GC. Providing an explicit copier here makes Ehcache log "overwriting JSR-107
+      by-value semantics" and skip serialization. This is safe because Hibernate's L2 contract
+      already isolates callers at the type level: entity CacheEntry state is deep-copied on
+      disassemble/assemble (e.g. JsonBinaryType.assemble -> deepCopy), and all immutable custom
+      types share safely. This restores the pre-3.12 (Ehcache 2.x) store-by-reference behaviour.
+    -->
+    <key-type copier="org.ehcache.impl.copy.IdentityCopier">java.lang.Object</key-type>
+    <value-type copier="org.ehcache.impl.copy.IdentityCopier">java.lang.Object</value-type>
     <expiry>
       <!-- Time-to-live: 6 hours (Chosen as primary expiry from old config) -->
       <!-- TTI (Time-to-idle) was also 6 hours, but only one can be specified directly here. -->
