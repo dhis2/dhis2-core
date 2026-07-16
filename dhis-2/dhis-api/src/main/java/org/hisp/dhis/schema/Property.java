@@ -86,6 +86,8 @@ public class Property implements Ordered, Klass {
    */
   private boolean persisted;
 
+  @Getter @Setter private boolean isTransient;
+
   /** Name of collection wrapper. */
   private String collectionName;
 
