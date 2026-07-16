@@ -56,6 +56,7 @@ class AntPathRequestMatcherTest {
 
   @ParameterizedTest
   @CsvSource({
+    // literal + prefix patterns
     "/api/ping, /api/ping, true",
     "/api/ping, /api/system/ping, false",
     "/api/system/ping, /api/system/ping, true",
@@ -70,18 +71,7 @@ class AntPathRequestMatcherTest {
     "/login.html, /login.html, true",
     "/static/**, /static/css/app.css, true",
     "/external-static/**, /external-static/file.png, true",
-  })
-  void literalAndPrefixPatterns(String pattern, String path, boolean expected) {
-    AntPathRequestMatcher matcher = new AntPathRequestMatcher(pattern);
-    if (expected) {
-      assertTrue(matcher.matches(request(path)), path + " should match " + pattern);
-    } else {
-      assertFalse(matcher.matches(request(path)), path + " should not match " + pattern);
-    }
-  }
-
-  @ParameterizedTest
-  @CsvSource({
+    // mid-pattern versioned API rules
     "/api/**/loginConfig, /api/loginConfig, true",
     "/api/**/loginConfig, /api/40/loginConfig, true",
     "/api/**/loginConfig, /api/41/loginConfig, true",
@@ -106,7 +96,7 @@ class AntPathRequestMatcherTest {
     "/api/**/account, /api/40/account, true",
     "/api/**/account, /api/40/account/extra, false",
   })
-  void midPatternApiVersionRules(String pattern, String path, boolean expected) {
+  void patternMatching(String pattern, String path, boolean expected) {
     AntPathRequestMatcher matcher = new AntPathRequestMatcher(pattern);
     if (expected) {
       assertTrue(matcher.matches(request(path)), path + " should match " + pattern);
