@@ -773,7 +773,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
                 .replaceAll("[^*_a-z0-9]+", "") // sanitise against regex attacks
                 .replace("*", ".*"); // expand regex wildcard match
         for (DataIntegrityCheck check : checksByName.values()) {
-          if (check.getName().matches(pattern)) { // NOSONAR javasecurity:S2631 - pattern sanitised above
+          if (check
+              .getName()
+              .matches(pattern)) { // NOSONAR javasecurity:S2631 - pattern sanitised above
             expanded.add(check.getName());
           }
         }
