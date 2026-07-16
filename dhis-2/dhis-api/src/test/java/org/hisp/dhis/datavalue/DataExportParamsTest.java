@@ -27,36 +27,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering.transformers;
+package org.hisp.dhis.datavalue;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.Collections;
-import org.hisp.dhis.common.PropertyPath;
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
+import java.time.Duration;
+import java.util.Date;
 import org.junit.jupiter.api.Test;
 
-/**
- * @author Morten Olav Hansen
- */
-class RenameFieldFilterTest {
-  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+class DataExportParamsTest {
 
   @Test
-  void renameFieldNameTest() {
-    ObjectNode objectNode = jsonMapper.createObjectNode();
-    objectNode.put("a", 123);
-    objectNode.put("b", 123);
-    objectNode.put("c", 123);
-    FieldPathTransformer fieldPathTransformer =
-        new FieldPathTransformer("rename", Collections.singletonList("aaa"));
-    RenameFieldTransformer transformer = new RenameFieldTransformer(fieldPathTransformer);
-    transformer.apply(PropertyPath.of("a"), objectNode.get("a"), objectNode);
-    assertNull(objectNode.get("a"));
-    assertNotNull(objectNode.get("aaa"));
+  void testHasPeriodFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasPeriodFilters_LastUpdatedAloneIsNotAPeriodFilter() {
+    // lastUpdated/lastUpdatedDuration do not filter by the period table, so they must not
+    // trigger the pe_ids CTE/JOIN the query builder erases based on hasPeriodFilters().
+    DataExportParams params =
+        DataExportParams.builder()
+            .lastUpdated(new Date())
+            .lastUpdatedDuration(Duration.ofDays(10000))
+            .build();
+
+    assertFalse(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_LastUpdatedDurationTrue() {
+    DataExportParams params =
+        DataExportParams.builder().lastUpdatedDuration(Duration.ofDays(10000)).build();
+
+    assertTrue(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_LastUpdatedTrue() {
+    DataExportParams params = DataExportParams.builder().lastUpdated(new Date()).build();
+
+    assertTrue(params.hasLastUpdatedFilters());
   }
 }

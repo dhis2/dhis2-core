@@ -31,6 +31,7 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -200,14 +201,30 @@ class PropertyPathTest {
 
   @Test
   void testProperty() {
-    assertEquals("foo", PropertyPath.of("foo").property());
-    assertEquals("bar", PropertyPath.of("foo.bar").property());
-    assertEquals("baz", PropertyPath.of("foo.bar.baz").property());
-    assertEquals("foo", PropertyPath.of("!foo").property());
-    assertEquals("bar", PropertyPath.of("!foo.bar").property());
-    assertEquals("baz", PropertyPath.of("!foo.bar.baz").property());
-    assertEquals("baz", PropertyPath.of("foo.bar.!baz").property());
-    assertEquals("foo", PropertyPath.of("-foo").property());
+    assertEquals("foo", PropertyPath.of("foo").property().toString());
+    assertEquals("bar", PropertyPath.of("foo.bar").property().toString());
+    assertEquals("baz", PropertyPath.of("foo.bar.baz").property().toString());
+    assertEquals("foo", PropertyPath.of("!foo").property().toString());
+    assertEquals("bar", PropertyPath.of("!foo.bar").property().toString());
+    assertEquals("baz", PropertyPath.of("!foo.bar.baz").property().toString());
+    assertEquals("baz", PropertyPath.of("foo.bar.!baz").property().toString());
+    assertEquals("foo", PropertyPath.of("-foo").property().toString());
+  }
+
+  @Test
+  void testProperties() {
+    assertEquals(List.of("foo"), PropertyPath.of("foo").properties().map(Text::toString).toList());
+    assertEquals(
+        List.of("foo", "bar"),
+        PropertyPath.of("foo.bar").properties().map(Text::toString).toList());
+    assertEquals(
+        List.of("foo", "bar"),
+        PropertyPath.of("!foo.bar").properties().map(Text::toString).toList());
+    assertEquals(
+        List.of("foo", "bar"),
+        PropertyPath.of("foo.!bar").properties().map(Text::toString).toList());
+    assertEquals(
+        List.of(":foo"), PropertyPath.of(":foo").properties().map(Text::toString).toList());
   }
 
   @Test
@@ -219,20 +236,60 @@ class PropertyPathTest {
 
   @Test
   void testConcat() {
-    assertEquals(PropertyPath.of("foo.bar"), PropertyPath.of("foo").concat(Text.of("bar")));
-    assertEquals(PropertyPath.of("foo.:all"), PropertyPath.of("foo").concat(Text.of("*")));
+    assertEquals(PropertyPath.of("foo.bar"), PropertyPath.of("foo").concat("bar"));
+    assertEquals(PropertyPath.of("foo.:all"), PropertyPath.of("foo").concat("*"));
     assertEquals(
         PropertyPath.of("foo.bar.baz"), PropertyPath.of("foo").concat(PropertyPath.of("bar.baz")));
 
-    assertEquals(PropertyPath.of("!foo.bar"), PropertyPath.of("!foo").concat(Text.of("bar")));
+    assertEquals(PropertyPath.of("!foo.bar"), PropertyPath.of("!foo").concat("bar"));
   }
 
   @Test
   void testWithTail() {
     assertEquals(PropertyPath.of("y"), PropertyPath.of("foo").withTail("y"));
     assertEquals(PropertyPath.of("foo.y"), PropertyPath.of("foo.bar").withTail("y"));
+    assertEquals(PropertyPath.of("foo.bar.y"), PropertyPath.of("foo.bar.baz").withTail("y"));
+  }
+
+  @Test
+  void testRelativeTo() {
+    assertNull(PropertyPath.of("foo").relativeTo("foo"));
+    assertEquals(PropertyPath.of("bar"), PropertyPath.of("foo.bar").relativeTo("foo"));
     assertEquals(
-        PropertyPath.of("foo.bar.y"), PropertyPath.of("foo.bar.baz").withTail(Text.of("y")));
+        PropertyPath.of("a1234567890"),
+        PropertyPath.of("attributeValues.attribute.a1234567890").relativeTo("attribute"));
+  }
+
+  @Test
+  void testContains() {
+    assertTrue(PropertyPath.of("foo.bar").contains("bar"));
+    assertTrue(PropertyPath.of("foo.bar").contains("foo"));
+    assertFalse(PropertyPath.of("foo.bar").contains("!bar"));
+    assertFalse(PropertyPath.of("foo.bar").contains("!foo"));
+    assertFalse(PropertyPath.of("foo.bar").contains("baz"));
+    assertFalse(PropertyPath.of("foo.bar").contains("foo.bar"));
+  }
+
+  @Test
+  void testIsExcluded() {
+    assertTrue(PropertyPath.of("!code").isExcluded("code"));
+    assertTrue(PropertyPath.of("!x").isExcluded("x.bar"));
+    assertTrue(PropertyPath.of("x.!y").isExcluded("x.y"));
+    assertTrue(PropertyPath.of("x.!y").isExcluded("x.y.z"));
+
+    assertFalse(PropertyPath.of("code").isExcluded("code"));
+    assertFalse(PropertyPath.of("!code").isExcluded("name"));
+    assertFalse(PropertyPath.of("!foo.code").isExcluded("code"));
+    assertFalse(PropertyPath.of("foo.!code").isExcluded("code"));
+  }
+
+  @Test
+  void testDropHead() {
+    assertNull(PropertyPath.of("foo").dropHead());
+    assertEquals(PropertyPath.of("bar"), PropertyPath.of("foo.bar").dropHead());
+    assertEquals(PropertyPath.of("bar"), PropertyPath.of("!foo.bar").dropHead());
+    assertEquals(PropertyPath.of("!bar"), PropertyPath.of("foo.!bar").dropHead());
+    assertEquals(PropertyPath.of("bar.baz"), PropertyPath.of("foo.bar.baz").dropHead());
   }
 
   private static void assertPropertyPath(String path) {
