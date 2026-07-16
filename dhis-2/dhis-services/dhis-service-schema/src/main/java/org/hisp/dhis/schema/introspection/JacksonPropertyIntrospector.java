@@ -49,6 +49,7 @@ import com.google.common.primitives.Primitives;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -64,6 +65,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseLinkableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
@@ -117,6 +122,16 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       if (persistedProperties.containsKey(fieldName)) {
         initFromPersistedProperty(property, persistedProperties.get(fieldName));
+      } else {
+        Class<?> declaringClass = property.getGetterMethod().getDeclaringClass();
+        if (declaringClass == BaseIdentifiableObject.class
+            || declaringClass == BaseLinkableObject.class
+            || declaringClass == BaseNameableObject.class
+            || declaringClass == BaseDimensionalObject.class && !property.isTransient()) {
+          // this is assumed to be an inherited property that is not persisted,
+          // so we skip it and do not add it
+          continue;
+        }
       }
 
       initFromDescription(property);
@@ -224,6 +239,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
   private static void initFromPersistedProperty(Property property, Property persisted) {
     property.setPersisted(true);
     property.setWritable(true);
+    property.setTransient(false);
     property.setFieldName(persisted.getFieldName());
     property.setUnique(persisted.isUnique());
     property.setRequired(persisted.isRequired());
@@ -331,6 +347,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       property.setName(name);
       property.setFieldName(fieldName);
+      property.setTransient(Modifier.isTransient(field.getModifiers()));
       property.setSetterMethod(findSetterMethod(fieldName, type, field.getType()));
       property.setGetterMethod(findGetterMethod(fieldName, type));
       property.setNamespace(trimToNull(jsonProperty.namespace()));
