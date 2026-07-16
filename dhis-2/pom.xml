@@ -114,14 +114,14 @@
 
     <!-- Spring -->
     <spring.version>7.0.8</spring.version>
-    <spring-session-core.version>4.1.0</spring-session-core.version>
-    <spring-data-redis.version>4.1.0</spring-data-redis.version>
-    <spring-session-data-redis.version>4.1.0</spring-session-data-redis.version>
+    <spring-session-core.version>4.0.4</spring-session-core.version>
+    <spring-data-redis.version>4.0.6</spring-data-redis.version>
+    <spring-session-data-redis.version>4.0.4</spring-session-data-redis.version>
     <spring-retry.version>2.0.12</spring-retry.version>
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>2.6.1.Final</cache2k-api.version>
-    <lettuce.version>6.8.0.RELEASE</lettuce.version>
+    <lettuce.version>6.8.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-database-postgresql.version>12.4.0</flyway-database-postgresql.version>
