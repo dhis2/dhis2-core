@@ -34,6 +34,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.Property;
@@ -152,7 +153,8 @@ public class GistBridge {
     return true;
   }
 
-  private static List<Property> getPropertyPath(String path, RelativePropertyContext context) {
+  private static List<Property> getPropertyPath(
+      PropertyPath path, RelativePropertyContext context) {
     Property leaf = context.resolve(path);
     if (leaf == null) return List.of(); // unknown property, give up
     return context.resolvePath(path);

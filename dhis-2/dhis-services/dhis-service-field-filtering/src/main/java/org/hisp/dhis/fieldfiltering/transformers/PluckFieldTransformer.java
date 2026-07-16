@@ -32,6 +32,7 @@ package org.hisp.dhis.fieldfiltering.transformers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
@@ -50,7 +51,7 @@ public class PluckFieldTransformer implements FieldTransformer {
   }
 
   @Override
-  public JsonNode apply(String path, JsonNode value, JsonNode parent) {
+  public JsonNode apply(PropertyPath path, JsonNode value, JsonNode parent) {
     if (!parent.isObject()) {
       return value;
     }
@@ -60,8 +61,6 @@ public class PluckFieldTransformer implements FieldTransformer {
     if (!fieldPathTransformer.parameters().isEmpty()) {
       pluckFieldName = fieldPathTransformer.parameters().get(0);
     }
-
-    String fieldName = getFieldName(path);
 
     if (value.isArray()) {
       ArrayNode arrayNode = ((ArrayNode) value).arrayNode();
@@ -74,7 +73,7 @@ public class PluckFieldTransformer implements FieldTransformer {
         }
       }
 
-      ((ObjectNode) parent).replace(fieldName, arrayNode);
+      ((ObjectNode) parent).replace(path.property().toString(), arrayNode);
     }
 
     return value;

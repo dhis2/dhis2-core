@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.fieldfiltering;
 
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
@@ -687,11 +688,13 @@ class FieldsParserTest {
   private static void assertField(ExpectField expected, List<FieldPath> fieldPaths) {
     String what = expected.included ? "include" : "exclude";
     List<FieldPath> actual =
-        fieldPaths.stream().filter(fp -> expected.dotPath.equals(fp.getFullPath())).toList();
+        fieldPaths.stream()
+            .filter(fp -> expected.dotPath.equals(fp.getPath().properties().collect(joining("."))))
+            .toList();
     assertNotEmpty(
         actual,
         () ->
-            fieldPaths.stream().map(FieldPath::getFullPath).collect(Collectors.toSet())
+            fieldPaths.stream().map(FieldPath::toString).collect(Collectors.toSet())
                 + " should contain "
                 + expected.dotPath
                 + " and "
@@ -705,7 +708,7 @@ class FieldsParserTest {
       assertFalse(
           actual.stream().anyMatch(FieldPath::isExclude),
           () ->
-              fieldPaths.stream().map(FieldPath::getFullPath).collect(Collectors.toSet())
+              fieldPaths.stream().map(FieldPath::toString).collect(Collectors.toSet())
                   + " should includes "
                   + expected.dotPath
                   + " but it contains the path with an exclusion");
@@ -717,7 +720,7 @@ class FieldsParserTest {
     assertTrue(
         path.isPresent(),
         () ->
-            fieldPaths.stream().map(FieldPath::getFullPath).collect(Collectors.toSet())
+            fieldPaths.stream().map(FieldPath::toString).collect(Collectors.toSet())
                 + " should contain "
                 + expected.dotPath
                 + " and "

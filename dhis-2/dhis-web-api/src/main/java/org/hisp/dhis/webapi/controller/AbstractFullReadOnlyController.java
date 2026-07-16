@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Maturity;
@@ -63,6 +62,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -373,11 +373,12 @@ public abstract class AbstractFullReadOnlyController<
   private void setupSchemaAndProperties(
       Builder schemaBuilder, String fields, Map<String, Function<T, Object>> obj2valueByProperty) {
     for (Fields.Field field : Fields.of(fields)) {
-      String fieldName = field.propertyPath();
-      Property property = getSchema().getProperty(fieldName);
-
+      PropertyPath path = field.propertyPath();
+      if (path.isNested()) continue;
+      Property property = getSchema().getProperty(path.toString());
       if (property == null) {
-        if (CodeGenerator.isValidUid(fieldName)) {
+        if (path.isUID()) {
+          String fieldName = path.property().toString();
           schemaBuilder.addColumn(fieldName);
           obj2valueByProperty.put(fieldName, obj -> getAttributeValue(obj, fieldName));
         }
