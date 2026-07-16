@@ -501,18 +501,20 @@ public class Dhis2OAuth2AuthorizationServiceImpl
         new java.util.ArrayList<>(authentication.getAuthorities());
     authorities.add(
         FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.PASSWORD_AUTHORITY));
+    Object principalObj = authentication.getPrincipal();
+    if (principalObj == null) {
+      return;
+    }
     Authentication enriched;
     if (authentication instanceof OAuth2AuthenticationToken oauth) {
       enriched =
           new OAuth2AuthenticationToken(
-              java.util.Objects.requireNonNull(oauth.getPrincipal(), "oauth principal"),
-              authorities,
-              oauth.getAuthorizedClientRegistrationId());
+              principalObj, authorities, oauth.getAuthorizedClientRegistrationId());
     } else {
       Object credentials = authentication.getCredentials();
       enriched =
           UsernamePasswordAuthenticationToken.authenticated(
-              authentication.getPrincipal(), credentials != null ? credentials : "", authorities);
+              principalObj, credentials != null ? credentials : "", authorities);
     }
     attributes.put(java.security.Principal.class.getName(), enriched);
   }
