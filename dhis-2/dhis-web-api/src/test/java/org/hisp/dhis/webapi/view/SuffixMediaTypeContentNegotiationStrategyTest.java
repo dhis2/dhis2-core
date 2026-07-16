@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.vote;
+package org.hisp.dhis.webapi.view;
 
-import java.util.Collection;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.ServletWebRequest;
 
 /**
- * RoleVoter which requires all org.springframework.security.ConfigAttributes to be granted
- * authorities, given that the ConfigAttributes have the specified prefix ("ROLE_" by default). If
- * there are no supported ConfigAttributes it abstains from voting.
- *
- * @see org.springframework.security.access.vote.RoleVoter
- * @author Torgeir Lorange Ostby
+ * @author Morten Svanæs
  */
-public class AllRequiredRoleVoter extends RoleVoter {
-  @Override
-  public int vote(
-      Authentication authentication, Object object, Collection<ConfigAttribute> attributes) {
-    int supported = 0;
+class SuffixMediaTypeContentNegotiationStrategyTest {
 
-    for (ConfigAttribute attribute : attributes) {
-      if (this.supports(attribute)) {
-        ++supported;
-        boolean found = false;
+  private final SuffixMediaTypeContentNegotiationStrategy strategy =
+      new SuffixMediaTypeContentNegotiationStrategy();
 
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-          if (attribute.getAttribute().equals(authority.getAuthority())) {
-            found = true;
-            break;
-          }
-        }
+  @Test
+  void returnsAttributeWhenPresent() {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dataElements.json");
+    request.setAttribute(
+        SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE,
+        MediaType.APPLICATION_JSON);
 
-        if (!found) {
-          return ACCESS_DENIED;
-        }
-      }
-    }
+    List<MediaType> mediaTypes = strategy.resolveMediaTypes(new ServletWebRequest(request));
 
-    if (supported > 0) {
-      return ACCESS_GRANTED;
-    }
+    assertEquals(List.of(MediaType.APPLICATION_JSON), mediaTypes);
+  }
 
-    return ACCESS_ABSTAIN;
+  @Test
+  void fallsBackToAllWhenAttributeMissing() {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dataElements");
+
+    List<MediaType> mediaTypes = strategy.resolveMediaTypes(new ServletWebRequest(request));
+
+    assertSame(SuffixMediaTypeContentNegotiationStrategy.MEDIA_TYPE_ALL_LIST, mediaTypes);
   }
 }

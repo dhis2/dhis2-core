@@ -49,6 +49,7 @@ import com.google.common.primitives.Primitives;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -71,6 +72,7 @@ import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.translation.Translatable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -117,6 +119,20 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       if (persistedProperties.containsKey(fieldName)) {
         initFromPersistedProperty(property, persistedProperties.get(fieldName));
+      } else {
+        Method getter = property.getGetterMethod();
+        if (getter != null) {
+          Class<?> declaringClass = getter.getDeclaringClass();
+          if (declaringClass.getName().startsWith("Base")
+              && !property.isTransient()
+              && (!getter.isAnnotationPresent(Translatable.class)
+                  || !persistedProperties.containsKey(
+                      getter.getAnnotation(Translatable.class).propertyName()))) {
+            // this is assumed to be an inherited property that is not persisted,
+            // so we skip it and do not add it
+            continue;
+          }
+        }
       }
 
       initFromDescription(property);
@@ -224,6 +240,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
   private static void initFromPersistedProperty(Property property, Property persisted) {
     property.setPersisted(true);
     property.setWritable(true);
+    property.setTransient(false);
     property.setFieldName(persisted.getFieldName());
     property.setUnique(persisted.isUnique());
     property.setRequired(persisted.isRequired());
@@ -331,6 +348,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
 
       property.setName(name);
       property.setFieldName(fieldName);
+      property.setTransient(Modifier.isTransient(field.getModifiers()));
       property.setSetterMethod(findSetterMethod(fieldName, type, field.getType()));
       property.setGetterMethod(findGetterMethod(fieldName, type));
       property.setNamespace(trimToNull(jsonProperty.namespace()));
