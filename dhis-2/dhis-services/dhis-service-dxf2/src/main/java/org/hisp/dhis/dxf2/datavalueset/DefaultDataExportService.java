@@ -39,6 +39,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -345,7 +346,7 @@ public class DefaultDataExportService implements DataExportService {
     return value == null || value.isEmpty() ? null : value;
   }
 
-  private DataExportParams decodeParams(DataExportParams.Input params) {
+  private DataExportParams decodeParams(DataExportParams.Input params) throws ConflictException {
     boolean codeFallback = Boolean.TRUE.equals(params.getInputUseCodeFallback());
     IdentifiableProperty anyIn = params.getInputIdScheme();
     IdentifiableProperty dsIn = params.getInputDataSetIdScheme();
@@ -376,6 +377,13 @@ public class DefaultDataExportService implements DataExportService {
       }
     }
 
+    String lastUpdatedDurationIn = params.getLastUpdatedDuration();
+    Duration lastUpdatedDuration = DateUtils.getDuration(lastUpdatedDurationIn);
+    if (lastUpdatedDurationIn != null
+        && !lastUpdatedDurationIn.isBlank()
+        && lastUpdatedDuration == null)
+      throw new ConflictException(ErrorCode.E2005, lastUpdatedDurationIn);
+
     return DataExportParams.builder()
         .dataSets(decodeIds(DS, dsIn, params.getDataSet()))
         .dataElementGroups(decodeIds(DEG, degIn, params.getDataElementGroup()))
@@ -391,7 +399,7 @@ public class DefaultDataExportService implements DataExportService {
         .includeDescendants(params.isChildren())
         .includeDeleted(params.isIncludeDeleted())
         .lastUpdated(params.getLastUpdated())
-        .lastUpdatedDuration(DateUtils.getDuration(params.getLastUpdatedDuration()))
+        .lastUpdatedDuration(lastUpdatedDuration)
         .limit(params.getLimit())
         .offset(params.getOffset())
         .orders(orders)
