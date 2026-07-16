@@ -265,6 +265,16 @@ class DataExportParamsTest {
   }
 
   @Test
+  void testIsDateRangeOutOfBounds_StartEqualsEndFalse() {
+    // Date.after() is strict (>), so a single-instant/single-day range (start == end) is a valid,
+    // zero-width range, not an error.
+    DataExportParams params =
+        DataExportParams.builder().startDate(new Date(1)).endDate(new Date(1)).build();
+
+    assertFalse(params.isDateRangeOutOfBounds());
+  }
+
+  @Test
   void testIsLimitOutOfBounds_NegativeTrue() {
     DataExportParams params = DataExportParams.builder().limit(-1).build();
 
