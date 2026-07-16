@@ -46,6 +46,7 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -67,7 +68,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -773,7 +773,9 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
                 .replaceAll("[^*_a-z0-9]+", "") // sanitise against regex attacks
                 .replace("*", ".*"); // expand regex wildcard match
         for (DataIntegrityCheck check : checksByName.values()) {
-          if (check.getName().matches(pattern)) {
+          if (check
+              .getName()
+              .matches(pattern)) { // NOSONAR javasecurity:S2631 - pattern sanitised above
             expanded.add(check.getName());
           }
         }

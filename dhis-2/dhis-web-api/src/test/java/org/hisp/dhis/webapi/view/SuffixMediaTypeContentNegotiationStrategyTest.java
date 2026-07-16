@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deletedobject.hibernate;
+package org.hisp.dhis.webapi.view;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PersistenceUnit;
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.springframework.stereotype.Component;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
-@Component
-public class DeletedObjectListenerConfigurer {
-  @PersistenceUnit private EntityManagerFactory emf;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.ServletWebRequest;
 
-  private final DeletedObjectPostInsertEventListener insertEventListener;
+/**
+ * @author Morten Svanæs
+ */
+class SuffixMediaTypeContentNegotiationStrategyTest {
 
-  private final DeletedObjectPostDeleteEventListener deleteEventListener;
+  private final SuffixMediaTypeContentNegotiationStrategy strategy =
+      new SuffixMediaTypeContentNegotiationStrategy();
 
-  public DeletedObjectListenerConfigurer(
-      DeletedObjectPostInsertEventListener insertEventListener,
-      DeletedObjectPostDeleteEventListener deleteEventListener) {
-    this.deleteEventListener = deleteEventListener;
-    this.insertEventListener = insertEventListener;
+  @Test
+  void returnsAttributeWhenPresent() {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dataElements.json");
+    request.setAttribute(
+        SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE,
+        MediaType.APPLICATION_JSON);
+
+    List<MediaType> mediaTypes = strategy.resolveMediaTypes(new ServletWebRequest(request));
+
+    assertEquals(List.of(MediaType.APPLICATION_JSON), mediaTypes);
   }
 
-  @PostConstruct
-  protected void init() {
-    SessionFactoryImpl sessionFactory = emf.unwrap(SessionFactoryImpl.class);
+  @Test
+  void fallsBackToAllWhenAttributeMissing() {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dataElements");
 
-    EventListenerRegistry registry =
-        sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
+    List<MediaType> mediaTypes = strategy.resolveMediaTypes(new ServletWebRequest(request));
 
-    registry
-        .getEventListenerGroup(EventType.POST_COMMIT_INSERT)
-        .appendListener(insertEventListener);
-
-    registry
-        .getEventListenerGroup(EventType.POST_COMMIT_DELETE)
-        .appendListener(deleteEventListener);
+    assertSame(SuffixMediaTypeContentNegotiationStrategy.MEDIA_TYPE_ALL_LIST, mediaTypes);
   }
 }

@@ -30,9 +30,9 @@
 package org.hisp.dhis.merge.indicator;
 
 import com.google.common.collect.ImmutableList;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
