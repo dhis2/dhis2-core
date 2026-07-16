@@ -41,12 +41,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Unit coverage for the Spring 7-ready path-extension / trailing-slash fallback in {@link
@@ -61,18 +64,15 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
   @BeforeEach
   void setUp() throws Exception {
     mapping = new CustomRequestMappingHandlerMapping();
-    mapping.setApplicationContext(
-        new org.springframework.context.support.StaticApplicationContext());
+    mapping.setApplicationContext(new StaticApplicationContext());
     mapping.afterPropertiesSet();
 
-    // Register a simple controller mapping for /api/dataElements (no extension).
     Method method = SampleController.class.getMethod("list");
     mapping.registerMapping(
         mapping.getMappingForMethod(method, SampleController.class),
         new SampleController(),
         method);
 
-    // Literal-extension mapping (OpenAPI-style).
     Method openapi = SampleController.class.getMethod("openapi");
     mapping.registerMapping(
         mapping.getMappingForMethod(openapi, SampleController.class),
@@ -119,12 +119,19 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
   }
 
   @Test
+  void trailingSlashWorksEvenWhenLookupPathCachedFromFirstAttempt() throws Exception {
+    MockHttpServletRequest request = request("/api/dataElements/");
+    // Simulate DispatcherServlet / first lookup caching the unnormalised path.
+    request.setAttribute(HandlerMapping.LOOKUP_PATH, "/api/dataElements/");
+    request.setAttribute(UrlPathHelper.PATH_ATTRIBUTE, "/api/dataElements/");
+    HandlerMethod handler = mapping.getHandlerInternal(request);
+    assertNotNull(handler);
+    assertEquals("list", handler.getMethod().getName());
+  }
+
+  @Test
   void trailingSlashPlusSuffixIsStripped() throws Exception {
     MockHttpServletRequest request = request("/api/dataElements.json/");
-    // trailing slash after extension is unusual; ensure we still normalise when slash is last
-    // Our normalize checks trailing slash first on full URI, then extension on slash-stripped path.
-    // path ends with / so trailingSlash=true, pathForExtension=/api/dataElements.json,
-    // extension=json
     HandlerMethod handler = mapping.getHandlerInternal(request);
     assertNotNull(handler);
     assertEquals(

@@ -38,9 +38,12 @@ import org.hisp.dhis.webapi.view.SuffixMediaTypeContentNegotiationStrategy;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.util.ServletRequestPathUtils;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Request mapping for DHIS2 controllers.
@@ -93,7 +96,19 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
     }
     // 2) Fall back to a normalised path (trailing slash and/or registered extension removed).
     HttpServletRequest normalized = normalize(request);
-    return normalized != request ? super.getHandlerInternal(normalized) : null;
+    if (normalized == request) {
+      return null;
+    }
+    // Spring caches the lookup path on the request after the first attempt. Clear it so the second
+    // match uses the normalised path exposed by the wrapper (otherwise POST /api/x/ stays a 404).
+    clearPathCaches(normalized);
+    return super.getHandlerInternal(normalized);
+  }
+
+  private static void clearPathCaches(HttpServletRequest request) {
+    request.removeAttribute(HandlerMapping.LOOKUP_PATH);
+    request.removeAttribute(UrlPathHelper.PATH_ATTRIBUTE);
+    ServletRequestPathUtils.clearParsedRequestPath(request);
   }
 
   /**
