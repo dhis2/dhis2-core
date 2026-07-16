@@ -630,7 +630,6 @@
         <version>${nimbus.jose.jwt.version}</version>
       </dependency>
 
-
       <!-- Spring Session and Redis -->
       <dependency>
         <groupId>org.springframework.session</groupId>
