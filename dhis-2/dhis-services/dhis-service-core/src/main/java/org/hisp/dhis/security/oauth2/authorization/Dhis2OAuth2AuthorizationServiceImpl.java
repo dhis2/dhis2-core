@@ -505,7 +505,9 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     if (authentication instanceof OAuth2AuthenticationToken oauth) {
       enriched =
           new OAuth2AuthenticationToken(
-              oauth.getPrincipal(), authorities, oauth.getAuthorizedClientRegistrationId());
+              java.util.Objects.requireNonNull(oauth.getPrincipal(), "oauth principal"),
+              authorities,
+              oauth.getAuthorizedClientRegistrationId());
     } else {
       Object credentials = authentication.getCredentials();
       enriched =

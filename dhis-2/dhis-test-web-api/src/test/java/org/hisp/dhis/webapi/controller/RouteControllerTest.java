@@ -227,7 +227,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @BeforeEach
-    public void beforeEach() {
+    void beforeEach() {
       upstreamMockServerClient =
           new MockServerClient("localhost", upstreamMockServerContainer.getFirstMappedPort());
     }

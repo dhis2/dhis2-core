@@ -241,35 +241,39 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Bean
-  protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
-      http.csrf(
-              c ->
-                  c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                      .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
-          .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-    } else {
-      http.csrf(AbstractHttpConfigurer::disable);
+  protected SecurityFilterChain filterChain(HttpSecurity http) {
+    try {
+      if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
+        http.csrf(
+                c ->
+                    c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+            .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
+      } else {
+        http.csrf(AbstractHttpConfigurer::disable);
+      }
+
+      http.cors(Customizer.withDefaults());
+
+      if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
+        http.requestCache(rc -> rc.requestCache(requestCache));
+      } else {
+        http.requestCache(rc -> rc.disable());
+      }
+
+      configureMatchers(http);
+      configureCspFilter(http, dhisConfig, configurationService);
+      configureApiTokenAuthorizationFilter(http);
+      configureOAuthTokenFilters(http);
+
+      http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
+
+      setHttpHeaders(http);
+
+      return http.build();
+    } catch (Exception ex) {
+      throw new IllegalStateException("Failed to configure web security filter chain", ex);
     }
-
-    http.cors(Customizer.withDefaults());
-
-    if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
-      http.requestCache(rc -> rc.requestCache(requestCache));
-    } else {
-      http.requestCache(rc -> rc.disable());
-    }
-
-    configureMatchers(http);
-    configureCspFilter(http, dhisConfig, configurationService);
-    configureApiTokenAuthorizationFilter(http);
-    configureOAuthTokenFilters(http);
-
-    http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
-
-    setHttpHeaders(http);
-
-    return http.build();
   }
 
   public static void setHttpHeaders(HttpSecurity http) {
