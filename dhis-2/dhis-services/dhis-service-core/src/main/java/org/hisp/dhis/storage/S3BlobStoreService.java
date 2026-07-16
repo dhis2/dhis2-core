@@ -480,7 +480,7 @@ public class S3BlobStoreService implements BlobStoreService {
 
     private static String md5Base64(RequestBody body) {
       try (InputStream in = body.contentStreamProvider().newStream()) {
-        MessageDigest md = MessageDigest.getInstance("MD5");
+        MessageDigest md = MessageDigest.getInstance("MD5"); // NOSONAR java:S4790 - S3 Content-MD5
         byte[] buf = new byte[8192];
         int n;
         while ((n = in.read(buf)) != -1) md.update(buf, 0, n);
