@@ -56,6 +56,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.FactorGrantedAuthority;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2DeviceCode;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -506,10 +507,11 @@ public class Dhis2OAuth2AuthorizationServiceImpl
       return;
     }
     Authentication enriched;
-    if (authentication instanceof OAuth2AuthenticationToken oauth) {
+    if (authentication instanceof OAuth2AuthenticationToken oauth
+        && principalObj instanceof OAuth2User oauth2User) {
       enriched =
           new OAuth2AuthenticationToken(
-              principalObj, authorities, oauth.getAuthorizedClientRegistrationId());
+              oauth2User, authorities, oauth.getAuthorizedClientRegistrationId());
     } else {
       Object credentials = authentication.getCredentials();
       enriched =
