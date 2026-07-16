@@ -115,7 +115,9 @@ public class DataExportParams {
     return notEmpty(periods)
         || notEmpty(periodTypes)
         || (startDate != null && endDate != null)
-        || includedDate != null;
+        || includedDate != null
+        || lastUpdated != null
+        || lastUpdatedDuration != null;
   }
 
   public boolean hasOrgUnitFilters() {
