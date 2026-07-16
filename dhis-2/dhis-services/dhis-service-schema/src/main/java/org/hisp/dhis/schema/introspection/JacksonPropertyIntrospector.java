@@ -65,10 +65,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseLinkableObject;
-import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
@@ -76,6 +72,7 @@ import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.translation.Translatable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -124,10 +121,12 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
         initFromPersistedProperty(property, persistedProperties.get(fieldName));
       } else {
         Class<?> declaringClass = property.getGetterMethod().getDeclaringClass();
-        if (declaringClass == BaseIdentifiableObject.class
-            || declaringClass == BaseLinkableObject.class
-            || declaringClass == BaseNameableObject.class
-            || declaringClass == BaseDimensionalObject.class && !property.isTransient()) {
+        Method getter = property.getGetterMethod();
+        if (declaringClass.getName().startsWith("Base")
+            && !property.isTransient()
+            && (!getter.isAnnotationPresent(Translatable.class)
+                || !persistedProperties.containsKey(
+                    getter.getAnnotation(Translatable.class).propertyName()))) {
           // this is assumed to be an inherited property that is not persisted,
           // so we skip it and do not add it
           continue;
