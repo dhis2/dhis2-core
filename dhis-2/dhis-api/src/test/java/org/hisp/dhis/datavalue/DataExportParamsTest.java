@@ -46,17 +46,37 @@ class DataExportParamsTest {
   }
 
   @Test
-  void testHasPeriodFilters_LastUpdatedDurationTrue() {
+  void testHasPeriodFilters_LastUpdatedAloneIsNotAPeriodFilter() {
+    // lastUpdated/lastUpdatedDuration do not filter by the period table, so they must not
+    // trigger the pe_ids CTE/JOIN the query builder erases based on hasPeriodFilters().
     DataExportParams params =
-        DataExportParams.builder().lastUpdatedDuration(Duration.ofDays(10000)).build();
+        DataExportParams.builder()
+            .lastUpdated(new Date())
+            .lastUpdatedDuration(Duration.ofDays(10000))
+            .build();
 
-    assertTrue(params.hasPeriodFilters());
+    assertFalse(params.hasPeriodFilters());
   }
 
   @Test
-  void testHasPeriodFilters_LastUpdatedTrue() {
+  void testHasLastUpdatedFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_LastUpdatedDurationTrue() {
+    DataExportParams params =
+        DataExportParams.builder().lastUpdatedDuration(Duration.ofDays(10000)).build();
+
+    assertTrue(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_LastUpdatedTrue() {
     DataExportParams params = DataExportParams.builder().lastUpdated(new Date()).build();
 
-    assertTrue(params.hasPeriodFilters());
+    assertTrue(params.hasLastUpdatedFilters());
   }
 }
