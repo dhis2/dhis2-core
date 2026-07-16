@@ -67,7 +67,7 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
 
   private static final char PATH_SEPARATOR = '/';
 
-  private final Map<String, MediaType> mediaTypes = WebMvcConfig.MEDIA_TYPE_MAP;
+  private static final Map<String, MediaType> MEDIA_TYPES = WebMvcConfig.MEDIA_TYPE_MAP;
 
   @Override
   protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
@@ -109,6 +109,10 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
     request.removeAttribute(HandlerMapping.LOOKUP_PATH);
     request.removeAttribute(UrlPathHelper.PATH_ATTRIBUTE);
     ServletRequestPathUtils.clearParsedRequestPath(request);
+    // Re-parse from the (possibly wrapped) request so later filters/handlers that require a
+    // parsed RequestPath still succeed. Clearing alone causes BAD_REQUEST:
+    // "Expected parsed RequestPath in request attribute ...PATH".
+    ServletRequestPathUtils.parseAndCache(request);
   }
 
   /**
@@ -128,13 +132,13 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
     if (extension != null) {
       request.setAttribute(
           SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE,
-          mediaTypes.get(extension));
+          MEDIA_TYPES.get(extension));
     }
     return new PathNormalizingRequestWrapper(request, extension, trailingSlash);
   }
 
   /**
-   * Returns the registered extension (a key of {@link #mediaTypes}) at the end of the given URI's
+   * Returns the registered extension (a key of {@link #MEDIA_TYPES}) at the end of the given URI's
    * last path segment (everything after the first dot, e.g. {@code adx.xml.gz}), or {@code null}.
    */
   private String getRegisteredExtension(String uri) {
@@ -147,7 +151,7 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       return null;
     }
     String extension = uri.substring(dotIndex + 1);
-    return mediaTypes.containsKey(extension) ? extension : null;
+    return MEDIA_TYPES.containsKey(extension) ? extension : null;
   }
 
   /** Wraps a request to expose the path with a trailing slash and/or extension removed. */
