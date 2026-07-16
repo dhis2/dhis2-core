@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
@@ -45,6 +47,8 @@ import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
@@ -65,6 +69,10 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
   void setUp() throws Exception {
     mapping = new CustomRequestMappingHandlerMapping();
     mapping.setApplicationContext(new StaticApplicationContext());
+    // Needed so produces conditions evaluate the suffix-forced media type the same way production
+    // does via SuffixMediaTypeContentNegotiationStrategy (PR-F / #24463).
+    mapping.setContentNegotiationManager(
+        new ContentNegotiationManager(new SuffixMediaTypeContentNegotiationStrategy()));
     mapping.afterPropertiesSet();
 
     Method method = SampleController.class.getMethod("list");
@@ -78,6 +86,24 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
         mapping.getMappingForMethod(openapi, SampleController.class),
         new SampleController(),
         openapi);
+
+    Method queryJson = AnalyticsStyleController.class.getMethod("queryJson", String.class);
+    mapping.registerMapping(
+        mapping.getMappingForMethod(queryJson, AnalyticsStyleController.class),
+        new AnalyticsStyleController(),
+        queryJson);
+
+    Method queryXml = AnalyticsStyleController.class.getMethod("queryXml", String.class);
+    mapping.registerMapping(
+        mapping.getMappingForMethod(queryXml, AnalyticsStyleController.class),
+        new AnalyticsStyleController(),
+        queryXml);
+
+    Method onlyJson = AnalyticsStyleController.class.getMethod("onlyJson", String.class);
+    mapping.registerMapping(
+        mapping.getMappingForMethod(onlyJson, AnalyticsStyleController.class),
+        new AnalyticsStyleController(),
+        onlyJson);
   }
 
   @Test
@@ -91,6 +117,31 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
         MediaType.APPLICATION_JSON,
         request.getAttribute(
             SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE));
+  }
+
+  /**
+   * Regression for analytics-style dual mappings: JSON produces on {@code /query/{id}} plus a
+   * literal {@code /query/{id}.xml} download handler. Stripping the suffix must not surface the
+   * JSON handler's 406 and block the literal download mapping (CI failure after #24463).
+   */
+  @Test
+  void literalDownloadMappingWinsWhenStrippedProducesIsIncompatible() throws Exception {
+    MockHttpServletRequest request =
+        request("/api/analytics/trackedEntities/query/nEenWmSyUEp.xml");
+    HandlerMethod handler = mapping.getHandlerInternal(request);
+    assertNotNull(handler);
+    assertEquals("queryXml", handler.getMethod().getName());
+    assertEquals(
+        MediaType.APPLICATION_XML,
+        request.getAttribute(
+            SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE));
+  }
+
+  @Test
+  void rethrowsNotAcceptableWhenNoLiteralFallbackExists() {
+    MockHttpServletRequest request = request("/api/analytics/only-json/nEenWmSyUEp.xml");
+    assertThrows(
+        HttpMediaTypeNotAcceptableException.class, () -> mapping.getHandlerInternal(request));
   }
 
   @ParameterizedTest
@@ -188,6 +239,33 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
     @GetMapping("/openapi/openapi.json")
     public String openapi() {
       return "openapi";
+    }
+  }
+
+  /**
+   * Mirrors the analytics download pattern: a generic path with restricted {@code produces} next to
+   * a literal-suffix download mapping with no produces restriction.
+   */
+  @Controller
+  @RequestMapping
+  static class AnalyticsStyleController {
+    @GetMapping(
+        value = "/api/analytics/trackedEntities/query/{trackedEntityType}",
+        produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+    public String queryJson(String trackedEntityType) {
+      return "json";
+    }
+
+    @GetMapping(value = "/api/analytics/trackedEntities/query/{trackedEntityType}.xml")
+    public String queryXml(String trackedEntityType) {
+      return "xml";
+    }
+
+    @GetMapping(
+        value = "/api/analytics/only-json/{id}",
+        produces = {APPLICATION_JSON_VALUE})
+    public String onlyJson(String id) {
+      return "json-only";
     }
   }
 }
