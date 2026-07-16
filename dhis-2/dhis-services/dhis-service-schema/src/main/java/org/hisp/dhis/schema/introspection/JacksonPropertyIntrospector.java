@@ -120,16 +120,18 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
       if (persistedProperties.containsKey(fieldName)) {
         initFromPersistedProperty(property, persistedProperties.get(fieldName));
       } else {
-        Class<?> declaringClass = property.getGetterMethod().getDeclaringClass();
         Method getter = property.getGetterMethod();
-        if (declaringClass.getName().startsWith("Base")
-            && !property.isTransient()
-            && (!getter.isAnnotationPresent(Translatable.class)
-                || !persistedProperties.containsKey(
-                    getter.getAnnotation(Translatable.class).propertyName()))) {
-          // this is assumed to be an inherited property that is not persisted,
-          // so we skip it and do not add it
-          continue;
+        if (getter != null) {
+          Class<?> declaringClass = getter.getDeclaringClass();
+          if (declaringClass.getName().startsWith("Base")
+              && !property.isTransient()
+              && (!getter.isAnnotationPresent(Translatable.class)
+                  || !persistedProperties.containsKey(
+                      getter.getAnnotation(Translatable.class).propertyName()))) {
+            // this is assumed to be an inherited property that is not persisted,
+            // so we skip it and do not add it
+            continue;
+          }
         }
       }
 
