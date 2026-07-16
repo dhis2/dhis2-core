@@ -60,7 +60,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConvert
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.staticresource.StaticCacheInterceptor;
-import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.hisp.dhis.webapi.view.SuffixMediaTypeContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -227,13 +227,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Bean
   @Override
   public ContentNegotiationManager mvcContentNegotiationManager() {
-    CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
-    pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
-
     return new ContentNegotiationManager(
         Arrays.asList(
-            pathExtensionNegotiationStrategy,
+            new SuffixMediaTypeContentNegotiationStrategy(),
             new HeaderContentNegotiationStrategy(),
             new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON)));
   }
@@ -243,9 +239,10 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
-    mapping.setUseTrailingSlashMatch(true);
-    mapping.setUseSuffixPatternMatch(true);
-    mapping.setUseRegisteredSuffixPatternMatch(true);
+    // Path-extension + trailing-slash matching is reinstated by
+    // CustomRequestMappingHandlerMapping#getHandlerInternal (literal-first, then normalised path).
+    // Do not rely on setUseSuffixPatternMatch / setUseTrailingSlashMatch / favorPathExtension -
+    // those are removed in Spring Framework 7.
     return mapping;
   }
 
@@ -263,8 +260,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer config) {
+    // favorPathExtension removed in Spring 7; path-extension negotiation is provided by
+    // SuffixMediaTypeContentNegotiationStrategy (fed by CustomRequestMappingHandlerMapping).
     config
-        .favorPathExtension(true)
         .favorParameter(false)
         .ignoreAcceptHeader(false)
         .defaultContentType(MediaType.APPLICATION_JSON)
