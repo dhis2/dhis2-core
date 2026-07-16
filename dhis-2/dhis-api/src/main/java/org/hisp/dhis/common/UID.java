@@ -34,6 +34,8 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -41,8 +43,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 /**
  * UID represents an alphanumeric string of 11 characters starting with a letter.
@@ -55,29 +55,43 @@ import lombok.Getter;
  *
  * @author Jan Bernitt
  */
-@Getter
-@EqualsAndHashCode
 public final class UID implements Serializable {
 
-  private final String value;
+  /** ASCII characters of the UID */
+  private final byte[] value;
 
-  private UID(String value) {
+  private UID(CharSequence value) {
     if (!isValid(value)) {
       throw new IllegalArgumentException(
           "UID must be an alphanumeric string of 11 characters starting with a letter, but was: "
               + value);
     }
-    this.value = value;
+    this.value = new byte[11];
+    for (int i = 0; i < 11; i++) this.value[i] = (byte) value.charAt(i);
   }
 
-  public static boolean isValid(String value) {
+  public static boolean isValid(CharSequence value) {
     return CodeGenerator.isValidUid(value);
+  }
+
+  public String getValue() {
+    return toString();
   }
 
   @Override
   @JsonValue
   public String toString() {
-    return value;
+    return new String(value, StandardCharsets.US_ASCII);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof UID other && Arrays.equals(value, other.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(value);
   }
 
   public static UID generate() {
@@ -85,16 +99,12 @@ public final class UID implements Serializable {
   }
 
   @JsonCreator
-  public static UID of(@Nonnull String value) {
+  public static UID of(@Nonnull CharSequence value) {
     return new UID(value);
   }
 
-  public static UID of(@Nonnull CharSequence value) {
-    return of(value.toString());
-  }
-
   @CheckForNull
-  public static UID ofNullable(@CheckForNull String value) {
+  public static UID ofNullable(@CheckForNull CharSequence value) {
     return value == null ? null : of(value);
   }
 
@@ -102,11 +112,11 @@ public final class UID implements Serializable {
     return object == null ? null : object.getUID();
   }
 
-  public static Set<UID> of(@Nonnull String... values) {
+  public static Set<UID> of(@Nonnull CharSequence... values) {
     return Stream.of(values).map(UID::of).collect(toUnmodifiableSet());
   }
 
-  public static Set<UID> of(@Nonnull Collection<String> values) {
+  public static Set<UID> of(@Nonnull Collection<? extends CharSequence> values) {
     return values.stream().map(UID::of).collect(toUnmodifiableSet());
   }
 
@@ -128,10 +138,15 @@ public final class UID implements Serializable {
 
   public static <T extends IdentifiableObject> Set<String> toUidValueSet(
       @Nonnull Collection<T> elements) {
-    return elements.stream().map(IdentifiableObject::getUid).collect(toUnmodifiableSet());
+    return elements.stream()
+        .map(IdentifiableObject::getUID)
+        .map(UID::getValue)
+        .collect(toUnmodifiableSet());
   }
 
+  private static final UID DEFAULT_OPTION_COMBO = of("HllvX50cXC0");
+
   public boolean isDefaultOptionCombo() {
-    return "HllvX50cXC0".equals(value);
+    return DEFAULT_OPTION_COMBO.equals(this);
   }
 }
