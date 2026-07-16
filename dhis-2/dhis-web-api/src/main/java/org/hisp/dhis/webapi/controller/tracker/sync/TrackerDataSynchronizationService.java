@@ -111,7 +111,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   @Getter
   private static final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
-    private final Set<UID> failedTrackedEntityUids = new HashSet<>();
     // Distinct tracked entity uids fetched across all pages this run, so the run's completion can
     // report how many entities in the backlog were never attempted at all (see
     // executeSynchronizationWithPaging), e.g. because repeatedly failing entities kept occupying
@@ -321,8 +320,12 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             activeSyncCandidateUids, splitActiveEntities.deletedChildUidsByTe(), deleteResult);
     Set<UID> syncedDeletedTeUids = deleteResult == null ? Set.of() : deleteResult.syncedTeUids();
 
-    stampSyncTimestamp(deletedTrackedEntities, syncedDeletedTeUids, syncTime);
-    stampSyncTimestamp(splitActiveEntities.activeTrackedEntities(), syncedActiveTeUids, syncTime);
+    stampSyncTimestamps(
+        deletedTrackedEntities,
+        syncedDeletedTeUids,
+        splitActiveEntities.activeTrackedEntities(),
+        syncedActiveTeUids,
+        syncTime);
   }
 
   private SplitActiveTrackedEntities splitActiveTrackedEntities(
@@ -395,16 +398,32 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         .collect(Collectors.toCollection(HashSet::new));
   }
 
-  private void stampSyncTimestamp(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> candidates,
-      Set<UID> syncedUids,
+  private void stampSyncTimestamps(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedCandidates,
+      Set<UID> syncedDeletedUids,
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeCandidates,
+      Set<UID> syncedActiveUids,
       Date syncTime) {
-    if (syncedUids.isEmpty()) {
+    Set<UID> trackedEntityUids =
+        Stream.concat(
+                resolveSyncedTeUids(deletedCandidates, syncedDeletedUids),
+                resolveSyncedTeUids(activeCandidates, syncedActiveUids))
+            .collect(Collectors.toCollection(HashSet::new));
+    if (trackedEntityUids.isEmpty()) {
       return;
     }
-    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> syncedTes =
-        candidates.stream().filter(te -> syncedUids.contains(te.getTrackedEntity())).toList();
-    updateTrackedEntitiesSyncTimestamp(syncedTes, syncTime);
+    trackedEntityService.updateTrackedEntitiesSyncTimestamp(trackedEntityUids, syncTime);
+  }
+
+  private Stream<UID> resolveSyncedTeUids(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> candidates,
+      Set<UID> syncedUids) {
+    if (syncedUids.isEmpty()) {
+      return Stream.empty();
+    }
+    return candidates.stream()
+        .map(org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity::getTrackedEntity)
+        .filter(syncedUids::contains);
   }
 
   private void stripDeletedChildren(
@@ -687,17 +706,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private boolean hasFailedRelationship(
       List<Relationship> relationships, Set<UID> failedRelationships) {
     return relationships.stream().anyMatch(r -> failedRelationships.contains(r.getRelationship()));
-  }
-
-  private void updateTrackedEntitiesSyncTimestamp(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
-      Date syncTime) {
-    Set<UID> trackedEntityUids =
-        trackedEntities.stream()
-            .map(org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity::getTrackedEntity)
-            .collect(Collectors.toSet());
-
-    trackedEntityService.updateTrackedEntitiesSyncTimestamp(trackedEntityUids, syncTime);
   }
 
   private org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalTrackedEntity(

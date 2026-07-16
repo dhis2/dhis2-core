@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -303,8 +304,12 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     Set<UID> syncedDeletedEventUids =
         deleteResult == null ? Set.of() : deleteResult.syncedEventUids();
 
-    stampSyncTimestamp(deletedEventDtos, syncedDeletedEventUids, syncTime);
-    stampSyncTimestamp(splitActiveEvents.activeEvents(), syncedActiveEventUids, syncTime);
+    stampSyncTimestamps(
+        deletedEventDtos,
+        syncedDeletedEventUids,
+        splitActiveEvents.activeEvents(),
+        syncedActiveEventUids,
+        syncTime);
   }
 
   private SplitActiveEvents splitActiveEvents(List<Event> active) {
@@ -353,16 +358,33 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         .collect(Collectors.toCollection(HashSet::new));
   }
 
-  private void stampSyncTimestamp(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> candidates,
-      Set<UID> syncedUids,
+  private void stampSyncTimestamps(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedCandidates,
+      Set<UID> syncedDeletedUids,
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeCandidates,
+      Set<UID> syncedActiveUids,
       Date syncTime) {
-    if (syncedUids.isEmpty()) {
+    List<String> eventUids =
+        Stream.concat(
+                resolveSyncedEventUids(deletedCandidates, syncedDeletedUids),
+                resolveSyncedEventUids(activeCandidates, syncedActiveUids))
+            .toList();
+
+    if (eventUids.isEmpty()) {
       return;
     }
-    List<org.hisp.dhis.webapi.controller.tracker.view.Event> syncedEvents =
-        candidates.stream().filter(event -> syncedUids.contains(event.getEvent())).toList();
-    updateEventsSyncTimestamp(syncedEvents, syncTime);
+    eventService.updateEventsSyncTimestamp(eventUids, syncTime);
+  }
+
+  private Stream<String> resolveSyncedEventUids(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> candidates, Set<UID> syncedUids) {
+    if (syncedUids.isEmpty()) {
+      return Stream.empty();
+    }
+    return candidates.stream()
+        .map(org.hisp.dhis.webapi.controller.tracker.view.Event::getEvent)
+        .filter(syncedUids::contains)
+        .map(UID::getValue);
   }
 
   private List<Relationship> stripDeletedRelationships(
@@ -485,16 +507,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private boolean hasFailedRelationship(
       List<Relationship> relationships, Set<UID> failedRelationships) {
     return relationships.stream().anyMatch(r -> failedRelationships.contains(r.getRelationship()));
-  }
-
-  private void updateEventsSyncTimestamp(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
-    List<String> eventUids =
-        events.stream()
-            .map(org.hisp.dhis.webapi.controller.tracker.view.Event::getEvent)
-            .map(UID::getValue)
-            .toList();
-    eventService.updateEventsSyncTimestamp(eventUids, syncTime);
   }
 
   private org.hisp.dhis.webapi.controller.tracker.view.Event toMinimalEvent(Event event) {
