@@ -89,23 +89,27 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
 
   @Override
   protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
-    // 1) Match the path as-is so literal-extension mappings (e.g. /openapi/openapi.json) win.
-    HandlerMethod handlerMethod = super.getHandlerInternal(request);
-    if (handlerMethod != null) {
-      return handlerMethod;
-    }
-    // 2) Fall back to a normalised path (trailing slash and/or registered extension removed).
+    // When the path ends with a registered media-type extension (e.g. .json / .json.zip), prefer
+    // matching the suffix-stripped path so content negotiation works and generic /{property}
+    // handlers do not swallow "metadata.json" as a property name. If that fails (literal-extension
+    // controller mappings such as /openapi/openapi.json), fall back to the original path.
+    //
+    // Paths without a registered extension: match as-is, then fall back to trailing-slash strip.
     HttpServletRequest normalized = normalize(request);
-    if (normalized == request) {
-      return null;
+    if (normalized != request) {
+      clearAndReparsePathCaches(normalized);
+      HandlerMethod stripped = super.getHandlerInternal(normalized);
+      if (stripped != null) {
+        return stripped;
+      }
+      // No stripped handler - try the original path (literal extension mappings).
+      clearAndReparsePathCaches(request);
     }
-    // Spring caches the lookup path on the request after the first attempt. Clear it so the second
-    // match uses the normalised path exposed by the wrapper (otherwise POST /api/x/ stays a 404).
-    clearPathCaches(normalized);
-    return super.getHandlerInternal(normalized);
+
+    return super.getHandlerInternal(request);
   }
 
-  private static void clearPathCaches(HttpServletRequest request) {
+  private static void clearAndReparsePathCaches(HttpServletRequest request) {
     request.removeAttribute(HandlerMapping.LOOKUP_PATH);
     request.removeAttribute(UrlPathHelper.PATH_ATTRIBUTE);
     ServletRequestPathUtils.clearParsedRequestPath(request);

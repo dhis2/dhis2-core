@@ -81,12 +81,14 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
   }
 
   @Test
-  void literalExtensionMappingWinsWithoutStripping() throws Exception {
+  void literalExtensionMappingWinsWhenStrippedPathHasNoHandler() throws Exception {
     MockHttpServletRequest request = request("/openapi/openapi.json");
     HandlerMethod handler = mapping.getHandlerInternal(request);
     assertNotNull(handler);
     assertEquals("openapi", handler.getMethod().getName());
-    assertNull(
+    // Registered .json extension is still recorded for content negotiation.
+    assertEquals(
+        MediaType.APPLICATION_JSON,
         request.getAttribute(
             SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE));
   }
