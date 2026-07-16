@@ -302,8 +302,13 @@ public class Dhis2OAuth2ClientServiceImpl
         StringUtils.collectionToCommaDelimitedString(registeredClient.getPostLogoutRedirectUris()));
     entity.setScopes(StringUtils.collectionToCommaDelimitedString(registeredClient.getScopes()));
 
-    Map<String, Object> settings = registeredClient.getClientSettings().getSettings();
-    entity.setClientSettings(writeMap(settings));
+    // SAS 7 defaults requireProofKey=true. Temporary bridge: persist false so existing
+    // non-PKCE clients/e2e keep working until PR-H adopts PKCE-by-default.
+    ClientSettings clientSettings =
+        ClientSettings.withSettings(registeredClient.getClientSettings().getSettings())
+            .requireProofKey(false)
+            .build();
+    entity.setClientSettings(writeMap(clientSettings.getSettings()));
     String tokenSettings = writeMap(registeredClient.getTokenSettings().getSettings());
     entity.setTokenSettings(tokenSettings);
 
@@ -388,13 +393,18 @@ public class Dhis2OAuth2ClientServiceImpl
     if (entity.getRawName() == null || entity.getRawName().isEmpty()) {
       entity.setName(truncateName(entity.getClientId()));
     }
+    // SAS 7 flips requireProofKey default false->true. Temporary bridge for existing non-PKCE
+    // clients/e2e while we roll out PKCE-by-default (plan PR-H). Always force false on create.
     if (entity.getClientSettings() == null) {
-      // SAS 7 flips requireProofKey default false->true. Temporary bridge for existing non-PKCE
-      // clients/e2e while we roll out PKCE-by-default (plan PR-H). Remove once clients send
-      // code_challenge.
       ClientSettings defaults =
           ClientSettings.builder().requireAuthorizationConsent(true).requireProofKey(false).build();
       entity.setClientSettings(writeMap(defaults.getSettings()));
+    } else {
+      ClientSettings forced =
+          ClientSettings.withSettings(parseMap(entity.getClientSettings()))
+              .requireProofKey(false)
+              .build();
+      entity.setClientSettings(writeMap(forced.getSettings()));
     }
     if (entity.getTokenSettings() == null) {
       entity.setTokenSettings(writeMap(TokenSettings.builder().build().getSettings()));

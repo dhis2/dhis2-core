@@ -75,6 +75,8 @@ final class InlineJwksClientMetadataConfig {
       // so no end-user consent prompt is needed.
       ClientSettings.Builder cs = ClientSettings.withSettings(rc.getClientSettings().getSettings());
       cs.requireAuthorizationConsent(false);
+      // Temporary SAS 7 bridge: DCR clients do not use PKCE yet (PR-H).
+      cs.requireProofKey(false);
       Map<String, Object> claims = reg.getClaims();
 
       // Accept optional "token_endpoint_auth_signing_alg": "RS256"

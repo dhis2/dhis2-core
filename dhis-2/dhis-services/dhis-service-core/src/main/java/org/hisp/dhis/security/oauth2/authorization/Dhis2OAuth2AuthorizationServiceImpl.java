@@ -52,7 +52,10 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.FactorGrantedAuthority;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2DeviceCode;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -255,7 +258,11 @@ public class Dhis2OAuth2AuthorizationServiceImpl
             .principalName(entity.getPrincipalName())
             .authorizationGrantType(OAuth2GrantTypes.resolve(entity.getAuthorizationGrantType()))
             .authorizedScopes(StringUtils.commaDelimitedListToSet(entity.getAuthorizedScopes()))
-            .attributes(attributes -> attributes.putAll(parseMap(entity.getAttributes())));
+            .attributes(
+                attributes -> {
+                  attributes.putAll(parseMap(entity.getAttributes()));
+                  ensureFactorGrantedAuthority(attributes);
+                });
 
     if (entity.getState() != null) {
       builder.attribute(OAuth2ParameterNames.STATE, entity.getState());
@@ -474,6 +481,39 @@ public class Dhis2OAuth2AuthorizationServiceImpl
    * @param data The JSON string
    * @return The parsed Map
    */
+
+  /**
+   * SAS 7 JwtGenerator requires a {@link FactorGrantedAuthority} to derive OIDC {@code auth_time}
+   * when a SessionRegistry is present. Older persisted principals (and some login paths) may lack
+   * one after JSON round-trip; re-attach a synthetic password factor so token exchange does not
+   * fail with "authenticationTime cannot be null".
+   */
+  private static void ensureFactorGrantedAuthority(Map<String, Object> attributes) {
+    Object principal = attributes.get(java.security.Principal.class.getName());
+    if (!(principal instanceof Authentication authentication)) {
+      return;
+    }
+    if (authentication.getAuthorities().stream()
+        .anyMatch(FactorGrantedAuthority.class::isInstance)) {
+      return;
+    }
+    java.util.List<GrantedAuthority> authorities =
+        new java.util.ArrayList<>(authentication.getAuthorities());
+    authorities.add(
+        FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.PASSWORD_AUTHORITY));
+    Authentication enriched;
+    if (authentication instanceof OAuth2AuthenticationToken oauth) {
+      enriched =
+          new OAuth2AuthenticationToken(
+              oauth.getPrincipal(), authorities, oauth.getAuthorizedClientRegistrationId());
+    } else {
+      enriched =
+          UsernamePasswordAuthenticationToken.authenticated(
+              authentication.getPrincipal(), authentication.getCredentials(), authorities);
+    }
+    attributes.put(java.security.Principal.class.getName(), enriched);
+  }
+
   private Map<String, Object> parseMap(String data) {
     if (data == null || data.isBlank()) {
       return Map.of();
