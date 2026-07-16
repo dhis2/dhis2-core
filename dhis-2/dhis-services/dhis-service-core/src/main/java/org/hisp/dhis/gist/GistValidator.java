@@ -30,15 +30,14 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
-import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
-import static org.hisp.dhis.gist.GistLogic.isNestedPath;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.input.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -99,9 +98,9 @@ final class GistValidator {
 
   private void validateField(Field f, RelativePropertyContext context) {
     if (f.isRefs() || f.isAttribute()) return;
-    String path = f.propertyPath();
+    PropertyPath path = f.propertyPath();
     Property field = context.resolveMandatory(path);
-    if (isNestedPath(path)) {
+    if (path.isNested()) {
       List<Property> pathElements = context.resolvePath(path);
       Property head = pathElements.get(0);
       if (head.isCollection() && head.isPersisted()) {
@@ -171,12 +170,12 @@ final class GistValidator {
    * type but there are fields that are generally visible.
    */
   private void validateFieldAccess(Field f, RelativePropertyContext context) {
-    String path = f.propertyPath();
+    PropertyPath path = f.propertyPath();
     Property field = context.resolveMandatory(path);
-    if (!access.canRead(query.getElementType(), path)) {
+    if (!access.canRead(query.getElementType(), path.toString())) {
       throw createNoReadAccess(f, query.getElementType());
     }
-    if (isNestedPath(path)) {
+    if (path.isNested()) {
       Schema fieldOwner = context.switchedTo(path).getHome();
       @SuppressWarnings("unchecked")
       Class<? extends PrimaryKeyObject> ownerType =
@@ -197,10 +196,9 @@ final class GistValidator {
   }
 
   private void validateFilterPath(Filter f, RelativePropertyContext context) {
-    String propertyPath = f.getPropertyPath();
+    PropertyPath propertyPath = f.getPropertyPath();
     if (isAttributeValuesAttributePropertyPath(propertyPath)) {
-      Property p =
-          context.switchedTo(Attribute.class).resolveMandatory(attributePath(propertyPath));
+      Property p = context.switchedTo(Attribute.class).resolveMandatory(propertyPath.property());
       if (!p.isPersisted())
         throw createIllegalProperty(
             p, "Property `%s` cannot be used as an attribute filter property");
