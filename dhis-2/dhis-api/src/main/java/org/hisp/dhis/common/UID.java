@@ -99,6 +99,10 @@ public final class UID implements Serializable {
   }
 
   @JsonCreator
+  public static UID of(@Nonnull String value) {
+    return of((CharSequence) value);
+  }
+
   public static UID of(@Nonnull CharSequence value) {
     return new UID(value);
   }
