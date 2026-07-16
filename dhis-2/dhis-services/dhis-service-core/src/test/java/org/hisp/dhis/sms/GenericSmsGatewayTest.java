@@ -116,7 +116,7 @@ class GenericSmsGatewayTest {
   private Map<String, String> valueStore = new HashMap<>();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     subject.setRestTemplate(restTemplate);
 
     gatewayConfig = new GenericHttpGatewayConfig();

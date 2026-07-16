@@ -507,9 +507,10 @@ public class Dhis2OAuth2AuthorizationServiceImpl
           new OAuth2AuthenticationToken(
               oauth.getPrincipal(), authorities, oauth.getAuthorizedClientRegistrationId());
     } else {
+      Object credentials = authentication.getCredentials();
       enriched =
           UsernamePasswordAuthenticationToken.authenticated(
-              authentication.getPrincipal(), authentication.getCredentials(), authorities);
+              authentication.getPrincipal(), credentials != null ? credentials : "", authorities);
     }
     attributes.put(java.security.Principal.class.getName(), enriched);
   }

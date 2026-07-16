@@ -156,31 +156,35 @@ public class AuthorizationServerConfig {
   @Bean
   @Order(1)
   public SecurityFilterChain authorizationServerSecurityFilterChain(
-      HttpSecurity http, CustomClaimValidator<Jwt> customClaimValidator) throws Exception {
+      HttpSecurity http, CustomClaimValidator<Jwt> customClaimValidator) {
     OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
         new OAuth2AuthorizationServerConfigurer();
 
-    http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-        .with(
-            authorizationServerConfigurer,
-            authorizationServer ->
-                authorizationServer
-                    .clientAuthentication(
-                        clientAuthentication ->
-                            clientAuthentication.authenticationProviders(
-                                configureJwtClientAssertionWithInlineJwks(customClaimValidator)))
-                    .oidc(
-                        oidc ->
-                            oidc.clientRegistrationEndpoint(
-                                cr -> cr.authenticationProviders(customizeDcrProviders()))))
-        .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-        .exceptionHandling(
-            exceptions ->
-                exceptions.defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/login/"),
-                    new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
+    try {
+      http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+          .with(
+              authorizationServerConfigurer,
+              authorizationServer ->
+                  authorizationServer
+                      .clientAuthentication(
+                          clientAuthentication ->
+                              clientAuthentication.authenticationProviders(
+                                  configureJwtClientAssertionWithInlineJwks(customClaimValidator)))
+                      .oidc(
+                          oidc ->
+                              oidc.clientRegistrationEndpoint(
+                                  cr -> cr.authenticationProviders(customizeDcrProviders()))))
+          .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+          .exceptionHandling(
+              exceptions ->
+                  exceptions.defaultAuthenticationEntryPointFor(
+                      new LoginUrlAuthenticationEntryPoint("/login/"),
+                      new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
-    return http.build();
+      return http.build();
+    } catch (Exception ex) {
+      throw new IllegalStateException("Failed to configure OAuth2 authorization server", ex);
+    }
   }
 
   /**

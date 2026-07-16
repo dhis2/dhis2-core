@@ -218,7 +218,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     private MockServerClient upstreamMockServerClient;
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
       upstreamMockServerContainer =
           new GenericContainer<>("mockserver/mockserver:5.15.0")
               .waitingFor(new HttpWaitStrategy().forStatusCode(404))

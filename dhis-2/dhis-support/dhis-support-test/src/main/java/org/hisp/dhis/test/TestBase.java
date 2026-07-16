@@ -2569,10 +2569,7 @@ public abstract class TestBase {
   }
 
   public static void clearSecurityContext() {
-    SecurityContext context = SecurityContextHolder.getContext();
-    if (context != null) {
-      SecurityContextHolder.getContext().setAuthentication(null);
-    }
+    SecurityContextHolder.getContext().setAuthentication(null);
     SecurityContextHolder.clearContext();
   }
 

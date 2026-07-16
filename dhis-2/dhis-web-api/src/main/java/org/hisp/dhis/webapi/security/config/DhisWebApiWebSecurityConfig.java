@@ -80,6 +80,7 @@ import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer.SessionFixationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
@@ -271,7 +272,7 @@ public class DhisWebApiWebSecurityConfig {
     return http.build();
   }
 
-  public static void setHttpHeaders(HttpSecurity http) throws Exception {
+  public static void setHttpHeaders(HttpSecurity http) {
     http.headers(
         headers ->
             headers
@@ -292,7 +293,7 @@ public class DhisWebApiWebSecurityConfig {
                 new AntPathRequestMatcher("/favicon.ico"));
   }
 
-  private void configureMatchers(HttpSecurity http) throws Exception {
+  private void configureMatchers(HttpSecurity http) {
     http.securityContext(
         httpSecuritySecurityContextConfigurer ->
             httpSecuritySecurityContextConfigurer.requireExplicitSave(true));
@@ -440,7 +441,7 @@ public class DhisWebApiWebSecurityConfig {
     http.sessionManagement(
         session ->
             session
-                .sessionFixation(sessionFixation -> sessionFixation.migrateSession())
+                .sessionFixation(SessionFixationConfigurer::migrateSession)
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .enableSessionUrlRewriting(false)
                 .maximumSessions(
