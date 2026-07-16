@@ -36,12 +36,11 @@ import static org.mockito.Mockito.when;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import org.hisp.dhis.common.auth.OAuth2ClientCredentialsAuthScheme;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -148,9 +147,9 @@ class OAuth2ClientCredentialsAuthSchemeTest extends AbstractAuthSchemeTest {
 
     SecurityContextHolder.getContext()
         .setAuthentication(new TestingAuthenticationToken(null, null));
-    Map<String, List<String>> headers = new HashMap<>();
+    HttpHeaders headers = new HttpHeaders();
     oAuth2ClientCredentialsAuthScheme.apply(mockApplicationContext, headers, new HashMap<>());
-    assertEquals("Bearer foo", headers.get("Authorization").get(0));
+    assertEquals("Bearer foo", headers.getFirst("Authorization"));
     assertEquals(1, saveAuthorizedClientMethodCountDownLatch.getCount());
   }
 
@@ -229,8 +228,8 @@ class OAuth2ClientCredentialsAuthSchemeTest extends AbstractAuthSchemeTest {
 
     SecurityContextHolder.getContext()
         .setAuthentication(new TestingAuthenticationToken(null, null));
-    Map<String, List<String>> headers = new HashMap<>();
+    HttpHeaders headers = new HttpHeaders();
     oAuth2ClientCredentialsAuthScheme.apply(mockApplicationContext, headers, new HashMap<>());
-    assertEquals("Bearer bar", headers.get("Authorization").get(0));
+    assertEquals("Bearer bar", headers.getFirst("Authorization"));
   }
 }

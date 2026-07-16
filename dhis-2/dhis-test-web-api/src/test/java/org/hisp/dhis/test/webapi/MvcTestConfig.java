@@ -154,6 +154,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     // Path-extension + trailing-slash matching is handled by CustomRequestMappingHandlerMapping
     // (literal-first, then normalised path). Do not set removed/deprecated suffix flags.
+    mapping.setPatternParser(null);
     return mapping;
   }
 

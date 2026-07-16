@@ -38,8 +38,7 @@ import java.util.HashMap;
 import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.http.HttpHeaders;
 
 /**
  * @author Morten Olav Hansen
@@ -50,12 +49,12 @@ class HttpBasicAuthSchemeTest extends AbstractAuthSchemeTest {
     HttpBasicAuthScheme auth =
         new HttpBasicAuthScheme().setUsername("admin").setPassword("district");
 
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    HttpHeaders headers = new HttpHeaders();
     auth.apply(mock(ApplicationContext.class), headers, new HashMap<>());
 
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+    assertTrue(headers.containsHeader("Authorization"));
+    assertFalse(headers.getOrEmpty("Authorization").isEmpty());
+    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.getFirst("Authorization"));
   }
 
   @Test

@@ -45,6 +45,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
 
 @Getter
 @Setter
@@ -61,7 +62,7 @@ public class ApiQueryParamsAuthScheme implements AuthScheme {
   @Override
   public void apply(
       ApplicationContext applicationContext,
-      Map<String, List<String>> headers,
+      HttpHeaders headers,
       Map<String, List<String>> queryParams) {
     for (Map.Entry<String, String> queryParam : this.queryParams.entrySet()) {
       queryParams

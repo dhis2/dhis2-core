@@ -76,7 +76,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -530,7 +530,10 @@ public class DhisWebApiWebSecurityConfig {
         (request, response, exception) -> {
           authenticationEventPublisher.publishAuthenticationFailure(
               exception,
-              new AbstractAuthenticationToken(null) {
+              new AbstractAuthenticationToken(
+                  (java.util.Collection<
+                          ? extends org.springframework.security.core.GrantedAuthority>)
+                      null) {
                 @Override
                 public Object getCredentials() {
                   return null;
