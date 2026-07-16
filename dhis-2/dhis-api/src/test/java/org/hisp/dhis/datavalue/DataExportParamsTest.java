@@ -34,6 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.junit.jupiter.api.Test;
 
 class DataExportParamsTest {
@@ -59,6 +64,44 @@ class DataExportParamsTest {
   }
 
   @Test
+  void testHasPeriodFilters_PeriodsTrue() {
+    DataExportParams params =
+        DataExportParams.builder().periods(List.of(Period.of("202201"))).build();
+
+    assertTrue(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasPeriodFilters_PeriodTypesTrue() {
+    DataExportParams params =
+        DataExportParams.builder().periodTypes(Set.of(new MonthlyPeriodType())).build();
+
+    assertTrue(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasPeriodFilters_StartAndEndDateTrue() {
+    DataExportParams params =
+        DataExportParams.builder().startDate(new Date(0)).endDate(new Date(1)).build();
+
+    assertTrue(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasPeriodFilters_StartDateAloneFalse() {
+    DataExportParams params = DataExportParams.builder().startDate(new Date(0)).build();
+
+    assertFalse(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasPeriodFilters_IncludedDateTrue() {
+    DataExportParams params = DataExportParams.builder().includedDate(new Date()).build();
+
+    assertTrue(params.hasPeriodFilters());
+  }
+
+  @Test
   void testHasLastUpdatedFilters_NoFiltersFalse() {
     DataExportParams params = DataExportParams.builder().build();
 
@@ -78,5 +121,193 @@ class DataExportParamsTest {
     DataExportParams params = DataExportParams.builder().lastUpdated(new Date()).build();
 
     assertTrue(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasDataElementFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.hasDataElementFilters());
+  }
+
+  @Test
+  void testHasDataElementFilters_DataSetsTrue() {
+    DataExportParams params = DataExportParams.builder().dataSets(List.of(UID.generate())).build();
+
+    assertTrue(params.hasDataElementFilters());
+  }
+
+  @Test
+  void testHasDataElementFilters_DataElementsTrue() {
+    DataExportParams params =
+        DataExportParams.builder().dataElements(List.of(UID.generate())).build();
+
+    assertTrue(params.hasDataElementFilters());
+  }
+
+  @Test
+  void testHasDataElementFilters_DataElementGroupsTrue() {
+    DataExportParams params =
+        DataExportParams.builder().dataElementGroups(List.of(UID.generate())).build();
+
+    assertTrue(params.hasDataElementFilters());
+  }
+
+  @Test
+  void testHasOrgUnitFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.hasOrgUnitFilters());
+  }
+
+  @Test
+  void testHasOrgUnitFilters_OrganisationUnitsTrue() {
+    DataExportParams params =
+        DataExportParams.builder().organisationUnits(List.of(UID.generate())).build();
+
+    assertTrue(params.hasOrgUnitFilters());
+  }
+
+  @Test
+  void testHasOrgUnitFilters_OrganisationUnitGroupsTrue() {
+    DataExportParams params =
+        DataExportParams.builder().organisationUnitGroups(List.of(UID.generate())).build();
+
+    assertTrue(params.hasOrgUnitFilters());
+  }
+
+  @Test
+  void testIsExactOrgUnitsFilter_OrgUnitsOnlyTrue() {
+    DataExportParams params =
+        DataExportParams.builder().organisationUnits(List.of(UID.generate())).build();
+
+    assertTrue(params.isExactOrgUnitsFilter());
+  }
+
+  @Test
+  void testIsExactOrgUnitsFilter_NoOrgUnitsFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.isExactOrgUnitsFilter());
+  }
+
+  @Test
+  void testIsExactOrgUnitsFilter_IncludeDescendantsFalse() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .organisationUnits(List.of(UID.generate()))
+            .includeDescendants(true)
+            .build();
+
+    assertFalse(params.isExactOrgUnitsFilter());
+  }
+
+  @Test
+  void testIsExactOrgUnitsFilter_OrgUnitGroupsAlsoSetFalse() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .organisationUnits(List.of(UID.generate()))
+            .organisationUnitGroups(List.of(UID.generate()))
+            .build();
+
+    assertFalse(params.isExactOrgUnitsFilter());
+  }
+
+  @Test
+  void testIsPeriodOverSpecified_PeriodsAndStartEndDateTrue() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .periods(List.of(Period.of("202201")))
+            .startDate(new Date(0))
+            .endDate(new Date(1))
+            .build();
+
+    assertTrue(params.isPeriodOverSpecified());
+  }
+
+  @Test
+  void testIsPeriodOverSpecified_PeriodsOnlyFalse() {
+    DataExportParams params =
+        DataExportParams.builder().periods(List.of(Period.of("202201"))).build();
+
+    assertFalse(params.isPeriodOverSpecified());
+  }
+
+  @Test
+  void testIsPeriodOverSpecified_StartEndDateOnlyFalse() {
+    DataExportParams params =
+        DataExportParams.builder().startDate(new Date(0)).endDate(new Date(1)).build();
+
+    assertFalse(params.isPeriodOverSpecified());
+  }
+
+  @Test
+  void testIsDateRangeOutOfBounds_StartAfterEndTrue() {
+    DataExportParams params =
+        DataExportParams.builder().startDate(new Date(1)).endDate(new Date(0)).build();
+
+    assertTrue(params.isDateRangeOutOfBounds());
+  }
+
+  @Test
+  void testIsDateRangeOutOfBounds_StartBeforeEndFalse() {
+    DataExportParams params =
+        DataExportParams.builder().startDate(new Date(0)).endDate(new Date(1)).build();
+
+    assertFalse(params.isDateRangeOutOfBounds());
+  }
+
+  @Test
+  void testIsDateRangeOutOfBounds_StartDateOnlyFalse() {
+    DataExportParams params = DataExportParams.builder().startDate(new Date(1)).build();
+
+    assertFalse(params.isDateRangeOutOfBounds());
+  }
+
+  @Test
+  void testIsLimitOutOfBounds_NegativeTrue() {
+    DataExportParams params = DataExportParams.builder().limit(-1).build();
+
+    assertTrue(params.isLimitOutOfBounds());
+  }
+
+  @Test
+  void testIsLimitOutOfBounds_ZeroFalse() {
+    DataExportParams params = DataExportParams.builder().limit(0).build();
+
+    assertFalse(params.isLimitOutOfBounds());
+  }
+
+  @Test
+  void testIsLimitOutOfBounds_NullFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.isLimitOutOfBounds());
+  }
+
+  @Test
+  void testIsOrgUnitGroupsOverSpecified_GroupsAndDescendantsTrue() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .organisationUnitGroups(List.of(UID.generate()))
+            .includeDescendants(true)
+            .build();
+
+    assertTrue(params.isOrgUnitGroupsOverSpecified());
+  }
+
+  @Test
+  void testIsOrgUnitGroupsOverSpecified_GroupsWithoutDescendantsFalse() {
+    DataExportParams params =
+        DataExportParams.builder().organisationUnitGroups(List.of(UID.generate())).build();
+
+    assertFalse(params.isOrgUnitGroupsOverSpecified());
+  }
+
+  @Test
+  void testIsOrgUnitGroupsOverSpecified_DescendantsWithoutGroupsFalse() {
+    DataExportParams params = DataExportParams.builder().includeDescendants(true).build();
+
+    assertFalse(params.isOrgUnitGroupsOverSpecified());
   }
 }
