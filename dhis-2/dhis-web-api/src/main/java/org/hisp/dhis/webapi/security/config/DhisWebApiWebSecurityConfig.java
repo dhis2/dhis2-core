@@ -93,6 +93,8 @@ import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.hisp.dhis.user.authz.AuthzService;
+import org.hisp.dhis.webapi.security.authz.UserDetailsSoftRefreshFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
@@ -151,6 +153,8 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
   @Autowired private RequestCache requestCache;
+
+  @Autowired private AuthzService authzService;
 
   private static class CustomRequestMatcher implements RequestMatcher {
     private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
@@ -265,6 +269,7 @@ public class DhisWebApiWebSecurityConfig {
     configureOAuthTokenFilters(http);
 
     http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
+    http.addFilterAfter(new UserDetailsSoftRefreshFilter(authzService), SessionTimeoutHeaderFilter.class);
 
     setHttpHeaders(http);
 

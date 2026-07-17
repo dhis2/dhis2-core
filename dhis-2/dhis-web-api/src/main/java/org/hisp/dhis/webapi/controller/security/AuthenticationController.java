@@ -46,6 +46,8 @@ import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.authz.AuthzConstants;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +110,8 @@ public class AuthenticationController {
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
+
+  @Autowired private AuthzService authzService;
 
   @Autowired protected ApplicationEventPublisher eventPublisher;
   @Autowired private HttpSessionEventPublisher httpSessionEventPublisher;
@@ -229,6 +233,10 @@ public class AuthenticationController {
 
     HttpSession session = request.getSession(true);
     httpSessionEventPublisher.sessionCreated(new HttpSessionEvent(session));
+    if (authentication.getPrincipal() instanceof UserDetails userDetails) {
+      session.setAttribute(
+          AuthzConstants.SESSION_AUTHZ_GEN_ATTR, authzService.effectiveGen(userDetails));
+    }
   }
 
   private String getRedirectUrl(

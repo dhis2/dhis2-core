@@ -58,6 +58,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
 
@@ -72,6 +73,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
+  private final AuthzService authzService;
 
   private final FileResourceService fileResourceService;
 
@@ -198,12 +200,44 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   }
 
   private Boolean userRolesUpdated(User preUpdateUser, User persistedUser) {
-    Set<String> before =
+    Set<String> beforeRoles =
         preUpdateUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
-    Set<String> after =
+    Set<String> afterRoles =
         persistedUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
-
-    return !Objects.equals(before, after);
+    if (!Objects.equals(beforeRoles, afterRoles)) {
+      return true;
+    }
+    Set<String> beforeOu =
+        preUpdateUser.getOrganisationUnits().stream()
+            .map(ou -> ou.getUid())
+            .collect(Collectors.toSet());
+    Set<String> afterOu =
+        persistedUser.getOrganisationUnits().stream()
+            .map(ou -> ou.getUid())
+            .collect(Collectors.toSet());
+    if (!Objects.equals(beforeOu, afterOu)) {
+      return true;
+    }
+    Set<String> beforeDataView =
+        preUpdateUser.getDataViewOrganisationUnits().stream()
+            .map(ou -> ou.getUid())
+            .collect(Collectors.toSet());
+    Set<String> afterDataView =
+        persistedUser.getDataViewOrganisationUnits().stream()
+            .map(ou -> ou.getUid())
+            .collect(Collectors.toSet());
+    if (!Objects.equals(beforeDataView, afterDataView)) {
+      return true;
+    }
+    Set<String> beforeSearch =
+        preUpdateUser.getTeiSearchOrganisationUnits().stream()
+            .map(ou -> ou.getUid())
+            .collect(Collectors.toSet());
+    Set<String> afterSearch =
+        persistedUser.getTeiSearchOrganisationUnits().stream()
+            .map(ou -> ou.getUid())
+            .collect(Collectors.toSet());
+    return !Objects.equals(beforeSearch, afterSearch);
   }
 
   @Override
@@ -220,7 +254,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     updateUserSettings(persistedUser);
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
-      userService.invalidateUserSessions(persistedUser.getUsername());
+      // Soft-refresh: bump user authz gen instead of mass session expire.
+      authzService.bumpUserAuthz(persistedUser.getUsername());
     }
 
     bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);

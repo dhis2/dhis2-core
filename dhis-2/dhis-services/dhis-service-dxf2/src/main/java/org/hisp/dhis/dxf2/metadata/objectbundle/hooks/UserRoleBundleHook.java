@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -34,46 +34,52 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhi2.org>
+ * Soft-refreshes authz when a role's authorities or restrictions change (O(1) role gen bump).
+ * Does not mass-invalidate HTTP sessions.
+ *
+ * @author Morten Svanæs
  */
 @Component
 @AllArgsConstructor
 @Slf4j
 public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
-  public static final String INVALIDATE_SESSION_KEY = "shouldInvalidateUserSessions";
+  public static final String BUMP_ROLE_AUTHZ_KEY = "shouldBumpRoleAuthz";
 
-  private final UserService userService;
+  private final AuthzService authzService;
 
   @Override
   public void preUpdate(UserRole update, UserRole existing, ObjectBundle bundle) {
-    if (update == null) return;
-    bundle.putExtras(update, INVALIDATE_SESSION_KEY, userRolesUpdated(update, existing));
+    if (update == null) {
+      return;
+    }
+    bundle.putExtras(update, BUMP_ROLE_AUTHZ_KEY, roleAuthzChanged(update, existing));
   }
 
-  private Boolean userRolesUpdated(UserRole update, UserRole existing) {
+  private Boolean roleAuthzChanged(UserRole update, UserRole existing) {
     Set<String> newAuthorities = update.getAuthorities();
     Set<String> existingAuthorities = existing.getAuthorities();
-    return !Objects.equals(newAuthorities, existingAuthorities);
+    Set<String> newRestrictions = update.getRestrictions();
+    Set<String> existingRestrictions = existing.getRestrictions();
+    return !Objects.equals(newAuthorities, existingAuthorities)
+        || !Objects.equals(newRestrictions, existingRestrictions);
   }
 
   @Override
   public void postUpdate(UserRole updatedUserRole, ObjectBundle bundle) {
-    final Boolean invalidateSessions =
-        (Boolean) bundle.getExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
+    final Boolean bump =
+        (Boolean) bundle.getExtras(updatedUserRole, BUMP_ROLE_AUTHZ_KEY);
 
-    if (Boolean.TRUE.equals(invalidateSessions)) {
-      for (User user : updatedUserRole.getUsers()) {
-        userService.invalidateUserSessions(user.getUsername());
-      }
+    if (Boolean.TRUE.equals(bump) && updatedUserRole.getUid() != null) {
+      authzService.bumpRoleAuthz(updatedUserRole.getUid());
+      log.debug("Bumped role authz gen for role {}", updatedUserRole.getUid());
     }
 
-    bundle.removeExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
+    bundle.removeExtras(updatedUserRole, BUMP_ROLE_AUTHZ_KEY);
   }
 }

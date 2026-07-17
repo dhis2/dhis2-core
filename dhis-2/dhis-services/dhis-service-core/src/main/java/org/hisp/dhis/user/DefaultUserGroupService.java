@@ -41,6 +41,7 @@ import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,19 +54,23 @@ public class DefaultUserGroupService implements UserGroupService {
   private final AclService aclService;
   private final HibernateCacheManager cacheManager;
   private final Cache<String> userGroupNameCache;
+  private final AuthzService authzService;
 
   public DefaultUserGroupService(
       UserGroupStore userGroupStore,
       AclService aclService,
       HibernateCacheManager cacheManager,
-      CacheProvider cacheProvider) {
+      CacheProvider cacheProvider,
+      AuthzService authzService) {
     checkNotNull(userGroupStore);
     checkNotNull(aclService);
     checkNotNull(cacheManager);
+    checkNotNull(authzService);
 
     this.userGroupStore = userGroupStore;
     this.aclService = aclService;
     this.cacheManager = cacheManager;
+    this.authzService = authzService;
 
     userGroupNameCache = cacheProvider.createUserGroupNameCache();
   }
@@ -98,6 +103,12 @@ public class DefaultUserGroupService implements UserGroupService {
 
     cacheManager.clearQueryCache();
     aclService.invalidateCurrentUserGroupInfoCache();
+    // Soft-refresh members when group metadata/membership changes.
+    if (userGroup.getMembers() != null) {
+      userGroup.getMembers().stream()
+          .filter(u -> u != null && u.getUsername() != null)
+          .forEach(u -> authzService.bumpUserAuthz(u.getUsername()));
+    }
   }
 
   @Override
@@ -157,6 +168,9 @@ public class DefaultUserGroupService implements UserGroupService {
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
+    if (user.getUsername() != null) {
+      authzService.bumpUserAuthz(user.getUsername());
+    }
   }
 
   @Override
@@ -184,6 +198,9 @@ public class DefaultUserGroupService implements UserGroupService {
     }
 
     aclService.invalidateCurrentUserGroupInfoCache();
+    if (user.getUsername() != null) {
+      authzService.bumpUserAuthz(user.getUsername());
+    }
   }
 
   private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<UID> uids) {

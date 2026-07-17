@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
+import java.util.Objects;
 import java.util.Optional;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -39,6 +40,7 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -56,13 +58,18 @@ import org.springframework.stereotype.Service;
 public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
   private final UserService userService;
+  private final AuthzService authzService;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
   public ApiTokenAuthManager(
-      ApiTokenService apiTokenService, CacheProvider cacheProvider, @Lazy UserService userService) {
+      ApiTokenService apiTokenService,
+      CacheProvider cacheProvider,
+      @Lazy UserService userService,
+      AuthzService authzService) {
     this.userService = userService;
     this.apiTokenService = apiTokenService;
+    this.authzService = authzService;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -78,8 +85,19 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     final Optional<ApiTokenAuthenticationToken> cachedToken = apiTokenCache.getIfPresent(tokenKey);
 
     if (cachedToken.isPresent()) {
-      validateTokenExpiry(cachedToken.get().getToken().getExpire());
-      return cachedToken.get();
+      ApiTokenAuthenticationToken cached = cachedToken.get();
+      validateTokenExpiry(cached.getToken().getExpire());
+      UserDetails cachedDetails = cached.getPrincipal();
+      if (cachedDetails != null) {
+        UserDetails fresh = authzService.ensureFresh(cachedDetails);
+        if (fresh != null && isAuthzSnapshotStale(cachedDetails, fresh)) {
+          ApiTokenAuthenticationToken refreshed =
+              new ApiTokenAuthenticationToken(cached.getToken(), fresh);
+          apiTokenCache.put(tokenKey, refreshed);
+          return refreshed;
+        }
+      }
+      return cached;
     } else {
       ApiToken apiToken = apiTokenService.getByKey(tokenKey);
       if (apiToken == null) {
@@ -109,7 +127,10 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     // User lookup and UserDetails creation must happen within a single transaction, so that lazy
     // collections (e.g. User.userRoles) are accessible. This code can run on endpoints excluded
     // from open-session-in-view, where no Hibernate session is otherwise available.
-    UserDetails userDetails = userService.createUserDetailsByUsername(createdBy.getUsername());
+    UserDetails userDetails = authzService.loadFreshUserDetails(createdBy.getUsername());
+    if (userDetails == null) {
+      userDetails = userService.createUserDetailsByUsername(createdBy.getUsername());
+    }
     if (userDetails == null) {
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token owner does not exists."));
@@ -129,6 +150,16 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     }
 
     return userDetails;
+  }
+
+
+  private static boolean isAuthzSnapshotStale(UserDetails cached, UserDetails fresh) {
+    return !Objects.equals(cached.getAllAuthorities(), fresh.getAllAuthorities())
+        || !Objects.equals(cached.getUserRoleIds(), fresh.getUserRoleIds())
+        || !Objects.equals(cached.getUserGroupIds(), fresh.getUserGroupIds())
+        || !Objects.equals(cached.getUserOrgUnitIds(), fresh.getUserOrgUnitIds())
+        || !Objects.equals(cached.getUserDataOrgUnitIds(), fresh.getUserDataOrgUnitIds())
+        || !Objects.equals(cached.getUserSearchOrgUnitIds(), fresh.getUserSearchOrgUnitIds());
   }
 
   private static void validateTokenExpiry(Long expiry) {
