@@ -92,6 +92,8 @@ public class Property implements Ordered, Klass {
    */
   @Setter private boolean persisted;
 
+  @Getter @Setter private boolean isTransient;
+
   /** Name of collection wrapper. */
   @Setter private String collectionName;
 
