@@ -32,11 +32,17 @@ package org.hisp.dhis.jsonpatch;
 import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -59,6 +65,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class JsonPatchManager {
+  private static final String JSON_PATCH_FILTER_ID = "jsonPatchFilter";
+
   private final ObjectMapper jsonMapper;
 
   private final SchemaService schemaService;
@@ -73,6 +81,12 @@ public class JsonPatchManager {
    * object into a tree like node structure, and this is where the patch will be applied. This means
    * that any property renaming etc will be followed.
    *
+   * <p>Non-owner collection properties that are not referenced by any patch path are omitted from
+   * serialization. Non-owner collections are ignored by metadata import UPDATE, so omitting them is
+   * free; omitting owner collections would clear them on import. Skipping avoids initializing lazy
+   * Hibernate collections such as {@code UserRole.members} during scalar PATCH /userRoles (slow
+   * PATCH /userRoles).
+   *
    * @param patch JsonPatch object with the operations it should apply.
    * @param object Jackson Object to apply the patch to.
    * @return New instance of the object with the patch applied.
@@ -86,12 +100,19 @@ public class JsonPatchManager {
 
     Class<?> realClass = HibernateProxyUtils.getRealClass(object);
     Schema schema = schemaService.getSchema(realClass);
-    JsonNode node = jsonMapper.valueToTree(object);
+
+    Set<String> patchedPaths =
+        patch.getOperations().stream()
+            .map(op -> op.getPath().getMatchingProperty())
+            .collect(Collectors.toSet());
+    Set<String> excluded = findExcludableNonOwnerCollections(schema, patchedPaths);
+
+    JsonNode node = toJsonNode(object, realClass, excluded);
 
     // since valueToTree does not properly handle our deeply nested classes,
     // we need to make another trip to make sure all collections are
     // correctly made into json nodes.
-    handleCollectionUpdates(object, schema, (ObjectNode) node);
+    handleCollectionUpdates(object, schema, (ObjectNode) node, excluded);
 
     validatePatchPath(patch, schema);
 
@@ -100,10 +121,59 @@ public class JsonPatchManager {
         jsonToObject(node, realClass, jsonMapper, ex -> new JsonPatchException(ex.getMessage()));
   }
 
-  private <T> void handleCollectionUpdates(T object, Schema schema, ObjectNode node) {
+  /**
+   * Collect JSON field names of non-owner collection properties that no patch op references.
+   *
+   * <p>Skip when {@code isCollection() && !isOwner()} and the patch paths match neither {@link
+   * Property#getName()} nor {@link Property#getCollectionName()}. Owner collections must always
+   * remain serialized (metadata import UPDATE would wipe them if omitted). Non-owner collections
+   * referenced by a patch path keep today's behavior.
+   */
+  private static Set<String> findExcludableNonOwnerCollections(
+      Schema schema, Set<String> patchedPaths) {
+    Set<String> excluded = new HashSet<>();
+    for (Property property : schema.getProperties()) {
+      if (property.isCollection()
+          && !property.isOwner()
+          && !patchedPaths.contains(property.getName())
+          && !patchedPaths.contains(property.getCollectionName())) {
+        // collectionName is the JSON name Jackson serializes (e.g. "users")
+        excluded.add(property.getCollectionName());
+      }
+    }
+    return excluded;
+  }
+
+  private JsonNode toJsonNode(Object object, Class<?> realClass, Set<String> excluded) {
+    if (excluded.isEmpty()) {
+      return jsonMapper.valueToTree(object);
+    }
+
+    // Per-call mapper copy with a mixin bound to realClass only, so nested
+    // objects serialize unchanged and excluded getters (lazy collections) are
+    // never invoked.
+    ObjectMapper patchMapper =
+        jsonMapper
+            .copy()
+            .addMixIn(realClass, JsonPatchFilterMixin.class)
+            .setFilterProvider(
+                new SimpleFilterProvider()
+                    .addFilter(
+                        JSON_PATCH_FILTER_ID,
+                        SimpleBeanPropertyFilter.serializeAllExcept(excluded)));
+    return patchMapper.valueToTree(object);
+  }
+
+  private <T> void handleCollectionUpdates(
+      T object, Schema schema, ObjectNode node, Set<String> excluded) {
     for (Property property : schema.getProperties()) {
 
       if (property.isCollection()) {
+        // Skip before safeInvoke so excluded lazy collections stay uninitialized.
+        if (excluded.contains(property.getCollectionName())) {
+          continue;
+        }
+
         Object data = safeInvoke(object, property.getGetterMethod());
 
         Collection<?> collection = (Collection<?>) data;
@@ -157,4 +227,8 @@ public class JsonPatchManager {
       }
     }
   }
+
+  /** Mixin that attaches the per-call json-patch property filter to the root entity class only. */
+  @JsonFilter(JSON_PATCH_FILTER_ID)
+  private static final class JsonPatchFilterMixin {}
 }
