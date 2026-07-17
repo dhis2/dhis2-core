@@ -30,11 +30,14 @@
 package org.hisp.dhis.jsonpatch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Set;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
@@ -46,6 +49,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -269,5 +273,78 @@ class JsonPatchManagerTest extends PostgresIntegrationTestBase {
             JsonPatch.class);
     assertNotNull(patch);
     assertThrows(JsonPatchException.class, () -> jsonPatchManager.apply(patch, userRole));
+  }
+
+  @Test
+  @DisplayName(
+      "Scalar UserRole patch must not initialize lazy members (slow PATCH /userRoles invariant)")
+  void testUserRoleScalarPatchDoesNotInitializeMembers() throws Exception {
+    UserRole userRole = createUserRole("roleMembersLazy", "AUTH_A");
+    manager.save(userRole);
+
+    for (int i = 0; i < 4; i++) {
+      User user = makeUser(String.valueOf((char) ('A' + i)));
+      manager.save(user);
+      userRole.addUser(user);
+      manager.update(user);
+    }
+    manager.update(userRole);
+
+    clearSession();
+
+    UserRole reloaded = manager.get(UserRole.class, userRole.getUid());
+    assertNotNull(reloaded);
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getMembers()),
+        "members should be lazy before patch apply");
+
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/description\", \"value\": \"updated\"}]",
+            JsonPatch.class);
+
+    UserRole patched = jsonPatchManager.apply(patch, reloaded);
+
+    assertEquals("updated", patched.getDescription());
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getMembers()),
+        "scalar patch must not initialize UserRole.members");
+  }
+
+  @Test
+  @DisplayName("Owner collection authorities survive a name-only UserRole patch")
+  void testUserRoleOwnerAuthoritiesPreservedOnNamePatch() throws Exception {
+    UserRole userRole = createUserRole("roleOwnerAuths", "AUTH_A", "AUTH_B");
+    manager.save(userRole);
+
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/name\", \"value\": \"roleOwnerAuthsRenamed\"}]",
+            JsonPatch.class);
+
+    UserRole patched = jsonPatchManager.apply(patch, userRole);
+
+    assertEquals("roleOwnerAuthsRenamed", patched.getName());
+    assertEquals(Set.of("AUTH_A", "AUTH_B"), patched.getAuthorities());
+  }
+
+  @Test
+  @DisplayName("Patch referencing non-owner /users path does not throw")
+  void testUserRoleUsersPathPatchDoesNotThrow() throws Exception {
+    UserRole userRole = createUserRole("roleUsersPath", "AUTH_A");
+    manager.save(userRole);
+
+    User user = makeUser("Z");
+    manager.save(user);
+    userRole.addUser(user);
+    manager.update(user);
+    manager.update(userRole);
+
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/users\", \"value\": []}]", JsonPatch.class);
+
+    UserRole patched = jsonPatchManager.apply(patch, userRole);
+    assertNotNull(patched);
   }
 }
