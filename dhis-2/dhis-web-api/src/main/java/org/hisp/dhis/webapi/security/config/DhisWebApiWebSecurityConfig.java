@@ -57,6 +57,7 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
@@ -65,6 +66,7 @@ import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.authz.SoftRefreshSecurityContextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -80,11 +82,14 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -151,6 +156,8 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
   @Autowired private RequestCache requestCache;
+
+  @Autowired private AuthzService authzService;
 
   private static class CustomRequestMatcher implements RequestMatcher {
     private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
@@ -265,7 +272,6 @@ public class DhisWebApiWebSecurityConfig {
     configureOAuthTokenFilters(http);
 
     http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
-
     setHttpHeaders(http);
 
     return http.build();
@@ -293,9 +299,18 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   private void configureMatchers(HttpSecurity http) throws Exception {
+    // Replicates the configurer's default repository pair, with the HttpSession delegate
+    // decorated for authz soft-refresh (session-only by construction; JWT/PAT never load
+    // through it).
     http.securityContext(
-        httpSecuritySecurityContextConfigurer ->
-            httpSecuritySecurityContextConfigurer.requireExplicitSave(true));
+        securityContext ->
+            securityContext
+                .requireExplicitSave(true)
+                .securityContextRepository(
+                    new DelegatingSecurityContextRepository(
+                        new RequestAttributeSecurityContextRepository(),
+                        new SoftRefreshSecurityContextRepository(
+                            new HttpSessionSecurityContextRepository(), authzService))));
 
     Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
     http.authorizeHttpRequests(
@@ -440,7 +455,8 @@ public class DhisWebApiWebSecurityConfig {
     http.sessionManagement(
         session ->
             session
-                .sessionFixation(sessionFixation -> sessionFixation.migrateSession())
+                .sessionFixation(
+                    SessionManagementConfigurer.SessionFixationConfigurer::migrateSession)
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .enableSessionUrlRewriting(false)
                 .maximumSessions(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.cache;
+package org.hisp.dhis.user.authz;
 
 /**
- * Enum is used to make sure we do not use same region twice. Each method should have its own
- * constant.
+ * Session attribute names used by UserDetails soft-refresh.
+ *
+ * @author Morten Svanæs
  */
-@SuppressWarnings("squid:S115") // allow non enum-ish names
-public enum Region {
-  analyticsResponse,
-  defaultObjectCache,
-  allConstantsCache,
-  inUserOrgUnitHierarchy,
-  periodIdCache,
-  userAccountRecoverAttempt,
-  userFailedLoginAttempt,
-  twoFaDisableFailedAttempt,
-  programOwner,
-  programTempOwner,
-  currentUserGroupInfoCache,
-  attrOptionComboIdCache,
-  googleAccessToken,
-  dataItemsPagination,
-  metadataAttributes,
-  canDataWriteCocCache,
-  analyticsSql,
-  propertyTransformerCache,
-  programHasRulesCache,
-  userGroupNameCache,
-  userDisplayNameCache,
-  pgmOrgUnitAssocCache,
-  catOptOrgUnitAssocCache,
-  dataSetOrgUnitAssocCache,
-  apiTokensCache,
-  teAttributesCache,
-  programTeAttributesCache,
-  userGroupUIDCache,
-  securityCache,
-  dataIntegritySummaryCache,
-  dataIntegrityDetailsCache,
-  queryAliasCache,
-  corsWhitelistCache,
-  notificationTemplateCache,
-  userDetailsAuthzCache
+public final class AuthzConstants {
+  /** HttpSession attribute: effective authz generation stamped at last soft-refresh check. */
+  public static final String SESSION_AUTHZ_GEN_ATTR = "DHIS2_AUTHZ_GEN";
+
+  /** HttpSession attribute: global authz epoch at last soft-refresh check. */
+  public static final String SESSION_AUTHZ_EPOCH_ATTR = "DHIS2_AUTHZ_EPOCH";
+
+  private AuthzConstants() {}
 }

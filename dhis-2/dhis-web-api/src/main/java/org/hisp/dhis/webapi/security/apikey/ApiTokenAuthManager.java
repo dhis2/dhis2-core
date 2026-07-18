@@ -39,6 +39,7 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -56,13 +57,18 @@ import org.springframework.stereotype.Service;
 public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
   private final UserService userService;
+  private final AuthzService authzService;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
   public ApiTokenAuthManager(
-      ApiTokenService apiTokenService, CacheProvider cacheProvider, @Lazy UserService userService) {
+      ApiTokenService apiTokenService,
+      CacheProvider cacheProvider,
+      @Lazy UserService userService,
+      AuthzService authzService) {
     this.userService = userService;
     this.apiTokenService = apiTokenService;
+    this.authzService = authzService;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -78,8 +84,20 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     final Optional<ApiTokenAuthenticationToken> cachedToken = apiTokenCache.getIfPresent(tokenKey);
 
     if (cachedToken.isPresent()) {
-      validateTokenExpiry(cachedToken.get().getToken().getExpire());
-      return cachedToken.get();
+      ApiTokenAuthenticationToken cached = cachedToken.get();
+      validateTokenExpiry(cached.getToken().getExpire());
+      UserDetails cachedDetails = cached.getPrincipal();
+      if (cachedDetails != null) {
+        UserDetails freshDetails = authzService.getFreshUserDetails(cachedDetails.getUsername());
+        if (freshDetails != null && freshDetails != cachedDetails) {
+          // identity: same instance == unchanged epoch
+          ApiTokenAuthenticationToken refreshed =
+              new ApiTokenAuthenticationToken(cached.getToken(), freshDetails);
+          apiTokenCache.put(tokenKey, refreshed);
+          return refreshed;
+        }
+      }
+      return cached;
     } else {
       ApiToken apiToken = apiTokenService.getByKey(tokenKey);
       if (apiToken == null) {
@@ -109,6 +127,9 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     // User lookup and UserDetails creation must happen within a single transaction, so that lazy
     // collections (e.g. User.userRoles) are accessible. This code can run on endpoints excluded
     // from open-session-in-view, where no Hibernate session is otherwise available.
+    // Deliberately NOT the memoized authz snapshot: the account flags validated below (disabled,
+    // locked, expired, 2FA) do not advance the authz epoch when they change, so the snapshot may
+    // be stale. This runs only on a token cache miss.
     UserDetails userDetails = userService.createUserDetailsByUsername(createdBy.getUsername());
     if (userDetails == null) {
       throw new ApiTokenAuthenticationException(
