@@ -32,12 +32,9 @@ package org.hisp.dhis.webapi.security.authz;
 import static org.hisp.dhis.user.authz.AuthzConstants.SESSION_AUTHZ_EPOCH_ATTR;
 import static org.hisp.dhis.user.authz.AuthzConstants.SESSION_AUTHZ_GEN_ATTR;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -47,25 +44,29 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.authz.AuthzService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Soft-refreshes the session-bound {@link UserDetails} principal when the authz generation/epoch
- * has advanced since the last check.
+ * Decorates the session-backed {@link SecurityContextRepository} to soft-refresh the {@link
+ * UserDetails} principal when the authz generation/epoch has advanced since the last check.
+ *
+ * <p>Decorating the repository (instead of adding a filter) makes the refresh session-only <em>by
+ * construction</em>: JWT, PAT, and other stateless authentications never pass through {@link
+ * HttpSessionSecurityContextRepository}, so no token-type conversion or accidental session creation
+ * is possible. Wrapping the {@link DeferredSecurityContext} means the check only runs when the
+ * request actually accesses authentication.
  *
  * <p>Eligibility gates:
  *
  * <ul>
- *   <li>Session-only: JWT, PAT, and basic-stateless authentications have their own refresh paths
- *       and must never be converted or given sessions by this filter.
  *   <li>Token type: only {@link UsernamePasswordAuthenticationToken} and {@link
- *       OAuth2AuthenticationToken} carry a mutable session principal we can rebuild.
+ *       OAuth2AuthenticationToken} carry a session principal we can rebuild.
  *   <li>No impersonation: {@link SwitchUserGrantedAuthority} carries the original Authentication; a
  *       rebuild would drop it.
  * </ul>
@@ -73,82 +74,130 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * @author Morten Svanæs
  */
 @Slf4j
-public class UserDetailsSoftRefreshFilter extends OncePerRequestFilter {
+public class SoftRefreshSecurityContextRepository implements SecurityContextRepository {
 
+  private final SecurityContextRepository delegate;
   private final AuthzService authzService;
-  private final SecurityContextRepository securityContextRepository;
 
-  /**
-   * Default repository matches the app's session persistence; the chain's
-   * DelegatingSecurityContextRepository only adds a request-attribute layer we already cover by
-   * setting the SecurityContextHolder.
-   */
-  public UserDetailsSoftRefreshFilter(AuthzService authzService) {
-    this(authzService, new HttpSessionSecurityContextRepository());
-  }
-
-  public UserDetailsSoftRefreshFilter(
-      AuthzService authzService, SecurityContextRepository securityContextRepository) {
+  public SoftRefreshSecurityContextRepository(
+      SecurityContextRepository delegate, AuthzService authzService) {
+    this.delegate = delegate;
     this.authzService = authzService;
-    this.securityContextRepository = securityContextRepository;
   }
 
   @Override
-  protected void doFilterInternal(
-      @Nonnull HttpServletRequest request,
-      @Nonnull HttpServletResponse response,
-      @Nonnull FilterChain chain)
-      throws ServletException, IOException {
-    HttpSession session = request.getSession(false);
-    if (session == null) {
-      chain.doFilter(request, response);
-      return;
+  public DeferredSecurityContext loadDeferredContext(HttpServletRequest request) {
+    return new SoftRefreshDeferredContext(delegate.loadDeferredContext(request), request, this);
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
+  public SecurityContext loadContext(
+      org.springframework.security.web.context.HttpRequestResponseHolder requestResponseHolder) {
+    return delegate.loadContext(requestResponseHolder);
+  }
+
+  @Override
+  public void saveContext(
+      SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
+    delegate.saveContext(context, request, response);
+  }
+
+  @Override
+  public boolean containsContext(HttpServletRequest request) {
+    return delegate.containsContext(request);
+  }
+
+  /** Defers the freshness check until the request actually accesses its authentication. */
+  private static final class SoftRefreshDeferredContext implements DeferredSecurityContext {
+
+    private final DeferredSecurityContext delegate;
+    private final HttpServletRequest request;
+    private final SoftRefreshSecurityContextRepository repository;
+
+    private SecurityContext result;
+
+    private SoftRefreshDeferredContext(
+        DeferredSecurityContext delegate,
+        HttpServletRequest request,
+        SoftRefreshSecurityContextRepository repository) {
+      this.delegate = delegate;
+      this.request = request;
+      this.repository = repository;
     }
 
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    @Override
+    public SecurityContext get() {
+      if (result == null) {
+        result = repository.maybeRefresh(delegate.get(), request);
+      }
+      return result;
+    }
+
+    @Override
+    public boolean isGenerated() {
+      return delegate.isGenerated();
+    }
+  }
+
+  /**
+   * Returns {@code context} unchanged when fresh (or not eligible), otherwise a new context with a
+   * rebuilt principal, persisted to the session.
+   */
+  private SecurityContext maybeRefresh(SecurityContext context, HttpServletRequest request) {
+    HttpSession session = request.getSession(false);
+    if (session == null || context == null) {
+      return context;
+    }
+    Authentication auth = context.getAuthentication();
     if (!isEligible(auth)) {
-      chain.doFilter(request, response);
-      return;
+      return context;
     }
 
     long epoch = authzService.currentEpoch();
     long checkedEpoch = readLongAttr(session, SESSION_AUTHZ_EPOCH_ATTR);
-    if (epoch != checkedEpoch) {
-      UserDetails current = extractUserDetails(auth);
-      if (current != null) {
-        long gen = authzService.effectiveGen(current); // pre-read BEFORE rebuild
-        long sessionGen = readLongAttr(session, SESSION_AUTHZ_GEN_ATTR);
-        if (gen != sessionGen) {
-          UserDetails fresh = authzService.getFreshUserDetails(current.getUsername());
-          if (fresh != null) {
-            Authentication replacement = rebuildAuthentication(auth, fresh);
-            if (replacement != null) {
-              SecurityContext context = SecurityContextHolder.createEmptyContext();
-              context.setAuthentication(replacement);
-              SecurityContextHolder.setContext(context);
-              securityContextRepository.saveContext(context, request, response);
-              session.setAttribute(SESSION_AUTHZ_GEN_ATTR, gen); // pre-read value, NEVER re-read
-              log.debug(
-                  "Soft-refreshed session UserDetails for {} (gen {} -> {})",
-                  current.getUsername(),
-                  sessionGen,
-                  gen);
-            }
-          }
-        } else {
-          session.setAttribute(SESSION_AUTHZ_GEN_ATTR, gen);
-        }
-        session.setAttribute(SESSION_AUTHZ_EPOCH_ATTR, epoch);
-      }
+    if (epoch == checkedEpoch) {
+      return context;
+    }
+    UserDetails current = extractUserDetails(auth);
+    if (current == null) {
+      return context;
     }
 
-    chain.doFilter(request, response);
+    SecurityContext result = context;
+    long gen = authzService.effectiveGen(current); // pre-read BEFORE rebuild, never re-read
+    long sessionGen = readLongAttr(session, SESSION_AUTHZ_GEN_ATTR);
+    if (gen != sessionGen) {
+      UserDetails fresh = authzService.getFreshUserDetails(current.getUsername());
+      if (fresh != null) {
+        Authentication replacement = rebuildAuthentication(auth, fresh);
+        if (replacement != null) {
+          SecurityContext refreshed = SecurityContextHolder.createEmptyContext();
+          refreshed.setAuthentication(replacement);
+          // Equivalent of HttpSessionSecurityContextRepository.saveContextInHttpSession: under
+          // requireExplicitSave, SecurityContextHolderFilter never saves, so the refresh
+          // persists itself for subsequent requests.
+          session.setAttribute(
+              HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, refreshed);
+          session.setAttribute(SESSION_AUTHZ_GEN_ATTR, gen); // pre-read value, NEVER re-read
+          result = refreshed;
+          log.debug(
+              "Soft-refreshed session UserDetails for {} (gen {} -> {})",
+              current.getUsername(),
+              sessionGen,
+              gen);
+        }
+      }
+    } else {
+      session.setAttribute(SESSION_AUTHZ_GEN_ATTR, gen);
+    }
+    session.setAttribute(SESSION_AUTHZ_EPOCH_ATTR, epoch);
+    return result;
   }
 
   /**
-   * Session-only (JWT/PAT/basic-stateless have their own refresh paths and must never be converted
-   * or given sessions); impersonation carries the original Authentication inside {@link
-   * SwitchUserGrantedAuthority} which a rebuild would drop.
+   * Impersonation carries the original Authentication inside {@link SwitchUserGrantedAuthority}
+   * which a rebuild would drop; only session-native token types are rebuildable.
    */
   private static boolean isEligible(@CheckForNull Authentication auth) {
     return auth != null
