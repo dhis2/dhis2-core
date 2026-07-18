@@ -34,7 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,47 +82,61 @@ class DefaultAuthzServiceTest {
 
   @Test
   void sameEpochReturnsSameInstanceAndLoadsOnce() {
-    UserDetails first = details("alice", "u1");
-    when(userService.createUserDetailsByUsername("alice")).thenReturn(first);
+    when(userService.createUserDetailsByUsername("alice")).thenReturn(details("alice", "u1"));
 
     UserDetails a = authzService.getFreshUserDetails("alice");
     UserDetails b = authzService.getFreshUserDetails("alice");
 
-    assertSame(first, a);
+    assertNotNull(a);
     assertSame(a, b);
+    assertEquals(0L, a.getAuthzCheckedEpoch());
+    assertEquals(0L, a.getAuthzGen());
     verify(userService, times(1)).createUserDetailsByUsername("alice");
   }
 
   @Test
-  void bumpRoleAuthzForcesRebuild() {
-    UserDetails first = details("alice", "u1");
-    UserDetails second = details("alice", "u1");
-    when(userService.createUserDetailsByUsername("alice")).thenReturn(first, second);
+  void bumpOfOwnRoleForcesRebuild() {
+    when(userService.createUserDetailsByUsername("alice"))
+        .thenReturn(details("alice", "u1", Set.of("r1")), details("alice", "u1", Set.of("r1")));
 
     UserDetails a = authzService.getFreshUserDetails("alice");
     authzService.bumpRoleAuthz("r1");
     UserDetails b = authzService.getFreshUserDetails("alice");
 
-    assertSame(first, a);
-    assertSame(second, b);
     assertNotSame(a, b);
     verify(userService, times(2)).createUserDetailsByUsername("alice");
   }
 
   @Test
   void bumpUserAuthzForcesRebuild() {
-    UserDetails first = details("alice", "u1");
-    UserDetails second = details("alice", "u1");
-    when(userService.createUserDetailsByUsername("alice")).thenReturn(first, second);
+    when(userService.createUserDetailsByUsername("alice"))
+        .thenReturn(details("alice", "u1"), details("alice", "u1"));
 
     UserDetails a = authzService.getFreshUserDetails("alice");
     authzService.bumpUserAuthz("u1");
     UserDetails b = authzService.getFreshUserDetails("alice");
 
-    assertSame(first, a);
-    assertSame(second, b);
     assertNotSame(a, b);
     verify(userService, times(2)).createUserDetailsByUsername("alice");
+  }
+
+  @Test
+  void unrelatedBumpTakesGenFastPathWithoutRebuild() {
+    when(userService.createUserDetailsByUsername("alice")).thenReturn(details("alice", "u1"));
+
+    UserDetails a = authzService.getFreshUserDetails("alice");
+    authzService.bumpUserAuthz("someone-else");
+    UserDetails b = authzService.getFreshUserDetails("alice");
+
+    // Epoch moved but alice's gens did not: re-stamped copy, no rebuild.
+    assertNotSame(a, b);
+    assertEquals("alice", b.getUsername());
+    assertEquals(1L, b.getAuthzCheckedEpoch());
+    assertEquals(0L, b.getAuthzGen());
+    verify(userService, times(1)).createUserDetailsByUsername("alice");
+
+    // And the re-stamped entry serves the epoch fast path afterwards.
+    assertSame(b, authzService.getFreshUserDetails("alice"));
   }
 
   @Test
@@ -137,24 +153,13 @@ class DefaultAuthzServiceTest {
 
     UserDetails first = authzService.getFreshUserDetails("alice");
     assertNotNull(first);
-    // Entry was stamped with the pre-build epoch, so the bump during build must force a rebuild.
+    // The entry is stamped with the pre-build epoch and an "unknown" gen (the epoch moved during
+    // the build), so the bump during build must force a rebuild on the next check.
+    assertEquals(0L, first.getAuthzGen());
     UserDetails second = authzService.getFreshUserDetails("alice");
     assertNotNull(second);
     assertNotSame(first, second);
     verify(userService, times(2)).createUserDetailsByUsername("alice");
-  }
-
-  @Test
-  void effectiveGenIsMaxOfUserAndRoleGens() {
-    versionStore.bumpUserGen("u1"); // 1
-    versionStore.bumpRoleGen("r1"); // 1
-    versionStore.bumpRoleGen("r2"); // 1
-    versionStore.bumpRoleGen("r2"); // 2
-
-    UserDetails principal =
-        UserDetails.empty().username("alice").uid("u1").userRoleIds(Set.of("r1", "r2")).build();
-
-    assertEquals(2L, authzService.effectiveGen(principal));
   }
 
   @Test
@@ -167,13 +172,69 @@ class DefaultAuthzServiceTest {
   }
 
   @Test
-  void currentEpochDelegates() {
-    assertEquals(0L, authzService.currentEpoch());
-    authzService.bumpUserAuthz("u1");
-    assertEquals(1L, authzService.currentEpoch());
+  void refreshIfStaleWithCurrentStampReturnsSameInstance() {
+    UserDetails principal = details("alice", "u1");
+
+    assertSame(principal, authzService.refreshIfStale(principal));
+    verify(userService, never()).createUserDetailsByUsername(any());
+  }
+
+  @Test
+  void refreshIfStaleEpochMovedGenUnchangedReturnsRestampedCopy() {
+    versionStore.bumpUserGen("u1"); // gen 1, epoch 1
+    versionStore.bumpRoleGen("r1"); // gen 1, epoch 2
+    versionStore.bumpRoleGen("r2"); // gen 1, epoch 3
+    versionStore.bumpRoleGen("r2"); // gen 2, epoch 4
+
+    // Stamp matches the CURRENT effective gen = max(u1, r1, r2) = 2, but an old epoch.
+    UserDetails principal =
+        UserDetails.empty()
+            .username("alice")
+            .uid("u1")
+            .userRoleIds(Set.of("r1", "r2"))
+            .authzCheckedEpoch(3L)
+            .authzGen(2L)
+            .build();
+
+    UserDetails result = authzService.refreshIfStale(principal);
+
+    assertNotSame(principal, result);
+    assertEquals("alice", result.getUsername());
+    assertEquals(4L, result.getAuthzCheckedEpoch());
+    assertEquals(2L, result.getAuthzGen());
+    verify(userService, never()).createUserDetailsByUsername(any());
+  }
+
+  @Test
+  void refreshIfStaleGenMovedRebuilds() {
+    UserDetails fresh = details("alice", "u1");
+    when(userService.createUserDetailsByUsername("alice")).thenReturn(fresh);
+    versionStore.bumpUserGen("u1"); // gen 1, epoch 1
+
+    UserDetails principal = details("alice", "u1"); // stamps (0, 0)
+    UserDetails result = authzService.refreshIfStale(principal);
+
+    assertNotSame(principal, result);
+    assertEquals(1L, result.getAuthzCheckedEpoch());
+    assertEquals(1L, result.getAuthzGen());
+    verify(userService, times(1)).createUserDetailsByUsername("alice");
+  }
+
+  @Test
+  void refreshIfStaleUnknownUserReturnsArgument() {
+    when(userService.createUserDetailsByUsername("alice")).thenReturn(null);
+    versionStore.bumpUserGen("u1");
+
+    UserDetails principal = details("alice", "u1");
+
+    assertSame(principal, authzService.refreshIfStale(principal));
   }
 
   private static UserDetails details(String username, String uid) {
-    return UserDetails.empty().username(username).uid(uid).userRoleIds(Set.of()).build();
+    return details(username, uid, Set.of());
+  }
+
+  private static UserDetails details(String username, String uid, Set<String> roleIds) {
+    return UserDetails.empty().username(username).uid(uid).userRoleIds(roleIds).build();
   }
 }

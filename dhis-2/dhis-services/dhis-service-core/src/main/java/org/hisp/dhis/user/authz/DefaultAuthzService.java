@@ -38,16 +38,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
- * Epoch-validated, cached UserDetails soft-refresh service.
+ * Epoch-validated, cached UserDetails soft-refresh service. Freshness stamps live on the {@link
+ * UserDetailsImpl} snapshot itself, so sessions, JWT, and PAT all converge on the same three-way
+ * check: epoch fast path, gen re-stamp path, rebuild path.
  *
- * <p>The cached {@code checkedEpoch} is always read before {@code createUserDetailsByUsername}
- * starts. Hence {@code entry.checkedEpoch >= currentEpoch} proves the snapshot includes every bump
- * committed up to {@code currentEpoch}. Never reorder these reads.
+ * <p>Stamp-before-build invariant: the stamped {@code authzCheckedEpoch} is always read before
+ * {@code createUserDetailsByUsername} starts. Hence {@code stamp >= currentEpoch} proves the
+ * snapshot includes every bump committed up to {@code currentEpoch}. The gen stamp is validated by
+ * a second epoch read after the build: if the epoch moved during the build, the gen stamp is 0
+ * (unknown), which fails SAFE (one extra refresh, never stale). Never reorder these reads.
  *
  * @author Morten Svanæs
  */
@@ -57,12 +62,9 @@ public class DefaultAuthzService implements AuthzService {
 
   private static final int LOCK_STRIPES = 64;
 
-  /** Snapshot plus the epoch value read BEFORE the snapshot was built. */
-  record CachedUserDetails(UserDetails details, long checkedEpoch) {}
-
   private final AuthzVersionStore versionStore;
   private final UserService userService;
-  private final Cache<CachedUserDetails> cache;
+  private final Cache<UserDetails> cache;
   private final Object[] locks = new Object[LOCK_STRIPES];
 
   public DefaultAuthzService(
@@ -76,42 +78,81 @@ public class DefaultAuthzService implements AuthzService {
   }
 
   @Override
-  public long currentEpoch() {
-    return versionStore.getEpoch();
+  @CheckForNull
+  public UserDetails getFreshUserDetails(@Nonnull String username) {
+    long epoch = versionStore.getEpoch(); // MUST be read before any snapshot build
+    UserDetails entry = cache.getIfPresent(username).orElse(null);
+    if (isCurrent(entry, epoch)) {
+      return entry;
+    }
+    Object lock = locks[Math.floorMod(username.hashCode(), LOCK_STRIPES)];
+    synchronized (lock) {
+      entry = cache.getIfPresent(username).orElse(null); // double-check under lock
+      if (isCurrent(entry, epoch)) {
+        return entry;
+      }
+      // Gen fast path: the epoch moved, but this user's gens did not -> re-stamp, skip the
+      // rebuild. This is what confines rebuild cost to actually affected users.
+      if (entry instanceof UserDetailsImpl impl) {
+        long gen = effectiveGen(entry);
+        if (gen == entry.getAuthzGen()) {
+          UserDetails restamped = impl.withAuthzStamp(epoch, gen);
+          cache.put(username, restamped);
+          return restamped;
+        }
+      }
+      UserDetails fresh = buildStamped(username, epoch);
+      if (fresh == null) {
+        cache.invalidate(username);
+        return null;
+      }
+      cache.put(username, fresh);
+      log.debug("Rebuilt UserDetails snapshot for {} at epoch {}", username, epoch);
+      return fresh;
+    }
   }
 
   @Override
-  public long effectiveGen(@Nonnull UserDetails principal) {
+  @Nonnull
+  public UserDetails refreshIfStale(@Nonnull UserDetails principal) {
+    long epoch = versionStore.getEpoch();
+    if (epoch == principal.getAuthzCheckedEpoch()) {
+      return principal;
+    }
+    long gen = effectiveGen(principal); // read BEFORE any rebuild, never re-read
+    if (gen == principal.getAuthzGen() && principal instanceof UserDetailsImpl impl) {
+      return impl.withAuthzStamp(epoch, gen);
+    }
+    UserDetails fresh = getFreshUserDetails(principal.getUsername());
+    return fresh != null ? fresh : principal;
+  }
+
+  private static boolean isCurrent(@CheckForNull UserDetails entry, long epoch) {
+    return entry != null && entry.getAuthzCheckedEpoch() >= epoch;
+  }
+
+  /**
+   * Builds a snapshot and stamps it with the pre-read epoch. The gen stamp is only trusted when a
+   * second epoch read proves no bump committed during the build; otherwise 0 (unknown) is stamped,
+   * which forces one gen check on the next epoch move instead of ever serving stale data.
+   */
+  @CheckForNull
+  private UserDetails buildStamped(@Nonnull String username, long preReadEpoch) {
+    UserDetails fresh = userService.createUserDetailsByUsername(username);
+    if (!(fresh instanceof UserDetailsImpl impl)) {
+      return fresh; // cannot stamp; stays at epoch 0 = always re-checked
+    }
+    long gen = effectiveGen(fresh);
+    long genStamp = versionStore.getEpoch() == preReadEpoch ? gen : 0L;
+    return impl.withAuthzStamp(preReadEpoch, genStamp);
+  }
+
+  private long effectiveGen(@Nonnull UserDetails principal) {
     String uid = principal.getUid();
     if (uid == null) {
       return 0L;
     }
     return versionStore.getMaxGen(uid, principal.getUserRoleIds());
-  }
-
-  @Override
-  @CheckForNull
-  public UserDetails getFreshUserDetails(@Nonnull String username) {
-    long epoch = versionStore.getEpoch(); // MUST be read before any snapshot build
-    CachedUserDetails entry = cache.getIfPresent(username).orElse(null);
-    if (entry != null && entry.checkedEpoch() >= epoch) {
-      return entry.details();
-    }
-    Object lock = locks[Math.floorMod(username.hashCode(), LOCK_STRIPES)];
-    synchronized (lock) {
-      entry = cache.getIfPresent(username).orElse(null); // double-check under lock
-      if (entry != null && entry.checkedEpoch() >= epoch) {
-        return entry.details();
-      }
-      UserDetails fresh = userService.createUserDetailsByUsername(username);
-      if (fresh == null) {
-        cache.invalidate(username);
-        return null;
-      }
-      cache.put(username, new CachedUserDetails(fresh, epoch));
-      log.debug("Rebuilt UserDetails snapshot for {} at epoch {}", username, epoch);
-      return fresh;
-    }
   }
 
   @Override

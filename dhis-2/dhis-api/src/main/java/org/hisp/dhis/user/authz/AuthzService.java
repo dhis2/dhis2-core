@@ -40,17 +40,30 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Svanæs
  */
 public interface AuthzService {
-  long currentEpoch();
-
-  /** One batched read: max of the principal's user-uid gen and role gens. */
-  long effectiveGen(@Nonnull UserDetails principal);
 
   /**
-   * Epoch-validated, cached, immutable snapshot for username. Returns a snapshot that reflects
-   * every authz change committed up to the epoch value read at call entry. Null if user unknown.
+   * Epoch-validated, cached, immutable snapshot for username, stamped with the authz epoch read
+   * before the snapshot was built and the effective generation it reflects (see {@link
+   * UserDetails#getAuthzCheckedEpoch()}). Returns a snapshot that reflects every authz change
+   * committed up to the epoch value read at call entry. Null if user unknown.
    */
   @CheckForNull
   UserDetails getFreshUserDetails(@Nonnull String username);
+
+  /**
+   * Three-way freshness check against the principal's own authz stamp. Returns:
+   *
+   * <ul>
+   *   <li>the same instance: stamp is current (or the user is unknown) — nothing to do;
+   *   <li>a re-stamped copy: the epoch moved but this principal's generations did not — persist the
+   *       copy so the next check takes the epoch fast path;
+   *   <li>a rebuilt snapshot: this principal's generations moved — persist and use it.
+   * </ul>
+   *
+   * <p>Identity comparison with the argument tells the caller whether anything must be persisted.
+   */
+  @Nonnull
+  UserDetails refreshIfStale(@Nonnull UserDetails principal);
 
   void bumpUserAuthz(@Nonnull String userUid);
 

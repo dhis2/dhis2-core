@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.webapi.security.authz;
 
-import static org.hisp.dhis.user.authz.AuthzConstants.SESSION_AUTHZ_EPOCH_ATTR;
-import static org.hisp.dhis.user.authz.AuthzConstants.SESSION_AUTHZ_GEN_ATTR;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -54,7 +51,10 @@ import org.springframework.security.web.context.SecurityContextRepository;
 
 /**
  * Decorates the session-backed {@link SecurityContextRepository} to soft-refresh the {@link
- * UserDetails} principal when the authz generation/epoch has advanced since the last check.
+ * UserDetails} principal when its own authz stamp (see {@link UserDetails#getAuthzCheckedEpoch()})
+ * is behind the store. The three-way freshness decision lives in {@link
+ * AuthzService#refreshIfStale}; this class only extracts the principal, swaps it, and persists the
+ * refreshed context to the session.
  *
  * <p>Decorating the repository (instead of adding a filter) makes the refresh session-only <em>by
  * construction</em>: JWT, PAT, and other stateless authentications never pass through {@link
@@ -141,8 +141,9 @@ public class SoftRefreshSecurityContextRepository implements SecurityContextRepo
   }
 
   /**
-   * Returns {@code context} unchanged when fresh (or not eligible), otherwise a new context with a
-   * rebuilt principal, persisted to the session.
+   * Returns {@code context} unchanged when the principal's stamp is current (or the context is not
+   * eligible), otherwise a new context with the re-stamped or rebuilt principal, persisted to the
+   * session so subsequent requests load it directly.
    */
   private SecurityContext maybeRefresh(SecurityContext context, HttpServletRequest request) {
     HttpSession session = request.getSession(false);
@@ -153,46 +154,31 @@ public class SoftRefreshSecurityContextRepository implements SecurityContextRepo
     if (!isEligible(auth)) {
       return context;
     }
-
-    long epoch = authzService.currentEpoch();
-    long checkedEpoch = readLongAttr(session, SESSION_AUTHZ_EPOCH_ATTR);
-    if (epoch == checkedEpoch) {
-      return context;
-    }
     UserDetails current = extractUserDetails(auth);
     if (current == null) {
       return context;
     }
-
-    SecurityContext result = context;
-    long gen = authzService.effectiveGen(current); // pre-read BEFORE rebuild, never re-read
-    long sessionGen = readLongAttr(session, SESSION_AUTHZ_GEN_ATTR);
-    if (gen != sessionGen) {
-      UserDetails fresh = authzService.getFreshUserDetails(current.getUsername());
-      if (fresh != null) {
-        Authentication replacement = rebuildAuthentication(auth, fresh);
-        if (replacement != null) {
-          SecurityContext refreshed = SecurityContextHolder.createEmptyContext();
-          refreshed.setAuthentication(replacement);
-          // Equivalent of HttpSessionSecurityContextRepository.saveContextInHttpSession: under
-          // requireExplicitSave, SecurityContextHolderFilter never saves, so the refresh
-          // persists itself for subsequent requests.
-          session.setAttribute(
-              HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, refreshed);
-          session.setAttribute(SESSION_AUTHZ_GEN_ATTR, gen); // pre-read value, NEVER re-read
-          result = refreshed;
-          log.debug(
-              "Soft-refreshed session UserDetails for {} (gen {} -> {})",
-              current.getUsername(),
-              sessionGen,
-              gen);
-        }
-      }
-    } else {
-      session.setAttribute(SESSION_AUTHZ_GEN_ATTR, gen);
+    UserDetails result = authzService.refreshIfStale(current);
+    if (result == current) {
+      return context; // stamp current: the dominant path, one epoch read
     }
-    session.setAttribute(SESSION_AUTHZ_EPOCH_ATTR, epoch);
-    return result;
+    Authentication replacement = rebuildAuthentication(auth, result);
+    if (replacement == null) {
+      return context;
+    }
+    SecurityContext refreshed = SecurityContextHolder.createEmptyContext();
+    refreshed.setAuthentication(replacement);
+    // Equivalent of HttpSessionSecurityContextRepository.saveContextInHttpSession: under
+    // requireExplicitSave, SecurityContextHolderFilter never saves, so the refresh persists
+    // itself (and its new stamp) for subsequent requests.
+    session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, refreshed);
+    log.debug(
+        "Soft-refreshed session UserDetails for {} (epoch {} -> {})",
+        current.getUsername(),
+        current.getAuthzCheckedEpoch(),
+        result.getAuthzCheckedEpoch());
+    return refreshed;
   }
 
   /**
@@ -278,23 +264,5 @@ public class SoftRefreshSecurityContextRepository implements SecurityContextRepo
       return "sub";
     }
     return attributes.keySet().iterator().next();
-  }
-
-  private static long readLongAttr(@Nonnull HttpSession session, @Nonnull String name) {
-    Object value = session.getAttribute(name);
-    if (value instanceof Long longValue) {
-      return longValue;
-    }
-    if (value instanceof Number number) {
-      return number.longValue();
-    }
-    if (value instanceof String stringValue) {
-      try {
-        return Long.parseLong(stringValue);
-      } catch (NumberFormatException ignored) {
-        return 0L;
-      }
-    }
-    return 0L;
   }
 }

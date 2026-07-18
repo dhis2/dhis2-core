@@ -286,6 +286,23 @@ public interface UserDetails
   @Nonnull
   Set<String> getUserRoleIds();
 
+  /**
+   * Soft-refresh stamp: global authz epoch read before this snapshot was built. 0 = unknown; the
+   * next soft-refresh check verifies the generation and re-stamps or rebuilds. Only {@link
+   * UserDetailsImpl} carries real stamps.
+   */
+  default long getAuthzCheckedEpoch() {
+    return 0L;
+  }
+
+  /**
+   * Soft-refresh stamp: effective authz generation (max of user and role gens) this snapshot
+   * reflects. 0 = unknown, which fails safe (extra refresh, never stale).
+   */
+  default long getAuthzGen() {
+    return 0L;
+  }
+
   boolean canModifyUser(User userToModify);
 
   boolean isExternalAuth();

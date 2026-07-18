@@ -29,15 +29,11 @@
  */
 package org.hisp.dhis.webapi.security.authz;
 
-import static org.hisp.dhis.user.authz.AuthzConstants.SESSION_AUTHZ_EPOCH_ATTR;
-import static org.hisp.dhis.user.authz.AuthzConstants.SESSION_AUTHZ_GEN_ATTR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -152,55 +148,48 @@ class SoftRefreshSecurityContextRepositoryTest {
   }
 
   @Test
-  void matchingEpochNeverCallsEffectiveGen() {
+  void currentStampReturnsContextUntouched() {
     MockHttpSession session = new MockHttpSession();
-    session.setAttribute(SESSION_AUTHZ_EPOCH_ATTR, 7L);
-    request.setSession(session);
-    SecurityContext stored = storeUsernamePasswordContext(session, userDetails("alice", "F_USER"));
-
-    when(authzService.currentEpoch()).thenReturn(7L);
-
-    SecurityContext loaded = repository.loadDeferredContext(request).get();
-
-    assertSame(stored, loaded);
-    verify(authzService).currentEpoch();
-    verify(authzService, never()).effectiveGen(any());
-    verify(authzService, never()).getFreshUserDetails(any());
-  }
-
-  @Test
-  void epochDiffersGenMatchesUpdatesAttrsWithoutRebuild() {
-    MockHttpSession session = new MockHttpSession();
-    session.setAttribute(SESSION_AUTHZ_EPOCH_ATTR, 1L);
-    session.setAttribute(SESSION_AUTHZ_GEN_ATTR, 5L);
     request.setSession(session);
     UserDetails current = userDetails("alice", "F_USER");
     SecurityContext stored = storeUsernamePasswordContext(session, current);
 
-    when(authzService.currentEpoch()).thenReturn(2L);
-    when(authzService.effectiveGen(current)).thenReturn(5L);
+    when(authzService.refreshIfStale(current)).thenReturn(current);
 
     SecurityContext loaded = repository.loadDeferredContext(request).get();
 
     assertSame(stored, loaded);
-    verify(authzService, never()).getFreshUserDetails(any());
-    assertEquals(5L, session.getAttribute(SESSION_AUTHZ_GEN_ATTR));
-    assertEquals(2L, session.getAttribute(SESSION_AUTHZ_EPOCH_ATTR));
+    verify(authzService, times(1)).refreshIfStale(current);
   }
 
   @Test
-  void epochAndGenDifferRebuildAndPersistRefreshedContext() {
+  void restampedCopyReplacesPrincipalAndPersists() {
     MockHttpSession session = new MockHttpSession();
-    session.setAttribute(SESSION_AUTHZ_EPOCH_ATTR, 1L);
-    session.setAttribute(SESSION_AUTHZ_GEN_ATTR, 3L);
+    request.setSession(session);
+    UserDetails current = userDetails("alice", "F_USER");
+    SecurityContext stored = storeUsernamePasswordContext(session, current);
+    // Epoch moved but alice's gens did not: the service hands back a re-stamped copy.
+    UserDetails restamped = userDetails("alice", "F_USER");
+
+    when(authzService.refreshIfStale(current)).thenReturn(restamped);
+
+    SecurityContext loaded = repository.loadDeferredContext(request).get();
+
+    assertNotSame(stored, loaded);
+    assertSame(restamped, loaded.getAuthentication().getPrincipal());
+    // The copy persists itself so the next request takes the epoch fast path.
+    assertSame(loaded, session.getAttribute(SPRING_SECURITY_CONTEXT_KEY));
+  }
+
+  @Test
+  void staleStampRebuildsAndPersistsRefreshedContext() {
+    MockHttpSession session = new MockHttpSession();
     request.setSession(session);
     UserDetails stale = userDetails("alice", "F_OLD");
     SecurityContext stored = storeUsernamePasswordContext(session, stale);
     UserDetails fresh = userDetails("alice", "F_NEW");
 
-    when(authzService.currentEpoch()).thenReturn(9L);
-    when(authzService.effectiveGen(stale)).thenReturn(8L);
-    when(authzService.getFreshUserDetails("alice")).thenReturn(fresh);
+    when(authzService.refreshIfStale(stale)).thenReturn(fresh);
 
     SecurityContext loaded = repository.loadDeferredContext(request).get();
 
@@ -211,15 +200,11 @@ class SoftRefreshSecurityContextRepositoryTest {
     assertTrue(after.getAuthorities().stream().anyMatch(a -> "F_NEW".equals(a.getAuthority())));
     // The refresh persists itself: subsequent requests must load the refreshed context.
     assertSame(loaded, session.getAttribute(SPRING_SECURITY_CONTEXT_KEY));
-    assertEquals(8L, session.getAttribute(SESSION_AUTHZ_GEN_ATTR));
-    assertEquals(9L, session.getAttribute(SESSION_AUTHZ_EPOCH_ATTR));
   }
 
   @Test
   void oidcTokenRebuildsDhisOidcUserPrincipal() {
     MockHttpSession session = new MockHttpSession();
-    session.setAttribute(SESSION_AUTHZ_EPOCH_ATTR, 0L);
-    session.setAttribute(SESSION_AUTHZ_GEN_ATTR, 0L);
     request.setSession(session);
     UserDetails stale = userDetails("oidc-user", "F_OLD");
     UserDetails fresh = userDetails("oidc-user", "F_NEW");
@@ -235,9 +220,8 @@ class SoftRefreshSecurityContextRepositoryTest {
         new OAuth2AuthenticationToken(oidcUser, stale.getAuthorities(), "google");
     storeContext(session, oauth2);
 
-    when(authzService.currentEpoch()).thenReturn(4L);
-    when(authzService.effectiveGen(stale)).thenReturn(2L);
-    when(authzService.getFreshUserDetails("oidc-user")).thenReturn(fresh);
+    // The repository must check the UNWRAPPED principal: DhisOidcUser itself carries no stamp.
+    when(authzService.refreshIfStale(stale)).thenReturn(fresh);
 
     SecurityContext loaded = repository.loadDeferredContext(request).get();
 
@@ -250,30 +234,24 @@ class SoftRefreshSecurityContextRepositoryTest {
     assertSame(fresh, newPrincipal.getUser());
     assertNotSame(oidcUser, newPrincipal);
     assertSame(loaded, session.getAttribute(SPRING_SECURITY_CONTEXT_KEY));
-    assertEquals(2L, session.getAttribute(SESSION_AUTHZ_GEN_ATTR));
-    assertEquals(4L, session.getAttribute(SESSION_AUTHZ_EPOCH_ATTR));
   }
 
   @Test
   void repeatedAccessIsCachedAndChecksOnce() {
     MockHttpSession session = new MockHttpSession();
-    session.setAttribute(SESSION_AUTHZ_EPOCH_ATTR, 1L);
     request.setSession(session);
     UserDetails stale = userDetails("alice", "F_OLD");
     storeUsernamePasswordContext(session, stale);
     UserDetails fresh = userDetails("alice", "F_NEW");
 
-    when(authzService.currentEpoch()).thenReturn(2L);
-    when(authzService.effectiveGen(stale)).thenReturn(1L);
-    when(authzService.getFreshUserDetails("alice")).thenReturn(fresh);
+    when(authzService.refreshIfStale(stale)).thenReturn(fresh);
 
     DeferredSecurityContext deferred = repository.loadDeferredContext(request);
     SecurityContext first = deferred.get();
     SecurityContext second = deferred.get();
 
     assertSame(first, second);
-    verify(authzService, times(1)).currentEpoch();
-    verify(authzService, times(1)).getFreshUserDetails("alice");
+    verify(authzService, times(1)).refreshIfStale(stale);
   }
 
   private static SecurityContext storeUsernamePasswordContext(
