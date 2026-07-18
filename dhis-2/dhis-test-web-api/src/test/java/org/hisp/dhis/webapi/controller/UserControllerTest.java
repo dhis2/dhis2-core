@@ -77,6 +77,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.authz.AuthzVersionStore;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.jboss.aerogear.security.otp.api.Base32;
@@ -107,6 +108,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private DhisConfigurationProvider config;
 
+  @Autowired private AuthzVersionStore authzVersionStore;
+
   private User peter;
 
   @BeforeEach
@@ -136,7 +139,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void updateRolesShouldInvalidateUserSessions() {
+  void updateUserRolesShouldBumpAuthzGenWithoutKillingSessions() {
     UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
@@ -145,17 +148,21 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     userService.addUserRole(roleB);
 
     String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
+    long epochBefore = authzVersionStore.getEpoch();
 
     PATCH(
             "/users/" + getAdminUid(),
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
         .content(HttpStatus.OK);
 
-    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
+    // Soft-refresh: the session survives, the user's authz generation moves instead.
+    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
+    assertTrue(authzVersionStore.getEpoch() > epochBefore);
+    assertTrue(authzVersionStore.getMaxGen(getAdminUid(), Set.of()) > 0);
   }
 
   @Test
-  void updateRolesAuthoritiesShouldInvalidateUserSessions() {
+  void updateRoleAuthoritiesShouldBumpRoleAuthzGenWithoutKillingSessions() {
     UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
@@ -171,6 +178,9 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
 
+    long epochBefore = authzVersionStore.getEpoch();
+    long roleGenBefore = authzVersionStore.getMaxGen("nonexistentUid", Set.of(roleBID));
+
     PATCH(
             "/userRoles/" + roleBID,
             "["
@@ -182,7 +192,10 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
                 + "]")
         .content(HttpStatus.OK);
 
-    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
+    // Soft-refresh: the session survives, the role's authz generation moves instead.
+    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
+    assertTrue(authzVersionStore.getEpoch() > epochBefore);
+    assertTrue(authzVersionStore.getMaxGen("nonexistentUid", Set.of(roleBID)) > roleGenBefore);
   }
 
   @Test
