@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.cache;
+package org.hisp.dhis.user.authz;
+
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 /**
- * Enum is used to make sure we do not use same region twice. Each method should have its own
- * constant.
+ * Generation stamps that drive UserDetails soft-refresh.
+ *
+ * <p>Every bump advances the global epoch. Bumps participate in the caller's ambient transaction
+ * (JdbcTemplate joins it), so a reader can never observe a gen/epoch value without also seeing the
+ * committed data that caused it.
+ *
+ * @author Morten Svanæs
  */
-@SuppressWarnings("squid:S115") // allow non enum-ish names
-public enum Region {
-  analyticsResponse,
-  defaultObjectCache,
-  allConstantsCache,
-  inUserOrgUnitHierarchy,
-  periodIdCache,
-  userAccountRecoverAttempt,
-  userFailedLoginAttempt,
-  twoFaDisableFailedAttempt,
-  programOwner,
-  programTempOwner,
-  currentUserGroupInfoCache,
-  attrOptionComboIdCache,
-  googleAccessToken,
-  dataItemsPagination,
-  metadataAttributes,
-  canDataWriteCocCache,
-  analyticsSql,
-  propertyTransformerCache,
-  programHasRulesCache,
-  userGroupNameCache,
-  userDisplayNameCache,
-  pgmOrgUnitAssocCache,
-  catOptOrgUnitAssocCache,
-  dataSetOrgUnitAssocCache,
-  apiTokensCache,
-  teAttributesCache,
-  programTeAttributesCache,
-  userGroupUIDCache,
-  securityCache,
-  dataIntegritySummaryCache,
-  dataIntegrityDetailsCache,
-  queryAliasCache,
-  corsWhitelistCache,
-  notificationTemplateCache,
-  userDetailsAuthzCache
+public interface AuthzVersionStore {
+  /** Global epoch; advanced by every bump. Missing row = 0. */
+  long getEpoch();
+
+  /** max(user gen for userUid, role gens for roleUids); missing keys count as 0. */
+  long getMaxGen(@Nonnull String userUid, @Nonnull Collection<String> roleUids);
+
+  void bumpUserGen(@Nonnull String userUid);
+
+  void bumpRoleGen(@Nonnull String roleUid);
+
+  /** Bumps each distinct uid once and the epoch once. */
+  void bumpUserGens(@Nonnull Collection<String> userUids);
 }
