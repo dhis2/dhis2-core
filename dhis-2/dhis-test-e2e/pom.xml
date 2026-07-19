@@ -289,7 +289,7 @@
   </build>
 
   <profiles>
-    <!-- Default profile will run all e2e tests except the analytics ones -->
+    <!-- Default profile will run all e2e tests except analytics and external-IdP (auth-idp) ones -->
     <profile>
       <id>default</id>
       <activation>
@@ -301,7 +301,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <excludedGroups>analytics</excludedGroups>
+              <excludedGroups>analytics,auth-idp</excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -337,6 +337,20 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>uitests</groups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>auth-idp</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <groups>auth-idp</groups>
             </configuration>
           </plugin>
         </plugins>

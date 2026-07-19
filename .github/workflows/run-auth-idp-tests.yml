@@ -1,0 +1,87 @@
+name: Run auth IdP tests
+
+# External-IdP authentication e2e suite (Keycloak OIDC, LDAP): runs the dhis-test-e2e
+# "auth-idp" tagged tests against the docker-compose.e2e-auth.yml stack.
+# Triggered by PRs touching security-relevant paths, nightly on master, and manually.
+
+env:
+  MAVEN_OPTS: -Xmx1024m -Xms1024m -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+
+on:
+  pull_request:
+    paths:
+      - "dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/**"
+      - "dhis-2/dhis-api/src/main/java/org/hisp/dhis/security/**"
+      - "dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/security/**"
+      - "dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/user/**"
+      - "dhis-2/dhis-web-api/src/main/java/org/hisp/dhis/webapi/security/**"
+      - "dhis-2/dhis-web-api/src/main/java/org/hisp/dhis/webapi/mvc/interceptor/**"
+      - "dhis-2/dhis-web-api/src/main/java/org/hisp/dhis/webapi/controller/security/**"
+      - "dhis-2/dhis-test-e2e/**"
+      - ".github/workflows/run-auth-idp-tests.yml"
+  schedule:
+    # Nightly on the default branch
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auth-idp-test:
+    runs-on: ubuntu-latest
+    env:
+      CORE_IMAGE_NAME: "dhis2/core-dev:local"
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+
+      - name: Build container image
+        run: |
+          mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
+            -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
+            --projects dhis-web-server --also-make --activate-profiles embedded,jibDockerBuild \
+            -Djib.to.image=$CORE_IMAGE_NAME
+
+      - name: Run auth IdP tests
+        run: |
+          cd dhis-2/dhis-test-e2e
+          DHIS2_E2E_TEST_ARGS="-Pauth-idp" SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME \
+            docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml \
+            up --remove-orphans --exit-code-from test
+
+      - name: Upload logs
+        if: failure()
+        run: |
+          cd dhis-2/dhis-test-e2e
+          docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml logs web > ~/web-logs.txt
+          docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml logs keycloak > ~/keycloak-logs.txt
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: "auth_idp_logs"
+          path: |
+            ~/web-logs.txt
+            ~/keycloak-logs.txt
+
+  send-slack-message:
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      contains(needs.*.result, 'failure') &&
+      github.event_name == 'schedule'
+    needs: [auth-idp-test]
+    steps:
+      - uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
+          SLACK_CHANNEL: "team-backend"
+          SLACK_MESSAGE: "Nightly auth IdP (Keycloak/LDAP) e2e run failed and needs investigation :detective-duck:."
+          SLACK_COLOR: "#ff0000"

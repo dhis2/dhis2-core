@@ -1,0 +1,30 @@
+# Overlay for the auth-idp e2e suite (external IdP tests: Keycloak OIDC, LDAP).
+# Usage:
+#   DHIS2_E2E_TEST_ARGS="-Pauth-idp" docker compose \
+#     -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml \
+#     up --remove-orphans --exit-code-from test
+#
+# The web service gets a dedicated DHIS2_HOME (config/dhis2_home_auth/) so the extra
+# login providers never affect the default e2e suite.
+
+services:
+  web:
+    volumes:
+      - ./config/dhis2_home_auth/dhis.conf:/opt/dhis2/dhis.conf:ro
+    depends_on:
+      keycloak:
+        condition: service_started
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Fixed hostname so token "iss" is stable (http://keycloak:8080/realms/dhis2)
+      # and matches oidc.provider.keycloak.issuer_uri in dhis.conf.
+      KC_HOSTNAME: http://keycloak:8080
+    volumes:
+      - ./config/keycloak/realm-dhis2.json:/opt/keycloak/data/import/realm-dhis2.json:ro
+    ports:
+      - "8080"
