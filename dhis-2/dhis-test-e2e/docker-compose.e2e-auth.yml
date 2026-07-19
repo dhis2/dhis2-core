@@ -14,6 +14,8 @@ services:
     depends_on:
       keycloak:
         condition: service_started
+      openldap:
+        condition: service_started
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -28,3 +30,15 @@ services:
       - ./config/keycloak/realm-dhis2.json:/opt/keycloak/data/import/realm-dhis2.json:ro
     ports:
       - "8080"
+
+  openldap:
+    image: osixia/openldap:1.5.0
+    command: ["--copy-service"]
+    environment:
+      LDAP_ORGANISATION: "DHIS2"
+      LDAP_DOMAIN: "dhis2.org"
+      LDAP_ADMIN_PASSWORD: "admin"
+    volumes:
+      - ./config/ldap/users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/users.ldif:ro
+    ports:
+      - "389"
