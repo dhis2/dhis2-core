@@ -86,7 +86,7 @@ public class Property implements Ordered, Klass {
    */
   private boolean persisted;
 
-  @Getter @Setter private boolean isTransient;
+  private boolean isTransient;
 
   /** Name of collection wrapper. */
   private String collectionName;
@@ -329,6 +329,16 @@ public class Property implements Ordered, Klass {
 
   public void setPersisted(boolean persisted) {
     this.persisted = persisted;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isTransient() {
+    return isTransient;
+  }
+
+  public void setTransient(boolean isTransient) {
+    this.isTransient = isTransient;
   }
 
   @JsonProperty
