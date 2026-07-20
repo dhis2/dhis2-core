@@ -161,6 +161,8 @@ public enum ValidationCode {
   E1323("User: `{0}` has no write access to any program."),
   E1324("User `{0}` has no ownership access to any program for the provided TrackedEntity: `{1}`."),
   E1325("User: `{0}` has no read access to any program."),
+  E1326(
+      "Event `{0}` is completed and its ProgramStage blocks the entry form after completion. Reopen the Event before updating."),
 
   /* Relationship */
   E4000("Relationship: `{0}` cannot link to itself."),

@@ -314,13 +314,7 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
    * @return a list of {@link ObjectNode}.
    */
   private <T> List<ObjectNode> toObjectNodes(Collection<T> objects, String filters, Class<T> type) {
-    FieldFilterParams<T> fieldFilterParams =
-        FieldFilterParams.<T>builder()
-            .objects(new ArrayList<>(objects))
-            .filters(filters)
-            .skipSharing(true)
-            .build();
-
-    return fieldFilterService.toObjectNodes(fieldFilterParams);
+    return fieldFilterService.toObjectNodes(
+        FieldFilterParams.of(new ArrayList<>(objects), filters, true));
   }
 }

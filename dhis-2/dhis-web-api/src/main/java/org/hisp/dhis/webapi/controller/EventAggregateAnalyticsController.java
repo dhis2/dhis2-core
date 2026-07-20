@@ -224,7 +224,7 @@ public class EventAggregateAnalyticsController {
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
       @RequestParam String programStageId,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
     configResponseForJson(response);

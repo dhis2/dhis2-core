@@ -30,17 +30,16 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.SRID;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.buildMultiRowInsertSql;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bigintArray;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.booleanArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toJson;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamp;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.geometryText;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
@@ -50,16 +49,40 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
  */
 final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
 
-  private static final String INSERT_PREFIX =
+  // Constant-text INSERT ... SELECT unnest(...): one cacheable statement regardless of row count,
+  // so pgjdbc's server-side prepared-statement cache engages (a multi-row VALUES list has distinct
+  // text per row count). INSERT column order, the SELECT projection and the unnest aliases below
+  // are kept in lockstep.
+  private static final String INSERT_SQL =
       "insert into trackedentity ("
-          + "trackedentityid, uid, created, lastupdated,"
-          + " createdatclient, lastupdatedatclient,"
+          + "trackedentityid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
           + " inactive, deleted, lastsynchronized, potentialduplicate,"
+          + " organisationunitid, trackedentitytypeid, geometry, createdbyuserinfo,"
+          + " lastupdatedbyuserinfo)"
+          + " select trackedentityid, uid, created, lastupdated, createdatclient,"
+          + " lastupdatedatclient, inactive, deleted, lastsynchronized, potentialduplicate,"
           + " organisationunitid, trackedentitytypeid,"
-          + " geometry, createdbyuserinfo, lastupdatedbyuserinfo) values ";
-
-  private static final String INSERT_ROW =
-      "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, " + SRID + "), ?::jsonb, ?::jsonb)";
+          + " case when geometry is null then null else ST_GeomFromText(geometry, "
+          + SRID
+          + ") end,"
+          + " createdbyuserinfo::jsonb, lastupdatedbyuserinfo::jsonb"
+          + " from ( select"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::text[]) as uid,"
+          + " unnest(?::timestamptz[]) as created,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::timestamptz[]) as createdatclient,"
+          + " unnest(?::timestamptz[]) as lastupdatedatclient,"
+          + " unnest(?::boolean[]) as inactive,"
+          + " unnest(?::boolean[]) as deleted,"
+          + " unnest(?::timestamptz[]) as lastsynchronized,"
+          + " unnest(?::boolean[]) as potentialduplicate,"
+          + " unnest(?::bigint[]) as organisationunitid,"
+          + " unnest(?::bigint[]) as trackedentitytypeid,"
+          + " unnest(?::text[]) as geometry,"
+          + " unnest(?::text[]) as createdbyuserinfo,"
+          + " unnest(?::text[]) as lastupdatedbyuserinfo"
+          + " ) v";
 
   // Columns mutated by TrackerObjectsMapper.map() on the UPDATE branch. Insert-only columns (uid,
   // created, createdbyuserinfo) and columns owned by other code paths (deleted, lastsynchronized --
@@ -92,10 +115,10 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
           + " unnest(?::text[]) as geometry"
           + " ) v where te.trackedentityid = v.trackedentityid";
 
-  private final ObjectMapper objectMapper;
+  private final UserInfoJsonCache userInfo;
 
-  TrackedEntityWriter(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+  TrackedEntityWriter(UserInfoJsonCache userInfo) {
+    this.userInfo = userInfo;
   }
 
   @Override
@@ -108,18 +131,35 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
     forEachChunk(
         inserts,
         chunk -> {
-          String sql = buildMultiRowInsertSql(INSERT_PREFIX, INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          for (TrackedEntity te : chunk) {
+            requirePreallocatedId(te);
+          }
+          try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
             int p = 1;
-            for (TrackedEntity te : chunk) {
-              p = bindRow(ps, p, te);
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, TrackedEntity::getId));
+            ps.setArray(p++, textArray(conn, chunk, TrackedEntity::getUid));
+            ps.setArray(p++, textArray(conn, chunk, te -> toTimestamptz(te.getCreated())));
+            ps.setArray(p++, textArray(conn, chunk, te -> toTimestamptz(te.getLastUpdated())));
+            ps.setArray(p++, textArray(conn, chunk, te -> toTimestamptz(te.getCreatedAtClient())));
+            ps.setArray(
+                p++, textArray(conn, chunk, te -> toTimestamptz(te.getLastUpdatedAtClient())));
+            ps.setArray(p++, booleanArray(conn, chunk, TrackedEntity::isInactive));
+            ps.setArray(p++, booleanArray(conn, chunk, TrackedEntity::isDeleted));
+            ps.setArray(p++, textArray(conn, chunk, te -> toTimestamptz(te.getLastSynchronized())));
+            ps.setArray(p++, booleanArray(conn, chunk, TrackedEntity::isPotentialDuplicate));
+            ps.setArray(p++, bigintArray(conn, chunk, te -> te.getOrganisationUnit().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, te -> te.getTrackedEntityType().getId()));
+            ps.setArray(p++, textArray(conn, chunk, te -> geometryText(te.getGeometry())));
+            ps.setArray(
+                p++, textArray(conn, chunk, te -> userInfo.toJson(te.getCreatedByUserInfo())));
+            ps.setArray(
+                p++, textArray(conn, chunk, te -> userInfo.toJson(te.getLastUpdatedByUserInfo())));
             ps.executeUpdate();
           }
         });
   }
 
-  private int bindRow(PreparedStatement ps, int p, TrackedEntity te) throws SQLException {
+  private static void requirePreallocatedId(TrackedEntity te) throws SQLException {
     if (te.getId() == 0) {
       throw new SQLException(
           "TrackedEntity "
@@ -127,26 +167,6 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
               + " has no pre-allocated id; AbstractTrackerPersister"
               + " must pre-allocate ids when sequenceName() is non-null.");
     }
-    ps.setLong(p++, te.getId());
-    ps.setString(p++, te.getUid());
-    ps.setTimestamp(p++, toTimestamp(te.getCreated()));
-    ps.setTimestamp(p++, toTimestamp(te.getLastUpdated()));
-    JdbcBatchSupport.setNullableTimestamp(ps, p++, te.getCreatedAtClient());
-    JdbcBatchSupport.setNullableTimestamp(ps, p++, te.getLastUpdatedAtClient());
-    ps.setBoolean(p++, te.isInactive());
-    ps.setBoolean(p++, te.isDeleted());
-    ps.setTimestamp(p++, toTimestamp(te.getLastSynchronized()));
-    ps.setBoolean(p++, te.isPotentialDuplicate());
-    ps.setLong(p++, te.getOrganisationUnit().getId());
-    ps.setLong(p++, te.getTrackedEntityType().getId());
-    if (te.getGeometry() != null) {
-      ps.setString(p++, te.getGeometry().toText());
-    } else {
-      ps.setNull(p++, Types.VARCHAR);
-    }
-    ps.setString(p++, toJson(objectMapper, te.getCreatedByUserInfo()));
-    ps.setString(p++, toJson(objectMapper, te.getLastUpdatedByUserInfo()));
-    return p;
   }
 
   private void update(Connection conn) throws SQLException {
@@ -176,7 +196,7 @@ final class TrackedEntityWriter extends UpsertTableWriter<TrackedEntity> {
             trackedEntityTypeIds[i] = te.getTrackedEntityType().getId();
             potentialDuplicate[i] = te.isPotentialDuplicate();
             inactive[i] = te.isInactive();
-            lastUpdatedByUserInfo[i] = toJson(objectMapper, te.getLastUpdatedByUserInfo());
+            lastUpdatedByUserInfo[i] = userInfo.toJson(te.getLastUpdatedByUserInfo());
             geometry[i] = te.getGeometry() != null ? te.getGeometry().toText() : null;
           }
 

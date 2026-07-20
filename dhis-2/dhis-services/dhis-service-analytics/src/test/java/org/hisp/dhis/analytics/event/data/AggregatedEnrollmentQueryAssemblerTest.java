@@ -53,13 +53,20 @@ import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -74,7 +81,9 @@ class AggregatedEnrollmentQueryAssemblerTest {
 
   private final AggregatedEnrollmentQueryAssembler assembler =
       new AggregatedEnrollmentQueryAssembler(
-          sqlBuilder, new DateFieldPeriodBucketColumnResolver(sqlBuilder));
+          sqlBuilder,
+          new DateFieldPeriodBucketColumnResolver(sqlBuilder),
+          new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder));
 
   @Test
   void addAggregatedColumnsEmitsCountValue() {
@@ -340,6 +349,48 @@ class AggregatedEnrollmentQueryAssemblerTest {
     assertThat(sql, containsString("ev_occurreddate as \"stage1.eventdate\""));
     assertThat(sql, containsString("group by"));
     assertThat(sql, containsString("ev_occurreddate"));
+  }
+
+  @Test
+  void addHeaderAggregateColumnsBucketsStageDateViaRealQueryItemKey() {
+    // Proves the real collectStageDateItems key path: a QueryItem carrying a stage EVENT_DATE
+    // custom header is indexed under the same analytics header key (stageUid.eventdate) that the
+    // resolver derives from the GridHeader, so its period (202205) buckets the filter-CTE date
+    // column end-to-end through the assembler — no hand-built header->item map.
+    ProgramStage stage = new ProgramStage();
+    stage.setUid("A03MvHHogjR");
+    stage.setName("Birth");
+
+    QueryItem eventDate =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    eventDate.setValueType(ValueType.DATE);
+    eventDate.setProgramStage(stage);
+    eventDate.withCustomHeader(AnalyticsCustomHeader.forEventDate(stage));
+    eventDate.addDimensionValue("202205");
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(eventDate).build();
+
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_A03MvHHogjR", "select 1");
+    String alias = cteContext.getDefinitionByItemUid("latest_events_A03MvHHogjR").getAlias();
+
+    SelectBuilder sb = new SelectBuilder().from("enrollment_aggr_base", "eb");
+
+    assembler.addHeaderAggregateColumns(
+        List.of(new GridHeader("A03MvHHogjR.eventdate")), params, cteContext, sb, List.of());
+
+    String sql = sb.build();
+    String expected =
+        "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_stage where dps_stage."
+            + "\"dateperiod\" = cast("
+            + alias
+            + ".ev_occurreddate as date))";
+
+    assertThat(sql, containsString(expected + " as \"A03MvHHogjR.eventdate\""));
+    assertThat(sql, containsString("group by " + expected));
+    // not the raw (unbucketed) select column that the bug produced
+    assertThat(sql, not(containsString(alias + ".ev_occurreddate as \"A03MvHHogjR.eventdate\"")));
   }
 
   @Test

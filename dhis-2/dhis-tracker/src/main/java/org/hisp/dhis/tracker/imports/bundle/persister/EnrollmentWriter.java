@@ -30,18 +30,16 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.SRID;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.buildMultiRowInsertSql;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bigintArray;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.booleanArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.setNullableTimestamp;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toJson;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamp;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.geometryText;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import org.hisp.dhis.tracker.model.Enrollment;
 
 /**
@@ -51,21 +49,44 @@ import org.hisp.dhis.tracker.model.Enrollment;
  */
 final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
 
-  private static final String INSERT_PREFIX =
+  // Constant-text INSERT ... SELECT unnest(...) so pgjdbc's prepared-statement cache engages
+  // regardless of row count. INSERT column order, the SELECT projection and the unnest aliases are
+  // kept in lockstep.
+  private static final String INSERT_SQL =
       "insert into enrollment ("
-          + "enrollmentid, uid, created, lastupdated,"
-          + " createdatclient, lastupdatedatclient,"
-          + " createdbyuserinfo, lastupdatedbyuserinfo,"
-          + " enrollmentdate, occurreddate, completeddate, completedby,"
-          + " status, followup, deleted,"
+          + "enrollmentid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
+          + " createdbyuserinfo, lastupdatedbyuserinfo, enrollmentdate, occurreddate, completeddate,"
+          + " completedby, status, followup, deleted,"
+          + " trackedentityid, programid, organisationunitid, attributeoptioncomboid, geometry)"
+          + " select enrollmentid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
+          + " createdbyuserinfo::jsonb, lastupdatedbyuserinfo::jsonb, enrollmentdate, occurreddate,"
+          + " completeddate, completedby, status, followup, deleted,"
           + " trackedentityid, programid, organisationunitid, attributeoptioncomboid,"
-          + " geometry) values ";
-
-  private static final String INSERT_ROW =
-      "(?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-          + "ST_GeomFromText(?, "
+          + " case when geometry is null then null else ST_GeomFromText(geometry, "
           + SRID
-          + "))";
+          + ") end"
+          + " from ( select"
+          + " unnest(?::bigint[]) as enrollmentid,"
+          + " unnest(?::text[]) as uid,"
+          + " unnest(?::timestamptz[]) as created,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::timestamptz[]) as createdatclient,"
+          + " unnest(?::timestamptz[]) as lastupdatedatclient,"
+          + " unnest(?::text[]) as createdbyuserinfo,"
+          + " unnest(?::text[]) as lastupdatedbyuserinfo,"
+          + " unnest(?::timestamptz[]) as enrollmentdate,"
+          + " unnest(?::timestamptz[]) as occurreddate,"
+          + " unnest(?::timestamptz[]) as completeddate,"
+          + " unnest(?::text[]) as completedby,"
+          + " unnest(?::text[]) as status,"
+          + " unnest(?::boolean[]) as followup,"
+          + " unnest(?::boolean[]) as deleted,"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::bigint[]) as programid,"
+          + " unnest(?::bigint[]) as organisationunitid,"
+          + " unnest(?::bigint[]) as attributeoptioncomboid,"
+          + " unnest(?::text[]) as geometry"
+          + " ) v";
 
   // Columns mutated by TrackerObjectsMapper.map(Enrollment) outside the new-entity branch. Insert-
   // only columns (uid, created, createdbyuserinfo) and columns owned by other code paths (deleted)
@@ -111,11 +132,11 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
           + " unnest(?::text[]) as geometry"
           + " ) v where e.enrollmentid = v.enrollmentid";
 
-  private final ObjectMapper objectMapper;
+  private final UserInfoJsonCache userInfo;
   private final NoteCascadeWriter notes = new NoteCascadeWriter("enrollment_notes", "enrollmentid");
 
-  EnrollmentWriter(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+  EnrollmentWriter(UserInfoJsonCache userInfo) {
+    this.userInfo = userInfo;
   }
 
   @Override
@@ -129,18 +150,40 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
     forEachChunk(
         inserts,
         chunk -> {
-          String sql = buildMultiRowInsertSql(INSERT_PREFIX, INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          for (Enrollment e : chunk) {
+            requirePreallocatedId(e);
+          }
+          try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
             int p = 1;
-            for (Enrollment e : chunk) {
-              p = bindRow(ps, p, e);
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, Enrollment::getId));
+            ps.setArray(p++, textArray(conn, chunk, Enrollment::getUid));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getCreated())));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getLastUpdated())));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getCreatedAtClient())));
+            ps.setArray(
+                p++, textArray(conn, chunk, e -> toTimestamptz(e.getLastUpdatedAtClient())));
+            ps.setArray(
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getCreatedByUserInfo())));
+            ps.setArray(
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getLastUpdatedByUserInfo())));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getEnrollmentDate())));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getOccurredDate())));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getCompletedDate())));
+            ps.setArray(p++, textArray(conn, chunk, Enrollment::getCompletedBy));
+            ps.setArray(p++, textArray(conn, chunk, e -> e.getStatus().name()));
+            ps.setArray(p++, booleanArray(conn, chunk, Enrollment::getFollowup));
+            ps.setArray(p++, booleanArray(conn, chunk, Enrollment::isDeleted));
+            ps.setArray(p++, bigintArray(conn, chunk, e -> e.getTrackedEntity().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, e -> e.getProgram().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, e -> e.getOrganisationUnit().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, e -> e.getAttributeOptionCombo().getId()));
+            ps.setArray(p++, textArray(conn, chunk, e -> geometryText(e.getGeometry())));
             ps.executeUpdate();
           }
         });
   }
 
-  private int bindRow(PreparedStatement ps, int p, Enrollment e) throws SQLException {
+  private static void requirePreallocatedId(Enrollment e) throws SQLException {
     if (e.getId() == 0) {
       throw new SQLException(
           "Enrollment "
@@ -148,39 +191,6 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
               + " has no pre-allocated id; AbstractTrackerPersister"
               + " must pre-allocate ids when sequenceName() is non-null.");
     }
-    ps.setLong(p++, e.getId());
-    ps.setString(p++, e.getUid());
-    ps.setTimestamp(p++, toTimestamp(e.getCreated()));
-    ps.setTimestamp(p++, toTimestamp(e.getLastUpdated()));
-    setNullableTimestamp(ps, p++, e.getCreatedAtClient());
-    setNullableTimestamp(ps, p++, e.getLastUpdatedAtClient());
-    ps.setString(p++, toJson(objectMapper, e.getCreatedByUserInfo()));
-    ps.setString(p++, toJson(objectMapper, e.getLastUpdatedByUserInfo()));
-    ps.setTimestamp(p++, toTimestamp(e.getEnrollmentDate()));
-    setNullableTimestamp(ps, p++, e.getOccurredDate());
-    setNullableTimestamp(ps, p++, e.getCompletedDate());
-    if (e.getCompletedBy() != null) {
-      ps.setString(p++, e.getCompletedBy());
-    } else {
-      ps.setNull(p++, Types.VARCHAR);
-    }
-    ps.setString(p++, e.getStatus().name());
-    if (e.getFollowup() != null) {
-      ps.setBoolean(p++, e.getFollowup());
-    } else {
-      ps.setNull(p++, Types.BOOLEAN);
-    }
-    ps.setBoolean(p++, e.isDeleted());
-    ps.setLong(p++, e.getTrackedEntity().getId());
-    ps.setLong(p++, e.getProgram().getId());
-    ps.setLong(p++, e.getOrganisationUnit().getId());
-    ps.setLong(p++, e.getAttributeOptionCombo().getId());
-    if (e.getGeometry() != null) {
-      ps.setString(p++, e.getGeometry().toText());
-    } else {
-      ps.setNull(p++, Types.VARCHAR);
-    }
-    return p;
   }
 
   private void update(Connection conn) throws SQLException {
@@ -212,7 +222,7 @@ final class EnrollmentWriter extends UpsertTableWriter<Enrollment> {
             lastUpdated[i] = toTimestamptz(e.getLastUpdated());
             createdAtClient[i] = toTimestamptz(e.getCreatedAtClient());
             lastUpdatedAtClient[i] = toTimestamptz(e.getLastUpdatedAtClient());
-            lastUpdatedByUserInfo[i] = toJson(objectMapper, e.getLastUpdatedByUserInfo());
+            lastUpdatedByUserInfo[i] = userInfo.toJson(e.getLastUpdatedByUserInfo());
             trackedEntityIds[i] = e.getTrackedEntity().getId();
             programIds[i] = e.getProgram().getId();
             organisationUnitIds[i] = e.getOrganisationUnit().getId();

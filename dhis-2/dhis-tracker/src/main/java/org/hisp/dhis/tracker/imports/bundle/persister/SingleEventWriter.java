@@ -30,19 +30,17 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.SRID;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.buildMultiRowInsertSql;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bigintArray;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.booleanArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.setNullableTimestamp;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.geometryText;
+import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toEventDataValuesJson;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toJson;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamp;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import org.hisp.dhis.tracker.model.SingleEvent;
 
 /**
@@ -53,21 +51,46 @@ import org.hisp.dhis.tracker.model.SingleEvent;
  */
 final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
 
-  private static final String INSERT_PREFIX =
+  // Constant-text INSERT ... SELECT unnest(...) so pgjdbc's prepared-statement cache engages
+  // regardless of row count. INSERT column order, the SELECT projection and the unnest aliases are
+  // kept in lockstep.
+  private static final String INSERT_SQL =
       "insert into singleevent ("
-          + "eventid, uid, created, lastupdated,"
-          + " createdatclient, lastupdatedatclient,"
-          + " createdbyuserinfo, lastupdatedbyuserinfo,"
-          + " status, occurreddate, completeddate, completedby,"
-          + " deleted, lastsynchronized,"
+          + "eventid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
+          + " createdbyuserinfo, lastupdatedbyuserinfo, status, occurreddate, completeddate,"
+          + " completedby, deleted, lastsynchronized,"
           + " programstageid, organisationunitid, attributeoptioncomboid,"
-          + " assigneduserid, eventdatavalues, geometry) values ";
-
-  private static final String INSERT_ROW =
-      "(?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, "
-          + "ST_GeomFromText(?, "
+          + " assigneduserid, eventdatavalues, geometry)"
+          + " select eventid, uid, created, lastupdated, createdatclient, lastupdatedatclient,"
+          + " createdbyuserinfo::jsonb, lastupdatedbyuserinfo::jsonb, status, occurreddate,"
+          + " completeddate, completedby, deleted, lastsynchronized,"
+          + " programstageid, organisationunitid, attributeoptioncomboid,"
+          + " assigneduserid, eventdatavalues::jsonb,"
+          + " case when geometry is null then null else ST_GeomFromText(geometry, "
           + SRID
-          + "))";
+          + ") end"
+          + " from ( select"
+          + " unnest(?::bigint[]) as eventid,"
+          + " unnest(?::text[]) as uid,"
+          + " unnest(?::timestamptz[]) as created,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::timestamptz[]) as createdatclient,"
+          + " unnest(?::timestamptz[]) as lastupdatedatclient,"
+          + " unnest(?::text[]) as createdbyuserinfo,"
+          + " unnest(?::text[]) as lastupdatedbyuserinfo,"
+          + " unnest(?::text[]) as status,"
+          + " unnest(?::timestamptz[]) as occurreddate,"
+          + " unnest(?::timestamptz[]) as completeddate,"
+          + " unnest(?::text[]) as completedby,"
+          + " unnest(?::boolean[]) as deleted,"
+          + " unnest(?::timestamptz[]) as lastsynchronized,"
+          + " unnest(?::bigint[]) as programstageid,"
+          + " unnest(?::bigint[]) as organisationunitid,"
+          + " unnest(?::bigint[]) as attributeoptioncomboid,"
+          + " unnest(?::bigint[]) as assigneduserid,"
+          + " unnest(?::text[]) as eventdatavalues,"
+          + " unnest(?::text[]) as geometry"
+          + " ) v";
 
   // Columns mutated by TrackerObjectsMapper.mapSingleEvent outside the new-entity branch. Insert-
   // only columns (uid, created, createdbyuserinfo, deleted) and columns owned by other code paths
@@ -109,11 +132,11 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
           + " unnest(?::text[]) as geometry"
           + " ) v where ev.eventid = v.eventid";
 
-  private final ObjectMapper objectMapper;
+  private final UserInfoJsonCache userInfo;
   private final NoteCascadeWriter notes = new NoteCascadeWriter("singleevent_notes", "eventid");
 
-  SingleEventWriter(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
+  SingleEventWriter(UserInfoJsonCache userInfo) {
+    this.userInfo = userInfo;
   }
 
   @Override
@@ -127,18 +150,45 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
     forEachChunk(
         inserts,
         chunk -> {
-          String sql = buildMultiRowInsertSql(INSERT_PREFIX, INSERT_ROW, chunk.size());
-          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+          for (SingleEvent e : chunk) {
+            requirePreallocatedId(e);
+          }
+          try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
             int p = 1;
-            for (SingleEvent e : chunk) {
-              p = bindRow(ps, p, e);
-            }
+            ps.setArray(p++, bigintArray(conn, chunk, SingleEvent::getId));
+            ps.setArray(p++, textArray(conn, chunk, SingleEvent::getUid));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getCreated())));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getLastUpdated())));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getCreatedAtClient())));
+            ps.setArray(
+                p++, textArray(conn, chunk, e -> toTimestamptz(e.getLastUpdatedAtClient())));
+            ps.setArray(
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getCreatedByUserInfo())));
+            ps.setArray(
+                p++, textArray(conn, chunk, e -> userInfo.toJson(e.getLastUpdatedByUserInfo())));
+            ps.setArray(p++, textArray(conn, chunk, e -> e.getStatus().name()));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getOccurredDate())));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getCompletedDate())));
+            ps.setArray(p++, textArray(conn, chunk, SingleEvent::getCompletedBy));
+            ps.setArray(p++, booleanArray(conn, chunk, SingleEvent::isDeleted));
+            ps.setArray(p++, textArray(conn, chunk, e -> toTimestamptz(e.getLastSynchronized())));
+            ps.setArray(p++, bigintArray(conn, chunk, e -> e.getProgramStage().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, e -> e.getOrganisationUnit().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, e -> e.getAttributeOptionCombo().getId()));
+            ps.setArray(p++, bigintArray(conn, chunk, SingleEventWriter::assignedUserId));
+            ps.setArray(
+                p++, textArray(conn, chunk, e -> toEventDataValuesJson(e.getEventDataValues())));
+            ps.setArray(p++, textArray(conn, chunk, e -> geometryText(e.getGeometry())));
             ps.executeUpdate();
           }
         });
   }
 
-  private int bindRow(PreparedStatement ps, int p, SingleEvent e) throws SQLException {
+  private static Long assignedUserId(SingleEvent e) {
+    return e.getAssignedUser() != null ? e.getAssignedUser().getId() : null;
+  }
+
+  private static void requirePreallocatedId(SingleEvent e) throws SQLException {
     if (e.getId() == 0) {
       throw new SQLException(
           "SingleEvent "
@@ -146,39 +196,6 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
               + " has no pre-allocated id; AbstractTrackerPersister"
               + " must pre-allocate ids when sequenceName() is non-null.");
     }
-    ps.setLong(p++, e.getId());
-    ps.setString(p++, e.getUid());
-    ps.setTimestamp(p++, toTimestamp(e.getCreated()));
-    ps.setTimestamp(p++, toTimestamp(e.getLastUpdated()));
-    setNullableTimestamp(ps, p++, e.getCreatedAtClient());
-    setNullableTimestamp(ps, p++, e.getLastUpdatedAtClient());
-    ps.setString(p++, toJson(objectMapper, e.getCreatedByUserInfo()));
-    ps.setString(p++, toJson(objectMapper, e.getLastUpdatedByUserInfo()));
-    ps.setString(p++, e.getStatus().name());
-    setNullableTimestamp(ps, p++, e.getOccurredDate());
-    setNullableTimestamp(ps, p++, e.getCompletedDate());
-    if (e.getCompletedBy() != null) {
-      ps.setString(p++, e.getCompletedBy());
-    } else {
-      ps.setNull(p++, Types.VARCHAR);
-    }
-    ps.setBoolean(p++, e.isDeleted());
-    setNullableTimestamp(ps, p++, e.getLastSynchronized());
-    ps.setLong(p++, e.getProgramStage().getId());
-    ps.setLong(p++, e.getOrganisationUnit().getId());
-    ps.setLong(p++, e.getAttributeOptionCombo().getId());
-    if (e.getAssignedUser() != null) {
-      ps.setLong(p++, e.getAssignedUser().getId());
-    } else {
-      ps.setNull(p++, Types.BIGINT);
-    }
-    ps.setString(p++, toEventDataValuesJson(e.getEventDataValues()));
-    if (e.getGeometry() != null) {
-      ps.setString(p++, e.getGeometry().toText());
-    } else {
-      ps.setNull(p++, Types.VARCHAR);
-    }
-    return p;
   }
 
   private void update(Connection conn) throws SQLException {
@@ -209,7 +226,7 @@ final class SingleEventWriter extends UpsertTableWriter<SingleEvent> {
             lastUpdated[i] = toTimestamptz(e.getLastUpdated());
             createdAtClient[i] = toTimestamptz(e.getCreatedAtClient());
             lastUpdatedAtClient[i] = toTimestamptz(e.getLastUpdatedAtClient());
-            lastUpdatedByUserInfo[i] = toJson(objectMapper, e.getLastUpdatedByUserInfo());
+            lastUpdatedByUserInfo[i] = userInfo.toJson(e.getLastUpdatedByUserInfo());
             programStageIds[i] = e.getProgramStage().getId();
             organisationUnitIds[i] = e.getOrganisationUnit().getId();
             attributeOptionComboIds[i] = e.getAttributeOptionCombo().getId();

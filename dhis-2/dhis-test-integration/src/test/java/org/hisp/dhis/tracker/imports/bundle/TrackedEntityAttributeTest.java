@@ -195,6 +195,77 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotPersistAttributeValueWhenImportingEmptyValueForAttributeNotInDb() {
+    UID te = UID.generate();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                        .trackedEntity(te)
+                        .trackedEntityType(MetadataIdentifier.ofUid("KrYIdvLxkMb"))
+                        .orgUnit(MetadataIdentifier.ofUid("cNEZTkdAvmg"))
+                        .attributes(
+                            List.of(
+                                Attribute.builder()
+                                    .attribute(MetadataIdentifier.ofUid("sYn3tkL3XKa"))
+                                    .value("123")
+                                    .build(),
+                                Attribute.builder()
+                                    .attribute(MetadataIdentifier.ofUid("TsfP85GKsU5"))
+                                    .value("")
+                                    .build()))
+                        .build()))
+            .build();
+
+    assertNoErrors(
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
+    clearSession();
+
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, te.getValue());
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    assertContainsOnly(
+        List.of("sYn3tkL3XKa"),
+        attributeValues.stream().map(av -> av.getAttribute().getUid()).toList());
+  }
+
+  @Test
+  void shouldDeleteAttributeValueWhenImportingEmptyValueForExistingAttribute() throws IOException {
+    testSetup.importTrackerData("tracker/te_with_tea_data.json");
+    clearSession();
+
+    TrackerObjects update =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                        .trackedEntity(UID.of("CLR1fvPj4ic"))
+                        .trackedEntityType(MetadataIdentifier.ofUid("KrYIdvLxkMb"))
+                        .orgUnit(MetadataIdentifier.ofUid("cNEZTkdAvmg"))
+                        .attributes(
+                            List.of(
+                                Attribute.builder()
+                                    .attribute(MetadataIdentifier.ofUid("TsfP85GKsU5"))
+                                    .value("")
+                                    .build()))
+                        .build()))
+            .build();
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
+
+    assertNoErrors(trackerImportService.importTracker(params, update));
+    clearSession();
+
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "CLR1fvPj4ic");
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    assertContainsOnly(
+        List.of("sYn3tkL3XKa", "sTGqP5JNy6E"),
+        attributeValues.stream().map(av -> av.getAttribute().getUid()).toList());
+  }
+
+  @Test
   void shouldSetMinCharactersToSearchFromImportOrDefaultToZeroIfNotSpecified() {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();

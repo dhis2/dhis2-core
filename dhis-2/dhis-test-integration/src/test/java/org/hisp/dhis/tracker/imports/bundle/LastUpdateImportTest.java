@@ -33,6 +33,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -624,6 +625,62 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                     "Data integrity error for event %s. The lastUpdatedByUserinfo has not been"
                         + " saved during the import",
                     event.getUID())));
+  }
+
+  @Test
+  void shouldSetCreatedByUserInfoToImportUserWhenTrackedEntityIsCreated() {
+    assertCreatedByUserInfo(getTrackedEntity().getCreatedByUserInfo(), "tracked entity");
+  }
+
+  @Test
+  void shouldSetCreatedByUserInfoToImportUserWhenEnrollmentIsCreated() {
+    assertCreatedByUserInfo(getEnrollment().getCreatedByUserInfo(), "enrollment");
+  }
+
+  @Test
+  void shouldSetCreatedByUserInfoToImportUserWhenEventIsCreated() {
+    assertCreatedByUserInfo(getEvent().getCreatedByUserInfo(), "event");
+  }
+
+  @Test
+  void shouldNotChangeCreatedByUserInfoWhenTrackedEntityIsUpdatedByAnotherUser()
+      throws IOException {
+    String createdByBefore = getTrackedEntity().getCreatedByUserInfo().getUid();
+
+    User otherUser = user();
+    clearSession();
+
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
+    testSetup.importTrackerData("tracker/one_te.json", params);
+    clearSession();
+
+    TrackedEntity afterUpdate = getTrackedEntity();
+    assertAll(
+        () ->
+            assertEquals(
+                importUser.getUid(),
+                createdByBefore,
+                "the tracked entity should have been created by the import user"),
+        () ->
+            assertEquals(
+                createdByBefore,
+                afterUpdate.getCreatedByUserInfo().getUid(),
+                "createdByUserInfo must not change when the tracked entity is updated"),
+        () ->
+            assertEquals(
+                otherUser.getUid(),
+                afterUpdate.getLastUpdatedByUserInfo().getUid(),
+                "lastUpdatedByUserInfo must reflect the updating user"));
+  }
+
+  private void assertCreatedByUserInfo(
+      org.hisp.dhis.program.UserInfoSnapshot createdByUserInfo, String entity) {
+    assertAll(
+        "createdByUserInfo not saved for " + entity,
+        () -> assertNotNull(createdByUserInfo, "createdByUserInfo was not saved"),
+        () -> assertEquals(importUser.getUid(), createdByUserInfo.getUid()),
+        () -> assertEquals(importUser.getUsername(), createdByUserInfo.getUsername()));
   }
 
   private void assertTrackedEntityUpdated(

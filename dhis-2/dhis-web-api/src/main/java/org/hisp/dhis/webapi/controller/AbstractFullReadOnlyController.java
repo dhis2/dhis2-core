@@ -44,16 +44,17 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Maturity;
@@ -61,13 +62,16 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.gist.GistBridge;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -133,6 +137,8 @@ public abstract class AbstractFullReadOnlyController<
 
   @Autowired protected SchemaService schemaService;
 
+  @Autowired private GistBridge gistBridge;
+
   private Schema schema;
 
   protected final Schema getSchema() {
@@ -180,24 +186,30 @@ public abstract class AbstractFullReadOnlyController<
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
-      P params, HttpServletResponse response, @CurrentUser UserDetails currentUser)
+      P params,
+      HttpServletRequest request,
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, ConflictException {
-    return getObjectListInternal(params, response, currentUser, getAdditionalFilters(params));
+    return getObjectListInternal(
+        params, request, response, currentUser, getAdditionalFilters(params));
   }
 
   protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListWith(
       P params,
+      HttpServletRequest request,
       HttpServletResponse response,
       UserDetails currentUser,
       List<Filter> additionalFilters)
       throws ForbiddenException, BadRequestException, ConflictException {
     List<Filter> filters = getAdditionalFilters(params);
     filters.addAll(additionalFilters);
-    return getObjectListInternal(params, response, currentUser, filters);
+    return getObjectListInternal(params, request, response, currentUser, filters);
   }
 
   protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListInternal(
       P params,
+      HttpServletRequest request,
       HttpServletResponse response,
       UserDetails currentUser,
       List<Filter> additionalFilters)
@@ -215,15 +227,27 @@ public abstract class AbstractFullReadOnlyController<
     boolean isAlwaysEmpty =
         params.getRootJunction() == Junction.Type.AND
             && additionalFilters.stream().anyMatch(Filter::isAlwaysFalse);
-    List<T> entities = isAlwaysEmpty ? List.of() : getEntityList(params, additionalFilters);
-    postProcessResponseEntities(entities, params);
 
-    List<String> fields = params.getFieldsJsonList();
-    handleLinksAndAccess(entities, fields, false);
+    List<T> entities = List.of();
+    long totalCount = 0;
+
+    String fields = params.getFieldsJsonList();
+    if (!isAlwaysEmpty) {
+      if (additionalFilters.isEmpty()) {
+        GistBridge.GistBridgeParams p = toGistBridgeParams(params, request);
+        if (gistBridge.isSupportedObjectList(p)) {
+          getObjectListGist(GistBridge.toObjectListParams(p), request, response);
+          return null; // response already created by Gist
+        }
+      }
+      entities = getEntityList(params, additionalFilters);
+      postProcessResponseEntities(entities, params);
+      handleLinksAndAccess(entities, fields, false);
+      if (params.isPaging()) totalCount = countGetObjectList(params, additionalFilters);
+    }
 
     Pager pager = null;
     if (params.isPaging()) {
-      long totalCount = isAlwaysEmpty ? 0 : countGetObjectList(params, additionalFilters);
       pager = new Pager(params.getPage(), totalCount, params.getPageSize());
       linkService.generatePagerLinks(pager, getEntityClass());
     }
@@ -239,8 +263,8 @@ public abstract class AbstractFullReadOnlyController<
 
   /**
    * A way to incorporate additional filters to the {@link #getObjectList(GetObjectListParams,
-   * HttpServletResponse, UserDetails)} endpoint that require running a separate query resulting in
-   * matching ID list which then is used as filter in the standard query process.
+   * HttpServletRequest, HttpServletResponse, UserDetails)} endpoint that require running a separate
+   * query resulting in matching ID list which then is used as filter in the standard query process.
    *
    * @param params options used
    * @return the ID of matches, nor null when no such filter is present/used
@@ -291,7 +315,7 @@ public abstract class AbstractFullReadOnlyController<
     }
 
     List<T> entities = getEntityList(params, List.of());
-    List<String> fields = params.getFieldsCsvList();
+    String fields = params.getFieldsCsvList();
     try {
       String csv = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
       return ResponseEntity.ok(csv);
@@ -305,11 +329,7 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   protected String applyCsvSteps(
-      List<String> fields,
-      List<T> entities,
-      char separator,
-      String arraySeparator,
-      boolean skipHeader)
+      String fields, List<T> entities, char separator, String arraySeparator, boolean skipHeader)
       throws IOException {
     CsvSchema.Builder schemaBuilder = CsvSchema.builder();
     Map<String, Function<T, Object>> obj2valueByProperty = new LinkedHashMap<>();
@@ -351,34 +371,29 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   private void setupSchemaAndProperties(
-      Builder schemaBuilder,
-      List<String> fields,
-      Map<String, Function<T, Object>> obj2valueByProperty) {
-    for (String field : fields) {
-      // We just split on ',' here, we do not try and deep dive into
-      // objects using [], if the client provides id,name,group[id]
-      // then the group[id] part is simply ignored.
-      for (String fieldName : field.split(",")) {
-        Property property = getSchema().getProperty(fieldName);
-
-        if (property == null) {
-          if (CodeGenerator.isValidUid(fieldName)) {
-            schemaBuilder.addColumn(fieldName);
-            obj2valueByProperty.put(fieldName, obj -> getAttributeValue(obj, fieldName));
-          }
-          continue;
+      Builder schemaBuilder, String fields, Map<String, Function<T, Object>> obj2valueByProperty) {
+    for (Fields.Field field : Fields.of(fields)) {
+      PropertyPath path = field.propertyPath();
+      if (path.isNested()) continue;
+      Property property = getSchema().getProperty(path.toString());
+      if (property == null) {
+        if (path.isUID()) {
+          String fieldName = path.property().toString();
+          schemaBuilder.addColumn(fieldName);
+          obj2valueByProperty.put(fieldName, obj -> getAttributeValue(obj, fieldName));
         }
+        continue;
+      }
 
-        if ((property.isCollection() && property.itemIs(PropertyType.REFERENCE))) {
-          schemaBuilder.addArrayColumn(property.getCollectionName());
-          obj2valueByProperty.put(
-              property.getCollectionName(), obj -> getCollectionValue(obj, property));
-        } else if (property.isSimple()) {
-          schemaBuilder.addColumn(property.getName());
-          obj2valueByProperty.put(
-              property.getName(),
-              obj -> DefaultSchemaService.safeInvoke(obj, property.getGetterMethod()));
-        }
+      if ((property.isCollection() && property.itemIs(PropertyType.REFERENCE))) {
+        schemaBuilder.addArrayColumn(property.getCollectionName());
+        obj2valueByProperty.put(
+            property.getCollectionName(), obj -> getCollectionValue(obj, property));
+      } else if (property.isSimple()) {
+        schemaBuilder.addColumn(property.getName());
+        obj2valueByProperty.put(
+            property.getName(),
+            obj -> DefaultSchemaService.safeInvoke(obj, property.getGetterMethod()));
       }
     }
   }
@@ -427,7 +442,7 @@ public abstract class AbstractFullReadOnlyController<
 
     List<T> entities = queryService.query(query);
 
-    List<String> fields = params.getFieldsObject();
+    String fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
 
     entities.forEach(e -> postProcessResponseEntity(e, params));
@@ -477,7 +492,7 @@ public abstract class AbstractFullReadOnlyController<
 
     List<T> entities = queryService.query(query);
 
-    List<String> fields = params.getFieldsObject();
+    String fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
 
     entities.forEach(e -> postProcessResponseEntity(entity, params));
@@ -530,25 +545,23 @@ public abstract class AbstractFullReadOnlyController<
         ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
   }
 
-  private boolean hasHref(List<String> fields) {
+  private boolean hasHref(String fields) {
     return fieldsContains("href", fields);
   }
 
-  private void handleLinksAndAccess(List<T> entityList, List<String> fields, boolean deep) {
+  private void handleLinksAndAccess(List<T> entityList, String fields, boolean deep) {
     if (hasHref(fields)) {
       linkService.generateLinks(entityList, deep);
     }
   }
 
-  private boolean fieldsContains(String match, List<String> fields) {
-    for (String field : fields) {
-      // for now assume href/access if * or preset is requested
-      if (field.contains(match) || field.equals("*") || field.startsWith(":")) {
-        return true;
-      }
-    }
-
-    return false;
+  private boolean fieldsContains(String match, String fields) {
+    return fields.contains("*")
+        || fields.contains(":all")
+        || fields.equals(match)
+        || fields.startsWith(match + ",")
+        || fields.endsWith("," + match)
+        || fields.contains("," + match + ",");
   }
 
   // --------------------------------------------------------------------------
@@ -577,5 +590,28 @@ public abstract class AbstractFullReadOnlyController<
 
   protected final Schema getSchema(Class<?> klass) {
     return schemaService.getSchema(klass);
+  }
+
+  /*
+  Gist Backend Bridge Support
+   */
+
+  private GistBridge.GistBridgeParams toGistBridgeParams(P params, HttpServletRequest request) {
+    return new GistBridge.GistBridgeParams(
+        getEntityClass(),
+        params,
+        Set.copyOf(Collections.list(request.getParameterNames())),
+        params.getFieldsJsonList(),
+        requestParameter("filter", request),
+        requestParameter("order", request),
+        requestParameter("locale", request));
+  }
+
+  @Nonnull
+  private static String requestParameter(String name, HttpServletRequest request) {
+    String[] values = request.getParameterValues(name);
+    if (values == null || values.length == 0) return "";
+    if (values.length == 1) return values[0];
+    return String.join(",", values);
   }
 }

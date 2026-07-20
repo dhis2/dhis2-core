@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.stream.Stream;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -105,10 +104,11 @@ class EntityWriteBatch {
   private final TeavWriter teavWriter = new TeavWriter();
 
   EntityWriteBatch(ObjectMapper objectMapper) {
-    this.trackedEntityWriter = new TrackedEntityWriter(objectMapper);
-    this.enrollmentWriter = new EnrollmentWriter(objectMapper);
-    this.trackerEventWriter = new TrackerEventWriter(objectMapper);
-    this.singleEventWriter = new SingleEventWriter(objectMapper);
+    UserInfoJsonCache userInfo = new UserInfoJsonCache(objectMapper);
+    this.trackedEntityWriter = new TrackedEntityWriter(userInfo);
+    this.enrollmentWriter = new EnrollmentWriter(userInfo);
+    this.trackerEventWriter = new TrackerEventWriter(userInfo);
+    this.singleEventWriter = new SingleEventWriter(userInfo);
   }
 
   void stageInsert(TrackedEntity trackedEntity) {
@@ -168,23 +168,6 @@ class EntityWriteBatch {
 
   void stageTeavDelete(TrackedEntityAttributeValue value) {
     teavWriter.stageDelete(value);
-  }
-
-  /**
-   * TEAVs already staged for insert or update against the given TrackedEntity. See {@link
-   * TeavWriter#stagedFor}.
-   */
-  Stream<TrackedEntityAttributeValue> stagedFor(TrackedEntity trackedEntity) {
-    return teavWriter.stagedFor(trackedEntity);
-  }
-
-  /**
-   * Whether the given TrackedEntity is being inserted in this batch (no DB row yet). Used by the
-   * attribute-handling code to skip the JDBC read of existing TEAVs, which would always return
-   * empty for a fresh insert.
-   */
-  boolean isStagedAsInsert(TrackedEntity trackedEntity) {
-    return trackedEntityWriter.isStagedAsInsert(trackedEntity);
   }
 
   Mark mark() {
