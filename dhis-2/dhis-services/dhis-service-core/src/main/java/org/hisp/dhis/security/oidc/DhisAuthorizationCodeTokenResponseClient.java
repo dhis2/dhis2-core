@@ -31,32 +31,18 @@ package org.hisp.dhis.security.oidc;
 
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.annotation.PostConstruct;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.oauth2.client.endpoint.NimbusJwtClientAuthenticationParametersConverter;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
-import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
+import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
-import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
-import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestOperations;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Spring {@link OAuth2AccessTokenResponseClient} used by the DHIS2 Relying Party during the
@@ -64,16 +50,16 @@ import org.springframework.web.client.RestTemplate;
  *
  * <p>This client supports both client authentication modes: standard {@code client_secret_*}
  * (basic, post, JWT) and {@code private_key_jwt}. When the matched {@link ClientRegistration}
- * declares {@link ClientAuthenticationMethod#PRIVATE_KEY_JWT}, the client builds a JWT client
- * assertion signed with the per-provider key loaded from {@link DhisOidcClientRegistration} ({@code
- * jwk}, {@code jwkSetUrl}), using Spring's {@link
- * NimbusJwtClientAuthenticationParametersConverter}; for all other methods it falls back to the
- * standard {@link OAuth2AuthorizationCodeGrantRequestEntityConverter}.
+ * declares {@link ClientAuthenticationMethod#PRIVATE_KEY_JWT}, the {@link
+ * NimbusJwtClientAuthenticationParametersConverter} adds a JWT client assertion signed with the
+ * per-provider key loaded from {@link DhisOidcClientRegistration} ({@code jwk}, {@code jwkSetUrl});
+ * for all other methods the converter contributes nothing and the delegate falls back to the
+ * standard client-credentials parameters.
  *
- * <p>HTTP exchange is performed with a {@link RestTemplate} configured with {@link
- * FormHttpMessageConverter} and {@link OAuth2AccessTokenResponseHttpMessageConverter}, and {@link
- * OAuth2ErrorResponseErrorHandler} mapping upstream HTTP errors to {@link
- * OAuth2AuthorizationException} with the {@code invalid_token_response} error code.
+ * <p>Since Spring Security 7.0 removed the {@code RequestEntity}-converter /{@code RestOperations}
+ * token-client infrastructure, the HTTP exchange is delegated to {@link
+ * RestClientAuthorizationCodeTokenResponseClient}, which provides the default {@code RestClient},
+ * message converters and OAuth2 error handling.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -81,21 +67,13 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class DhisAuthorizationCodeTokenResponseClient
     implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
-  private static final String INVALID_TOKEN_RESPONSE_ERROR_CODE = "invalid_token_response";
-
   private final DhisOidcProviderRepository clientRegistrations;
 
-  private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter =
-      new OAuth2AuthorizationCodeGrantRequestEntityConverter();
-
-  private Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>>
-      jwtRequestEntityConverter;
-
-  private RestOperations restOperations;
+  private RestClientAuthorizationCodeTokenResponseClient delegate;
 
   /**
-   * Builds the two request-entity converters (standard and {@code private_key_jwt}) and the {@link
-   * RestTemplate} used to call the IdP's token endpoint.
+   * Builds the delegate token-response client and registers the {@code private_key_jwt} parameters
+   * converter (which self-gates on the client registration's authentication method).
    */
   @PostConstruct
   public void init() {
@@ -129,86 +107,22 @@ public class DhisAuthorizationCodeTokenResponseClient
         parametersConverter = new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver);
     parametersConverter.setJwtClientAssertionCustomizer(jwtClientAssertionCustomizer);
 
-    OAuth2AuthorizationCodeGrantRequestEntityConverter jwtReqConverter =
-        new OAuth2AuthorizationCodeGrantRequestEntityConverter();
-    jwtReqConverter.addParametersConverter(parametersConverter);
-    this.jwtRequestEntityConverter = jwtReqConverter;
-
-    RestTemplate restTemplate =
-        new RestTemplate(
-            List.of(
-                new FormHttpMessageConverter(),
-                new OAuth2AccessTokenResponseHttpMessageConverter()));
-    restTemplate.setErrorHandler(new OAuth2ErrorResponseErrorHandler());
-    this.restOperations = restTemplate;
+    RestClientAuthorizationCodeTokenResponseClient tokenResponseClient =
+        new RestClientAuthorizationCodeTokenResponseClient();
+    tokenResponseClient.addParametersConverter(parametersConverter);
+    this.delegate = tokenResponseClient;
   }
 
   /**
    * Exchanges an authorization code for an access token (and an ID token) at the IdP's token
-   * endpoint. Picks the {@code private_key_jwt} converter when the client registration declares
-   * that authentication method, otherwise uses the standard converter.
+   * endpoint.
    *
    * @param authorizationCodeGrantRequest the authorization-code grant request
    * @return the parsed token response from the IdP
-   * @throws OAuth2AuthorizationException if the HTTP exchange fails or the response cannot be
-   *     parsed
    */
   @Override
   public OAuth2AccessTokenResponse getTokenResponse(
       @Nonnull OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest) {
-    Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> converter =
-        ClientAuthenticationMethod.PRIVATE_KEY_JWT.equals(
-                authorizationCodeGrantRequest
-                    .getClientRegistration()
-                    .getClientAuthenticationMethod())
-            ? this.jwtRequestEntityConverter
-            : this.requestEntityConverter;
-
-    return getResponse(converter.convert(authorizationCodeGrantRequest)).getBody();
-  }
-
-  private ResponseEntity<OAuth2AccessTokenResponse> getResponse(RequestEntity<?> request) {
-    try {
-      return this.restOperations.exchange(request, OAuth2AccessTokenResponse.class);
-    } catch (RestClientException ex) {
-      OAuth2Error oauth2Error =
-          new OAuth2Error(
-              INVALID_TOKEN_RESPONSE_ERROR_CODE,
-              "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response: "
-                  + ex.getMessage(),
-              null);
-      throw new OAuth2AuthorizationException(oauth2Error, ex);
-    }
-  }
-
-  /**
-   * Sets the {@link Converter} used for converting the {@link OAuth2AuthorizationCodeGrantRequest}
-   * to a {@link RequestEntity} representation of the OAuth 2.0 Access Token Request.
-   *
-   * @param requestEntityConverter the {@link Converter} used for converting to a {@link
-   *     RequestEntity} representation of the Access Token Request
-   */
-  public void setRequestEntityConverter(
-      @Nonnull
-          Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>> requestEntityConverter) {
-    this.requestEntityConverter = requestEntityConverter;
-  }
-
-  /**
-   * Sets the {@link RestOperations} used when requesting the OAuth 2.0 Access Token Response.
-   *
-   * <p><b>NOTE:</b> At a minimum, the supplied {@code restOperations} must be configured with the
-   * following:
-   *
-   * <ol>
-   *   <li>{@link HttpMessageConverter}'s - {@link FormHttpMessageConverter} and {@link
-   *       OAuth2AccessTokenResponseHttpMessageConverter}
-   *   <li>{@link ResponseErrorHandler} - {@link OAuth2ErrorResponseErrorHandler}
-   * </ol>
-   *
-   * @param restOperations the {@link RestOperations} used when requesting the Access Token Response
-   */
-  public void setRestOperations(@Nonnull RestOperations restOperations) {
-    this.restOperations = restOperations;
+    return delegate.getTokenResponse(authorizationCodeGrantRequest);
   }
 }
