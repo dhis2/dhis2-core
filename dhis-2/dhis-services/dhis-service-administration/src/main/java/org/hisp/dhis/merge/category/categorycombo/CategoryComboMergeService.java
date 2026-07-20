@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.merge.category.categorycombo;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.List;
@@ -37,14 +38,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
@@ -161,14 +160,12 @@ public class CategoryComboMergeService implements MergeService {
   protected static void validateIdenticalCategories(
       List<CategoryCombo> sources, CategoryCombo target, MergeReport mergeReport) {
     Set<String> targetCategoryUids =
-        target.getCategories().stream()
-            .map(BaseIdentifiableObject::getUid)
-            .collect(Collectors.toSet());
+        target.getCategories().stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());
 
     for (CategoryCombo source : sources) {
       Set<String> sourceCategoryUids =
           source.getCategories().stream()
-              .map(BaseIdentifiableObject::getUid)
+              .map(IdentifiableObject::getUid)
               .collect(Collectors.toSet());
 
       if (!sourceCategoryUids.equals(targetCategoryUids)) {

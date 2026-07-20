@@ -58,6 +58,15 @@ public abstract class AbstractQueryBuilderTest {
     return SQL.spy(this.sql::set, params::put);
   }
 
+  /**
+   * @return the value bound to the named parameter in the last captured query, or null when no such
+   *     parameter was bound
+   */
+  protected final Object paramValue(@Nonnull String name) {
+    SQL.Param param = params.get(name);
+    return param == null ? null : param.value();
+  }
+
   protected final void assertSQL(@Language("sql") String expected, QueryBuilder actual) {
     assertNotNull(actual.stream()); // capture
     assertEquals(expected, sql.get());

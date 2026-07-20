@@ -51,6 +51,7 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.addValues;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.generateEventDataPermutations;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getOrgUnitLabel;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
@@ -249,16 +250,6 @@ public class EventAggregateService {
     if (!params.isSkipData() || params.analyzeOnly()) {
       addHeaders(params, grid);
       addData(grid, params, maxLimit);
-
-      // Sort grid, done again due to potential multiple partitions
-      if (params.hasSortOrder() && grid.getHeight() > 0) {
-        grid.sortGrid(1, params.getSortOrderAsInt());
-      }
-
-      // Limit grid
-      if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
-        grid.limitGrid(params.getLimit());
-      }
     }
 
     addPaging(params, UNLIMITED_PAGING, grid);
@@ -292,6 +283,16 @@ public class EventAggregateService {
     }
 
     timer.getTime("Got aggregated events");
+
+    // Sort grid, done again due to potential multiple partitions.
+    if (params.hasSortOrder() && grid.getHeight() > 0 && grid.getIndexOfHeader("value") != -1) {
+      grid.sortGrid(grid.getIndexOfHeader("value") + 1, params.getSortOrderAsInt());
+    }
+
+    // Limit grid.
+    if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
+      grid.limitGrid(params.getLimit());
+    }
 
     if (maxLimit > 0 && grid.getHeight() > maxLimit) {
       throwIllegalQueryEx(E7128, maxLimit);
@@ -343,13 +344,10 @@ public class EventAggregateService {
     }
 
     if (params.hasEnrollmentOuDimension()) {
+      String ouLabel = getOrgUnitLabel(params.getProgram(), ColumnHeader.ENROLLMENT_OU.getName());
+
       grid.addHeader(
-          new GridHeader(
-              ColumnHeader.ENROLLMENT_OU.getItem(),
-              ColumnHeader.ENROLLMENT_OU.getName(),
-              TEXT,
-              false,
-              true));
+          new GridHeader(ColumnHeader.ENROLLMENT_OU.getItem(), ouLabel, TEXT, false, true));
     }
 
     if (params.hasEnrollmentStatuses()) {
@@ -363,9 +361,15 @@ public class EventAggregateService {
   }
 
   private String getDimensionHeaderColumn(DimensionalObject dimension, EventQueryParams params) {
+    String defaultColumn = dimension.getDisplayProperty(params.getDisplayProperty());
+
+    if (ORGUNIT_DIM_ID.equals(dimension.getDimension())) {
+      return getOrgUnitLabel(params.getProgram(), defaultColumn);
+    }
+
     return getStaticDateField(dimension)
         .map(dateField -> getDateFieldLabel(dateField, params.getProgram()))
-        .orElse(dimension.getDisplayProperty(params.getDisplayProperty()));
+        .orElse(defaultColumn);
   }
 
   private Optional<String> getStaticDateField(DimensionalObject dimension) {

@@ -97,7 +97,7 @@ public enum ValidationCode {
   E1080("Enrollment: `{0}` already exists."),
   E1081("Enrollment: `{0}` do not exist."),
   E1082("Event: `{0}` is already deleted and cannot be modified."),
-  E1083("User: `{0}` is not authorized to update completed Events."),
+  E1083("User: `{0}` is not authorized to uncomplete events."),
   E1089("Event: `{0}` references ProgramStage `{1}` which do not belong to Program `{2}`."),
   E1090(
       "Attribute: `{0}` is mandatory in TrackedEntityType `{1}` but not found in TrackedEntity `{2}`."),
@@ -112,7 +112,6 @@ public enum ValidationCode {
   E1103("User: `{0}` lacks 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`."),
   E1104("User: `{0}` has no data read access to Program: `{1}`, TrackedEntityType: `{2}`."),
   E1105("User: `{0}` has no search scope access to OrganisationUnit: `{1}`."),
-  E1112("AttributeValue: `{0}` is confidential but encryption is not enabled: `{1}`"),
   E1113("Enrollment: `{0}` is already deleted and cannot be modified."),
   E1114("TrackedEntity: `{0}` is already deleted and cannot be modified."),
   E1115("Could not find CategoryOptionCombo: `{0}`."),
@@ -162,6 +161,8 @@ public enum ValidationCode {
   E1323("User: `{0}` has no write access to any program."),
   E1324("User `{0}` has no ownership access to any program for the provided TrackedEntity: `{1}`."),
   E1325("User: `{0}` has no read access to any program."),
+  E1326(
+      "Event `{0}` is completed and its ProgramStage blocks the entry form after completion. Reopen the Event before updating."),
 
   /* Relationship */
   E4000("Relationship: `{0}` cannot link to itself."),

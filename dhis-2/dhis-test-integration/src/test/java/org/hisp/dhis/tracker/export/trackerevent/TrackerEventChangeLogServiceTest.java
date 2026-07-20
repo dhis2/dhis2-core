@@ -470,6 +470,7 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
                       TrackerImportParams.builder().build(),
                       TrackerObjects.builder().events(List.of(e)).build()));
             });
+    clearSession();
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {

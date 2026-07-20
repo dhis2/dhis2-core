@@ -405,12 +405,17 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default boolean isShared() {
-      String path = node().path().toString();
-      return path.substring(0, path.lastIndexOf('.')).equals(".components.parameters");
+      // A shared parameter is a direct member of components.parameters. Inspect the path segments
+      // structurally rather than via toString(), which throws for path keys that cannot be escaped
+      // (e.g. operation paths like /api/.../{trackedEntityType}.csv).
+      List<Text> path = node().path().segments();
+      return path.size() == 3
+          && path.get(0).contentEquals("components")
+          && path.get(1).contentEquals("parameters");
     }
 
     default String getSharedName() {
-      return isShared() ? node().path().toString().substring(24) : null;
+      return isShared() ? node().path().segments().get(2).toString() : null;
     }
 
     /**
@@ -493,12 +498,17 @@ public interface OpenApiObject extends JsonObject {
 
     default boolean isShared() {
       if (!exists()) return false;
-      String path = node().path().toString();
-      return path.substring(0, path.lastIndexOf('.')).equals(".components.schemas");
+      // A shared schema is a direct member of components.schemas. Inspect the path segments
+      // structurally rather than via toString(), which throws for path keys that cannot be escaped
+      // (e.g. operation paths like /api/.../{trackedEntityType}.csv).
+      List<Text> path = node().path().segments();
+      return path.size() == 3
+          && path.get(0).contentEquals("components")
+          && path.get(1).contentEquals("schemas");
     }
 
     default String getSharedName() {
-      return isShared() ? node().path().toString().substring(20) : null;
+      return isShared() ? node().path().segments().get(2).toString() : null;
     }
 
     default String x_kind() {

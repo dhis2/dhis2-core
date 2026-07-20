@@ -274,7 +274,7 @@ public class SystemController {
       value = "/info",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody ResponseEntity<ObjectNode> getSystemInfo(
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser) {

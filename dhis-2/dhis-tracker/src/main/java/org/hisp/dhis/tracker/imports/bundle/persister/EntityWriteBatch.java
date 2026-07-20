@@ -29,15 +29,15 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Connection;
+import java.sql.SQLException;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 
 /**
@@ -45,13 +45,48 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  * point. Mirrors {@link ChangeLogAccumulator} and shares the same mark/rollback contract for
  * per-entity error isolation in non-atomic mode.
  *
- * <p>Current scope: inserts and updates for TrackedEntity, Enrollment, TrackerEvent, SingleEvent;
- * inserts only for Relationship (updates are rejected upstream by {@link
- * AbstractTrackerPersister}); inserts, updates, and deletes for TEAVs. The flush implementation
- * delegates back to {@link EntityManager} so that Hibernate continues to drive persistence while
- * the staging shape is in place. Phase 6 replaces {@link #flush(EntityManager)} with a
- * connection-based implementation that emits multi-row INSERT / unnest UPDATE / tuple DELETE
- * statements.
+ * <p>This class is a thin composite: the per-table SQL, binding and flush mechanics live in the
+ * dedicated {@code *Writer} classes ({@link TrackedEntityWriter}, {@link EnrollmentWriter}, {@link
+ * TrackerEventWriter}, {@link SingleEventWriter}, {@link RelationshipWriter}, {@link TeavWriter}),
+ * with shared helpers in {@link JdbcBatchSupport} and the notes cascade in {@link
+ * NoteCascadeWriter}. This class owns only the staging delegation, the composite mark/rollback and
+ * the FK-safe flush order. Scope of each writer:
+ *
+ * <ul>
+ *   <li>TrackedEntity -- multi-row INSERT + unnest UPDATE on {@code trackedentity} ({@code
+ *       trackedentity_sequence}).
+ *   <li>Enrollment -- multi-row INSERT + unnest UPDATE on {@code enrollment} ({@code
+ *       enrollment_sequence}) plus the notes cascade.
+ *   <li>TrackerEvent / SingleEvent -- multi-row INSERT + unnest UPDATE on {@code trackerevent} /
+ *       {@code singleevent} ({@code eventdatavalues} jsonb keyed by dataElement uid) plus notes.
+ *   <li>Relationship -- INSERT-only three-step (parent INSERT with NULL from/to, item INSERT,
+ *       unnest UPDATE to set the from/to FKs) breaking the circular, non-deferrable FK.
+ *   <li>TrackedEntityAttributeValue -- multi-row INSERT, unnest UPDATE and unnest DELETE on the
+ *       composite ({@code trackedentityid}, {@code trackedentityattributeid}) PK.
+ * </ul>
+ *
+ * <p>All reads and writes in the import path go through JDBC, bypassing the Hibernate persistence
+ * context. Two consequences:
+ *
+ * <ul>
+ *   <li>L1 cache: the import itself never reads these entities back through Hibernate after the
+ *       writes, so nothing reconciles the persistence context at flush time. This is safe for
+ *       transaction-scoped sessions, but it is NOT a guarantee that the session is empty: preheat
+ *       strategies leave managed originals in the persistence context (DetachUtils maps detached
+ *       copies, it does not evict), so code holding a session open across the import transaction
+ *       (e.g. an SMS listener whose class-level {@code @Transactional} spans preheat, commit and
+ *       post-import reads) would observe stale pre-import state through that session.
+ *   <li>Auditing: the entity types written here are {@code @Auditable} (TEAV at scope TRACKER), and
+ *       JDBC writes skip Hibernate's Post{Insert,Update,Delete}AuditListener, so no audit events
+ *       are emitted for them. Deliberate trade-off: TRACKER-scope auditing is off by default, and
+ *       attribute-value history -- the sensitive payload -- is covered by the {@code
+ *       trackedentitychangelog} rows written by {@link ChangeLogAccumulator}.
+ * </ul>
+ *
+ * <p>Top-level entities are flushed before TEAVs so that ids are set and rows are present in the DB
+ * before any TEAV that references them. Within top-level entities the order (TrackedEntity,
+ * Enrollment, TrackerEvent, SingleEvent, Relationship) matches the persister call order enforced by
+ * {@code DefaultTrackerBundleService.commit()} and is FK-safe.
  *
  * <p>Each {@link AbstractTrackerPersister#persist} call creates its own batch, so in practice only
  * one top-level entity type list is populated per batch (the persister's own type) alongside any
@@ -59,205 +94,153 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  */
 class EntityWriteBatch {
 
-  private final List<TrackedEntity> teInserts = new ArrayList<>();
-  private final List<TrackedEntity> teUpdates = new ArrayList<>();
+  private final TrackedEntityWriter trackedEntityWriter;
+  private final EnrollmentWriter enrollmentWriter;
+  private final TrackerEventWriter trackerEventWriter;
+  private final SingleEventWriter singleEventWriter;
+  private final RelationshipWriter relationshipWriter = new RelationshipWriter();
+  private final TrackedEntityProgramOwnerWriter ownershipWriter =
+      new TrackedEntityProgramOwnerWriter();
+  private final TeavWriter teavWriter = new TeavWriter();
 
-  private final List<Enrollment> enrollmentInserts = new ArrayList<>();
-  private final List<Enrollment> enrollmentUpdates = new ArrayList<>();
-
-  private final List<TrackerEvent> trackerEventInserts = new ArrayList<>();
-  private final List<TrackerEvent> trackerEventUpdates = new ArrayList<>();
-
-  private final List<SingleEvent> singleEventInserts = new ArrayList<>();
-  private final List<SingleEvent> singleEventUpdates = new ArrayList<>();
-
-  private final List<Relationship> relationshipInserts = new ArrayList<>();
-
-  private final List<TrackedEntityAttributeValue> teavInserts = new ArrayList<>();
-  private final List<TrackedEntityAttributeValue> teavUpdates = new ArrayList<>();
-  private final List<TrackedEntityAttributeValue> teavDeletes = new ArrayList<>();
+  EntityWriteBatch(ObjectMapper objectMapper) {
+    UserInfoJsonCache userInfo = new UserInfoJsonCache(objectMapper);
+    this.trackedEntityWriter = new TrackedEntityWriter(userInfo);
+    this.enrollmentWriter = new EnrollmentWriter(userInfo);
+    this.trackerEventWriter = new TrackerEventWriter(userInfo);
+    this.singleEventWriter = new SingleEventWriter(userInfo);
+  }
 
   void stageInsert(TrackedEntity trackedEntity) {
-    teInserts.add(trackedEntity);
+    trackedEntityWriter.stageInsert(trackedEntity);
   }
 
   void stageUpdate(TrackedEntity trackedEntity) {
-    teUpdates.add(trackedEntity);
+    trackedEntityWriter.stageUpdate(trackedEntity);
   }
 
   void stageInsert(Enrollment enrollment) {
-    enrollmentInserts.add(enrollment);
+    enrollmentWriter.stageInsert(enrollment);
   }
 
   void stageUpdate(Enrollment enrollment) {
-    enrollmentUpdates.add(enrollment);
+    enrollmentWriter.stageUpdate(enrollment);
   }
 
   void stageInsert(TrackerEvent event) {
-    trackerEventInserts.add(event);
+    trackerEventWriter.stageInsert(event);
   }
 
   void stageUpdate(TrackerEvent event) {
-    trackerEventUpdates.add(event);
+    trackerEventWriter.stageUpdate(event);
   }
 
   void stageInsert(SingleEvent event) {
-    singleEventInserts.add(event);
+    singleEventWriter.stageInsert(event);
   }
 
   void stageUpdate(SingleEvent event) {
-    singleEventUpdates.add(event);
+    singleEventWriter.stageUpdate(event);
   }
 
   /**
    * Relationships are never updated -- {@link AbstractTrackerPersister} ignores update payloads.
    */
   void stageInsert(Relationship relationship) {
-    relationshipInserts.add(relationship);
-  }
-
-  void stageTeavInsert(TrackedEntityAttributeValue value) {
-    teavInserts.add(value);
-  }
-
-  void stageTeavUpdate(TrackedEntityAttributeValue value) {
-    teavUpdates.add(value);
-  }
-
-  void stageTeavDelete(TrackedEntityAttributeValue value) {
-    teavDeletes.add(value);
+    relationshipWriter.stageInsert(relationship);
   }
 
   /**
-   * TEAVs already staged for insert or update against the given TrackedEntity. Used by the
-   * attribute-handling code to detect when the same logical TEAV (composite key {@code te + attr})
-   * is being processed twice within one persister run -- e.g. two enrollments under the same TE
-   * each carrying the same attribute value -- so it can fold the second occurrence into the first
-   * staged instance instead of producing a duplicate {@code em.persist} that would throw {@code
-   * EntityExistsException}.
+   * Stages a program-ownership row for a newly created enrollment. INSERT-only; {@link
+   * EnrollmentPersister} guards against duplicates before staging.
    */
-  Stream<TrackedEntityAttributeValue> stagedFor(TrackedEntity trackedEntity) {
-    return Stream.concat(teavInserts.stream(), teavUpdates.stream())
-        .filter(v -> v.getTrackedEntity() == trackedEntity);
+  void stageOwnershipInsert(TrackedEntityProgramOwner owner) {
+    ownershipWriter.stageInsert(owner);
+  }
+
+  void stageTeavInsert(TrackedEntityAttributeValue value) {
+    teavWriter.stageInsert(value);
+  }
+
+  void stageTeavUpdate(TrackedEntityAttributeValue value) {
+    teavWriter.stageUpdate(value);
+  }
+
+  void stageTeavDelete(TrackedEntityAttributeValue value) {
+    teavWriter.stageDelete(value);
   }
 
   Mark mark() {
     return new Mark(
-        new Mark.EntityCounts(teInserts.size(), teUpdates.size()),
-        new Mark.EntityCounts(enrollmentInserts.size(), enrollmentUpdates.size()),
-        new Mark.EntityCounts(trackerEventInserts.size(), trackerEventUpdates.size()),
-        new Mark.EntityCounts(singleEventInserts.size(), singleEventUpdates.size()),
-        relationshipInserts.size(),
-        new Mark.TeavCounts(teavInserts.size(), teavUpdates.size(), teavDeletes.size()));
+        trackedEntityWriter.mark(),
+        enrollmentWriter.mark(),
+        trackerEventWriter.mark(),
+        singleEventWriter.mark(),
+        relationshipWriter.mark(),
+        ownershipWriter.mark(),
+        teavWriter.mark());
   }
 
   void rollbackTo(Mark mark) {
-    truncate(teInserts, mark.te().inserts());
-    truncate(teUpdates, mark.te().updates());
-    truncate(enrollmentInserts, mark.enrollment().inserts());
-    truncate(enrollmentUpdates, mark.enrollment().updates());
-    truncate(trackerEventInserts, mark.trackerEvent().inserts());
-    truncate(trackerEventUpdates, mark.trackerEvent().updates());
-    truncate(singleEventInserts, mark.singleEvent().inserts());
-    truncate(singleEventUpdates, mark.singleEvent().updates());
-    truncate(relationshipInserts, mark.relationshipInserts());
-    truncate(teavInserts, mark.teav().inserts());
-    truncate(teavUpdates, mark.teav().updates());
-    truncate(teavDeletes, mark.teav().deletes());
+    trackedEntityWriter.rollbackTo(mark.te());
+    enrollmentWriter.rollbackTo(mark.enrollment());
+    trackerEventWriter.rollbackTo(mark.trackerEvent());
+    singleEventWriter.rollbackTo(mark.singleEvent());
+    relationshipWriter.rollbackTo(mark.relationshipInserts());
+    ownershipWriter.rollbackTo(mark.ownershipInserts());
+    teavWriter.rollbackTo(mark.teav());
   }
 
   /**
-   * Applies all staged writes through the provided {@link EntityManager}. Temporary delegating
-   * implementation; Phase 6 swaps this for JDBC multi-row statements that take a {@link
-   * java.sql.Connection}.
+   * Applies all staged writes via JDBC on {@code conn} (including cascade INSERTs into {@code note}
+   * and the per-entity notes join tables). The connection must be the one bound to the current
+   * Spring-managed transaction so the JDBC statements execute under the same commit. The writes
+   * bypass the Hibernate persistence context and audit listeners -- see the class javadoc for the
+   * scope of that trade-off.
    *
-   * <p>Top-level entities are flushed before TEAVs so that Hibernate assigns ids (and inserts the
-   * rows, when {@code em.flush()} runs) before any TEAV that references them. The top-level order
-   * (TE, Enrollment, TrackerEvent, SingleEvent, Relationship) matches the persister call order
-   * enforced by {@code DefaultTrackerBundleService.commit()} and is FK-safe.
+   * <p>Writers run in FK-safe order: TrackedEntity -> Enrollment -> program ownership ->
+   * TrackerEvent -> SingleEvent -> Relationship -> TEAV. Each writer applies its own inserts before
+   * updates before notes. Program ownership is flushed after Enrollment (it references the tracked
+   * entity, program and org unit, all already present).
    */
-  void flush(EntityManager entityManager) {
+  void flush(Connection conn) throws SQLException {
     if (isEmpty()) {
       return;
     }
 
-    persistAll(entityManager, teInserts);
-    mergeAll(entityManager, teUpdates);
-    persistAll(entityManager, enrollmentInserts);
-    mergeAll(entityManager, enrollmentUpdates);
-    persistAll(entityManager, trackerEventInserts);
-    mergeAll(entityManager, trackerEventUpdates);
-    persistAll(entityManager, singleEventInserts);
-    mergeAll(entityManager, singleEventUpdates);
-    persistAll(entityManager, relationshipInserts);
+    trackedEntityWriter.flush(conn);
+    enrollmentWriter.flush(conn);
+    ownershipWriter.flush(conn);
+    trackerEventWriter.flush(conn);
+    singleEventWriter.flush(conn);
+    relationshipWriter.flush(conn);
+    teavWriter.flush(conn);
 
-    for (TrackedEntityAttributeValue v : teavInserts) {
-      entityManager.persist(v);
-    }
-    for (TrackedEntityAttributeValue v : teavUpdates) {
-      entityManager.merge(v);
-    }
-    for (TrackedEntityAttributeValue v : teavDeletes) {
-      entityManager.remove(entityManager.contains(v) ? v : entityManager.merge(v));
-    }
-
-    teInserts.clear();
-    teUpdates.clear();
-    enrollmentInserts.clear();
-    enrollmentUpdates.clear();
-    trackerEventInserts.clear();
-    trackerEventUpdates.clear();
-    singleEventInserts.clear();
-    singleEventUpdates.clear();
-    relationshipInserts.clear();
-    teavInserts.clear();
-    teavUpdates.clear();
-    teavDeletes.clear();
+    trackedEntityWriter.clear();
+    enrollmentWriter.clear();
+    ownershipWriter.clear();
+    trackerEventWriter.clear();
+    singleEventWriter.clear();
+    relationshipWriter.clear();
+    teavWriter.clear();
   }
 
   private boolean isEmpty() {
-    return teInserts.isEmpty()
-        && teUpdates.isEmpty()
-        && enrollmentInserts.isEmpty()
-        && enrollmentUpdates.isEmpty()
-        && trackerEventInserts.isEmpty()
-        && trackerEventUpdates.isEmpty()
-        && singleEventInserts.isEmpty()
-        && singleEventUpdates.isEmpty()
-        && relationshipInserts.isEmpty()
-        && teavInserts.isEmpty()
-        && teavUpdates.isEmpty()
-        && teavDeletes.isEmpty();
-  }
-
-  private static <T> void persistAll(EntityManager entityManager, List<T> entities) {
-    for (T entity : entities) {
-      entityManager.persist(entity);
-    }
-  }
-
-  private static <T> void mergeAll(EntityManager entityManager, List<T> entities) {
-    for (T entity : entities) {
-      entityManager.merge(entity);
-    }
-  }
-
-  private static <T> void truncate(List<T> list, int size) {
-    if (list.size() > size) {
-      list.subList(size, list.size()).clear();
-    }
+    return trackedEntityWriter.isEmpty()
+        && enrollmentWriter.isEmpty()
+        && ownershipWriter.isEmpty()
+        && trackerEventWriter.isEmpty()
+        && singleEventWriter.isEmpty()
+        && relationshipWriter.isEmpty()
+        && teavWriter.isEmpty();
   }
 
   record Mark(
-      EntityCounts te,
-      EntityCounts enrollment,
-      EntityCounts trackerEvent,
-      EntityCounts singleEvent,
+      UpsertTableWriter.Mark te,
+      UpsertTableWriter.Mark enrollment,
+      UpsertTableWriter.Mark trackerEvent,
+      UpsertTableWriter.Mark singleEvent,
       int relationshipInserts,
-      TeavCounts teav) {
-
-    record EntityCounts(int inserts, int updates) {}
-
-    record TeavCounts(int inserts, int updates, int deletes) {}
-  }
+      int ownershipInserts,
+      TeavWriter.Mark teav) {}
 }
