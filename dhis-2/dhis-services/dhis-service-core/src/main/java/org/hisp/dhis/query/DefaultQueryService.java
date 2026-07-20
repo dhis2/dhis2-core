@@ -110,8 +110,12 @@ public class DefaultQueryService implements QueryService {
     List<T> objects = query.getObjects();
 
     if (objects != null) {
+      // DIAG (DHIS2 tracker perf 409-storm): this is the preset/in-memory branch (query already
+      // carries objects). If we reach here for a preheat metadata query, that itself is unexpected.
+      int presetSize = objects.size();
       objects = memoryQueryEngine.query(query.setObjects(objects));
       removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
+      queryDiag("PRESET", query, presetSize, -1, false, objects.size(), null, null);
       return objects;
     }
 
@@ -122,7 +126,7 @@ public class DefaultQueryService implements QueryService {
     objects = dbQueryEngine.query(dbQuery);
 
     // DIAG (DHIS2 tracker perf 409-storm): dbSize tells us whether the DB engine itself returned
-    // nothing, before any in-memory filtering runs. See below.
+    // nothing, before any in-memory filtering runs.
     int dbSize = objects.size();
 
     boolean memoryFiltered = !memoryQuery.isEmpty();
@@ -131,26 +135,51 @@ public class DefaultQueryService implements QueryService {
       objects = memoryQueryEngine.query(memoryQuery);
     }
 
-    // DIAG: shows e.g. "type=Program db=0 memoryFiltered=false result=0" (DB returned nothing) vs
-    // "type=Program db=14 memoryFiltered=true result=0" (in-memory filter dropped all). Targeted to
-    // the metadata types involved in the storm to limit noise. Enable via docker/log4j2.xml at DEBUG
-    // for org.hisp.dhis.query. Remove once root cause is found.
-    if (log.isDebugEnabled() && DIAG_TYPES.contains(query.getObjectType().getSimpleName())) {
-      log.debug(
-          "[query-diag] type={} db={} memoryFiltered={} result={}",
-          query.getObjectType().getSimpleName(),
-          dbSize,
-          memoryFiltered,
-          objects.size());
-    }
+    queryDiag("DBPLAN", query, -1, dbSize, memoryFiltered, objects.size(), dbQuery, memoryQuery);
 
     removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
     return objects;
   }
 
-  /** DIAG (DHIS2 tracker perf 409-storm): metadata types to trace in {@link #queryObjects}. */
+  /** DIAG (DHIS2 tracker perf 409-storm): metadata types always traced in {@link #queryObjects}. */
   private static final java.util.Set<String> DIAG_TYPES =
       java.util.Set.of("Program", "OrganisationUnit", "TrackedEntityType", "ProgramStage");
+
+  /**
+   * DIAG (DHIS2 tracker perf 409-storm): logs the resolution path of a metadata query. Fires for any
+   * EMPTY result (the storm signature, whatever the class) plus the always-traced {@link
+   * #DIAG_TYPES}. Shows branch (PRESET vs DBPLAN), preset size, DB-engine size, in-memory filtering,
+   * and the planned db/memory queries (their toString reveals where the {@code id in (...)} filter
+   * landed and its values). Enable via docker/log4j2.xml at DEBUG for org.hisp.dhis.query. Remove
+   * once root cause is found.
+   */
+  private void queryDiag(
+      String branch,
+      Query<?> query,
+      int presetSize,
+      int dbSize,
+      boolean memoryFiltered,
+      int result,
+      Query<?> dbQuery,
+      Query<?> memoryQuery) {
+    if (!log.isDebugEnabled()) {
+      return;
+    }
+    String type = query.getObjectType().getSimpleName();
+    if (result != 0 && !DIAG_TYPES.contains(type)) {
+      return;
+    }
+    log.debug(
+        "[query-diag] type={} branch={} presetSize={} db={} memoryFiltered={} result={} dbQuery={} memoryQuery={}",
+        type,
+        branch,
+        presetSize,
+        dbSize,
+        memoryFiltered,
+        result,
+        dbQuery,
+        memoryQuery);
+  }
 
   private void removeDefaultObject(
       Class<?> klass, List<? extends IdentifiableObject> objects, Defaults defaults) {
