@@ -41,6 +41,7 @@ import org.hisp.dhis.user.UserGroupStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Repository("org.hisp.dhis.user.UserGroupStore")
 public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<UserGroup>
@@ -155,7 +156,19 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     // methods above). Those changes stay unflushed in the session until Hibernate decides to
     // flush, so this raw JDBC read -- on a separate path that bypasses the session entirely --
     // would otherwise miss them and return stale membership.
-    getSession().flush();
+    //
+    // Only flush inside an active, writable transaction: this method also runs from read-only
+    // GET paths (e.g. metadata export, single-object GET streaming serialization), where either
+    // there is no active transaction bound to the thread at all (raises "No EntityManager with
+    // actual transaction available"), or Postgres has the connection genuinely in a read-only
+    // transaction and rejects any DML flush() might emit ("cannot execute UPDATE in a read-only
+    // transaction") -- neither of which H2 (used by the unit tests) enforces, so this only
+    // surfaced in Postgres-backed E2E CI. In both cases there is nothing of ours to flush: our
+    // own membership writes never happen from within a read-only or transaction-less context.
+    if (TransactionSynchronizationManager.isActualTransactionActive()
+        && !TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+      getSession().flush();
+    }
     String sql =
         "select "
             + UserSummaryRowMapper.SELECT_COLUMNS
