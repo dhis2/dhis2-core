@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,62 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Objects;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhi2.org>
+ * Soft-refreshes principals affected by user-role authority or restriction changes by bumping the
+ * role authz generation (and global epoch) instead of invalidating sessions.
+ *
+ * <p>Role-side membership is intentionally not handled here: {@code UserRole.members} is mapped
+ * with {@code inverse="true"} and the exposed {@code users} property has no setter, so the metadata
+ * importer cannot mutate membership from the role side. Membership deltas flow through the owning
+ * side ({@code User.userRoles}) and are handled by {@link UserObjectBundleHook}.
+ *
+ * @author Morten Svanæs
  */
 @Component
 @AllArgsConstructor
 @Slf4j
 public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
-  public static final String INVALIDATE_SESSION_KEY = "shouldInvalidateUserSessions";
+  public static final String BUMP_ROLE_AUTHZ_KEY = "shouldBumpRoleAuthz";
 
-  private final UserService userService;
+  private final AuthzService authzService;
 
   @Override
   public void preUpdate(UserRole update, UserRole existing, ObjectBundle bundle) {
     if (update == null) return;
-    bundle.putExtras(update, INVALIDATE_SESSION_KEY, userRolesUpdated(update, existing));
+    bundle.putExtras(update, BUMP_ROLE_AUTHZ_KEY, roleAuthzChanged(update, existing));
   }
 
-  private Boolean userRolesUpdated(UserRole update, UserRole existing) {
-    Set<String> newAuthorities = update.getAuthorities();
-    Set<String> existingAuthorities = existing.getAuthorities();
-    return !Objects.equals(newAuthorities, existingAuthorities);
+  private Boolean roleAuthzChanged(UserRole update, UserRole existing) {
+    return !Objects.equals(update.getAuthorities(), existing.getAuthorities())
+        || !Objects.equals(update.getRestrictions(), existing.getRestrictions());
   }
 
   @Override
   public void postUpdate(UserRole updatedUserRole, ObjectBundle bundle) {
-    final Boolean invalidateSessions =
-        (Boolean) bundle.getExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
+    final Boolean shouldBump = (Boolean) bundle.getExtras(updatedUserRole, BUMP_ROLE_AUTHZ_KEY);
 
-    if (Boolean.TRUE.equals(invalidateSessions)) {
-      for (User user : updatedUserRole.getUsers()) {
-        userService.invalidateUserSessions(user.getUsername());
-      }
+    if (Boolean.TRUE.equals(shouldBump) && updatedUserRole.getUid() != null) {
+      authzService.bumpRoleAuthz(updatedUserRole.getUid());
     }
 
-    bundle.removeExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
+    bundle.removeExtras(updatedUserRole, BUMP_ROLE_AUTHZ_KEY);
+  }
+
+  @Override
+  public void preDelete(UserRole persistedObject, ObjectBundle bundle) {
+    // Bumping the soon-orphaned role key moves the epoch and the gens still referenced by live
+    // principals' snapshots, forcing their next-request refresh which then drops the deleted role.
+    // O(1); the orphan authz_version row is harmless.
+    if (persistedObject.getUid() != null) {
+      authzService.bumpRoleAuthz(persistedObject.getUid());
+    }
   }
 }

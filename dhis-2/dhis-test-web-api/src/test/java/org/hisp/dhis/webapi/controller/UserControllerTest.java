@@ -136,7 +136,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void updateRolesShouldInvalidateUserSessions() {
+  void updateUserRolesShouldNotKillSessions() {
     UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
@@ -151,11 +151,13 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
         .content(HttpStatus.OK);
 
-    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
+    // Soft-refresh: role assignment changes no longer kill the user's sessions; the authz
+    // generation bump is covered by AuthzSoftRefreshHooksTest against Postgres.
+    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
   }
 
   @Test
-  void updateRolesAuthoritiesShouldInvalidateUserSessions() {
+  void updateRoleAuthoritiesShouldNotKillSessions() {
     UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
@@ -182,7 +184,9 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
                 + "]")
         .content(HttpStatus.OK);
 
-    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
+    // Soft-refresh: role authority changes no longer kill sessions; the authz generation bump
+    // is covered by AuthzSoftRefreshHooksTest against Postgres.
+    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
   }
 
   @Test

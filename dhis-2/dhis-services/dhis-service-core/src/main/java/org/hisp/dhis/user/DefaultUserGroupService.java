@@ -41,6 +41,7 @@ import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,19 +54,23 @@ public class DefaultUserGroupService implements UserGroupService {
   private final AclService aclService;
   private final HibernateCacheManager cacheManager;
   private final Cache<String> userGroupNameCache;
+  private final AuthzService authzService;
 
   public DefaultUserGroupService(
       UserGroupStore userGroupStore,
       AclService aclService,
       HibernateCacheManager cacheManager,
-      CacheProvider cacheProvider) {
+      CacheProvider cacheProvider,
+      AuthzService authzService) {
     checkNotNull(userGroupStore);
     checkNotNull(aclService);
     checkNotNull(cacheManager);
+    checkNotNull(authzService);
 
     this.userGroupStore = userGroupStore;
     this.aclService = aclService;
     this.cacheManager = cacheManager;
+    this.authzService = authzService;
 
     userGroupNameCache = cacheProvider.createUserGroupNameCache();
   }
@@ -148,13 +153,18 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional
   public void addUserToGroups(User user, Collection<String> uids, UserDetails currentUser) {
+    boolean modified = false;
     for (String uid : uids) {
       UserGroup userGroup = getUserGroup(uid);
       if (canAddOrRemoveMember(userGroup, currentUser)
           && userGroupStore.addMember(
               userGroup.getUID(), user.getUID(), UID.of(currentUser.getUid()))) {
         user.getGroups().add(userGroup);
+        modified = true;
       }
+    }
+    if (modified) {
+      authzService.bumpUserAuthz(user.getUid());
     }
     aclService.invalidateCurrentUserGroupInfoCache();
   }
@@ -165,6 +175,7 @@ public class DefaultUserGroupService implements UserGroupService {
     Collection<UserGroup> updates = getUserGroupsByUid(uids);
     UID currentUserUid = UID.of(currentUser.getUid());
     UID userUid = user.getUID();
+    boolean modified = false;
 
     // Remove user from groups they're no longer in (SQL bypass avoids loading UserGroup.members)
     for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
@@ -172,6 +183,7 @@ public class DefaultUserGroupService implements UserGroupService {
           && canAddOrRemoveMember(userGroup, currentUser)
           && userGroupStore.removeMember(userGroup.getUID(), userUid, currentUserUid)) {
         user.getGroups().remove(userGroup);
+        modified = true;
       }
     }
 
@@ -180,9 +192,13 @@ public class DefaultUserGroupService implements UserGroupService {
       if (canAddOrRemoveMember(userGroup, currentUser)
           && userGroupStore.addMember(userGroup.getUID(), userUid, currentUserUid)) {
         user.getGroups().add(userGroup);
+        modified = true;
       }
     }
 
+    if (modified) {
+      authzService.bumpUserAuthz(user.getUid());
+    }
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 
