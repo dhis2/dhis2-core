@@ -7,6 +7,17 @@
 
     <logger name="org.hisp.dhis.test" level="${TEST_LOG_LEVEL:-info}" />
 
+    <!--
+      Gatling's response logger. At DEBUG it dumps the full request (URL, headers, body) and
+      response (status, headers, body) for every FAILED request only; at TRACE it dumps every
+      request. This is how we recover the response body of failures (e.g. a tracker import
+      returning 409 CONFLICT) which Gatling otherwise discards - the simulation.log only records
+      the status code, not the body. Green runs have no failures, so DEBUG is silent there.
+      Override with -DGATLING_RESPONSE_LOG_LEVEL=TRACE (or WARN to disable).
+      See https://docs.gatling.io/reference/script/protocols/http/ (logging section).
+    -->
+    <logger name="io.gatling.http.engine.response" level="${GATLING_RESPONSE_LOG_LEVEL:-DEBUG}" />
+
     <root level="warn">
         <appender-ref ref="STDOUT" />
     </root>
