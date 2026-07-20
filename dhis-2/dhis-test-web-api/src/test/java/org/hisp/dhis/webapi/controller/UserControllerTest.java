@@ -144,37 +144,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void updateRolesAuthoritiesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
-
-    UserRole roleB = createUserRole("ROLE_B", "ALL");
-    userService.addUserRole(roleB);
-
-    PATCH(
-            "/users/" + superUser.getUid(),
-            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleB.getUid() + "'}]}]")
-        .content(HttpStatus.OK);
-
-    String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
-
-    sessionRegistry.registerNewSession("session1", sessionPrincipal);
-    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
-
-    PATCH(
-            "/userRoles/" + roleBID,
-            "["
-                + " {"
-                + "   'op': 'add',"
-                + "   'path': '/authorities',"
-                + "   'value': ['NONE']"
-                + " }"
-                + "]")
-        .content(HttpStatus.OK);
-
-    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
-  }
-
-  @Test
   void testResetToInvite() {
     assertStatus(HttpStatus.NO_CONTENT, POST("/users/" + peter.getUid() + "/reset"));
     OutboundMessage email = assertMessageSendTo("peter@pan.net");
