@@ -163,6 +163,17 @@ public abstract class AbstractFullReadOnlyController<
   protected void postProcessResponseEntity(T entity, GetObjectParams params) {}
 
   /**
+   * Override to prepare a single entity before {@link #handleLinksAndAccess}, i.e. before {@link
+   * LinkService#generateLinks} reflectively invokes every {@code IdentifiableObject} getter to
+   * stamp {@code href} on each value. Unlike {@link #postProcessResponseEntity}, which runs after
+   * link generation, this lets a subclass install a cheap transient stand-in for an expensive
+   * collection getter (see {@code UserRole}/{@code UserGroup}'s summary-projected {@code users}
+   * collection, DHIS2-21860) so link generation observes it too, instead of forcing full
+   * materialization of the real collection just to generate hrefs that are then discarded.
+   */
+  protected void beforeLinkGeneration(T entity, String fields) {}
+
+  /**
    * Allows to append further filters to the incoming ones. Recommended only on very specific cases
    * where forcing a new filter, programmatically, make sense. This is usually used to ensure that
    * some filters are always present.
@@ -242,6 +253,7 @@ public abstract class AbstractFullReadOnlyController<
       }
       entities = getEntityList(params, additionalFilters);
       postProcessResponseEntities(entities, params);
+      entities.forEach(e -> beforeLinkGeneration(e, fields));
       handleLinksAndAccess(entities, fields, false);
       if (params.isPaging()) totalCount = countGetObjectList(params, additionalFilters);
     }
@@ -443,6 +455,7 @@ public abstract class AbstractFullReadOnlyController<
     List<T> entities = queryService.query(query);
 
     String fields = params.getFieldsObject();
+    entities.forEach(e -> beforeLinkGeneration(e, fields));
     handleLinksAndAccess(entities, fields, true);
 
     entities.forEach(e -> postProcessResponseEntity(e, params));
@@ -493,6 +506,7 @@ public abstract class AbstractFullReadOnlyController<
     List<T> entities = queryService.query(query);
 
     String fields = params.getFieldsObject();
+    entities.forEach(e -> beforeLinkGeneration(e, fields));
     handleLinksAndAccess(entities, fields, true);
 
     entities.forEach(e -> postProcessResponseEntity(entity, params));

@@ -611,9 +611,14 @@ public class FieldFilterService {
     if (!usersRequested) {
       return;
     }
-    if (root instanceof UserRole role) {
+    // May already be set by AbstractFullReadOnlyController#beforeLinkGeneration (see
+    // UserRoleController/UserGroupController) so that LinkService's href generation -- which
+    // reflectively calls this same getter *before* this method ever runs -- observes the
+    // summary too, instead of forcing full materialization of the real collection just to
+    // generate hrefs that are then discarded. Skip re-fetching in that case.
+    if (root instanceof UserRole role && !role.hasUserSummaries()) {
       role.setUserSummaries(userRoleStore.getUserSummaries(UID.of(role.getUid())));
-    } else if (root instanceof UserGroup group) {
+    } else if (root instanceof UserGroup group && !group.hasUserSummaries()) {
       group.setUserSummaries(
           new LinkedHashSet<>(userGroupStore.getUserSummaries(UID.of(group.getUid()))));
     }

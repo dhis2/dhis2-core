@@ -186,6 +186,10 @@ public class UserGroup extends BaseIdentifiableObject implements MetadataObject 
     this.userSummaries = userSummaries;
   }
 
+  public boolean hasUserSummaries() {
+    return userSummaries != null;
+  }
+
   @JsonProperty("managedGroups")
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "managedGroups", namespace = DxfNamespaces.DXF_2_0)

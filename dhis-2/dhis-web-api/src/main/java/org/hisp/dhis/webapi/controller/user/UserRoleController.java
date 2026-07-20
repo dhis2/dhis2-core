@@ -43,6 +43,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserRoleStore;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,8 @@ public class UserRoleController
 
   private final UserService userService;
 
+  private final UserRoleStore userRoleStore;
+
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static final class GetUserRoleObjectListParams extends GetObjectListParams {
@@ -80,6 +83,21 @@ public class UserRoleController
   protected List<UID> getPreQueryMatches(GetUserRoleObjectListParams params) {
     if (!params.isCanIssue()) return null;
     return userService.getRolesCurrentUserCanIssue();
+  }
+
+  /**
+   * Installs the summary-projected {@code users} collection (see {@link
+   * org.hisp.dhis.fieldfiltering.FieldFilterService}, DHIS2-21860) before {@code href} generation
+   * runs, so it observes the lightweight summary instead of forcing full materialization of the
+   * real, potentially huge {@code members} collection just to stamp an href on each entry that's
+   * then discarded. {@link org.hisp.dhis.fieldfiltering.FieldFilterService} skips its own fetch
+   * when this has already run.
+   */
+  @Override
+  protected void beforeLinkGeneration(UserRole entity, String fields) {
+    if (fields != null && fields.contains("users")) {
+      entity.setUserSummaries(userRoleStore.getUserSummaries(entity.getUID()));
+    }
   }
 
   @RequestMapping(

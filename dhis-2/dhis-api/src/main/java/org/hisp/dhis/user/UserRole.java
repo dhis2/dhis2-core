@@ -157,4 +157,8 @@ public class UserRole extends BaseIdentifiableObject implements MetadataObject {
   public void setUserSummaries(List<User> userSummaries) {
     this.userSummaries = userSummaries;
   }
+
+  public boolean hasUserSummaries() {
+    return userSummaries != null;
+  }
 }

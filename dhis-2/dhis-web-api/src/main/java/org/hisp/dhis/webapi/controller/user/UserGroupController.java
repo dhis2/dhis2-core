@@ -29,12 +29,15 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import java.util.LinkedHashSet;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupStore;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -45,6 +48,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/userGroups")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class UserGroupController extends AbstractCrudController<UserGroup, GetObjectListParams> {
+
+  @Autowired private UserGroupStore userGroupStore;
+
+  /**
+   * Installs the summary-projected {@code users} collection (see {@link
+   * org.hisp.dhis.fieldfiltering.FieldFilterService}, DHIS2-21860) before {@code href} generation
+   * runs, so it observes the lightweight summary instead of forcing full materialization of the
+   * real, potentially huge {@code members} collection just to stamp an href on each entry that's
+   * then discarded. {@link org.hisp.dhis.fieldfiltering.FieldFilterService} skips its own fetch
+   * when this has already run.
+   */
+  @Override
+  protected void beforeLinkGeneration(UserGroup entity, String fields) {
+    if (fields != null && fields.contains("users")) {
+      entity.setUserSummaries(
+          new LinkedHashSet<>(userGroupStore.getUserSummaries(entity.getUID())));
+    }
+  }
 
   @Override
   protected void postUpdateEntity(UserGroup entity) {
