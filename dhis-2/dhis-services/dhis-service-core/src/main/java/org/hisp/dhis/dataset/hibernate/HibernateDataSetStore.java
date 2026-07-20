@@ -126,4 +126,23 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
   public List<DataSet> getDataSetsNotAssignedToOrganisationUnits() {
     return getQuery("from DataSet ds where size(ds.sources) = 0").list();
   }
+
+  @Override
+  public List<DataElement> getDataElementsByDataSet(Collection<DataSet> dataSets) {
+    if (dataSets == null || dataSets.isEmpty()) {
+      return List.of();
+    }
+
+    return getQuery(
+            """
+            select distinct de from DataSetElement dse
+            join dse.dataElement de
+            left join fetch de.dataSetElements
+            left join fetch de.categoryCombo
+            where dse.dataSet in :dataSets
+            """,
+            DataElement.class)
+        .setParameter("dataSets", dataSets)
+        .list();
+  }
 }
