@@ -42,6 +42,13 @@
         </Logger>
         <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
 
+        <!-- DIAG (tracker perf 409-storm): trace tracker-import preheat metadata resolution.
+             Emits [preheat-diag] (requested-vs-resolved per class) and [query-diag] (DB size vs
+             in-memory filter) so we can see, during the storm, that Program/OrganisationUnit
+             resolve to 0. Remove once the root cause is found. -->
+        <Logger name="org.hisp.dhis.tracker.imports.preheat.supplier.strategy" level="DEBUG" additivity="true"/>
+        <Logger name="org.hisp.dhis.query" level="DEBUG" additivity="true"/>
+
         <Root level="WARN">
             <AppenderRef ref="console"/>
         </Root>

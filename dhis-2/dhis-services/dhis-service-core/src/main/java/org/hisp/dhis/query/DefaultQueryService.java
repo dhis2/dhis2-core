@@ -121,14 +121,36 @@ public class DefaultQueryService implements QueryService {
 
     objects = dbQueryEngine.query(dbQuery);
 
-    if (!memoryQuery.isEmpty()) {
+    // DIAG (DHIS2 tracker perf 409-storm): dbSize tells us whether the DB engine itself returned
+    // nothing, before any in-memory filtering runs. See below.
+    int dbSize = objects.size();
+
+    boolean memoryFiltered = !memoryQuery.isEmpty();
+    if (memoryFiltered) {
       memoryQuery.setObjects(objects);
       objects = memoryQueryEngine.query(memoryQuery);
+    }
+
+    // DIAG: shows e.g. "type=Program db=0 memoryFiltered=false result=0" (DB returned nothing) vs
+    // "type=Program db=14 memoryFiltered=true result=0" (in-memory filter dropped all). Targeted to
+    // the metadata types involved in the storm to limit noise. Enable via docker/log4j2.xml at DEBUG
+    // for org.hisp.dhis.query. Remove once root cause is found.
+    if (log.isDebugEnabled() && DIAG_TYPES.contains(query.getObjectType().getSimpleName())) {
+      log.debug(
+          "[query-diag] type={} db={} memoryFiltered={} result={}",
+          query.getObjectType().getSimpleName(),
+          dbSize,
+          memoryFiltered,
+          objects.size());
     }
 
     removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
     return objects;
   }
+
+  /** DIAG (DHIS2 tracker perf 409-storm): metadata types to trace in {@link #queryObjects}. */
+  private static final java.util.Set<String> DIAG_TYPES =
+      java.util.Set.of("Program", "OrganisationUnit", "TrackedEntityType", "ProgramStage");
 
   private void removeDefaultObject(
       Class<?> klass, List<? extends IdentifiableObject> objects, Defaults defaults) {

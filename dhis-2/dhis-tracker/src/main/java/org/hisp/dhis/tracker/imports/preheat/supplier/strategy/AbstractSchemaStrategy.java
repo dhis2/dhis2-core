@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -60,6 +61,7 @@ import org.mapstruct.factory.Mappers;
  *
  * @author Luciano Fiandesio
  */
+@Slf4j
 public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrategy {
   protected final SchemaService schemaService;
 
@@ -104,6 +106,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     for (List<String> ids : splitList) {
       List<? extends IdentifiableObject> objects;
 
+      // DIAG (DHIS2 tracker perf 409-storm): capture the requested identifiers before
+      // cacheAwareFetch mutates the list, so we can log requested-vs-resolved below.
+      List<String> requestedIds = log.isDebugEnabled() ? new ArrayList<>(ids) : null;
+
       if (TrackerIdScheme.ATTRIBUTE.equals(idScheme)) {
         List<IdentifiableObject> fetchedObjects =
             (List<IdentifiableObject>)
@@ -114,6 +120,20 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         objects = map(fetchedObjects, mapper);
       } else {
         objects = cacheAwareFetch(schema, idSchemeParam, ids, mapper);
+      }
+
+      // DIAG: shows e.g. "class=Program idScheme=UID requested=1 resolved=0 requestedIds=[uy2gU8kT1jF]
+      // resolvedUids=[]" during the 409-storm. Enable via docker/log4j2.xml at DEBUG for
+      // org.hisp.dhis.tracker.imports.preheat.supplier.strategy. Remove once root cause is found.
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "[preheat-diag] class={} idScheme={} requested={} resolved={} requestedIds={} resolvedUids={}",
+            schema.getKlass().getSimpleName(),
+            idScheme,
+            requestedIds.size(),
+            objects.size(),
+            requestedIds,
+            objects.stream().map(IdentifiableObject::getUid).collect(Collectors.toList()));
       }
 
       preheat.put(idSchemeParam, objects);
