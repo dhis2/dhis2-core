@@ -35,15 +35,19 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -57,7 +61,10 @@ import org.hisp.dhis.program.Program;
  * @author Abyot Aselefew
  */
 @JacksonXmlRootElement(localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0)
-public class CategoryOptionCombo extends BaseDimensionalItemObject
+@Entity
+@Setter
+@Table(name = "categoryoptioncombo")
+public class CategoryOptionCombo extends BaseMetadataObject
     implements SystemDefaultMetadataObject {
   public static final String DEFAULT_NAME = "default";
 
