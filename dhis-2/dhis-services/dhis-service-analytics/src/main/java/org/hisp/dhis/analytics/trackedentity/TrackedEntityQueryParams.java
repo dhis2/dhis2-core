@@ -32,6 +32,8 @@ package org.hisp.dhis.analytics.trackedentity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
@@ -45,4 +47,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @Builder(toBuilder = true)
 public class TrackedEntityQueryParams {
   private final TrackedEntityType trackedEntityType;
+
+  /** When true, the query produces an aggregate (grouped) result instead of one row per TEI. */
+  private boolean aggregate;
+
+  /**
+   * The numeric tracked entity attribute the aggregation function of an aggregate query applies to.
+   * When null, an aggregate query counts tracked entity instances.
+   */
+  private final TrackedEntityAttribute value;
+
+  /** The aggregation function applied to the value column of an aggregate query. */
+  private final AggregationType aggregationType;
 }

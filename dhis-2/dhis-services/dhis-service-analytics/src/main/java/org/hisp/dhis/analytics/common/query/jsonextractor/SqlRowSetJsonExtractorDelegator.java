@@ -56,6 +56,7 @@ import java.util.function.Function;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Strings;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionAliases;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
@@ -167,14 +168,20 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
   @Override
   @SneakyThrows
   public Object getObject(String columnLabel) throws InvalidResultSetAccessException {
+    // Keyword aliases (e.g. programId.enrollmentouname) are kept verbatim in the header name, but
+    // both the rowset columns and dimIdByKey are keyed by the canonical dimension
+    // (programId.ouname). Resolving against the canonical form makes the alias extract exactly the
+    // same value as its canonical dimension.
+    String canonicalLabel = DimensionAliases.canonicalizeHeader(columnLabel);
+
     // if the column is present in the rowset, we invoke the default behavior
-    if (existingColumnsInRowSet.contains(columnLabel)) {
-      return super.getObject(columnLabel);
+    if (existingColumnsInRowSet.contains(canonicalLabel)) {
+      return super.getObject(canonicalLabel);
     }
     // if the column is not present in the rowset, we check if it is present in the json string
     List<JsonEnrollment> enrollments = parseEnrollmentsFromJson(super.getString("enrollments"));
 
-    DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(columnLabel);
+    DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(canonicalLabel);
     if (dimensionIdentifier == null) {
       throw new IllegalQueryException(E7250, columnLabel);
     }

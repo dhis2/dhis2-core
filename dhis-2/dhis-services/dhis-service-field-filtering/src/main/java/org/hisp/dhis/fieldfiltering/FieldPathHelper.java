@@ -33,21 +33,20 @@ import static java.util.Objects.requireNonNull;
 import static java.util.function.Predicate.not;
 import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiPredicate;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -66,35 +65,33 @@ import org.springframework.stereotype.Component;
 public class FieldPathHelper {
   private final SchemaService schemaService;
 
-  public List<FieldPath> apply(List<FieldPath> fieldPaths, Class<?> rootKlass) {
-    if (fieldPaths.isEmpty() || rootKlass == null) {
+  public List<FieldPath> apply(List<FieldPath> paths, Class<?> rootKlass) {
+    if (paths.isEmpty() || rootKlass == null) {
       return List.of();
     }
 
-    Map<String, FieldPath> fieldPathMap =
-        fieldPaths.stream()
+    Map<PropertyPath, FieldPath> inclusions =
+        paths.stream()
             .filter(not(FieldPath::isPreset).and(not(FieldPath::isExclude)))
-            .collect(Collectors.toMap(FieldPath::toFullPath, Function.identity()));
+            .collect(Collectors.toMap(FieldPath::getPath, Function.identity()));
 
-    applyProperties(fieldPathMap.values(), rootKlass);
+    applyProperties(inclusions.values(), rootKlass);
 
-    List<FieldPath> presets = fieldPaths.stream().filter(FieldPath::isPreset).toList();
-    applyPresets(presets, fieldPathMap, rootKlass);
+    List<FieldPath> presets = paths.stream().filter(FieldPath::isPreset).toList();
+    applyPresets(presets, inclusions, rootKlass);
 
-    calculatePathCount(fieldPathMap.values())
+    calculatePathCount(inclusions.values())
         .forEach(
-            (k, v) -> {
-              if (v > 1L) {
-                return;
+            (path, count) -> {
+              if (count <= 1) {
+                applyDefaults(inclusions.get(path), rootKlass, inclusions);
               }
-
-              applyDefaults(fieldPathMap.get(k), rootKlass, fieldPathMap);
             });
 
-    List<FieldPath> exclusions = fieldPaths.stream().filter(FieldPath::isExclude).toList();
-    applyExclusions(exclusions, fieldPathMap);
+    List<FieldPath> exclusions = paths.stream().filter(FieldPath::isExclude).toList();
+    applyExclusions(exclusions, inclusions);
 
-    return new ArrayList<>(fieldPathMap.values());
+    return List.copyOf(inclusions.values());
   }
 
   /**
@@ -102,195 +99,166 @@ public class FieldPathHelper {
    * 'dataElements.dataElementGroups' would get expanded to 'dataElements.dataElementGroups.id' so
    * that we expose the reference identifier.
    */
-  private void applyDefaults(
-      FieldPath fieldPath, Class<?> klass, Map<String, FieldPath> fieldPathMap) {
-    List<String> paths = new ArrayList<>(fieldPath.getPath());
-    paths.add(fieldPath.getName());
+  private void applyDefaults(FieldPath path, Class<?> klass, Map<PropertyPath, FieldPath> paths) {
+    Schema schema = getSchemaByPath(path.getPath(), klass);
 
-    Schema schema = getSchemaByPath(paths, klass);
+    if (schema == null) return;
 
-    if (schema == null) {
-      return;
-    }
-
-    Property property = fieldPath.getProperty();
+    Property property = path.getProperty();
+    if (property == null) return;
 
     if (isComplex(property)) {
-      expandComplex(fieldPathMap, paths, schema);
+      expandComplex(paths, path.getPath(), schema);
     } else if (isReference(property)) {
-      expandReference(fieldPathMap, paths, schema);
+      expandReference(paths, path.getPath(), schema);
     }
   }
 
-  private void applyDefault(FieldPath fieldPath, Map<String, FieldPath> fieldPathMap) {
-    List<String> paths = new ArrayList<>(fieldPath.getPath());
-    paths.add(fieldPath.getName());
+  private void applyDefault(FieldPath path, Map<PropertyPath, FieldPath> paths) {
+    paths.put(path.getPath(), path);
 
-    Property property = fieldPath.getProperty();
-    fieldPathMap.put(fieldPath.toFullPath(), fieldPath);
-
-    if (property.isSimple()) {
-      return;
-    }
+    Property property = path.getProperty();
+    if (property == null || property.isSimple()) return;
 
     Schema schema =
         schemaService.getSchema(
             property.isCollection() ? property.getItemKlass() : property.getKlass());
 
-    if (schema == null) {
-      return;
-    }
+    if (schema == null) return;
 
     if (isComplex(property)) {
-      expandComplex(fieldPathMap, paths, schema);
+      expandComplex(paths, path.getPath(), schema);
     } else if (isReference(property)) {
-      expandReference(fieldPathMap, paths, schema);
+      expandReference(paths, path.getPath(), schema);
     }
   }
 
   private void expandReference(
-      Map<String, FieldPath> fieldPathMap, List<String> paths, Schema schema) {
+      Map<PropertyPath, FieldPath> paths, PropertyPath parent, Schema schema) {
     Property idProperty = schema.getProperty("id");
 
-    FieldPath fp =
-        new FieldPath(
-            idProperty.isCollection() ? idProperty.getCollectionName() : idProperty.getName(),
-            paths);
-    fp.setProperty(idProperty);
+    String name = idProperty.isCollection() ? idProperty.getCollectionName() : idProperty.getName();
+    FieldPath id = FieldPath.of(parent.concat(name));
+    id.setProperty(idProperty);
 
-    fieldPathMap.put(fp.toFullPath(), fp);
+    paths.put(id.getPath(), id);
   }
 
   private void expandComplex(
-      Map<String, FieldPath> fieldPathMap, List<String> paths, Schema schema) {
+      Map<PropertyPath, FieldPath> paths, PropertyPath parent, Schema schema) {
     schema
         .getProperties()
         .forEach(
-            p -> {
-              FieldPath fp =
-                  new FieldPath(p.isCollection() ? p.getCollectionName() : p.getName(), paths);
-              fp.setProperty(p);
+            property -> {
+              String name =
+                  property.isCollection() ? property.getCollectionName() : property.getName();
+              FieldPath path = FieldPath.of(parent.concat(name));
+              path.setProperty(property);
 
               // check if anything else needs to be expanded
-              applyDefault(fp, fieldPathMap);
+              applyDefault(path, paths);
             });
   }
 
-  private void applyProperties(Collection<FieldPath> fieldPaths, Class<?> rootKlass) {
-    fieldPaths.forEach(
-        fp -> {
-          Schema schema = getSchemaByPath(fp.getPath(), rootKlass);
+  private void applyProperties(Collection<FieldPath> paths, Class<?> rootKlass) {
+    paths.stream()
+        .filter(path -> path.getProperty() == null)
+        .forEach(
+            path -> {
+              Schema schema = getSchemaByPath(path.getPath().parent(), rootKlass);
 
-          if (schema != null) {
-            fp.setProperty(schema.getProperty(fp.getName()));
-          }
-        });
+              if (schema != null) {
+                path.setProperty(schema.getProperty(path.getPropertyName()));
+              }
+            });
   }
 
   /**
    * Applies field presets. See {@link FieldPreset}.
    *
    * @param presets the list of {@link FieldPath}.
-   * @param fieldPathMap mapping of full path and {@link FieldPath} to be populated.
+   * @param paths mapping of full path and {@link FieldPath} to be populated.
    * @param rootKlass the root class type of the entity.
    */
   public void applyPresets(
-      List<FieldPath> presets, Map<String, FieldPath> fieldPathMap, Class<?> rootKlass) {
-    List<FieldPath> fieldPaths = new ArrayList<>();
-
+      List<FieldPath> presets, Map<PropertyPath, FieldPath> paths, Class<?> rootKlass) {
+    Consumer<FieldPath> add = path -> paths.putIfAbsent(path.getPath(), path);
     for (FieldPath preset : presets) {
-      Schema schema = getSchemaByPath(preset.getPath(), rootKlass);
+      PropertyPath parent = preset.getPath().parent();
+      Schema schema = getSchemaByPath(parent, rootKlass);
 
       if (schema == null) {
         continue;
       }
-      if (FieldPreset.ALL.getName().equals(preset.getName())) {
-        schema.getProperties().forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.OWNER.getName().equals(preset.getName())) {
+      Text presetName = preset.getPath().segment();
+      if (presetName.contentEquals(":all")) {
+        schema.getProperties().forEach(p -> add.accept(toFieldPath(parent, p)));
+      } else if (presetName.contentEquals(":owner")) {
         schema.getProperties().stream()
             .filter(Property::isOwner)
-            .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.PERSISTED.getName().equals(preset.getName())) {
+            .forEach(p -> add.accept(toFieldPath(parent, p)));
+      } else if (presetName.contentEquals(":persisted")) {
         schema.getProperties().stream()
             .filter(Property::isPersisted)
-            .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.IDENTIFIABLE.getName().equals(preset.getName())) {
+            .forEach(p -> add.accept(toFieldPath(parent, p)));
+      } else if (presetName.contentEquals(":identifiable")) {
         schema.getProperties().stream()
             .filter(p -> FieldPreset.IDENTIFIABLE.getFields().contains(p.getName()))
-            .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.SIMPLE.getName().equals(preset.getName())) {
+            .forEach(p -> add.accept(toFieldPath(parent, p)));
+      } else if (presetName.contentEquals(":simple")) {
         schema.getProperties().stream()
             .filter(p -> p.getPropertyType().isSimple())
-            .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.NAMEABLE.getName().equals(preset.getName())) {
+            .forEach(p -> add.accept(toFieldPath(parent, p)));
+      } else if (presetName.contentEquals(":nameable")) {
         schema.getProperties().stream()
             .filter(p -> FieldPreset.NAMEABLE.getFields().contains(p.getName()))
-            .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
+            .forEach(p -> add.accept(toFieldPath(parent, p)));
       }
     }
-
-    fieldPaths.forEach(fp -> fieldPathMap.putIfAbsent(fp.toFullPath(), fp));
   }
 
-  public void visitFieldPaths(
-      Object object, List<FieldPath> fieldPaths, Consumer<Object> objectConsumer) {
-    if (object == null || fieldPaths.isEmpty()) {
+  public void visitPaths(
+      Object root, List<FieldPath> paths, BiConsumer<Object, PropertyPath> visitor) {
+    if (root == null || paths.isEmpty()) return;
+
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(root));
+
+    if (!schema.isIdentifiableObject()) return;
+
+    paths.forEach(path -> visitFieldPath(root, path.getPath(), visitor));
+  }
+
+  private void visitFieldPath(
+      Object object, PropertyPath path, BiConsumer<Object, PropertyPath> visitor) {
+    if (object == null) return;
+
+    if (path.parent() == null) {
+      visitor.accept(object, path);
       return;
     }
 
     Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
+    Property property = schema.getProperty(path.head().toString());
 
-    if (!schema.isIdentifiableObject()) {
-      return;
-    }
-
-    fieldPaths.forEach(fp -> visitFieldPath(object, new ArrayList<>(fp.getPath()), objectConsumer));
-  }
-
-  private void visitFieldPath(Object object, List<String> paths, Consumer<Object> objectConsumer) {
-    if (object == null) {
-      return;
-    }
-
-    if (paths.isEmpty()) {
-      objectConsumer.accept(object);
-      return;
-    }
-
-    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
-    String currentPath = paths.remove(0);
-
-    Property property = schema.getProperty(currentPath);
-
-    if (property == null) {
-      return;
-    }
+    if (property == null) return;
 
     if (property.isCollection()) {
-      Collection<?> currentObjects = safeInvoke(object, property.getGetterMethod());
-
-      for (Object o : currentObjects) {
-        visitFieldPath(o, new ArrayList<>(paths), objectConsumer);
-      }
+      Collection<?> c = safeInvoke(object, property.getGetterMethod());
+      if (c == null || c.isEmpty()) return;
+      PropertyPath cPath = path.dropHead();
+      for (Object e : c) visitFieldPath(e, cPath, visitor);
     } else {
       Object currentObject = safeInvoke(object, property.getGetterMethod());
-      visitFieldPath(currentObject, new ArrayList<>(paths), objectConsumer);
+      visitFieldPath(currentObject, path.dropHead(), visitor);
     }
   }
 
   /** Modifies the passed in fieldPathMap by removing any matching exclusions. */
-  private void applyExclusions(List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap) {
-    Set<String> excludedPaths = new HashSet<>();
+  private void applyExclusions(
+      List<FieldPath> exclusions, Map<PropertyPath, FieldPath> fieldPathMap) {
     for (FieldPath exclusion : exclusions) {
-      excludedPaths.add(exclusion.toFullPath());
-
-      for (String fieldPath : fieldPathMap.keySet()) {
-        if (fieldShouldBeExcluded(fieldPath, exclusion.toFullPath())) {
-          excludedPaths.add(fieldPath);
-        }
-      }
+      fieldPathMap.keySet().removeIf(path -> fieldShouldBeExcluded(path, exclusion.getPath()));
     }
-    fieldPathMap.keySet().removeAll(excludedPaths);
   }
 
   // ----------------------------------------------------------------------------------------------------------------
@@ -333,32 +301,11 @@ public class FieldPathHelper {
    *
    * @return true if the field should be excluded <br>
    */
-  public static boolean fieldShouldBeExcluded(String fullFieldPath, String fullExclusionPath) {
-    if (ObjectUtils.anyNull(fullFieldPath, fullExclusionPath)) return false;
-
-    return fullFieldPath.equals(fullExclusionPath)
-        || exclusionIsPathOfFieldPath.test(fullFieldPath, fullExclusionPath);
+  public static boolean fieldShouldBeExcluded(
+      PropertyPath fullFieldPath, PropertyPath fullExclusionPath) {
+    if (fullFieldPath == null || fullExclusionPath == null) return false;
+    return fullExclusionPath.isExcluded(fullFieldPath);
   }
-
-  /** If the exclusion path is a subpath (or the same) then return true. */
-  private static final BiPredicate<String, String> exclusionIsPathOfFieldPath =
-      (fullFieldPath, fullExclusionPath) -> {
-        String[] fields = fullFieldPath.split("\\.");
-        String[] exclFields = fullExclusionPath.split("\\.");
-
-        // when the exclusion path is deeper (more '.') then the field won't be excluded
-        if (exclFields.length > fields.length) {
-          return false;
-        }
-
-        // when an exclusion path does not match a field path then it won't be excluded
-        for (int i = 0; i < exclFields.length; ++i) {
-          if (!exclFields[i].equals(fields[i])) {
-            return false;
-          }
-        }
-        return true;
-      };
 
   private boolean isReference(Property property) {
     return property.is(PropertyType.REFERENCE) || property.itemIs(PropertyType.REFERENCE);
@@ -375,52 +322,50 @@ public class FieldPathHelper {
   }
 
   /** Calculates a weighted map of paths to find candidates for default expansion. */
-  private Map<String, Long> calculatePathCount(Collection<FieldPath> fieldPaths) {
-    Map<String, Long> pathCount = new HashMap<>();
+  private Map<PropertyPath, Integer> calculatePathCount(Collection<FieldPath> paths) {
+    Map<PropertyPath, Integer> pathCount = new HashMap<>();
 
-    for (FieldPath fieldPath : fieldPaths) {
+    for (FieldPath fieldPath : paths) {
       Property property = fieldPath.getProperty();
 
       if (property == null) {
         continue;
       }
 
-      List<String> paths = new ArrayList<>();
-
-      for (String path : fieldPath.getPath()) {
-        paths.add(path);
-        pathCount.compute(
-            StringUtils.join(paths, FieldPath.FIELD_PATH_SEPARATOR),
-            (key, count) -> count == null ? 1L : count + 1L);
+      PropertyPath path = fieldPath.getPath().parent();
+      while (path != null) {
+        pathCount.compute(path, (key, count) -> count == null ? 1 : count + 1);
+        path = path.parent();
       }
 
       if (isReference(property) || isComplex(property)) {
-        pathCount.compute(fieldPath.toFullPath(), (key, count) -> count == null ? 1L : count + 1L);
+        pathCount.compute(fieldPath.getPath(), (key, count) -> count == null ? 1 : count + 1);
       }
     }
 
     return pathCount;
   }
 
-  private FieldPath toFieldPath(List<String> path, Property property) {
+  private FieldPath toFieldPath(@CheckForNull PropertyPath parent, Property property) {
     String name = property.isCollection() ? property.getCollectionName() : property.getName();
-
-    FieldPath fieldPath = new FieldPath(name, path);
-    fieldPath.setProperty(property);
-
-    return fieldPath;
+    FieldPath res = FieldPath.of(PropertyPath.concat(parent, name));
+    res.setProperty(property);
+    return res;
   }
 
-  private Schema getSchemaByPath(List<String> paths, Class<?> klass) {
-    requireNonNull(paths);
+  private Schema getSchemaByPath(@CheckForNull PropertyPath path, Class<?> klass) {
     requireNonNull(klass);
 
     // get root schema
     Schema schema = schemaService.getSchema(klass);
+
+    if (path == null) return schema;
+
     Property currentProperty;
 
-    for (String path : paths) {
-      currentProperty = schema.getProperty(path);
+    Iterator<String> iter = path.properties().map(Text::toString).iterator();
+    while (iter.hasNext()) {
+      currentProperty = schema.getProperty(iter.next());
 
       if (currentProperty == null) {
         return null; // invalid path

@@ -8,7 +8,9 @@
     table="trackedentityprogramowner">
 
     <id name="id" column="trackedentityprogramownerid">
-      <generator class="native" />
+      <generator class="sequence">
+        <param name="sequence_name">trackedentityprogramowner_sequence</param>
+      </generator>
     </id>
 
     <many-to-one name="trackedEntity" class="org.hisp.dhis.tracker.model.TrackedEntity"

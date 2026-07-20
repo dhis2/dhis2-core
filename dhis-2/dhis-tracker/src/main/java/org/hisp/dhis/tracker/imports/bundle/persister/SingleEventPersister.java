@@ -57,15 +57,16 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -77,16 +78,28 @@ public class SingleEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.SingleEvent, SingleEvent> {
   public SingleEventPersister(
-      ReservedValueService reservedValueService,
-      DataSource dataSource,
-      FileResourceStore fileResourceStore,
-      ObjectMapper objectMapper) {
-    super(reservedValueService, dataSource, fileResourceStore, objectMapper);
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
   }
 
   @Override
   protected String sequenceName() {
-    return null;
+    return "singleevent_sequence";
+  }
+
+  @Override
+  protected void assignId(SingleEvent entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(SingleEvent entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(SingleEvent entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
   }
 
   @Override
@@ -165,7 +178,8 @@ public class SingleEventPersister
       SingleEvent hibernateEntity,
       UserDetails user,
       ChangeLogAccumulator changeLogs,
-      EntityWriteBatch batch) {
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -278,7 +292,8 @@ public class SingleEventPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.SingleEvent trackerDto,
-      SingleEvent entity) {
+      SingleEvent entity,
+      EntityWriteBatch batch) {
     // DO NOTHING. Event creation does not create ownership records.
   }
 

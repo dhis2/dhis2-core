@@ -21,7 +21,7 @@
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
-    <property name="value" column="value" access="property" length="1200" />
+    <property name="value" column="value" access="property" length="1200" not-null="true" />
 
     <property name="updatedBy" column="updatedby" not-null="false" />
 

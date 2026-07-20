@@ -194,6 +194,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(userA);
     idObjectManager.save(dataElement);
+    entityManager.flush();
 
     assertThrows(DeleteNotAllowedException.class, () -> userService.deleteUser(userA));
   }
@@ -208,6 +209,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
     dataElement.setDescription("Updated");
     idObjectManager.update(dataElement);
+    entityManager.flush();
 
     assertThrows(DeleteNotAllowedException.class, () -> userService.deleteUser(userA));
   }

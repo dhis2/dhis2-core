@@ -56,6 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -627,6 +628,67 @@ class MetadataItemsHandlerTest {
     }
 
     @Test
+    @DisplayName(
+        "should not add boundary org unit to metadata items when stage ou filter has levels")
+    void shouldNotAddBoundaryOrgUnitToItemsWhenStageOuFilterHasLevels() {
+      // Given
+      Grid grid = new ListGrid();
+      grid.addRow();
+      grid.addValue("value1");
+
+      ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+
+      OrganisationUnit boundary = createOrganisationUnit('C');
+      String levelUid = "tTUf91fCytl";
+
+      BaseDimensionalItemObject levelItem = new BaseDimensionalItemObject();
+      levelItem.setUid(levelUid);
+      levelItem.setName("Chiefdom");
+
+      QueryItem stageOuItem =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(programStage));
+      stageOuItem.setProgramStage(programStage);
+      stageOuItem.addFilter(
+          new QueryFilter(QueryOperator.IN, "LEVEL-" + levelUid + ";" + boundary.getUid()));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(stageOuItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem("LEVEL-" + levelUid, IdScheme.UID))
+          .thenReturn(levelItem);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey(levelUid));
+      assertFalse(items.containsKey(boundary.getUid()));
+      verify(organisationUnitResolver, never())
+          .loadOrgUnitDimensionalItem(boundary.getUid(), IdScheme.UID);
+    }
+
+    @Test
     @DisplayName("should add keywords to metadata items")
     void shouldAddKeywordsToMetadataItems() {
       // Given
@@ -936,9 +998,6 @@ class MetadataItemsHandlerTest {
       when(organisationUnitResolver.resolveOrgUnits(
               any(EventQueryParams.class), any(QueryItem.class)))
           .thenReturn(List.of(orgUnitA.getUid()));
-      when(organisationUnitResolver.resolveOrgUnitsForMetadata(
-              any(EventQueryParams.class), any(QueryItem.class)))
-          .thenReturn(List.of(orgUnitA.getUid()));
       when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitA.getUid(), IdScheme.UID))
           .thenReturn(orgUnitA);
 
@@ -955,6 +1014,233 @@ class MetadataItemsHandlerTest {
 
       MetadataItem orgUnitItem = (MetadataItem) items.get(orgUnitA.getUid());
       assertEquals(orgUnitA.getDisplayName(), orgUnitItem.getName());
+    }
+
+    @Test
+    @DisplayName(
+        "should include level-resolved org units and level name but not the boundary for stage ou aggregate dimension")
+    void shouldIncludeLevelResolvedOrgUnitsWithoutBoundaryForStageOuAggregateDimension() {
+      // Given
+      Grid grid = new ListGrid();
+
+      ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+      programStage.setName("Birth");
+
+      OrganisationUnit boundary = createOrganisationUnit('C');
+      String levelUid = "tTUf91fCytl";
+
+      BaseDimensionalItemObject levelItem = new BaseDimensionalItemObject();
+      levelItem.setUid(levelUid);
+      levelItem.setName("Chiefdom");
+
+      QueryItem stageOuItem =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(programStage));
+      stageOuItem.setProgramStage(programStage);
+      stageOuItem.addFilter(
+          new QueryFilter(QueryOperator.IN, "LEVEL-" + levelUid + ";" + boundary.getUid()));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withUserOrgUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(stageOuItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.resolveOrgUnits(
+              any(EventQueryParams.class), any(QueryItem.class)))
+          .thenReturn(List.of(orgUnitA.getUid(), orgUnitB.getUid()));
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitA.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitA);
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitB.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitB);
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem("LEVEL-" + levelUid, IdScheme.UID))
+          .thenReturn(levelItem);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      assertTrue(items.containsKey("A03MvHHogjR.ou"));
+      assertTrue(items.containsKey(orgUnitA.getUid()));
+      assertTrue(items.containsKey(orgUnitB.getUid()));
+      assertFalse(items.containsKey(boundary.getUid()));
+
+      MetadataItem levelMetadataItem = (MetadataItem) items.get(levelUid);
+      assertNotNull(levelMetadataItem);
+      assertEquals("Chiefdom", levelMetadataItem.getName());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+      assertEquals(List.of(orgUnitA.getUid(), orgUnitB.getUid()), dimensions.get("A03MvHHogjR.ou"));
+      assertFalse(dimensions.get("A03MvHHogjR.ou").contains(boundary.getUid()));
+    }
+
+    @Test
+    @DisplayName("should include numeric level name keyed by UID for stage ou aggregate dimension")
+    void shouldIncludeNumericLevelNameByUidForStageOuAggregateDimension() {
+      // Given
+      Grid grid = new ListGrid();
+
+      ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+      programStage.setName("Birth");
+
+      OrganisationUnit boundary = createOrganisationUnit('C');
+      String levelUid = "tTUf91fCytl";
+
+      BaseDimensionalItemObject levelItem = new BaseDimensionalItemObject();
+      levelItem.setUid(levelUid);
+      levelItem.setName("Chiefdom");
+
+      QueryItem stageOuItem =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(programStage));
+      stageOuItem.setProgramStage(programStage);
+      stageOuItem.addFilter(new QueryFilter(QueryOperator.IN, "LEVEL-3;" + boundary.getUid()));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withUserOrgUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(stageOuItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.resolveOrgUnits(
+              any(EventQueryParams.class), any(QueryItem.class)))
+          .thenReturn(List.of(orgUnitA.getUid()));
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitA.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitA);
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem("LEVEL-3", IdScheme.UID))
+          .thenReturn(levelItem);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey(orgUnitA.getUid()));
+      assertFalse(items.containsKey(boundary.getUid()));
+      assertFalse(items.containsKey("3"));
+
+      MetadataItem levelMetadataItem = (MetadataItem) items.get(levelUid);
+      assertNotNull(levelMetadataItem);
+      assertEquals("Chiefdom", levelMetadataItem.getName());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+      assertEquals(List.of(orgUnitA.getUid()), dimensions.get("A03MvHHogjR.ou"));
+      assertFalse(dimensions.get("A03MvHHogjR.ou").contains(boundary.getUid()));
+    }
+
+    @Test
+    @DisplayName(
+        "should include group-resolved org units and group name but not the boundary for stage ou aggregate dimension")
+    void shouldIncludeGroupResolvedOrgUnitsWithoutBoundaryForStageOuAggregateDimension() {
+      // Given
+      Grid grid = new ListGrid();
+
+      ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+      programStage.setName("Birth");
+
+      OrganisationUnit boundary = createOrganisationUnit('C');
+      String groupUid = "tDZVQ1WtwpA";
+
+      BaseDimensionalItemObject groupItem = new BaseDimensionalItemObject();
+      groupItem.setUid(groupUid);
+      groupItem.setName("Facility group");
+
+      QueryItem stageOuItem =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(programStage));
+      stageOuItem.setProgramStage(programStage);
+      stageOuItem.addFilter(
+          new QueryFilter(QueryOperator.IN, "OU_GROUP-" + groupUid + ";" + boundary.getUid()));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withUserOrgUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(stageOuItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.resolveOrgUnits(
+              any(EventQueryParams.class), any(QueryItem.class)))
+          .thenReturn(List.of(orgUnitA.getUid(), orgUnitB.getUid()));
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitA.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitA);
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitB.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitB);
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(
+              "OU_GROUP-" + groupUid, IdScheme.UID))
+          .thenReturn(groupItem);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey(orgUnitA.getUid()));
+      assertTrue(items.containsKey(orgUnitB.getUid()));
+      assertFalse(items.containsKey(boundary.getUid()));
+
+      MetadataItem groupMetadataItem = (MetadataItem) items.get(groupUid);
+      assertNotNull(groupMetadataItem);
+      assertEquals("Facility group", groupMetadataItem.getName());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+      assertEquals(List.of(orgUnitA.getUid(), orgUnitB.getUid()), dimensions.get("A03MvHHogjR.ou"));
+      assertFalse(dimensions.get("A03MvHHogjR.ou").contains(boundary.getUid()));
     }
   }
 

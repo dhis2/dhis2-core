@@ -68,7 +68,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -247,16 +246,12 @@ public class DataApprovalController {
       @RequestParam(required = false) Date endDate,
       @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam Set<String> ou,
       @RequestParam(required = false) boolean children,
+      @RequestParam(required = false) String fields,
       HttpServletResponse response)
       throws WebMessageException, BadRequestException {
-    List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-      List<String> defaults = new ArrayList<>();
-      defaults.add(
-          "period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]");
-      fields.addAll(defaults);
+    if (fields == null || fields.isEmpty()) {
+      fields =
+          "*,period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]";
     }
 
     Set<DataSet> dataSets = parseDataSetsWithWorkflow(ds);
