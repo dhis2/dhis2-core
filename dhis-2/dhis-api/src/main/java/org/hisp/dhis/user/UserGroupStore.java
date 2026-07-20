@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -70,4 +71,16 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
    * @param userUid the UID of the user being removed from all groups
    */
   void removeAllMemberships(@Nonnull UID userUid);
+
+  /**
+   * Returns a lightweight, transient summary (uid, code, username, firstName, surname, name) of
+   * every member of the given group, without loading the full {@link User} entities via Hibernate.
+   * The returned {@link User} instances are not managed by the persistence context and must not be
+   * passed to any Hibernate session operation.
+   *
+   * @param userGroupUid the UID of the group
+   * @return summary members, empty list if the group has none or does not exist
+   */
+  @Nonnull
+  List<User> getUserSummaries(@Nonnull UID userGroupUid);
 }

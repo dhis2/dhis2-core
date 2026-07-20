@@ -30,6 +30,7 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -144,6 +145,25 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     jdbcTemplate.update(
         "DELETE FROM usergroupmembers WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)",
         userUid.getValue());
+  }
+
+  @Nonnull
+  @Override
+  public List<User> getUserSummaries(@Nonnull UID userGroupUid) {
+    // Membership can also change via plain ORM (e.g. DefaultCollectionService add/remove, which
+    // mutates the managed `members` PersistentSet in place without going through the SQL bypass
+    // methods above). Those changes stay unflushed in the session until Hibernate decides to
+    // flush, so this raw JDBC read -- on a separate path that bypasses the session entirely --
+    // would otherwise miss them and return stale membership.
+    getSession().flush();
+    String sql =
+        "select "
+            + UserSummaryRowMapper.SELECT_COLUMNS
+            + " from userinfo u"
+            + " join usergroupmembers m on m.userid = u.userinfoid"
+            + " join usergroup ug on ug.usergroupid = m.usergroupid"
+            + " where ug.uid = ?";
+    return jdbcTemplate.query(sql, UserSummaryRowMapper.INSTANCE, userGroupUid.getValue());
   }
 
   //  @Override

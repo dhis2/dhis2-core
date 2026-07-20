@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -61,6 +62,15 @@ public class UserRole extends BaseIdentifiableObject implements MetadataObject {
   private Set<String> restrictions = new HashSet<>();
 
   private Set<User> members = new HashSet<>();
+
+  /**
+   * Set by {@code FieldFilterService.applyUserSummaries} to a lightweight SQL projection of {@link
+   * #members} before serialization, so {@link #getUsers()} doesn't force Hibernate to fully
+   * materialize every {@link User} in the role just to serialize 5 fields per user (DHIS2-21860).
+   * Transient: never Hibernate-mapped, never persisted. Every other caller of {@link #getUsers()}
+   * leaves this {@code null} and gets the original {@link #members}-derived computation unchanged.
+   */
+  @JsonIgnore private transient List<User> userSummaries;
 
   public UserRole() {
     setAutoFields();
@@ -129,6 +139,10 @@ public class UserRole extends BaseIdentifiableObject implements MetadataObject {
   @JacksonXmlElementWrapper(localName = "users", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "userObject", namespace = DxfNamespaces.DXF_2_0)
   public List<User> getUsers() {
+    if (userSummaries != null) {
+      return userSummaries;
+    }
+
     List<User> users = new ArrayList<>();
 
     for (User user : members) {
@@ -138,5 +152,9 @@ public class UserRole extends BaseIdentifiableObject implements MetadataObject {
     }
 
     return users;
+  }
+
+  public void setUserSummaries(List<User> userSummaries) {
+    this.userSummaries = userSummaries;
   }
 }

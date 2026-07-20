@@ -32,7 +32,13 @@
       enumeration of all members of a group is uncommon in production. The overhead of
       manual cache eviction after every SQL bypass outweighs the benefit.
     -->
-    <set name="members" table="usergroupmembers">
+    <!--
+      access="field": getMembers() is overridden (DHIS2-21860) to transparently return a
+      lightweight transient projection during JSON serialization. Hibernate must read/write the
+      raw `members` field directly for its own persistence/dirty-checking, or it would see that
+      projection instead of the real collection and try to cascade-save its unpersisted contents.
+    -->
+    <set name="members" table="usergroupmembers" access="field">
       <key column="usergroupid" foreign-key="fk_usergroupmembers_usergroupid" />
       <many-to-many column="userid" class="org.hisp.dhis.user.User" foreign-key="fk_usergroupmembers_userid" />
     </set>

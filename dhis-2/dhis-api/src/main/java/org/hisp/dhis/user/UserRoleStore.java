@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -62,4 +63,16 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @param targetUserUid UID of the user to copy to
    */
   void copyRoleMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
+
+  /**
+   * Returns a lightweight, transient summary (uid, code, username, firstName, surname, name) of
+   * every member of the given role, without loading the full {@link User} entities via Hibernate.
+   * The returned {@link User} instances are not managed by the persistence context and must not be
+   * passed to any Hibernate session operation.
+   *
+   * @param userRoleUid the UID of the role
+   * @return summary members, empty list if the role has none or does not exist
+   */
+  @Nonnull
+  List<User> getUserSummaries(@Nonnull UID userRoleUid);
 }

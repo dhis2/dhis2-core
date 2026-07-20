@@ -1464,12 +1464,20 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetUserRoleUsersAreTransformed() {
+    // UserRole.members is the Hibernate inverse side (owning side is User.userRoles) -- must add
+    // via user.getUserRoles() for the membership to actually be persisted to userrolemembers,
+    // not just mutate the in-memory role.members collection.
     UserRole role = createUserRole('X');
+    manager.save(role);
     User user = makeUser("Y");
     user.setEmail("y@y.org");
+    user.getUserRoles().add(role);
     userService.addUser(user);
-    role.getMembers().add(user);
-    manager.save(role);
+    // userService.addUser doesn't flush; the userrolemembers cascade insert stays pending in the
+    // Hibernate session until the next auto-flush (HQL/Criteria query) or explicit flush. The GET
+    // below queries userrolemembers directly via JDBC (DHIS2-21860 projection), which doesn't
+    // trigger Hibernate auto-flush, so without this the membership row isn't visible yet.
+    manager.flush();
 
     JsonObject userInRole =
         GET("/userRoles/{id}?fields=users[*]", role.getUid())
@@ -1479,6 +1487,30 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertFalse(userInRole.has("email"), "email should not be exposed");
     assertEquals(user.getUid(), userInRole.getString("id").string());
+  }
+
+  @Test
+  void testGetUserGroupUsersAreTransformed() {
+    // Unlike UserRole.members, UserGroup.members is the Hibernate owning side (no
+    // inverse="true" in UserGroup.hbm.xml), so persisting via group.getMembers()/createUserGroup
+    // works directly -- no User-side workaround needed here.
+    User user = makeUser("Z");
+    user.setEmail("z@z.org");
+    userService.addUser(user);
+    UserGroup group = createUserGroup('X', Set.of(user));
+    manager.save(group);
+    manager.flush();
+
+    // UserGroup.getMembers() is exposed as JSON property "users" (@JsonProperty("users")), not
+    // "members" -- same API field name as UserRole.
+    JsonObject userInGroup =
+        GET("/userGroups/{id}?fields=users[*]", group.getUid())
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    assertFalse(userInGroup.has("email"), "email should not be exposed");
+    assertEquals(user.getUid(), userInGroup.getString("id").string());
   }
 
   @Test

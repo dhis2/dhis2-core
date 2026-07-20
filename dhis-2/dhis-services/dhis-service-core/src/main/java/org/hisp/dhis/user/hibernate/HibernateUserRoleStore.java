@@ -30,12 +30,14 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserRoleStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -90,5 +92,23 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
     query.setParameter("dataSet", dataSet);
 
     return query.getSingleResult().intValue();
+  }
+
+  @Nonnull
+  @Override
+  public List<User> getUserSummaries(@Nonnull UID userRoleUid) {
+    // Role membership is normally changed via plain ORM (User.userRoles is the owning side, e.g.
+    // UserObjectBundleHook#postCommit calling user.setUserRoles(...)), which stays unflushed in
+    // the session until Hibernate decides to flush. This raw JDBC read bypasses the session
+    // entirely, so without an explicit flush first it could return stale membership.
+    getSession().flush();
+    String sql =
+        "select "
+            + UserSummaryRowMapper.SELECT_COLUMNS
+            + " from userinfo u"
+            + " join userrolemembers m on m.userid = u.userinfoid"
+            + " join userrole ur on ur.userroleid = m.userroleid"
+            + " where ur.uid = ?";
+    return jdbcTemplate.query(sql, UserSummaryRowMapper.INSTANCE, userRoleUid.getValue());
   }
 }

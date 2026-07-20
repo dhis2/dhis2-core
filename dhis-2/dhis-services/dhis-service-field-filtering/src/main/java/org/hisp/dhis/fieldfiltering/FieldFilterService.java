@@ -49,6 +49,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -59,6 +60,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PropertyPath;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.KeyByFieldTransformer;
@@ -71,7 +73,11 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserGroupStore;
+import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserRoleStore;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
@@ -98,6 +104,10 @@ public class FieldFilterService {
 
   private final AttributeService attributeService;
 
+  private final UserRoleStore userRoleStore;
+
+  private final UserGroupStore userGroupStore;
+
   public FieldFilterService(
       FieldPathHelper fieldPathHelper,
       ObjectMapper jsonMapper,
@@ -105,14 +115,18 @@ public class FieldFilterService {
       AclService aclService,
       UserGroupService userGroupService,
       UserService userService,
-      AttributeService attributeService) {
+      AttributeService attributeService,
+      UserRoleStore userRoleStore,
+      UserGroupStore userGroupStore) {
     this.fieldPathHelper = fieldPathHelper;
-    this.jsonMapper = configureFieldFilterObjectMapper(jsonMapper);
     this.schemaService = schemaService;
     this.aclService = aclService;
     this.userGroupService = userGroupService;
     this.userService = userService;
     this.attributeService = attributeService;
+    this.userRoleStore = userRoleStore;
+    this.userGroupStore = userGroupStore;
+    this.jsonMapper = configureFieldFilterObjectMapper(jsonMapper);
   }
 
   private ObjectMapper configureFieldFilterObjectMapper(ObjectMapper objectMapper) {
@@ -243,6 +257,15 @@ public class FieldFilterService {
     Map<String, ObjectNode> attributeProperties = new HashMap<>();
 
     for (Object object : objects) {
+      // Must run before applyAccess/applySharingDisplayNames: both walk the *entire* requested
+      // field tree (e.g. "users.groups", "users.organisationUnits" from a "users[*]" wildcard),
+      // and that walk calls getUsers()/getMembers() itself while descending. If the real,
+      // Hibernate-backed member list is still in place when that walk happens, it forces full
+      // materialization of every User and its associations -- exactly the N+1 this projection is
+      // meant to avoid. Installing the lightweight summary first means every later caller in this
+      // loop (including applyAccess's own traversal and Jackson's serialization) observes it
+      // instead (DHIS2-21860; found via Glowroot trace showing 583k queries on a single request).
+      applyUserSummaries(object, paths);
       applyAccess(object, paths, isSkipSharing, currentUserDetails);
       applySharingDisplayNames(object, paths, isSkipSharing);
 
@@ -251,6 +274,7 @@ public class FieldFilterService {
           object, objectNode, relativeAttributePaths, attributeProperties);
       applyAttributeAsPropertyFields(object, objectNode, paths);
       applyTransformers(objectNode, fieldTransformers);
+      clearUserSummaries(object);
 
       if (excludeDefaults) removeEmptyObjects(objectNode);
 
@@ -553,5 +577,63 @@ public class FieldFilterService {
             object.setAccess(aclService.getAccess(object, userDetails));
           }
         });
+  }
+
+  /**
+   * Fetches a lightweight SQL projection of {@code UserRole.users} / {@code UserGroup.members} and
+   * stashes it on a transient field, instead of letting Jackson invoke the real getter (which would
+   * force Hibernate to fully materialize every {@code User} in the membership set just to serialize
+   * 5 fields per user). Only runs when the field is actually requested (DHIS2-21860).
+   *
+   * <p>Deliberately does NOT use {@link #applyFieldPathVisitor}/{@link FieldPathHelper#visitPaths}
+   * like {@link #applyAccess} and {@link #applySharingDisplayNames} do. That visitor calls {@code
+   * visitFieldPath} once per *leaf* {@link FieldPath} independently (e.g. {@code users.groups},
+   * {@code users.organisationUnits} are each their own top-level entries for a {@code users[*]}
+   * wildcard, alongside a bare {@code users} entry) -- each one re-fetches {@code getUsers()} from
+   * the *root* to descend, and the callback only fires at the leaf, with the leaf's own segment
+   * name, never "users" itself. So a check for {@code path.segment().equals("users")} only ever
+   * matches the bare {@code users} entry, and {@code paths} is built from a {@code HashMap} with no
+   * defined iteration order -- whether that entry is visited before or after {@code users.groups}
+   * etc. is unpredictable. When it loses that race, every "users.X" leaf materializes the real,
+   * Hibernate-backed member set and its associations before the summary is ever installed --
+   * confirmed via a Glowroot trace showing 230k+ per-member queries despite this method having
+   * already run. Checking {@code paths} directly for a "users"-headed entry sidesteps the race
+   * entirely: the summary is set (or not) in one pass, before any leaf is visited.
+   */
+  private void applyUserSummaries(Object root, List<FieldPath> paths) {
+    if (!(root instanceof UserRole) && !(root instanceof UserGroup)) {
+      return;
+    }
+    // UserGroup.getMembers() is exposed via @JsonProperty("users") -- the schema/field-path
+    // property name is "users" for both UserRole and UserGroup, not "members".
+    boolean usersRequested =
+        paths.stream().anyMatch(path -> path.getPath().head().contentEquals("users"));
+    if (!usersRequested) {
+      return;
+    }
+    if (root instanceof UserRole role) {
+      role.setUserSummaries(userRoleStore.getUserSummaries(UID.of(role.getUid())));
+    } else if (root instanceof UserGroup group) {
+      group.setUserSummaries(
+          new LinkedHashSet<>(userGroupStore.getUserSummaries(UID.of(group.getUid()))));
+    }
+  }
+
+  /**
+   * Resets the transient override set by {@link #applyUserSummaries}, immediately after the object
+   * has been serialized. Without this, the override stays set on the managed entity for the rest of
+   * its session lifetime -- harmless for read-only use, but if the same managed instance is later
+   * touched by a write path within the same transaction (e.g. a subsequent update that inspects
+   * {@code getMembers()}/{@code getUsers()} expecting the real, persisted collection), it would see
+   * the lightweight transient {@code User} projection instead and could feed those never-persisted
+   * instances into a Hibernate cascade (DHIS2-21860; caught via a real {@code
+   * TransientObjectException} regression in {@code UserControllerTest} during implementation).
+   */
+  private void clearUserSummaries(Object object) {
+    if (object instanceof UserRole role) {
+      role.setUserSummaries(null);
+    } else if (object instanceof UserGroup group) {
+      group.setUserSummaries(null);
+    }
   }
 }

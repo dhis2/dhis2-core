@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -62,6 +63,15 @@ public class UserGroup extends BaseIdentifiableObject implements MetadataObject 
 
   /** Set of related users */
   private Set<User> members = new HashSet<>();
+
+  /**
+   * Set by {@code FieldFilterService.applyUserSummaries} to a lightweight SQL projection of {@link
+   * #members} before serialization, so {@link #getMembers()} doesn't force Hibernate to fully
+   * materialize every {@link User} in the group just to serialize 5 fields per user (DHIS2-21860).
+   * Transient: never Hibernate-mapped, never persisted. Every other caller of {@link #getMembers()}
+   * leaves this {@code null} and gets the original {@link #members}-derived value unchanged.
+   */
+  @JsonIgnore private transient Set<User> userSummaries;
 
   /** User groups (if any) that members of this user group can manage the members within. */
   private Set<UserGroup> managedGroups = new HashSet<>();
@@ -165,11 +175,15 @@ public class UserGroup extends BaseIdentifiableObject implements MetadataObject 
   @JacksonXmlElementWrapper(localName = "users", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "user", namespace = DxfNamespaces.DXF_2_0)
   public Set<User> getMembers() {
-    return members;
+    return userSummaries != null ? userSummaries : members;
   }
 
   public void setMembers(Set<User> members) {
     this.members = members;
+  }
+
+  public void setUserSummaries(Set<User> userSummaries) {
+    this.userSummaries = userSummaries;
   }
 
   @JsonProperty("managedGroups")
