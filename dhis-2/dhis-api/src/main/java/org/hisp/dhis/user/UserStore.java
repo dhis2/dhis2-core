@@ -166,6 +166,14 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getUserByUsernames(Collection<String> usernames);
 
   /**
+   * Retrieves the usernames of all users that are members of the user role with the given UID.
+   *
+   * @param roleUid the UID of the user role.
+   * @return a list of usernames.
+   */
+  List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
+
+  /**
    * Retrieves the most recently-used enabled User associated with the given open ID.
    *
    * <p>This only returns enabled users.
