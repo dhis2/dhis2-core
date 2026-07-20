@@ -541,8 +541,14 @@ public abstract class AbstractFullReadOnlyController<
 
   private boolean fieldsContains(String match, List<String> fields) {
     for (String field : fields) {
-      // for now assume href/access if * or preset is requested
-      if (field.contains(match) || field.equals("*") || field.startsWith(":")) {
+      // only presets that expand to the href property need link generation;
+      // href is transient (not owner/persisted) and not part of the fixed
+      // identifiable/nameable presets, but it is a simple property, so it is
+      // included by *, :all and :simple
+      if (field.contains(match)
+          || field.equals("*")
+          || field.equals(":all")
+          || field.equals(":simple")) {
         return true;
       }
     }
