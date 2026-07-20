@@ -60,6 +60,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
+import org.hisp.dhis.webapi.security.AntPathRequestMatcher;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
@@ -93,7 +94,6 @@ import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.session.SessionManagementFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -254,9 +254,9 @@ public class DhisWebApiWebSecurityConfig {
     http.cors(Customizer.withDefaults());
 
     if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
-      http.requestCache().requestCache(requestCache);
+      http.requestCache(rc -> rc.requestCache(requestCache));
     } else {
-      http.requestCache().disable();
+      http.requestCache(rc -> rc.disable());
     }
 
     configureMatchers(http);
@@ -272,13 +272,13 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   public static void setHttpHeaders(HttpSecurity http) throws Exception {
-    http.headers()
-        .defaultsDisabled()
-        .contentTypeOptions()
-        .and()
-        .xssProtection()
-        .and()
-        .httpStrictTransportSecurity();
+    http.headers(
+        headers ->
+            headers
+                .defaultsDisabled()
+                .contentTypeOptions(Customizer.withDefaults())
+                .xssProtection(Customizer.withDefaults())
+                .httpStrictTransportSecurity(Customizer.withDefaults()));
   }
 
   @Bean
@@ -299,150 +299,154 @@ public class DhisWebApiWebSecurityConfig {
 
     Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
     http.authorizeHttpRequests(
-            authorize -> {
-              providerIds.forEach(
-                  providerId ->
-                      authorize
-                          .requestMatchers(
-                              new AntPathRequestMatcher("/oauth2/authorization/" + providerId))
-                          .permitAll()
-                          .requestMatchers(new AntPathRequestMatcher("/oauth2/code/" + providerId))
-                          .permitAll());
+        authorize -> {
+          providerIds.forEach(
+              providerId ->
+                  authorize
+                      .requestMatchers(
+                          new AntPathRequestMatcher("/oauth2/authorization/" + providerId))
+                      .permitAll()
+                      .requestMatchers(new AntPathRequestMatcher("/oauth2/code/" + providerId))
+                      .permitAll());
 
-              authorize
-                  .requestMatchers(analyticsPluginResources())
-                  .permitAll()
-                  // Authentication endpoint
-                  .requestMatchers(new AntPathRequestMatcher("/oauth2/authorize"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/oauth2/token"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/oauth2/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/api/apps/login/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/login/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))
-                  .permitAll()
-                  // Login fallback and legacy login endpoint
-                  .requestMatchers(new AntPathRequestMatcher("/login.html"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
-                  .permitAll()
-                  // Static resources
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/oidc/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/javascripts/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/css/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/flags/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/fonts/**"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher("/dhis-web-commons/security/logo_front.png"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher("/dhis-web-commons/security/logo_mobile.png"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/external-static/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/favicon.ico"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/static/**"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/staticContent/**"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/files/style/external"))
-                  .permitAll()
-                  // Account related endpoints
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/locales/ui"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/auth/forgotPassword"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/auth/passwordReset"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/auth/registration"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/invite"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/authentication/login"))
-                  .permitAll()
-                  // Needs to be here because this overrides the previous one
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/account/recovery"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/account/restore"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account"))
-                  .permitAll()
-                  ///////////////////////////////////////////////////////////////////////////////////////////////
-                  .requestMatchers(new AntPathRequestMatcher("/**"))
-                  .authenticated();
-            })
+          authorize
+              .requestMatchers(analyticsPluginResources())
+              .permitAll()
+              // Authentication endpoint
+              .requestMatchers(new AntPathRequestMatcher("/oauth2/authorize"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/oauth2/token"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/oauth2/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/api/apps/login/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/login/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))
+              .permitAll()
+              // Login fallback and legacy login endpoint
+              .requestMatchers(new AntPathRequestMatcher("/login.html"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
+              .permitAll()
+              // Static resources
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/oidc/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/javascripts/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/css/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/flags/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/fonts/**"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher("/dhis-web-commons/security/logo_front.png"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher("/dhis-web-commons/security/logo_mobile.png"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/external-static/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/favicon.ico"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/static/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/staticContent/**"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher(apiContextPath + "/**/files/style/external"))
+              .permitAll()
+              // Account related endpoints
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/locales/ui"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher(apiContextPath + "/**/auth/forgotPassword"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/passwordReset"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/registration"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/invite"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher(apiContextPath + "/**/auth/updatePassword"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher(apiContextPath + "/**/authentication/login"))
+              .permitAll()
+              // Needs to be here because this overrides the previous one
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account/recovery"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account/restore"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account"))
+              .permitAll()
+              ///////////////////////////////////////////////////////////////////////////////////////////////
+              .requestMatchers(new AntPathRequestMatcher("/**"))
+              .authenticated();
+        });
 
-        /// HTTP BASIC///////////////////////////////////////
-        .httpBasic()
-        .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
-        .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint())
-        .addObjectPostProcessor(
-            new ObjectPostProcessor<BasicAuthenticationFilter>() {
-              @Override
-              public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                // Explicitly set security context repository on http basic, is
-                // NullSecurityContextRepository by default now.
-                filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
-                return filter;
-              }
-            });
+    /// HTTP BASIC///////////////////////////////////////
+    http.httpBasic(
+        httpBasic ->
+            httpBasic
+                .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
+                .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint())
+                .addObjectPostProcessor(
+                    new ObjectPostProcessor<BasicAuthenticationFilter>() {
+                      @Override
+                      public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+                        // Explicitly set security context repository on http basic, is
+                        // NullSecurityContextRepository by default now.
+                        filter.setSecurityContextRepository(
+                            new HttpSessionSecurityContextRepository());
+                        return filter;
+                      }
+                    }));
 
     /// OIDC /////////
     http.oauth2Login(
-            oauth2 ->
-                oauth2
-                    .tokenEndpoint()
-                    .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
-                    .and()
-                    .failureUrl("/login/?oidcFailure=true")
-                    .clientRegistrationRepository(dhisOidcProviderRepository)
-                    .loginProcessingUrl("/oauth2/code/*")
-                    .authorizationEndpoint()
-                    .authorizationRequestResolver(dhisCustomAuthorizationRequestResolver))
+        oauth2 ->
+            oauth2
+                .tokenEndpoint(
+                    tokenEndpoint ->
+                        tokenEndpoint.accessTokenResponseClient(jwtPrivateCodeTokenResponseClient))
+                .failureUrl("/login/?oidcFailure=true")
+                .clientRegistrationRepository(dhisOidcProviderRepository)
+                .loginProcessingUrl("/oauth2/code/*")
+                .authorizationEndpoint(
+                    authorizationEndpoint ->
+                        authorizationEndpoint.authorizationRequestResolver(
+                            dhisCustomAuthorizationRequestResolver)));
 
-        ///////////////
-        .exceptionHandling()
-        .authenticationEntryPoint(entryPoint())
-        .and()
-        /// SESSION ////////////////
-        /// LOGOUT //////////////////
-        .logout()
-        .logoutUrl("/dhis-web-commons-security/logout.action")
-        .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
-        .deleteCookies("JSESSIONID", "SESSION_EXPIRE")
-        .and()
-        ////////////////////
-        .sessionManagement()
-        .sessionFixation()
-        .migrateSession()
-        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-        .enableSessionUrlRewriting(false)
-        .maximumSessions(
-            Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-        .expiredUrl("/dhis-web-commons-security/logout.action");
+    http.exceptionHandling(
+        exceptionHandling -> exceptionHandling.authenticationEntryPoint(entryPoint()));
+
+    /// LOGOUT //////////////////
+    http.logout(
+        logout ->
+            logout
+                .logoutUrl("/dhis-web-commons-security/logout.action")
+                .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
+                .deleteCookies("JSESSIONID", "SESSION_EXPIRE"));
+
+    /// SESSION ////////////////
+    http.sessionManagement(
+        session ->
+            session
+                .sessionFixation(sessionFixation -> sessionFixation.migrateSession())
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .enableSessionUrlRewriting(false)
+                .maximumSessions(
+                    Integer.parseInt(
+                        dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
+                .expiredUrl("/dhis-web-commons-security/logout.action"));
   }
 
   @Bean

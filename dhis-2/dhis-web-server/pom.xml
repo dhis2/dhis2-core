@@ -22,7 +22,7 @@
     <!-- This UID "65534" needs to match the UID used the DHIS2 Helm Chart, in order for the IM to have write access to the mounted volumes-->
     <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/app</jib.container.appRoot>
-    <spring-boot-maven-plugin.version>4.0.1</spring-boot-maven-plugin.version>
+    <spring-boot-maven-plugin.version>4.1.0</spring-boot-maven-plugin.version>
     <packaging.type>war</packaging.type>
   </properties>
 
@@ -268,6 +268,25 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
             <executions>
@@ -290,6 +309,25 @@
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
@@ -327,6 +365,25 @@
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>

@@ -689,6 +689,9 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       } else if (template.getDeliveryChannels().contains(DeliveryChannel.EMAIL)) {
         recipients.getEmailAddresses().addAll(recipientList);
       }
+    } else if (template.getNotificationRecipient()
+        == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT) {
+      recipients.setOrganisationUnit(event.getOrganisationUnit());
     }
     return recipients;
   }
@@ -716,7 +719,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
                           .getRecipientProgramAttribute()
                           .getUid()
                           .equals(av.getAttribute().getUid()))
-              .map(TrackedEntityAttributeValue::getPlainValue)
+              .map(TrackedEntityAttributeValue::getValue)
               .toList();
 
       if (template.getDeliveryChannels().contains(DeliveryChannel.SMS)) {

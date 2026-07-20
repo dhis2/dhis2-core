@@ -750,7 +750,7 @@ public enum ConfigurationKey {
       "localhost,127.0.0.1,[0:0:0:0:0:0:0:1],0:0:0:0:0:0:0:1",
       false),
 
-  /** Maximun size for files uploaded as fileResources. */
+  /** Maximum size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
   /** CSRF feature. Enable or disable the feature. (sensitive) */

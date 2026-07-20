@@ -81,7 +81,9 @@
     <sonar.issue.ignore.multicriteria.S1117.ruleKey>java:S1117</sonar.issue.ignore.multicriteria.S1117.ruleKey>
     <sonar.issue.ignore.multicriteria.S1117.resourceKey>**/src/test/**/*.java</sonar.issue.ignore.multicriteria.S1117.resourceKey>
 
-    <surefireArgLine>-Xmx2024m</surefireArgLine>
+    <byte-buddy.version>1.17.5</byte-buddy.version>
+    <byte-buddy-agent.version>1.17.5</byte-buddy-agent.version>
+    <surefireArgLine>-Xmx2024m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
 
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
@@ -103,20 +105,19 @@
     <spring-authorization-server.version>1.5.2</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.9</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>6.2.17</spring.version>
-    <spring-session-core.version>4.0.3</spring-session-core.version>
+    <spring.version>6.2.18</spring.version>
+    <spring-session-core.version>4.1.0</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
-    <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>2.0.12</spring-retry.version>
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
-    <cache2k-api.version>1.6.0.Final</cache2k-api.version>
+    <cache2k-api.version>2.6.1.Final</cache2k-api.version>
     <lettuce.version>6.8.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
@@ -150,11 +151,11 @@
     <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
     <jakarta.xml.bind.version>4.0.5</jakarta.xml.bind.version>
-    <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+    <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
     <xercesImpl.version>2.12.2</xercesImpl.version>
 
-    <!--- Apache jclouds -->
-    <jclouds.version>2.7.0</jclouds.version>
+    <!-- AWS SDK for Java v2 -->
+    <aws-sdk.version>2.44.4</aws-sdk.version>
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
@@ -174,8 +175,8 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.42.0</artemis-jakarta.version>
-    <netty-all.version>4.2.1.Final</netty-all.version>
-    <classgraph.version>4.8.181</classgraph.version>
+    <netty-all.version>4.2.15.Final</netty-all.version>
+    <classgraph.version>4.8.184</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.3.2</sms-compression.version>
@@ -200,28 +201,28 @@
     <commons-text.version>1.15.0</commons-text.version>
     <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
-    <commons-validator.version>1.10.0</commons-validator.version>
+    <commons-validator.version>1.10.1</commons-validator.version>
     <commons-io.version>2.21.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <commons-logging.version>1.3.5</commons-logging.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
-    <httpcomponents-core.version>5.4</httpcomponents-core.version>
+    <httpcomponents-core.version>5.4.3</httpcomponents-core.version>
     <httpcomponents-client5.version>5.5</httpcomponents-client5.version>
     <kafka.version>4.2.0</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.15.4</micrometer.version>
-    <prometheus-metrics-model.version>1.3.1</prometheus-metrics-model.version>
+    <micrometer.version>1.16.5</micrometer.version>
+    <prometheus-metrics-model.version>1.4.3</prometheus-metrics-model.version>
 
     <!-- Logging -->
-    <log4j.version>2.25.4</log4j.version>
+    <log4j.version>2.26.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
     <junit.version>5.12.2</junit.version>
-    <mockito.version>5.2.0</mockito.version>
+    <mockito.version>5.23.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
     <testcontainers.version>1.21.4</testcontainers.version>
@@ -237,7 +238,7 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
-    <maven-exec-plugin.version>3.5.1</maven-exec-plugin.version>
+    <maven-exec-plugin.version>3.6.3</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
@@ -254,7 +255,7 @@
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.39</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
-    <gson.version>2.13.2</gson.version>
+    <gson.version>2.14.0</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
   </properties>
 
@@ -627,13 +628,6 @@
         <groupId>com.nimbusds</groupId>
         <artifactId>nimbus-jose-jwt</artifactId>
         <version>${nimbus.jose.jwt.version}</version>
-      </dependency>
-
-      <!-- Spring Mobile -->
-      <dependency>
-        <groupId>org.springframework.mobile</groupId>
-        <artifactId>spring-mobile-device</artifactId>
-        <version>${spring-mobile-device.version}</version>
       </dependency>
 
       <!-- Spring Session and Redis -->
@@ -1080,36 +1074,13 @@
         <version>${gson.version}</version>
       </dependency>
 
-      <!--- Apache jclouds -->
+      <!-- AWS SDK for Java v2 -->
       <dependency>
-        <groupId>org.apache.jclouds</groupId>
-        <artifactId>jclouds-core</artifactId>
-        <version>${jclouds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.jclouds</groupId>
-        <artifactId>jclouds-blobstore</artifactId>
-        <version>${jclouds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.jclouds.api</groupId>
-        <artifactId>filesystem</artifactId>
-        <version>${jclouds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.jclouds.api</groupId>
-        <artifactId>s3</artifactId>
-        <version>${jclouds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.jclouds.provider</groupId>
-        <artifactId>aws-s3</artifactId>
-        <version>${jclouds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.jclouds.driver</groupId>
-        <artifactId>jclouds-slf4j</artifactId>
-        <version>${jclouds.version}</version>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${aws-sdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
       <!-- Reporting -->
@@ -1407,9 +1378,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>javax.annotation</groupId>
-        <artifactId>javax.annotation-api</artifactId>
-        <version>${javax.annotation-api.version}</version>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${jakarta.annotation-api.version}</version>
       </dependency>
 
       <!-- Apache Artemis -->
@@ -1470,6 +1441,17 @@
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
         <version>${netty-all.version}</version>
+      </dependency>
+      <!-- Align every io.netty:* artifact (incl. modules Artemis pulls transitively,
+           e.g. netty-codec-haproxy / netty-transport-classes-*) to the same version as
+           netty-all. Without this, the netty-all uber jar mixes with older individual
+           netty modules on the classpath, causing AbstractMethodError at runtime. -->
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>${netty-all.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>io.github.classgraph</groupId>
@@ -1620,17 +1602,18 @@
         <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-core</artifactId>
-        <version>${mockito.version}</version>
-        <scope>test</scope>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>${byte-buddy.version}</version>
       </dependency>
-      <!-- Depend only on mockito-inline (includes mockito-core already)
-        if you must use mockStatic (can you rewrite your code, so it's not necessary
-        ;)), otherwise depend on mockito-core only -->
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy-agent</artifactId>
+        <version>${byte-buddy-agent.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-inline</artifactId>
+        <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
@@ -1872,7 +1855,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>5.5.0.6356</version>
+          <version>5.7.0.6970</version>
         </plugin>
         <plugin>
           <groupId>org.cyclonedx</groupId>
@@ -1937,6 +1920,7 @@
           <version>${maven-surefire-plugin.version}</version>
           <configuration>
             <excludedGroups>benchmark</excludedGroups>
+            <argLine>@{argLine} ${surefireArgLine}</argLine>
           </configuration>
         </plugin>
         <plugin>
@@ -2102,11 +2086,9 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports-fonts</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-layout-template-json</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>jakarta.servlet:jakarta.servlet-api</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-jakarta9</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.hibernate:hibernate-micrometer</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-spring-legacy</ignoredUsedUndeclaredDependency>
@@ -2122,8 +2104,6 @@ jasperreports.version=${jasperreports.version}
               <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
               <!-- Removing makes the startup fail -->
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUnusedDeclaredDependency>
@@ -2162,6 +2142,15 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>jakarta.jms:jakarta.jms-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-server</ignoredUsedUndeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
+              <!-- AWS SDK v2 splits its API across several modules (auth/regions/sdk-core/aws-core/
+                   http-client-spi/utils); we declare the service module (s3) only and treat the SDK
+                   as one BOM-managed unit. -->
+              <ignoredUsedUndeclaredDependency>software.amazon.awssdk:sdk-core</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>software.amazon.awssdk:aws-core</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>software.amazon.awssdk:auth</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>software.amazon.awssdk:regions</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>software.amazon.awssdk:http-client-spi</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>software.amazon.awssdk:utils</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->

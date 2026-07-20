@@ -8,7 +8,7 @@
 
     <id name="id" column="eventid">
       <generator class="sequence">
-        <param name="sequence_name">programstageinstance_sequence</param>
+        <param name="sequence_name">singleevent_sequence</param>
       </generator>
     </id>
 
@@ -35,8 +35,6 @@
       column="attributeoptioncomboid" not-null="true" foreign-key="fk_singleevent_attributeoptioncomboid" />
 
     <property name="deleted" column="deleted" />
-
-    <property name="storedBy" />
 
     <property name="occurredDate" column="occurreddate" type="timestamp" />
 

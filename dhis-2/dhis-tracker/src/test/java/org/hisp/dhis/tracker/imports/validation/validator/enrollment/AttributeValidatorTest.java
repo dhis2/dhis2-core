@@ -47,8 +47,6 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.encryption.EncryptionStatus;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -91,8 +89,6 @@ class AttributeValidatorTest {
   @Mock private Program program;
 
   @Mock private TrackerPreheat preheat;
-
-  @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
   private TrackerBundle bundle;
 
@@ -146,9 +142,6 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute1);
     when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_P)))
         .thenReturn(trackedEntityAttributeP);
-
-    when(dhisConfigurationProvider.getEncryptionStatus())
-        .thenReturn(EncryptionStatus.MISSING_ENCRYPTION_PASSWORD);
 
     UID uid = UID.generate();
     when(enrollment.getUID()).thenReturn(uid);

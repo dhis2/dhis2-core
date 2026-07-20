@@ -128,6 +128,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-hibernate</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-jdbc</artifactId>
       <scope>compile</scope>
     </dependency>
@@ -349,6 +354,11 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-oauth2-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-core</artifactId>
       <scope>test</scope>
     </dependency>
@@ -392,7 +402,21 @@
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-jdbc</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-system</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:json-tree</ignoredNonTestScopedDependency>
+            <!-- AWS SDK modules pulled transitively via dhis-service-core; used directly only in
+                 the S3 blob-store reproduction/contract integration tests. -->
+            <ignoredNonTestScopedDependency>software.amazon.awssdk:s3</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>software.amazon.awssdk:sdk-core</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>software.amazon.awssdk:aws-core</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>software.amazon.awssdk:auth</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>software.amazon.awssdk:regions</ignoredNonTestScopedDependency>
           </ignoredNonTestScopedDependencies>
+          <ignoredUsedUndeclaredDependencies>
+            <ignoredUsedUndeclaredDependency>software.amazon.awssdk:s3</ignoredUsedUndeclaredDependency>
+            <ignoredUsedUndeclaredDependency>software.amazon.awssdk:sdk-core</ignoredUsedUndeclaredDependency>
+            <ignoredUsedUndeclaredDependency>software.amazon.awssdk:aws-core</ignoredUsedUndeclaredDependency>
+            <ignoredUsedUndeclaredDependency>software.amazon.awssdk:auth</ignoredUsedUndeclaredDependency>
+            <ignoredUsedUndeclaredDependency>software.amazon.awssdk:regions</ignoredUsedUndeclaredDependency>
+          </ignoredUsedUndeclaredDependencies>
           <!-- If code from the following modules is accessed in tests they'll have to move up to ignoredNonTestScopedDependency -->
           <ignoredUnusedDeclaredDependencies>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>

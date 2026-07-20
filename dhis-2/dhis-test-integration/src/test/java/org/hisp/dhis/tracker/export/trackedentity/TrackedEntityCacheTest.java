@@ -206,6 +206,8 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
             TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build()));
 
+    clearSession();
+
     // The cache is empty again, but this time, the owner should be found in the DB, so the user has
     // access to the te-program combination
     assertTrue(

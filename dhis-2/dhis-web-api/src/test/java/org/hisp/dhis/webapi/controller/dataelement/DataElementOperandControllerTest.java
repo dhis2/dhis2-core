@@ -33,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.staticJsonMapper;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -44,7 +45,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.google.common.collect.Lists;
 import com.jayway.jsonpath.JsonPath;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -123,7 +123,7 @@ class DataElementOperandControllerTest {
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     injectSecurityContextNoSettings(new SystemUser());
 
     QueryService _queryService =
@@ -209,7 +209,7 @@ class DataElementOperandControllerTest {
 
     final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
     assertThat(fieldFilterParams.getObjects(), hasSize(pageSize));
-    assertThat(fieldFilterParams.getFields(), Matchers.is(Lists.newArrayList("*")));
+    assertEquals("*", fieldFilterParams.getFields());
 
     // Make sure that the first and last element in the page matches with
     // the
@@ -270,7 +270,7 @@ class DataElementOperandControllerTest {
 
     final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
     assertThat(fieldFilterParams.getObjects(), hasSize(pageSize));
-    assertThat(fieldFilterParams.getFields(), Matchers.is(Lists.newArrayList("*")));
+    assertEquals("*", fieldFilterParams.getFields());
 
     // Make sure that the first and last element in the page matches with
     // the

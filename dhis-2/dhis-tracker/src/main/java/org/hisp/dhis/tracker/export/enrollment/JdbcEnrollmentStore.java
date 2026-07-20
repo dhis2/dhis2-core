@@ -168,7 +168,7 @@ class JdbcEnrollmentStore {
         """
             select e.enrollmentid, e.uid, e.created, e.createdatclient, e.createdbyuserinfo,
             e.lastupdated, e.lastupdatedatclient, e.lastupdatedbyuserinfo, e.occurreddate,
-            e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.storedby, e.deleted, e.status,
+            e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.deleted, e.status,
             ST_AsBinary(e.geometry) as geometry,
         """);
 
@@ -292,7 +292,7 @@ class JdbcEnrollmentStore {
         """
       left join lateral (
         select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
-          'creator', n.creator, 'created', n.created, 'updatedByUid', u.uid,
+          'created', n.created, 'updatedByUid', u.uid,
           'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
           'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
           from enrollment_notes en
@@ -309,9 +309,9 @@ class JdbcEnrollmentStore {
           """
           left join lateral (
               select json_agg(json_build_object('uid', tea.uid, 'name', tea.name,
-              'code', tea.code, 'value', teav.value, 'encryptedValue', teav.encryptedvalue,
-              'valueType', tea.valuetype, 'confidential', tea.confidential, 'created', teav.created,
-              'lastUpdated', teav.lastupdated, 'storedBy', teav.storedby)) as jsonattributes
+              'code', tea.code, 'value', teav.value,
+              'valueType', tea.valuetype, 'created', teav.created,
+              'lastUpdated', teav.lastupdated, 'updatedBy', teav.updatedby)) as jsonattributes
               from trackedentityattributevalue teav
               join trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
               where teav.trackedentityid = e.trackedentityid
@@ -629,7 +629,6 @@ class JdbcEnrollmentStore {
       enrollment.setCompletedDate(formatDate(rs.getTimestamp("completeddate")));
       enrollment.setFollowup(rs.getBoolean("followup"));
       enrollment.setCompletedBy(rs.getString("completedby"));
-      enrollment.setStoredBy(rs.getString("storedby"));
       enrollment.setDeleted(rs.getBoolean("deleted"));
       enrollment.setStatus(EnrollmentStatus.valueOf(rs.getString("status")));
       enrollment.setGeometry(Geometries.fromWkb(rs.getBytes("geometry")));
@@ -725,7 +724,6 @@ class JdbcEnrollmentStore {
         Note note = new Note();
         note.setUid(jdbcNote.getUid());
         note.setNoteText(jdbcNote.getText());
-        note.setCreator(jdbcNote.getCreator());
         note.setCreated(DateUtils.safeParseDate(jdbcNote.getCreated()));
         User user = new User();
         user.setUid(jdbcNote.getUpdatedByUid());
@@ -762,13 +760,11 @@ class JdbcEnrollmentStore {
         tea.setValueType(ValueType.valueOf(attribute.getValueType()));
         tea.setName(attribute.getName());
         tea.setCode(attribute.getCode());
-        tea.setConfidential(attribute.isConfidential());
         teav.setAttribute(tea);
-        teav.setStoredBy(attribute.getStoredBy());
+        teav.setUpdatedBy(attribute.getUpdatedBy());
         teav.setCreated(DateUtils.safeParseDate(attribute.getCreated()));
         teav.setLastUpdated(DateUtils.safeParseDate(attribute.getLastUpdated()));
-        teav.setEncryptedValue(attribute.getEncryptedValue());
-        teav.setPlainValue(attribute.getValue());
+        teav.setValue(attribute.getValue());
         teav.setTrackedEntity(trackedEntity);
 
         trackedEntityAttributeValues.add(teav);
@@ -791,7 +787,6 @@ class JdbcEnrollmentStore {
   private static class JdbcNote {
     private String uid;
     private String text;
-    private String creator;
     private String created;
     private String updatedByUid;
     private String updatedByUsername;
@@ -807,11 +802,9 @@ class JdbcEnrollmentStore {
     private String name;
     private String code;
     private String value;
-    private String encryptedValue;
     private String valueType;
-    private boolean confidential;
     private String created;
     private String lastUpdated;
-    private String storedBy;
+    private String updatedBy;
   }
 }

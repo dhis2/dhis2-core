@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.event.data;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
@@ -99,9 +98,9 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
@@ -332,12 +331,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public long getEnrollmentCount(EventQueryParams params) {
+    Optional<ProgramIndicatorCteSql> programIndicatorCte = getProgramIndicatorCteSql(params);
     String sql = "select count(pi) ";
 
     sql += getFromClause(params);
+    sql += programIndicatorCte.map(ProgramIndicatorCteSql::joinClause).orElse("");
 
     sql += getWhereClause(params);
     sql += addFiltersToWhereClause(params);
+
+    if (programIndicatorCte.isPresent()) {
+      sql = programIndicatorCte.get().withClause() + sql;
+    }
 
     long count = 0;
 
@@ -509,24 +514,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     if (params.hasProgramStage()) {
       sql += "and ps = '" + params.getProgramStage().getUid() + "' ";
-    }
-
-    // ---------------------------------------------------------------------
-    // Filter expression
-    // ---------------------------------------------------------------------
-
-    if (params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter()) {
-      String filter =
-          programIndicatorService.getAnalyticsSqlAllowingNulls(
-              params.getProgramIndicator().getFilter(),
-              BOOLEAN,
-              params.getProgramIndicator(),
-              params.getEarliestStartDate(),
-              params.getLatestEndDate());
-
-      String sqlFilter = ExpressionUtils.asSql(filter);
-
-      sql += "and (" + sqlFilter + ") ";
     }
 
     // ---------------------------------------------------------------------
@@ -748,7 +735,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     removeLegacyPeriodDimensionColumns(columns, params);
 
     SelectBuilder sb = new SelectBuilder();
-    sb.addColumn(ENROLLMENT_COL, "ax");
+    sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
       sb.addColumn(SqlColumnParser.removeTableAlias(column));
     }
@@ -945,12 +932,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       return;
     }
 
-    String eventTableName = ANALYTICS_EVENT + params.getProgram().getUid();
+    String eventTableName = AnalyticsTableNames.eventTable(params.getProgram());
     String eventEnrollmentFilterSql =
         """
         (
             select
-                ev.enrollment,
+                ev.enrollment as enrollment,
                 max(ev.%s) as %s
             from %s ev
             where ev.eventstatus != 'SCHEDULE'
@@ -1216,7 +1203,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-        EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
