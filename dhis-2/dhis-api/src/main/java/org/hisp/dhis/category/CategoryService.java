@@ -413,6 +413,18 @@ public interface CategoryService {
   List<CategoryOptionCombo> getAllCategoryOptionCombos();
 
   /**
+   * Returns the {@link CategoryOptionCombo}s of the given {@link CategoryCombo}s with their
+   * category options eagerly fetched in a single query. Used to prime the session before
+   * serialising category option combos, avoiding the per-combo N+1 select on the {@code
+   * categoryoptioncombos_categoryoptions} join table.
+   *
+   * @param categoryCombos the category combos whose option combos to load.
+   * @return the option combos with their category options initialised.
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosWithCategoryOptions(
+      Collection<CategoryCombo> categoryCombos);
+
+  /**
    * Generates and persists a default Category, CategoryOption, CategoryCombo and
    * CategoryOptionCombo.
    */

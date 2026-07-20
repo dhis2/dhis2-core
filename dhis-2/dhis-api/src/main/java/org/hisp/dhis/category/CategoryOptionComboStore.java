@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.category;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -38,6 +39,18 @@ import org.hisp.dhis.dataelement.DataElement;
 public interface CategoryOptionComboStore extends IdentifiableObjectStore<CategoryOptionCombo> {
   CategoryOptionCombo getCategoryOptionCombo(
       CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions);
+
+  /**
+   * Returns the {@link CategoryOptionCombo}s of the given {@link CategoryCombo}s with their {@link
+   * CategoryOptionCombo#getCategoryOptions()} eagerly fetched in a single query. Used to prime the
+   * session before serialising category option combos, avoiding the per-combo N+1 select on the
+   * {@code categoryoptioncombos_categoryoptions} join table.
+   *
+   * @param categoryCombos the category combos whose option combos to load.
+   * @return the option combos with their category options initialised.
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosWithCategoryOptions(
+      Collection<CategoryCombo> categoryCombos);
 
   void updateNames();
 
