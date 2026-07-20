@@ -75,6 +75,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest {
           "jobConfiguration", // API requires configurable=true
           "messageConversation", // needs recipients (not a required field)
           "programRuleAction", // needs DataElement and TrackedEntityAttribute
+          "programRuleVariable", // needs DataElement and TrackedEntityAttribute
           "validationRule", // generator insufficient (embedded fields)
           "programStage", // body request does not include mandatory field programId
           "programStageWorkingList", // same reason as programStage
@@ -116,7 +117,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest {
         assertStatus(HttpStatus.OK, DELETE(endpoint + "/" + uid));
       }
     }
-    assertTrue(testedSchemas >= 57, "make sure we actually test schemas");
+    assertTrue(testedSchemas >= 56, "make sure we actually test schemas");
   }
 
   /** Uses the created instance to test the {@code /gist} endpoint list. */

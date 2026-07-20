@@ -46,8 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.schema.descriptors.MapViewSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -64,8 +63,8 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = MapViewSchemaDescriptor.API_ENDPOINT)
-public class MapViewController extends AbstractCrudController<MapView> {
+@RequestMapping("/mapViews")
+public class MapViewController extends AbstractFullReadOnlyController<MapView> {
   @Autowired private MappingService mappingService;
 
   @Autowired private OrganisationUnitService organisationUnitService;

@@ -39,7 +39,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
@@ -49,11 +55,13 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -155,5 +163,43 @@ class DefaultEventAnalyticsServiceTest {
         .withProgram(mockProgram)
         .withOutputIdScheme(scheme)
         .build();
+  }
+
+  @Test
+  void shouldNotNpeWhenItemsMetadataOmitsRowDimension() throws Exception {
+    String missingDimensionUid = "deUidAAAAA";
+
+    Grid grid = new ListGrid();
+    grid.getMetaData().put(AnalyticsMetaDataKey.ITEMS.getKey(), new HashMap<String, Object>());
+
+    EventQueryParams params = new EventQueryParams.Builder().build();
+
+    invokeGenerateOutputGrid(grid, params, List.of(), List.of(), List.of(missingDimensionUid));
+  }
+
+  private Grid invokeGenerateOutputGrid(
+      Grid grid,
+      EventQueryParams params,
+      List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations,
+      List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations,
+      List<String> rowDimensions)
+      throws Exception {
+    Method method =
+        DefaultEventAnalyticsService.class.getDeclaredMethod(
+            "generateOutputGrid",
+            Grid.class,
+            EventQueryParams.class,
+            List.class,
+            List.class,
+            List.class);
+    method.setAccessible(true);
+    return (Grid)
+        method.invoke(
+            defaultEventAnalyticsService,
+            grid,
+            params,
+            rowPermutations,
+            columnPermutations,
+            rowDimensions);
   }
 }

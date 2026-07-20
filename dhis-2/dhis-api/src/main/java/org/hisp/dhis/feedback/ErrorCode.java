@@ -262,6 +262,13 @@ public enum ErrorCode {
   E4053("Program stage `{0}` must reference a program"),
   E4057("The Program Rule name {0} already exist in Program {1}"),
 
+  E4058("Program Rule `{0}` with Action Type `{1}` has irrelevant reference objects"),
+  E4059("ProgramRuleVariable `{0}` with source type `{1}` requires a data element"),
+  E4089("ProgramRuleVariable `{0}` with source type `{1}` requires a tracked entity attribute"),
+  E4090("ProgramRuleVariable `{0}` is missing a source type"),
+  E4091("ProgramRuleVariable `{0}` with source type `{1}` requires a program stage"),
+  E4092("ProgramRuleVariable `{0}` with source type `{1}` requires a value type"),
+
   /* Metadata Validation (continued) */
   E4060("Object could not be deleted: {0}"),
   E4061("DashboardItem `{0}` object reference `{1}` with id `{2}` not found or not accessible"),

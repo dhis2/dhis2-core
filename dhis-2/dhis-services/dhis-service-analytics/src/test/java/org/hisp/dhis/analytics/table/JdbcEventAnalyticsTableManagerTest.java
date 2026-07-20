@@ -31,8 +31,10 @@ import static java.time.LocalDate.now;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.DhisConvenienceTest.createCategory;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
@@ -1111,6 +1113,42 @@ class JdbcEventAnalyticsTableManagerTest {
 
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
+  }
+
+  @Test
+  @DisplayName("getRegularAnalyticsTables excludes programs listed in skipPrograms")
+  void getRegularAnalyticsTablesExcludesSkippedPrograms() {
+    Program prA = createProgram('A');
+    Program prB = createProgram('B');
+    Program prC = createProgram('C');
+    Program prD = createProgram('D');
+
+    Set<String> skipPrograms = new HashSet<>();
+    skipPrograms.add(prC.getUid());
+    skipPrograms.add(prD.getUid());
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears(2)
+            .withStartTime(START_TIME)
+            .withToday(today)
+            .withSkipPrograms(skipPrograms)
+            .build();
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(prA, prB, prC, prD));
+    when(periodDataProvider.getAvailableYears(DATABASE))
+        .thenReturn(List.of(2018, 2019, now().getYear()));
+    when(jdbcTemplate.queryForList(Mockito.anyString(), Mockito.eq(Integer.class)))
+        .thenReturn(List.of(2018, 2019));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(2));
+
+    List<String> programUids =
+        tables.stream().map(t -> t.getProgram().getUid()).collect(Collectors.toList());
+    assertThat(programUids, not(hasItem(prC.getUid())));
+    assertThat(programUids, not(hasItem(prD.getUid())));
   }
 
   private String toAlias(String template, String uid) {
