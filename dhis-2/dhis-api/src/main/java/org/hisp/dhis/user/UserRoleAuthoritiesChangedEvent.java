@@ -27,47 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.user;
 
-import static org.hisp.dhis.test.TestBase.getDate;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import org.hisp.dhis.common.UID;
 
-import java.util.Date;
-import org.hisp.dhis.common.HashUtils;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.junit.jupiter.api.Test;
-
-class ContextUtilsTest {
-  @Test
-  void testGetEtag() {
-    Date date = getDate(2022, 03, 10);
-    User user = new User();
-    user.setUid("kYt56BgfED2");
-
-    // Expected hash is timezone-dependent via TestBase#getDate (Joda LocalDateTime -> Date).
-    // Assert against the same formula ContextUtils uses so the test is TZ-stable.
-    String expected =
-        HashUtils.hashMD5(String.format("%d-%s", date.getTime(), user.getUid()).getBytes());
-    assertEquals(expected, ContextUtils.getEtag(date, UserDetails.fromUser(user)));
-  }
-
-  @Test
-  void testGetEtagDistinguishesSubSecondChanges() {
-    User user = new User();
-    user.setUid("kYt56BgfED2");
-    UserDetails userDetails = UserDetails.fromUser(user);
-
-    Date date = getDate(2022, 03, 10);
-    Date oneMilliLater = new Date(date.getTime() + 1);
-
-    assertNotEquals(
-        ContextUtils.getEtag(date, userDetails), ContextUtils.getEtag(oneMilliLater, userDetails));
-  }
-
-  @Test
-  void testQuote() {
-    assertEquals("\"2022-03-10T00:00:00\"", ContextUtils.quote("2022-03-10T00:00:00"));
-  }
-}
+/**
+ * Event published after the authorities of a {@link UserRole} have changed, so that active sessions
+ * of users with that role can be invalidated asynchronously, outside the updating transaction and
+ * off the request thread.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public record UserRoleAuthoritiesChangedEvent(UID userRoleUid) {}

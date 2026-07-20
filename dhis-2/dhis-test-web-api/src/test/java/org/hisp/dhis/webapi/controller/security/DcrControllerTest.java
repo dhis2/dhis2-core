@@ -275,7 +275,6 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
                    "response_types": ["code"],
                    "token_endpoint_auth_method": "private_key_jwt",
                    "token_endpoint_auth_signing_alg": "RS256",
-                   "scope": "openid profile username",
                    "jwks_uri": "https://dhis2.org/jwks.json",
                    "jwks": %s
                  }

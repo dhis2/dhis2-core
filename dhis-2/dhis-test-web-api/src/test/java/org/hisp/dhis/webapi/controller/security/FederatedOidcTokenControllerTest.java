@@ -58,6 +58,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.FactorGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -71,6 +72,7 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -122,8 +124,12 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
             .build();
     DhisOidcUser oidcPrincipal =
         new DhisOidcUser(userDetails, claims, IdTokenClaimNames.SUB, idToken);
+    java.util.List<org.springframework.security.core.GrantedAuthority> authorities =
+        new java.util.ArrayList<>(oidcPrincipal.getAuthorities());
+    authorities.add(
+        FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.AUTHORIZATION_CODE_AUTHORITY));
     OAuth2AuthenticationToken oidcAuthentication =
-        new OAuth2AuthenticationToken(oidcPrincipal, oidcPrincipal.getAuthorities(), "google");
+        new OAuth2AuthenticationToken(oidcPrincipal, authorities, "google");
 
     // And: a confidential authorization_code client (the native app's server-side equivalent).
     String clientId = "federated-test-client";
@@ -140,6 +146,7 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
             .scope("profile")
             .scope("username")
             .scope("email")
+            .clientSettings(ClientSettings.builder().requireProofKey(false).build())
             .build();
     oAuth2ClientService.save(client);
 
