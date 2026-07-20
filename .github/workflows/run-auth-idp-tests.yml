@@ -2,23 +2,14 @@ name: Run auth IdP tests
 
 # External-IdP authentication e2e suite (Keycloak OIDC, LDAP): runs the dhis-test-e2e
 # "auth-idp" tagged tests against the docker-compose.e2e-auth.yml stack.
-# Triggered by PRs touching security-relevant paths, nightly on master, and manually.
+# Runs on every PR (reusing the dhis2/core-pr image published by "Run api tests"
+# when possible), nightly on master, and manually.
 
 env:
   MAVEN_OPTS: -Xmx1024m -Xms1024m -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
 
 on:
   pull_request:
-    paths:
-      - "dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/**"
-      - "dhis-2/dhis-api/src/main/java/org/hisp/dhis/security/**"
-      - "dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/security/**"
-      - "dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/user/**"
-      - "dhis-2/dhis-web-api/src/main/java/org/hisp/dhis/webapi/security/**"
-      - "dhis-2/dhis-web-api/src/main/java/org/hisp/dhis/webapi/mvc/interceptor/**"
-      - "dhis-2/dhis-web-api/src/main/java/org/hisp/dhis/webapi/controller/security/**"
-      - "dhis-2/dhis-test-e2e/**"
-      - ".github/workflows/run-auth-idp-tests.yml"
   schedule:
     # Nightly on the default branch
     - cron: "30 3 * * *"
@@ -32,17 +23,42 @@ jobs:
   auth-idp-test:
     runs-on: ubuntu-latest
     env:
-      CORE_IMAGE_NAME: "dhis2/core-dev:local"
+      # Mirrors DOCKERHUB_PUSH in run-api-tests.yml: for same-repo PRs the api tests
+      # workflow pushes dhis2/core-pr:<number> to Docker Hub, so we pull it instead of
+      # rebuilding. Fork/dependabot PRs, nightly and dispatch runs build the image here.
+      REUSE_PR_IMAGE: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      CORE_IMAGE_NAME: ${{ (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]') && format('dhis2/core-pr:{0}', github.event.number) || 'dhis2/core-dev:local' }}
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK 17
+        if: env.REUSE_PR_IMAGE != 'true'
         uses: actions/setup-java@v5
         with:
           java-version: 17
           distribution: temurin
           cache: maven
 
+      - name: Wait for PR image from api tests build
+        if: env.REUSE_PR_IMAGE == 'true'
+        run: |
+          expected="${{ github.event.pull_request.head.sha }}"
+          echo "Waiting for $CORE_IMAGE_NAME with revision $expected"
+          for i in $(seq 1 60); do
+            if docker pull --quiet "$CORE_IMAGE_NAME" > /dev/null 2>&1; then
+              revision=$(docker inspect --format '{{ index .Config.Labels "DHIS2_BUILD_REVISION" }}' "$CORE_IMAGE_NAME")
+              if [ "$revision" = "$expected" ]; then
+                echo "Found $CORE_IMAGE_NAME for revision $revision"
+                exit 0
+              fi
+              echo "Image revision '$revision' is stale, retrying..."
+            fi
+            sleep 20
+          done
+          echo "Timed out waiting for $CORE_IMAGE_NAME with revision $expected (did the api tests build fail?)" >&2
+          exit 1
+
       - name: Build container image
+        if: env.REUSE_PR_IMAGE != 'true'
         run: |
           mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
             -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
