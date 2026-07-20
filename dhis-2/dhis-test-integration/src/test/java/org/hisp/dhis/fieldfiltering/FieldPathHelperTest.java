@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -58,9 +59,9 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
 
   @Test
   void testApplySimplePreset() {
-    Map<String, FieldPath> fieldMapPath = new HashMap<>();
+    Map<PropertyPath, FieldPath> fieldMapPath = new HashMap<>();
 
-    FieldPath owner = new FieldPath(FieldPreset.SIMPLE.getName(), List.of(), false, true);
+    FieldPath owner = FieldPath.of(":simple");
 
     helper.applyPresets(List.of(owner), fieldMapPath, DataElement.class);
 
@@ -72,18 +73,18 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     assertPropertyExists("aggregationType", fieldMapPath);
     assertPropertyExists("domainType", fieldMapPath);
 
-    assertNull(fieldMapPath.get("access"));
-    assertNull(fieldMapPath.get("dataSetElements"));
-    assertNull(fieldMapPath.get("optionSet"));
-    assertNull(fieldMapPath.get("categoryCombo"));
-    assertNull(fieldMapPath.get("translations"));
+    assertNull(fieldMapPath.get(PropertyPath.of("access")));
+    assertNull(fieldMapPath.get(PropertyPath.of("dataSetElements")));
+    assertNull(fieldMapPath.get(PropertyPath.of("optionSet")));
+    assertNull(fieldMapPath.get(PropertyPath.of("categoryCombo")));
+    assertNull(fieldMapPath.get(PropertyPath.of("translations")));
   }
 
   @Test
   void testApplyIdentifiablePreset() {
-    Map<String, FieldPath> fieldMapPath = new HashMap<>();
+    Map<PropertyPath, FieldPath> fieldMapPath = new HashMap<>();
 
-    FieldPath owner = new FieldPath(FieldPreset.IDENTIFIABLE.getName(), List.of(), false, true);
+    FieldPath owner = FieldPath.of(":identifiable");
 
     helper.applyPresets(List.of(owner), fieldMapPath, DataElement.class);
 
@@ -94,22 +95,22 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     assertPropertyExists("lastUpdated", fieldMapPath);
     assertPropertyExists("lastUpdatedBy", fieldMapPath);
 
-    assertNull(fieldMapPath.get("shortName"));
-    assertNull(fieldMapPath.get("description"));
+    assertNull(fieldMapPath.get(PropertyPath.of("shortName")));
+    assertNull(fieldMapPath.get(PropertyPath.of("description")));
   }
 
   @Test
   @DisplayName("Excluding skip sharing fields on the User class does not remove incorrect fields")
   void skipSharingFieldsExcludeCorrectFieldsTest() {
     // given skipSharing exclusions
-    FieldPath user = new FieldPath("user", List.of(), true, false);
-    FieldPath publicAccess = new FieldPath("publicAccess", List.of(), true, false);
-    FieldPath userGroupAccesses = new FieldPath("userGroupAccesses", List.of(), true, false);
-    FieldPath userAccesses = new FieldPath("userAccesses", List.of(), true, false);
-    FieldPath sharing = new FieldPath("sharing", List.of(), true, false);
+    FieldPath user = FieldPath.of("!user");
+    FieldPath publicAccess = FieldPath.of("!publicAccess");
+    FieldPath userGroupAccesses = FieldPath.of("!userGroupAccesses");
+    FieldPath userAccesses = FieldPath.of("!userAccesses");
+    FieldPath sharing = FieldPath.of("!sharing");
 
     // and default preset owner
-    FieldPath owner = new FieldPath("owner", List.of(), false, true);
+    FieldPath owner = FieldPath.of(":owner");
 
     // when applying skipSharing exclusions for the User class
     List<FieldPath> result =
@@ -122,7 +123,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     assertEquals(58, result.size()); // all user properties
     assertTrue(
         result.stream()
-            .map(FieldPath::getName)
+            .map(FieldPath::getPropertyName)
             .toList()
             .containsAll(List.of("username", "userRoles")));
   }
@@ -131,8 +132,8 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
   @DisplayName("nameable field filter for DataElement returns expected fields")
   void nameableFieldFilterTest() {
     // given
-    FieldPath fieldPath = new FieldPath(FieldPreset.NAMEABLE.getName(), List.of());
-    Map<String, FieldPath> fieldPathMap = new HashMap<>();
+    FieldPath fieldPath = FieldPath.of(":nameable");
+    Map<PropertyPath, FieldPath> fieldPathMap = new HashMap<>();
 
     // when
     helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
@@ -142,15 +143,15 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     assertTrue(
         FieldPreset.NAMEABLE
             .getFields()
-            .containsAll(fieldPathMap.values().stream().map(FieldPath::getName).toList()));
+            .containsAll(fieldPathMap.values().stream().map(FieldPath::getPropertyName).toList()));
   }
 
   @Test
   @DisplayName("persisted field filter for DataElement returns fields")
   void persistedFieldFilterTest() {
     // given
-    FieldPath fieldPath = new FieldPath(FieldPreset.PERSISTED.getName(), List.of());
-    Map<String, FieldPath> fieldPathMap = new HashMap<>();
+    FieldPath fieldPath = FieldPath.of(":persisted");
+    Map<PropertyPath, FieldPath> fieldPathMap = new HashMap<>();
 
     // when
     helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
@@ -159,8 +160,10 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     assertFalse(fieldPathMap.isEmpty());
   }
 
-  private void assertPropertyExists(String propertyName, Map<String, FieldPath> fieldMapPath) {
-    assertNotNull(fieldMapPath.get(propertyName));
-    assertEquals(propertyName, fieldMapPath.get(propertyName).getName());
+  private void assertPropertyExists(
+      String propertyName, Map<PropertyPath, FieldPath> fieldMapPath) {
+    PropertyPath path = PropertyPath.of(propertyName);
+    assertNotNull(fieldMapPath.get(path));
+    assertEquals(propertyName, fieldMapPath.get(path).getPropertyName());
   }
 }

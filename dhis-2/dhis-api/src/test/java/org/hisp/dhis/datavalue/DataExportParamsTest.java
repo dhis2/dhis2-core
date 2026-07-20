@@ -27,50 +27,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.vote;
+package org.hisp.dhis.datavalue;
 
-import java.util.Collection;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * RoleVoter which requires all org.springframework.security.ConfigAttributes to be granted
- * authorities, given that the ConfigAttributes have the specified prefix ("ROLE_" by default). If
- * there are no supported ConfigAttributes it abstains from voting.
- *
- * @see org.springframework.security.access.vote.RoleVoter
- * @author Torgeir Lorange Ostby
- */
-public class AllRequiredRoleVoter extends RoleVoter {
-  @Override
-  public int vote(
-      Authentication authentication, Object object, Collection<ConfigAttribute> attributes) {
-    int supported = 0;
+import java.time.Duration;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
 
-    for (ConfigAttribute attribute : attributes) {
-      if (this.supports(attribute)) {
-        ++supported;
-        boolean found = false;
+class DataExportParamsTest {
 
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-          if (attribute.getAttribute().equals(authority.getAuthority())) {
-            found = true;
-            break;
-          }
-        }
+  @Test
+  void testHasPeriodFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
 
-        if (!found) {
-          return ACCESS_DENIED;
-        }
-      }
-    }
+    assertFalse(params.hasPeriodFilters());
+  }
 
-    if (supported > 0) {
-      return ACCESS_GRANTED;
-    }
+  @Test
+  void testHasPeriodFilters_LastUpdatedAloneIsNotAPeriodFilter() {
+    // lastUpdated/lastUpdatedDuration do not filter by the period table, so they must not
+    // trigger the pe_ids CTE/JOIN the query builder erases based on hasPeriodFilters().
+    DataExportParams params =
+        DataExportParams.builder()
+            .lastUpdated(new Date())
+            .lastUpdatedDuration(Duration.ofDays(10000))
+            .build();
 
-    return ACCESS_ABSTAIN;
+    assertFalse(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_LastUpdatedDurationTrue() {
+    DataExportParams params =
+        DataExportParams.builder().lastUpdatedDuration(Duration.ofDays(10000)).build();
+
+    assertTrue(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_LastUpdatedTrue() {
+    DataExportParams params = DataExportParams.builder().lastUpdated(new Date()).build();
+
+    assertTrue(params.hasLastUpdatedFilters());
   }
 }
