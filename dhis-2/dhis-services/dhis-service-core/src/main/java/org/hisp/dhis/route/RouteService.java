@@ -47,7 +47,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -591,12 +590,10 @@ public class RouteService {
       throws BadGatewayException {
     if (route.getAuth() != null) {
       try {
-        Map<String, List<String>> authHeaders = new LinkedHashMap<>();
         route
             .getAuth()
             .decrypt(encryptor::decrypt)
-            .apply(applicationContext, authHeaders, queryParameters);
-        authHeaders.forEach((name, values) -> values.forEach(value -> headers.add(name, value)));
+            .apply(applicationContext, headers, queryParameters);
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         throw new BadGatewayException("An error occurred during authentication");
