@@ -43,7 +43,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -96,7 +95,7 @@ public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
   @Override
   public void apply(
       ApplicationContext applicationContext,
-      HttpHeaders headers,
+      Map<String, List<String>> headers,
       Map<String, List<String>> queryParams)
       throws Exception {
 
