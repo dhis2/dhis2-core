@@ -47,6 +47,7 @@ import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorH
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -79,6 +80,7 @@ public class DhisAuthorizationCodeTokenResponseClient
 
   /** Read timeout for the IdP token endpoint exchange. */
   private static final Duration READ_TIMEOUT = Duration.ofSeconds(15);
+
   private final DhisOidcProviderRepository clientRegistrations;
 
   private RestClientAuthorizationCodeTokenResponseClient delegate;
