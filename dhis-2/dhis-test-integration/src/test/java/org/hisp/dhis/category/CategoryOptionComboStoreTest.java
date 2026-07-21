@@ -351,7 +351,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
     CategoryOptionCombo reloaded = categoryOptionComboStore.get(id);
     assertNotNull(reloaded);
-    assertNotNull(reloaded.getCategoryCombo(), "categoryCombo must be loaded from the secondary table");
+    assertNotNull(
+        reloaded.getCategoryCombo(), "categoryCombo must be loaded from the secondary table");
     assertEquals(categoryComboA.getUid(), reloaded.getCategoryCombo().getUid());
 
     // The link must physically live in categorycombos_optioncombos, not in categoryoptioncombo.
@@ -394,7 +395,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
     // was actually written. Field access left this NULL and broke getByName("default").
     Object dbName =
         entityManager
-            .createNativeQuery("select name from categoryoptioncombo where categoryoptioncomboid = :id")
+            .createNativeQuery(
+                "select name from categoryoptioncombo where categoryoptioncomboid = :id")
             .setParameter("id", id)
             .getSingleResult();
     assertEquals(categoryOptionA.getName(), dbName);
@@ -403,7 +405,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("JPA: the system default CategoryOptionCombo is resolvable by name")
   void testJpaDefaultCategoryOptionComboResolvableByName() {
-    // Guards the property-access regression: getDefaultCategoryOptionCombo() does getByName("default").
+    // Guards the property-access regression: getDefaultCategoryOptionCombo() does
+    // getByName("default").
     CategoryOptionCombo def = categoryService.getDefaultCategoryOptionCombo();
     assertNotNull(def, "default CategoryOptionCombo must be resolvable");
     assertEquals(CategoryOptionCombo.DEFAULT_NAME, def.getName());
@@ -431,7 +434,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
     CategoryOptionCombo coc = new CategoryOptionCombo();
     coc.setCategoryCombo(categoryComboA);
     coc.setCategoryOptions(Sets.newHashSet(categoryOptionA, categoryOptionC));
-    coc.setAttributeValues(AttributeValues.of(Map.<CharSequence, CharSequence>of("hQKI6KcEu5t", "avalue")));
+    coc.setAttributeValues(
+        AttributeValues.of(Map.<CharSequence, CharSequence>of("hQKI6KcEu5t", "avalue")));
     categoryOptionComboStore.save(coc);
     long id = coc.getId();
 
