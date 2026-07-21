@@ -76,6 +76,7 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -151,6 +152,7 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
             .scope("profile")
             .scope("username")
             .scope("email")
+            .clientSettings(ClientSettings.builder().requireProofKey(false).build())
             .build();
     oAuth2ClientService.save(client);
 
