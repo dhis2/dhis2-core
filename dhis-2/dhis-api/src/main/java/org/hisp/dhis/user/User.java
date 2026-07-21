@@ -394,7 +394,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     Set<DimensionalObject> constraints = new HashSet<>();
 
     for (CategoryOptionGroupSet cogs : cogsDimensionConstraints) {
-      cogs.setDimensionType(DimensionType.CATEGORY_OPTION_GROUP_SET);
+      // getDimensionType() returns CATEGORY_OPTION_GROUP_SET by definition (see Category above).
       constraints.add(cogs);
     }
 
