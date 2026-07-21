@@ -243,6 +243,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     // CustomRequestMappingHandlerMapping#getHandlerInternal (literal-first, then normalised path).
     // Do not rely on setUseSuffixPatternMatch / setUseTrailingSlashMatch / favorPathExtension -
     // those are removed in Spring Framework 7.
+    mapping.setPatternParser(null);
     return mapping;
   }
 
