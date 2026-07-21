@@ -102,6 +102,21 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
     return builder.build();
   }
 
+  /**
+   * Raw {@code userinfo} columns a SQL projection must select to build a transient, session-less
+   * {@link User} that renders identically to {@link #buildUserDto}/{@link JacksonSerialize} without
+   * going through Hibernate. Mirrors exactly what {@link User#getUid()}, {@link User#getCode()},
+   * {@link User#getUsername()}, and {@link User#getName()}/{@link User#getDisplayName()} read --
+   * the latter two fall back to {@code firstname + " " + surname} when the persisted {@code name}
+   * column is null (see {@link User#getName()}).
+   *
+   * <p>Kept next to {@link UserDto} so a change to either field set is visible in the same file as
+   * any SQL bypass mirroring it (see {@code UserSummaryRowMapper} in dhis-service-core,
+   * DHIS2-21860).
+   */
+  public static final List<String> SUMMARY_SQL_COLUMNS =
+      List.of("uid", "code", "username", "firstname", "surname", "name");
+
   @Data
   @Builder
   @OpenApi.Identifiable(as = User.class)

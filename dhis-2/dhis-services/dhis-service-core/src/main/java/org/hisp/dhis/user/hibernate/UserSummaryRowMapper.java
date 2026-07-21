@@ -31,11 +31,13 @@ package org.hisp.dhis.user.hibernate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.stream.Collectors;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
- * Maps a {@code uid, code, username, firstname, surname, name} projection to a transient,
+ * Maps a {@link UserPropertyTransformer#SUMMARY_SQL_COLUMNS} projection to a transient,
  * session-less {@link User}. Used by {@link HibernateUserRoleStore#getUserSummaries} and {@link
  * HibernateUserGroupStore#getUserSummaries} to avoid loading full {@link User} entities via
  * Hibernate just to serialize a handful of fields. The returned instances are never attached to a
@@ -44,7 +46,15 @@ import org.springframework.jdbc.core.RowMapper;
 class UserSummaryRowMapper implements RowMapper<User> {
   static final UserSummaryRowMapper INSTANCE = new UserSummaryRowMapper();
 
-  static final String SELECT_COLUMNS = "u.uid, u.code, u.username, u.firstname, u.surname, u.name";
+  /**
+   * Selects exactly the columns {@link UserPropertyTransformer#SUMMARY_SQL_COLUMNS} declares are
+   * needed, so this SQL bypass can't silently drift out of sync with the DTO shape it's meant to
+   * reproduce (DHIS2-21860).
+   */
+  static final String SELECT_COLUMNS =
+      UserPropertyTransformer.SUMMARY_SQL_COLUMNS.stream()
+          .map(column -> "u." + column)
+          .collect(Collectors.joining(", "));
 
   @Override
   public User mapRow(ResultSet rs, int rowNum) throws SQLException {
