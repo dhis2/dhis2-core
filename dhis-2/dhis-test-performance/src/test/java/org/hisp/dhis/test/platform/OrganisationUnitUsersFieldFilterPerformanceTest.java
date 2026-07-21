@@ -39,6 +39,8 @@ import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Properties;
 
 /**
@@ -105,6 +107,9 @@ public class OrganisationUnitUsersFieldFilterPerformanceTest extends Simulation 
   private static final String BASE_URL = prop("baseUrl", "http://localhost:8080");
   private static final String USERNAME = prop("username", "admin");
   private static final String PASSWORD = prop("password", "district");
+  private static final String BASIC_AUTH =
+      Base64.getEncoder()
+          .encodeToString((USERNAME + ":" + PASSWORD).getBytes(StandardCharsets.UTF_8));
   private static final String ORG_UNIT_UID = prop("orgUnitUid", "VCCdfC9pvMA");
   private static final String FIELDS = prop("fields", "id,name,users[id,name,userRoles[id,name]]");
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
@@ -112,11 +117,22 @@ public class OrganisationUnitUsersFieldFilterPerformanceTest extends Simulation 
   private static final String GET_REQUEST = "GET OrganisationUnit - users+userRoles field filter";
 
   public OrganisationUnitUsersFieldFilterPerformanceTest() {
+    // No protocol-level basicAuth. DHIS2 is stateful (SessionCreationPolicy.IF_REQUIRED +
+    // HttpSessionSecurityContextRepository), so once a session exists Spring Security reuses the
+    // SecurityContext and skips re-authentication; bcrypt password verification (~70ms) is only
+    // paid on the FIRST request that establishes the session. Authenticate once per virtual user
+    // via a separately-named request instead, so the measured GET reflects endpoint cost only --
+    // same pattern as UsersPerformanceTest.
     HttpProtocolBuilder httpProtocol =
-        http.baseUrl(BASE_URL)
-            .acceptHeader("application/json")
-            .disableCaching()
-            .basicAuth(USERNAME, PASSWORD);
+        http.baseUrl(BASE_URL).acceptHeader("application/json").disableCaching();
+
+    ChainBuilder authenticate =
+        exec(flushCookieJar())
+            .exec(
+                http("Authenticate (session login)")
+                    .get("/api/me")
+                    .header("Authorization", "Basic " + BASIC_AUTH)
+                    .check(status().is(200)));
 
     ChainBuilder workflow =
         exec(
@@ -127,7 +143,7 @@ public class OrganisationUnitUsersFieldFilterPerformanceTest extends Simulation 
 
     ScenarioBuilder scenario =
         scenario("OrganisationUnit users/userRoles field filter (DHIS2-21867)")
-            .exec(flushCookieJar())
+            .exec(authenticate)
             .repeat(ITERATIONS)
             .on(workflow);
 
