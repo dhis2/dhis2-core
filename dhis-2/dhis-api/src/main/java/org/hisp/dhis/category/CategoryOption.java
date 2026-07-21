@@ -572,7 +572,7 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @JsonProperty("categoryOptionGroups")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryOptionGroup> getGroups() {
