@@ -356,7 +356,7 @@ public class CategoryCombo extends BaseMetadataObject
   }
 
   @JsonProperty("categoryOptionCombos")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryOptionCombo> getOptionCombos() {
