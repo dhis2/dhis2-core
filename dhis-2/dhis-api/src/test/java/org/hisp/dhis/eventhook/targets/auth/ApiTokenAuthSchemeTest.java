@@ -38,7 +38,8 @@ import java.util.HashMap;
 import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpHeaders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Morten Olav Hansen
@@ -50,13 +51,13 @@ class ApiTokenAuthSchemeTest extends AbstractAuthSchemeTest {
     ApiTokenAuthScheme auth =
         new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
 
-    HttpHeaders headers = new HttpHeaders();
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
     auth.apply(mock(ApplicationContext.class), headers, new HashMap<>());
 
-    assertTrue(headers.containsHeader("Authorization"));
-    assertFalse(headers.getOrEmpty("Authorization").isEmpty());
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
     assertEquals(
-        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.getFirst("Authorization"));
+        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
   }
 
   @Test

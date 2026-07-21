@@ -31,6 +31,7 @@ package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Base64;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -42,7 +43,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpHeaders;
 import org.springframework.util.StringUtils;
 
 /**
@@ -66,13 +66,15 @@ public class HttpBasicAuthScheme implements AuthScheme {
   @Override
   public void apply(
       ApplicationContext applicationContext,
-      HttpHeaders headers,
+      Map<String, List<String>> headers,
       Map<String, List<String>> queryParams) {
     if (!(StringUtils.hasText(username) && StringUtils.hasText(password))) {
       return;
     }
 
-    headers.add("Authorization", getBasicAuth(username, password));
+    headers
+        .computeIfAbsent("Authorization", v -> new LinkedList<>())
+        .add(getBasicAuth(username, password));
   }
 
   @Override
