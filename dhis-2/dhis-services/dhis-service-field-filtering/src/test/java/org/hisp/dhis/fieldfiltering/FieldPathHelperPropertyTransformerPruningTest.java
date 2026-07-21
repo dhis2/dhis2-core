@@ -41,7 +41,8 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Covers DHIS2-21856: a property annotated with {@code @PropertyTransformer} always serializes a
@@ -98,25 +99,10 @@ class FieldPathHelperPropertyTransformerPruningTest {
     fieldPathHelper = new FieldPathHelper(schemaService);
   }
 
-  @Test
-  void wildcardUnderPropertyTransformerCollapsesToTheBarePath() {
-    List<FieldPath> result =
-        fieldPathHelper.apply(FieldFilterParser.parse("members[*]"), Root.class);
-
-    assertEquals(List.of("members"), result.stream().map(FieldPath::toString).toList());
-  }
-
-  @Test
-  void explicitSubFieldsUnderPropertyTransformerCollapseToTheBarePath() {
-    List<FieldPath> result =
-        fieldPathHelper.apply(FieldFilterParser.parse("members[id,extra]"), Root.class);
-
-    assertEquals(List.of("members"), result.stream().map(FieldPath::toString).toList());
-  }
-
-  @Test
-  void barePropertyTransformerFieldIsUnaffected() {
-    List<FieldPath> result = fieldPathHelper.apply(FieldFilterParser.parse("members"), Root.class);
+  @ParameterizedTest
+  @ValueSource(strings = {"members[*]", "members[id,extra]", "members"})
+  void fieldsUnderPropertyTransformerCollapseToTheBarePath(String fields) {
+    List<FieldPath> result = fieldPathHelper.apply(FieldFilterParser.parse(fields), Root.class);
 
     assertEquals(List.of("members"), result.stream().map(FieldPath::toString).toList());
   }
