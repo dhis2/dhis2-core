@@ -63,7 +63,7 @@ class MetadataSyncPostProcessorTest {
   private MetadataSyncSummary metadataSyncSummary;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
 
     dataVersion = new MetadataVersion();
     dataVersion.setType(VersionType.BEST_EFFORT);

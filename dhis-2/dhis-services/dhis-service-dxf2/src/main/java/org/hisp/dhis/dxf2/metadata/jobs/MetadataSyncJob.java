@@ -107,31 +107,38 @@ public class MetadataSyncJob implements Job {
 
     try {
       MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.parameters();
-      try {
-        metadataRetryContext.reset();
-        retryTemplate.execute(
-            () -> {
-              metadataRetryContext.beginAttempt();
-              clearFailedVersionSettings();
-              runSyncTask(metadataRetryContext, params, progress);
-              return null;
-            });
-      } catch (RetryException ex) {
-        Throwable last =
-            ex.getLastException() != null
-                ? ex.getLastException()
-                : (ex.getCause() != null ? ex.getCause() : ex);
-        metadataRetryContext.setLastThrowable(last);
-        log.info("Metadata Sync failed! Sending mail to Admin");
-        updateMetadataVersionFailureDetails(metadataRetryContext);
-        metadataSyncPostProcessor.sendFailureMailToAdmin(metadataRetryContext);
-      }
+      executeSyncWithRetry(params, progress);
     } catch (Exception e) {
       String helpfulMessage = ExceptionUtils.getHelpfulMessage(e);
       String customMessage =
           "Exception occurred while executing metadata sync task." + helpfulMessage;
       log.error(customMessage, e);
     }
+  }
+
+  private void executeSyncWithRetry(MetadataSyncJobParameters params, JobProgress progress) {
+    try {
+      metadataRetryContext.reset();
+      retryTemplate.execute(
+          () -> {
+            metadataRetryContext.beginAttempt();
+            clearFailedVersionSettings();
+            runSyncTask(metadataRetryContext, params, progress);
+            return null;
+          });
+    } catch (RetryException ex) {
+      metadataRetryContext.setLastThrowable(exhaustionCause(ex));
+      log.info("Metadata Sync failed! Sending mail to Admin");
+      updateMetadataVersionFailureDetails(metadataRetryContext);
+      metadataSyncPostProcessor.sendFailureMailToAdmin(metadataRetryContext);
+    }
+  }
+
+  private static Throwable exhaustionCause(RetryException ex) {
+    if (ex.getLastException() != null) {
+      return ex.getLastException();
+    }
+    return ex.getCause() != null ? ex.getCause() : ex;
   }
 
   protected void runSyncTask(

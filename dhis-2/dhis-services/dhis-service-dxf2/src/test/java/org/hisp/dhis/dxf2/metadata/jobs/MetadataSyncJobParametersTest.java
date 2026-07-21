@@ -91,7 +91,7 @@ class MetadataSyncJobParametersTest {
   private List<MetadataVersion> metadataVersions;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     metadataSyncSummary = new MetadataSyncSummary();
     metadataSyncSummary.setImportReport(new ImportReport());
     metadataVersion = mock(MetadataVersion.class);
