@@ -136,12 +136,16 @@ public class OrganisationUnitUsersFieldFilterPerformanceTest extends Simulation 
     // Generous ceiling: not a tight latency target (a separate, unfixed bottleneck --
     // OrganisationUnit.users still fully materializes via Hibernate, plus Ehcache
     // putFromLoad's per-entity serialization cost -- keeps this endpoint far from "fast" even
-    // post-fix). This threshold exists only to catch a regression back to the N+1 storm this
-    // test guards against (250,054 queries / ~70s pre-fix), not to enforce a performance target.
+    // post-fix, and its own 2nd-level-cache-warmth-dependent variance is real). This threshold
+    // exists only to catch a regression back to the N+1 storm this test guards against, not to
+    // enforce a performance target. Calibrated from a real baseline-vs-candidate CI run (perf
+    // runner, platform-perf DB, 10 iterations, DHIS2-21867/#24514): master (unfixed) was a flat
+    // ~51-52s every request (min 50,773ms / p95 52,212ms); this fix ranged 21,597-42,634ms
+    // (p95 42,634ms). 48s sits with headroom above the fixed range and below master's floor.
     setUp(scenario.injectClosed(singleUser))
         .protocols(httpProtocol)
         .assertions(
-            details(GET_REQUEST).responseTime().percentile(95).lt(30_000),
+            details(GET_REQUEST).responseTime().percentile(95).lt(48_000),
             details(GET_REQUEST).successfulRequests().percent().is(100D));
   }
 }
