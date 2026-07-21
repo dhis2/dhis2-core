@@ -776,6 +776,19 @@ public class CategoryOptionCombo
     this.formName = formName;
   }
 
+  /** Returns the form name, or the display name if it does not exist. */
+  public String getFormNameFallback() {
+    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+  }
+
+  @JsonProperty
+  @Sortable(whenPersisted = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "formName", key = "FORM_NAME")
+  public String getDisplayFormName() {
+    return translations.getTranslation("FORM_NAME", getFormNameFallback());
+  }
+
   // --------------------------------------------------
   // DimensionalItemObject implementation
   // --------------------------------------------------

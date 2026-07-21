@@ -30,6 +30,7 @@
 package org.hisp.dhis.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,7 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -321,5 +324,147 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
     assertTrue(
         cos.containsAll(List.of(co1.getUid(), co2.getUid(), co3.getUid())),
         "Retrieved CategoryOption UIDs should have expected UIDs");
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA migration verification (HBM -> annotations)
+  // -------------------------------------------------------------------------
+
+  private CategoryOptionCombo saveOptionCombo(
+      CategoryCombo categoryCombo, CategoryOption... options) {
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setCategoryCombo(categoryCombo);
+    coc.setCategoryOptions(Sets.newHashSet(options));
+    categoryOptionComboStore.save(coc);
+    return coc;
+  }
+
+  @Test
+  @DisplayName(
+      "JPA: categoryCombo round-trips through the categorycombos_optioncombos secondary table")
+  void testJpaCategoryComboSecondaryTable() {
+    CategoryOptionCombo coc = saveOptionCombo(categoryComboA, categoryOptionA, categoryOptionC);
+    long id = coc.getId();
+
+    // Force a reload from the database so we verify what was actually persisted.
+    clearSession();
+
+    CategoryOptionCombo reloaded = categoryOptionComboStore.get(id);
+    assertNotNull(reloaded);
+    assertNotNull(reloaded.getCategoryCombo(), "categoryCombo must be loaded from the secondary table");
+    assertEquals(categoryComboA.getUid(), reloaded.getCategoryCombo().getUid());
+
+    // The link must physically live in categorycombos_optioncombos, not in categoryoptioncombo.
+    Number linkRows =
+        (Number)
+            entityManager
+                .createNativeQuery(
+                    "select count(*) from categorycombos_optioncombos where categoryoptioncomboid = :id")
+                .setParameter("id", id)
+                .getSingleResult();
+    assertEquals(1, linkRows.intValue(), "exactly one secondary-table row expected");
+  }
+
+  @Test
+  @DisplayName("JPA: categoryOptions round-trip through the many-to-many join table")
+  void testJpaCategoryOptionsJoinTable() {
+    CategoryOptionCombo coc = saveOptionCombo(categoryComboA, categoryOptionA, categoryOptionC);
+    long id = coc.getId();
+
+    clearSession();
+
+    CategoryOptionCombo reloaded = categoryOptionComboStore.get(id);
+    assertNotNull(reloaded);
+    Set<String> optionUids = new HashSet<>();
+    reloaded.getCategoryOptions().forEach(o -> optionUids.add(o.getUid()));
+    assertEquals(2, optionUids.size());
+    assertTrue(optionUids.containsAll(Set.of(categoryOptionA.getUid(), categoryOptionC.getUid())));
+  }
+
+  @Test
+  @DisplayName("JPA: derived name is materialised to the name column via property access")
+  void testJpaNameMaterialisedViaPropertyAccess() {
+    // categoryComboB has a single category (Gender), so the derived name is deterministic.
+    CategoryOptionCombo coc = saveOptionCombo(categoryComboB, categoryOptionA);
+    long id = coc.getId();
+
+    clearSession();
+
+    // Read the raw column directly (bypassing the derive-on-read getName()) to prove the value
+    // was actually written. Field access left this NULL and broke getByName("default").
+    Object dbName =
+        entityManager
+            .createNativeQuery("select name from categoryoptioncombo where categoryoptioncomboid = :id")
+            .setParameter("id", id)
+            .getSingleResult();
+    assertEquals(categoryOptionA.getName(), dbName);
+  }
+
+  @Test
+  @DisplayName("JPA: the system default CategoryOptionCombo is resolvable by name")
+  void testJpaDefaultCategoryOptionComboResolvableByName() {
+    // Guards the property-access regression: getDefaultCategoryOptionCombo() does getByName("default").
+    CategoryOptionCombo def = categoryService.getDefaultCategoryOptionCombo();
+    assertNotNull(def, "default CategoryOptionCombo must be resolvable");
+    assertEquals(CategoryOptionCombo.DEFAULT_NAME, def.getName());
+    assertNotNull(categoryOptionComboStore.getByName(CategoryOptionCombo.DEFAULT_NAME));
+  }
+
+  @Test
+  @DisplayName("JPA: ignoreApproval is persisted")
+  void testJpaIgnoreApprovalPersisted() {
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setCategoryCombo(categoryComboA);
+    coc.setCategoryOptions(Sets.newHashSet(categoryOptionA, categoryOptionC));
+    coc.setIgnoreApproval(true);
+    categoryOptionComboStore.save(coc);
+    long id = coc.getId();
+
+    clearSession();
+
+    assertTrue(categoryOptionComboStore.get(id).isIgnoreApproval());
+  }
+
+  @Test
+  @DisplayName("JPA: attributeValues (jsonb) round-trip")
+  void testJpaAttributeValuesPersisted() {
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setCategoryCombo(categoryComboA);
+    coc.setCategoryOptions(Sets.newHashSet(categoryOptionA, categoryOptionC));
+    coc.setAttributeValues(AttributeValues.of(Map.<CharSequence, CharSequence>of("hQKI6KcEu5t", "avalue")));
+    categoryOptionComboStore.save(coc);
+    long id = coc.getId();
+
+    clearSession();
+
+    CategoryOptionCombo reloaded = categoryOptionComboStore.get(id);
+    assertFalse(reloaded.getAttributeValues().isEmpty());
+    assertEquals("avalue", reloaded.getAttributeValues().get("hQKI6KcEu5t"));
+  }
+
+  @Test
+  @DisplayName("JPA: createdBy is not persisted (no userid column) and the entity still saves")
+  void testJpaCreatedByNotPersisted() {
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setCategoryCombo(categoryComboA);
+    coc.setCategoryOptions(Sets.newHashSet(categoryOptionA, categoryOptionC));
+    coc.setCreatedBy(getAdminUser());
+    // Saving must succeed even though categoryoptioncombo has no userid column.
+    categoryOptionComboStore.save(coc);
+    long id = coc.getId();
+
+    clearSession();
+
+    CategoryOptionCombo reloaded = categoryOptionComboStore.get(id);
+    assertNotNull(reloaded);
+    assertNull(reloaded.getCreatedBy(), "createdBy is transient and must not be persisted");
+  }
+
+  @Test
+  @DisplayName("JPA: id is generated (SEQUENCE) on save")
+  void testJpaIdGeneration() {
+    CategoryOptionCombo coc = saveOptionCombo(categoryComboA, categoryOptionA, categoryOptionC);
+    assertTrue(coc.getId() > 0, "id must be generated on save");
+    assertNotNull(coc.getUid());
   }
 }
