@@ -809,7 +809,7 @@ public class CategoryOptionCombo
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DimensionItemType getDimensionItemType() {
-    return dimensionItemType;
+    return DimensionItemType.DATA_ELEMENT_OPERAND;
   }
 
   public void setDimensionItemType(DimensionItemType dimensionItemType) {

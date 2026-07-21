@@ -693,7 +693,10 @@ public class DefaultFieldFilterService implements FieldFilterService {
       @Nonnull Object object, @Nonnull List<String> fields) {
     return fields.size() == 1
         && fields.get(0).equals("id")
-        && object instanceof BaseIdentifiableObject;
+        // Use the IdentifiableObject interface, not BaseIdentifiableObject: entities migrated to
+        // JPA annotations (Program, DataElement, Category, CategoryCombo, CategoryOptionCombo, ...)
+        // no longer extend BaseIdentifiableObject but still implement IdentifiableObject.
+        && object instanceof IdentifiableObject;
   }
 
   private ComplexNode createBaseIdentifiableObjectIdNode(
