@@ -178,6 +178,8 @@ class JdbcEventStore {
   private static final String COLUMN_USER_UID = "u_uid";
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
+
+  private static final String COLUMN_ORG_UNIT_ID = "ou_id";
   private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(orgunit.path, '%') ";
   private static final String CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
@@ -795,20 +797,46 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       MapSqlParameterSource sqlParameters,
       UserDetails user,
       SqlHelper hlp) {
-    StringBuilder fromBuilder =
-        new StringBuilder(" from event ev ")
-            .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
-            .append("inner join program p on p.programid=en.programid ")
-            .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
+    StringBuilder fromBuilder = new StringBuilder(" from event ev ");
 
-    fromBuilder
-        .append(
-            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
-        .append(
-            "inner join organisationunit ou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=ou.organisationunitid) ")
-        .append(
-            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
+    if (isWithoutRegistrationQuery(params)) {
+      // For WITHOUT_REGISTRATION programs: derive program via programstage and demote enrollment
+      // to LEFT JOIN. Enrollment is always present but carries no filter role here — program
+      // identity comes from the programstage FK. Demoting to LEFT JOIN prevents the planner from
+      // using enrollment as the Nested Loop outer, which causes a catastrophic BitmapAnd via the
+      // enrollmentid index on programs where a single enrollment owns the majority of events.
+      // 2.41 equivalent is in perf-oumode-selected-241-redux; master applies the same pattern.
+      fromBuilder
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
+          .append("inner join program p on p.programid=ps.programid ")
+          .append("left join enrollment en on en.enrollmentid=ev.enrollmentid ")
+          .append("inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
+    } else {
+      fromBuilder
+          .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
+          .append("inner join program p on p.programid=en.programid ")
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
+      if (params.hasEnrolledInProgram()) {
+        // TPO record is always created at enrollment time. INNER JOIN is correct and sargable.
+        // ou represents the ownership org unit (from TPO) — correct for access control.
+        fromBuilder
+            .append(
+                "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+            .append(
+                "inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
+      } else {
+        // No program filter: result may contain both program types.
+        // LEFT JOIN + COALESCE handles both: TPO-owner OU for tracker events,
+        // ev.organisationunitid for single-event program events.
+        fromBuilder
+            .append(
+                "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+            .append(
+                "inner join organisationunit ou on (COALESCE(po.organisationunitid,ev.organisationunitid)=ou.organisationunitid) ");
+      }
+    }
+    fromBuilder.append(
+        "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
@@ -1002,12 +1030,16 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" (au.uid in (").append(":au_uid").append(")) ");
     }
 
+    // Filter on ev.assigneduserid rather than au.uid: au is LEFT JOINed on assigneduserid, so the
+    // two are equivalent, but "au.uid is null" makes the planner estimate the join output with
+    // userinfo.uid's null_frac (0) instead of event.assigneduserid's, collapsing the row estimate
+    // to 1 and flipping the plan to nested loops that rescan the full event set.
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is null) ");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is not null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is not null) ");
     }
 
     if (!params.isIncludeDeleted()) {
@@ -1136,6 +1168,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private String createSelectedSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+    String directOrgUnitPredicate =
+        isWithoutRegistrationQuery(params)
+            ? " ev.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND
+            : " ou.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
@@ -1146,11 +1183,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
-      return createCaptureScopeQuery(user, params, mapSqlParameterSource, customSelectedClause);
+      return directOrgUnitPredicate
+          + createCaptureScopeQuery(user, params, mapSqlParameterSource, customSelectedClause);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(user, params, orgUnitPathEqualsMatchQuery);
+    return directOrgUnitPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(user, params, orgUnitPathEqualsMatchQuery);
   }
 
   /**
@@ -1237,6 +1276,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     return sql;
+  }
+
+  private boolean isWithoutRegistrationQuery(EventQueryParams params) {
+    return params.hasEnrolledInProgram()
+        && params.getEnrolledInProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
   }
 
   private boolean isProgramRestricted(Program program) {

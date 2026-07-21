@@ -75,6 +75,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,6 +105,28 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
     assertTrue(userById.exists());
     assertEquals(id, userById.getId());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {":all", "*", ":simple", "href", "id,href", "id,name,href"})
+  @DisplayName("Single object GET returns href when requested directly or via an expanding preset")
+  void testGetObjectWithHref(String fields) {
+    String id = GET("/users/").content().getList("users", JsonUser.class).get(0).getId();
+    JsonUser user =
+        GET("/users/{id}?fields={fields}", id, fields).content(HttpStatus.OK).as(JsonUser.class);
+    String href = user.getString("href").string();
+    assertNotNull(href);
+    assertTrue(href.endsWith("/users/" + id));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {":owner", ":identifiable", ":nameable", ":persisted", "id,name"})
+  @DisplayName("Single object GET omits href for presets that do not expand to it")
+  void testGetObjectWithoutHref(String fields) {
+    String id = GET("/users/").content().getList("users", JsonUser.class).get(0).getId();
+    JsonUser user =
+        GET("/users/{id}?fields={fields}", id, fields).content(HttpStatus.OK).as(JsonUser.class);
+    assertFalse(user.has("href"));
   }
 
   @Test

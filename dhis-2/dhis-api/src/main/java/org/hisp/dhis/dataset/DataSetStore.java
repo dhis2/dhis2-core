@@ -50,4 +50,20 @@ public interface DataSetStore
   List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm);
 
   List<DataSetElement> getDataSetElementsByDataElement(Collection<DataElement> dataElements);
+
+  /**
+   * Returns the distinct {@link DataElement}s that are members of the given data sets (via {@link
+   * DataSetElement}), loaded in a single query. Each data element's {@link
+   * DataElement#getDataSetElements()} collection and its {@link DataElement#getCategoryCombo()} are
+   * eagerly fetched as well, so that {@link DataSet#getDataElements()} and {@link
+   * DataElement#getCategoryCombos()} can be evaluated without triggering per-element (or
+   * per-category-combo) N+1 selects.
+   *
+   * <p>This method does <b>not</b> apply sharing/ACL predicates on the data elements. Callers are
+   * responsible for authorizing access to the data sets.
+   *
+   * @param dataSets the data sets.
+   * @return the distinct data elements of the given data sets.
+   */
+  List<DataElement> getDataElementsByDataSet(Collection<DataSet> dataSets);
 }

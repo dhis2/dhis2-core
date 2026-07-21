@@ -47,6 +47,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Event;
 
 /**
  * @author Abyot Asalefew
@@ -105,6 +106,29 @@ public class Relationship extends SoftDeletableObject implements Serializable {
     }
 
     return uids;
+  }
+
+  @JsonIgnore
+  public Set<UID> getSingleEventOrigins() {
+    Set<UID> uids = new HashSet<>();
+
+    Optional.ofNullable(this.getFrom().getEvent())
+        .filter(Relationship::isSingleEvent)
+        .map(event -> UID.of(event.getUid()))
+        .ifPresent(uids::add);
+
+    if (this.getRelationshipType().isBidirectional()) {
+      Optional.ofNullable(this.getTo().getEvent())
+          .filter(Relationship::isSingleEvent)
+          .map(event -> UID.of(event.getUid()))
+          .ifPresent(uids::add);
+    }
+
+    return uids;
+  }
+
+  private static boolean isSingleEvent(Event event) {
+    return event.getProgramStage().getProgram().isWithoutRegistration();
   }
 
   @JsonProperty

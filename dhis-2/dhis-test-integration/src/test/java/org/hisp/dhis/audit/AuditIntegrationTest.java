@@ -44,6 +44,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
@@ -134,7 +135,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(dataElement.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -147,7 +148,9 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   @MethodSource("provideAuthSchemes")
   void testSaveRoute(AuthScheme authScheme) {
     Route route = new Route();
-    route.setUid(BASE_UID);
+    // each parameterized run needs its own UID: audits are written asynchronously
+    // outside the test transaction, so audits for a shared UID leak between runs
+    route.setUid(CodeGenerator.generateUid());
     route.setName("foo");
     route.setAuth(authScheme);
     route.setUrl("http://stub");
@@ -159,7 +162,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
           return null;
         });
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(route.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     assertFalse(audits.get(0).getData().contains("passw0rd"));
@@ -177,7 +180,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
     manager.save(trackedEntity);
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -206,7 +209,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     attributes.put("attribute", attribute.getUid());
     attributes.put("trackedEntity", trackedEntity.getUid());
     AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -258,7 +261,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     AuditAttributes attributes = new AuditAttributes();
     attributes.put("dataElement", dataElementA.getUid());
     AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -278,7 +281,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     programStage.addDataElement(dataElement, 0);
     manager.save(programStage);
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(programStage.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
@@ -314,7 +317,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
           return null;
         });
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(dataSet.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 1);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);

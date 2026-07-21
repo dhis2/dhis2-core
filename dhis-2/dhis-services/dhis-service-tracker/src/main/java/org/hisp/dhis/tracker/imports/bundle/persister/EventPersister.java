@@ -339,6 +339,11 @@ public class EventPersister
         .collect(Collectors.toSet());
   }
 
+  @Override
+  protected Set<UID> getUpdatedSingleEvents(Event entity) {
+    return Set.of();
+  }
+
   private boolean isNewDataValue(
       @CheckForNull EventDataValue eventDataValue, @Nonnull DataValue dv) {
     return eventDataValue == null && !StringUtils.isBlank(dv.getValue());

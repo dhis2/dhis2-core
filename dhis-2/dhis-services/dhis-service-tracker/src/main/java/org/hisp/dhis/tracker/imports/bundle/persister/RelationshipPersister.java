@@ -123,6 +123,11 @@ public class RelationshipPersister
   }
 
   @Override
+  protected Set<UID> getUpdatedSingleEvents(org.hisp.dhis.relationship.Relationship entity) {
+    return entity.getSingleEventOrigins();
+  }
+
+  @Override
   protected org.hisp.dhis.relationship.Relationship cloneEntityProperties(
       TrackerPreheat preheat, Relationship trackerDto) {
     return null;

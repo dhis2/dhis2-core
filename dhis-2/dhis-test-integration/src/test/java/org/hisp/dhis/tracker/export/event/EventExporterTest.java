@@ -245,6 +245,46 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldIncludeDeletedEventInSyncQueryWhenNotYetSynchronized()
+      throws ForbiddenException, BadRequestException {
+    Event event = get(Event.class, "D9PbzJY8bJM");
+    event.setDeleted(true);
+    manager.update(event);
+    manager.flush();
+
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .events(Set.of(UID.of("D9PbzJY8bJM")))
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .build();
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), getEvents(params));
+  }
+
+  @Test
+  void shouldExcludeDeletedEventFromSyncQueryWhenAlreadySynchronized()
+      throws ForbiddenException, BadRequestException {
+    Event event = get(Event.class, "D9PbzJY8bJM");
+    event.setDeleted(true);
+    manager.update(event);
+    manager.flush();
+
+    eventService.updateEventsSyncTimestamp(
+        List.of("D9PbzJY8bJM"), new Date(System.currentTimeMillis() + 60_000));
+    manager.flush();
+
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .events(Set.of(UID.of("D9PbzJY8bJM")))
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .build();
+
+    assertIsEmpty(getEvents(params));
+  }
+
+  @Test
   void testExportEvents() throws ForbiddenException, BadRequestException {
     EventOperationParams params = operationParamsBuilder.programStage(programStage).build();
 
@@ -435,6 +475,30 @@ class EventExporterTest extends PostgresIntegrationTestBase {
                                             .collect(Collectors.toSet()))))
             .toList();
     assertAll("all events should have the same category option combo and options", executables);
+  }
+
+  @Test
+  void shouldReturnEventsForWithoutRegistrationProgramGivenOrgUnitModeSelected()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnit(UID.of("DiszpKrYNg8"))
+            .orgUnitMode(SELECTED)
+            .program(UID.of("iS7eutanDry"))
+            .programStage(UID.of("qLZC0lvvxQH"))
+            .build();
+
+    List<Event> events = eventService.findEvents(params);
+
+    assertContainsOnly(
+        List.of(
+            "QRYjLTiJTrA",
+            "kWjSezkXHVp",
+            "OTmjvJDn0Fu",
+            "ck7DzdxqLqA",
+            "lumVtWwwy0O",
+            "cadc5eGj0j7"),
+        uids(events));
   }
 
   @Test
