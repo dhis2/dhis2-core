@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.function.UnaryOperator;
 import lombok.experimental.Accessors;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpHeaders;
 
 /**
  * @author Morten Olav Hansen
@@ -64,7 +63,7 @@ import org.springframework.http.HttpHeaders;
 public interface AuthScheme extends Serializable {
   void apply(
       ApplicationContext applicationContext,
-      HttpHeaders headers,
+      Map<String, List<String>> headers,
       Map<String, List<String>> queryParams)
       throws Exception;
 
