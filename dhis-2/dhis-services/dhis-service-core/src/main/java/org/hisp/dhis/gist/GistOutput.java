@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.csv.CsvBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -81,7 +82,7 @@ public final class GistOutput {
       Stream<IntFunction<Object>> values = Stream.of(i -> obj.values()[i]);
       JsonNode array =
           JsonBuilder.createArray(FORMAT, arr -> addArrayElements(arr, properties, values));
-      JsonValue value = JsonMixed.of(array).getObject(0).get(properties.get(0).path());
+      JsonValue value = JsonMixed.of(array).getObject(0).get(properties.get(0).path().toString());
       try (PrintWriter json = new PrintWriter(out)) {
         json.append(value.toJson());
       }
@@ -127,10 +128,10 @@ public final class GistOutput {
         // list each only as the property itself
         // to do that, first list objects but to written to a string
         // then iterate the values from the array
-        String path = properties.get(0).path();
+        PropertyPath path = properties.get(0).path();
         JsonNode array =
             JsonBuilder.createArray(temp -> addArrayElements(temp, properties, values));
-        array.elements().forEach(e -> arr.addElement(e.get(path)));
+        array.elements().forEach(e -> arr.addElement(e.get(path.toString())));
       } else {
         // list each as an object with the given properties
         addArrayElements(arr, properties, values);

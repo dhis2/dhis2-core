@@ -388,8 +388,11 @@ public class Dhis2OAuth2ClientServiceImpl
     if (entity.getRawName() == null || entity.getRawName().isEmpty()) {
       entity.setName(truncateName(entity.getClientId()));
     }
+    // SAS 7 flips requireProofKey default false->true. Temporary bridge for existing non-PKCE
+    // clients/e2e (CRUD/API create without clientSettings) until PR-H adopts PKCE-by-default.
     if (entity.getClientSettings() == null) {
-      ClientSettings defaults = ClientSettings.builder().requireAuthorizationConsent(true).build();
+      ClientSettings defaults =
+          ClientSettings.builder().requireAuthorizationConsent(true).requireProofKey(false).build();
       entity.setClientSettings(writeMap(defaults.getSettings()));
     }
     if (entity.getTokenSettings() == null) {

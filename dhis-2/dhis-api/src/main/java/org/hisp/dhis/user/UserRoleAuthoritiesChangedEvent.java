@@ -27,50 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.vote;
+package org.hisp.dhis.user;
 
-import java.util.Collection;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.hisp.dhis.common.UID;
 
 /**
- * RoleVoter which requires all org.springframework.security.ConfigAttributes to be granted
- * authorities, given that the ConfigAttributes have the specified prefix ("ROLE_" by default). If
- * there are no supported ConfigAttributes it abstains from voting.
+ * Event published after the authorities of a {@link UserRole} have changed, so that active sessions
+ * of users with that role can be invalidated asynchronously, outside the updating transaction and
+ * off the request thread.
  *
- * @see org.springframework.security.access.vote.RoleVoter
- * @author Torgeir Lorange Ostby
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class AllRequiredRoleVoter extends RoleVoter {
-  @Override
-  public int vote(
-      Authentication authentication, Object object, Collection<ConfigAttribute> attributes) {
-    int supported = 0;
-
-    for (ConfigAttribute attribute : attributes) {
-      if (this.supports(attribute)) {
-        ++supported;
-        boolean found = false;
-
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-          if (attribute.getAttribute().equals(authority.getAuthority())) {
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          return ACCESS_DENIED;
-        }
-      }
-    }
-
-    if (supported > 0) {
-      return ACCESS_GRANTED;
-    }
-
-    return ACCESS_ABSTAIN;
-  }
-}
+public record UserRoleAuthoritiesChangedEvent(UID userRoleUid) {}

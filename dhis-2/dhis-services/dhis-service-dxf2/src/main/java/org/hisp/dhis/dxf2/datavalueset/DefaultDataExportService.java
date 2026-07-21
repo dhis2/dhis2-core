@@ -427,7 +427,8 @@ public class DefaultDataExportService implements DataExportService {
     // to limit scope of the export to reasonable slices
     if (params == null) throw new ConflictException(ErrorCode.E2000);
     if (!params.hasDataElementFilters()) throw new ConflictException(ErrorCode.E2001);
-    if (!params.hasPeriodFilters()) throw new ConflictException(ErrorCode.E2002);
+    if (!params.hasPeriodFilters() && !params.hasLastUpdatedFilters())
+      throw new ConflictException(ErrorCode.E2002);
     if (!params.hasOrgUnitFilters()) throw new ConflictException(ErrorCode.E2006);
     // additional restrictions that are not strictly required
     // but are kept for backwards compatibility

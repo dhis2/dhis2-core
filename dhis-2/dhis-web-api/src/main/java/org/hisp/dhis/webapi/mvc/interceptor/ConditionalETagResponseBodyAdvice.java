@@ -87,7 +87,7 @@ public class ConditionalETagResponseBodyAdvice implements ResponseBodyAdvice<Obj
     HttpServletResponse httpResponse = servletResponse.getServletResponse();
     if (httpResponse.isCommitted()
         || !isSuccessStatus(httpResponse.getStatus())
-        || response.getHeaders().containsKey(HttpHeaders.ETAG)
+        || response.getHeaders().containsHeader(HttpHeaders.ETAG)
         || httpResponse.containsHeader(HttpHeaders.ETAG)) {
       return body;
     }

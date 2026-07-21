@@ -640,6 +640,15 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public List<String> getUsernamesByUserRole(@Nonnull UID roleUid) {
+    return getSession()
+        .createQuery(
+            "select u.username from User u join u.userRoles r where r.uid = :roleUid", String.class)
+        .setParameter("roleUid", roleUid.getValue())
+        .list();
+  }
+
+  @Override
   public void setActiveLinkedAccounts(
       @Nonnull String actingUsername, @Nonnull String activeUsername) {
 

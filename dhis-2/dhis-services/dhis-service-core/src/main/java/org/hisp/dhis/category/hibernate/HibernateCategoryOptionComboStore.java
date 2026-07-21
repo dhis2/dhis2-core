@@ -105,6 +105,26 @@ public class HibernateCategoryOptionComboStore
   }
 
   @Override
+  public List<CategoryOptionCombo> getCategoryOptionCombosWithCategoryOptions(
+      Collection<CategoryCombo> categoryCombos) {
+    if (categoryCombos == null || categoryCombos.isEmpty()) {
+      return List.of();
+    }
+
+    String hql =
+        """
+        select distinct coc from CategoryCombo cc
+        join cc.optionCombos coc
+        left join fetch coc.categoryOptions
+        where cc in :categoryCombos
+        """;
+
+    return getQuery(hql, CategoryOptionCombo.class)
+        .setParameter("categoryCombos", categoryCombos)
+        .list();
+  }
+
+  @Override
   public void updateNames() {
     List<CategoryOptionCombo> categoryOptionCombos =
         getQuery("from CategoryOptionCombo co where co.name is null").list();

@@ -37,6 +37,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -75,20 +76,23 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
     if (body == null) return null;
     String location = body.getLocation();
     if (location != null) {
-      response
-          .getHeaders()
-          .addIfAbsent(ContextUtils.HEADER_LOCATION, contextService.getApiPath() + location);
+      // HttpHeaders.addIfAbsent was removed in Spring 7.0
+      HttpHeaders headers = response.getHeaders();
+      if (!headers.containsHeader(ContextUtils.HEADER_LOCATION)) {
+        headers.add(ContextUtils.HEADER_LOCATION, contextService.getApiPath() + location);
+      }
     }
     HttpStatus httpStatus = HttpUtils.resolve(body.getHttpStatusCode());
     if (httpStatus != null) {
       response.setStatusCode(httpStatus);
       // Don't cache errors
       if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {
-        response
-            .getHeaders()
-            .addIfAbsent(
-                "Cache-Control",
-                CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
+        HttpHeaders headers = response.getHeaders();
+        if (!headers.containsHeader("Cache-Control")) {
+          headers.add(
+              "Cache-Control",
+              CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
+        }
       }
     }
     return body;
