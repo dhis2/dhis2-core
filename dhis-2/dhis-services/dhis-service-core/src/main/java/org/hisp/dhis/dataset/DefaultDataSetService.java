@@ -110,6 +110,12 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<DataElement> getDataElementsByDataSet(Collection<DataSet> dataSets) {
+    return dataSetStore.getDataElementsByDataSet(dataSets);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public DataSet getDataSetNoAcl(String uid) {
     return dataSetStore.getByUidNoAcl(uid);
   }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.category.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
@@ -96,6 +97,26 @@ public class HibernateCategoryOptionComboStore
       // been found.
     }
     return categoryOptionCombo;
+  }
+
+  @Override
+  public List<CategoryOptionCombo> getCategoryOptionCombosWithCategoryOptions(
+      Collection<CategoryCombo> categoryCombos) {
+    if (categoryCombos == null || categoryCombos.isEmpty()) {
+      return List.of();
+    }
+
+    String hql =
+        """
+        select distinct coc from CategoryCombo cc
+        join cc.optionCombos coc
+        left join fetch coc.categoryOptions
+        where cc in :categoryCombos
+        """;
+
+    return getQuery(hql, CategoryOptionCombo.class)
+        .setParameter("categoryCombos", categoryCombos)
+        .list();
   }
 
   @Override

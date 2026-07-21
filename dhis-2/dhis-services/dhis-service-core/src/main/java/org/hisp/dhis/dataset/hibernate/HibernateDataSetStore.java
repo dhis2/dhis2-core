@@ -30,12 +30,14 @@ package org.hisp.dhis.dataset.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Lists;
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
@@ -123,5 +125,24 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
   @Override
   public List<DataSet> getDataSetsNotAssignedToOrganisationUnits() {
     return getQuery("from DataSet ds where size(ds.sources) = 0").list();
+  }
+
+  @Override
+  public List<DataElement> getDataElementsByDataSet(Collection<DataSet> dataSets) {
+    if (dataSets == null || dataSets.isEmpty()) {
+      return List.of();
+    }
+
+    return getQuery(
+            """
+            select distinct de from DataSetElement dse
+            join dse.dataElement de
+            left join fetch de.dataSetElements
+            left join fetch de.categoryCombo
+            where dse.dataSet in :dataSets
+            """,
+            DataElement.class)
+        .setParameter("dataSets", dataSets)
+        .list();
   }
 }
