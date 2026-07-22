@@ -157,6 +157,33 @@ Available properties:
 | `patchUserCount` | `6` | Users included after the PATCH replace |
 | `putUserCount` | `9` | Users included after the PUT full replace |
 
+### DataEntryMetadataPerformanceTest
+
+Tests the cold-fetch cost of `GET /api/dataEntry/metadata`, which returns the full data-entry
+metadata payload (data sets, data elements, indicators, category combos/categories/options, option
+sets). The endpoint takes no parameters, so this test isolates its baseline cost as the metadata
+volume grows — most useful against the Sierra Leone demo DB, which has a richer metadata set than
+the default dev DB.
+
+The service behind this endpoint has no server-side result cache, so every request without a
+matching `If-None-Match` header (which this test never sends) performs a real rebuild of the
+payload — no cache-busting steps are needed between iterations.
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.DataEntryMetadataPerformanceTest \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+Available properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `configFile` | — | Path to a `.properties` file |
+| `baseUrl` | `http://localhost:8080` | DHIS2 base URL |
+| `username` | `admin` | API username |
+| `password` | `district` | API password |
+| `iterations` | `5` | Requests per scenario |
+
 ## Tracker Tests
 
 The `tracker` package (`org.hisp.dhis.test.tracker`) tests the Tracker API using three Sierra Leone
