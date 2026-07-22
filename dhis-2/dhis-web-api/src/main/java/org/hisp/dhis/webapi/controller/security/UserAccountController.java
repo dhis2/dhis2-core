@@ -204,6 +204,15 @@ public class UserAccountController {
     return ok("Account updated");
   }
 
+  @PostMapping("/updatePassword")
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage updatePassword(@RequestBody UpdatePasswordRequest request)
+      throws BadRequestException, ForbiddenException {
+    userAccountService.updateExpiredPassword(
+        request.getUsername(), request.getOldPassword(), request.getNewPassword());
+    return ok("Password updated");
+  }
+
   private void checkRecoveryLock(String username) throws ForbiddenException {
     if (userService.isRecoveryLocked(username)) {
       throw new ForbiddenException(

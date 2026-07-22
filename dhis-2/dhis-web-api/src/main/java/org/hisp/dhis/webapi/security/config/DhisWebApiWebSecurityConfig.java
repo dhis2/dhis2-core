@@ -380,6 +380,9 @@ public class DhisWebApiWebSecurityConfig {
                   .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/invite"))
                   .permitAll()
                   .requestMatchers(
+                      new AntPathRequestMatcher(apiContextPath + "/**/auth/updatePassword"))
+                  .permitAll()
+                  .requestMatchers(
                       new AntPathRequestMatcher(apiContextPath + "/**/authentication/login"))
                   .permitAll()
                   // Needs to be here because this overrides the previous one
