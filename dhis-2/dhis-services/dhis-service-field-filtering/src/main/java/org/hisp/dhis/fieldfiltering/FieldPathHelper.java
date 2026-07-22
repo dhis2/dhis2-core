@@ -91,7 +91,34 @@ public class FieldPathHelper {
     List<FieldPath> exclusions = paths.stream().filter(FieldPath::isExclude).toList();
     applyExclusions(exclusions, inclusions);
 
+    pruneTransformerControlledSubtrees(inclusions, rootKlass);
+
     return List.copyOf(inclusions.values());
+  }
+
+  /**
+   * A property with a {@code @PropertyTransformer} (e.g. {@code UserPropertyTransformer}) always
+   * serializes a fixed shape independent of what's requested underneath it -- verified empirically
+   * (DHIS2-21856): {@code fields=users}, {@code fields=users[href]} and {@code fields=users[*]} all
+   * produce byte-identical responses. So any path beneath such a property is dead on arrival and is
+   * dropped here, before any consumer (ACL/sharing computation, href generation, ...) has a reason
+   * to walk into it -- rather than leaving every consumer to independently rediscover and skip the
+   * same pointless subtree.
+   */
+  private void pruneTransformerControlledSubtrees(
+      Map<PropertyPath, FieldPath> inclusions, Class<?> rootKlass) {
+    inclusions.keySet().removeIf(path -> isBeneathPropertyTransformer(path, rootKlass));
+  }
+
+  private boolean isBeneathPropertyTransformer(PropertyPath path, Class<?> rootKlass) {
+    for (PropertyPath ancestor = path.parent(); ancestor != null; ancestor = ancestor.parent()) {
+      Schema schema = getSchemaByPath(ancestor.parent(), rootKlass);
+      Property property = schema == null ? null : schema.getProperty(ancestor.segment().toString());
+      if (property != null && property.hasPropertyTransformer()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
