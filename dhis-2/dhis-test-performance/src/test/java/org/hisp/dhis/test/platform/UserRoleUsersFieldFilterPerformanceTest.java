@@ -70,9 +70,8 @@ import java.util.Properties;
  * <p>Targets the platform-perf DB by default.
  *
  * <pre>{@code
- * mvn gatling:test \
- *   -Dgatling.simulationClass=org.hisp.dhis.test.platform.UserRoleUsersFieldFilterPerformanceTest \
- *   --file dhis-2/pom.xml -pl dhis-test-performance
+ * cd dhis-2/dhis-test-performance && mvn gatling:test \
+ *   -Dgatling.simulationClass=org.hisp.dhis.test.platform.UserRoleUsersFieldFilterPerformanceTest
  * }</pre>
  *
  * Available properties:
