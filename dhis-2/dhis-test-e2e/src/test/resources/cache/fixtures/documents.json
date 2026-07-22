@@ -1,0 +1,10 @@
+{
+  "documents": [
+    {
+      "id": "CchDoc00001",
+      "name": "Cache Test Document",
+      "url": "https://example.com/cache-test",
+      "external": true
+    }
+  ]
+}

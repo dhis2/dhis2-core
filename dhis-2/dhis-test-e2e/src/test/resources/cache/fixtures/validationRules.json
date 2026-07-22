@@ -1,0 +1,19 @@
+{
+  "validationRules": [
+    {
+      "id": "CchVR000001",
+      "name": "Cache Test Validation Rule",
+      "importance": "MEDIUM",
+      "operator": "equal_to",
+      "periodType": "Monthly",
+      "leftSide": {
+        "expression": "1",
+        "description": "Cache test left side"
+      },
+      "rightSide": {
+        "expression": "1",
+        "description": "Cache test right side"
+      }
+    }
+  ]
+}

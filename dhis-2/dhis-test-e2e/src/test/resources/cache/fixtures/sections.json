@@ -1,0 +1,21 @@
+{
+  "dataSets": [
+    {
+      "id": "CchDS000001",
+      "name": "Cache Test DataSet for Section",
+      "shortName": "Cache Sect DS",
+      "periodType": "Monthly",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "id": "CchSec00001",
+      "name": "Cache Test Section",
+      "dataSet": { "id": "CchDS000001" },
+      "sortOrder": 0
+    }
+  ]
+}

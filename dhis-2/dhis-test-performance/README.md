@@ -14,6 +14,22 @@ SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \
 
 Run `./run-simulation.sh` for full usage including profiling and database options.
 
+### ETag cache A/B (`PageLoadSimulation`)
+
+Protocol, dated numbers, and scripts:
+
+* [`ETAG-CACHE-TEAM-REPORT.html`](./ETAG-CACHE-TEAM-REPORT.html) — **pretty team handout** (open in a browser)  
+* [`ETAG-CACHE-CHARTS-REPORT.html`](./ETAG-CACHE-CHARTS-REPORT.html) — **charts from real Gatling CSVs**  
+* [`BENCHMARKS-etag.md`](./BENCHMARKS-etag.md) — latency/SQL/flamegraph results + how to reproduce  
+* [`MEMORY-etag.md`](./MEMORY-etag.md) — RAM design bounds, gauges, alloc A/B  
+* `scripts/etag-ab-benchmark.sh` — Docker ON vs OFF via `docker/dhis-etag-on.conf` / `dhis-etag-off.conf`  
+* `scripts/etag-ab-live.sh` — against an already-running instance (e.g. minibox)
+
+**Charts report offline limitation:** `ETAG-CACHE-CHARTS-REPORT.html` loads Chart.js from a CDN.
+Open it with network access (or vendor `chart.umd.min.js` next to the HTML); offline/CSP-blocked
+environments render the page chrome but leave the chart canvases blank. The underlying numbers
+live in the inline JSON in that HTML and in `BENCHMARKS-etag.md`.
+
 ## CI
 
 CI workflows use `./run-simulation.sh` the same way as local runs:
