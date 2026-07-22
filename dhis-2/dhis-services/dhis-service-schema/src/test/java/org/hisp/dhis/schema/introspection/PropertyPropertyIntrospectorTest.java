@@ -29,12 +29,16 @@
  */
 package org.hisp.dhis.schema.introspection;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.Map;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.annotation.Property.Access;
 import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
 
@@ -61,5 +65,63 @@ class PropertyPropertyIntrospectorTest {
 
     // ... yet it still carries @PropertyTransformer(UserPropertyTransformer.class) (DHIS2-21872).
     assertTrue(users.hasPropertyTransformer());
+  }
+
+  @Test
+  void detectsPropertyAnnotationOnReadOnlyProperty() {
+    Map<String, Property> properties = new HashMap<>();
+    new JacksonPropertyIntrospector().introspect(ReadOnlyAliasedFixture.class, properties);
+
+    Property displayAlias = properties.get("displayAlias");
+
+    // No setDisplayAlias(...), so this is read-only.
+    assertFalse(displayAlias.isWritable());
+
+    new PropertyPropertyIntrospector().introspect(ReadOnlyAliasedFixture.class, properties);
+
+    // ... yet persistedAs() still aliases the field name, since it describes the property, not
+    // whether it can be written to (DHIS2-21872).
+    assertEquals("internalName", displayAlias.getFieldName());
+  }
+
+  @Test
+  void rangeDefaultsUnaffectedWhenPropertyAnnotationOverridesWritableProperty() {
+    Map<String, Property> properties = new HashMap<>();
+    new JacksonPropertyIntrospector().introspect(ReadOnlyOverrideFixture.class, properties);
+
+    Property computed = properties.get("computed");
+
+    // Has a real setter, so writable prior to the @Property(access = READ_ONLY) override below.
+    assertTrue(computed.isWritable());
+
+    new PropertyPropertyIntrospector().introspect(ReadOnlyOverrideFixture.class, properties);
+
+    // The annotation flips writability for API purposes ...
+    assertFalse(computed.isWritable());
+    // ... but range/min-max defaults are still applied, since that decision is snapshotted from
+    // before the annotation-driven override, matching pre-existing behavior for properties like
+    // Attribute.getObjectTypes() (real setter + @Property(access = READ_ONLY)).
+    assertNotNull(computed.getMin());
+    assertNotNull(computed.getMax());
+  }
+
+  private static class ReadOnlyAliasedFixture {
+    @JsonProperty
+    @org.hisp.dhis.schema.annotation.Property(persistedAs = "internalName")
+    public String getDisplayAlias() {
+      return "computed";
+    }
+  }
+
+  private static class ReadOnlyOverrideFixture {
+    @JsonProperty
+    @org.hisp.dhis.schema.annotation.Property(access = Access.READ_ONLY)
+    public String getComputed() {
+      return "computed";
+    }
+
+    public void setComputed(String value) {
+      // real setter; @Property(access = READ_ONLY) overrides this for API purposes only
+    }
   }
 }
