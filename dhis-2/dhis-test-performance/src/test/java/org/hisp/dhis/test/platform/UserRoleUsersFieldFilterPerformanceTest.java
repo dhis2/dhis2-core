@@ -171,14 +171,17 @@ public class UserRoleUsersFieldFilterPerformanceTest extends Simulation {
     // 0cea25cd6a) p95 -- default fields 8,843ms, bare users 9,057ms; wildcard users: all 10/10
     // iterations hit Gatling's 60s HTTP client timeout (KO, zero completions -- the pre-fix N+1
     // storm is documented above, via Glowroot trace inspection, at ~139.7s, well beyond what this
-    // client timeout can even measure). Candidate (master with the fix, commit 894a102ac0) p95 --
+    // client timeout can even measure, and well beyond bare users' baseline cost -- bare/default
+    // never trigger the wildcard-expansion code path that has the bug, so their baseline numbers
+    // are real, unaffected measurements). Candidate (master with the fix, commit 894a102ac0) p95 --
     // default fields 6,872ms, bare users 6,223ms, wildcard users 6,206ms, 0 KO across all 31
-    // requests: post-fix, all three variants cost about the same, as expected. Default/bare
-    // thresholds sit with headroom above the candidate p95 and below the clean (non-bug-affected)
-    // baseline p95; the wildcard threshold -- the exact DHIS2-21856 repro -- sits far below both
-    // the 60s client timeout and the documented pre-fix latency, since the available margin there
-    // is enormous. This is a regression guard against the N+1 storm returning, not a performance
-    // target.
+    // requests: post-fix, all three variants cost about the same, as expected -- that equivalence
+    // IS the regression signal this test exists to guard, so the wildcard threshold is deliberately
+    // anchored on bare users' own clean baseline (9,057ms) rather than given its own generous
+    // independent margin: a wildcard regression that costs meaningfully more than bare (e.g. the
+    // N+1 partially returning) must fail this assertion at roughly the same point bare's own
+    // threshold would, not sail through under a separately-inflated ceiling. This is a regression
+    // guard against the N+1 storm returning, not a performance target.
     setUp(scenario.injectClosed(singleUser))
         .protocols(httpProtocol)
         .assertions(
@@ -186,7 +189,7 @@ public class UserRoleUsersFieldFilterPerformanceTest extends Simulation {
             details(DEFAULT_FIELDS_REQUEST).successfulRequests().percent().is(100D),
             details(BARE_USERS_REQUEST).responseTime().percentile(95).lt(8_700),
             details(BARE_USERS_REQUEST).successfulRequests().percent().is(100D),
-            details(WILDCARD_USERS_REQUEST).responseTime().percentile(95).lt(20_000),
+            details(WILDCARD_USERS_REQUEST).responseTime().percentile(95).lt(8_700),
             details(WILDCARD_USERS_REQUEST).successfulRequests().percent().is(100D));
   }
 }
