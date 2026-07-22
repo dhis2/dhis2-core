@@ -273,13 +273,11 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   }
 
   @Override
-  public void updatePeriodType(PeriodType periodType) {
-    String name = periodType.getName();
-    String label = periodType.getLabel();
+  public void updatePeriodTypeLabel(@Nonnull String name, @CheckForNull String label) {
 
     String sql =
         """
-        UPDATE periodtype SET label = :label
+        UPDATE periodtype pt SET pt.label = :label
         WHERE name = :name""";
 
     runAutoJoinTransaction(

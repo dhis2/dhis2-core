@@ -138,11 +138,6 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
-  public List<PeriodType> loadAllPeriodTypes() {
-    return periodStore.getAllPeriodTypes();
-  }
-
-  @Override
   @Transactional
   public List<Period> getPeriods(Period lastPeriod, int previousPeriods) {
     List<Period> periods = new ArrayList<>(previousPeriods);
@@ -230,14 +225,12 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @IndirectTransactional
-  public void updatePeriodTypeLabel(String periodTypeName, String label) {
-    PeriodType pType = periodStore.getPeriodTypeByName(periodTypeName);
-
-    if (pType != null) {
-      pType.setLabel(label);
-      periodStore.updatePeriodType(pType);
+  public void updatePeriodTypeLabel(String name, String label) {
+    PeriodType type = periodStore.getPeriodTypeByName(name);
+    if (type != null) {
+      periodStore.updatePeriodTypeLabel(name, label);
     } else {
-      throw new IllegalArgumentException(periodTypeName + " does not exist.");
+      throw new IllegalArgumentException(name + " does not exist.");
     }
   }
 
