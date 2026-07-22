@@ -55,6 +55,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -131,7 +132,7 @@ public class ProgramNotificationInstance implements IdentifiableObject {
   private SingleEvent singleEvent;
 
   @JsonProperty
-  @JsonSerialize(as = TrackerEvent.class)
+  @JsonSerialize(as = SoftDeletableEntity.class)
   private transient TrackerEvent event;
 
   @JsonProperty
