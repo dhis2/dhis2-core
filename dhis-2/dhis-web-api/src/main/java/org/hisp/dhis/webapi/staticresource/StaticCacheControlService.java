@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,8 @@ public class StaticCacheControlService {
 
   private static final Pattern VITE_HASH =
       Pattern.compile("[-_]([a-zA-Z0-9_-]{7,12})\\.[a-z0-9]{2,5}$");
+
+  private static final Pattern DIMENSIONS_TOKEN = Pattern.compile("\\d+x\\d+");
 
   private final DhisConfigurationProvider config;
   private final AppManager appManager;
@@ -218,7 +221,24 @@ public class StaticCacheControlService {
    */
   static boolean looksLikeHashedFilename(String uri) {
     if (WEBPACK_HASH.matcher(uri).find()) return true;
-    return VITE_HASH.matcher(uri).find();
+    Matcher matcher = VITE_HASH.matcher(uri);
+    return matcher.find() && !isFalsePositiveHashToken(matcher.group(1));
+  }
+
+  /**
+   * Filters out common unhashed filename patterns that happen to fit the Vite hash shape, such as
+   * PWA icon names like {@code apple-touch-icon.png} (lowercase word chains) and {@code
+   * mstile-150x150.png} (pixel dimensions). See DHIS2-21879.
+   */
+  private static boolean isFalsePositiveHashToken(String token) {
+    if (DIMENSIONS_TOKEN.matcher(token).matches()) return true;
+    boolean hasSeparator = token.indexOf('-') >= 0 || token.indexOf('_') >= 0;
+    if (!hasSeparator) return false;
+    for (int i = 0; i < token.length(); i++) {
+      char c = token.charAt(i);
+      if (Character.isDigit(c) || Character.isUpperCase(c)) return false;
+    }
+    return true;
   }
 
   private boolean isHtmlPath(String uri) {

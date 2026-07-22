@@ -47,6 +47,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -191,13 +193,22 @@ class StaticCacheControlServiceTest {
     assertThat(cc, containsString("immutable"));
   }
 
-  @Test
-  @DisplayName("Normal multi-dash filename is NOT treated as hashed")
-  void multiDash_normalFilename_notHashed() {
+  @ParameterizedTest(name = "Unhashed filename {0} is NOT treated as hashed")
+  @ValueSource(
+      strings = {
+        "/apps/dashboard/app-dashboard-plugin.js",
+        "/apps/login/apple-touch-icon.png",
+        "/apps/login/safari-pinned-tab.svg",
+        "/apps/mstile-150x150.png",
+        "/apps/android-chrome-192x192.png"
+      })
+  void unhashedFilename_notTreatedAsHashed(String uri) {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/app-dashboard-plugin.js", null, null);
+    service.setHeaders(response, uri, null, null);
 
-    assertThat(response.getHeader("Cache-Control"), containsString("max-age=3600"));
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, not(containsString("immutable")));
+    assertThat(cc, containsString("max-age=3600"));
   }
 
   @Test
