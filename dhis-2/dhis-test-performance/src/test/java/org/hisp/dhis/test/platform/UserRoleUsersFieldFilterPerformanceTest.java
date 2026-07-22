@@ -166,11 +166,27 @@ public class UserRoleUsersFieldFilterPerformanceTest extends Simulation {
 
     ClosedInjectionStep singleUser = rampConcurrentUsers(0).to(1).during(1);
 
+    // Thresholds calibrated from a real baseline-vs-candidate CI run (perf runner, platform-perf
+    // DB, 10 iterations, DHIS2-21856, run 29935165075, 2026-07-22): baseline (pre-fix, commit
+    // 0cea25cd6a) p95 -- default fields 8,843ms, bare users 9,057ms; wildcard users: all 10/10
+    // iterations hit Gatling's 60s HTTP client timeout (KO, zero completions -- the pre-fix N+1
+    // storm is documented above, via Glowroot trace inspection, at ~139.7s, well beyond what this
+    // client timeout can even measure). Candidate (master with the fix, commit 894a102ac0) p95 --
+    // default fields 6,872ms, bare users 6,223ms, wildcard users 6,206ms, 0 KO across all 31
+    // requests: post-fix, all three variants cost about the same, as expected. Default/bare
+    // thresholds sit with headroom above the candidate p95 and below the clean (non-bug-affected)
+    // baseline p95; the wildcard threshold -- the exact DHIS2-21856 repro -- sits far below both
+    // the 60s client timeout and the documented pre-fix latency, since the available margin there
+    // is enormous. This is a regression guard against the N+1 storm returning, not a performance
+    // target.
     setUp(scenario.injectClosed(singleUser))
         .protocols(httpProtocol)
         .assertions(
+            details(DEFAULT_FIELDS_REQUEST).responseTime().percentile(95).lt(8_500),
             details(DEFAULT_FIELDS_REQUEST).successfulRequests().percent().is(100D),
+            details(BARE_USERS_REQUEST).responseTime().percentile(95).lt(8_700),
             details(BARE_USERS_REQUEST).successfulRequests().percent().is(100D),
+            details(WILDCARD_USERS_REQUEST).responseTime().percentile(95).lt(20_000),
             details(WILDCARD_USERS_REQUEST).successfulRequests().percent().is(100D));
   }
 }
