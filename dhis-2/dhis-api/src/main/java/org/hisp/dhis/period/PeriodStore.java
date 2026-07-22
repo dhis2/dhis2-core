@@ -32,6 +32,7 @@ package org.hisp.dhis.period;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * Defines the functionality for persisting Periods and PeriodTypes.
@@ -128,12 +129,8 @@ public interface PeriodStore {
    */
   void addPeriodType(PeriodType periodType);
 
-  /**
-   * Updated the given {@link PeriodType}. Currently, only the "label" is updatable.
-   *
-   * @param periodType the {@link PeriodType}.
-   */
-  void updatePeriodType(PeriodType periodType);
+  /** Updated the given {@link PeriodType}'s label. */
+  void updatePeriodTypeLabel(@Nonnull String name, @CheckForNull String label);
 
   /**
    * Returns all PeriodTypes.
