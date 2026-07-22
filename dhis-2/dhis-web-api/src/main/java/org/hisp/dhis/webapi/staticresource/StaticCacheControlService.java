@@ -111,6 +111,11 @@ public class StaticCacheControlService {
 
   private CacheControl computeCacheControl(
       String uri, @CheckForNull String queryString, AppCacheConfig config) {
+    // Directory URLs serve the index.html entry point, normalize so the same cache rules
+    // apply to both forms of the URL (DHIS2-21881)
+    if (uri.endsWith("/")) {
+      uri = uri + "index.html";
+    }
     if (matchesAnyNoCachePattern(uri) || matchesNoCacheRule(uri, config)) {
       return CacheControl.noStore();
     }
