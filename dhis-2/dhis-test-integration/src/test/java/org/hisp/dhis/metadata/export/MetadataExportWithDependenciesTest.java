@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -154,7 +155,9 @@ class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
 
     MetadataExportParams exportParams = new MetadataExportParams();
     exportParams.addClass(org.hisp.dhis.mapping.Map.class);
-    ObjectNode exported = metadataExportService.getMetadataAsObjectNode(exportParams);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    metadataExportService.getMetadataAsObjectNodeStream(exportParams, outputStream);
+    ObjectNode exported = (ObjectNode) jsonMapper.readTree(outputStream.toByteArray());
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
