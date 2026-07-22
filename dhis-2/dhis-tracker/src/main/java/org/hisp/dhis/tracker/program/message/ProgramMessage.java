@@ -61,7 +61,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -124,7 +123,7 @@ public class ProgramMessage implements IdentifiableObject, Serializable {
   private SingleEvent singleEvent;
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = TrackerEvent.class)
   private transient TrackerEvent event;
 
   @JsonProperty @Embedded private ProgramMessageRecipients recipients;

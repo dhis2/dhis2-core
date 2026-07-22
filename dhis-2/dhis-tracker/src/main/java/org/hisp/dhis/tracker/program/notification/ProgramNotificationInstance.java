@@ -53,7 +53,6 @@ import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
@@ -132,7 +131,7 @@ public class ProgramNotificationInstance implements IdentifiableObject {
   private SingleEvent singleEvent;
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = TrackerEvent.class)
   private transient TrackerEvent event;
 
   @JsonProperty
