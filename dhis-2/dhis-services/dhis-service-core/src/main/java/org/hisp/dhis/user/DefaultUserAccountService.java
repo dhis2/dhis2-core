@@ -67,7 +67,7 @@ public class DefaultUserAccountService implements UserAccountService {
    * unknown and known usernames respond in similar time (no enumeration via timing).
    */
   private static final String TIMING_EQUALIZATION_HASH =
-      "$2a$10$4TXauPu06PhCTK8Up3oHi.0Y7SXLeu8ISJ6jq1GYpaaQOsSL5FOxG";
+      "$2a$10$4TXauPu06PhCTK8Up3oHi.0Y7SXLeu8ISJ6jq1GYpaaQOsSL5FOxG"; // NOSONAR not a secret
 
   private final UserService userService;
   private final ConfigurationService configService;
