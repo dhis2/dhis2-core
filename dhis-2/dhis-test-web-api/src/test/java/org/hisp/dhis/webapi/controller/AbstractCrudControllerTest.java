@@ -73,6 +73,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -103,6 +104,66 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
     assertTrue(userById.exists());
     assertEquals(id, userById.getId());
+  }
+
+  @Test
+  @DisplayName(
+      "GET single object: fields under a PropertyTransformer-controlled nested collection never"
+          + " change the response, however they're requested (DHIS2-21856)")
+  void testGetObjectPropertyTransformerFieldsAreInvariant() {
+    User user = makeUser("H");
+    user.setEmail("h@h.org");
+    userService.addUser(user);
+    UserGroup group = createUserGroup('H', Set.of(user));
+    manager.save(group);
+    manager.flush();
+
+    // UserPropertyTransformer always serializes id/code/name/displayName/username and nothing
+    // else -- verified against a live server to be byte-identical for "users", "users[href]" and
+    // "users[*]". This only pins output correctness; it can't detect the N+1 this ticket actually
+    // fixes (LinkService.generateLinks reflectively touching the real Hibernate collection before
+    // field-filtering runs), because that bug is invisible in the JSON response by construction --
+    // see FieldPathHelperPropertyTransformerPruningTest for the real regression guard, which
+    // asserts on the field-path list itself rather than on JSON content.
+    JsonObject baseline =
+        GET("/userGroups/{id}?fields=id,users", group.getUid())
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    for (String fields : List.of("users[href]", "users[*]", "users[id,name]")) {
+      JsonObject userInGroup =
+          GET("/userGroups/{id}?fields=id,{fields}", group.getUid(), fields)
+              .content(HttpStatus.OK)
+              .getArray("users")
+              .getObject(0);
+      assertEquals(baseline.toJson(), userInGroup.toJson());
+    }
+  }
+
+  @Test
+  @DisplayName(
+      "GET single object: href is still generated for a nested collection without a"
+          + " PropertyTransformer when explicitly requested (regression guard for the"
+          + " DHIS2-21856 hasHref rewrite)")
+  void testGetObjectHrefGeneratedForNonTransformerNestedCollection() {
+    UserRole role = createUserRole('H', "ALL");
+    manager.save(role);
+    User user = makeUser("H");
+    user.setEmail("h@h.org");
+    user.getUserRoles().add(role);
+    userService.addUser(user);
+    manager.flush();
+
+    JsonObject userRole =
+        GET("/users/{id}?fields=userRoles[*]", user.getUid())
+            .content(HttpStatus.OK)
+            .getArray("userRoles")
+            .getObject(0);
+
+    String href = userRole.getString("href").string();
+    assertNotNull(href);
+    assertTrue(href.endsWith("/userRoles/" + role.getUid()));
   }
 
   @Test
@@ -229,8 +290,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "/users/" + id + "/translations",
                     "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1107);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E1107);
     assertEquals("Object type `User` is not translatable", error.getMessage());
   }
 
@@ -259,7 +319,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     JsonTranslation translation = translations.get(0, JsonTranslation.class);
     assertEquals("sv", translation.getLocale());
     assertEquals("name", translation.getProperty());
-    assertEquals("name sv", translation.getValue());
+    assertEquals("name sv", translation.value());
   }
 
   @Test
@@ -286,8 +346,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn 1'},{'locale':'sv', 'property':'name', 'value':'namn2'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1106);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E1106);
     assertEquals(
         String.format(
             "There are duplicate translation records for property `name` and locale `sv` on DataSet `%s`",
@@ -327,8 +386,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'en', 'property':'name'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `value`", error.getMessage());
   }
@@ -353,8 +411,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'en', 'value':'namn 1'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `property`", error.getMessage());
   }
@@ -379,8 +436,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'property':'name', 'value':'namn 1'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `locale`", error.getMessage());
   }
@@ -444,7 +500,13 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         HttpStatus.OK,
         PUT(
             "/users/" + peterUserId,
-            Body(oldPeter.getString("firstName").node().replaceWith("\"Fry\"").getDeclaration()),
+            Body(
+                oldPeter
+                    .getString("firstName")
+                    .node()
+                    .replaceWith("\"Fry\"")
+                    .getDeclaration()
+                    .toString()),
             ContentType(MediaType.APPLICATION_JSON)));
     JsonUser newPeter = GET("/users/{id}", peterUserId).content().as(JsonUser.class);
     assertEquals("Fry", newPeter.getFirstName());
@@ -721,7 +783,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
     assertWebMessage(
         "OK", 200, "OK", null, DELETE("/organisationUnits/" + ouId).content(HttpStatus.OK));
-    assertEquals(0, GET("/organisationUnits").content().getArray("organisationUnits").size());
+    assertEquals(
+        0, GET("/organisationUnits?gist=false").content().getArray("organisationUnits").size());
   }
 
   @Test
@@ -1076,9 +1139,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             .as(JsonImportSummary.class);
     assertEquals(
         "Invalid UID `11111111111` for property `DataSet`",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4014)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E4014).getMessage());
   }
 
   @Test
@@ -1120,7 +1181,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     manager.save(dataElementGroup);
 
     JsonMixed response =
-        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR"
+        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR&gist=false"
                 .formatted(dataElementGroup.getUid()))
             .content();
     assertFalse(response.getArray("dataElements").isEmpty());

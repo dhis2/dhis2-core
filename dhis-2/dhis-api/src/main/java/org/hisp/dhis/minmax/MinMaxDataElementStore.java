@@ -49,9 +49,9 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
 
   List<MinMaxDataElement> get(OrganisationUnit source, Collection<DataElement> dataElements);
 
-  List<MinMaxDataElement> query(MinMaxDataElementQueryParams query);
+  List<MinMaxDataElement> query(MinMaxDataElementParams query);
 
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
+  int countMinMaxDataElements(MinMaxDataElementParams query);
 
   void delete(OrganisationUnit organisationUnit);
 

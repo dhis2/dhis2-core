@@ -58,11 +58,10 @@ import lombok.Setter;
 import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -204,8 +203,17 @@ public class CommonRequestParams {
   /** The event statuses to filter on. */
   private Set<String> eventStatus = new LinkedHashSet<>();
 
-  /** The dimensional object for which to produce aggregated data. */
-  private DimensionalItemObject value;
+  /**
+   * UID of the numeric dimension (a tracked entity attribute for tracked entity aggregate queries)
+   * to aggregate over. Resolved downstream. When omitted, an aggregate query counts instances.
+   */
+  private String value;
+
+  /**
+   * Aggregation function applied to the {@link #value} dimension of an aggregate query. Defaults to
+   * COUNT when no value is supplied and to AVERAGE when a value is supplied.
+   */
+  private AggregationType aggregationType;
 
   /** Indicates which property to display. */
   private DisplayProperty displayProperty;
@@ -434,8 +442,7 @@ public class CommonRequestParams {
     }
   }
 
-  @OpenApi.Ignore
-  public DimensionalItemObject getValue() {
+  public String getValue() {
     return value;
   }
 

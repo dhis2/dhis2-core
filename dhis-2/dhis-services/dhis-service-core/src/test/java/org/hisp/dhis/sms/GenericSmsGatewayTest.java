@@ -61,6 +61,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
@@ -100,7 +101,7 @@ class GenericSmsGatewayTest {
 
   @Captor private ArgumentCaptor<HttpMethod> httpMethodArgumentCaptor;
 
-  private SimplisticHttpGetGateWay subject;
+  @InjectMocks private SimplisticHttpGetGateWay subject;
 
   private GenericHttpGatewayConfig gatewayConfig;
 
@@ -115,8 +116,8 @@ class GenericSmsGatewayTest {
   private Map<String, String> valueStore = new HashMap<>();
 
   @BeforeEach
-  public void setUp() {
-    subject = new SimplisticHttpGetGateWay(restTemplate, pbeStringEncryptor);
+  void setUp() {
+    subject.setRestTemplate(restTemplate);
 
     gatewayConfig = new GenericHttpGatewayConfig();
     gatewayConfig.setUseGet(false);
@@ -187,8 +188,8 @@ class GenericSmsGatewayTest {
         .filter(p -> p.isEncode() && p.isConfidential() && p.isHeader())
         .forEach(
             p -> {
-              assertTrue(httpHeaders.containsKey(p.getKey()));
-              assertEquals(" Basic ZGVjcnlwdGVkVGV4dA==", httpHeaders.get(p.getKey()).get(0));
+              assertTrue(httpHeaders.containsHeader(p.getKey()));
+              assertEquals(" Basic ZGVjcnlwdGVkVGV4dA==", httpHeaders.getFirst(p.getKey()));
             });
   }
 

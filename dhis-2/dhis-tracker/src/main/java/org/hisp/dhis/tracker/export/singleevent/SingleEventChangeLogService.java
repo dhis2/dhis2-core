@@ -29,10 +29,6 @@
  */
 package org.hisp.dhis.tracker.export.singleevent;
 
-import java.util.Date;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -47,38 +43,5 @@ public class SingleEventChangeLogService
       HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent>
           hibernateEventChangeLogStore) {
     super(singleEventService, hibernateEventChangeLogStore);
-  }
-
-  @Override
-  public SingleEventChangeLog buildEventChangeLog(
-      SingleEvent event,
-      DataElement dataElement,
-      String eventField,
-      String previousValue,
-      String value,
-      ChangeLogType changeLogType,
-      Date created,
-      String userName) {
-    return new SingleEventChangeLog(
-        event, dataElement, eventField, previousValue, value, changeLogType, created, userName);
-  }
-
-  @Override
-  public void addEntityFieldChangeLog(
-      @Nonnull SingleEvent currentEvent, @Nonnull SingleEvent event, @Nonnull String username) {
-    logIfChanged(
-        "occurredAt",
-        SingleEvent::getOccurredDate,
-        EventChangeLogService::formatDate,
-        currentEvent,
-        event,
-        username);
-    logIfChanged(
-        "geometry",
-        SingleEvent::getGeometry,
-        EventChangeLogService::formatGeometry,
-        currentEvent,
-        event,
-        username);
   }
 }

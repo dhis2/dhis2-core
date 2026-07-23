@@ -155,37 +155,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void updateRolesAuthoritiesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
-
-    UserRole roleB = createUserRole("ROLE_B", "ALL");
-    userService.addUserRole(roleB);
-
-    PATCH(
-            "/users/" + getAdminUid(),
-            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleB.getUid() + "'}]}]")
-        .content(HttpStatus.OK);
-
-    String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
-
-    sessionRegistry.registerNewSession("session1", sessionPrincipal);
-    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
-
-    PATCH(
-            "/userRoles/" + roleBID,
-            "["
-                + " {"
-                + "   'op': 'add',"
-                + "   'path': '/authorities',"
-                + "   'value': ['NONE']"
-                + " }"
-                + "]")
-        .content(HttpStatus.OK);
-
-    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
-  }
-
-  @Test
   void testResetToInvite() {
     assertStatus(HttpStatus.NO_CONTENT, POST("/users/" + peter.getUid() + "/reset"));
     OutboundMessage email = assertMessageSendTo("peter@pan.net");
@@ -275,9 +244,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "Property `OIDC mapping value` already exists, was given `peter@mail.org`.",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4054)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E4054).getMessage());
   }
 
   /**
@@ -298,9 +265,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "User `someone` is not allowed to change a user having the ALL authority",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E3041).getMessage());
   }
 
   @Test
@@ -317,15 +282,11 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "User `someone` is not allowed to change a user having the ALL authority",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E3041).getMessage());
 
     assertEquals(
         "User `someone` is not allowed to change a user having the ALL authority",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E3041).getMessage());
   }
 
   private JsonImportSummary updateRolesNonAllAdmin() {
@@ -397,9 +358,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "User `someone` does not have access to user role",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3032)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E3032).getMessage());
   }
 
   @Test
@@ -438,9 +397,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "Organisation unit: `ouabcdefghA` not in hierarchy of current user: `someone`",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E7617)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E7617).getMessage());
   }
 
   @Test
@@ -1133,9 +1090,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
                     "/users/" + peter.getUid() + "?importReportMode=ERRORS",
                     "[{'op': 'add', 'path': '/whatsApp', 'value': 'not-a-phone-no'}]")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport report =
-        msg.getResponse()
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4027);
+    JsonErrorReport report = msg.findErrorReport(ErrorCode.E4027);
     assertEquals("whatsApp", report.getErrorProperty());
   }
 
@@ -1177,9 +1132,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
             "One or more errors occurred, please see full details in import report.",
             POST("/users/", "{'surname':'S.','firstName':'Harry','username':'_Harrys'}")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport report =
-        msg.getResponse()
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049);
+    JsonErrorReport report = msg.findErrorReport(ErrorCode.E4049);
     assertEquals("username", report.getErrorProperty());
   }
 

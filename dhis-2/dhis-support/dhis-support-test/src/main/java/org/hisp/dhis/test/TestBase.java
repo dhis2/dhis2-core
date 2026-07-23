@@ -42,6 +42,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +67,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -290,7 +290,10 @@ public abstract class TestBase {
 
   @Autowired protected HibernateService hibernateService;
 
-  @Autowired protected static CategoryService categoryService;
+  // NB: @Autowired on a static field is not supported and, under Spring 7, breaks autowiring/
+  // @PostConstruct for the whole test instance (leaving the services below null). The static field
+  // is populated from the injected instance field in initServices() below.
+  protected static CategoryService categoryService;
 
   protected static ConfigurationService configurationService;
 
@@ -2566,10 +2569,7 @@ public abstract class TestBase {
   }
 
   public static void clearSecurityContext() {
-    SecurityContext context = SecurityContextHolder.getContext();
-    if (context != null) {
-      SecurityContextHolder.getContext().setAuthentication(null);
-    }
+    SecurityContextHolder.getContext().setAuthentication(null);
     SecurityContextHolder.clearContext();
   }
 

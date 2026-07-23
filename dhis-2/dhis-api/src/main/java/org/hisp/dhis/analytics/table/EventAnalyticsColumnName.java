@@ -47,7 +47,6 @@ public final class EventAnalyticsColumnName {
   public static final String CREATED_COLUMN_NAME = "created";
   public static final String CREATED_DATE_COLUMN_NAME = "created";
   public static final String LAST_UPDATED_COLUMN_NAME = "lastupdated";
-  public static final String STORED_BY_COLUMN_NAME = "storedby";
   public static final String CREATED_BY_USERNAME_COLUMN_NAME = "createdbyusername";
   public static final String CREATED_BY_NAME_COLUMN_NAME = "createdbyname";
   public static final String CREATED_BY_LASTNAME_COLUMN_NAME = "createdbylastname";

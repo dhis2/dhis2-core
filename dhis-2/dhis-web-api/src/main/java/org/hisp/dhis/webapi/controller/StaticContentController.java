@@ -52,13 +52,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -67,6 +68,8 @@ import org.hisp.dhis.fileresource.SimpleImageResource;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -94,6 +97,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class StaticContentController {
   private final StyleManager styleManager;
   private final FileResourceContentStore contentStore;
+  private final StaticCacheControlService staticCacheControlService;
+  private final DhisConfigurationProvider dhisConfig;
   static final String LOGO_BANNER = "logo_banner";
   static final String LOGO_FRONT = "logo_front";
   private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
@@ -118,8 +123,8 @@ public class StaticContentController {
       throws WebMessageException, NotFoundException {
 
     if (isUseCustomFile(key, settings)) {
-      final String storageKey = makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key));
-      final boolean customFileExists = contentStore.fileResourceContentExists(storageKey);
+      final boolean customFileExists =
+          contentStore.fileResourceContentExists(makeKey(DEFAULT_RESOURCE_DOMAIN, key));
 
       if (customFileExists) {
         final String blobEndpoint = getContextPath(request) + "/api/staticContent/" + key;
@@ -157,6 +162,8 @@ public class StaticContentController {
       SystemSettings settings)
       throws WebMessageException, NotFoundException {
 
+    staticCacheControlService.setHeaders(response, request.getRequestURI(), null, null);
+
     if (!isUseCustomFile(key, settings)) // Serve default
     {
       try {
@@ -168,8 +175,7 @@ public class StaticContentController {
     {
       try {
         response.setContentType(IMAGE_PNG_VALUE);
-        contentStore.copyContent(
-            makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)), response.getOutputStream());
+        contentStore.copyContent(makeKey(DEFAULT_RESOURCE_DOMAIN, key), response.getOutputStream());
       } catch (NoSuchElementException e) {
         throw new WebMessageException(notFound(e.getMessage()));
       } catch (IOException e) {
@@ -193,6 +199,9 @@ public class StaticContentController {
     if (file == null || file.isEmpty()) {
       throw new BadRequestException("Missing parameter 'file'");
     }
+
+    FileResourceUtils.validateFileSize(
+        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
 
     // Only PNG is accepted at the current time
 

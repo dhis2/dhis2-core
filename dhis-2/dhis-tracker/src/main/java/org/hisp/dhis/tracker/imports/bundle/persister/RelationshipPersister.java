@@ -29,18 +29,21 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import jakarta.persistence.EntityManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -52,10 +55,32 @@ public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.tracker.model.Relationship> {
 
   public RelationshipPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
+  }
 
-    super(reservedValueService, trackedEntityChangeLogService);
+  @Override
+  protected String sequenceName() {
+    // The 2 RelationshipItem ids per Relationship are allocated separately from
+    // relationshipitem_sequence inside EntityWriteBatch.insertRelationshipItems.
+    return "relationship_sequence";
+  }
+
+  @Override
+  protected void assignId(org.hisp.dhis.tracker.model.Relationship entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(
+      org.hisp.dhis.tracker.model.Relationship entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(
+      org.hisp.dhis.tracker.model.Relationship entity, EntityWriteBatch batch) {
+    throw new UnsupportedOperationException("Relationships are not updated");
   }
 
   @Override
@@ -70,11 +95,13 @@ public class RelationshipPersister
 
   @Override
   protected void updateAttributes(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.tracker.model.Relationship hibernateEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     // NOTHING TO DO
   }
 
@@ -98,20 +125,21 @@ public class RelationshipPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       Relationship trackerDto,
-      org.hisp.dhis.tracker.model.Relationship entity) {
+      org.hisp.dhis.tracker.model.Relationship entity,
+      EntityWriteBatch batch) {
     // NOTHING TO DO
 
   }
 
   @Override
   protected void updateDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.tracker.model.Relationship payloadEntity,
       org.hisp.dhis.tracker.model.Relationship currentEntity,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    // DO NOTHING - RELATIONSHIPS HAVE NO DATA VALUES
   }
 
   @Override

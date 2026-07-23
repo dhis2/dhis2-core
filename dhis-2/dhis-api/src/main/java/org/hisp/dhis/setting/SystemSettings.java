@@ -779,15 +779,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @since 2.42
-   * @return true if the experimental analytics query engine should be used for analytics queries.
-   *     This engine is only required when using ClickHouse or Doris as the analytics database.
-   */
-  default boolean getUseExperimentalAnalyticsQueryEngine() {
-    return asBoolean("experimentalAnalyticsSqlEngineEnabled", true);
-  }
-
-  /**
    * @since 2.40
    * @return if true, the analytics event tables are created with a centroid value for each Data
    *     Element or TEA of type OU or ougeometry

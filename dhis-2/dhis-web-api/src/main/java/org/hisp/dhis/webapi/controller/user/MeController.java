@@ -37,7 +37,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -60,7 +59,6 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -152,10 +150,10 @@ public class MeController {
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
       @CurrentUser(required = true) User user, GetObjectParams params, HttpServletRequest request) {
 
-    List<String> fields = params.getFields();
-    if (fields == null || fields.isEmpty()) fields = List.of("*");
+    String fields = params.getFields();
+    if (fields == null || fields.isEmpty()) fields = "*";
 
-    if (fieldsContains("access", fields)) {
+    if (fields.contains("access") || fields.contains("*") || fields.contains(":all")) {
       Access access = aclService.getAccess(user, user);
       user.setAccess(access);
     }
@@ -183,12 +181,12 @@ public class MeController {
             .filter(role -> aclService.canRead(userDetails, role))
             .collect(Collectors.toSet());
 
+    int settingsStart = fields.indexOf("settings[");
     Set<String> settingKeys =
-        fields.stream()
-            .filter(f -> f.startsWith("settings["))
-            .findFirst()
-            .map(f -> Set.of(f.substring(9, f.length() - 1).split(",")))
-            .orElse(Set.of());
+        settingsStart < 0
+            ? Set.of()
+            : Set.of(
+                fields.substring(settingsStart + 9, fields.indexOf(']', settingsStart)).split(","));
     UserSettings settings = UserSettings.getCurrentSettings();
     JsonMap<JsonMixed> s =
         settingKeys.isEmpty() ? settings.toJson(false) : settings.toJson(true, settingKeys);
@@ -224,16 +222,6 @@ public class MeController {
     }
   }
 
-  private boolean fieldsContains(String key, List<String> fields) {
-    for (String field : fields) {
-      if (field.contains(key) || field.equals("*") || field.startsWith(":")) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   @GetMapping("/dataApprovalWorkflows")
   public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows(
       @CurrentUser(required = true) User user) {
@@ -244,12 +232,11 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PutMapping(value = "", consumes = APPLICATION_JSON_VALUE)
   public void updateCurrentUser(
+      @RequestParam(defaultValue = "*") String fields,
       HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser(required = true) User currentUser)
       throws ConflictException, IOException {
-
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     User user = renderService.fromJson(request.getInputStream(), User.class);
 
@@ -270,10 +257,6 @@ public class MeController {
     }
 
     manager.update(currentUser);
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
 
     CollectionNode collectionNode =
         oldFieldFilterService.toCollectionNode(

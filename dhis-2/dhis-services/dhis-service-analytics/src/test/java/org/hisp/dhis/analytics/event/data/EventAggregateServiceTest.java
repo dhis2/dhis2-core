@@ -30,22 +30,36 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createLegend;
+import static org.hisp.dhis.test.TestBase.createLegendSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -77,6 +91,17 @@ class EventAggregateServiceTest {
 
     assertEquals("incidentdate", header.getName());
     assertEquals("Incident date custom", header.getColumn());
+  }
+
+  @Test
+  void shouldUseCustomOrgUnitLabelForOuDimensionHeader() throws Exception {
+    Program program = new Program();
+    program.setOrgUnitLabel("Facility");
+
+    GridHeader header = invokeAddDimensionHeaders(orgUnitDimensionParams(program));
+
+    assertEquals("ou", header.getName());
+    assertEquals("Facility", header.getColumn());
   }
 
   @Test
@@ -124,6 +149,39 @@ class EventAggregateServiceTest {
   }
 
   @Test
+  void shouldFallBackToAllLegendsWhenDimensionsMetadataOmitsLegendSetDataElement()
+      throws Exception {
+    Legend legendA = createLegend('A', 0.0, 2.0);
+    Legend legendB = createLegend('B', 2.0, 4.0);
+    LegendSet legendSet = createLegendSet('A', legendA, legendB);
+
+    DataElement dataElement = createDataElement('A');
+    dataElement.setValueType(ValueType.NUMBER);
+    dataElement.setLegendSets(List.of(legendSet));
+
+    Grid grid = new ListGrid();
+    grid.getMetaData().put(AnalyticsMetaDataKey.DIMENSIONS.getKey(), new HashMap<String, Object>());
+
+    List<EventAnalyticsDimensionalItem> dimensionalItems = new ArrayList<>();
+
+    invokeAddEventReportDimensionalItems(dataElement, dimensionalItems, grid, dataElement.getUid());
+
+    assertFalse(dimensionalItems.isEmpty());
+  }
+
+  @Test
+  void shouldNotNpeWhenItemsMetadataOmitsRowDimension() throws Exception {
+    String missingDimensionUid = "deUidAAAAA";
+
+    Grid grid = new ListGrid();
+    grid.getMetaData().put(AnalyticsMetaDataKey.ITEMS.getKey(), new HashMap<String, Object>());
+
+    EventQueryParams params = new EventQueryParams.Builder().build();
+
+    invokeGenerateOutputGrid(grid, params, List.of(), List.of(), List.of(missingDimensionUid));
+  }
+
+  @Test
   void shouldKeepValueAndEnrollmentOuHeadersUnchanged() throws Exception {
     EventQueryParams params =
         new EventQueryParams.Builder(defaultPeriodParams())
@@ -157,6 +215,43 @@ class EventAggregateServiceTest {
     method.invoke(service, arg0, arg1);
   }
 
+  private void invokeAddEventReportDimensionalItems(
+      ValueTypedDimensionalItemObject item,
+      List<EventAnalyticsDimensionalItem> dimensionalItems,
+      Grid grid,
+      String dimension)
+      throws Exception {
+    Method method =
+        EventAggregateService.class.getDeclaredMethod(
+            "addEventReportDimensionalItems",
+            ValueTypedDimensionalItemObject.class,
+            List.class,
+            Grid.class,
+            String.class);
+    method.setAccessible(true);
+    method.invoke(service, item, dimensionalItems, grid, dimension);
+  }
+
+  private Grid invokeGenerateOutputGrid(
+      Grid grid,
+      EventQueryParams params,
+      List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations,
+      List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations,
+      List<String> rowDimensions)
+      throws Exception {
+    Method method =
+        EventAggregateService.class.getDeclaredMethod(
+            "generateOutputGrid",
+            Grid.class,
+            EventQueryParams.class,
+            List.class,
+            List.class,
+            List.class);
+    method.setAccessible(true);
+    return (Grid)
+        method.invoke(service, grid, params, rowPermutations, columnPermutations, rowDimensions);
+  }
+
   private EventQueryParams singleDateFieldParams(String dateField, Program program) {
     PeriodDimension period = PeriodDimension.of("2021").setDateField(dateField);
     BaseDimensionalObject periodDimension =
@@ -164,6 +259,17 @@ class EventAggregateServiceTest {
 
     return new EventQueryParams.Builder()
         .addDimension(periodDimension)
+        .withProgram(program)
+        .build();
+  }
+
+  private EventQueryParams orgUnitDimensionParams(Program program) {
+    BaseDimensionalObject orgUnitDimension =
+        new BaseDimensionalObject(
+            ORGUNIT_DIM_ID, ORGANISATION_UNIT, "Organisation unit", List.of());
+
+    return new EventQueryParams.Builder()
+        .addDimension(orgUnitDimension)
         .withProgram(program)
         .build();
   }

@@ -29,22 +29,37 @@
  */
 package org.hisp.dhis.fileresource;
 
-import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.storage.BlobKey;
 
 /**
- * @author Luciano Fiandesio
+ * Factory methods for constructing typed {@link BlobKey} values for {@link FileResource} blobs.
+ *
+ * <p>Keys follow the pattern {@code <domainPrefix>/<identifier>}, where {@code domainPrefix} comes
+ * from {@link FileResourceDomain#getContainerName()} (e.g. {@code "dataValue"}, {@code "icon"}).
+ *
+ * <p>Use {@link #makeKey(FileResourceDomain, String)} when the identifier is already known (e.g.
+ * when creating an icon or a job-data resource with a fixed key). Use {@link
+ * #makeKeyWithRandomUUID(FileResourceDomain)} when a new unique key is needed, such as when
+ * uploading a new data-value file.
  */
 public class FileResourceKeyUtil {
+  private FileResourceKeyUtil() {}
 
-  public static String makeKey(FileResourceDomain domain, Optional<String> key) {
-    if (key.isPresent()) {
-      return domain.getContainerName() + "/" + key.get();
-    }
-    return generateStorageKey(domain);
+  /**
+   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<key>} for the given domain and
+   * known identifier.
+   */
+  public static BlobKey makeKey(@Nonnull FileResourceDomain domain, @Nonnull String key) {
+    return BlobKey.of(domain.getContainerName(), key);
   }
 
-  private static String generateStorageKey(FileResourceDomain domain) {
-    return domain.getContainerName() + "/" + UUID.randomUUID().toString();
+  /**
+   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<uuid>} using a freshly generated
+   * random UUID as the identifier. Use this when no external identifier exists for the resource.
+   */
+  public static BlobKey makeKeyWithRandomUUID(@Nonnull FileResourceDomain domain) {
+    return BlobKey.of(domain.getContainerName(), UUID.randomUUID().toString());
   }
 }

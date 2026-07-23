@@ -29,10 +29,9 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,27 +40,12 @@ import org.junit.jupiter.api.Test;
 class FieldFilterParamsTest {
   @Test
   void testBuilderWithObjectAndFilters() {
-    FieldFilterParams<String> params =
-        FieldFilterParams.<String>builder()
-            .objects(Lists.newArrayList("A", "B", "C"))
-            .filters("id,name")
-            .build();
+    FieldFilterParams<String> params = FieldFilterParams.of(List.of("A", "B", "C"), "id,name");
 
     assertTrue(params.getObjects().contains("A"));
     assertTrue(params.getObjects().contains("B"));
     assertTrue(params.getObjects().contains("C"));
-    assertTrue(params.getFilters().contains("id"));
-    assertTrue(params.getFilters().contains("name"));
-  }
-
-  @Test
-  void testBuilderWithDefault() {
-    FieldFilterParams<String> params =
-        FieldFilterParams.<String>builder().objects(Lists.newArrayList("A", "B", "C")).build();
-
-    assertTrue(params.getObjects().contains("A"));
-    assertTrue(params.getObjects().contains("B"));
-    assertTrue(params.getObjects().contains("C"));
-    assertEquals("*", params.getFilters());
+    assertTrue(params.getFields().contains("id"));
+    assertTrue(params.getFields().contains("name"));
   }
 }

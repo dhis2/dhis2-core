@@ -124,8 +124,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
     trackerObjectDeletionService.deleteSingleEvents(List.of(UID.of("OTmjvJDn0Fu")));
 
-    manager.flush();
-    manager.clear();
+    clearSession();
 
     assertThrows(
         NotFoundException.class,
@@ -302,14 +301,16 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     User deletedUser = new User();
     deletedUser.setUsername("deletedUserName");
-    singleEventChangeLogService.addEventChangeLog(
-        event,
-        dataElement,
-        event.getProgramStage().getProgram(),
-        "previous",
-        "current",
-        UPDATE,
-        deletedUser.getUsername());
+    entityManager.persist(
+        new SingleEventChangeLog(
+            event,
+            dataElement,
+            null,
+            "previous",
+            "current",
+            UPDATE,
+            new java.util.Date(),
+            deletedUser.getUsername()));
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
@@ -436,6 +437,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
                       TrackerImportParams.builder().build(),
                       TrackerObjects.builder().events(List.of(e)).build()));
             });
+    clearSession();
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {

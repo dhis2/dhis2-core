@@ -262,7 +262,7 @@ public class EventQueryAnalyticsController {
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
       @RequestParam(required = false) String programId,
       @RequestParam(required = false) String programStageId,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
     validateRequest(programId, programStageId);

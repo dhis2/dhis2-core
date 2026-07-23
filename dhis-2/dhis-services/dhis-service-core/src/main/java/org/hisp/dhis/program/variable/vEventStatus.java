@@ -45,9 +45,6 @@ public class vEventStatus implements ProgramVariable {
 
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
-    if (!visitor.isUseExperimentalSqlEngine()) {
-      return getSql2(visitor);
-    }
     ProgramExpressionParams params = visitor.getProgParams();
 
     if (params != null
@@ -63,18 +60,5 @@ public class vEventStatus implements ProgramVariable {
   @Override
   public Object defaultVariableValue() {
     return "COMPLETED";
-  }
-
-  public Object getSql2(CommonExpressionVisitor visitor) {
-    ProgramExpressionParams params = visitor.getProgParams();
-
-    return visitor
-        .getStatementBuilder()
-        .getProgramIndicatorEventColumnSql(
-            null,
-            "eventstatus",
-            params.getReportingStartDate(),
-            params.getReportingEndDate(),
-            params.getProgramIndicator());
   }
 }

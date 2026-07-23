@@ -162,7 +162,10 @@ public class HibernateConfig {
     Properties properties = new Properties();
     properties.put(
         "hibernate.current_session_context_class",
-        "org.springframework.orm.hibernate5.SpringSessionContext");
+        // Spring 7.0 moved SpringSessionContext from org.springframework.orm.hibernate5 to
+        // org.springframework.orm.jpa.hibernate (this is a runtime class name, not a compile
+        // import).
+        "org.springframework.orm.jpa.hibernate.SpringSessionContext");
 
     if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
@@ -179,9 +182,6 @@ public class HibernateConfig {
     }
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
-
-    // TODO: this is anti-pattern and should be turn off
-    properties.put("hibernate.allow_update_outside_transaction", "true");
 
     return properties;
   }

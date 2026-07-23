@@ -36,6 +36,8 @@ import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +53,7 @@ class EventVisualizationStoreTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
   @Autowired private EventVisualizationStore eventVisualizationStore;
   @Autowired private AnalyticalObjectStore<EventVisualization> analyticalObjectStore;
+  @Autowired private ProgramService programService;
 
   @Test
   @DisplayName("retrieving Event Visualizations by DataElement should return the correct results")
@@ -60,11 +63,14 @@ class EventVisualizationStoreTest extends PostgresIntegrationTestBase {
     DataElement de2 = createDataElementAndSave('2');
     DataElement de3 = createDataElementAndSave('3');
 
-    EventVisualization eventVis1 = createEventVisualization('1', null);
+    Program program1 = createProgram('A', null, null);
+    programService.addProgram(program1);
+
+    EventVisualization eventVis1 = createEventVisualization('1', program1);
     eventVis1.setDataElementValueDimension(de1);
-    EventVisualization eventVis2 = createEventVisualization('2', null);
+    EventVisualization eventVis2 = createEventVisualization('2', program1);
     eventVis2.setDataElementValueDimension(de2);
-    EventVisualization eventVis3 = createEventVisualization('3', null);
+    EventVisualization eventVis3 = createEventVisualization('3', program1);
     eventVis3.setDataElementValueDimension(de3);
 
     eventVisualizationStore.save(eventVis1);

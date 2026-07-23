@@ -89,16 +89,38 @@ public class OrganisationUnitResolver {
   /**
    * Resolve organisation units like ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;LEVEL-XXX;OUGROUP-XXX
    * into a list of organisation unit dimension uids. Groups and levels are expanded to their member
-   * org units for SQL filtering purposes.
+   * org units for SQL filtering purposes. Explicit org units are kept in the result (union
+   * semantics, used by org unit typed data element filters).
    *
    * @param queryFilter the query filter containing the organisation unit filter
    * @param userOrgUnits the user organisation units
    * @return the organisation unit dimension uids
    */
   public String resolveOrgUnits(QueryFilter queryFilter, List<OrganisationUnit> userOrgUnits) {
+    return resolveOrgUnits(queryFilter, userOrgUnits, false);
+  }
+
+  /**
+   * Resolve organisation units from the given query filter, applying boundary semantics when the
+   * item is a stage.ou dimension (explicit org units only scope the LEVEL-/OU_GROUP- expansion) and
+   * union semantics otherwise.
+   *
+   * @param queryFilter the query filter containing the organisation unit filter
+   * @param userOrgUnits the user organisation units
+   * @param item the query item the filter belongs to
+   * @return the organisation unit dimension uids
+   */
+  public String resolveOrgUnits(
+      QueryFilter queryFilter, List<OrganisationUnit> userOrgUnits, QueryItem item) {
+    return resolveOrgUnits(queryFilter, userOrgUnits, isStageOuDimension(item));
+  }
+
+  private String resolveOrgUnits(
+      QueryFilter queryFilter, List<OrganisationUnit> userOrgUnits, boolean orgUnitsAsBoundaries) {
     List<String> filterItem = QueryFilter.getFilterItems(queryFilter.getFilter());
     List<String> orgUnitDimensionUid =
-        dimensionalObjectProducer.getOrgUnitDimensionUid(filterItem, userOrgUnits, true);
+        dimensionalObjectProducer.getOrgUnitDimensionUid(
+            filterItem, userOrgUnits, true, orgUnitsAsBoundaries);
 
     // Throw E7143 if no valid org units were resolved (mirrors standard ou: dimension behavior)
     if (orgUnitDimensionUid.isEmpty()) {
@@ -120,7 +142,8 @@ public class OrganisationUnitResolver {
     for (QueryItem queryItem : params.getItems()) {
       if (queryItem.getValueType().isOrganisationUnit()) {
         for (QueryFilter queryFilter : queryItem.getFilters()) {
-          String resolveOrgUnits = resolveOrgUnits(queryFilter, params.getUserOrgUnits());
+          String resolveOrgUnits =
+              resolveOrgUnits(queryFilter, params.getUserOrgUnits(), queryItem);
           if (StringUtils.isNotBlank(resolveOrgUnits)) {
             orgUnitIds.addAll(Arrays.asList(resolveOrgUnits.split(OPTION_SEP)));
           }
@@ -162,7 +185,7 @@ public class OrganisationUnitResolver {
    */
   public List<String> resolveOrgUnits(EventQueryParams params, QueryItem item) {
     return item.getFilters().stream()
-        .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
+        .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits(), item))
         .map(s -> s.split(DimensionConstants.OPTION_SEP))
         .flatMap(Arrays::stream)
         .distinct()
@@ -224,9 +247,12 @@ public class OrganisationUnitResolver {
   public DimensionalItemObject loadOrgUnitDimensionalItem(
       @Nonnull String dimensionUid, @Nonnull IdScheme idScheme) {
     if (dimensionUid.startsWith(KEY_LEVEL)) {
+      String levelToken = substringAfterLast(dimensionUid, SEPARATOR);
       OrganisationUnitLevel level =
-          idObjectManager.getObject(
-              OrganisationUnitLevel.class, idScheme, substringAfterLast(dimensionUid, SEPARATOR));
+          StringUtils.isNumeric(levelToken)
+              ? organisationUnitService.getOrganisationUnitLevelByLevel(
+                  Integer.parseInt(levelToken))
+              : idObjectManager.getObject(OrganisationUnitLevel.class, idScheme, levelToken);
 
       if (level != null) {
         BaseDimensionalItemObject dim = new BaseDimensionalItemObject();
@@ -270,6 +296,20 @@ public class OrganisationUnitResolver {
    * @return a {@link StageOuCteContext} containing the value column and filter condition
    */
   public StageOuCteContext buildStageOuCteContext(QueryItem item, EventQueryParams params) {
+    return buildStageOuCteContext(item, params, null);
+  }
+
+  /**
+   * Builds stage.ou filter conditions using uidlevelX columns, optionally qualifying the SELECT
+   * value column with a table alias.
+   *
+   * @param item the {@link QueryItem} representing the stage.ou dimension
+   * @param params the {@link EventQueryParams} used to resolve org unit keywords
+   * @param tableAlias optional table alias used for the value column
+   * @return a {@link StageOuCteContext} containing the value column and filter condition
+   */
+  public StageOuCteContext buildStageOuCteContext(
+      QueryItem item, EventQueryParams params, String tableAlias) {
     Map<Integer, List<OrganisationUnit>> orgUnitsByLevel =
         resolveOrgUnitsGroupedByLevel(params, item);
 
@@ -286,7 +326,9 @@ public class OrganisationUnitResolver {
 
     if (orgUnitsByLevel.isEmpty()) {
       return new StageOuCteContext(
-          sqlBuilder.quote("ou"), "", additionalSelectColumns); // fallback to raw ou column
+          quoteStageOuColumn("ou", tableAlias),
+          "",
+          additionalSelectColumns); // fallback to raw ou column
     }
 
     // Sort levels from most specific (highest) to least specific (lowest)
@@ -297,13 +339,13 @@ public class OrganisationUnitResolver {
     String valueColumn;
     if (sortedLevels.size() == 1) {
       // Single level: just use the column directly
-      valueColumn = sqlBuilder.quote("uidlevel" + sortedLevels.get(0));
+      valueColumn = quoteStageOuColumn("uidlevel" + sortedLevels.get(0), tableAlias);
     } else {
       // Multiple levels: use CASE to return the matching value
       StringBuilder caseExpr = new StringBuilder("case");
       for (int level : sortedLevels) {
         List<OrganisationUnit> orgUnits = orgUnitsByLevel.get(level);
-        String column = sqlBuilder.quote("uidlevel" + level);
+        String column = quoteStageOuColumn("uidlevel" + level, tableAlias);
         String quotedUids =
             orgUnits.stream()
                 .map(OrganisationUnit::getUid)
@@ -342,6 +384,12 @@ public class OrganisationUnitResolver {
         sortedLevels.size() > 1 ? "(" + conditions + ")" : conditions.toString();
 
     return new StageOuCteContext(valueColumn, filterCondition, additionalSelectColumns);
+  }
+
+  private String quoteStageOuColumn(String column, String tableAlias) {
+    return StringUtils.isBlank(tableAlias)
+        ? sqlBuilder.quote(column)
+        : sqlBuilder.quote(tableAlias, column);
   }
 
   /**

@@ -137,11 +137,45 @@ public class ColumnMapper {
    */
   public List<AnalyticsTableColumn> getColumnsForOrgUnitDataElement(DataElement dataElement) {
     if (!sqlBuilder.supportsCorrelatedSubquery()) {
-      return List.of();
+      return getOrgUnitJoinColumns(dataElement);
     }
 
     return buildOrgUnitColumns(
         dataElement.getUid(), column -> getOrgUnitSelectSubquery(dataElement, column));
+  }
+
+  /**
+   * Builds the OU-name companion column for a data element using a JOIN to {@code organisationunit}
+   * instead of a correlated subquery. Used on engines that don't support correlated subqueries
+   * (e.g. ClickHouse). The {@code joinClause} on the resulting column is collected and injected
+   * into the populating SELECT by the table-population path.
+   *
+   * <p>Geometry isn't emitted here because engines without correlated-subquery support also lack
+   * geospatial support (see {@link SqlBuilder#supportsGeospatialData()}).
+   */
+  private List<AnalyticsTableColumn> getOrgUnitJoinColumns(DataElement dataElement) {
+    String uid = dataElement.getUid();
+    String joinAlias = "ou_" + uid.toLowerCase();
+    String valueExpression = sqlBuilder.jsonExtract("eventdatavalues", uid, "value");
+    String joinClause =
+        "left join "
+            + sqlBuilder.qualifyTable("organisationunit")
+            + " "
+            + joinAlias
+            + " on "
+            + joinAlias
+            + ".uid = "
+            + valueExpression;
+    String columnName = uid + OU_NAME_COL_POSTFIX;
+    return List.of(
+        AnalyticsTableColumn.builder()
+            .name(columnName)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(joinAlias + ".name as " + sqlBuilder.quote(columnName))
+            .joinClause(joinClause)
+            .skipIndex(SKIP)
+            .build());
   }
 
   /**
