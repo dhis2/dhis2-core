@@ -28,6 +28,10 @@ services:
       - surefire-reports:/target/surefire-reports
     depends_on:
       - web
+    networks:
+      # Deterministic IP: switch_user_allow_listed_ips in dhis.conf is an exact match
+      default:
+        ipv4_address: 172.30.0.10
 
   reports-processor:
     profiles: ["reports"]
