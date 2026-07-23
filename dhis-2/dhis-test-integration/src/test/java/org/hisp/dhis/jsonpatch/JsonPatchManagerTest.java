@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +52,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -331,8 +333,10 @@ class JsonPatchManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Patch referencing non-owner /users path does not throw")
-  void testUserRoleUsersPathPatchDoesNotThrow() throws Exception {
+  @DisplayName(
+      "Patch referencing non-owner /users path falls back to full hydration, not silently"
+          + " excluded")
+  void testUserRoleUsersPathPatchFallsBackToFullHydration() throws Exception {
     UserRole userRole = createUserRole("roleUsersPath", "AUTH_A");
     manager.save(userRole);
 
@@ -342,12 +346,50 @@ class JsonPatchManagerTest extends PostgresIntegrationTestBase {
     manager.update(user);
     manager.update(userRole);
 
+    clearSession();
+
+    UserRole reloaded = manager.get(UserRole.class, userRole.getUid());
+    assertNotNull(reloaded);
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getMembers()),
+        "members should be lazy before patch apply");
+
     JsonPatch patch =
         jsonMapper.readValue(
             "[{\"op\": \"replace\", \"path\": \"/users\", \"value\": []}]", JsonPatch.class);
 
-    UserRole patched = jsonPatchManager.apply(patch, userRole);
+    UserRole patched = jsonPatchManager.apply(patch, reloaded);
+
     assertNotNull(patched);
+    assertTrue(
+        Hibernate.isInitialized(reloaded.getMembers()),
+        "explicit /users patch must fall back to full hydration, not be silently excluded");
+  }
+
+  @Test
+  @DisplayName(
+      "sharing.users survives a UserRole scalar patch (regression: exclusion filter must not"
+          + " collide with same-named properties on unrelated nested objects)")
+  void testUserRoleSharingUsersSurviveScalarPatch() throws Exception {
+    UserRole userRole = createUserRole("roleSharingCheck", "AUTH_A");
+    User userA = makeUser("Q");
+    userRole.getSharing().addUserAccess(new UserAccess(userA, "rw------"));
+
+    assertEquals(
+        1, userRole.getSharing().getUsers().size(), "precondition: sharing.users populated");
+
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/name\", \"value\": \"roleSharingCheckRenamed\"}]",
+            JsonPatch.class);
+
+    UserRole patched = jsonPatchManager.apply(patch, userRole);
+
+    assertEquals("roleSharingCheckRenamed", patched.getName());
+    assertEquals(
+        1,
+        patched.getSharing().getUsers().size(),
+        "sharing.users must survive an unrelated scalar patch");
   }
 
   @Test
@@ -376,8 +418,7 @@ class JsonPatchManagerTest extends PostgresIntegrationTestBase {
         Hibernate.isInitialized(reloaded.getChildren()),
         "children should be lazy before patch apply");
     assertFalse(
-        Hibernate.isInitialized(reloaded.getUsers()),
-        "users should be lazy before patch apply");
+        Hibernate.isInitialized(reloaded.getUsers()), "users should be lazy before patch apply");
 
     JsonPatch patch =
         jsonMapper.readValue(
