@@ -120,12 +120,22 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
 
     // then only matching exclusions should have been applied
     // and fields starting with 'user' should still be present
-    assertEquals(58, result.size()); // all user properties
+    assertEquals(56, result.size()); // all user properties
     assertTrue(
         result.stream()
             .map(FieldPath::getPropertyName)
             .toList()
             .containsAll(List.of("username", "userRoles")));
+
+    // and @PropertyTransformer-controlled properties (createdBy/lastUpdatedBy use
+    // UserPropertyTransformer) keep their own bare path but not pruned descendant paths
+    // such as createdBy.id/lastUpdatedBy.id, since the transformer always serializes a
+    // fixed shape regardless of what's requested underneath it (DHIS2-21856)
+    List<String> paths = result.stream().map(fp -> fp.getPath().toString()).toList();
+    assertTrue(paths.contains("createdBy"));
+    assertTrue(paths.contains("lastUpdatedBy"));
+    assertFalse(paths.contains("createdBy.id"));
+    assertFalse(paths.contains("lastUpdatedBy.id"));
   }
 
   @Test
