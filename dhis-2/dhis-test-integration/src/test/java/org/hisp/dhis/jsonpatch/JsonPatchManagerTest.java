@@ -490,4 +490,26 @@ class JsonPatchManagerTest extends PostgresIntegrationTestBase {
         Hibernate.isInitialized(managedReloaded.getManagedByGroups()),
         "scalar patch must not initialize UserGroup.managedByGroups");
   }
+
+  @Test
+  @DisplayName("Name-only DataElementGroup patch preserves owner dataElements members")
+  void testDataElementGroupNamePatchPreservesOwnerMembers() throws Exception {
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('B');
+    manager.save(deA);
+    manager.save(deB);
+
+    DataElementGroup group = createDataElementGroup('G', deA, deB);
+    manager.save(group);
+
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/name\", \"value\": \"DataElementGroupGRenamed\"}]",
+            JsonPatch.class);
+
+    DataElementGroup patched = jsonPatchManager.apply(patch, group);
+
+    assertEquals("DataElementGroupGRenamed", patched.getName());
+    assertEquals(2, patched.getMembers().size(), "owner members must survive name-only patch");
+  }
 }
