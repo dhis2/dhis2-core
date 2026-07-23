@@ -41,10 +41,8 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
-import java.io.Serializable;
 import java.util.Date;
 import lombok.Setter;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
@@ -62,11 +60,10 @@ import org.hisp.dhis.user.User;
  * database columns.
  */
 @MappedSuperclass
-public class BaseMetadataObject implements MetadataObject, Serializable {
+public class BaseMetadataObject implements MetadataObject {
 
   @Column(name = "uid", unique = true, nullable = false, length = 11)
   @Setter
-  @AuditAttribute
   protected String uid;
 
   @Column(name = "created", nullable = false, updatable = false)
@@ -100,7 +97,7 @@ public class BaseMetadataObject implements MetadataObject, Serializable {
   @Transient @Setter protected String href;
 
   /** Access information for this object. Applies to current user. */
-  @Transient @Setter protected transient Access access;
+  @Transient @Setter protected Access access;
 
   // -------------------------------------------------------------------------------------------
   // Getters

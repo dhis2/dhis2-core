@@ -50,6 +50,7 @@ class DataElementMapperTest {
         new DataElementMapper(),
         DataElement::new,
         List.of(
+            b -> b.setDimensionItemType(DIMENSION_ITEM_TYPE),
             b -> b.setValueType(ValueType.TEXT),
             b -> b.setAggregationType(AggregationType.AVERAGE),
             b -> b.setUid("DE_ID")),

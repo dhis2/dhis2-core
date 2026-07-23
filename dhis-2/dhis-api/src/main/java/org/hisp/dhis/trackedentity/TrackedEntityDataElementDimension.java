@@ -87,7 +87,7 @@ public class TrackedEntityDataElementDimension {
   }
 
   @JsonProperty
-  @JsonSerialize(as = IdentifiableObject.class)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;
