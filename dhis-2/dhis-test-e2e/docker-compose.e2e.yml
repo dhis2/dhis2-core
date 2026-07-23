@@ -1,5 +1,22 @@
 
 services:
+  # Enable Postgres statement logging (csvlog) for the duration of the e2e run so the
+  # n1watch step can scan it afterwards for N+1 query hot spots. Scoped to this override
+  # file, so a plain `docker compose up` for local dev is unaffected. This only adds log
+  # I/O; it does not change test behaviour or outcomes.
+  db:
+    command: >
+      postgres -c max_locks_per_transaction=100
+      -c logging_collector=on
+      -c log_destination=csvlog
+      -c log_directory=log
+      -c log_filename=postgresql.log
+      -c log_rotation_age=0
+      -c log_rotation_size=0
+      -c log_statement=all
+      -c log_min_duration_statement=-1
+      -c log_duration=off
+
   test:
     build: .
     stdin_open: true
