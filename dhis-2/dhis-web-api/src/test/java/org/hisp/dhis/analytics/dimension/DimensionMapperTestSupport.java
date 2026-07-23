@@ -40,7 +40,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.webapi.dimension.DimensionMapper;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
@@ -54,7 +53,7 @@ public class DimensionMapperTestSupport {
     asserter(dimensionMapper, instanceSupplier, instanceSetters, assertingPairs, null);
   }
 
-  public static <T extends IdentifiableObject> void asserter(
+  public static <T extends BaseIdentifiableObject> void asserter(
       DimensionMapper dimensionMapper,
       Supplier<T> instanceSupplier,
       List<Consumer<T>> instanceSetters,
@@ -78,7 +77,7 @@ public class DimensionMapperTestSupport {
             .collect(Collectors.toList()));
   }
 
-  private static <T extends IdentifiableObject> T getBaseIdentifiableObject(
+  private static <T extends BaseIdentifiableObject> T getBaseIdentifiableObject(
       Supplier<T> instanceSupplier, List<Consumer<T>> setters) {
     T baseIdentifiableObject = instanceSupplier.get();
     setters.forEach(setter -> setter.accept(baseIdentifiableObject));

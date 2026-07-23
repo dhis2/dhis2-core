@@ -1026,6 +1026,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
         inA, "( #{" + deE.getUid() + "}.yearToDate() + [periodInYear] ).periodOffset(-1)");
     withIndicator(
         inB, "( #{" + deE.getUid() + "}.yearToDate() + [periodInYear] ).periodOffset(-2)");
+
     assertDataValues(
         Map.of(
             "indicatorAA-ouabcdefghA-201706",

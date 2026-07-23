@@ -66,7 +66,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodDimension;
@@ -86,8 +85,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultQueryPlannerTest extends TestBase {
 
   @Mock private PartitionManager partitionManager;
-
-  @Mock private DataElementStore dataElementStore;
 
   @InjectMocks private DefaultQueryPlanner queryPlanner;
 

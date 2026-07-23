@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectSnapshot;
 import org.hisp.dhis.dataelement.DataElement;
@@ -185,7 +186,7 @@ public class NotificationTemplateMapper {
     return optionalInstance.orElse(null);
   }
 
-  private static <T extends IdentifiableObject> T toBaseIdentifiableObject(
+  private static <T extends BaseIdentifiableObject> T toBaseIdentifiableObject(
       IdentifiableObjectSnapshot from,
       Supplier<T> instanceSupplier,
       Collection<Consumer<T>> instanceTransformers) {
