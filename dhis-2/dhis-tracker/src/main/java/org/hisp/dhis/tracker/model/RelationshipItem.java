@@ -41,6 +41,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -54,7 +55,8 @@ import org.hisp.dhis.common.EmbeddedObject;
 @Setter
 @Getter
 @NoArgsConstructor
-public class RelationshipItem implements EmbeddedObject {
+public class RelationshipItem implements EmbeddedObject, Serializable {
+
   @Id
   @Column(name = "relationshipitemid")
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "relationshipitem_sequence")
