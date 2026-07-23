@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.export.event;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.springframework.transaction.annotation.Transactional;
 
-public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
+public abstract class EventChangeLogService<T, S extends SoftDeletableEntity> {
 
   private final EventService eventService;
   private final HibernateEventChangeLogStore<T, S> hibernateEventChangeLogStore;

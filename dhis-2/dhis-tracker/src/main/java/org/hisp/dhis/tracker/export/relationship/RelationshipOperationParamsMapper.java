@@ -33,7 +33,6 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.SoftDeletableEntity;
-import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -109,7 +108,7 @@ class RelationshipOperationParamsMapper {
     return enrollment;
   }
 
-  private SoftDeletableObject getEvent(UID eventUid, boolean includeDeleted)
+  private SoftDeletableEntity getEvent(UID eventUid, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     Optional<TrackerEvent> event = relationshipStore.findEvent(eventUid, includeDeleted);
     if (event.isPresent()) {
