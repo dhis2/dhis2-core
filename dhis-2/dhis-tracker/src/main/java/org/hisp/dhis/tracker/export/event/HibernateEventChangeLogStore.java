@@ -43,7 +43,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,7 +52,7 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 
-public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableObject> {
+public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableEntity> {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdBy";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
