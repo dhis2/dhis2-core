@@ -83,7 +83,9 @@ public class JsonPatchManager {
    *
    * <p>Non-owner collection properties that are not referenced by any patch path are omitted from
    * serialization. Non-owner collections are ignored by metadata import UPDATE, so omitting them is
-   * free; omitting owner collections would clear them on import. Skipping avoids initializing lazy
+   * free; omitting owner collections would clear them on import. Non-persisted derived properties
+   * (for example {@code OrganisationUnit.leaf}) are also omitted when unreferenced, because their
+   * getters can force-initialize inverse lazy collections. Skipping avoids initializing lazy
    * Hibernate collections such as {@code UserRole.members} during scalar PATCH /userRoles (slow
    * PATCH /userRoles).
    *
@@ -105,7 +107,7 @@ public class JsonPatchManager {
         patch.getOperations().stream()
             .map(op -> op.getPath().getMatchingProperty())
             .collect(Collectors.toSet());
-    Set<String> excluded = findExcludableNonOwnerCollections(schema, patchedPaths);
+    Set<String> excluded = findExcludableProperties(schema, patchedPaths);
 
     JsonNode node = toJsonNode(object, realClass, excluded);
 
@@ -122,26 +124,45 @@ public class JsonPatchManager {
   }
 
   /**
-   * Collect JSON field names of non-owner collection properties that no patch op references.
+   * Collect JSON field names that are safe to omit during patch serialization.
    *
-   * <p>Skip when {@code isCollection() && !isOwner()} and the patch paths match neither {@link
-   * Property#getName()} nor {@link Property#getCollectionName()}. Owner collections must always
-   * remain serialized (metadata import UPDATE would wipe them if omitted). Non-owner collections
-   * referenced by a patch path keep today's behavior.
+   * <p>Include when no patch path references {@link Property#getName()} or {@link
+   * Property#getCollectionName()}, and either:
+   *
+   * <ul>
+   *   <li>{@code isCollection() && !isOwner()} - non-owner collections are ignored by metadata
+   *       import UPDATE
+   *   <li>{@code !isPersisted()} - derived getters must not run (e.g. {@code leaf} calling {@code
+   *       children.isEmpty()})
+   * </ul>
+   *
+   * <p>Owner collections must always remain serialized (metadata import UPDATE would wipe them if
+   * omitted). Properties referenced by a patch path keep today's behavior.
    */
-  private static Set<String> findExcludableNonOwnerCollections(
-      Schema schema, Set<String> patchedPaths) {
+  private static Set<String> findExcludableProperties(Schema schema, Set<String> patchedPaths) {
     Set<String> excluded = new HashSet<>();
     for (Property property : schema.getProperties()) {
-      if (property.isCollection()
-          && !property.isOwner()
-          && !patchedPaths.contains(property.getName())
-          && !patchedPaths.contains(property.getCollectionName())) {
+      if (isReferencedByPatch(property, patchedPaths)) {
+        continue;
+      }
+      if (property.isCollection() && !property.isOwner()) {
         // collectionName is the JSON name Jackson serializes (e.g. "users")
         excluded.add(property.getCollectionName());
+      } else if (!property.isPersisted()) {
+        String jsonName =
+            property.isCollection() ? property.getCollectionName() : property.getName();
+        if (jsonName != null) {
+          excluded.add(jsonName);
+        }
       }
     }
     return excluded;
+  }
+
+  private static boolean isReferencedByPatch(Property property, Set<String> patchedPaths) {
+    return patchedPaths.contains(property.getName())
+        || (property.getCollectionName() != null
+            && patchedPaths.contains(property.getCollectionName()));
   }
 
   private JsonNode toJsonNode(Object object, Class<?> realClass, Set<String> excluded) {
