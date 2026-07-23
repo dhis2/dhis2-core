@@ -75,6 +75,52 @@ jobs:
           cd dhis-2/dhis-test-e2e
           SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
 
+      # Informational only: scan the Postgres csvlog produced during the run for N+1 query
+      # hot spots and publish an HTML report as an artifact. This step never affects the
+      # test result and never fails the build (`if: always()` + `continue-on-error`, and
+      # n1watch is run without its `-fail` flag so it exits 0 whatever the report contains).
+      - name: Set up Go for n1watch
+        if: always()
+        continue-on-error: true
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.5"
+          # No project Go module here (we only `go install` an external tool), so there is
+          # no go.sum to key a cache on. Disable caching to avoid a spurious cache warning.
+          cache: false
+
+      - name: Generate N+1 query report
+        if: always()
+        continue-on-error: true
+        run: |
+          cd dhis-2/dhis-test-e2e
+          COMPOSE="docker compose -f docker-compose.yml -f docker-compose.e2e.yml"
+          mkdir -p n1watch/pglog
+          # Pull the csvlog and the test -> request-id map out of the (now stopped) containers.
+          $COMPOSE cp db:/var/lib/postgresql/data/log/. n1watch/pglog/ || true
+          $COMPOSE cp test:/target/request-id-map.json n1watch/request-id-map.json || true
+          # Pin to a specific commit (no releases yet) so the build is reproducible and the
+          # module checksum is verified via GOSUMDB — never install a moving @latest in CI.
+          go install github.com/david-mackessy/n1watch@48c801899e8cb0fe7031eedbbcfec62ea70d23ca
+          "$(go env GOPATH)/bin/n1watch" -report \
+            -dir n1watch/pglog \
+            -format html \
+            -out n1watch/n1report-e2e.html \
+            -group-keys controller,method \
+            -trace-key request_id \
+            -trace-map n1watch/request-id-map.json \
+            -trace-tags setup,teardown \
+            -notify=false || true
+
+      - name: Upload N+1 report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: n1watch-report
+          path: dhis-2/dhis-test-e2e/n1watch/n1report-e2e.html
+          if-no-files-found: ignore
+
       - name: Upload logs
         if: failure()
         run: |
