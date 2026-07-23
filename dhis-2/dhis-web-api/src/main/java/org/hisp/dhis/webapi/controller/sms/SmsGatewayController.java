@@ -98,8 +98,7 @@ public class SmsGatewayController {
       })
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonRoot> getGateways(
-      @RequestParam(defaultValue = "*") List<String> fields) {
+  public ResponseEntity<JsonRoot> getGateways(@RequestParam(defaultValue = "*") String fields) {
     SmsConfiguration config = smsConfigurationManager.getSmsConfiguration();
     FieldFilterParams<?> params = FieldFilterParams.of(config.getGateways(), fields);
 

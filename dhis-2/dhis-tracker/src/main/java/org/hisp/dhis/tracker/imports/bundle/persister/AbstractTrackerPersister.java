@@ -525,11 +525,16 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           String previousValue = isNew ? null : currentValue.getValue();
           boolean valueChanged = isNew || !Objects.equals(previousValue, attribute.getValue());
 
-          if (isDelete && !isNew) {
-            delete(preheat, currentValue, trackedEntity, user, changeLogs, batch);
-            // Leave the entry in the map: the DELETE is not flushed until the end of the run, so a
-            // later occurrence of the same TE+attribute in this run must still see it as existing
-            // (matching the pre-batch DB-read behaviour).
+          if (isDelete) {
+            if (!isNew) {
+              delete(preheat, currentValue, trackedEntity, user, changeLogs, batch);
+
+              // Leave the entry in the map: the DELETE is not flushed until the end of
+              // the run, so a later occurrence of the same TE+attribute in this run must
+              // still see it as existing (matching the pre-batch DB-read behaviour).
+            }
+
+            // If the value doesn't exist yet, deleting it is a no-op.
           } else if (valueChanged) {
             TrackedEntityAttributeValue persisted =
                 saveOrUpdateAttributeValue(

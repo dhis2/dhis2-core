@@ -38,12 +38,12 @@ import org.hisp.dhis.jsontree.Collapsed;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 public record MinMaxDataElementParams(
-    List<String> fields, List<String> filters, @Collapsed PagedParams paged) implements UrlParams {
+    String fields, List<String> filters, @Collapsed PagedParams paged) implements UrlParams {
 
   public static final MinMaxDataElementParams DEFAULT =
-      new MinMaxDataElementParams(List.of(), List.of(), PagedParams.DEFAULT);
+      new MinMaxDataElementParams("", List.of(), PagedParams.DEFAULT);
 
   public MinMaxDataElementParams(List<String> filters) {
-    this(List.of(), filters, PagedParams.DEFAULT);
+    this("", filters, PagedParams.DEFAULT);
   }
 }

@@ -90,8 +90,7 @@ public class SchemaController {
         @OpenApi.Property(name = "schemas", value = Schema[].class)
       })
   @GetMapping
-  public ResponseEntity<JsonRoot> getSchemas(
-      @RequestParam(defaultValue = "*") List<String> fields) {
+  public ResponseEntity<JsonRoot> getSchemas(@RequestParam(defaultValue = "*") String fields) {
     List<Schema> schemas = schemaService.getSortedSchemas();
     linkService.generateSchemaLinks(schemas);
 
@@ -104,7 +103,7 @@ public class SchemaController {
   @OpenApi.Response(Schema.class)
   @GetMapping("/{type}")
   public ResponseEntity<ObjectNode> getSchema(
-      @PathVariable String type, @RequestParam(defaultValue = "*") List<String> fields)
+      @PathVariable String type, @RequestParam(defaultValue = "*") String fields)
       throws NotFoundException {
     Schema schema = getSchemaFromType(type);
 

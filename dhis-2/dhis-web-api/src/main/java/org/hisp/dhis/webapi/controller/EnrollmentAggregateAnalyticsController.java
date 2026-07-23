@@ -49,7 +49,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -231,7 +230,7 @@ public class EnrollmentAggregateAnalyticsController {
   @GetMapping("/dimensions")
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
       @RequestParam String programId,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);

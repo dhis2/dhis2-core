@@ -234,6 +234,10 @@ public class HibernateOrganisationUnitStore
       hql += hlp.whereAnd() + " o.hierarchyLevel <= :maxLevels ";
     }
 
+    if (params.isGeometryOnly()) {
+      hql += hlp.whereAnd() + " o.geometry is not null ";
+    }
+
     hql += "order by o." + params.getOrderBy().getName();
 
     Query<OrganisationUnit> query = getQuery(hql);

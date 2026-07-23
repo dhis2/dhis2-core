@@ -29,11 +29,14 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Calendar;
@@ -54,6 +57,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.session.SessionRegistry;
 
 /**
@@ -303,6 +307,34 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
     assertEquals("ACCOUNT_EXPIRED", loginResponse.getLoginStatus());
     assertNull(loginResponse.getRedirectUrl());
+  }
+
+  /**
+   * Verifies that {@code POST /api/auth/updatePassword} is part of the unauthenticated {@code
+   * permitAll} allowlist in {@link
+   * org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig}: a user with an expired
+   * password is by definition not logged in, so the endpoint must be reachable anonymously. It is
+   * safe to expose because {@link org.hisp.dhis.user.UserAccountService#updateExpiredPassword} only
+   * proceeds for an expired account whose current password is supplied correctly.
+   *
+   * <p>The request is issued with raw {@code mvc.perform(...)} (not the {@code POST(...)} helper,
+   * which would attach the admin session) so the real filter chain is evaluated anonymously. The
+   * body omits the passwords, so the endpoint short-circuits with 400 (required fields) before any
+   * user lookup, which proves it was reached; a 302 redirect to the login page would mean it is not
+   * on the allowlist.
+   */
+  @Test
+  void testUpdatePasswordReachableWithoutAuthentication() throws Exception {
+    clearSecurityContext();
+
+    mvc.perform(
+            post("/api/auth/updatePassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"admin\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            content()
+                .string(containsString("Username, old password and new password are required")));
   }
 
   @Test

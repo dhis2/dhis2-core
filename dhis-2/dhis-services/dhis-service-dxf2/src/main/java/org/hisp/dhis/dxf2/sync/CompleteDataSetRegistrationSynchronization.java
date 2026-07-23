@@ -102,16 +102,14 @@ public class CompleteDataSetRegistrationSynchronization
             this::createContext);
 
     if (context.getObjectsToSynchronize() == 0) {
-      settingsService.put(
-          "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
+      settingsService.put("keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime());
       String msg = "Skipping completeness synchronization, no new or updated data";
       progress.completedProcess(msg);
       return SynchronizationResult.success(msg);
     }
 
     if (runSync(context, progress)) {
-      settingsService.put(
-          "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
+      settingsService.put("keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime());
       String msg = "Complete data set registration synchronization is done.";
       progress.completedProcess(msg);
       return SynchronizationResult.success(msg);

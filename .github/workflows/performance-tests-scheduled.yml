@@ -40,7 +40,7 @@ jobs:
               SIMULATION_CLASS=org.hisp.dhis.test.platform.UsersPerformanceTest
               DB_DIR=dev
               DB_TYPE=platform-perf
-              DB_VERSION=44-2026-06-03
+              DB_VERSION=44-2026-06-30
               WARMUP=2
               MVN_ARGS="-Diterations=10 -Dprofile=smoke"
             slack_webhook_secret: SLACK_WEBHOOK_PLATFORM_PERFORMANCE
@@ -50,7 +50,7 @@ jobs:
               SIMULATION_CLASS=org.hisp.dhis.test.platform.UsersPerformanceTest
               DB_DIR=dev
               DB_TYPE=platform-perf
-              DB_VERSION=44-2026-06-03
+              DB_VERSION=44-2026-06-30
               MVN_ARGS=-Diterations=30
             slack_webhook_secret: SLACK_WEBHOOK_PLATFORM_PERFORMANCE
     uses: ./.github/workflows/performance-tests.yml

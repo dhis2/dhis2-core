@@ -34,7 +34,7 @@ import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
@@ -1155,14 +1155,28 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
     for (String dimension : rowDimensions) {
       String dimensionId = getDimensionIdentifierFor(dimension, getDimensionDescriptors());
-      String name = defaultIfEmpty(metaData.get(dimensionId).getName(), dimensionId);
-      String col = defaultIfEmpty(COLUMN_NAMES.get(dimensionId), dimensionId);
+      String name = extractDimensionName(metaData, dimensionId);
+      String col = defaultIfBlank(COLUMN_NAMES.get(dimensionId), dimensionId);
 
       grid.addHeader(new GridHeader(name + " ID", col + "id", TEXT, true, true));
       grid.addHeader(new GridHeader(name, col + "name", TEXT, false, true));
       grid.addHeader(new GridHeader(name + " code", col + "code", TEXT, true, true));
       grid.addHeader(new GridHeader(name + " description", col + "description", TEXT, true, true));
     }
+  }
+
+  /**
+   * It returns the name of the dimension uid present in the given map, or the dimension uid itself
+   * if the name is blank.
+   *
+   * @param metaData the map of uid-items.
+   * @param dimensionId the dimension uid.
+   * @return the name or the UID.
+   */
+  static String extractDimensionName(Map<String, MetadataItem> metaData, String dimensionId) {
+    return metaData.get(dimensionId) != null
+        ? defaultIfBlank(metaData.get(dimensionId).getName(), dimensionId)
+        : dimensionId;
   }
 
   /** Indicates whether this visualization is multidimensional. */

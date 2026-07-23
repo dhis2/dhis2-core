@@ -32,6 +32,7 @@ package org.hisp.dhis.route;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import io.netty.handler.timeout.ReadTimeoutException;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
@@ -46,6 +47,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,7 +57,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -480,7 +481,7 @@ public class RouteService {
       requestHeadersSpec = buildUpstreamRequestHeaderSpec(request, requestBodySpec);
     }
 
-    for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+    for (Map.Entry<String, List<String>> header : headers.headerSet()) {
       requestHeadersSpec =
           requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
     }
@@ -586,14 +587,16 @@ public class RouteService {
   }
 
   protected void applyAuthScheme(
-      Route route, Map<String, List<String>> headers, Map<String, List<String>> queryParameters)
+      Route route, HttpHeaders headers, Map<String, List<String>> queryParameters)
       throws BadGatewayException {
     if (route.getAuth() != null) {
       try {
+        Map<String, List<String>> authHeaders = new LinkedHashMap<>();
         route
             .getAuth()
             .decrypt(encryptor::decrypt)
-            .apply(applicationContext, headers, queryParameters);
+            .apply(applicationContext, authHeaders, queryParameters);
+        authHeaders.forEach((name, values) -> values.forEach(value -> headers.add(name, value)));
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         throw new BadGatewayException("An error occurred during authentication");
@@ -646,7 +649,8 @@ public class RouteService {
    * @return an {@link HttpHeaders}.
    */
   private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
-    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
+    return filterHeaders(
+        responseHeaders.headerNames(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
   }
 
   /**
