@@ -91,8 +91,7 @@ public class EventsAggregate5AutoTest extends AnalyticsApiTest {
         "TEXT",
         "java.lang.String",
         false,
-        true,
-        "iDFPKpFTiVw");
+        true);
     validateHeader(response, 1, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -264,8 +263,7 @@ public class EventsAggregate5AutoTest extends AnalyticsApiTest {
         "TEXT",
         "java.lang.String",
         false,
-        true,
-        "iDFPKpFTiVw");
+        true);
     validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 

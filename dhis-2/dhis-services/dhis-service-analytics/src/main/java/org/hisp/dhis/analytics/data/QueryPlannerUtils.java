@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.data;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -147,8 +146,7 @@ public class QueryPlannerUtils {
       getAggregationTypeDataElementMap(
           List<DimensionalItemObject> dataElements,
           AnalyticsAggregationType aggregationType,
-          String periodType,
-          Map<String, PeriodType> dataElementPeriodTypes) {
+          String periodType) {
     PeriodType aggregationPeriodType = PeriodType.getPeriodTypeByName(periodType);
 
     ListMap<AnalyticsAggregationType, DimensionalItemObject> map = new ListMap<>();
@@ -161,10 +159,8 @@ public class QueryPlannerUtils {
               aggregationType,
               AnalyticsAggregationType.fromAggregationType(de.getAggregationType()));
 
-      PeriodType dePeriodType = dataElementPeriodTypes.get(de.getUid());
-
       AnalyticsAggregationType analyticsAggregationType =
-          getAggregationType(aggType, de.getValueType(), aggregationPeriodType, dePeriodType);
+          getAggregationType(aggType, de.getValueType(), aggregationPeriodType, de.getPeriodType());
 
       map.putValue(analyticsAggregationType, de);
     }
@@ -260,14 +256,9 @@ public class QueryPlannerUtils {
    * @return a {@link ListMap} of period type and data elements.
    */
   public static ListMap<PeriodType, DimensionalItemObject> getPeriodTypeDataElementMap(
-      Collection<DimensionalItemObject> dataElements,
-      Map<String, PeriodType> dataElementPeriodTypes) {
+      Collection<DimensionalItemObject> dataElements) {
     ListMap<PeriodType, DimensionalItemObject> map = new ListMap<>();
-    dataElements.forEach(
-        item -> {
-          DataElement de = (DataElement) item;
-          map.putValue(dataElementPeriodTypes.get(de.getUid()), de);
-        });
+    dataElements.forEach(de -> map.putValue(((DataElement) de).getPeriodType(), de));
     return map;
   }
 
