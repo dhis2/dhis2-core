@@ -99,18 +99,24 @@ jobs:
           # Pull the csvlog and the test -> request-id map out of the (now stopped) containers.
           $COMPOSE cp db:/var/lib/postgresql/data/log/. n1watch/pglog/ || true
           $COMPOSE cp test:/target/request-id-map.json n1watch/request-id-map.json || true
-          # Pin to a specific commit (no releases yet) so the build is reproducible and the
-          # module checksum is verified via GOSUMDB — never install a moving @latest in CI.
-          go install github.com/david-mackessy/n1watch@48c801899e8cb0fe7031eedbbcfec62ea70d23ca
-          "$(go env GOPATH)/bin/n1watch" -report \
-            -dir n1watch/pglog \
-            -format html \
-            -out n1watch/n1report-e2e.html \
-            -group-keys controller,method \
-            -trace-key request_id \
-            -trace-map n1watch/request-id-map.json \
-            -trace-tags setup,teardown \
-            -notify=false || true
+          # Pin to a specific commit (no releases yet) so the build is reproducible — the
+          # immutable SHA is the integrity guarantee, never a moving @latest. n1watch is a
+          # personal module absent from the public checksum DB, so GOSUMDB verification is
+          # unreliable (sum.golang.org 500s on it); disable that lookup for this install.
+          # Guarded so a failed install can never abort the step (continue-on-error is a backstop).
+          if GOSUMDB=off go install github.com/david-mackessy/n1watch@48c801899e8cb0fe7031eedbbcfec62ea70d23ca; then
+            "$(go env GOPATH)/bin/n1watch" -report \
+              -dir n1watch/pglog \
+              -format html \
+              -out n1watch/n1report-e2e.html \
+              -group-keys controller,method \
+              -trace-key request_id \
+              -trace-map n1watch/request-id-map.json \
+              -trace-tags setup,teardown \
+              -notify=false || true
+          else
+            echo "::warning::n1watch install failed; skipping N+1 report for this run"
+          fi
 
       - name: Upload N+1 report
         if: always()
