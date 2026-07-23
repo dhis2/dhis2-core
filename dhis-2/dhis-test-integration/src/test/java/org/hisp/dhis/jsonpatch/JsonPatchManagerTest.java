@@ -46,6 +46,7 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
@@ -346,5 +347,50 @@ class JsonPatchManagerTest extends PostgresIntegrationTestBase {
 
     UserRole patched = jsonPatchManager.apply(patch, userRole);
     assertNotNull(patched);
+  }
+
+  @Test
+  @DisplayName(
+      "Scalar OrganisationUnit patch must not initialize inverse children/users collections")
+  void testOrganisationUnitScalarPatchDoesNotInitializeInverseCollections() throws Exception {
+    OrganisationUnit parent = createOrganisationUnit('P');
+    manager.save(parent);
+
+    OrganisationUnit childA = createOrganisationUnit('A', parent);
+    OrganisationUnit childB = createOrganisationUnit('B', parent);
+    manager.save(childA);
+    manager.save(childB);
+    manager.update(parent);
+
+    User user = makeUser("Z");
+    user.addOrganisationUnit(parent);
+    manager.save(user);
+    manager.update(parent);
+
+    clearSession();
+
+    OrganisationUnit reloaded = manager.get(OrganisationUnit.class, parent.getUid());
+    assertNotNull(reloaded);
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getChildren()),
+        "children should be lazy before patch apply");
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getUsers()),
+        "users should be lazy before patch apply");
+
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/name\", \"value\": \"ParentRenamed\"}]",
+            JsonPatch.class);
+
+    OrganisationUnit patched = jsonPatchManager.apply(patch, reloaded);
+
+    assertEquals("ParentRenamed", patched.getName());
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getChildren()),
+        "scalar patch must not initialize OrganisationUnit.children");
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getUsers()),
+        "scalar patch must not initialize OrganisationUnit.users");
   }
 }
