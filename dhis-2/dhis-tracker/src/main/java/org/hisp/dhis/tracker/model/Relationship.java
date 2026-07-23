@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -361,7 +361,6 @@ public class Relationship extends BaseTrackerObject
   public int hashCode() {
     int result = getUid() != null ? getUid().hashCode() : 0;
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
-    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
     return Objects.hash(result, deleted);
   }
 
@@ -374,7 +373,6 @@ public class Relationship extends BaseTrackerObject
     Relationship other = (Relationship) obj;
     return Objects.equals(getUid(), other.getUid())
         && Objects.equals(getCode(), other.getCode())
-        && Objects.equals(getName(), other.getName())
         && isDeleted() == other.isDeleted();
   }
 
