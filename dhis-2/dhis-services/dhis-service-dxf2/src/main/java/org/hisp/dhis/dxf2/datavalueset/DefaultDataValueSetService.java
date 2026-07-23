@@ -690,7 +690,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
           Date.from(completeDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()),
           dataSetContext.getOuterPeriod(),
           dataSetContext.getOuterOrgUnit(),
-          dataSetContext.getFallbackCategoryOptionCombo(),
+          dataSetContext.getOuterAttrOptionCombo() != null
+              ? dataSetContext.getOuterAttrOptionCombo()
+              : dataSetContext.getFallbackCategoryOptionCombo(),
           context.getCurrentUserName(),
           context.getSummary());
     } else {
