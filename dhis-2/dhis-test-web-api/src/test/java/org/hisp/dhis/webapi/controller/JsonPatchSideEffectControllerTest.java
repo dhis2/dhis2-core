@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -84,9 +84,7 @@ class JsonPatchSideEffectControllerTest extends H2ControllerIntegrationTestBase 
     String groupId =
         assertStatus(
             HttpStatus.CREATED,
-            POST(
-                "/userGroups/",
-                "{'name':'GroupSide','users':[{'id':'" + user.getUid() + "'}]}"));
+            POST("/userGroups/", "{'name':'GroupSide','users':[{'id':'" + user.getUid() + "'}]}"));
 
     assertStatus(
         HttpStatus.OK,
@@ -94,8 +92,7 @@ class JsonPatchSideEffectControllerTest extends H2ControllerIntegrationTestBase 
             "/userGroups/" + groupId,
             "[{'op':'replace','path':'/name','value':'GroupSideRenamed'}]"));
 
-    JsonObject body =
-        GET("/userGroups/{id}?fields=name,users[id]", groupId).content(HttpStatus.OK);
+    JsonObject body = GET("/userGroups/{id}?fields=name,users[id]", groupId).content(HttpStatus.OK);
 
     assertEquals("GroupSideRenamed", body.getString("name").string());
     assertEquals(1, body.getArray("users").size());
@@ -144,12 +141,9 @@ class JsonPatchSideEffectControllerTest extends H2ControllerIntegrationTestBase 
     manager.save(role);
 
     // Non-owner path: may return OK with ERRORS_NOT_OWNER notes; membership must not drop.
-    PATCH(
-        "/userRoles/" + role.getUid(),
-        "[{'op':'replace','path':'/users','value':[]}]");
+    PATCH("/userRoles/" + role.getUid(), "[{'op':'replace','path':'/users','value':[]}]");
 
-    JsonObject body =
-        GET("/userRoles/{id}?fields=users[id]", role.getUid()).content(HttpStatus.OK);
+    JsonObject body = GET("/userRoles/{id}?fields=users[id]", role.getUid()).content(HttpStatus.OK);
 
     assertEquals(1, body.getArray("users").size());
     assertEquals(user.getUid(), body.getArray("users").getObject(0).getString("id").string());
