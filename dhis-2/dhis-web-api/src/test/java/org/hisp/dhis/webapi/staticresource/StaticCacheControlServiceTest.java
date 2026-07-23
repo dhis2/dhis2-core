@@ -32,9 +32,11 @@ package org.hisp.dhis.webapi.staticresource;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppCacheConfig;
@@ -47,6 +49,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -60,9 +64,14 @@ class StaticCacheControlServiceTest {
 
   private StaticCacheControlService service;
 
+  private SimpleMeterRegistry meterRegistry;
+
   @BeforeEach
   void setUp() {
-    service = new StaticCacheControlService(config, appManager, systemService);
+    meterRegistry = new SimpleMeterRegistry();
+    service =
+        new StaticCacheControlService(
+            config, appManager, systemService, new StaticCacheMetrics(meterRegistry));
 
     lenient().when(config.isEnabled(ConfigurationKey.STATIC_CACHE_ENABLED)).thenReturn(true);
     lenient()
@@ -372,5 +381,32 @@ class StaticCacheControlServiceTest {
 
     String cc = response.getHeader("Cache-Control");
     assertThat(cc, not(containsString("immutable")));
+  }
+
+  @ParameterizedTest(name = "Request counter policy tag is {1} for {0}")
+  @CsvSource({
+    "/apps/dashboard/index.html, no_store",
+    "/apps/dashboard/main.abc12345.js, immutable",
+    "/apps/dashboard/main.js, default"
+  })
+  void requestCounter_taggedWithPolicy(String uri, String policy) {
+    service.setHeaders(new MockHttpServletResponse(), uri, null, null);
+
+    assertEquals(1.0, meterRegistry.counter(StaticCacheMetrics.REQUESTS, "policy", policy).count());
+  }
+
+  @Test
+  @DisplayName("Request counter policy tag is must_revalidate for HTML outside no-cache patterns")
+  void requestCounter_mustRevalidatePolicy() {
+    when(config.getProperty(ConfigurationKey.STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS)).thenReturn("");
+
+    service.setHeaders(new MockHttpServletResponse(), "/apps/dashboard/page.html", null, null);
+
+    assertEquals(
+        1.0,
+        meterRegistry
+            .counter(
+                StaticCacheMetrics.REQUESTS, "policy", StaticCacheMetrics.POLICY_MUST_REVALIDATE)
+            .count());
   }
 }

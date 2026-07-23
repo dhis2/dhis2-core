@@ -67,6 +67,7 @@ public class StaticCacheControlService {
   private final DhisConfigurationProvider config;
   private final AppManager appManager;
   private final SystemService systemService;
+  private final StaticCacheMetrics metrics;
 
   /**
    * Sets appropriate {@code Cache-Control} headers on the response for the given static resource
@@ -84,12 +85,24 @@ public class StaticCacheControlService {
       @CheckForNull String appKey) {
     if (!isCacheEnabled() || isDevModeForceNoCache()) {
       response.setHeader("Cache-Control", CacheControl.noStore().getHeaderValue());
+      metrics.countRequest(StaticCacheMetrics.POLICY_NO_STORE);
       return;
     }
 
     AppCacheConfig appConfig = resolveAppConfig(appKey);
     CacheControl cc = computeCacheControl(requestUri, queryString, appConfig);
-    response.setHeader("Cache-Control", cc.getHeaderValue());
+    String headerValue = cc.getHeaderValue();
+    response.setHeader("Cache-Control", headerValue);
+    metrics.countRequest(classifyPolicy(headerValue));
+  }
+
+  /** Maps a Cache-Control header value to the policy tag used by {@link StaticCacheMetrics}. */
+  private static String classifyPolicy(@CheckForNull String headerValue) {
+    if (headerValue == null) return StaticCacheMetrics.POLICY_DEFAULT;
+    if (headerValue.contains("no-store")) return StaticCacheMetrics.POLICY_NO_STORE;
+    if (headerValue.contains("immutable")) return StaticCacheMetrics.POLICY_IMMUTABLE;
+    if (headerValue.contains("must-revalidate")) return StaticCacheMetrics.POLICY_MUST_REVALIDATE;
+    return StaticCacheMetrics.POLICY_DEFAULT;
   }
 
   /**
