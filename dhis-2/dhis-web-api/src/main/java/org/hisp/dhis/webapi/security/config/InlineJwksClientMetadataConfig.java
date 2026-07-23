@@ -75,6 +75,8 @@ final class InlineJwksClientMetadataConfig {
       // so no end-user consent prompt is needed.
       ClientSettings.Builder cs = ClientSettings.withSettings(rc.getClientSettings().getSettings());
       cs.requireAuthorizationConsent(false);
+      // Temporary SAS 7 bridge: DCR clients do not use PKCE yet (PR-H).
+      cs.requireProofKey(false);
       Map<String, Object> claims = reg.getClaims();
 
       // Accept optional "token_endpoint_auth_signing_alg": "RS256"
@@ -98,7 +100,13 @@ final class InlineJwksClientMetadataConfig {
         throw new IllegalArgumentException("'jwks' must be provided in registration");
       }
 
-      return RegisteredClient.from(rc).clientSettings(cs.build()).build();
+      // SAS 7 forbids "scope" on DCR requests; assign first-party defaults so client_credentials
+      // token requests (tests/Android) still have usable scopes.
+      RegisteredClient.Builder builder = RegisteredClient.from(rc).clientSettings(cs.build());
+      if (rc.getScopes() == null || rc.getScopes().isEmpty()) {
+        builder.scope("openid").scope("profile").scope("username").scope("email");
+      }
+      return builder.build();
     }
   }
 
