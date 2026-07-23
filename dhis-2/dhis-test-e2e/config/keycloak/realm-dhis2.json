@@ -1,0 +1,83 @@
+{
+  "realm": "dhis2",
+  "enabled": true,
+  "registrationAllowed": false,
+  "sslRequired": "none",
+  "clients": [
+    {
+      "clientId": "dhis2-oidc",
+      "name": "DHIS2 e2e OIDC client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dhis2-oidc-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://web:8080/oauth2/code/keycloak",
+        "http://localhost:8080/oauth2/code/keycloak"
+      ],
+      "webOrigins": ["+"],
+      "protocolMappers": [
+        {
+          "name": "dhis2-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "dhis2-oidc",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "kcmapped",
+      "enabled": true,
+      "email": "kcmapped@dhis2.org",
+      "emailVerified": true,
+      "firstName": "Kc",
+      "lastName": "Mapped",
+      "credentials": [
+        { "type": "password", "value": "KcMapped123###", "temporary": false }
+      ]
+    },
+    {
+      "username": "kclimited",
+      "enabled": true,
+      "email": "kclimited@dhis2.org",
+      "emailVerified": true,
+      "firstName": "Kc",
+      "lastName": "Limited",
+      "credentials": [
+        { "type": "password", "value": "KcLimited123###", "temporary": false }
+      ]
+    },
+    {
+      "username": "kcloginmapped",
+      "enabled": true,
+      "email": "kcloginmapped@dhis2.org",
+      "emailVerified": true,
+      "firstName": "Kc",
+      "lastName": "Loginmapped",
+      "credentials": [
+        { "type": "password", "value": "KcLogin123###", "temporary": false }
+      ]
+    },
+    {
+      "username": "kcunmapped",
+      "enabled": true,
+      "email": "kcunmapped@dhis2.org",
+      "emailVerified": true,
+      "firstName": "Kc",
+      "lastName": "Unmapped",
+      "credentials": [
+        { "type": "password", "value": "KcUnmapped123###", "temporary": false }
+      ]
+    }
+  ]
+}
