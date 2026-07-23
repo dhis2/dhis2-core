@@ -49,6 +49,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -392,5 +393,45 @@ class JsonPatchManagerTest extends PostgresIntegrationTestBase {
     assertFalse(
         Hibernate.isInitialized(reloaded.getUsers()),
         "scalar patch must not initialize OrganisationUnit.users");
+  }
+
+  @Test
+  @DisplayName(
+      "Scalar User patch must not initialize inverse userGroups; owner userRoles stay on patched object")
+  void testUserScalarPatchDoesNotInitializeUserGroups() throws Exception {
+    UserRole role = createUserRole("roleUserPatch", "AUTH_X");
+    manager.save(role);
+
+    User user = makeUser("G");
+    user.getUserRoles().add(role);
+    manager.save(user);
+
+    UserGroup group = createUserGroup('G', Set.of(user));
+    manager.save(group);
+    // Keep both sides consistent for Hibernate inverse User.groups
+    user.getGroups().add(group);
+    manager.update(user);
+
+    clearSession();
+
+    User reloaded = manager.get(User.class, user.getUid());
+    assertNotNull(reloaded);
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getGroups()),
+        "userGroups/groups should be lazy before patch apply");
+
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/firstName\", \"value\": \"PatchedFirst\"}]",
+            JsonPatch.class);
+
+    User patched = jsonPatchManager.apply(patch, reloaded);
+
+    assertEquals("PatchedFirst", patched.getFirstName());
+    assertFalse(
+        Hibernate.isInitialized(reloaded.getGroups()),
+        "scalar patch must not initialize User.groups");
+    assertNotNull(patched.getUserRoles());
+    assertEquals(1, patched.getUserRoles().size(), "owner userRoles must survive scalar patch");
   }
 }
