@@ -434,4 +434,60 @@ class JsonPatchManagerTest extends PostgresIntegrationTestBase {
     assertNotNull(patched.getUserRoles());
     assertEquals(1, patched.getUserRoles().size(), "owner userRoles must survive scalar patch");
   }
+
+  @Test
+  @DisplayName(
+      "Scalar UserGroup patch keeps owner users and does not initialize inverse managedByGroups")
+  void testUserGroupScalarPatchKeepsOwnerUsersAndSkipsManagedBy() throws Exception {
+    User userA = makeUser("A");
+    User userB = makeUser("B");
+    manager.save(userA);
+    manager.save(userB);
+
+    UserGroup managed = createUserGroup('M', Set.of());
+    manager.save(managed);
+
+    UserGroup group = createUserGroup('U', Set.of(userA, userB));
+    manager.save(group);
+    // managedByGroups on `managed` is inverse of managedGroups on `group`
+    group.addManagedGroup(managed);
+    manager.update(group);
+    manager.update(managed);
+
+    clearSession();
+
+    UserGroup reloaded = manager.get(UserGroup.class, group.getUid());
+    assertNotNull(reloaded);
+    // Owner collection may or may not be initialized depending on load plan;
+    // after apply, patched object MUST still carry both users.
+    UserGroup managedReloaded = manager.get(UserGroup.class, managed.getUid());
+    assertNotNull(managedReloaded);
+    assertFalse(
+        Hibernate.isInitialized(managedReloaded.getManagedByGroups()),
+        "managedByGroups should be lazy before patch apply on managed group");
+
+    JsonPatch patchOnOwnerGroup =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/name\", \"value\": \"UserGroupURenamed\"}]",
+            JsonPatch.class);
+
+    UserGroup patched = jsonPatchManager.apply(patchOnOwnerGroup, reloaded);
+
+    assertEquals("UserGroupURenamed", patched.getName());
+    assertNotNull(patched.getMembers());
+    assertEquals(2, patched.getMembers().size(), "owner users must not be omitted on scalar patch");
+
+    // Apply scalar patch on the managed group: inverse managedByGroups must stay lazy
+    JsonPatch patchOnManaged =
+        jsonMapper.readValue(
+            "[{\"op\": \"replace\", \"path\": \"/name\", \"value\": \"UserGroupMRenamed\"}]",
+            JsonPatch.class);
+
+    UserGroup patchedManaged = jsonPatchManager.apply(patchOnManaged, managedReloaded);
+
+    assertEquals("UserGroupMRenamed", patchedManaged.getName());
+    assertFalse(
+        Hibernate.isInitialized(managedReloaded.getManagedByGroups()),
+        "scalar patch must not initialize UserGroup.managedByGroups");
+  }
 }
