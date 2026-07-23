@@ -48,7 +48,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
@@ -83,9 +82,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Table(name = "relationship")
 @Auditable(scope = AuditScope.TRACKER)
 public class Relationship extends BaseTrackerObject
-    implements IdentifiableObject, SoftDeletableEntity, Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = 3818815755138507997L;
+    implements IdentifiableObject, SoftDeletableEntity {
 
   @Id
   @Column(name = "relationshipid")
