@@ -245,8 +245,6 @@ public class TrackerEvent extends BaseTrackerObject
   @Override
   public int hashCode() {
     int result = getUid() != null ? getUid().hashCode() : 0;
-    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
-    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
     return Objects.hash(result, deleted);
   }
 
@@ -257,10 +255,7 @@ public class TrackerEvent extends BaseTrackerObject
     if (getRealClass(this) != getRealClass(obj)) return false;
 
     TrackerEvent other = (TrackerEvent) obj;
-    return Objects.equals(getUid(), other.getUid())
-        && Objects.equals(getCode(), other.getCode())
-        && Objects.equals(getName(), other.getName())
-        && isDeleted() == other.isDeleted();
+    return Objects.equals(getUid(), other.getUid()) && isDeleted() == other.isDeleted();
   }
 
   // -------------------------------------------------------------------------
