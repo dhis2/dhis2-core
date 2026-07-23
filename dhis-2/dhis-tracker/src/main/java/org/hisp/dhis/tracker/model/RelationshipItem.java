@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,6 +29,18 @@
  */
 package org.hisp.dhis.tracker.model;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,19 +49,48 @@ import org.hisp.dhis.common.EmbeddedObject;
 /**
  * @author Stian Sandvold
  */
+@Entity
+@Table(name = "relationshipitem")
 @Setter
 @Getter
 @NoArgsConstructor
 public class RelationshipItem implements EmbeddedObject {
+  @Id
+  @Column(name = "relationshipitemid")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "relationshipitem_sequence")
+  @SequenceGenerator(
+      name = "relationshipitem_sequence",
+      sequenceName = "relationshipitem_sequence",
+      allocationSize = 1)
   private int id;
 
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+  @JoinColumn(
+      name = "relationshipid",
+      foreignKey = @ForeignKey(name = "fk_relationshipitem_relationshipid"))
   private Relationship relationship;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "trackedentityid",
+      foreignKey = @ForeignKey(name = "fk_relationshipitem_trackedentityinstanceid"))
   private TrackedEntity trackedEntity;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "enrollmentid",
+      foreignKey = @ForeignKey(name = "fk_relationshipitem_programinstanceid"))
   private Enrollment enrollment;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "trackereventid",
+      foreignKey = @ForeignKey(name = "fk_relationshipitem_trackereventid"))
   private TrackerEvent trackerEvent;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "singleeventid",
+      foreignKey = @ForeignKey(name = "fk_relationshipitem_singleeventid"))
   private SingleEvent singleEvent;
 }
