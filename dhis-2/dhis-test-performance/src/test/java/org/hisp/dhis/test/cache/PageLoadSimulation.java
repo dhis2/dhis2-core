@@ -37,7 +37,6 @@ import io.gatling.javaapi.http.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,9 +94,6 @@ public class PageLoadSimulation extends Simulation {
   /** Ceiling for 304 share when {@code etag.expect=off} (noise / odd redirects only). */
   private static final double MAX_304_SHARE_WHEN_OFF = 0.02;
 
-  private static final AtomicLong CACHEABLE_RESPONSES = new AtomicLong();
-  private static final AtomicLong NOT_MODIFIED_RESPONSES = new AtomicLong();
-
   // -- Configuration via system properties --
   private final String instance = prop("instance", "http://localhost:8080");
   private final String adminUser = prop("adminUser", "admin");
@@ -115,8 +111,7 @@ public class PageLoadSimulation extends Simulation {
 
   public PageLoadSimulation() {
     // Fresh counters each simulation instance (Gatling may reuse the classloader).
-    CACHEABLE_RESPONSES.set(0);
-    NOT_MODIFIED_RESPONSES.set(0);
+    CacheScenarios.resetCounters();
 
     log.info(
         "ETag Cache Performance Test: profile={}, users={}, cycles={}, etag.expect={}, instance={}",
@@ -137,135 +132,16 @@ public class PageLoadSimulation extends Simulation {
             .acceptHeader("application/json")
             .header("X-Requested-With", "XMLHttpRequest");
 
-    // -- Login once per virtual user, establish session cookie --
-    ChainBuilder login =
-        exec(
-            http("login")
-                .post("/api/auth/login")
-                .header("Content-Type", "application/json")
-                .body(
-                    StringBody(
-                        "{\"username\":\""
-                            + adminUser
-                            + "\",\"password\":\""
-                            + adminPassword
-                            + "\"}"))
-                .check(status().in(200, 302)));
+    // Shared chains: login, bootstrap and the three app page loads (see CacheScenarios).
+    CacheScenarios scenarios =
+        new CacheScenarios(
+            api, adminUser, adminPassword, dashboardUid, etagExpect != EtagExpect.NONE);
 
-    // -- Shared bootstrap requests (common across all apps) --
-    ChainBuilder bootstrap =
-        group("bootstrap")
-            .on(
-                exec(
-                    http("me")
-                        .get(api + "/me?fields=authorities,avatar,name,settings,username")
-                        .check(cacheableStatus()),
-                    http("systemSettings").get(api + "/systemSettings").check(cacheableStatus()),
-                    http("userSettings").get(api + "/userSettings").check(cacheableStatus()),
-                    http("systemSettings/applicationTitle")
-                        .get(api + "/systemSettings/applicationTitle")
-                        .check(cacheableStatus()),
-                    http("systemSettings/helpPageLink")
-                        .get(api + "/systemSettings/helpPageLink")
-                        .check(cacheableStatus()),
-                    http("apps").get(api + "/apps").check(cacheableStatus()),
-                    http("apps/menu").get(api + "/apps/menu").check(cacheableStatus()),
-                    http("me/dashboard").get(api + "/me/dashboard").check(cacheableStatus()),
-                    http("system/info").get("/api/system/info").check(cacheableStatus())));
+    ChainBuilder login = scenarios.login();
 
-    // -- Maintenance app requests --
-    ChainBuilder maintenanceApp =
-        group("maintenance")
-            .on(
-                exec(bootstrap)
-                    .pause(Duration.ofMillis(200))
-                    .exec(
-                        http("schemas")
-                            .get(
-                                api
-                                    + "/schemas?fields=authorities,displayName,name,plural,singular,translatable,properties,shareable,dataShareable")
-                            .check(cacheableStatus()),
-                        http("me/authorities")
-                            .get(api + "/me?fields=authorities,avatar,email,name,settings,username")
-                            .check(cacheableStatus()),
-                        http("organisationUnits")
-                            .get(
-                                api
-                                    + "/organisationUnits?fields=id,access,displayName,level,path&paging=false")
-                            .check(cacheableStatus())));
-
-    // -- Dashboard app requests --
-    ChainBuilder dashboardApp =
-        group("dashboard")
-            .on(
-                exec(bootstrap)
-                    .pause(Duration.ofMillis(200))
-                    .exec(
-                        http("dashboards")
-                            .get(api + "/dashboards?fields=id,displayName,favorite&paging=false")
-                            .check(cacheableStatus()),
-                        http("dashboard/" + dashboardUid)
-                            .get(
-                                api
-                                    + "/dashboards/"
-                                    + dashboardUid
-                                    + "?fields=id,displayName,dashboardItems[*]")
-                            .check(cacheableStatus()),
-                        http("organisationUnitLevels")
-                            .get(api + "/organisationUnitLevels")
-                            .check(cacheableStatus()),
-                        http("systemSettings/analyticsRelativePeriod")
-                            .get(api + "/systemSettings/keyAnalysisRelativePeriod")
-                            .check(cacheableStatus()),
-                        http("systemSettings/financialYearStart")
-                            .get(api + "/systemSettings/analyticsFinancialYearStart")
-                            .check(cacheableStatus()),
-                        http("dataStore/custom-translations")
-                            .get(api + "/dataStore/custom-translations/controller")
-                            .check(status().in(200, 304, 404)),
-                        http("locales/db").get(api + "/locales/db").check(cacheableStatus()),
-                        http("periodTypes").get(api + "/periodTypes").check(cacheableStatus())));
-
-    // -- Capture app requests --
-    ChainBuilder captureApp =
-        group("capture")
-            .on(
-                exec(bootstrap)
-                    .pause(Duration.ofMillis(200))
-                    .exec(
-                        http("me/settings")
-                            .get(api + "/me?fields=settings[keyUiLocale]")
-                            .check(cacheableStatus()),
-                        http("trackedEntityInstanceFilters")
-                            .get(
-                                api
-                                    + "/trackedEntityInstanceFilters?filter=program.id:eq:IpHINAT79UW")
-                            .check(cacheableStatus()),
-                        http("programStageWorkingLists")
-                            .get(api + "/programStageWorkingLists?filter=program.id:eq:IpHINAT79UW")
-                            .check(cacheableStatus())));
-
-    // -- Full user session: cycle through all three apps --
     // Think-time configurable: "fast" for stress testing, "realistic" for real-world simulation
     boolean fastMode = Boolean.parseBoolean(prop("fast", "false"));
-    ChainBuilder appCycle;
-    if (fastMode) {
-      appCycle =
-          exec(maintenanceApp)
-              .pause(Duration.ofMillis(200), Duration.ofMillis(500))
-              .exec(dashboardApp)
-              .pause(Duration.ofMillis(200), Duration.ofMillis(500))
-              .exec(captureApp)
-              .pause(Duration.ofMillis(200), Duration.ofMillis(500));
-    } else {
-      appCycle =
-          exec(maintenanceApp)
-              .pause(Duration.ofSeconds(3), Duration.ofSeconds(5))
-              .exec(dashboardApp)
-              .pause(Duration.ofSeconds(5), Duration.ofSeconds(10))
-              .exec(captureApp)
-              .pause(Duration.ofSeconds(3), Duration.ofSeconds(5));
-    }
+    ChainBuilder appCycle = scenarios.appCycle(fastMode);
 
     // -- Scenario: repeated app navigation --
     // SMOKE uses fixed repeat count; LOAD/CAPACITY loop for the injection duration
@@ -325,8 +201,8 @@ public class PageLoadSimulation extends Simulation {
 
   @Override
   public void after() {
-    long total = CACHEABLE_RESPONSES.get();
-    long n304 = NOT_MODIFIED_RESPONSES.get();
+    long total = CacheScenarios.cacheableResponses();
+    long n304 = CacheScenarios.notModifiedResponses();
     double share = total == 0 ? 0.0 : (double) n304 / (double) total;
     log.info(
         "etag.expect={} cacheableResponses={} notModified={} share={}%",
@@ -366,25 +242,6 @@ public class PageLoadSimulation extends Simulation {
   }
 
   // -- Helpers --
-
-  /**
-   * Accept 200/304 and, when {@code etag.expect} is not {@code none}, count the status for the
-   * post-run 304-share assertion.
-   */
-  private CheckBuilder.Final cacheableStatus() {
-    return status()
-        .transform(
-            code -> {
-              if (etagExpect != EtagExpect.NONE && (code == 200 || code == 304)) {
-                CACHEABLE_RESPONSES.incrementAndGet();
-                if (code == 304) {
-                  NOT_MODIFIED_RESPONSES.incrementAndGet();
-                }
-              }
-              return code;
-            })
-        .in(200, 304);
-  }
 
   private static String prop(String key, String defaultValue) {
     return System.getProperty(key, defaultValue);
