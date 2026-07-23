@@ -42,10 +42,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
@@ -70,7 +67,6 @@ import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
@@ -87,16 +83,12 @@ import org.springframework.stereotype.Component;
 public class DefaultQueryPlanner implements QueryPlanner {
   private final PartitionManager partitionManager;
 
-  private final DataElementStore dataElementStore;
-
   // -------------------------------------------------------------------------
   // QueryPlanner implementation
   // -------------------------------------------------------------------------
 
   @Override
   public DataQueryGroups planQuery(DataQueryParams params, QueryPlannerParams plannerParams) {
-    params = withResolvedDataElementPeriodTypes(params);
-
     params = PeriodOffsetUtils.addShiftedPeriods(params);
 
     // Group queries which can be executed together
@@ -174,28 +166,6 @@ public class DefaultQueryPlanner implements QueryPlanner {
     }
 
     return DataQueryParams.newBuilder(params).withPartitions(partitions).build();
-  }
-
-  /**
-   * Returns a copy of the given {@link DataQueryParams} with {@code dataElementPeriodTypes}
-   * populated via a single batch query. Resolving period types here — inside the planner, while a
-   * Hibernate session is guaranteed open — avoids per-element lazy loads on {@code
-   * DataElement.dataSetElements} that fail when the entities arrive detached (e.g. from a cached
-   * params builder or test path that bypasses OSIV).
-   */
-  private DataQueryParams withResolvedDataElementPeriodTypes(DataQueryParams params) {
-    Set<String> uids =
-        params.getAllDataElements().stream()
-            .map(item -> ((DataElement) item).getUid())
-            .collect(Collectors.toSet());
-
-    if (uids.isEmpty()) {
-      return params;
-    }
-
-    Map<String, PeriodType> periodTypes = dataElementStore.getPeriodTypesByUid(uids);
-
-    return DataQueryParams.newBuilder(params).withDataElementPeriodTypes(periodTypes).build();
   }
 
   // -------------------------------------------------------------------------
@@ -511,10 +481,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
     if (isNotEmpty(params.getDataElements())) {
       ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap =
           QueryPlannerUtils.getAggregationTypeDataElementMap(
-              params.getDataElements(),
-              params.getAggregationType(),
-              params.getPeriodType(),
-              params.getDataElementPeriodTypes());
+              params.getDataElements(), params.getAggregationType(), params.getPeriodType());
 
       for (AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet()) {
         DataQueryParams query =
@@ -553,8 +520,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
           QueryPlannerUtils.getAggregationTypeDataElementMap(
               params.getFilterOptions(DATA_X_DIM_ID, DataDimensionItemType.DATA_ELEMENT),
               params.getAggregationType(),
-              params.getPeriodType(),
-              params.getDataElementPeriodTypes());
+              params.getPeriodType());
 
       for (AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet()) {
         DataQueryParams query =
@@ -672,8 +638,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     if (params.isDisaggregation() && isNotEmpty(params.getDataElements())) {
       ListMap<PeriodType, DimensionalItemObject> periodTypeDataElementMap =
-          QueryPlannerUtils.getPeriodTypeDataElementMap(
-              params.getDataElements(), params.getDataElementPeriodTypes());
+          QueryPlannerUtils.getPeriodTypeDataElementMap(params.getDataElements());
 
       for (PeriodType periodType : periodTypeDataElementMap.keySet()) {
         DataQueryParams query =

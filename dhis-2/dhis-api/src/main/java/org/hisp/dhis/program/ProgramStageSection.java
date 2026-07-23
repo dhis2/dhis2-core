@@ -40,7 +40,6 @@ import java.util.function.BiFunction;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
@@ -122,7 +121,7 @@ public class ProgramStageSection extends BaseNameableObject implements MetadataO
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = IdentifiableObject.class)
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataElements", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
   public List<DataElement> getDataElements() {
