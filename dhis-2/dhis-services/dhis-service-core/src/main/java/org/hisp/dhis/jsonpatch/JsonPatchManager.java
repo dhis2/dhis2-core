@@ -32,16 +32,16 @@ package org.hisp.dhis.jsonpatch;
 import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -65,9 +65,31 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class JsonPatchManager {
-  private static final String JSON_PATCH_FILTER_ID = "jsonPatchFilter";
 
   private final ObjectMapper jsonMapper;
+
+  /**
+   * Cache of per-entity-type {@code ObjectMapper} copies with {@link JsonPatchFilterMixin} bound to
+   * that type only -- NOT {@code Object.class}. Binding the mixin globally would apply the
+   * exclusion filter to every nested object in the serialized graph too: {@code Sharing} (present
+   * on every {@code IdentifiableObject} via {@code BaseIdentifiableObject.getSharing()}) has its
+   * own {@code @JsonProperty} field literally named {@code users}, so a global binding would
+   * silently strip {@code sharing.users}/{@code sharing.userGroups} whenever a same-named top-level
+   * collection (e.g. {@code UserRole.users}) is excluded -- confirmed as a real bug during review,
+   * not a hypothetical. Scoping to {@code realClass} makes that specific cross-type collision
+   * impossible: only {@code realClass} carries {@code @JsonFilter}, so a differently-typed nested
+   * object (e.g. {@code Sharing}) is never affected by another type's exclusions. (A
+   * self-referential {@code realClass}, e.g. a nested {@code OrganisationUnit} under another {@code
+   * OrganisationUnit}, does re-carry the filter -- but the excluded set only ever names {@code
+   * realClass}'s own non-owner collections, so re-applying it at any depth is safe by the same
+   * owner/non-owner invariant that makes dropping them at the root safe.) Built lazily, once per
+   * distinct {@code realClass} ever patched, then reused -- mirrors {@code
+   * org.hisp.dhis.fieldfiltering.FieldFilterSimpleBeanPropertyFilter}'s own {@code
+   * ALWAYS_EXPAND_CACHE} pattern for the same "compute once per Class" idiom. Per-call code (see
+   * {@link #toJsonNode}) only attaches a fresh {@link SimpleFilterProvider}; it does not rebuild
+   * the cached entry on every patch.
+   */
+  private final Map<Class<?>, ObjectMapper> patchMapperCache = new ConcurrentHashMap<>();
 
   private final SchemaService schemaService;
 
@@ -87,7 +109,9 @@ public class JsonPatchManager {
    * (for example {@code OrganisationUnit.leaf}) are also omitted when unreferenced, because their
    * getters can force-initialize inverse lazy collections. Skipping avoids initializing lazy
    * Hibernate collections such as {@code UserRole.members} during scalar PATCH /userRoles (slow
-   * PATCH /userRoles).
+   * PATCH /userRoles). A patch path that explicitly targets an otherwise-excludable property (e.g.
+   * {@code /users}) removes it from the excluded set, so that property still falls back to full
+   * (slower, but correct) hydration -- it is never silently dropped.
    *
    * @param patch JsonPatch object with the operations it should apply.
    * @param object Jackson Object to apply the patch to.
@@ -165,24 +189,27 @@ public class JsonPatchManager {
             && patchedPaths.contains(property.getCollectionName()));
   }
 
+  /**
+   * Builds the JSON tree for {@code object}, skipping getters for properties in {@code excluded}.
+   * Looks up (or lazily builds) {@code realClass}'s cached mapper from {@link #patchMapperCache};
+   * only attaches a fresh, per-call {@link SimpleFilterProvider} -- the expensive
+   * mixin-binding/{@code copy()} happens at most once per distinct {@code realClass}, not on every
+   * patch.
+   */
   private JsonNode toJsonNode(Object object, Class<?> realClass, Set<String> excluded) {
     if (excluded.isEmpty()) {
       return jsonMapper.valueToTree(object);
     }
 
-    // Per-call mapper copy with a mixin bound to realClass only, so nested
-    // objects serialize unchanged and excluded getters (lazy collections) are
-    // never invoked.
     ObjectMapper patchMapper =
-        jsonMapper
-            .copy()
-            .addMixIn(realClass, JsonPatchFilterMixin.class)
-            .setFilterProvider(
-                new SimpleFilterProvider()
-                    .addFilter(
-                        JSON_PATCH_FILTER_ID,
-                        SimpleBeanPropertyFilter.serializeAllExcept(excluded)));
-    return patchMapper.valueToTree(object);
+        patchMapperCache.computeIfAbsent(
+            realClass, cls -> jsonMapper.copy().addMixIn(cls, JsonPatchFilterMixin.class));
+
+    SimpleFilterProvider filterProvider =
+        new SimpleFilterProvider()
+            .addFilter(
+                JsonPatchExcludedPropertyFilter.ID, new JsonPatchExcludedPropertyFilter(excluded));
+    return patchMapper.copy().setFilterProvider(filterProvider).valueToTree(object);
   }
 
   private <T> void handleCollectionUpdates(
@@ -248,8 +275,4 @@ public class JsonPatchManager {
       }
     }
   }
-
-  /** Mixin that attaches the per-call json-patch property filter to the root entity class only. */
-  @JsonFilter(JSON_PATCH_FILTER_ID)
-  private static final class JsonPatchFilterMixin {}
 }
