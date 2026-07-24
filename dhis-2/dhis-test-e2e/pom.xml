@@ -229,6 +229,13 @@
             <release>17</release>
             <encoding>${project.build.sourceEncoding}</encoding>
             <parameters>true</parameters>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
         <plugin>
@@ -289,7 +296,9 @@
   </build>
 
   <profiles>
-    <!-- Default profile will run all e2e tests except the analytics ones -->
+    <!-- Default profile runs general e2e tests (excludes analytics and cache).
+         Analytics uses a separate workflow; cache runs as a second compose step in
+         run-api-tests.yml api-test. -->
     <profile>
       <id>default</id>
       <activation>
@@ -301,7 +310,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <excludedGroups>analytics</excludedGroups>
+              <excludedGroups>analytics,cache</excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -337,6 +346,20 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>uitests</groups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>cache</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <groups>cache</groups>
             </configuration>
           </plugin>
         </plugins>
