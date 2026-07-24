@@ -619,6 +619,8 @@ public enum ErrorCode {
   E7254("Aggregation type is not supported by tracked entity aggregate queries: `{0}`"),
   E7255("Aggregation type `{0}` requires the `value` parameter"),
   E7256("Value `{0}` is not a numeric tracked entity attribute of tracked entity type `{1}`"),
+  E7257(
+      "Value `{0}` does not reference a numeric data element of a program stage; expected format `programUid.programStageUid.dataElementUid`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

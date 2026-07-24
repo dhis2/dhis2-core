@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,70 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.generator.impl;
+package org.hisp.dhis.analytics.trackedentity;
 
-import org.hisp.dhis.analytics.generator.Generator;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Set of behavior and settings required by the test generation of
- * "/analytics/trackedEntities/aggregate/{trackedEntityType}?" endpoint.
+ * The resolved program-stage event value an aggregate query aggregates over: a numeric data element
+ * of a program stage, collapsed to one chosen event per tracked entity. The {@code offset} selects
+ * which occurrence of the stage to read (0 = latest, negative = earlier, positive = ascending from
+ * the first), matching the row-level query offset semantics.
  */
-public class TrackedEntityAggregatedGenerator implements Generator {
-  private String[] scenarios = new String[] {};
-
-  public TrackedEntityAggregatedGenerator() {}
-
-  public TrackedEntityAggregatedGenerator(String... scenarios) {
-    this.scenarios = scenarios;
-  }
-
-  @Override
-  public String[] getScenarios() {
-    return scenarios;
-  }
-
-  @Override
-  public int getMaxTestsPerClass() {
-    return 4;
-  }
-
-  @Override
-  public String getAction() {
-    return "aggregate";
-  }
-
-  @Override
-  public String getClassNamePrefix() {
-    return "TrackedEntityAggregate";
-  }
-
-  @Override
-  public String getScenarioFile() {
-    return "tracked-entity-aggregated.json";
-  }
-
-  @Override
-  public String getActionDeclaration() {
-    return "private AnalyticsTrackedEntityActions actions = new AnalyticsTrackedEntityActions();";
-  }
-
-  @Override
-  public String getPackage() {
-    return "org.hisp.dhis.analytics.trackedentity";
-  }
-
-  @Override
-  public String getTopClassComment() {
-    return "Groups e2e tests for \"/trackedEntities/aggregate\" endpoint.";
-  }
-
-  @Override
-  public boolean assertMetaData() {
-    return true;
-  }
-
-  @Override
-  public boolean assertRowIndex() {
-    return false;
-  }
-}
+public record EventValue(ProgramStage programStage, DataElement dataElement, int offset) {}

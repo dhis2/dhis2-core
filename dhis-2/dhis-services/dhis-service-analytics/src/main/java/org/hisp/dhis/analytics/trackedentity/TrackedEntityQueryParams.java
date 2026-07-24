@@ -53,9 +53,18 @@ public class TrackedEntityQueryParams {
 
   /**
    * The numeric tracked entity attribute the aggregation function of an aggregate query applies to.
-   * When null, an aggregate query counts tracked entity instances.
+   * When null, the aggregate query either counts tracked entity instances or aggregates over an
+   * {@link #eventValue}. At most one of {@code attributeValue} and {@code eventValue} is non-null.
    */
-  private final TrackedEntityAttribute value;
+  private final TrackedEntityAttribute attributeValue;
+
+  /**
+   * The numeric program-stage data element the aggregation function of an aggregate query applies
+   * to, collapsed to one chosen event per tracked entity. When null, the aggregate query either
+   * counts tracked entity instances or aggregates over an {@link #attributeValue}. At most one of
+   * {@code attributeValue} and {@code eventValue} is non-null.
+   */
+  private final EventValue eventValue;
 
   /** The aggregation function applied to the value column of an aggregate query. */
   private final AggregationType aggregationType;

@@ -38,12 +38,15 @@ import java.util.Set;
 import java.util.function.Predicate;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.ContextParams;
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
+import org.hisp.dhis.analytics.trackedentity.query.RenderableDataValue;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilder;
@@ -58,6 +61,11 @@ import org.springframework.stereotype.Service;
 @Service
 @Order(0)
 public class AggregateQueryBuilder implements SqlQueryBuilder {
+
+  /**
+   * Alias of the collapsed program-stage event table joined when aggregating over an event value.
+   */
+  private static final String EVENT_VALUE_ALIAS = "ev";
 
   @Getter
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
@@ -95,6 +103,15 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
               builder.groupByField(field);
             });
 
+    // A program-stage data element value is aggregated from the collapsed event row, joined at
+    // tracked-entity grain so the GROUP BY counts tracked entities, not events.
+    EventValue eventValue = queryContext.getContextParams().getTypedParsed().getEventValue();
+    if (eventValue != null) {
+      builder.leftJoin(
+          SqlQueryHelper.buildEventValueLeftJoin(
+              eventValue, queryContext.getTetTableSuffix(), EVENT_VALUE_ALIAS));
+    }
+
     // The aggregate value column is the last select column and is not grouped.
     builder.selectField(
         Field.ofUnquoted("", () -> valueExpression(queryContext.getContextParams()), "value"));
@@ -103,16 +120,28 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
   }
 
   /**
-   * Returns the SQL expression of the aggregate value column. Without a value attribute the query
-   * counts TEIs; with one, the aggregation function is applied to the attribute column — including
-   * an explicit COUNT, which then counts non-null attribute values, matching the event/enrollment
-   * aggregate contract.
+   * Returns the SQL expression of the aggregate value column. Without a value the query counts
+   * TEIs. Over a tracked entity attribute the function is applied to the attribute column; over a
+   * program-stage data element it is applied to the value extracted from the collapsed event row.
+   * An explicit COUNT then counts non-null values, matching the event/enrollment aggregate
+   * contract.
    */
   private static String valueExpression(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
     TrackedEntityQueryParams params = contextParams.getTypedParsed();
 
-    if (params.getValue() == null) {
+    EventValue eventValue = params.getEventValue();
+    if (eventValue != null) {
+      String value =
+          RenderableDataValue.of(
+                  EVENT_VALUE_ALIAS,
+                  eventValue.dataElement().getUid(),
+                  ValueTypeMapping.fromValueType(eventValue.dataElement().getValueType()))
+              .render();
+      return params.getAggregationType().getValue() + "(" + value + ")";
+    }
+
+    if (params.getAttributeValue() == null) {
       return "count(1)";
     }
 
@@ -120,7 +149,7 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
         + "("
         + TRACKED_ENTITY_ALIAS
         + ".\""
-        + params.getValue().getUid()
+        + params.getAttributeValue().getUid()
         + "\")";
   }
 
