@@ -31,9 +31,24 @@ package org.hisp.dhis.tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,6 +66,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  *
  * @author Abyot Asalefew
  */
+@Entity
+@Table(name = "trackedentityattributevalue")
+@IdClass(TrackedEntityAttributeValue.TrackedEntityAttributeValueId.class)
 @Auditable(scope = AuditScope.TRACKER)
 @Accessors(chain = true)
 @ToString(onlyExplicitlyIncluded = true)
@@ -59,14 +77,47 @@ public class TrackedEntityAttributeValue implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   @Serial private static final long serialVersionUID = -4469496681709547707L;
 
-  @Setter @ToString.Include @EqualsAndHashCode.Include @AuditAttribute
+  @Id
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "trackedentityattributeid",
+      foreignKey = @ForeignKey(name = "fk_attributevalue_trackedentityattributeid"),
+      nullable = false)
+  @Setter
+  @ToString.Include
+  @EqualsAndHashCode.Include
+  @AuditAttribute
   private TrackedEntityAttribute attribute;
 
-  @Setter @ToString.Include @AuditAttribute private TrackedEntity trackedEntity;
-  @Setter @ToString.Include private Date created;
-  @Setter @ToString.Include private Date lastUpdated;
-  @Setter @ToString.Include private String updatedBy;
-  @ToString.Include private String value;
+  @Id
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "trackedentityid",
+      foreignKey = @ForeignKey(name = "fk_attributevalue_trackedentityinstanceid"),
+      nullable = false)
+  @Setter
+  @ToString.Include
+  @AuditAttribute
+  private TrackedEntity trackedEntity;
+
+  @Column(name = "created", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @Setter
+  @ToString.Include
+  private Date created;
+
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @Setter
+  @ToString.Include
+  private Date lastUpdated;
+
+  @Column(name = "updatedby")
+  @Setter
+  @ToString.Include
+  private String updatedBy;
+
+  @Transient @ToString.Include private String value;
 
   private transient boolean auditValueIsSet = false;
   private transient boolean valueIsSet = false;
@@ -114,6 +165,8 @@ public class TrackedEntityAttributeValue implements Serializable {
   @AuditAttribute
   @JsonProperty
   @EqualsAndHashCode.Include
+  @Access(AccessType.PROPERTY)
+  @Column(name = "value", length = 1200, nullable = false)
   public String getValue() {
     return this.value;
   }
@@ -145,5 +198,30 @@ public class TrackedEntityAttributeValue implements Serializable {
   @JsonSerialize(as = BaseIdentifiableObject.class)
   public TrackedEntity getTrackedEntity() {
     return trackedEntity;
+  }
+
+  /**
+   * Composite primary key for {@link TrackedEntityAttributeValue}, mirroring the {@code
+   * composite-id} of the previous XML mapping. Its fields match the {@code @Id} attribute names and
+   * carry the primary-key types of the referenced entities (both {@code long}).
+   */
+  public static class TrackedEntityAttributeValueId implements Serializable {
+    private long attribute;
+    private long trackedEntity;
+
+    public TrackedEntityAttributeValueId() {}
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      TrackedEntityAttributeValueId that = (TrackedEntityAttributeValueId) o;
+      return attribute == that.attribute && trackedEntity == that.trackedEntity;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(attribute, trackedEntity);
+    }
   }
 }

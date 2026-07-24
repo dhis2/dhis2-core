@@ -34,6 +34,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.oauth2.OAuth2Constants;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -73,10 +74,11 @@ final class InlineJwksClientMetadataConfig {
       // Override the SAS default of requireAuthorizationConsent(true) — DCR-registered clients
       // are first-party (e.g. Android app) authenticating with their own DHIS2 server,
       // so no end-user consent prompt is needed.
+      // requireProofKey(true) is SAS 7's builder default but is set explicitly: DCR-registered
+      // authorization-code clients (Android devices) must use S256 PKCE (PR-H).
       ClientSettings.Builder cs = ClientSettings.withSettings(rc.getClientSettings().getSettings());
       cs.requireAuthorizationConsent(false);
-      // Temporary SAS 7 bridge: DCR clients do not use PKCE yet (PR-H).
-      cs.requireProofKey(false);
+      cs.requireProofKey(true);
       Map<String, Object> claims = reg.getClaims();
 
       // Accept optional "token_endpoint_auth_signing_alg": "RS256"
@@ -100,11 +102,16 @@ final class InlineJwksClientMetadataConfig {
         throw new IllegalArgumentException("'jwks' must be provided in registration");
       }
 
-      // SAS 7 forbids "scope" on DCR requests; assign first-party defaults so client_credentials
-      // token requests (tests/Android) still have usable scopes.
+      // SAS 7 forbids "scope" on DCR requests; assign the server-side first-party defaults
+      // (openid, profile, username — see OAuth2Constants.DCR_DEFAULT_SCOPES) so authorize and
+      // token requests have usable scopes. Defense-in-depth: any scopes that somehow arrive on
+      // the registration are filtered against the allowed-client-scope set.
       RegisteredClient.Builder builder = RegisteredClient.from(rc).clientSettings(cs.build());
       if (rc.getScopes() == null || rc.getScopes().isEmpty()) {
-        builder.scope("openid").scope("profile").scope("username").scope("email");
+        OAuth2Constants.DCR_DEFAULT_SCOPES.forEach(builder::scope);
+      } else {
+        builder.scopes(
+            scopes -> scopes.removeIf(scope -> !OAuth2Constants.isAllowedClientScope(scope)));
       }
       return builder.build();
     }
