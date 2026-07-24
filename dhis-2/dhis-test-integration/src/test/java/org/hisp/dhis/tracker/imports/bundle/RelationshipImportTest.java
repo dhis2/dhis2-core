@@ -32,9 +32,15 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
@@ -77,6 +83,7 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
     testSetup.importTrackerData("tracker/single_te.json");
     testSetup.importTrackerData("tracker/single_enrollment.json");
     testSetup.importTrackerData("tracker/single_event.json");
+    testSetup.importTrackerData("tracker/single_events_for_relationship.json");
     manager.flush();
   }
 
@@ -143,5 +150,83 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
     assertHasError(importReport, ValidationCode.E4017);
     assertThat(importReport.getStats().getIgnored(), is(2));
+  }
+
+  @Test
+  void shouldUpdateBothSingleEventsLastUpdatedWhenBidirectionalRelationshipCreated()
+      throws IOException {
+    Date oneLastUpdatedBefore = manager.get(Event.class, "SnglEvtOneA").getLastUpdated();
+    Date twoLastUpdatedBefore = manager.get(Event.class, "SnglEvtTwoA").getLastUpdated();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/single_event_relationship.json"));
+
+    assertThat(importReport.getStatus(), is(Status.OK));
+    assertThat(importReport.getStats().getCreated(), is(1));
+    manager.clear();
+    assertTrue(
+        manager.get(Event.class, "SnglEvtOneA").getLastUpdated().after(oneLastUpdatedBefore),
+        "from side of a bidirectional relationship must have its lastUpdated bumped");
+    assertTrue(
+        manager.get(Event.class, "SnglEvtTwoA").getLastUpdated().after(twoLastUpdatedBefore),
+        "to side of a bidirectional relationship must have its lastUpdated bumped too");
+  }
+
+  @Test
+  void shouldUpdateBothSingleEventsLastUpdatedWhenBidirectionalRelationshipDeleted()
+      throws IOException {
+    testSetup.importTrackerData("tracker/single_event_relationship.json");
+    manager.clear();
+    Date oneLastUpdatedBefore = manager.get(Event.class, "SnglEvtOneA").getLastUpdated();
+    Date twoLastUpdatedBefore = manager.get(Event.class, "SnglEvtTwoA").getLastUpdated();
+
+    TrackerImportParams deleteParams =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            deleteParams,
+            TrackerObjects.builder()
+                .relationships(
+                    List.of(
+                        org.hisp.dhis.tracker.imports.domain.Relationship.builder()
+                            .relationship(UID.of("SnglEvtRelA"))
+                            .build()))
+                .build());
+
+    assertThat(importReport.getStatus(), is(Status.OK));
+    assertThat(importReport.getStats().getDeleted(), is(1));
+
+    manager.flush();
+    manager.clear();
+    assertTrue(
+        manager.get(Event.class, "SnglEvtOneA").getLastUpdated().after(oneLastUpdatedBefore),
+        "from side of a bidirectional relationship must have its lastUpdated bumped on delete too");
+    assertTrue(
+        manager.get(Event.class, "SnglEvtTwoA").getLastUpdated().after(twoLastUpdatedBefore),
+        "to side of a bidirectional relationship must have its lastUpdated bumped on delete too");
+  }
+
+  @Test
+  void shouldUpdateOnlyFromSingleEventLastUpdatedWhenUnidirectionalRelationshipCreated()
+      throws IOException {
+    Date oneLastUpdatedBefore = manager.get(Event.class, "SnglEvtOneA").getLastUpdated();
+    Date twoLastUpdatedBefore = manager.get(Event.class, "SnglEvtTwoA").getLastUpdated();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/single_event_relationship_unidirectional.json"));
+
+    assertThat(importReport.getStatus(), is(Status.OK));
+    assertThat(importReport.getStats().getCreated(), is(1));
+    manager.clear();
+    assertTrue(
+        manager.get(Event.class, "SnglEvtOneA").getLastUpdated().after(oneLastUpdatedBefore),
+        "from side of a unidirectional relationship must have its lastUpdated bumped");
+    assertFalse(
+        manager.get(Event.class, "SnglEvtTwoA").getLastUpdated().after(twoLastUpdatedBefore),
+        "to side of a unidirectional relationship must not have its lastUpdated bumped");
   }
 }

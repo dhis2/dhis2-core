@@ -81,4 +81,6 @@ fields=!notes. reconsider this if we do implement that optimization -->
 
   </class>
 
+  <sql-query name="updateEventsLastUpdated">update event set lastUpdated = :lastUpdated, lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) WHERE uid in :events</sql-query>
+
 </hibernate-mapping>

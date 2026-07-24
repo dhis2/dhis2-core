@@ -148,6 +148,8 @@ public class TrackerBundle {
 
   @Builder.Default @JsonIgnore private Set<UID> updatedTrackedEntities = new HashSet<>();
 
+  @Builder.Default @JsonIgnore private Set<UID> updatedSingleEvents = new HashSet<>();
+
   public void setTrackedEntities(List<TrackedEntity> trackedEntities) {
     this.trackedEntities = trackedEntities;
     this.trackedEntityByUid = null;
@@ -223,6 +225,14 @@ public class TrackerBundle {
 
   public void addUpdatedTrackedEntities(Set<UID> updatedTrackedEntities) {
     this.updatedTrackedEntities.addAll(updatedTrackedEntities);
+  }
+
+  public Set<UID> getUpdatedSingleEvents() {
+    return Set.copyOf(this.updatedSingleEvents);
+  }
+
+  public void addUpdatedSingleEvents(Set<UID> updatedSingleEvents) {
+    this.updatedSingleEvents.addAll(updatedSingleEvents);
   }
 
   public Map<UID, List<Notification>> getEnrollmentNotifications() {
