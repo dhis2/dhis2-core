@@ -1037,12 +1037,42 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void invalidateUserSessions(String username) {
-    User user = getUserByUsername(username);
-    UserDetails userDetails = createUserDetails(user);
-    if (userDetails != null) {
-      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
-      allSessions.forEach(SessionInformation::expireNow);
+    if (username == null) {
+      return;
     }
+    List<SessionInformation> sessions =
+        sessionRegistry.getAllSessions(sessionLookupPrincipal(username), false);
+    sessions.forEach(SessionInformation::expireNow);
+  }
+
+  /**
+   * Creates a minimal principal used only to look up sessions in the {@link SessionRegistry}. The
+   * in-memory registry matches principals by {@link UserDetailsImpl} equality, which includes the
+   * username only, and the Redis-backed registry resolves principals by name (username). Building
+   * this instead of loading the full user avoids one user fetch plus full {@code UserDetails}
+   * hydration (groups, roles, org units) per invalidated user.
+   */
+  private static UserDetails sessionLookupPrincipal(String username) {
+    return UserDetailsImpl.builder()
+        .username(username)
+        .authorities(List.of())
+        .allAuthorities(Set.of())
+        .allRestrictions(Set.of())
+        .userGroupIds(Set.of())
+        .userOrgUnitIds(Set.of())
+        .userDataOrgUnitIds(Set.of())
+        .userSearchOrgUnitIds(Set.of())
+        .userEffectiveSearchOrgUnitIds(Set.of())
+        .userRoleIds(Set.of())
+        .managedGroupLongIds(Set.of())
+        .userRoleLongIds(Set.of())
+        .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getUsernamesByUserRole(@Nonnull UID roleUid) {
+    return userStore.getUsernamesByUserRole(roleUid);
   }
 
   @Override
