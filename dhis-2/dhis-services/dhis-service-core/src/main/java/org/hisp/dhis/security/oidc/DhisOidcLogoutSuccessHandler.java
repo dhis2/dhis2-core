@@ -30,6 +30,7 @@
 package org.hisp.dhis.security.oidc;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.hisp.dhis.external.conf.ConfigurationKey.HTTP_CLEAR_SITE_DATA;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_LOGOUT_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_RELOGIN_URL;
