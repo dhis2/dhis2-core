@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
@@ -56,6 +58,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -658,13 +661,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp,
       boolean hasTrackedEntityJoin) {
     if (params.getOrgUnit() != null) {
-      buildOrgUnitModeClause(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ou",
-          hlp.whereAnd());
+      addDirectOrgUnitPredicate(sql, sqlParams, params, hlp);
     }
 
     if (params.hasEnrolledInTrackerProgram()) {
@@ -1080,13 +1077,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       TrackerEventQueryParams params,
       SqlHelper hlp) {
     if (params.getOrgUnit() != null) {
-      buildOrgUnitModeClause(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ou",
-          hlp.whereAnd());
+      addDirectOrgUnitPredicate(sql, sqlParams, params, hlp);
     }
 
     if (params.hasEnrolledInTrackerProgram()) {
@@ -1100,6 +1091,32 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           hlp::whereAnd);
     } else {
       buildOwnershipClause(sql, sqlParams, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
+    }
+  }
+
+  // For CHILDREN/DESCENDANTS: prepend a direct ou.organisationunitid IN (subquery) predicate so
+  // the planner can use the composite index on (organisationunitid, occurreddate) via the TPO
+  // join rather than resolving a path LIKE on the joined ou table.
+  // For all other modes: delegate to OrgUnitQueryBuilder as usual.
+  private void addDirectOrgUnitPredicate(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      SqlHelper hlp) {
+    OrganisationUnitSelectionMode mode = params.getOrgUnitMode();
+    if (mode == DESCENDANTS) {
+      sqlParams.addValue("ouPath", params.getOrgUnit().getStoredPath() + "%");
+      sql.append(hlp.whereAnd())
+          .append(
+              " ou.organisationunitid IN (SELECT organisationunitid FROM organisationunit WHERE path LIKE :ouPath) ");
+    } else if (mode == CHILDREN) {
+      sqlParams.addValue("ouId", params.getOrgUnit().getId());
+      sql.append(hlp.whereAnd())
+          .append(
+              " ou.organisationunitid IN (SELECT organisationunitid FROM organisationunit WHERE organisationunitid = :ouId OR parentid = :ouId) ");
+    } else {
+      buildOrgUnitModeClause(
+          sql, sqlParams, Set.of(params.getOrgUnit()), mode, "ou", hlp.whereAnd());
     }
   }
 
