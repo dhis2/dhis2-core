@@ -106,4 +106,13 @@ class DefaultDataExportServiceTest {
 
     assertDoesNotThrow(() -> service().exportValues(params));
   }
+
+  @Test
+  void testExportValues_BlankLastUpdatedDurationIsIgnored() {
+    // a blank (but non-null) value never reaches the parser, so it must not be
+    // treated as unparseable and rejected like "-5d"/"abc" are.
+    DataExportParams.Input params = validFiltersBuilder().lastUpdatedDuration(" ").build();
+
+    assertDoesNotThrow(() -> service().exportValues(params));
+  }
 }
