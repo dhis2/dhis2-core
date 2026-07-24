@@ -96,7 +96,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.8.1</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.8.2</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -119,7 +119,7 @@
     <spring-session-data-redis.version>4.0.4</spring-session-data-redis.version>
     <spring-retry.version>2.0.12</spring-retry.version>
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
-    <spring-ldap.version>2.4.4</spring-ldap.version>
+    <spring-ldap.version>4.1.0</spring-ldap.version>
     <cache2k-api.version>2.6.1.Final</cache2k-api.version>
     <lettuce.version>6.8.2.RELEASE</lettuce.version>
 
@@ -130,9 +130,9 @@
     <jaxb-runtime.version>4.0.7</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.5</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.13.0</c3p0.version>
+    <c3p0.version>0.14.0</c3p0.version>
     <HikariCP.version>7.0.2</HikariCP.version>
-    <postgresql-driver.version>42.7.11</postgresql-driver.version>
+    <postgresql-driver.version>42.7.12</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
     <mysql-connector-j.version>9.6.0</mysql-connector-j.version>
