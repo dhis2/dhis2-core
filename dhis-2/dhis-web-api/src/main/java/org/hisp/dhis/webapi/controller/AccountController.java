@@ -77,6 +77,7 @@ import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
@@ -116,6 +117,7 @@ public class AccountController {
   private static final int MAX_PHONE_NO_LENGTH = 30;
 
   private final UserService userService;
+  private final UserAccountService userAccountService;
 
   private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
@@ -473,6 +475,13 @@ public class AccountController {
     if (userService.userNonExpired(user)) {
       result.put("status", "NON_EXPIRED");
       result.put("message", "Account is not expired, redirecting to login.");
+
+      return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
+    }
+
+    if (userAccountService.canUseEmailPasswordRecovery(user)) {
+      result.put("status", "EMAIL_RECOVERY_REQUIRED");
+      result.put("message", "Password must be reset using email recovery for this account");
 
       return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
     }
