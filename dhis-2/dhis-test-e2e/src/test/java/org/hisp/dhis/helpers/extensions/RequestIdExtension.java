@@ -45,17 +45,13 @@ import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
- * Derives a short, stable identifier for the current test phase and holds it in a thread-local so
- * {@link RequestIdFilter} can add it as the {@code X-Request-ID} header on every REST-assured
- * request.
+ * Tags every REST-assured request with an {@code X-Request-ID} identifying the test phase that
+ * issued it, so any server-side request-scoped diagnostics (application logs, MDC, SQL-context
+ * comments) can be attributed back to the exact test — without touching individual tests, only the
+ * shared request pipeline. The id for the current phase is held in a thread-local that {@link
+ * RequestIdFilter} reads and sends as the header.
  *
- * <p>Server-side, DHIS2's {@code RequestIdFilter} copies that header into the {@code request_id}
- * MDC key, and {@code monitoring.sql.context} stamps it onto each SQL statement. That lets
- * query-log tools (e.g. n1watch) attribute an N+1 hot spot back to the phase that triggered it,
- * with no change to individual tests — only the shared request pipeline.
- *
- * <p>Coverage spans the whole class lifecycle, so class-level setup and cleanup (which can harbour
- * their own N+1s) are tracked too:
+ * <p>Coverage spans the whole class lifecycle, so class-level setup and cleanup are attributed too:
  *
  * <ul>
  *   <li>class setup (before any test) → {@code <ClassCapitals>_setup}
@@ -65,15 +61,16 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  *
  * e.g. {@code MetadataImportExportControllerTest#getMetadata} → {@code MIECT_getMetadata}. Because
  * setup traffic is stamped in {@code beforeAll}, this extension must be registered <b>before</b>
- * extensions that issue requests during setup (e.g. {@code MetadataSetupExtension}).
+ * any extension that issues requests during setup (e.g. {@code MetadataSetupExtension}).
  *
- * <p>DHIS2 sanitises {@code X-Request-ID} to {@code [-_a-zA-Z0-9]{1,36}} (rejecting anything longer
- * or otherwise), so every value is kept within that grammar here.
+ * <p>Ids are constrained to the grammar the server accepts for {@code X-Request-ID} ({@code
+ * [-_a-zA-Z0-9]{1,36}}): anything outside it is stripped and the result is capped at 36 characters.
  *
- * <p>The abbreviated ids are hard to read on their own, so a lookup mapping each id to its full
- * {@code ClassName#method} (or {@code ClassName (setup/teardown)}) is written as JSON at the end of
- * every class to {@code target/request-id-map.json} (override with {@code -Dn1watch.requestIdMap}).
- * Feed that file to n1watch's {@code -trace-map} to restore full names in the report.
+ * <p>Because the ids are abbreviated, a lookup mapping each id to its full {@code ClassName#method}
+ * (or {@code ClassName (setup/teardown)}) label is written as JSON at the end of every class to
+ * {@code target/request-id-map.json} (override with {@code -Dtest.requestIdMap=<path>}). Tooling
+ * that reads the abbreviated ids back out of server output can use this file to restore
+ * human-readable test names.
  */
 public class RequestIdExtension
     implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback {
@@ -86,7 +83,7 @@ public class RequestIdExtension
   private static final int MAX_LENGTH = 36;
 
   private static final String MAP_FILE =
-      System.getProperty("n1watch.requestIdMap", "target/request-id-map.json");
+      System.getProperty("test.requestIdMap", "target/request-id-map.json");
 
   @Override
   public void beforeAll(ExtensionContext context) {
