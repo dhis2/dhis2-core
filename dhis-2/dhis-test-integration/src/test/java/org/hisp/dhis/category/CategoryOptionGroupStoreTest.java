@@ -30,11 +30,18 @@
 package org.hisp.dhis.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hibernate.PropertyValueException;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -193,5 +200,83 @@ class CategoryOptionGroupStoreTest extends PostgresIntegrationTestBase {
             .flatMap(cog -> cog.getMembers().stream())
             .toList()
             .containsAll(List.of(coA, coB, coC)));
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA migration verification (HBM -> annotations)
+  // -------------------------------------------------------------------------
+
+  @Test
+  @DisplayName("JPA: members round-trip through the categoryoptiongroupmembers join table")
+  void testJpaMembersJoinTable() {
+    CategoryOptionGroup cog = createCategoryOptionGroup('M', coA, coB);
+    categoryOptionGroupStore.save(cog);
+    long id = cog.getId();
+
+    clearSession(); // force reload from DB
+
+    CategoryOptionGroup reloaded = categoryOptionGroupStore.get(id);
+    assertNotNull(reloaded);
+    Set<String> memberUids = new HashSet<>();
+    reloaded.getMembers().forEach(co -> memberUids.add(co.getUid()));
+    assertEquals(2, memberUids.size());
+    assertTrue(memberUids.containsAll(Set.of(coA.getUid(), coB.getUid())));
+  }
+
+  @Test
+  @DisplayName("JPA: createdBy IS persisted (categoryoptiongroup has a userid column)")
+  void testJpaCreatedByPersisted() {
+    CategoryOptionGroup cog = createCategoryOptionGroup('U', coA);
+    cog.setCreatedBy(getAdminUser());
+    categoryOptionGroupStore.save(cog);
+    long id = cog.getId();
+
+    clearSession();
+
+    CategoryOptionGroup reloaded = categoryOptionGroupStore.get(id);
+    assertNotNull(reloaded.getCreatedBy(), "createdBy must persist to the userid column");
+    assertEquals(getAdminUser().getUid(), reloaded.getCreatedBy().getUid());
+  }
+
+  @Test
+  @DisplayName("JPA: dataDimensionType enum, shortName and description round-trip")
+  void testJpaScalarFieldsPersist() {
+    CategoryOptionGroup cog = createCategoryOptionGroup('S', coA);
+    cog.setDescription("a description");
+    categoryOptionGroupStore.save(cog);
+    long id = cog.getId();
+
+    clearSession();
+
+    CategoryOptionGroup reloaded = categoryOptionGroupStore.get(id);
+    assertNotNull(reloaded.getDataDimensionType());
+    assertEquals(cog.getDataDimensionType(), reloaded.getDataDimensionType());
+    assertEquals(cog.getShortName(), reloaded.getShortName());
+    assertEquals("a description", reloaded.getDescription());
+  }
+
+  @Test
+  @DisplayName("JPA: attributeValues (jsonb) round-trip")
+  void testJpaAttributeValuesPersisted() {
+    CategoryOptionGroup cog = createCategoryOptionGroup('V', coA);
+    cog.setAttributeValues(
+        AttributeValues.of(Map.<CharSequence, CharSequence>of("hQKI6KcEu5t", "avalue")));
+    categoryOptionGroupStore.save(cog);
+    long id = cog.getId();
+
+    clearSession();
+
+    CategoryOptionGroup reloaded = categoryOptionGroupStore.get(id);
+    assertFalse(reloaded.getAttributeValues().isEmpty());
+    assertEquals("avalue", reloaded.getAttributeValues().get("hQKI6KcEu5t"));
+  }
+
+  @Test
+  @DisplayName("JPA: id is generated (SEQUENCE) on save")
+  void testJpaIdGeneration() {
+    CategoryOptionGroup cog = createCategoryOptionGroup('I', coA);
+    categoryOptionGroupStore.save(cog);
+    assertTrue(cog.getId() > 0, "id must be generated on save");
+    assertNotNull(cog.getUid());
   }
 }
