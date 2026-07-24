@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -101,6 +102,10 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     Calendar future = Calendar.getInstance();
     future.add(Calendar.DATE, 10);
     futureDate = future.getTime();
+  }
+
+  @BeforeEach
+  void resetBuilderState() {
     reservedValue.expiryDate(futureDate);
   }
 
@@ -211,16 +216,45 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     saveReservedValue(rv);
     assertTrue(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeExpiredValues();
     assertFalse(reservedValueStore.getAll().contains(rv));
   }
 
   @Test
-  void removeExpiredReservationsDoesNotRemoveAnythingIfNothingHasExpired() {
+  void removeExpiredReservationsDoesNotRemoveAnythingIfNothingIsExpiredOrUsed() {
     saveReservedValue(reservedValue.value(prog001).build());
     int num = reservedValueStore.getCount();
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeExpiredValues();
+    reservedValueStore.removeUsedValues();
     assertEquals(num, reservedValueStore.getCount());
+  }
+
+  @Test
+  void shouldNotBeAvailableWhenAssignedToTeavWithReservedValueRowStillPresent() {
+    ReservedValue rv = reservedValue.value(prog001).build();
+    saveReservedValue(rv);
+
+    OrganisationUnit ou = createOrganisationUnit("OU");
+    organisationUnitStore.save(ou);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou, trackedEntityType);
+    manager.save(trackedEntity);
+    TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
+    tea.setUid(teaUid);
+    trackedEntityAttributeStore.save(tea);
+    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
+    teav.setValue(prog001);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
+    rv.setTrackedEntityAttributeId(teav.getAttribute().getId());
+
+    assertEquals(1, reservedValueStore.getCount());
+
+    List<ReservedValue> available =
+        reservedValueStore.getAvailableValues(
+            rv, Lists.newArrayList(prog001, prog002), rv.getOwnerObject());
+    assertFalse(available.stream().anyMatch(r -> r.getValue().equals(prog001)));
+    assertTrue(available.stream().anyMatch(r -> r.getValue().equals(prog002)));
   }
 
   @Test
@@ -257,7 +291,8 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
-    reservedValueStore.removeUsedOrExpiredReservations();
+    dbmsManager.clearSession();
+    reservedValueStore.removeUsedValues();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
     assertEquals(0, reservedValueStore.getCount());
@@ -285,7 +320,9 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
     ReservedValue rv = reservedValue.value(prog001).build();
     reservedValueStore.save(rv);
-    reservedValueStore.removeUsedOrExpiredReservations();
+    dbmsManager.clearSession();
+    reservedValueStore.removeExpiredValues();
+    reservedValueStore.removeUsedValues();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
     assertFalse(

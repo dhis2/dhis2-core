@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.visualization;
 
-public class Constants {
-  public static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-  public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+import java.util.Map;
+import org.hisp.dhis.common.MetadataItem;
+import org.junit.jupiter.api.Test;
 
-  public static final int RANDOM_GENERATION_CHUNK = 10;
+class VisualizationTest {
+
+  @Test
+  void extractDimensionNameHappyFlow() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem("itemName1"));
+
+    String value = Visualization.extractDimensionName(metaData, "uid1");
+
+    assertEquals("itemName1", value);
+  }
+
+  @Test
+  void extractDimensionWhenNameIsBlank() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem(" "));
+
+    String value = Visualization.extractDimensionName(metaData, "uid1");
+
+    assertEquals("uid1", value);
+  }
+
+  @Test
+  void extractDimensionWhenNameIsNull() {
+    Map<String, MetadataItem> metaData = Map.of("uid1", new MetadataItem(null));
+
+    String value = Visualization.extractDimensionName(metaData, "uid1");
+
+    assertEquals("uid1", value);
+  }
 }

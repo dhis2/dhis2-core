@@ -29,18 +29,31 @@
  */
 package org.hisp.dhis.security.oauth2.client;
 
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.CLIENT_NAME_MAX_LENGTH;
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.security.oauth2.OAuth2GrantTypes;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -69,14 +82,29 @@ import org.springframework.util.StringUtils;
 public class Dhis2OAuth2ClientServiceImpl
     implements Dhis2OAuth2ClientService, RegisteredClientRepository {
 
+  /**
+   * Grant types an admin-facing entry point (REST CRUD, bulk metadata import) is allowed to set on
+   * a client. {@code client_credentials} is deliberately excluded — the only legitimate user of it
+   * in this deployment is the DCR system registrar, which is created server-side via {@link
+   * Dhis2OAuth2ClientStore#save} and bypasses these validators. See {@link #validateGrantTypes} for
+   * the one exception that keeps metadata round-trips working.
+   */
+  private static final Set<AuthorizationGrantType> ALLOWED_ADMIN_GRANT_TYPES =
+      Set.of(AuthorizationGrantType.AUTHORIZATION_CODE, AuthorizationGrantType.REFRESH_TOKEN);
+
   private final Dhis2OAuth2ClientStore clientStore;
   private final UserService userService;
+  private final SystemSettingsService systemSettingsService;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  public Dhis2OAuth2ClientServiceImpl(Dhis2OAuth2ClientStore clientStore, UserService userService) {
+  public Dhis2OAuth2ClientServiceImpl(
+      Dhis2OAuth2ClientStore clientStore,
+      UserService userService,
+      SystemSettingsService systemSettingsService) {
     Assert.notNull(clientStore, "clientStore cannot be null");
     this.clientStore = clientStore;
     this.userService = userService;
+    this.systemSettingsService = systemSettingsService;
 
     // Configure Jackson mapper with the required modules
     ClassLoader classLoader = Dhis2OAuth2ClientServiceImpl.class.getClassLoader();
@@ -182,7 +210,7 @@ public class Dhis2OAuth2ClientServiceImpl
             .authorizationGrantTypes(
                 (grantTypes) ->
                     authorizationGrantTypes.forEach(
-                        grantType -> grantTypes.add(resolveAuthorizationGrantType(grantType))))
+                        grantType -> grantTypes.add(OAuth2GrantTypes.resolve(grantType))))
             .redirectUris(uris -> uris.addAll(redirectUris))
             .postLogoutRedirectUris(uris -> uris.addAll(postLogoutRedirectUris))
             .scopes(scopes -> scopes.addAll(clientScopes));
@@ -230,7 +258,13 @@ public class Dhis2OAuth2ClientServiceImpl
       entity.setUid(CodeGenerator.generateUid());
     }
 
-    entity.setName(registeredClient.getClientName());
+    // Spring's RegisteredClient.Builder.build() defaults clientName to the
+    // internal id when not set explicitly, so getClientName() is never null.
+    String clientName = registeredClient.getClientName();
+    entity.setName(
+        clientName != null && !clientName.equals(registeredClient.getId())
+            ? clientName
+            : registeredClient.getClientId());
     entity.setClientId(registeredClient.getClientId());
     entity.setClientIdIssuedAt(
         registeredClient.getClientIdIssuedAt() != null
@@ -281,28 +315,6 @@ public class Dhis2OAuth2ClientServiceImpl
   }
 
   /**
-   * Resolves the AuthorizationGrantType from a string value.
-   *
-   * @param authorizationGrantType The string value
-   * @return The corresponding AuthorizationGrantType
-   */
-  private static AuthorizationGrantType resolveAuthorizationGrantType(
-      @Nonnull String authorizationGrantType) {
-    if (AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.AUTHORIZATION_CODE;
-    } else if (AuthorizationGrantType.CLIENT_CREDENTIALS
-        .getValue()
-        .equals(authorizationGrantType)) {
-      return AuthorizationGrantType.CLIENT_CREDENTIALS;
-    } else if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.REFRESH_TOKEN;
-    } else if (AuthorizationGrantType.DEVICE_CODE.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.DEVICE_CODE;
-    }
-    return new AuthorizationGrantType(authorizationGrantType); // Custom authorization grant type
-  }
-
-  /**
    * Resolves the ClientAuthenticationMethod from a string value.
    *
    * @param clientAuthenticationMethod The string value
@@ -328,5 +340,184 @@ public class Dhis2OAuth2ClientServiceImpl
   @Override
   public List<Dhis2OAuth2Client> getAll() {
     return clientStore.getAll();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Admin-input validation and defaulting
+  // ---------------------------------------------------------------------------
+
+  @Override
+  public void validateCreate(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
+    checkClientIdNotReserved(entity.getClientId(), "create a client with", errors);
+    validateGrantTypes(entity, errors);
+    validateRedirectUris(entity, errors);
+  }
+
+  @Override
+  public void validateUpdate(
+      Dhis2OAuth2Client persisted, Dhis2OAuth2Client newEntity, Consumer<ErrorReport> errors) {
+    if (persisted == null || !persisted.getClientId().equals(newEntity.getClientId())) {
+      checkClientIdNotReserved(newEntity.getClientId(), "rename a client to", errors);
+    }
+    validateGrantTypes(newEntity, errors);
+    validateRedirectUris(newEntity, errors);
+  }
+
+  @Override
+  public void applyCreateDefaults(Dhis2OAuth2Client entity) {
+    // Use getRawName() so the field is set even when getName()'s fallback would already return
+    // a non-null value derived from clientId.
+    if (entity.getRawName() == null || entity.getRawName().isEmpty()) {
+      entity.setName(truncateName(entity.getClientId()));
+    }
+    if (entity.getClientSettings() == null) {
+      ClientSettings defaults = ClientSettings.builder().requireAuthorizationConsent(true).build();
+      entity.setClientSettings(writeMap(defaults.getSettings()));
+    }
+    if (entity.getTokenSettings() == null) {
+      entity.setTokenSettings(writeMap(TokenSettings.builder().build().getSettings()));
+    }
+  }
+
+  @Override
+  public void applyUpdateDefaults(Dhis2OAuth2Client persisted, Dhis2OAuth2Client newEntity) {
+    // Caller explicitly sent a non-empty name -> keep it.
+    if (newEntity.getRawName() != null && !newEntity.getRawName().isEmpty()) {
+      return;
+    }
+    // Settings UI has no name field; preserve the existing persisted name rather than letting
+    // REPLACE merge clobber it.
+    if (persisted != null && persisted.getRawName() != null && !persisted.getRawName().isEmpty()) {
+      newEntity.setName(persisted.getRawName());
+    } else if (newEntity.getClientId() != null) {
+      newEntity.setName(truncateName(newEntity.getClientId()));
+    }
+  }
+
+  @Override
+  public Set<AuthorizationGrantType> getAuthorizationGrantTypesSet(Dhis2OAuth2Client entity) {
+    String raw = entity.getAuthorizationGrantTypes();
+    if (raw == null || raw.isBlank()) {
+      return Set.of();
+    }
+    return Arrays.stream(raw.split(","))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(OAuth2GrantTypes::resolve)
+        .collect(Collectors.toUnmodifiableSet());
+  }
+
+  /**
+   * Reject any attempt to use the reserved DCR system-registrar clientId via admin paths. Without
+   * this, an admin could squat the reserved clientId while the authorization server is disabled,
+   * and when {@code OAuth2DcrService.init()} later runs DCR would mint initial access tokens
+   * through a client whose secret / redirect URIs the squatter controls.
+   */
+  private static void checkClientIdNotReserved(
+      String clientId, String operation, Consumer<ErrorReport> errors) {
+    if (SYSTEM_REGISTRAR_CLIENTID.equals(clientId)) {
+      errors.accept(
+          new ErrorReport(
+              Dhis2OAuth2Client.class,
+              ErrorCode.E4000,
+              "Cannot "
+                  + operation
+                  + " the reserved DCR system-registrar clientId ("
+                  + SYSTEM_REGISTRAR_CLIENTID
+                  + ")."));
+    }
+  }
+
+  private void validateGrantTypes(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
+    // The DCR system registrar legitimately uses client_credentials; skip the check so a full
+    // metadata round-trip can re-import it. Admin-initiated creates can't hit this branch because
+    // the reserved clientId is rejected earlier.
+    boolean isSystemRegistrar = SYSTEM_REGISTRAR_CLIENTID.equals(entity.getClientId());
+    for (AuthorizationGrantType type : getAuthorizationGrantTypesSet(entity)) {
+      if (isSystemRegistrar && AuthorizationGrantType.CLIENT_CREDENTIALS.equals(type)) {
+        continue;
+      }
+      if (!ALLOWED_ADMIN_GRANT_TYPES.contains(type)) {
+        errors.accept(
+            new ErrorReport(
+                Dhis2OAuth2Client.class,
+                ErrorCode.E4000,
+                "Invalid authorization grant type: "
+                    + type.getValue()
+                    + ". Only authorization_code and refresh_token are allowed."));
+      }
+    }
+  }
+
+  /**
+   * Redirect URI allow-list: http and https are always accepted; any other URI must match verbatim
+   * an entry in the {@code deviceEnrollmentRedirectAllowlist} system setting. Default-to-deny
+   * closes the stored-XSS / token-exfiltration surface that Spring Authorization Server leaves open
+   * when it emits the {@code Location} header without scheme filtering.
+   */
+  private void validateRedirectUris(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
+    if (entity.getRedirectUris() == null) {
+      return;
+    }
+    Set<String> customSchemeAllowList = parseRedirectAllowList();
+    for (String uri : entity.getRedirectUris().split(",")) {
+      String trimmed = uri.trim();
+      if (trimmed.isEmpty()) {
+        continue;
+      }
+      String scheme = getScheme(errors, trimmed);
+      if (scheme == null) continue;
+      String lowerScheme = scheme.toLowerCase(Locale.ROOT);
+      if ("http".equals(lowerScheme) || "https".equals(lowerScheme)) {
+        continue;
+      }
+      if (!customSchemeAllowList.contains(trimmed)) {
+        errors.accept(
+            new ErrorReport(
+                Dhis2OAuth2Client.class,
+                ErrorCode.E4000,
+                "Redirect URI not in deviceEnrollmentRedirectAllowlist: " + trimmed));
+      }
+    }
+  }
+
+  @CheckForNull
+  private static String getScheme(Consumer<ErrorReport> errors, String trimmed) {
+    String scheme;
+    try {
+      scheme = new URI(trimmed).getScheme();
+    } catch (URISyntaxException e) {
+      errors.accept(
+          new ErrorReport(
+              Dhis2OAuth2Client.class, ErrorCode.E4000, "Invalid redirect URI: " + trimmed));
+      return null;
+    }
+    if (scheme == null || scheme.isEmpty()) {
+      errors.accept(
+          new ErrorReport(
+              Dhis2OAuth2Client.class, ErrorCode.E4000, "Invalid redirect URI: " + trimmed));
+      return null;
+    }
+    return scheme;
+  }
+
+  private Set<String> parseRedirectAllowList() {
+    String raw = systemSettingsService.getCurrentSettings().getDeviceEnrollmentRedirectAllowlist();
+    if (raw == null || raw.isBlank()) {
+      return Set.of();
+    }
+    return Arrays.stream(raw.split(","))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .collect(Collectors.toUnmodifiableSet());
+  }
+
+  private static String truncateName(String value) {
+    if (value == null) {
+      return null;
+    }
+    return value.length() > CLIENT_NAME_MAX_LENGTH
+        ? value.substring(0, CLIENT_NAME_MAX_LENGTH)
+        : value;
   }
 }

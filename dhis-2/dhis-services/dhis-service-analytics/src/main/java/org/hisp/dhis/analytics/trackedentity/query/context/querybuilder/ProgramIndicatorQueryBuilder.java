@@ -30,7 +30,6 @@
 package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
 import static java.lang.Math.abs;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.NUMERIC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
@@ -66,6 +65,7 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuer
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -103,7 +103,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
         streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
             .map(ProgramIndicatorDimensionIdentifier::of)
             .distinct()
-            .collect(toList());
+            .toList();
 
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
@@ -149,7 +149,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
                                     item.getValues(),
                                     NUMERIC,
                                     queryContext))
-                        .collect(toList()))));
+                        .toList())));
       }
     }
   }
@@ -237,7 +237,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
             null,
             SUBQUERY_TABLE_ALIAS),
         // filter
-        programIndicatorService.getAnalyticsSql(
+        programIndicatorService.getAnalyticsSqlAllowingNulls(
             programIndicator.getFilter(),
             DataType.BOOLEAN,
             programIndicator,
@@ -262,8 +262,8 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
         + ", "
         + (needsExpressions ? expression + " as value, " : "")
         + " row_number() over (partition by trackedentity order by enrollmentdate desc) as rn "
-        + " from analytics_enrollment_"
-        + program.getElement().getUid()
+        + " from "
+        + AnalyticsTableNames.enrollmentTable(program.getElement())
         + " as "
         + SUBQUERY_TABLE_ALIAS
         + (needsExpressions ? " where " + filter : "")

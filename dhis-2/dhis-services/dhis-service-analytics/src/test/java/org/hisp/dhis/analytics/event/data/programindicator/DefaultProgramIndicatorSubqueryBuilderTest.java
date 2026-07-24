@@ -68,6 +68,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -129,13 +130,246 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
   }
 
   @Test
+  void addCte_eventEndpointEventTypePiCountProducesEventKeyedCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("ou");
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("ou"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("ou");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    CteDefinition mainPiCte = cteContext.getDefinitionByKey(piUid);
+    assertNotNull(mainPiCte);
+    assertTrue(mainPiCte.isRequiresCoalesce(), "EVENT count PI should require coalesce");
+
+    String mainCteSql = mainPiCte.getCteDefinition();
+    assertTrue(
+        mainCteSql.startsWith("select subax.event as event, count(ou) as value"),
+        "Main CTE should be keyed by event");
+    assertTrue(
+        mainCteSql.contains(" from " + eventTable.toLowerCase() + " as " + subax),
+        "Main CTE should read from the event analytics table");
+    assertTrue(mainCteSql.endsWith(" group by subax.event"), "Main CTE should group by event");
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiSumDoesNotRequireCoalesce() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    CteDefinition mainPiCte = cteContext.getDefinitionByKey(piUid);
+    assertNotNull(mainPiCte);
+    assertFalse(mainPiCte.isRequiresCoalesce(), "Only EVENT count PIs should be coalesced");
+    assertTrue(mainPiCte.getCteDefinition().contains("sum(1) as value"));
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithRelationshipTypeDoesNotRegisterCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("ou");
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    builder.addCte(
+        programIndicator,
+        new RelationshipType(),
+        AnalyticsType.EVENT,
+        startDate,
+        endDate,
+        cteContext);
+
+    assertFalse(cteContext.containsCte(piUid), "Relationship EVENT PIs stay on inline SQL path");
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithGeneratedEnrollmentGrainPlaceholdersDoesNotRegisterCte() {
+    assertEventPiExpressionDoesNotRegisterCte(
+        "V{event_date}",
+        "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='"
+            + piUid
+            + "', psUid='null', offset='0')");
+    assertEventPiExpressionDoesNotRegisterCte(
+        "#{PgmStgUid1.DataElmUid1}",
+        "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='"
+            + piUid
+            + "')");
+    assertEventPiExpressionDoesNotRegisterCte(
+        "d2:countIfValue(#{PgmStgUid1.DataElmUid2}, 5)",
+        "__D2FUNC__(func='countIfValue', ps='PgmStgUid1', de='DataElmUid2', argType='val64', arg64='NQ==', hash='noboundaries', pi='"
+            + piUid
+            + "')__");
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithInlineStageDataElementFilterProducesEventKeyedCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("distinct ou");
+    programIndicator.setFilter("#{edqlbukwRfQ.nhW3SZX9JaN} == 'Ongoing'");
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    String renderedFilter =
+        "coalesce(toString(case when subax.\"ps\" = 'edqlbukwRfQ' then \"nhW3SZX9JaN\" else null end), '') = 'Ongoing'";
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("distinct ou"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("distinct ou");
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("#{edqlbukwRfQ.nhW3SZX9JaN} == 'Ongoing'"),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(renderedFilter);
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    assertTrue(mainCteSql.startsWith("select subax.event as event, count(distinct ou) as value"));
+    assertTrue(mainCteSql.contains(" where " + renderedFilter));
+    assertTrue(mainCteSql.endsWith(" group by subax.event"));
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithInlineAverageFilterProducesEventKeyedCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.AVERAGE);
+    programIndicator.setExpression(
+        "(#{A03MvHHogjR.UXz7xuGCEhU} + #{ZzYYXq4fJie.GQY2lXrypjO}) / V{event_count}");
+    programIndicator.setFilter("V{event_count} > 0");
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    String renderedExpression =
+        "(coalesce(toFloat64(case when subax.\"ps\" = 'A03MvHHogjR' then \"UXz7xuGCEhU\" else null end), 0) "
+            + "+ coalesce(toFloat64(case when subax.\"ps\" = 'ZzYYXq4fJie' then \"GQY2lXrypjO\" else null end), 0)) "
+            + "/ nullif(cast((case when \"GQY2lXrypjO\" is not null then 1 else 0 end "
+            + "+ case when \"UXz7xuGCEhU\" is not null then 1 else 0 end) as Float64), 0)";
+    String renderedFilter =
+        "nullif(cast((case when \"GQY2lXrypjO\" is not null then 1 else 0 end "
+            + "+ case when \"UXz7xuGCEhU\" is not null then 1 else 0 end) as Float64), 0) > toFloat64(0)";
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(programIndicator.getExpression()),
+            eq(NUMERIC),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(renderedExpression);
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(programIndicator.getFilter()),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(renderedFilter);
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    CteDefinition mainPiCte = cteContext.getDefinitionByKey(piUid);
+    assertFalse(mainPiCte.isRequiresCoalesce(), "EVENT avg PI should stay nullable");
+    String mainCteSql = mainPiCte.getCteDefinition();
+    assertTrue(mainCteSql.startsWith("select subax.event as event, avg(" + renderedExpression));
+    assertTrue(mainCteSql.contains(" as value from " + eventTable.toLowerCase() + " as subax"));
+    assertTrue(mainCteSql.contains(" where " + renderedFilter));
+    assertTrue(mainCteSql.endsWith(" group by subax.event"));
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithSimpleVariableFilterDoesNotRegisterCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter("V{event_status} == 'ACTIVE'");
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("V{event_status} == 'ACTIVE'"),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(
+            "FUNC_CTE_VAR( type='vEventStatus', column='eventstatus', piUid='"
+                + piUid
+                + "', psUid='null', offset='0') = 'ACTIVE'");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertFalse(cteContext.containsCte(piUid), "Filter CTE dependent EVENT PIs stay inline");
+    assertTrue(cteContext.getCteKeys().isEmpty(), "Unsupported EVENT PI should not leave CTEs");
+  }
+
+  @Test
+  void addCte_eventEndpointEnrollmentTypePiKeepsSingleRowAggregateCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT);
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    assertTrue(mainCteSql.startsWith("select sum(1) as value"));
+    assertFalse(mainCteSql.contains("group by subax.event"));
+    assertFalse(mainCteSql.contains("group by subax.enrollment"));
+  }
+
+  private void assertEventPiExpressionDoesNotRegisterCte(String expression, String renderedSql) {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression(expression);
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(expression), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn(renderedSql);
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertFalse(
+        cteContext.containsCte(piUid),
+        "Enrollment-grain placeholder EVENT PIs stay inline: " + expression);
+    assertTrue(cteContext.getCteKeys().isEmpty(), "Unsupported EVENT PI should not leave CTEs");
+  }
+
+  @Test
   void testAddCteWithExpressionOnlyValuePlaceholder() {
     programIndicator.setAggregationType(AggregationType.SUM);
     programIndicator.setExpression("V{event_date}");
     programIndicator.setFilter(null);
     String expectedValueCteKey = "varcte_occurreddate_" + piUid + "_0";
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("V{event_date}"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn(
             "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='"
@@ -159,7 +393,8 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
                 "row_number() over (partition by enrollment order by occurreddate desc) as rn"),
         "Value CTE SQL content check");
     assertTrue(
-        valueCte.getCteDefinition().contains("from " + eventTable), "Value CTE SQL content check");
+        valueCte.getCteDefinition().contains("from " + eventTable.toLowerCase()),
+        "Value CTE SQL content check");
     assertFalse(
         valueCte.getCteDefinition().contains("limit 1"),
         "Value CTE SQL should not contain LIMIT 1");
@@ -175,7 +410,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String valueCteAlias = valueCte.getAlias(); // Get the generated alias
 
     // Assert directly on the mainCteSql string
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     // Check aggregation function (assuming SUM based on default non-custom type)
     assertTrue(
         mainCteSql.contains("sum(" + valueCteAlias + ".value)"),
@@ -208,7 +445,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     programIndicator.setFilter("V{event_status} == 'ACTIVE'");
     String expectedFilterCteKey = "filtercte_eventstatus_eqeq_active_" + piUid;
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn("1");
 
@@ -228,7 +465,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
                 + "from %s where \"eventstatus\" is not null"
                 + " ) latest "
                 + "where rn = 1 and \"eventstatus\" = 'ACTIVE'",
-            eventTable);
+            eventTable.toLowerCase());
     assertEquals(
         normalizeSql(expectedFilterSql),
         normalizeSql(filterCte.getCteDefinition()),
@@ -242,7 +479,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String mainCteSql = mainPiCte.getCteDefinition(); // Get SQL directly from definition
     String filterCteAlias = filterCte.getAlias();
 
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     assertTrue(
         mainCteSql.contains("avg(1)"),
         "Main CTE SQL expression check"); // Simple expression used, assuming SUM default
@@ -294,10 +533,10 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
             + "', psUid='null', offset='0'), FUNC_CTE_VAR( type='vDueDate', column='scheduleddate', piUid='"
             + piUid
             + "', psUid='null', offset='0')) > 10";
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq(complexFilter), eq(BOOLEAN), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn(rawFilterSql);
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn("1");
 
@@ -326,7 +565,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String createdAlias = createdCte.getAlias();
     String scheduledAlias = scheduledCte.getAlias();
 
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     assertTrue(mainCteSql.contains("avg(1)"), "Main CTE SQL expression check"); // Simple expression
     assertTrue(
         mainCteSql.contains(" from " + enrollmentTable + " as " + subax),
@@ -356,13 +597,268 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
   }
 
   @Test
+  void testAddCteWithRelationshipCountFilterUsesJoinInsteadOfCorrelatedSubquery() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
+    String relationshipCountFilter = "d2:relationshipCount() > 0";
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(relationshipCountFilter);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(relationshipCountFilter),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn("__D2RELCNT__(uid='')__ > toFloat64(0)");
+
+    builder.addCte(
+        programIndicator, null, AnalyticsType.ENROLLMENT, startDate, endDate, cteContext);
+
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    CteDefinition relcntCte = cteContext.getDefinitionByKey("relcnt_all");
+    assertNotNull(relcntCte, "Per-trackedEntity relationship count CTE should be registered");
+    String relcntAlias = relcntCte.getAlias();
+
+    assertEquals(
+        "select trackedentityid, sum(relationship_count) as value "
+            + "from analytics_rs_relationship group by trackedentityid",
+        relcntCte.getCteDefinition(),
+        "Relationship count CTE should aggregate per trackedEntity without a type filter");
+    assertTrue(
+        mainCteSql.contains(
+            "left join "
+                + relcntAlias
+                + " "
+                + relcntAlias
+                + " on "
+                + relcntAlias
+                + ".trackedentityid = subax.trackedentity"),
+        "Main CTE should join the relationship count CTE by its WITH alias on trackedEntity");
+    assertTrue(
+        mainCteSql.contains("where " + relcntAlias + ".value > toFloat64(0)"),
+        "Filter should reference the joined relationship count value");
+    assertFalse(
+        mainCteSql.contains("arr.trackedentityid = subax.trackedentity"),
+        "Main CTE should not keep the ClickHouse-unsupported correlated reference");
+    assertFalse(
+        mainCteSql.contains("from analytics_rs_relationship arr"),
+        "Main CTE filter should not keep the scalar relationship count subquery");
+  }
+
+  @Test
+  void testAddCteWithRelationshipCountTypeFilterUsesFilteredJoin() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
+    String relationshipCountFilter = "d2:relationshipCount('RelatnTypeA') > 0";
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(relationshipCountFilter);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(relationshipCountFilter),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn("__D2RELCNT__(uid='RelatnTypeA')__ > toFloat64(0)");
+
+    builder.addCte(
+        programIndicator, null, AnalyticsType.ENROLLMENT, startDate, endDate, cteContext);
+
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    CteDefinition relcntCte = cteContext.getDefinitionByKey("relcnt_RelatnTypeA");
+    assertNotNull(relcntCte, "Per-trackedEntity relationship count CTE should be registered");
+    String relcntAlias = relcntCte.getAlias();
+
+    assertEquals(
+        "select trackedentityid, sum(relationship_count) as value "
+            + "from analytics_rs_relationship where relationshiptypeuid = 'RelatnTypeA' "
+            + "group by trackedentityid",
+        relcntCte.getCteDefinition(),
+        "Relationship count CTE should filter on the requested relationship type");
+    assertTrue(
+        mainCteSql.contains(
+            "left join "
+                + relcntAlias
+                + " "
+                + relcntAlias
+                + " on "
+                + relcntAlias
+                + ".trackedentityid = subax.trackedentity"),
+        "Main CTE should join the typed relationship count CTE by its WITH alias on trackedEntity");
+    assertTrue(
+        mainCteSql.contains("where " + relcntAlias + ".value > toFloat64(0)"),
+        "Filter should reference the joined relationship count value");
+    assertFalse(
+        mainCteSql.contains("arr.trackedentityid = subax.trackedentity"),
+        "Main CTE should not keep the ClickHouse-unsupported correlated reference");
+    assertFalse(
+        mainCteSql.contains("from analytics_rs_relationship arr"),
+        "Main CTE filter should not keep the scalar relationship count subquery");
+  }
+
+  @Test
+  void testAddCteWithRelationshipCountFilterKeepsCorrelatedSubqueryOnPostgres() {
+    String relationshipCountFilter = "d2:relationshipCount() > 0";
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(relationshipCountFilter);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(relationshipCountFilter),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn("__D2RELCNT__(uid='')__ > toFloat64(0)");
+
+    builder.addCte(
+        programIndicator, null, AnalyticsType.ENROLLMENT, startDate, endDate, cteContext);
+
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+
+    assertFalse(
+        cteContext.containsCte("relcnt_all"),
+        "Postgres path should not register a relationship count CTE");
+    assertTrue(
+        mainCteSql.contains("from analytics_rs_relationship arr"),
+        "Postgres path should keep the correlated subquery shape");
+    assertTrue(
+        mainCteSql.contains("arr.trackedentityid = subax.trackedentity"),
+        "Correlated subquery should reference the outer subax alias");
+    assertFalse(
+        mainCteSql.contains("relcnt_"), "Postgres path should not emit any relcnt join alias");
+  }
+
+  @Test
+  void testAddCteWithEventProgramIndicatorAndRelationshipCountEmitsJoin() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("d2:relationshipCount()");
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("d2:relationshipCount()"),
+            eq(NUMERIC),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn("__D2RELCNT__(uid='')__");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    CteDefinition relcntCte = cteContext.getDefinitionByKey("relcnt_all");
+    assertNotNull(relcntCte, "Relationship count CTE should be registered on the event PI path");
+
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    String relcntAlias = relcntCte.getAlias();
+    assertTrue(
+        mainCteSql.contains(
+            "left join "
+                + relcntAlias
+                + " "
+                + relcntAlias
+                + " on "
+                + relcntAlias
+                + ".trackedentityid = subax.trackedentity"),
+        "Event PI main CTE should join the relationship count CTE by its WITH alias on trackedEntity");
+    assertTrue(
+        mainCteSql.contains("sum(" + relcntAlias + ".value)"),
+        "Event PI expression should aggregate the joined relationship count value");
+  }
+
+  @Test
+  void testAddCteWithRepeatedRelationshipCountInSameUidDeduplicatesCte() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
+    String filter = "d2:relationshipCount() > 0 and d2:relationshipCount() < 10";
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(filter);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(filter), eq(BOOLEAN), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("__D2RELCNT__(uid='')__ > 0 and __D2RELCNT__(uid='')__ < 10");
+
+    builder.addCte(
+        programIndicator, null, AnalyticsType.ENROLLMENT, startDate, endDate, cteContext);
+
+    CteDefinition relcntCte = cteContext.getDefinitionByKey("relcnt_all");
+    assertNotNull(relcntCte, "A single shared CTE should back both placeholder occurrences");
+    long relcntCteCount =
+        cteContext.getCteKeys().stream().filter(k -> k.startsWith("relcnt_")).count();
+    assertEquals(1, relcntCteCount, "Repeated same-UID placeholders must share one CTE");
+
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    String relcntAlias = relcntCte.getAlias();
+    assertTrue(
+        mainCteSql.contains(relcntAlias + ".value > 0 and " + relcntAlias + ".value < 10"),
+        "Both placeholders should resolve to the same alias.value reference");
+  }
+
+  @Test
+  void testAddCteWithMixedRelationshipCountTypesEmitsOneCtePerUid() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
+    String filter = "d2:relationshipCount() > 0 and d2:relationshipCount('RelTypeA') > 0";
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(filter);
+
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(filter), eq(BOOLEAN), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("__D2RELCNT__(uid='')__ > 0 and __D2RELCNT__(uid='RelTypeA')__ > 0");
+
+    builder.addCte(
+        programIndicator, null, AnalyticsType.ENROLLMENT, startDate, endDate, cteContext);
+
+    CteDefinition relcntAllCte = cteContext.getDefinitionByKey("relcnt_all");
+    CteDefinition relcntTypedCte = cteContext.getDefinitionByKey("relcnt_RelTypeA");
+    assertNotNull(relcntAllCte, "Untyped placeholder should produce a relcnt_all CTE");
+    assertNotNull(relcntTypedCte, "Typed placeholder should produce its own relcnt_<uid> CTE");
+    assertEquals(
+        "select trackedentityid, sum(relationship_count) as value "
+            + "from analytics_rs_relationship where relationshiptypeuid = 'RelTypeA' "
+            + "group by trackedentityid",
+        relcntTypedCte.getCteDefinition(),
+        "Typed CTE should filter on the specific relationship type");
+
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    assertTrue(
+        mainCteSql.contains(relcntAllCte.getAlias() + ".value > 0"),
+        "Untyped placeholder should resolve to the all-types CTE alias");
+    assertTrue(
+        mainCteSql.contains(relcntTypedCte.getAlias() + ".value > 0"),
+        "Typed placeholder should resolve to the typed CTE alias");
+  }
+
+  @Test
   void testAddCteWithValueExpressionAndSimpleFilter() {
     programIndicator.setExpression("V{creation_date}");
     programIndicator.setFilter("V{event_status} == 'SKIPPED'");
     String expectedValueCteKey = "varcte_created_" + piUid + "_0";
     String expectedFilterCteKey = "filtercte_eventstatus_eqeq_skipped_" + piUid;
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("V{creation_date}"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn(
             "FUNC_CTE_VAR( type='vCreationDate', column='created', piUid='"
@@ -391,7 +887,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String valueAlias = valueCte.getAlias();
     String filterAlias = filterCte.getAlias();
 
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     assertTrue(
         mainCteSql.contains("avg(" + valueAlias + ".value)"),
         "Main CTE SQL expression check"); // Expression uses value alias
@@ -418,7 +916,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         "FUNC_CTE_VAR( type='vCreationDate', column='created', piUid='"
             + piUid
             + "', psUid='null', offset='0')";
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("V{creation_date} + V{creation_date}"),
             eq(NUMERIC),
             eq(programIndicator),
@@ -455,7 +953,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
     String expectedMainSql =
         String.format(
-            "select subax.enrollment, avg(%s.value + %s.value) as value "
+            "select subax.enrollment as enrollment, avg(%s.value + %s.value) as value "
                 + "from %s as subax "
                 + "left join %s %s on %s.enrollment = subax.enrollment and %s.rn = 1 "
                 + " "
@@ -480,7 +978,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     programIndicator.setFilter("V{event_status} == 'ACTIVE' AND V{event_status} == 'ACTIVE'");
     String expectedFilterCteKey = "filtercte_eventstatus_eqeq_active_" + piUid;
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn("1");
 
@@ -508,7 +1006,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
     String expectedMainSql =
         String.format(
-            "select subax.enrollment, avg(1) as value "
+            "select subax.enrollment as enrollment, avg(1) as value "
                 + "from %s as subax "
                 + "inner join %s %s on %s.enrollment = subax.enrollment "
                 + // The one inner join
@@ -532,10 +1030,10 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     // Uses attribute, not V{...}
     programIndicator.setFilter("\"some_attribute\" == 'ABC'");
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("100"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn("100");
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("\"some_attribute\" == 'ABC'"),
             eq(BOOLEAN),
             eq(programIndicator),
@@ -563,7 +1061,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     assertNotNull(mainPiCte, "Main PI CTE Definition should not be null");
     String mainCteSql = mainPiCte.getCteDefinition();
 
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     assertTrue(
         mainCteSql.contains("avg(100)"),
         "Main CTE SQL expression check"); // Assuming SUM default agg type
@@ -612,7 +1112,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
             + piUid
             + "', psUid='null', offset='0')";
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("V{event_date}"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn(placeholder);
 
@@ -672,7 +1172,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
     String expectedFilterCteKey = "filtercte_eventstatus_eqeq_active_" + piUid;
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn("1");
 
@@ -691,7 +1191,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         normalizeSql(cteSql)
             .matches(
                 ".* from "
-                    + eventTable
+                    + eventTable.toLowerCase()
                     + " where \"eventstatus\" is not null and "
                     + normalizeSql(expectedBoundarySql)
                     + ".*\\) latest where rn = 1.*"),
@@ -724,7 +1224,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
             + piUid
             + "', psUid='null', offset='0')";
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("V{event_date}"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
         .thenReturn(placeholder);
 
@@ -738,7 +1238,8 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String cteSql = valueCte.getCteDefinition();
     assertTrue(
         normalizeSql(cteSql)
-            .matches(".* from " + eventTable + " where \"occurreddate\" is not null\\s*"),
+            .matches(
+                ".* from " + eventTable.toLowerCase() + " where \"occurreddate\" is not null\\s*"),
         "Value CTE SQL should only contain base WHERE conditions, no boundaries added. SQL: "
             + cteSql);
     assertFalse(cteSql.contains(">="), "SQL should not contain '>=' from boundary");
@@ -857,7 +1358,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
     // Mock ProgramIndicatorService.getAnalyticsSql to return raw SQL
     // No need to simulate context population here, as the builder calls the utils
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq(expression), eq(NUMERIC), eq(testPI), eq(startDate), eq(endDate), any()))
         .thenReturn(rawExpressionSql);
 

@@ -66,12 +66,14 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     testSetup.importMetadata();
 
-    final User userA = userService.getUser("tTgjgobT1oS");
-    injectSecurityContextUser(userA);
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
 
     testSetup.importTrackerData("tracker/one_te.json");
     testSetup.importTrackerData("tracker/one_enrollment.json");
@@ -109,6 +111,8 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     testSetup.importTrackerData("tracker/event_with_updated_data_values.json", params);
 
+    clearSession();
+
     List<TrackerEvent> updatedEvents = manager.getAll(TrackerEvent.class);
     assertEquals(1, updatedEvents.size());
     TrackerEvent updatedEvent = manager.get(TrackerEvent.class, updatedEvents.get(0).getUid());
@@ -133,5 +137,15 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
         dataValueMap.get(updatedDataElementId).getCreated(),
         updatedDataValueMap.get(updatedDataElementId).getCreated());
     assertEquals("Fourth updated", updatedDataValueMap.get(updatedDataElementId).getValue());
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForEventDataValues() throws IOException {
+    testSetup.importTrackerData();
+
+    TrackerEvent event = manager.get(TrackerEvent.class, "pTzf9KYMk72");
+    for (EventDataValue dv : event.getEventDataValues()) {
+      assertEquals(importUser.getUsername(), dv.getStoredBy());
+    }
   }
 }

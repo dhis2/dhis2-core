@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.security.oauth2;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.springframework.stereotype.Component;
+import javax.annotation.Nonnull;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 /**
- * @author Stian Sandvold
+ * Shared helpers for Spring Authorization Server {@link AuthorizationGrantType} values.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
-@AllArgsConstructor
-public class DataInputPeriodObjectBundleHook extends AbstractObjectBundleHook<DataInputPeriod> {
-  private final PeriodService periodService;
+public final class OAuth2GrantTypes {
 
-  @Override
-  public void preCreate(DataInputPeriod object, ObjectBundle bundle) {
-    setPeriod(object);
-  }
+  private OAuth2GrantTypes() {}
 
-  @Override
-  public void preUpdate(
-      DataInputPeriod object, DataInputPeriod persistedObject, ObjectBundle bundle) {
-    setPeriod(object);
-  }
-
-  private void setPeriod(DataInputPeriod dataInputPeriod) {
-    Period period = periodService.getPeriod(dataInputPeriod.getPeriod().getIsoDate());
-
-    dataInputPeriod.setPeriod(period);
-    getSession().save(period);
+  /**
+   * Map a grant-type string back to Spring's canonical {@link AuthorizationGrantType} singleton
+   * (authorization_code, client_credentials, refresh_token, device_code). Falls back to a new
+   * instance for any custom value — the equality contract on {@code AuthorizationGrantType} is
+   * value-based, but returning the singleton where possible keeps identity comparisons working.
+   *
+   * <p>Case labels are the RFC-defined grant-type strings (RFC 6749 + RFC 8628); they match
+   * Spring's {@code AuthorizationGrantType.*.getValue()} by construction.
+   */
+  public static AuthorizationGrantType resolve(@Nonnull String value) {
+    return switch (value) {
+      case "authorization_code" -> AuthorizationGrantType.AUTHORIZATION_CODE;
+      case "client_credentials" -> AuthorizationGrantType.CLIENT_CREDENTIALS;
+      case "refresh_token" -> AuthorizationGrantType.REFRESH_TOKEN;
+      case "urn:ietf:params:oauth:grant-type:device_code" -> AuthorizationGrantType.DEVICE_CODE;
+      default -> new AuthorizationGrantType(value);
+    };
   }
 }

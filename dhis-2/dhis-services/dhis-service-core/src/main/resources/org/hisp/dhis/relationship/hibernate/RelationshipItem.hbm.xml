@@ -6,10 +6,15 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.tracker.model.RelationshipItem" table="relationshipitem">
 
-        <cache usage="read-write" />
+        <!-- L2 cache disabled while the tracker importer is being migrated to JDBC; relationship
+             items are eager-fetched from Relationship, so stale entries here would surface as
+             stale relationship reads. Re-enable once the importer no longer touches relationship
+             items via Hibernate. -->
 
         <id name="id" column="relationshipitemid">
-            <generator class="native" />
+            <generator class="sequence">
+                <param name="sequence_name">relationshipitem_sequence</param>
+            </generator>
         </id>
 
         <many-to-one name="relationship" class="org.hisp.dhis.tracker.model.Relationship"

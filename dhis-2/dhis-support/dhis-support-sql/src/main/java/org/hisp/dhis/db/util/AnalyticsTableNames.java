@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.db.util;
 
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import java.util.Locale;
+import java.util.Objects;
+import org.hisp.dhis.program.Program;
 
 /**
- * @author Stian Sandvold
+ * Constructs the names of program-scoped analytics tables ({@code analytics_event_<programUid>},
+ * {@code analytics_enrollment_<programUid>}).
+ *
+ * <p>The program UID is lowercased with {@link Locale#ROOT} so the returned name matches the
+ * physical analytics table on every supported engine, including those that preserve identifier case
+ * (ClickHouse). Use this helper at every emission site instead of concatenating the prefix inline.
  */
-public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "dataInputPeriod";
+public final class AnalyticsTableNames {
 
-  public static final String PLURAL = "dataInputPeriods";
+  public static final String EVENT_PREFIX = "analytics_event_";
 
-  public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String ENROLLMENT_PREFIX = "analytics_enrollment_";
 
-  @Override
-  public Schema getSchema() {
-    return new Schema(DataInputPeriod.class, SINGULAR, PLURAL);
+  private AnalyticsTableNames() {}
+
+  /** Returns the analytics event table name for the given program. */
+  public static String eventTable(Program program) {
+    Objects.requireNonNull(program, "program");
+    return EVENT_PREFIX + program.getUid().toLowerCase(Locale.ROOT);
+  }
+
+  /** Returns the analytics enrollment table name for the given program. */
+  public static String enrollmentTable(Program program) {
+    Objects.requireNonNull(program, "program");
+    return ENROLLMENT_PREFIX + program.getUid().toLowerCase(Locale.ROOT);
   }
 }

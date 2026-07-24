@@ -123,9 +123,9 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
         sql,
         is(
             "(select created from analytics_event_"
-                + enrollmentIndicator.getProgram().getUid()
+                + enrollmentIndicator.getProgram().getUid().toLowerCase()
                 + " where analytics_event_"
-                + enrollmentIndicator.getProgram().getUid()
+                + enrollmentIndicator.getProgram().getUid().toLowerCase()
                 + ".enrollment = ax.enrollment and created is not null order by occurreddate desc limit 1 )"));
   }
 
@@ -176,7 +176,7 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
   @Test
   void testEnrollmentStatus() {
     String sql = castString(test("V{enrollment_status}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("pistatus"));
+    assertThat(sql, is("enrollmentstatus"));
   }
 
   @Test

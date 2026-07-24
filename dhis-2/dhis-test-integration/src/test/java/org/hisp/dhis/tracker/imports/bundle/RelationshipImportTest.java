@@ -32,6 +32,11 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -99,6 +104,58 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldPersistRelationshipFieldsAndItemWiringWhenRelationshipsAreCreated()
+      throws IOException {
+    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().build(),
+            testSetup.fromJson("tracker/relationships.json")));
+    manager.flush();
+    manager.clear();
+
+    // Tracked entity -> enrollment relationship
+    Relationship teToEnrollment = manager.get(Relationship.class, "Nva3Xj2j75W");
+    assertAll(
+        "tracked entity to enrollment relationship not persisted correctly",
+        () -> assertNotNull(teToEnrollment, "relationship was not persisted"),
+        () -> assertFalse(teToEnrollment.isDeleted()),
+        () -> assertNotNull(teToEnrollment.getKey(), "relationship key was not persisted"),
+        () -> assertEquals("xLmPUYJX8Ks", teToEnrollment.getRelationshipType().getUid()),
+        () -> assertNotNull(teToEnrollment.getFrom(), "from relationship item was not wired"),
+        () ->
+            assertEquals(
+                "IOR1AXXl24H",
+                teToEnrollment.getFrom().getTrackedEntity().getUid(),
+                "from item should point to the tracked entity"),
+        () -> assertNotNull(teToEnrollment.getTo(), "to relationship item was not wired"),
+        () ->
+            assertEquals(
+                "TvctPPhpD8u",
+                teToEnrollment.getTo().getEnrollment().getUid(),
+                "to item should point to the enrollment"));
+
+    // Tracked entity -> event relationship
+    Relationship teToEvent = manager.get(Relationship.class, "HiXiipNGsxT");
+    assertAll(
+        "tracked entity to event relationship not persisted correctly",
+        () -> assertNotNull(teToEvent, "relationship was not persisted"),
+        () -> assertFalse(teToEvent.isDeleted()),
+        () -> assertEquals("TV9oB9LT3sh", teToEvent.getRelationshipType().getUid()),
+        () ->
+            assertEquals(
+                "IOR1AXXl24H",
+                teToEvent.getFrom().getTrackedEntity().getUid(),
+                "from item should point to the tracked entity"),
+        () ->
+            assertEquals(
+                "D9PbzJY8bJO",
+                teToEvent.getTo().getTrackerEvent().getUid(),
+                "to item should point to the tracker event"));
+  }
+
+  @Test
   void shouldFailWhenUserNotAuthorizedToCreateRelationship() throws IOException {
     injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
     TrackerImportParams params = TrackerImportParams.builder().build();
@@ -143,5 +200,25 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
     assertHasError(importReport, ValidationCode.E4017);
     assertThat(importReport.getStats().getIgnored(), is(2));
+  }
+
+  @Test
+  void shouldRejectDuplicateRelationships() throws IOException {
+    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
+    TrackerImportParams params = TrackerImportParams.builder().build();
+
+    ImportReport first =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/relationships.json"));
+    assertThat(first.getStatus(), is(Status.OK));
+    assertThat(first.getStats().getCreated(), is(2));
+
+    ImportReport second =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/relationships_duplicate.json"));
+
+    assertHasError(second, ValidationCode.E4018);
+    assertThat(second.getStats().getIgnored(), is(2));
+    assertThat(second.getStats().getCreated(), is(0));
   }
 }

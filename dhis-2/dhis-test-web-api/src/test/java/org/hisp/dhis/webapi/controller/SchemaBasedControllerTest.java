@@ -87,6 +87,7 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
           "jobConfiguration", // API requires configurable=true
           "messageConversation", // needs recipients (not a required field)
           "programRuleAction", // needs DataElement and TrackedEntityAttribute
+          "programRuleVariable", // needs DataElement and TrackedEntityAttribute
           "validationRule", // generator insufficient (embedded fields)
           "programStage", // body request does not include mandatory field programId
           "programStageWorkingList", // same reason as programStage

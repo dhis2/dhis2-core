@@ -384,18 +384,20 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
   }
 
   private void updateDataValue(String value) {
+    String body = createDataValueJson(event, value);
+    startNewRequestSession();
     JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createDataValueJson(event, value))
+        POST("/tracker?async=false&importStrategy=UPDATE", body)
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
   }
 
   private void updateScheduledAtEventField(String value) {
+    String body = createScheduledAtEventFieldJson(event, value);
+    startNewRequestSession();
     JsonWebMessage importResponse =
-        POST(
-                "/tracker?async=false&importStrategy=UPDATE",
-                createScheduledAtEventFieldJson(event, value))
+        POST("/tracker?async=false&importStrategy=UPDATE", body)
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());

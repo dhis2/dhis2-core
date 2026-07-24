@@ -432,6 +432,29 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
   }
 
   @Test
+  void shouldSendMessageToEventOrgUnitWhenSingleEventRecipientIsOrgUnitContact() {
+    when(programMessageService.sendMessages(anyList()))
+        .thenAnswer(
+            invocation -> {
+              sentProgramMessages.addAll((List<ProgramMessage>) invocation.getArguments()[0]);
+              return new BatchResponseStatus(Collections.emptyList());
+            });
+
+    when(singleEventNotificationRenderer.render(
+            any(SingleEvent.class), any(NotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+
+    programNotificationTemplate.setNotificationRecipient(
+        ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT);
+
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
+
+    assertEquals(1, sentProgramMessages.size());
+    ProgramMessage programMessage = sentProgramMessages.iterator().next();
+    assertEquals(lvlTwoLeftLeft, programMessage.getRecipients().getOrganisationUnit());
+  }
+
+  @Test
   void testUserGroupRecipientForTrackerEvent() {
     when(messageService.sendMessage(any()))
         .thenAnswer(
