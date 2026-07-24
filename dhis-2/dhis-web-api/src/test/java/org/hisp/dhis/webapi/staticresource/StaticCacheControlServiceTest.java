@@ -291,6 +291,45 @@ class StaticCacheControlServiceTest {
   }
 
   @Test
+  @DisplayName("ETag differs between different request URIs of the same app")
+  void eTag_differsPerUri() {
+    when(systemService.getSystemInfoVersion()).thenReturn("2.42.0");
+
+    App app = new App();
+    app.setVersion("1.0.0");
+
+    String etagA = service.generateETag(app, "/apps/dashboard/a.css", null);
+    String etagB = service.generateETag(app, "/apps/dashboard/b.css", null);
+
+    assertThat("ETag must be per resource", etagA, not(org.hamcrest.Matchers.is(etagB)));
+  }
+
+  @Test
+  @DisplayName("ETag differs between different core URIs without an app")
+  void eTag_nullApp_differsPerUri() {
+    when(systemService.getSystemInfoVersion()).thenReturn("2.42.0");
+
+    String etagA = service.generateETag(null, "/dhis-web-commons/css/a.css", null);
+    String etagB = service.generateETag(null, "/dhis-web-commons/css/b.css", null);
+
+    assertThat("ETag must be per resource", etagA, not(org.hamcrest.Matchers.is(etagB)));
+  }
+
+  @Test
+  @DisplayName("ETag is stable for repeated calls with the same URI")
+  void eTag_stableForSameUri() {
+    when(systemService.getSystemInfoVersion()).thenReturn("2.42.0");
+
+    App app = new App();
+    app.setVersion("1.0.0");
+
+    String etagA = service.generateETag(app, "/apps/dashboard/a.css", null);
+    String etagB = service.generateETag(app, "/apps/dashboard/a.css", null);
+
+    assertThat(etagA, org.hamcrest.Matchers.is(etagB));
+  }
+
+  @Test
   @DisplayName("App with defaultMaxAgeSeconds uses that as fallback")
   void appCacheConfig_defaultMaxAgeOverride() {
     App app = new App();
