@@ -187,6 +187,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   void testUpdatePasswordExpiredOk() {
     String oldPassword = "Str0ng_old_1!";
     String newPassword = "Str0ng_new_1!";
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, false);
     User user = createExpiredUser("expireda", oldPassword);
     clearSecurityContext();
 
@@ -205,6 +206,64 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
     // The account is no longer expired, so the frontend's follow-up auth/login will succeed.
     assertTrue(userService.userNonExpired(updated));
+  }
+
+  @Test
+  @DisplayName(
+      "Expired user with email recovery available cannot use auth/updatePassword (must use email)")
+  void testUpdatePasswordExpiredEmailRecoveryRequired() {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser("expiredemail", oldPassword);
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_HOST_NAME, "mail.example.com");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_USERNAME, "noreply");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_PASSWORD, "secret");
+    clearSecurityContext();
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Password must be reset using email recovery for this account",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, newPassword))
+            .content(HttpStatus.CONFLICT));
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(oldPassword, updated.getPassword()));
+    assertFalse(userService.userNonExpired(updated));
+  }
+
+  @Test
+  @DisplayName("Expired user without email can still change password when recovery is enabled")
+  void testUpdatePasswordExpiredNoEmailOk() {
+    String oldPassword = "Str0ng_old_1!";
+    String newPassword = "Str0ng_new_1!";
+    User user = createExpiredUser("expirednoem", oldPassword);
+    user.setEmail(null);
+    userService.updateUser(user);
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_HOST_NAME, "mail.example.com");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_USERNAME, "noreply");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_PASSWORD, "secret");
+    clearSecurityContext();
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Password updated",
+        POST(
+                "/auth/updatePassword",
+                "{'username':'%s','oldPassword':'%s','newPassword':'%s'}"
+                    .formatted(user.getUsername(), oldPassword, newPassword))
+            .content(HttpStatus.OK));
+
+    User updated = userService.getUserByUsername(user.getUsername());
+    assertTrue(passwordEncoder.matches(newPassword, updated.getPassword()));
   }
 
   @Test
