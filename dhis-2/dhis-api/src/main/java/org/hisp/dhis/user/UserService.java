@@ -611,6 +611,15 @@ public interface UserService {
   void invalidateUserSessions(String username);
 
   /**
+   * Invalidate all sessions for the given users. The users are resolved in a single batch query
+   * rather than one lookup per username, avoiding an N+1 (and, under {@code FlushModeType.AUTO}, an
+   * O(n²) auto-flush) when invalidating a large membership.
+   *
+   * @param usernames the usernames of the user accounts.
+   */
+  void invalidateUserSessions(Collection<String> usernames);
+
+  /**
    * Register a account recovery attempt for the given user account.
    *
    * @param username the username of the user account.
