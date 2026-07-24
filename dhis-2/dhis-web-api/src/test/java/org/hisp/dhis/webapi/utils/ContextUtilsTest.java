@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Date;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
@@ -45,8 +46,11 @@ class ContextUtilsTest {
     User user = new User();
     user.setUid("kYt56BgfED2");
 
-    assertEquals(
-        "14d851777c7866838e292d13b3d6fab1", ContextUtils.getEtag(date, UserDetails.fromUser(user)));
+    // Expected hash is timezone-dependent via TestBase#getDate (Joda LocalDateTime -> Date).
+    // Assert against the same formula ContextUtils uses so the test is TZ-stable.
+    String expected =
+        HashUtils.hashMD5(String.format("%d-%s", date.getTime(), user.getUid()).getBytes());
+    assertEquals(expected, ContextUtils.getEtag(date, UserDetails.fromUser(user)));
   }
 
   @Test

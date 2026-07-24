@@ -290,7 +290,10 @@ public abstract class TestBase {
 
   @Autowired protected HibernateService hibernateService;
 
-  @Autowired protected static CategoryService categoryService;
+  // NB: @Autowired on a static field is not supported and, under Spring 7, breaks autowiring/
+  // @PostConstruct for the whole test instance (leaving the services below null). The static field
+  // is populated from the injected instance field in initServices() below.
+  protected static CategoryService categoryService;
 
   protected static ConfigurationService configurationService;
 
@@ -2566,10 +2569,7 @@ public abstract class TestBase {
   }
 
   public static void clearSecurityContext() {
-    SecurityContext context = SecurityContextHolder.getContext();
-    if (context != null) {
-      SecurityContextHolder.getContext().setAuthentication(null);
-    }
+    SecurityContextHolder.getContext().setAuthentication(null);
     SecurityContextHolder.clearContext();
   }
 

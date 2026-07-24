@@ -396,7 +396,7 @@ public enum ConfigurationKey {
    */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
-  /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
+  /** Sets up Spring Framework core {@code RetryTemplate} backoff delay. (default: 30000) */
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
