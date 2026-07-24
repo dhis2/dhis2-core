@@ -30,60 +30,42 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.mapping.MapController} using (mocked) REST
- * requests.
+ * Reproduces the {@code TransientPropertyValueException: DataDimensionItem.indicator -> Indicator}
+ * that occurs when a {@link org.hisp.dhis.mapping.Map} is exported and re-imported through the
+ * {@code POST /metadata} import.
  *
- * @author Jan Bernitt
+ * <p>This test deliberately does <b>not</b> use {@code @Transactional}: the metadata import runs in
+ * its own transaction with a fresh Hibernate session, which is required to surface the bug (a
+ * {@code @Transactional} test shares the session, so the referenced {@code Indicator} is already
+ * managed and the bug is masked).
+ *
+ * @author vietnguyen
  */
-@Transactional
-class MapControllerTest extends H2ControllerIntegrationTestBase {
-  @Test
-  void testPutJsonObject() {
-    String mapId = assertStatus(HttpStatus.CREATED, POST("/maps/", "{'name':'My map'}"));
+class MapImportPostgresIntegrationTest extends PostgresControllerIntegrationTestBase {
 
-    JsonObject map = GET("/maps/{uid}", mapId).content();
+  private String mapId;
 
-    // The default merge method is REPLACE, so we must set the mandatory attributes from the created
-    // object.
-    String mandatoryProperties =
-        "'lastUpdated':'"
-            + map.get("lastUpdated").node().value()
-            + "', 'created':'"
-            + map.get("created").node().value()
-            + "'";
-
-    assertStatus(
-        HttpStatus.OK,
-        PUT("/maps/" + mapId, "{'name':'My updated map'," + mandatoryProperties + "}"));
-
-    map = GET("/maps/{uid}", mapId).content();
-
-    assertEquals("My updated map", map.get("name").node().value());
+  @AfterEach
+  void tearDownMap() {
+    // mapview has a FK to maplegendset, so the map (and its map views) must be removed before the
+    // test framework empties the database table-by-table.
+    if (mapId != null) {
+      DELETE("/maps/" + mapId);
+    }
   }
 
   @Test
-  void testPutJsonObject_NotFound() {
-    assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "Map does not exist: xyz",
-        PUT("/maps/xyz", "{'name':'My updated map'}").content(HttpStatus.NOT_FOUND));
-  }
-
-  @Test
-  void testImportExportedMapWithLegendSet() {
+  void testReimportExportedMapWithIndicator() {
     String ouId =
         assertStatus(
             HttpStatus.CREATED,
@@ -104,7 +86,7 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
                     + "'},'numerator':'1','denominator':'1'}"));
     String legendSetId = assertStatus(HttpStatus.CREATED, POST("/legendSets/", "{'name':'LS'}"));
 
-    String mapId =
+    mapId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -121,18 +103,20 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
                     + ouId
                     + "'}]}],"
                     + "'filters':[{'dimension':'pe','items':[{'id':'THIS_YEAR'}]}]"
-                    + "}]}"));
+                    + "}]}]}"));
 
     JsonObject exported = GET("/maps/{uid}?fields=:owner", mapId).content();
-    System.out.println("EXPORTED=" + exported.toString());
 
-    System.out.println(
-        "METADATA_IMPORT="
-            + POST("/metadata", "{\"maps\":[" + exported.toString() + "]}")
-                .content(HttpStatus.OK)
-                .toString());
+    // Re-import the exported map
+    JsonImportSummary summary =
+        POST("/metadata", "{\"maps\":[" + exported.toString() + "]}")
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonImportSummary.class);
 
-    System.out.println("IMPORTED=" + GET("/maps/{uid}?fields=:owner", mapId).content().toString());
+    // the import must not have failed with TransientPropertyValueException on DataDimensionItem
+    assertEquals("OK", summary.getStatus(), "metadata import failed: " + summary.getTypeReports());
+
     JsonObject importedView =
         GET("/maps/{uid}", mapId).content().getArray("mapViews").get(0).as(JsonObject.class);
     assertEquals(legendSetId, importedView.getObject("legendSet").getString("id").string());
@@ -145,35 +129,5 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
             .getObject("indicator")
             .getString("id")
             .string());
-  }
-
-  @Test
-  void testGetWithMapViewAndOrgUnitField() {
-    String attrId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/attributes",
-                "{  'name':'GeoJsonAttribute', "
-                    + "'valueType':'GEOJSON', "
-                    + "'organisationUnit':true}"));
-
-    String mapId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/maps/",
-                "{\"name\":\"My map\", \"mapViews\":[ { \"orgUnitField\": \""
-                    + attrId
-                    + "\", "
-                    + "\"layer\": \"thematic1\",\"renderingStrategy\": \"SINGLE\" } ]}"));
-
-    JsonObject map = GET("/maps/{uid}", mapId).content();
-    assertNotNull(map.getArray("mapViews"));
-    assertEquals(1, map.getArray("mapViews").size());
-
-    JsonObject mapView = map.getArray("mapViews").get(0).as(JsonObject.class);
-    assertEquals(attrId, mapView.getString("orgUnitField").string());
-    assertEquals("GeoJsonAttribute", mapView.getString("orgUnitFieldDisplayName").string());
   }
 }
