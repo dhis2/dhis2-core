@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>API ETag Cache — Charts from Real Tests (PR #23200)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --surface: #141e2e;
+      --surface2: #1c2a3f;
+      --border: #2d3f59;
+      --text: #e8eef6;
+      --muted: #93a4bd;
+      --accent: #38bdf8;
+      --off: #94a3b8;
+      --on: #34d399;
+      --warn: #fbbf24;
+      --radius: 14px;
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: radial-gradient(1200px 600px at 10% -10%, #1a3358 0%, transparent 50%),
+                  radial-gradient(900px 500px at 100% 0%, #143528 0%, transparent 45%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    header {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem 1.5rem;
+      background: linear-gradient(160deg, rgba(30,58,95,.9), rgba(15,20,30,.95));
+      margin-bottom: 1.5rem;
+    }
+    h1 { margin: 0 0 .4rem; font-size: clamp(1.5rem, 3vw, 2.1rem); letter-spacing: -.02em; }
+    .sub { color: var(--muted); margin: 0 0 1rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .chip {
+      font-size: .78rem; color: var(--muted);
+      border: 1px solid var(--border); background: rgba(0,0,0,.2);
+      border-radius: 999px; padding: .25rem .65rem;
+    }
+    .chip code { color: var(--accent); font-family: var(--mono); font-size: .75rem; }
+    .note {
+      margin-top: 1rem; padding: .85rem 1rem; border-radius: 10px;
+      background: rgba(56,189,248,.08); border: 1px solid rgba(56,189,248,.25);
+      color: var(--muted); font-size: .9rem;
+    }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    h2 { margin: 0 0 .35rem; font-size: 1.2rem; }
+    h3 { margin: 1.1rem 0 .5rem; font-size: 1rem; color: var(--text); }
+    p.desc { margin: 0 0 1rem; color: var(--muted); font-size: .92rem; }
+    .grid2 {
+      display: grid; gap: 1rem;
+    }
+    @media (min-width: 800px) {
+      .grid2 { grid-template-columns: 1fr 1fr; }
+    }
+    .chart-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .85rem 1rem 1rem;
+      position: relative;
+      min-height: 280px;
+    }
+    .chart-box.tall { min-height: 340px; }
+    .chart-box.wide { grid-column: 1 / -1; min-height: 360px; }
+    .chart-title {
+      font-size: .78rem; text-transform: uppercase; letter-spacing: .05em;
+      color: var(--muted); margin-bottom: .5rem;
+    }
+    canvas { width: 100% !important; max-height: 300px; }
+    .kpi {
+      display: grid; gap: .75rem;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      margin-bottom: 1rem;
+    }
+    .kpi > div {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .85rem 1rem;
+    }
+    .kpi .l { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .kpi .v { font-size: 1.45rem; font-weight: 700; margin-top: .2rem; font-variant-numeric: tabular-nums; }
+    .kpi .v.off { color: var(--off); }
+    .kpi .v.on { color: var(--on); }
+    .kpi .s { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
+    table {
+      width: 100%; border-collapse: collapse; font-size: .88rem;
+      margin-top: .75rem;
+    }
+    th, td { padding: .55rem .65rem; border-bottom: 1px solid var(--border); text-align: left; }
+    th { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+    td.num { font-family: var(--mono); font-size: .82rem; font-variant-numeric: tabular-nums; }
+    td.good { color: var(--on); font-weight: 600; }
+    footer { color: var(--muted); font-size: .85rem; margin-top: 1.5rem; }
+    footer code { color: var(--accent); font-family: var(--mono); font-size: .8rem; }
+    .legend-inline { display: flex; gap: 1rem; font-size: .85rem; color: var(--muted); margin-bottom: .75rem; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .35rem; }
+    .dot.off { background: var(--off); }
+    .dot.on { background: var(--on); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>API ETag Cache — Charts from Real Tests</h1>
+      <p class="sub">
+        Graphs built from actual Gatling <code>simulation.csv</code> exports (glog) of
+        <code>PageLoadSimulation</code> A/B runs on minibox, 2026-07-10.
+      </p>
+      <div class="chips">
+        <span class="chip">PR <code>#23200</code></span>
+        <span class="chip">Jira <code>DHIS2-20736</code></span>
+        <span class="chip">Charts data stamp <code>20260710T084534Z</code></span>
+        <span class="chip">Preferred headline stamp <code>20260710T182124Z</code></span>
+        <span class="chip">Load: 10 users, realistic think-time</span>
+        <span class="chip">Branch <code>api_cache_dml_wip</code></span>
+        <span class="chip">Headline revised <code>2026-07-11</code></span>
+      </div>
+      <div class="note">
+        <strong style="color:var(--text)">Operational headline (MEASURED=5, stamp
+        <code>20260710T182124Z</code>):</strong>
+        OFF p95 <strong>40 ms</strong> / ON <strong>11 ms</strong> /
+        <strong>−72.5%</strong> (glog pooled and median-of-runs agree).
+        Charts and KPI tiles below still plot the earlier n=2 stamp
+        <code>20260710T084534Z</code> (36 / 7 / −81%) as a historical visualization —
+        see <code>BENCHMARKS-etag.md</code> §2026-07-11a for the preferred numbers.
+        Needs network once to load Chart.js from CDN (blank offline).
+      </div>
+    </header>
+
+    <section>
+      <h2>Load profile — headline KPIs</h2>
+      <p class="desc">
+        Pooled request samples from two measured load runs per side (m2 + m3),
+        stamp <code>20260710T084534Z</code>. Method: concatenate OK latencies from glog
+        <code>simulation.csv</code>, then mean / p50 / p95 on the combined sample.
+      </p>
+      <div class="kpi" id="kpis"></div>
+      <div class="legend-inline">
+        <span><span class="dot off"></span>Cache OFF</span>
+        <span><span class="dot on"></span>Cache ON</span>
+      </div>
+      <div class="grid2">
+        <div class="chart-box">
+          <div class="chart-title">Percentiles (ms) — pooled load runs</div>
+          <canvas id="chartPercentiles"></canvas>
+        </div>
+        <div class="chart-box">
+          <div class="chart-title">Response-time histogram (request count)</div>
+          <canvas id="chartHist"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Latency over time (load m2)</h2>
+      <p class="desc">
+        Single measured load run per side. Each point is a 10-second bucket of OK requests
+        (p50 and p95). This is the shape of the actual test, not a hand-drawn summary.
+      </p>
+      <div class="chart-box wide tall">
+        <div class="chart-title">p50 / p95 vs elapsed seconds</div>
+        <canvas id="chartTimeline"></canvas>
+      </div>
+    </section>
+
+    <section>
+      <h2>Per-request p95 (load m2, top endpoints by volume)</h2>
+      <p class="desc">Same request names from the Maintenance / Dashboard / Capture page-load scenario.</p>
+      <div class="chart-box wide tall">
+        <div class="chart-title">p95 response time by request name (ms)</div>
+        <canvas id="chartByRequest"></canvas>
+      </div>
+      <table id="reqTable"></table>
+    </section>
+
+    <section>
+      <h2>SQL volume &amp; allocations (same campaign)</h2>
+      <p class="desc">Not latency charts — companion evidence from the same A/B session.</p>
+      <div class="grid2">
+        <div class="chart-box">
+          <div class="chart-title">SQL duration/statement hits (load measured runs)</div>
+          <canvas id="chartSql"></canvas>
+        </div>
+        <div class="chart-box">
+          <div class="chart-title">Alloc profiler JFR file size (MB)</div>
+          <canvas id="chartAlloc"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Smoke vs load (p95)</h2>
+      <p class="desc">Smoke = 1 user, fast think-time. Load = 10 users, realistic pauses.</p>
+      <div class="chart-box">
+        <div class="chart-title">p95 (ms) across profiles</div>
+        <canvas id="chartProfiles"></canvas>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Generated from real Gatling CSVs on minibox. Narrative report without charts:
+        <code>ETAG-CACHE-TEAM-REPORT.html</code>. Full tables:
+        <code>BENCHMARKS-etag.md</code>, <code>MEMORY-etag.md</code>.
+      </p>
+      <p>
+        Offline tip: if Chart.js CDN is blocked, open this file while online once, or vendor
+        <code>chart.umd.min.js</code> next to this HTML and change the script src.
+      </p>
+    </footer>
+  </div>
+
+  <script id="data" type="application/json">{"runs": {"load_off_m2": {"label": "load off", "n": 4855, "mean": 9.87, "p50": 6.0, "p75": 8.0, "p95": 36.0, "p99": 82.46, "max": 598.0, "min": 1.0, "histogram": {"0-5": 1059, "5-10": 3046, "10-15": 382, "15-20": 83, "20-30": 26, "30-50": 102, "50-100": 117, "100-200": 27, "200-1000": 13, "1000+": 0}, "timeline": [{"t_sec": 0, "n": 160, "mean": 27.99, "p50": 9.0, "p95": 110.4}, {"t_sec": 10, "n": 236, "mean": 14.37, "p50": 8.0, "p95": 37.25}, {"t_sec": 20, "n": 222, "mean": 11.32, "p50": 7.0, "p95": 36.95}, {"t_sec": 30, "n": 224, "mean": 10.6, "p50": 6.0, "p95": 37.85}, {"t_sec": 40, "n": 292, "mean": 8.16, "p50": 6.0, "p95": 16.0}, {"t_sec": 50, "n": 286, "mean": 9.52, "p50": 6.0, "p95": 23.75}, {"t_sec": 60, "n": 231, "mean": 8.19, "p50": 6.0, "p95": 14.0}, {"t_sec": 70, "n": 236, "mean": 10.21, "p50": 6.0, "p95": 38.0}, {"t_sec": 80, "n": 238, "mean": 11.6, "p50": 6.0, "p95": 56.15}, {"t_sec": 90, "n": 273, "mean": 7.49, "p50": 5.0, "p95": 14.0}, {"t_sec": 100, "n": 248, "mean": 10.26, "p50": 5.0, "p95": 38.0}, {"t_sec": 110, "n": 231, "mean": 8.42, "p50": 5.0, "p95": 14.5}, {"t_sec": 120, "n": 264, "mean": 8.4, "p50": 5.0, "p95": 32.85}, {"t_sec": 130, "n": 223, "mean": 10.0, "p50": 5.0, "p95": 34.2}, {"t_sec": 140, "n": 243, "mean": 7.99, "p50": 5.0, "p95": 14.0}, {"t_sec": 150, "n": 257, "mean": 8.88, "p50": 5.0, "p95": 36.0}, {"t_sec": 160, "n": 255, "mean": 7.0, "p50": 5.0, "p95": 13.0}, {"t_sec": 170, "n": 247, "mean": 9.13, "p50": 5.0, "p95": 35.0}, {"t_sec": 180, "n": 204, "mean": 7.87, "p50": 5.0, "p95": 14.0}, {"t_sec": 190, "n": 226, "mean": 8.08, "p50": 5.0, "p95": 30.75}, {"t_sec": 200, "n": 59, "mean": 5.19, "p50": 5.0, "p95": 9.1}], "by_request": [{"name": "me", "n": 354, "mean": 10.63, "p50": 10.0, "p95": 15.35}, {"name": "systemSettings", "n": 354, "mean": 4.96, "p50": 5.0, "p95": 6.0}, {"name": "userSettings", "n": 354, "mean": 4.4, "p50": 4.0, "p95": 6.0}, {"name": "systemSettings/applicationTitle", "n": 354, "mean": 5.73, "p50": 5.0, "p95": 8.0}, {"name": "systemSettings/helpPageLink", "n": 354, "mean": 5.25, "p50": 5.0, "p95": 8.0}, {"name": "apps", "n": 354, "mean": 5.31, "p50": 5.0, "p95": 8.0}, {"name": "apps/menu", "n": 354, "mean": 5.83, "p50": 5.0, "p95": 8.0}, {"name": "me/dashboard", "n": 354, "mean": 6.71, "p50": 6.0, "p95": 9.0}, {"name": "system/info", "n": 354, "mean": 1.94, "p50": 2.0, "p95": 3.0}, {"name": "schemas", "n": 120, "mean": 42.04, "p50": 37.0, "p95": 60.05}, {"name": "me/authorities", "n": 120, "mean": 10.42, "p50": 9.0, "p95": 16.05}, {"name": "organisationUnits", "n": 120, "mean": 111.17, "p50": 78.0, "p95": 283.25}, {"name": "dashboards", "n": 120, "mean": 7.36, "p50": 7.0, "p95": 10.05}, {"name": "dashboard/nghVC4wtyzi", "n": 120, "mean": 16.12, "p50": 14.0, "p95": 22.0}, {"name": "organisationUnitLevels", "n": 120, "mean": 6.05, "p50": 6.0, "p95": 8.0}], "dir": "pageloadsimulation-20260710085020221-etag-off-m2", "side": "off", "profile": "load"}, "load_off_m3": {"label": "load off", "n": 5036, "mean": 9.99, "p50": 6.0, "p75": 8.0, "p95": 36.0, "p99": 83.0, "max": 624.0, "min": 1.0, "histogram": {"0-5": 1048, "5-10": 3173, "10-15": 453, "15-20": 57, "20-30": 30, "30-50": 111, "50-100": 125, "100-200": 24, "200-1000": 15, "1000+": 0}, "timeline": [{"t_sec": 0, "n": 160, "mean": 25.32, "p50": 9.0, "p95": 92.7}, {"t_sec": 10, "n": 260, "mean": 14.21, "p50": 7.0, "p95": 42.0}, {"t_sec": 20, "n": 246, "mean": 11.11, "p50": 7.0, "p95": 20.0}, {"t_sec": 30, "n": 251, "mean": 10.39, "p50": 6.0, "p95": 37.0}, {"t_sec": 40, "n": 265, "mean": 8.58, "p50": 6.0, "p95": 16.8}, {"t_sec": 50, "n": 265, "mean": 11.09, "p50": 6.0, "p95": 17.8}, {"t_sec": 60, "n": 295, "mean": 11.04, "p50": 6.0, "p95": 44.1}, {"t_sec": 70, "n": 208, "mean": 9.53, "p50": 6.0, "p95": 18.25}, {"t_sec": 80, "n": 250, "mean": 8.14, "p50": 5.0, "p95": 15.0}, {"t_sec": 90, "n": 292, "mean": 10.25, "p50": 5.0, "p95": 37.0}, {"t_sec": 100, "n": 212, "mean": 8.25, "p50": 5.0, "p95": 15.0}, {"t_sec": 110, "n": 246, "mean": 9.44, "p50": 5.0, "p95": 36.0}, {"t_sec": 120, "n": 287, "mean": 7.51, "p50": 5.0, "p95": 13.0}, {"t_sec": 130, "n": 246, "mean": 9.41, "p50": 5.0, "p95": 18.75}, {"t_sec": 140, "n": 210, "mean": 7.47, "p50": 5.0, "p95": 14.0}, {"t_sec": 150, "n": 263, "mean": 8.68, "p50": 5.0, "p95": 15.9}, {"t_sec": 160, "n": 265, "mean": 8.9, "p50": 5.0, "p95": 36.8}, {"t_sec": 170, "n": 226, "mean": 8.84, "p50": 5.0, "p95": 14.0}, {"t_sec": 180, "n": 288, "mean": 7.86, "p50": 5.0, "p95": 19.2}, {"t_sec": 190, "n": 228, "mean": 8.81, "p50": 5.0, "p95": 29.35}, {"t_sec": 200, "n": 73, "mean": 9.93, "p50": 5.0, "p95": 36.4}], "by_request": [{"name": "me", "n": 368, "mean": 10.86, "p50": 10.0, "p95": 14.0}, {"name": "systemSettings", "n": 368, "mean": 5.06, "p50": 5.0, "p95": 6.0}, {"name": "userSettings", "n": 368, "mean": 4.63, "p50": 4.0, "p95": 6.0}, {"name": "systemSettings/applicationTitle", "n": 368, "mean": 5.88, "p50": 5.0, "p95": 8.0}, {"name": "systemSettings/helpPageLink", "n": 368, "mean": 5.35, "p50": 5.0, "p95": 8.0}, {"name": "apps", "n": 368, "mean": 5.37, "p50": 5.0, "p95": 7.0}, {"name": "apps/menu", "n": 368, "mean": 5.9, "p50": 6.0, "p95": 8.0}, {"name": "me/dashboard", "n": 368, "mean": 6.95, "p50": 7.0, "p95": 9.0}, {"name": "system/info", "n": 368, "mean": 1.93, "p50": 2.0, "p95": 3.0}, {"name": "schemas", "n": 127, "mean": 41.65, "p50": 38.0, "p95": 58.7}, {"name": "me/authorities", "n": 127, "mean": 10.09, "p50": 9.0, "p95": 13.0}, {"name": "organisationUnits", "n": 127, "mean": 112.78, "p50": 78.0, "p95": 300.8}, {"name": "dashboards", "n": 122, "mean": 7.38, "p50": 7.0, "p95": 10.0}, {"name": "dashboard/nghVC4wtyzi", "n": 122, "mean": 15.89, "p50": 14.0, "p95": 22.0}, {"name": "organisationUnitLevels", "n": 122, "mean": 5.96, "p50": 6.0, "p95": 7.0}], "dir": "pageloadsimulation-20260710085444288-etag-off-m3", "side": "off", "profile": "load"}, "load_on_m2": {"label": "load on", "n": 5051, "mean": 5.12, "p50": 4.0, "p75": 5.0, "p95": 7.0, "p99": 21.0, "max": 622.0, "min": 1.0, "histogram": {"0-5": 3046, "5-10": 1880, "10-15": 55, "15-20": 14, "20-30": 19, "30-50": 10, "50-100": 16, "100-200": 8, "200-1000": 3, "1000+": 0}, "timeline": [{"t_sec": 0, "n": 160, "mean": 26.57, "p50": 10.0, "p95": 106.6}, {"t_sec": 10, "n": 271, "mean": 9.56, "p50": 6.0, "p95": 18.5}, {"t_sec": 20, "n": 252, "mean": 4.75, "p50": 5.0, "p95": 7.0}, {"t_sec": 30, "n": 275, "mean": 4.58, "p50": 4.0, "p95": 7.0}, {"t_sec": 40, "n": 250, "mean": 4.62, "p50": 4.0, "p95": 7.0}, {"t_sec": 50, "n": 266, "mean": 4.21, "p50": 4.0, "p95": 6.0}, {"t_sec": 60, "n": 270, "mean": 4.03, "p50": 4.0, "p95": 6.0}, {"t_sec": 70, "n": 227, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 80, "n": 282, "mean": 3.93, "p50": 4.0, "p95": 6.0}, {"t_sec": 90, "n": 270, "mean": 3.86, "p50": 4.0, "p95": 6.0}, {"t_sec": 100, "n": 256, "mean": 3.88, "p50": 4.0, "p95": 6.0}, {"t_sec": 110, "n": 236, "mean": 3.84, "p50": 4.0, "p95": 6.0}, {"t_sec": 120, "n": 224, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 130, "n": 256, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 140, "n": 275, "mean": 4.04, "p50": 4.0, "p95": 6.0}, {"t_sec": 150, "n": 251, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 160, "n": 209, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 170, "n": 288, "mean": 4.08, "p50": 4.0, "p95": 6.0}, {"t_sec": 180, "n": 260, "mean": 3.95, "p50": 4.0, "p95": 6.0}, {"t_sec": 190, "n": 186, "mean": 3.95, "p50": 4.0, "p95": 5.75}, {"t_sec": 200, "n": 87, "mean": 4.11, "p50": 4.0, "p95": 6.0}], "by_request": [{"name": "me", "n": 368, "mean": 5.62, "p50": 5.0, "p95": 11.0}, {"name": "systemSettings", "n": 368, "mean": 3.94, "p50": 4.0, "p95": 5.65}, {"name": "userSettings", "n": 368, "mean": 3.77, "p50": 4.0, "p95": 5.0}, {"name": "systemSettings/applicationTitle", "n": 368, "mean": 5.09, "p50": 5.0, "p95": 7.0}, {"name": "systemSettings/helpPageLink", "n": 368, "mean": 4.86, "p50": 5.0, "p95": 6.0}, {"name": "apps", "n": 368, "mean": 3.68, "p50": 3.0, "p95": 5.0}, {"name": "apps/menu", "n": 368, "mean": 3.73, "p50": 3.0, "p95": 5.0}, {"name": "me/dashboard", "n": 368, "mean": 6.58, "p50": 6.0, "p95": 9.0}, {"name": "system/info", "n": 368, "mean": 2.2, "p50": 2.0, "p95": 3.0}, {"name": "schemas", "n": 126, "mean": 8.7, "p50": 5.0, "p95": 41.75}, {"name": "me/authorities", "n": 126, "mean": 4.67, "p50": 4.0, "p95": 13.75}, {"name": "organisationUnits", "n": 126, "mean": 19.04, "p50": 4.0, "p95": 119.5}, {"name": "dashboards", "n": 125, "mean": 5.18, "p50": 5.0, "p95": 8.8}, {"name": "dashboard/nghVC4wtyzi", "n": 125, "mean": 6.56, "p50": 5.0, "p95": 19.8}, {"name": "organisationUnitLevels", "n": 125, "mean": 3.85, "p50": 3.0, "p95": 6.8}], "dir": "pageloadsimulation-20260710090327171-etag-on-m2", "side": "on", "profile": "load"}, "load_on_m3": {"label": "load on", "n": 5051, "mean": 5.5, "p50": 4.0, "p75": 5.0, "p95": 8.0, "p99": 38.0, "max": 664.0, "min": 1.0, "histogram": {"0-5": 3051, "5-10": 1826, "10-15": 73, "15-20": 22, "20-30": 21, "30-50": 19, "50-100": 27, "100-200": 8, "200-1000": 4, "1000+": 0}, "timeline": [{"t_sec": 0, "n": 160, "mean": 28.42, "p50": 9.0, "p95": 101.1}, {"t_sec": 10, "n": 277, "mean": 8.66, "p50": 6.0, "p95": 19.2}, {"t_sec": 20, "n": 258, "mean": 5.12, "p50": 5.0, "p95": 8.0}, {"t_sec": 30, "n": 217, "mean": 4.93, "p50": 5.0, "p95": 7.0}, {"t_sec": 40, "n": 260, "mean": 4.45, "p50": 4.0, "p95": 7.0}, {"t_sec": 50, "n": 237, "mean": 4.08, "p50": 4.0, "p95": 6.0}, {"t_sec": 60, "n": 234, "mean": 4.02, "p50": 4.0, "p95": 6.0}, {"t_sec": 70, "n": 270, "mean": 4.04, "p50": 4.0, "p95": 6.55}, {"t_sec": 80, "n": 275, "mean": 4.01, "p50": 4.0, "p95": 6.0}, {"t_sec": 90, "n": 233, "mean": 4.02, "p50": 4.0, "p95": 6.0}, {"t_sec": 100, "n": 277, "mean": 3.97, "p50": 4.0, "p95": 6.0}, {"t_sec": 110, "n": 264, "mean": 3.88, "p50": 4.0, "p95": 6.0}, {"t_sec": 120, "n": 263, "mean": 7.19, "p50": 4.0, "p95": 10.0}, {"t_sec": 130, "n": 246, "mean": 7.58, "p50": 5.0, "p95": 17.5}, {"t_sec": 140, "n": 272, "mean": 4.81, "p50": 4.0, "p95": 7.0}, {"t_sec": 150, "n": 246, "mean": 3.66, "p50": 4.0, "p95": 6.0}, {"t_sec": 160, "n": 253, "mean": 3.7, "p50": 4.0, "p95": 6.0}, {"t_sec": 170, "n": 266, "mean": 3.93, "p50": 4.0, "p95": 6.0}, {"t_sec": 180, "n": 229, "mean": 4.01, "p50": 4.0, "p95": 6.0}, {"t_sec": 190, "n": 244, "mean": 3.99, "p50": 4.0, "p95": 6.0}, {"t_sec": 200, "n": 70, "mean": 3.94, "p50": 4.0, "p95": 6.0}], "by_request": [{"name": "me", "n": 368, "mean": 5.84, "p50": 5.0, "p95": 12.65}, {"name": "systemSettings", "n": 368, "mean": 3.94, "p50": 4.0, "p95": 6.0}, {"name": "userSettings", "n": 368, "mean": 3.7, "p50": 3.0, "p95": 5.0}, {"name": "systemSettings/applicationTitle", "n": 368, "mean": 5.13, "p50": 5.0, "p95": 7.0}, {"name": "systemSettings/helpPageLink", "n": 368, "mean": 4.8, "p50": 4.0, "p95": 7.0}, {"name": "apps", "n": 368, "mean": 3.71, "p50": 3.0, "p95": 6.0}, {"name": "apps/menu", "n": 368, "mean": 3.76, "p50": 3.0, "p95": 6.0}, {"name": "me/dashboard", "n": 368, "mean": 6.6, "p50": 6.0, "p95": 9.0}, {"name": "system/info", "n": 368, "mean": 2.13, "p50": 2.0, "p95": 3.0}, {"name": "schemas", "n": 126, "mean": 11.4, "p50": 5.0, "p95": 44.75}, {"name": "me/authorities", "n": 126, "mean": 5.44, "p50": 4.0, "p95": 14.0}, {"name": "organisationUnits", "n": 126, "mean": 28.76, "p50": 4.0, "p95": 125.0}, {"name": "dashboards", "n": 125, "mean": 5.41, "p50": 5.0, "p95": 9.0}, {"name": "dashboard/nghVC4wtyzi", "n": 125, "mean": 7.38, "p50": 5.0, "p95": 21.8}, {"name": "organisationUnitLevels", "n": 125, "mean": 4.08, "p50": 3.0, "p95": 7.0}], "dir": "pageloadsimulation-20260710090752268-etag-on-m3", "side": "on", "profile": "load"}, "smoke_off_m2": {"label": "smoke off", "n": 1236, "mean": 12.46, "p50": 7.0, "p75": 9.0, "p95": 39.0, "p99": 120.0, "max": 579.0, "min": 1.0, "histogram": {"0-5": 121, "5-10": 836, "10-15": 159, "15-20": 32, "20-30": 18, "30-50": 18, "50-100": 32, "100-200": 15, "200-1000": 5, "1000+": 0}, "timeline": [{"t_sec": 0, "n": 165, "mean": 21.08, "p50": 9.0, "p95": 60.8}, {"t_sec": 10, "n": 196, "mean": 11.29, "p50": 7.0, "p95": 40.25}, {"t_sec": 20, "n": 175, "mean": 13.59, "p50": 7.0, "p95": 33.9}, {"t_sec": 30, "n": 189, "mean": 11.84, "p50": 7.0, "p95": 57.0}, {"t_sec": 40, "n": 194, "mean": 11.04, "p50": 6.0, "p95": 37.35}, {"t_sec": 50, "n": 194, "mean": 8.58, "p50": 6.0, "p95": 15.35}, {"t_sec": 60, "n": 123, "mean": 10.43, "p50": 6.0, "p95": 20.9}], "by_request": [{"name": "me", "n": 90, "mean": 13.91, "p50": 12.0, "p95": 21.0}, {"name": "systemSettings", "n": 90, "mean": 5.72, "p50": 5.5, "p95": 7.0}, {"name": "userSettings", "n": 90, "mean": 5.23, "p50": 5.0, "p95": 7.0}, {"name": "systemSettings/applicationTitle", "n": 90, "mean": 7.09, "p50": 7.0, "p95": 9.55}, {"name": "systemSettings/helpPageLink", "n": 90, "mean": 6.37, "p50": 6.0, "p95": 8.0}, {"name": "apps", "n": 90, "mean": 6.56, "p50": 6.0, "p95": 9.0}, {"name": "apps/menu", "n": 90, "mean": 7.0, "p50": 7.0, "p95": 9.0}, {"name": "me/dashboard", "n": 90, "mean": 7.97, "p50": 8.0, "p95": 10.0}, {"name": "system/info", "n": 90, "mean": 2.78, "p50": 3.0, "p95": 4.0}, {"name": "schemas", "n": 30, "mean": 51.07, "p50": 45.5, "p95": 65.75}, {"name": "me/authorities", "n": 30, "mean": 12.27, "p50": 12.0, "p95": 16.65}, {"name": "organisationUnits", "n": 30, "mean": 149.3, "p50": 116.5, "p95": 399.8}, {"name": "dashboards", "n": 30, "mean": 8.87, "p50": 8.0, "p95": 13.55}, {"name": "dashboard/nghVC4wtyzi", "n": 30, "mean": 19.9, "p50": 19.0, "p95": 25.1}, {"name": "organisationUnitLevels", "n": 30, "mean": 6.97, "p50": 6.0, "p95": 8.55}], "dir": "pageloadsimulation-20260710082956514-etag-off-m2", "side": "off", "profile": "smoke"}, "smoke_on_m2": {"label": "smoke on", "n": 1236, "mean": 7.75, "p50": 5.0, "p75": 6.0, "p95": 11.0, "p99": 59.65, "max": 531.0, "min": 2.0, "histogram": {"0-5": 469, "5-10": 691, "10-15": 27, "15-20": 12, "20-30": 13, "30-50": 5, "50-100": 13, "100-200": 2, "200-1000": 4, "1000+": 0}, "timeline": [{"t_sec": 0, "n": 182, "mean": 13.32, "p50": 6.0, "p95": 22.95}, {"t_sec": 10, "n": 189, "mean": 9.05, "p50": 5.0, "p95": 11.0}, {"t_sec": 20, "n": 215, "mean": 6.86, "p50": 5.0, "p95": 8.3}, {"t_sec": 30, "n": 209, "mean": 7.6, "p50": 4.0, "p95": 8.0}, {"t_sec": 40, "n": 232, "mean": 5.41, "p50": 4.0, "p95": 8.0}, {"t_sec": 50, "n": 209, "mean": 5.38, "p50": 4.0, "p95": 8.0}], "by_request": [{"name": "me", "n": 90, "mean": 7.49, "p50": 5.0, "p95": 15.55}, {"name": "systemSettings", "n": 90, "mean": 4.6, "p50": 4.0, "p95": 6.55}, {"name": "userSettings", "n": 90, "mean": 4.42, "p50": 4.0, "p95": 6.0}, {"name": "systemSettings/applicationTitle", "n": 90, "mean": 5.96, "p50": 6.0, "p95": 8.0}, {"name": "systemSettings/helpPageLink", "n": 90, "mean": 5.7, "p50": 6.0, "p95": 7.55}, {"name": "apps", "n": 90, "mean": 4.49, "p50": 4.0, "p95": 7.0}, {"name": "apps/menu", "n": 90, "mean": 4.77, "p50": 4.0, "p95": 7.55}, {"name": "me/dashboard", "n": 90, "mean": 7.88, "p50": 8.0, "p95": 10.0}, {"name": "system/info", "n": 90, "mean": 3.1, "p50": 3.0, "p95": 4.55}, {"name": "schemas", "n": 30, "mean": 16.97, "p50": 6.0, "p95": 61.65}, {"name": "me/authorities", "n": 30, "mean": 7.4, "p50": 4.5, "p95": 20.75}, {"name": "organisationUnits", "n": 30, "mean": 61.93, "p50": 4.0, "p95": 448.7}, {"name": "dashboards", "n": 30, "mean": 6.8, "p50": 5.5, "p95": 14.0}, {"name": "dashboard/nghVC4wtyzi", "n": 30, "mean": 10.33, "p50": 6.0, "p95": 28.4}, {"name": "organisationUnitLevels", "n": 30, "mean": 5.33, "p50": 4.0, "p95": 7.55}], "dir": "pageloadsimulation-20260710083527836-etag-on-m2", "side": "on", "profile": "smoke"}, "load_off_combined": {"label": "load off m2", "n": 4855, "mean": 9.87, "p50": 6.0, "p75": 8.0, "p95": 36.0, "p99": 82.46, "max": 598.0, "min": 1.0, "histogram": {"0-5": 1059, "5-10": 3046, "10-15": 382, "15-20": 83, "20-30": 26, "30-50": 102, "50-100": 117, "100-200": 27, "200-1000": 13, "1000+": 0}, "timeline": [{"t_sec": 0, "n": 160, "mean": 27.99, "p50": 9.0, "p95": 110.4}, {"t_sec": 10, "n": 236, "mean": 14.37, "p50": 8.0, "p95": 37.25}, {"t_sec": 20, "n": 222, "mean": 11.32, "p50": 7.0, "p95": 36.95}, {"t_sec": 30, "n": 224, "mean": 10.6, "p50": 6.0, "p95": 37.85}, {"t_sec": 40, "n": 292, "mean": 8.16, "p50": 6.0, "p95": 16.0}, {"t_sec": 50, "n": 286, "mean": 9.52, "p50": 6.0, "p95": 23.75}, {"t_sec": 60, "n": 231, "mean": 8.19, "p50": 6.0, "p95": 14.0}, {"t_sec": 70, "n": 236, "mean": 10.21, "p50": 6.0, "p95": 38.0}, {"t_sec": 80, "n": 238, "mean": 11.6, "p50": 6.0, "p95": 56.15}, {"t_sec": 90, "n": 273, "mean": 7.49, "p50": 5.0, "p95": 14.0}, {"t_sec": 100, "n": 248, "mean": 10.26, "p50": 5.0, "p95": 38.0}, {"t_sec": 110, "n": 231, "mean": 8.42, "p50": 5.0, "p95": 14.5}, {"t_sec": 120, "n": 264, "mean": 8.4, "p50": 5.0, "p95": 32.85}, {"t_sec": 130, "n": 223, "mean": 10.0, "p50": 5.0, "p95": 34.2}, {"t_sec": 140, "n": 243, "mean": 7.99, "p50": 5.0, "p95": 14.0}, {"t_sec": 150, "n": 257, "mean": 8.88, "p50": 5.0, "p95": 36.0}, {"t_sec": 160, "n": 255, "mean": 7.0, "p50": 5.0, "p95": 13.0}, {"t_sec": 170, "n": 247, "mean": 9.13, "p50": 5.0, "p95": 35.0}, {"t_sec": 180, "n": 204, "mean": 7.87, "p50": 5.0, "p95": 14.0}, {"t_sec": 190, "n": 226, "mean": 8.08, "p50": 5.0, "p95": 30.75}, {"t_sec": 200, "n": 59, "mean": 5.19, "p50": 5.0, "p95": 9.1}], "by_request": [{"name": "me", "n": 354, "mean": 10.63, "p50": 10.0, "p95": 15.35}, {"name": "systemSettings", "n": 354, "mean": 4.96, "p50": 5.0, "p95": 6.0}, {"name": "userSettings", "n": 354, "mean": 4.4, "p50": 4.0, "p95": 6.0}, {"name": "systemSettings/applicationTitle", "n": 354, "mean": 5.73, "p50": 5.0, "p95": 8.0}, {"name": "systemSettings/helpPageLink", "n": 354, "mean": 5.25, "p50": 5.0, "p95": 8.0}, {"name": "apps", "n": 354, "mean": 5.31, "p50": 5.0, "p95": 8.0}, {"name": "apps/menu", "n": 354, "mean": 5.83, "p50": 5.0, "p95": 8.0}, {"name": "me/dashboard", "n": 354, "mean": 6.71, "p50": 6.0, "p95": 9.0}, {"name": "system/info", "n": 354, "mean": 1.94, "p50": 2.0, "p95": 3.0}, {"name": "schemas", "n": 120, "mean": 42.04, "p50": 37.0, "p95": 60.05}, {"name": "me/authorities", "n": 120, "mean": 10.42, "p50": 9.0, "p95": 16.05}, {"name": "organisationUnits", "n": 120, "mean": 111.17, "p50": 78.0, "p95": 283.25}, {"name": "dashboards", "n": 120, "mean": 7.36, "p50": 7.0, "p95": 10.05}, {"name": "dashboard/nghVC4wtyzi", "n": 120, "mean": 16.12, "p50": 14.0, "p95": 22.0}, {"name": "organisationUnitLevels", "n": 120, "mean": 6.05, "p50": 6.0, "p95": 8.0}]}, "load_off_pooled": {"label": "load off m2+m3", "n": 9891, "mean": 9.93, "p50": 6.0, "p75": 8.0, "p95": 36.0, "p99": 83.0, "max": 624.0, "histogram": {"0-5": 2107, "5-10": 6219, "10-15": 835, "15-20": 140, "20-30": 56, "30-50": 213, "50-100": 242, "100-200": 51, "200-1000": 28, "1000+": 0}}, "load_on_combined": {"label": "load on m2", "n": 5051, "mean": 5.12, "p50": 4.0, "p75": 5.0, "p95": 7.0, "p99": 21.0, "max": 622.0, "min": 1.0, "histogram": {"0-5": 3046, "5-10": 1880, "10-15": 55, "15-20": 14, "20-30": 19, "30-50": 10, "50-100": 16, "100-200": 8, "200-1000": 3, "1000+": 0}, "timeline": [{"t_sec": 0, "n": 160, "mean": 26.57, "p50": 10.0, "p95": 106.6}, {"t_sec": 10, "n": 271, "mean": 9.56, "p50": 6.0, "p95": 18.5}, {"t_sec": 20, "n": 252, "mean": 4.75, "p50": 5.0, "p95": 7.0}, {"t_sec": 30, "n": 275, "mean": 4.58, "p50": 4.0, "p95": 7.0}, {"t_sec": 40, "n": 250, "mean": 4.62, "p50": 4.0, "p95": 7.0}, {"t_sec": 50, "n": 266, "mean": 4.21, "p50": 4.0, "p95": 6.0}, {"t_sec": 60, "n": 270, "mean": 4.03, "p50": 4.0, "p95": 6.0}, {"t_sec": 70, "n": 227, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 80, "n": 282, "mean": 3.93, "p50": 4.0, "p95": 6.0}, {"t_sec": 90, "n": 270, "mean": 3.86, "p50": 4.0, "p95": 6.0}, {"t_sec": 100, "n": 256, "mean": 3.88, "p50": 4.0, "p95": 6.0}, {"t_sec": 110, "n": 236, "mean": 3.84, "p50": 4.0, "p95": 6.0}, {"t_sec": 120, "n": 224, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 130, "n": 256, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 140, "n": 275, "mean": 4.04, "p50": 4.0, "p95": 6.0}, {"t_sec": 150, "n": 251, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 160, "n": 209, "mean": 4.07, "p50": 4.0, "p95": 6.0}, {"t_sec": 170, "n": 288, "mean": 4.08, "p50": 4.0, "p95": 6.0}, {"t_sec": 180, "n": 260, "mean": 3.95, "p50": 4.0, "p95": 6.0}, {"t_sec": 190, "n": 186, "mean": 3.95, "p50": 4.0, "p95": 5.75}, {"t_sec": 200, "n": 87, "mean": 4.11, "p50": 4.0, "p95": 6.0}], "by_request": [{"name": "me", "n": 368, "mean": 5.62, "p50": 5.0, "p95": 11.0}, {"name": "systemSettings", "n": 368, "mean": 3.94, "p50": 4.0, "p95": 5.65}, {"name": "userSettings", "n": 368, "mean": 3.77, "p50": 4.0, "p95": 5.0}, {"name": "systemSettings/applicationTitle", "n": 368, "mean": 5.09, "p50": 5.0, "p95": 7.0}, {"name": "systemSettings/helpPageLink", "n": 368, "mean": 4.86, "p50": 5.0, "p95": 6.0}, {"name": "apps", "n": 368, "mean": 3.68, "p50": 3.0, "p95": 5.0}, {"name": "apps/menu", "n": 368, "mean": 3.73, "p50": 3.0, "p95": 5.0}, {"name": "me/dashboard", "n": 368, "mean": 6.58, "p50": 6.0, "p95": 9.0}, {"name": "system/info", "n": 368, "mean": 2.2, "p50": 2.0, "p95": 3.0}, {"name": "schemas", "n": 126, "mean": 8.7, "p50": 5.0, "p95": 41.75}, {"name": "me/authorities", "n": 126, "mean": 4.67, "p50": 4.0, "p95": 13.75}, {"name": "organisationUnits", "n": 126, "mean": 19.04, "p50": 4.0, "p95": 119.5}, {"name": "dashboards", "n": 125, "mean": 5.18, "p50": 5.0, "p95": 8.8}, {"name": "dashboard/nghVC4wtyzi", "n": 125, "mean": 6.56, "p50": 5.0, "p95": 19.8}, {"name": "organisationUnitLevels", "n": 125, "mean": 3.85, "p50": 3.0, "p95": 6.8}]}, "load_on_pooled": {"label": "load on m2+m3", "n": 10102, "mean": 5.31, "p50": 4.0, "p75": 5.0, "p95": 7.0, "p99": 27.99, "max": 664.0, "histogram": {"0-5": 6097, "5-10": 3706, "10-15": 128, "15-20": 36, "20-30": 40, "30-50": 29, "50-100": 43, "100-200": 16, "200-1000": 7, "1000+": 0}}}, "meta": {"source": "glog simulation.csv from minibox Gatling runs", "date": "2026-07-10", "simulation": "org.hisp.dhis.test.cache.PageLoadSimulation"}, "sql": {"load_off_m2": {"log_lines": 98914, "duration_hits": 50719, "size_mb": 58}, "load_off_m3": {"log_lines": 110848, "duration_hits": 56967, "size_mb": 66}, "load_on_m2": {"log_lines": 22868, "duration_hits": 12006, "size_mb": 8.3}, "load_on_m3": {"log_lines": 33218, "duration_hits": 17339, "size_mb": 15}}, "alloc_jfr_mb": {"off_m2": 11.0, "on_m2": 3.7}, "gc_log": {"off_lines": 741, "on_lines": 704}, "request_compare": [{"name": "me", "off_p95": 15.35, "on_p95": 11.0, "off_mean": 10.63, "on_mean": 5.62, "off_n": 354, "on_n": 368}, {"name": "systemSettings", "off_p95": 6.0, "on_p95": 5.65, "off_mean": 4.96, "on_mean": 3.94, "off_n": 354, "on_n": 368}, {"name": "userSettings", "off_p95": 6.0, "on_p95": 5.0, "off_mean": 4.4, "on_mean": 3.77, "off_n": 354, "on_n": 368}, {"name": "systemSettings/applicationTitle", "off_p95": 8.0, "on_p95": 7.0, "off_mean": 5.73, "on_mean": 5.09, "off_n": 354, "on_n": 368}, {"name": "systemSettings/helpPageLink", "off_p95": 8.0, "on_p95": 6.0, "off_mean": 5.25, "on_mean": 4.86, "off_n": 354, "on_n": 368}, {"name": "apps", "off_p95": 8.0, "on_p95": 5.0, "off_mean": 5.31, "on_mean": 3.68, "off_n": 354, "on_n": 368}, {"name": "apps/menu", "off_p95": 8.0, "on_p95": 5.0, "off_mean": 5.83, "on_mean": 3.73, "off_n": 354, "on_n": 368}, {"name": "me/dashboard", "off_p95": 9.0, "on_p95": 9.0, "off_mean": 6.71, "on_mean": 6.58, "off_n": 354, "on_n": 368}, {"name": "system/info", "off_p95": 3.0, "on_p95": 3.0, "off_mean": 1.94, "on_mean": 2.2, "off_n": 354, "on_n": 368}, {"name": "schemas", "off_p95": 60.05, "on_p95": 41.75, "off_mean": 42.04, "on_mean": 8.7, "off_n": 120, "on_n": 126}, {"name": "me/authorities", "off_p95": 16.05, "on_p95": 13.75, "off_mean": 10.42, "on_mean": 4.67, "off_n": 120, "on_n": 126}, {"name": "organisationUnits", "off_p95": 283.25, "on_p95": 119.5, "off_mean": 111.17, "on_mean": 19.04, "off_n": 120, "on_n": 126}]}</script>
+  <script>
+    const DATA = JSON.parse(document.getElementById('data').textContent);
+    const OFF = '#94a3b8';
+    const ON = '#34d399';
+    const GRID = 'rgba(148,163,184,0.15)';
+    const TICK = '#93a4bd';
+
+    Chart.defaults.color = TICK;
+    Chart.defaults.borderColor = GRID;
+    Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+
+    const offP = DATA.runs.load_off_pooled;
+    const onP = DATA.runs.load_on_pooled;
+
+    // KPIs
+    const delta = ((offP.p95 - onP.p95) / offP.p95 * 100).toFixed(0);
+    document.getElementById('kpis').innerHTML = `
+      <div><div class="l">OFF p95</div><div class="v off">${offP.p95} ms</div><div class="s">n=${offP.n.toLocaleString()} requests</div></div>
+      <div><div class="l">ON p95</div><div class="v on">${onP.p95} ms</div><div class="s">n=${onP.n.toLocaleString()} requests</div></div>
+      <div><div class="l">p95 improvement</div><div class="v on">−${delta}%</div><div class="s">pooled load m2+m3</div></div>
+      <div><div class="l">SQL events</div><div class="v on">~3–4× less</div><div class="s">ON vs OFF (pg logs)</div></div>
+    `;
+
+    // Percentiles bar
+    new Chart(document.getElementById('chartPercentiles'), {
+      type: 'bar',
+      data: {
+        labels: ['mean', 'p50', 'p75', 'p95', 'p99'],
+        datasets: [
+          {
+            label: 'OFF',
+            data: [offP.mean, offP.p50, offP.p75, offP.p95, offP.p99],
+            backgroundColor: OFF,
+            borderRadius: 6,
+          },
+          {
+            label: 'ON',
+            data: [onP.mean, onP.p50, onP.p75, onP.p95, onP.p99],
+            backgroundColor: ON,
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.raw} ms` } },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Response time (ms)' },
+            grid: { color: GRID },
+          },
+          x: { grid: { display: false } },
+        },
+      },
+    });
+
+    // Histogram
+    const histLabels = Object.keys(offP.histogram);
+    new Chart(document.getElementById('chartHist'), {
+      type: 'bar',
+      data: {
+        labels: histLabels,
+        datasets: [
+          {
+            label: 'OFF',
+            data: histLabels.map((k) => offP.histogram[k]),
+            backgroundColor: 'rgba(148,163,184,0.75)',
+            borderRadius: 4,
+          },
+          {
+            label: 'ON',
+            data: histLabels.map((k) => onP.histogram[k]),
+            backgroundColor: 'rgba(52,211,153,0.75)',
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          title: { display: false },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Request count' },
+            grid: { color: GRID },
+          },
+          x: {
+            title: { display: true, text: 'Latency bucket (ms)' },
+            ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } },
+            grid: { display: false },
+          },
+        },
+      },
+    });
+
+    // Timeline
+    const tlOff = DATA.runs.load_off_m2.timeline;
+    const tlOn = DATA.runs.load_on_m2.timeline;
+    const maxT = Math.max(
+      tlOff.length ? tlOff[tlOff.length - 1].t_sec : 0,
+      tlOn.length ? tlOn[tlOn.length - 1].t_sec : 0
+    );
+    new Chart(document.getElementById('chartTimeline'), {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            label: 'OFF p95',
+            data: tlOff.map((p) => ({ x: p.t_sec, y: p.p95 })),
+            borderColor: OFF,
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.25,
+          },
+          {
+            label: 'OFF p50',
+            data: tlOff.map((p) => ({ x: p.t_sec, y: p.p50 })),
+            borderColor: 'rgba(148,163,184,0.45)',
+            borderDash: [4, 4],
+            backgroundColor: 'transparent',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            tension: 0.25,
+          },
+          {
+            label: 'ON p95',
+            data: tlOn.map((p) => ({ x: p.t_sec, y: p.p95 })),
+            borderColor: ON,
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.25,
+          },
+          {
+            label: 'ON p50',
+            data: tlOn.map((p) => ({ x: p.t_sec, y: p.p50 })),
+            borderColor: 'rgba(52,211,153,0.45)',
+            borderDash: [4, 4],
+            backgroundColor: 'transparent',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            tension: 0.25,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          x: {
+            type: 'linear',
+            title: { display: true, text: 'Elapsed seconds into run' },
+            min: 0,
+            max: maxT + 10,
+            grid: { color: GRID },
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'ms' },
+            grid: { color: GRID },
+          },
+        },
+      },
+    });
+
+    // By request
+    const rc = DATA.request_compare;
+    const short = (n) => (n.length > 28 ? n.slice(0, 26) + '…' : n);
+    new Chart(document.getElementById('chartByRequest'), {
+      type: 'bar',
+      data: {
+        labels: rc.map((r) => short(r.name)),
+        datasets: [
+          {
+            label: 'OFF p95',
+            data: rc.map((r) => r.off_p95),
+            backgroundColor: OFF,
+            borderRadius: 4,
+          },
+          {
+            label: 'ON p95',
+            data: rc.map((r) => r.on_p95),
+            backgroundColor: ON,
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          x: {
+            beginAtZero: true,
+            title: { display: true, text: 'p95 ms' },
+            grid: { color: GRID },
+          },
+          y: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        },
+      },
+    });
+
+    // Request table
+    let rows = rc
+      .map((r) => {
+        const imp =
+          r.off_p95 && r.on_p95
+            ? (((r.off_p95 - r.on_p95) / r.off_p95) * 100).toFixed(0) + '%'
+            : '—';
+        return `<tr>
+          <td>${r.name}</td>
+          <td class="num">${r.off_p95 ?? '—'}</td>
+          <td class="num good">${r.on_p95 ?? '—'}</td>
+          <td class="num good">${imp}</td>
+          <td class="num">${r.off_n ?? '—'} / ${r.on_n ?? '—'}</td>
+        </tr>`;
+      })
+      .join('');
+    document.getElementById('reqTable').innerHTML = `
+      <thead><tr>
+        <th>Request</th><th>OFF p95</th><th>ON p95</th><th>Δ p95</th><th>n OFF / ON</th>
+      </tr></thead><tbody>${rows}</tbody>`;
+
+    // SQL
+    const sql = DATA.sql;
+    new Chart(document.getElementById('chartSql'), {
+      type: 'bar',
+      data: {
+        labels: ['m2', 'm3'],
+        datasets: [
+          {
+            label: 'OFF',
+            data: [sql.load_off_m2.duration_hits, sql.load_off_m3.duration_hits],
+            backgroundColor: OFF,
+            borderRadius: 6,
+          },
+          {
+            label: 'ON',
+            data: [sql.load_on_m2.duration_hits, sql.load_on_m3.duration_hits],
+            backgroundColor: ON,
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'SQL log hits' },
+            grid: { color: GRID },
+          },
+          x: { grid: { display: false } },
+        },
+      },
+    });
+
+    // Alloc
+    new Chart(document.getElementById('chartAlloc'), {
+      type: 'bar',
+      data: {
+        labels: ['Alloc profile JFR size'],
+        datasets: [
+          {
+            label: 'OFF',
+            data: [DATA.alloc_jfr_mb.off_m2],
+            backgroundColor: OFF,
+            borderRadius: 6,
+          },
+          {
+            label: 'ON',
+            data: [DATA.alloc_jfr_mb.on_m2],
+            backgroundColor: ON,
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.raw} MB` } },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'MB' },
+            grid: { color: GRID },
+          },
+          x: { grid: { display: false } },
+        },
+      },
+    });
+
+    // Profiles smoke vs load p95
+    const smokeOff = DATA.runs.smoke_off_m2;
+    const smokeOn = DATA.runs.smoke_on_m2;
+    new Chart(document.getElementById('chartProfiles'), {
+      type: 'bar',
+      data: {
+        labels: ['Smoke p95', 'Load p95 (pooled)'],
+        datasets: [
+          {
+            label: 'OFF',
+            data: [smokeOff.p95, offP.p95],
+            backgroundColor: OFF,
+            borderRadius: 6,
+          },
+          {
+            label: 'ON',
+            data: [smokeOn.p95, onP.p95],
+            backgroundColor: ON,
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'ms' },
+            grid: { color: GRID },
+          },
+          x: { grid: { display: false } },
+        },
+      },
+    });
+  </script>
+</body>
+</html>

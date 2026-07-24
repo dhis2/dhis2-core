@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "id": "CchUsr00001",
+      "firstName": "Cache",
+      "surname": "TestUser",
+      "username": "cache_fixture_user",
+      "password": "Test1212?!",
+      "userRoles": [
+        { "id": "yrB6vc5Ip7r" }
+      ]
+    }
+  ]
+}

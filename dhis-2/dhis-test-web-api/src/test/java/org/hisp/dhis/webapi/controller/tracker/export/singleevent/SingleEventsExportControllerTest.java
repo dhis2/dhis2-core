@@ -343,7 +343,7 @@ class SingleEventsExportControllerTest extends PostgresControllerIntegrationTest
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertContains("script-src 'none';", response.header("Content-Security-Policy"));

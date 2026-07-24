@@ -644,7 +644,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertContains("script-src 'none';", response.header("Content-Security-Policy"));
@@ -669,7 +669,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("file content", response.content("image/png"));
@@ -694,7 +694,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     assertEquals(HttpStatus.NOT_MODIFIED, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertContains("script-src 'none';", response.header("Content-Security-Policy"));
     assertFalse(response.hasBody());
   }
@@ -873,7 +873,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("file content", response.content("image/png"));
@@ -909,7 +909,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     assertEquals(HttpStatus.OK, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals("no-cache, must-revalidate, private", response.header("Cache-Control"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(
         Long.toString(smallFileContent.getBytes().length), response.header("Content-Length"));

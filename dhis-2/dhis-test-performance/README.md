@@ -14,6 +14,75 @@ SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \
 
 Run `./run-simulation.sh` for full usage including profiling and database options.
 
+### ETag cache A/B (`PageLoadSimulation`)
+
+Protocol, dated numbers, and scripts:
+
+* [`ETAG-CACHE-TEAM-REPORT.html`](./ETAG-CACHE-TEAM-REPORT.html) — **pretty team handout** (open in a browser)  
+* [`ETAG-CACHE-CHARTS-REPORT.html`](./ETAG-CACHE-CHARTS-REPORT.html) — **charts from real Gatling CSVs**  
+* [`BENCHMARKS-etag.md`](./BENCHMARKS-etag.md) — latency/SQL/flamegraph results + how to reproduce  
+* [`MEMORY-etag.md`](./MEMORY-etag.md) — RAM design bounds, gauges, alloc A/B  
+* `scripts/etag-ab-benchmark.sh` — Docker ON vs OFF via `docker/dhis-etag-on.conf` / `dhis-etag-off.conf`  
+* `scripts/etag-ab-live.sh` — against an already-running instance (e.g. minibox)
+
+**Charts report offline limitation:** `ETAG-CACHE-CHARTS-REPORT.html` loads Chart.js from a CDN.
+Open it with network access (or vendor `chart.umd.min.js` next to the HTML); offline/CSP-blocked
+environments render the page chrome but leave the chart canvases blank. The underlying numbers
+live in the inline JSON in that HTML and in `BENCHMARKS-etag.md`.
+
+### Metadata mutation benchmark (`MetadataMutationSimulation`)
+
+Measures the ETag cache under concurrent metadata WRITES (the page-load suite above is
+read-only, leaving the DML-observer -> version-bump -> ETag-rotation path idle). A dedicated
+pool of objects with name prefix `PERF_` is seeded before the run and deleted afterwards
+(startup also cleans leftovers from crashed runs), so runs are repeatable. Writers cycle
+UPDATE, and every 10th iteration CREATE + DELETE, so the observer sees all three DML ops.
+
+Profiles (`-Dprofile`):
+
+* `writeload` — page-load readers + writers at `writeRate` writes/sec; asserts the 304 share
+  stays above `assertMin304`. With `-DwriteTarget=control` the writers mutate `constants`
+  (which readers never fetch) and the assertion proves per-type isolation.
+* `staleness` — after each mutation, immediately re-GET the affected list with the
+  pre-mutation ETag and count attempts until 200; asserts p99 <= 2 attempts.
+* `writecost` — writers only, unpaced; run once per `cache.api.etag.enabled` side and compare
+  throughput/p95 to get the observer's write-path cost.
+
+> [!NOTE]
+> All load tests here log every virtual user in as the same account. DHIS2 evicts the
+> oldest session beyond `max.sessions.per_user` (default 10), which shows up as a 401
+> storm once concurrent users exceed the cap (seen with the `capacity` profile). Raise
+> it in dhis.conf on the target instance when driving >10 concurrent virtual users.
+
+Wrapper (staircase over `RATES` for writeload, CSV summary `rate,requests,rps,share304,p95ms,ko`
+under `target/gatling/`):
+
+```sh
+INSTANCE=http://127.0.0.1:8280 ADMIN_PASSWORD=district \
+  PROFILE=writeload ./scripts/etag-mutation-bench.sh
+
+# writecost A/B:
+INSTANCE=http://127.0.0.1:8280 PROFILE=writecost SIDE=on  ./scripts/etag-mutation-bench.sh
+#   flip cache.api.etag.enabled=off in dhis.conf + restart, then:
+INSTANCE=http://127.0.0.1:8280 PROFILE=writecost SIDE=off ./scripts/etag-mutation-bench.sh
+```
+
+System properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `instance` | `http://localhost:8080` | DHIS2 base URL |
+| `apiVersion` | `44` | Versioned API prefix used by readers/writers (set 43 when targeting a 2.43 instance) |
+| `adminUser` / `adminPassword` | `admin` / `district` | Credentials (session-cookie login) |
+| `profile` | `writeload` | `writeload`, `staleness` or `writecost` |
+| `writeRate` | `1.0` | Aggregate writes/sec across all writers (0 = readers only) |
+| `writeTarget` | `hot` | `hot` = dataElements (read by readers), `control` = constants |
+| `readers` | `10` | Concurrent page-load readers (writeload) |
+| `writers` | `2` | Concurrent writers / staleness probers |
+| `durationSec` | `120` | Steady-state duration |
+| `poolSize` | `200` | Seeded objects per type |
+| `assertMin304` | `0.5` hot / `0.75` control | Minimum 304 share for writeload |
+
 ## CI
 
 CI workflows use `./run-simulation.sh` the same way as local runs:
