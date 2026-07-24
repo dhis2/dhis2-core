@@ -128,8 +128,6 @@ public interface PeriodService {
    */
   List<Period> reloadPeriods(Collection<Period> periods);
 
-  List<PeriodType> loadAllPeriodTypes();
-
   /**
    * Returns a list of the given number of previous periods in ascending order. The given last
    * period appears last in the returned list.

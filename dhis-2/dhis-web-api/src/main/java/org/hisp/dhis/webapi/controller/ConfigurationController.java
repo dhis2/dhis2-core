@@ -66,6 +66,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeResponse.PeriodTypeEntry;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
@@ -477,14 +478,14 @@ public class ConfigurationController {
   @GetMapping(
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Set<org.hisp.dhis.webapi.webdomain.PeriodType> getDataOutputPeriodTypes() {
+  public @ResponseBody Set<PeriodTypeEntry> getDataOutputPeriodTypes() {
     Set<PeriodType> periodTypes =
         configurationService.getConfiguration().getDataOutputPeriodTypes();
 
     I18n i18n = i18nManager.getI18n();
 
     return periodTypes.stream()
-        .map(periodType -> new org.hisp.dhis.webapi.webdomain.PeriodType(periodType, i18n))
+        .map(periodType -> new PeriodTypeEntry(periodType, null, i18n))
         .collect(toCollection(LinkedHashSet::new));
   }
 
@@ -493,11 +494,10 @@ public class ConfigurationController {
       value = {"/dataOutputPeriodTypes"},
       consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void setDataOutputPeriodTypes(
-      @RequestBody Set<org.hisp.dhis.webapi.webdomain.PeriodType> periodTypes) {
+  public void setDataOutputPeriodTypes(@RequestBody Set<PeriodTypeEntry> periodTypes) {
 
     // Disallow deprecated types
-    for (org.hisp.dhis.webapi.webdomain.PeriodType p : periodTypes) {
+    for (PeriodTypeEntry p : periodTypes) {
       if (trimToEmpty(p.getName()).equalsIgnoreCase(TWO_YEARLY.getName())) {
         throw new IllegalQueryException(new ErrorMessage(E1101, p.getName()));
       }
