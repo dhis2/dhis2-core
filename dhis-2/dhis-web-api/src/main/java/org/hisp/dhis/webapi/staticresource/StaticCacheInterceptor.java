@@ -39,7 +39,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * Spring MVC interceptor that sets {@code Cache-Control} headers for core DHIS2 static resources
  * served from classpath JARs ({@code /dhis-web-commons/**}, {@code /icons/**}, {@code /images/**},
  * etc.). These resources are handled by Spring's {@code ResourceHttpRequestHandler} and this
- * interceptor works in both embedded Tomcat and WAR deployment modes.
+ * interceptor works in both embedded Tomcat and WAR deployment modes. Paths are matched relative to
+ * the servlet context path so matching also works for deployments under a non-root context path.
  *
  * <p>App resources ({@code /apps/**}) are handled directly by {@code AppController} which calls
  * {@code StaticCacheControlService} itself, so this interceptor does not need to cover those paths.
@@ -53,11 +54,25 @@ public class StaticCacheInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(
       HttpServletRequest request, HttpServletResponse response, Object handler) {
-    String uri = request.getRequestURI();
-    if (isCoreStaticPath(uri)) {
-      staticCacheControlService.setHeaders(response, uri, request.getQueryString(), null);
+    String path = getPathWithinApplication(request);
+    if (isCoreStaticPath(path)) {
+      staticCacheControlService.setHeaders(response, path, request.getQueryString(), null);
     }
     return true;
+  }
+
+  /**
+   * Returns the request URI relative to the servlet context path. The URI from {@link
+   * HttpServletRequest#getRequestURI()} includes the context path, which would break the core
+   * static path matching on deployments under a non-root context path (DHIS2-21880).
+   */
+  private static String getPathWithinApplication(HttpServletRequest request) {
+    String uri = request.getRequestURI();
+    String contextPath = request.getContextPath();
+    if (contextPath != null && !contextPath.isEmpty() && uri.startsWith(contextPath)) {
+      return uri.substring(contextPath.length());
+    }
+    return uri;
   }
 
   private boolean isCoreStaticPath(String uri) {
