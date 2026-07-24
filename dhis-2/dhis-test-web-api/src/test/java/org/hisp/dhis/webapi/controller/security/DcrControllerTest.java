@@ -158,8 +158,16 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
     assertNull(client.getClientSecret());
     // DCR-registered clients are first-party (Android) and must not require consent
     assertEquals(false, clientSettings.isRequireAuthorizationConsent());
+    // DCR auth-code clients require S256 PKCE by default (PR-H)
+    assertTrue(clientSettings.isRequireProofKey());
+    // Default scopes assigned by the server when registration omits scopes: openid, profile,
+    // username (email is intentionally excluded, see OAuth2Constants.DCR_DEFAULT_SCOPES)
+    assertEquals(Set.of("openid", "profile", "username"), client.getScopes());
 
     // When calling token endpoint with private_key_jwt authentication
+    // Uses grant_type=client_credentials with scope "openid profile username" as a secondary
+    // fixture; PKCE does not apply to the client_credentials grant. The auth-code + PKCE path
+    // is covered by OAuth2PkceEnforcementTest.
     String tokenResponse = callTokenEndpoint(keyPair, clientId);
     String accessToken = JsonValue.of(tokenResponse).asObject().getString("access_token").string();
     assertNotNull(accessToken);
@@ -172,6 +180,29 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
             .getResponse()
             .getContentAsString();
     assertNotNull(usersResp);
+  }
+
+  @Test
+  @DisplayName("Test DCR-registered client default scopes exclude email")
+  void testDcrRegisteredClientDefaultScopesExcludeEmail() throws Exception {
+    // Given an initial access token (iat)
+    String initialAccessToken = createClientAndIat();
+
+    // Given a key pair to be used for the client's private_key_jwt authentication
+    KeyPair keyPair = createKeys();
+
+    // When registering a client without specifying scopes
+    String clientId = doClientRegistrationRequest(initialAccessToken, keyPair);
+    RegisteredClient client = oAuth2ClientService.findByClientId(clientId);
+    assertNotNull(client);
+
+    // Then the server-assigned default scopes are exactly openid, profile, username
+    assertTrue(client.getScopes().contains("openid"));
+    assertTrue(client.getScopes().contains("profile"));
+    assertTrue(client.getScopes().contains("username"));
+    assertFalse(
+        client.getScopes().contains("email"),
+        "DCR default scopes must not include email (PR-H, OAuth2Constants.DCR_DEFAULT_SCOPES)");
   }
 
   @Test

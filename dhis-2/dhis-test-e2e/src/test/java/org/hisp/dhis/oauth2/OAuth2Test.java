@@ -40,8 +40,13 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -73,11 +78,32 @@ class OAuth2Test extends BaseE2ETest {
 
   private static final String REDIRECT_URI = "http://localhost:9090/oauth2/code/dhis2-client";
 
-  private static final String AUTHORIZE_PARAMS =
-      "/oauth2/authorize?response_type=code&client_id=dhis2-client"
-          + "&redirect_uri="
-          + REDIRECT_URI
-          + "&scope=openid%20email";
+  private static final String CODE_VERIFIER;
+  private static final String CODE_CHALLENGE;
+  private static final String AUTHORIZE_PARAMS;
+
+  static {
+    byte[] verifierBytes = new byte[32];
+    new SecureRandom().nextBytes(verifierBytes);
+    CODE_VERIFIER = Base64.getUrlEncoder().withoutPadding().encodeToString(verifierBytes);
+
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] challengeBytes = digest.digest(CODE_VERIFIER.getBytes(StandardCharsets.US_ASCII));
+      CODE_CHALLENGE = Base64.getUrlEncoder().withoutPadding().encodeToString(challengeBytes);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+
+    AUTHORIZE_PARAMS =
+        "/oauth2/authorize?response_type=code&client_id=dhis2-client"
+            + "&redirect_uri="
+            + REDIRECT_URI
+            + "&scope=openid%20email"
+            + "&code_challenge="
+            + CODE_CHALLENGE
+            + "&code_challenge_method=S256";
+  }
 
   private WebDriver driver;
 
@@ -123,7 +149,7 @@ class OAuth2Test extends BaseE2ETest {
             "authorizationGrantTypes", "refresh_token,authorization_code",
             "redirectUris", REDIRECT_URI,
             "postLogoutRedirectUris", "http://127.0.0.1:8080/",
-            "scopes", "email_verified,openid,profile,email");
+            "scopes", "openid,profile,email");
 
     // Create client
     ResponseEntity<String> response = postAsAdmin(serverApiUrl + "/oAuth2Clients", clientMap);
@@ -388,7 +414,7 @@ class OAuth2Test extends BaseE2ETest {
   }
 
   public String getAccessToken(String code) throws JsonProcessingException {
-    String body = callTokenEndpoint(code);
+    String body = callTokenEndpoint(code, CODE_VERIFIER);
     assertNotNull(body, "Token endpoint returned null body");
     log.info("[getAccessToken] token endpoint response body: {}", body);
     JsonNode jsonNode = objectMapper.readTree(body);
