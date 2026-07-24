@@ -11,6 +11,10 @@ services:
       - surefire-reports:/target/surefire-reports
     depends_on:
       - web
+    networks:
+      # Deterministic IP: switch_user_allow_listed_ips in dhis.conf is an exact match
+      default:
+        ipv4_address: 172.30.0.10
 
   reports-processor:
     profiles: ["reports"]
@@ -20,13 +24,12 @@ services:
       - ./config/scripts/process-test-reports.sh:/process-test-reports.sh:ro
     environment:
       GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-DHIS2 Test Bot}
-      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-test-bot@dhis2.org}
+      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-apps@dhis2.org}
       GIT_COMMITTER_NAME: ${GIT_COMMITTER_NAME:-DHIS2 Test Bot}
-      GIT_COMMITTER_EMAIL: ${GIT_COMMITTER_EMAIL:-test-bot@dhis2.org}
+      GIT_COMMITTER_EMAIL: ${GIT_COMMITTER_EMAIL:-apps@dhis2.org}
       GITHUB_TOKEN: ${GITHUB_TOKEN}
-      GPG_PRIVATE_KEY: ${GPG_PRIVATE_KEY}
-      GPG_KEY_ID: ${GPG_KEY_ID}
-      GPG_PASSPHRASE: ${GPG_PASSPHRASE}
+      SSH_SIGNING_KEY: ${SSH_SIGNING_KEY}
+      SSH_SIGNING_PASSPHRASE: ${SSH_SIGNING_PASSPHRASE}
       DB_TYPE: ${DB_TYPE:-postgres}
       TEST_TYPE: ${TEST_TYPE:-e2e}
     command: ["/process-test-reports.sh"]

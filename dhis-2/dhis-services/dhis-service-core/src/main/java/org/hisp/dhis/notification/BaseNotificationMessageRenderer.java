@@ -72,8 +72,6 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
 
   protected static final int SUBJECT_CHAR_LIMIT = 100;
 
-  protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]";
-
   // Error placeholders
   protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
   protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
@@ -199,7 +197,6 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
    *
    * <ul>
    *   <li>Returns a placeholder if the {@code DataElement} is not part of the program stage.
-   *   <li>Returns a confidential replacement if the underlying value is {@code null}.
    *   <li>Resolves OptionSet codes to their corresponding display names when applicable.
    *   <li>Otherwise, returns the raw data value.
    * </ul>
@@ -213,10 +210,6 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
       return DE_NOT_IN_STAGE;
     }
     String value = dv.getValue();
-
-    if (value == null) {
-      return CONFIDENTIAL_VALUE_REPLACEMENT;
-    }
 
     // If the DV has an OptionSet -> substitute value with the name of the
     // Option

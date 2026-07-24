@@ -32,7 +32,9 @@ package org.hisp.dhis.security.oauth2.authorization;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.security.Principal;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -48,8 +50,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.FactorGrantedAuthority;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2DeviceCode;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -58,6 +64,7 @@ import org.springframework.security.oauth2.core.OAuth2UserCode;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
@@ -252,7 +259,11 @@ public class Dhis2OAuth2AuthorizationServiceImpl
             .principalName(entity.getPrincipalName())
             .authorizationGrantType(OAuth2GrantTypes.resolve(entity.getAuthorizationGrantType()))
             .authorizedScopes(StringUtils.commaDelimitedListToSet(entity.getAuthorizedScopes()))
-            .attributes(attributes -> attributes.putAll(parseMap(entity.getAttributes())));
+            .attributes(
+                attributes -> {
+                  attributes.putAll(parseMap(entity.getAttributes()));
+                  ensureFactorGrantedAuthority(attributes);
+                });
 
     if (entity.getState() != null) {
       builder.attribute(OAuth2ParameterNames.STATE, entity.getState());
@@ -381,7 +392,7 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     entity.setAuthorizationGrantType(authorization.getAuthorizationGrantType().getValue());
     entity.setAuthorizedScopes(
         StringUtils.collectionToCommaDelimitedString(authorization.getAuthorizedScopes()));
-    entity.setAttributes(writeMap(authorization.getAttributes()));
+    entity.setAttributes(writeMap(leanPrincipal(authorization.getAttributes())));
     entity.setState(authorization.getAttribute(OAuth2ParameterNames.STATE));
 
     OAuth2Authorization.Token<OAuth2AuthorizationCode> authorizationCode =
@@ -471,6 +482,45 @@ public class Dhis2OAuth2AuthorizationServiceImpl
    * @param data The JSON string
    * @return The parsed Map
    */
+
+  /**
+   * SAS 7 JwtGenerator requires a {@link FactorGrantedAuthority} to derive OIDC {@code auth_time}
+   * when a SessionRegistry is present. Older persisted principals (and some login paths) may lack
+   * one after JSON round-trip; re-attach a synthetic password factor so token exchange does not
+   * fail with "authenticationTime cannot be null".
+   */
+  private static void ensureFactorGrantedAuthority(Map<String, Object> attributes) {
+    Object principal = attributes.get(java.security.Principal.class.getName());
+    if (!(principal instanceof Authentication authentication)) {
+      return;
+    }
+    if (authentication.getAuthorities().stream()
+        .anyMatch(FactorGrantedAuthority.class::isInstance)) {
+      return;
+    }
+    java.util.List<GrantedAuthority> authorities =
+        new java.util.ArrayList<>(authentication.getAuthorities());
+    authorities.add(
+        FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.PASSWORD_AUTHORITY));
+    Object principalObj = authentication.getPrincipal();
+    if (principalObj == null) {
+      return;
+    }
+    Authentication enriched;
+    if (authentication instanceof OAuth2AuthenticationToken oauth
+        && principalObj instanceof OAuth2User oauth2User) {
+      enriched =
+          new OAuth2AuthenticationToken(
+              oauth2User, authorities, oauth.getAuthorizedClientRegistrationId());
+    } else {
+      Object credentials = authentication.getCredentials();
+      enriched =
+          UsernamePasswordAuthenticationToken.authenticated(
+              principalObj, credentials != null ? credentials : "", authorities);
+    }
+    attributes.put(java.security.Principal.class.getName(), enriched);
+  }
+
   private Map<String, Object> parseMap(String data) {
     if (data == null || data.isBlank()) {
       return Map.of();
@@ -481,6 +531,41 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     } catch (Exception ex) {
       throw new IllegalArgumentException("Failed to parse JSON data: " + ex.getMessage(), ex);
     }
+  }
+
+  /**
+   * Replaces a heavyweight DHIS2 principal in the authorization attributes with a lean,
+   * Spring-native one before persistence.
+   *
+   * <p>After a federated OIDC login the {@code java.security.Principal} attribute is an {@link
+   * org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken} whose
+   * principal is a {@link org.hisp.dhis.security.oidc.DhisOidcUser} wrapping a {@link
+   * org.hisp.dhis.user.UserDetailsImpl}; a form login carries a {@code UserDetailsImpl} directly.
+   * Spring Authorization Server only ever reads the principal's {@link Authentication#getName()
+   * name} (the JWT/token customizer) and re-loads the user from the database on token validation,
+   * so the heavyweight object graph is dead weight in the row and the reason those DHIS2-custom
+   * types tripped {@link SecurityJackson2Modules}' deserialization allowlist. Swapping it for a
+   * {@link UsernamePasswordAuthenticationToken} carrying just the DHIS2 username and authorities
+   * keeps the persisted attributes entirely Spring-native, so they round-trip without any custom
+   * Jackson mixins. {@code principalName} is left untouched (the consent store keys on it). The
+   * token's {@code authorizedClientRegistrationId} (e.g. {@code "google"}) and the authentication
+   * {@code details} are intentionally not retained — nothing in the token-issuance or validation
+   * path reads them once the user is identified by name.
+   *
+   * <p>Package-private (rather than {@code private}) so the branch logic can be unit-tested
+   * directly.
+   */
+  static Map<String, Object> leanPrincipal(Map<String, Object> attributes) {
+    if (attributes.get(Principal.class.getName()) instanceof Authentication authentication
+        && authentication.getPrincipal() instanceof UserDetails userDetails) {
+      Map<String, Object> lean = new LinkedHashMap<>(attributes);
+      lean.put(
+          Principal.class.getName(),
+          new UsernamePasswordAuthenticationToken(
+              userDetails.getUsername(), null, userDetails.getAuthorities()));
+      return lean;
+    }
+    return attributes;
   }
 
   /**

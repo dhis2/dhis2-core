@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.test.webapi;
 
-import static org.hisp.dhis.webapi.security.config.WebMvcConfig.MEDIA_TYPE_MAP;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -48,6 +46,7 @@ import org.hisp.dhis.webapi.fields.FieldsConverter;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
+import org.hisp.dhis.webapi.mvc.UrlParamsMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
@@ -57,7 +56,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConv
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
-import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.hisp.dhis.webapi.view.SuffixMediaTypeContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -82,7 +81,6 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.ConversionServiceExposingInterceptor;
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
@@ -102,12 +100,12 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Autowired private NodeService nodeService;
 
-  @Autowired
-  private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+  @Autowired private CurrentUserHandlerMethodArgumentResolver currentUserArgResolver;
 
   @Autowired
-  private CurrentSystemSettingsHandlerMethodArgumentResolver
-      currentSystemSettingsHandlerMethodArgumentResolver;
+  private CurrentSystemSettingsHandlerMethodArgumentResolver currentSystemSettingsArgResolver;
+
+  @Autowired private UrlParamsMethodArgumentResolver urlParamsArgResolver;
 
   @Autowired private FieldsConverter fieldsConverter;
 
@@ -147,40 +145,27 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(settingsInterceptor);
     mapping.setInterceptors(registry.getInterceptors().toArray());
 
-    CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
-    pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
-
     mapping.setContentNegotiationManager(
         new ContentNegotiationManager(
             Arrays.asList(
-                pathExtensionNegotiationStrategy,
+                new SuffixMediaTypeContentNegotiationStrategy(),
                 new HeaderContentNegotiationStrategy(),
                 new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON))));
 
-    mapping.setUseTrailingSlashMatch(true);
-    mapping.setUseSuffixPatternMatch(true);
-    mapping.setUseRegisteredSuffixPatternMatch(true);
-
+    // Path-extension + trailing-slash matching is handled by CustomRequestMappingHandlerMapping
+    // (literal-first, then normalised path). Do not set removed/deprecated suffix flags.
+    // PR-K1: use Spring default PathPatternParser (do not force Ant with null parser).
+    // Controllers with trailing /** are PathPattern-legal; security mid-** is PR-K2/K3.
     return mapping;
   }
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-    CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
-
     configurer.strategies(
         Arrays.asList(
-            pathExtensionNegotiationStrategy,
+            new SuffixMediaTypeContentNegotiationStrategy(),
             new HeaderContentNegotiationStrategy(),
             new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON)));
-  }
-
-  @Override
-  public void configurePathMatch(PathMatchConfigurer configurer) {
-    configurer.setUseSuffixPatternMatch(false);
-    configurer.setUseRegisteredSuffixPatternMatch(true);
   }
 
   @Bean
@@ -252,8 +237,9 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(currentUserHandlerMethodArgumentResolver);
-    resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
+    resolvers.add(currentUserArgResolver);
+    resolvers.add(currentSystemSettingsArgResolver);
+    resolvers.add(urlParamsArgResolver);
   }
 
   @Bean

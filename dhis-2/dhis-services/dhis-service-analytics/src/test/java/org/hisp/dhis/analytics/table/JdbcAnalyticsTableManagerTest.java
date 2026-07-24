@@ -372,4 +372,10 @@ class JdbcAnalyticsTableManagerTest {
 
     assertEquals(expected, subject.getApprovalJoinClause());
   }
+
+  @Test
+  void testGetStartEndDatesCondition() {
+    assertTrue(subject.getStartEndDatesCondition(false).isEmpty());
+    assertTrue(subject.getStartEndDatesCondition(true).startsWith(" "));
+  }
 }

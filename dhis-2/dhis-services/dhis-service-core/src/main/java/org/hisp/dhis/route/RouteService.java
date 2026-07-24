@@ -32,6 +32,7 @@ package org.hisp.dhis.route;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import io.netty.handler.timeout.ReadTimeoutException;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
@@ -46,6 +47,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,8 +55,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -80,7 +82,6 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -95,6 +96,8 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriTemplate;
+import org.springframework.web.util.UriUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClientRequest;
@@ -228,17 +231,20 @@ public class RouteService {
   }
 
   protected boolean isRouteUrlAllowed(URL routeUrl) {
-    String routeAddress =
-        routeUrl.getProtocol()
-            + "://"
-            + routeUrl.getHost()
-            + (routeUrl.getPort() > -1 ? ":" + routeUrl.getPort() : "");
+    String origin = getOrigin(routeUrl);
     for (String regexRemoteServer : allowedRouteRegexRemoteServers) {
-      if (routeAddress.matches(regexRemoteServer)) {
+      if (origin.matches(regexRemoteServer)) {
         return true;
       }
     }
     return false;
+  }
+
+  protected String getOrigin(URL url) {
+    return url.getProtocol()
+        + "://"
+        + url.getHost()
+        + (url.getPort() > -1 ? ":" + url.getPort() : "");
   }
 
   public void validateRoute(Route route) throws ConflictException {
@@ -254,8 +260,13 @@ public class RouteService {
       throw new ConflictException("Route URL scheme must be either http or https");
     }
 
+    if (!new UriTemplate(getOrigin(url)).getVariableNames().isEmpty()) {
+      throw new ConflictException("Placeholders are only permitted in the route URL path or query");
+    }
+
     if (!isRouteUrlAllowed(url)) {
-      throw new ConflictException("Route URL is not permitted");
+      throw new ConflictException(
+          "Route URL is not permitted. Ask your DHIS2 server administrator to allow it");
     }
 
     if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
@@ -280,28 +291,38 @@ public class RouteService {
       throws BadGatewayException {
 
     try {
-      if (!isRouteUrlAllowed(new URL(route.getBaseUrl()))) {
-        return new ResponseEntity<>(HttpStatusCode.valueOf(503));
-      }
-    } catch (MalformedURLException e) {
+      validateRoute(route);
+    } catch (ConflictException e) {
       log.error(e.getMessage(), e);
       throw new BadGatewayException("An unexpected error occurred");
     }
 
+    UriComponentsBuilder uriComponentsBuilder = createRequestPathBuilder(route, subPath);
+    MultiValueMap<String, String> queryParams = getQueryParams(request);
+    Map<String, String> placeholderQueryParams = getPlaceholderQueryParams(route, queryParams);
+    Map<String, List<String>> upstreamQueryParams =
+        queryParams.entrySet().stream()
+            .filter(
+                q ->
+                    !q.getKey().startsWith("_")
+                        || !placeholderQueryParams.containsKey(q.getKey().substring(1)))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     HttpHeaders headers = filterRequestHeaders(request);
+    applyAuthScheme(route, headers, upstreamQueryParams);
     route.getHeaders().forEach(headers::add);
     addForwardedUserHeader(userDetails, headers);
 
-    MultiValueMap<String, String> queryParameters = getQueryParams(request);
-    applyAuthScheme(route, headers, queryParameters);
-    UriComponentsBuilder uriComponentsBuilder = createRequestPathBuilder(route, subPath);
-    String upstreamUrlLog = uriComponentsBuilder.build().toUriString();
-    String upstreamUrl = createRequestUrl(uriComponentsBuilder.cloneBuilder(), queryParameters);
+    String upstreamUrl =
+        createRequestUrl(
+            uriComponentsBuilder.cloneBuilder(), upstreamQueryParams, placeholderQueryParams);
 
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
         buildRequestSpec(headers, httpMethod, upstreamUrl, route, request);
+
+    String upstreamUrlLog =
+        uriComponentsBuilder.buildAndExpand(placeholderQueryParams).toUriString();
 
     log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
@@ -325,6 +346,28 @@ public class RouteService {
         emitResponseBody(responseEntityFlux),
         filterResponseHeaders(responseEntityFlux.getHeaders()),
         responseEntityFlux.getStatusCode());
+  }
+
+  protected Map<String, String> getPlaceholderQueryParams(
+      Route route, MultiValueMap<String, String> queryParams) throws BadGatewayException {
+    List<String> placeholders = new UriTemplate(route.getBaseUrl()).getVariableNames();
+    Map<String, String> placeholderQueryParams =
+        queryParams.entrySet().stream()
+            .filter(
+                q ->
+                    q.getKey().startsWith("_")
+                        && q.getKey().length() > 1
+                        && placeholders.contains(q.getKey().substring(1)))
+            .map(q -> Map.entry(q.getKey().substring(1), q.getValue().get(0)))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    for (String placeholder : placeholders) {
+      if (!placeholderQueryParams.containsKey(placeholder)
+          || placeholderQueryParams.get(placeholder).isBlank()) {
+        throw new BadGatewayException("Missing or blank value for placeholder: " + placeholder);
+      }
+    }
+
+    return UriUtils.encodeUriVariables(placeholderQueryParams);
   }
 
   protected ResponseEntity<Flux<DataBuffer>> retrieve(
@@ -399,13 +442,15 @@ public class RouteService {
   }
 
   protected String createRequestUrl(
-      UriComponentsBuilder uriComponentsBuilder, Map<String, List<String>> queryParameters) {
-    for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+      UriComponentsBuilder uriComponentsBuilder,
+      Map<String, List<String>> upstreamQueryParams,
+      Map<String, String> placeholderQueryParams) {
+    for (Map.Entry<String, List<String>> queryParameter : upstreamQueryParams.entrySet()) {
       uriComponentsBuilder =
           uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
     }
 
-    return uriComponentsBuilder.build().toUriString();
+    return uriComponentsBuilder.buildAndExpand(placeholderQueryParams).toUriString();
   }
 
   protected WebClient.RequestHeadersSpec<?> buildRequestSpec(
@@ -436,7 +481,7 @@ public class RouteService {
       requestHeadersSpec = buildUpstreamRequestHeaderSpec(request, requestBodySpec);
     }
 
-    for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+    for (Map.Entry<String, List<String>> header : headers.headerSet()) {
       requestHeadersSpec =
           requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
     }
@@ -542,14 +587,16 @@ public class RouteService {
   }
 
   protected void applyAuthScheme(
-      Route route, Map<String, List<String>> headers, Map<String, List<String>> queryParameters)
+      Route route, HttpHeaders headers, Map<String, List<String>> queryParameters)
       throws BadGatewayException {
     if (route.getAuth() != null) {
       try {
+        Map<String, List<String>> authHeaders = new LinkedHashMap<>();
         route
             .getAuth()
             .decrypt(encryptor::decrypt)
-            .apply(applicationContext, headers, queryParameters);
+            .apply(applicationContext, authHeaders, queryParameters);
+        authHeaders.forEach((name, values) -> values.forEach(value -> headers.add(name, value)));
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         throw new BadGatewayException("An error occurred during authentication");
@@ -602,7 +649,8 @@ public class RouteService {
    * @return an {@link HttpHeaders}.
    */
   private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
-    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
+    return filterHeaders(
+        responseHeaders.headerNames(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
   }
 
   /**

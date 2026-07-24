@@ -52,10 +52,14 @@ import org.hisp.dhis.program.ProgramStage;
  */
 @Slf4j
 public class CteContext {
+  public static final String EVENT_PROGRAM_INDICATOR_CANDIDATES = "event_pi_candidates";
+
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
 
   /** The type of analytics query being executed. This can be either EVENT or ENROLLMENT. */
   @Getter private final EndpointItem endpointItem;
+
+  @Getter private String eventProgramIndicatorSourceTable;
 
   public CteDefinition getDefinitionByItemUid(String itemUid) {
     return cteDefinitions.get(itemUid);
@@ -100,6 +104,28 @@ public class CteContext {
       int offset,
       boolean isRowContext,
       boolean hasFilter) {
+    addCte(programStage, item, cteDefinition, offset, isRowContext, hasFilter, false);
+  }
+
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programStage The program stage
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param offset The calculated offset
+   * @param isRowContext Whether the CTE is a row context
+   * @param hasFilter Whether the query item has a filter requiring non-null CTE values
+   * @param hasValueName Whether the CTE exposes the display-name column as value_name
+   */
+  public void addCte(
+      ProgramStage programStage,
+      QueryItem item,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext,
+      boolean hasFilter,
+      boolean hasValueName) {
     String key = computeKey(item);
     if (cteDefinitions.containsKey(key)) {
       cteDefinitions.get(key).getOffsets().add(offset);
@@ -111,7 +137,8 @@ public class CteContext {
               cteDefinition,
               offset,
               isRowContext,
-              hasFilter);
+              hasFilter,
+              hasValueName);
       cteDefinitions.put(key, cteDef);
     }
   }
@@ -154,16 +181,21 @@ public class CteContext {
    * @param cteDefinition The CTE definition (the SQL query)
    * @param functionRequiresCoalesce Whether the function requires to be "wrapped" in coalesce to
    *     avoid null values (e.g. avg, sum)
+   * @param joinColumn The column exposed by the CTE for joining it back to the outer query
    */
   public void addProgramIndicatorCte(
-      ProgramIndicator programIndicator, String cteDefinition, boolean functionRequiresCoalesce) {
+      ProgramIndicator programIndicator,
+      String cteDefinition,
+      boolean functionRequiresCoalesce,
+      String joinColumn) {
     cteDefinitions.put(
         programIndicator.getUid(),
         CteDefinition.forProgramIndicator(
             programIndicator.getUid(),
             programIndicator.getAnalyticsType(),
             cteDefinition,
-            functionRequiresCoalesce));
+            functionRequiresCoalesce,
+            joinColumn));
   }
 
   /**
@@ -258,10 +290,41 @@ public class CteContext {
     }
   }
 
+  /**
+   * Registers a {@link CteDefinition.CteType#D2_RELATIONSHIP_COUNT} CTE. No-op if a CTE with the
+   * same key was already registered, so multiple PIs (or multiple references inside one PI) for the
+   * same relationship type share a single CTE.
+   */
+  public void addRelationshipCountCte(String key, CteDefinition cteDefinition) {
+    if (cteDefinition != null
+        && key != null
+        && cteDefinition.getCteType() == CteDefinition.CteType.D2_RELATIONSHIP_COUNT) {
+      cteDefinitions.putIfAbsent(key, cteDefinition);
+    } else {
+      log.warn("Attempted to add invalid relationship count CTE definition for key: {}", key);
+    }
+  }
+
   public void addShadowCte(String tableName, String sql, CteDefinition.CteType cteType) {
     // Use a simple CteDefinition for shadow CTEs
     CteDefinition shadowCte = CteDefinition.forShadowTable(tableName, sql, cteType);
     cteDefinitions.put(tableName, shadowCte);
+  }
+
+  public void useEventProgramIndicatorCandidateSource() {
+    eventProgramIndicatorSourceTable = EVENT_PROGRAM_INDICATOR_CANDIDATES;
+  }
+
+  public void addEventProgramIndicatorCandidatesCte(String sql) {
+    addShadowCte(
+        EVENT_PROGRAM_INDICATOR_CANDIDATES,
+        sql,
+        CteDefinition.CteType.EVENT_PROGRAM_INDICATOR_CANDIDATES);
+  }
+
+  public boolean hasEventProgramIndicatorCtes() {
+    return cteDefinitions.values().stream()
+        .anyMatch(def -> def.getCteType() == CteDefinition.CteType.PROGRAM_INDICATOR_EVENT);
   }
 
   public CteDefinition getBaseAggregatedCte() {

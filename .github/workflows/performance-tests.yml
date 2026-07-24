@@ -84,6 +84,9 @@ on:
         description: 'Slack webhook URL for failure notifications'
         required: false
 
+permissions:
+  contents: read
+
 jobs:
   performance-tests:
     if: github.repository == 'dhis2/dhis2-core'
@@ -95,7 +98,7 @@ jobs:
 
     steps:
     - name: Checkout performance tests
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ inputs.perf_tests_git_ref }}
         sparse-checkout: |
@@ -346,7 +349,7 @@ jobs:
 
     - name: Send Slack notification on failure
       if: failure() && steps.check_slack.outputs.webhook_configured == 'true'
-      uses: slackapi/slack-github-action@v3.0.3
+      uses: slackapi/slack-github-action@v4.0.0
       with:
         webhook: ${{ secrets.slack_webhook }}
         webhook-type: incoming-webhook

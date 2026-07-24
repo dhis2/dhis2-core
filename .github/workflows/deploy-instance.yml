@@ -9,6 +9,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  checks: read           # for t3chguy/wait-on-check-action
+  pull-requests: write   # for actions-cool/maintain-one-comment
+
 jobs:
   deploy-instance:
     if: contains(github.event.pull_request.labels.*.name, 'deploy')
@@ -26,7 +31,10 @@ jobs:
         # as it will filter out and check only the latest run of a workflow when checking for the allowed conclusions,
         # instead of checking all of the re-runs and possibly failing due to skipped or cancelled runs.
         # See https://github.com/lewagon/wait-on-check-action/issues/85 for more info.
-        uses: t3chguy/wait-on-check-action@master
+        # SHA-pinned to immutable commit instead of mutable @master to mitigate supply-chain
+        # risk from this dormant single-maintainer fork. Update deliberately after reviewing
+        # upstream changes. Current pin equals master HEAD as of 2026-05-22.
+        uses: t3chguy/wait-on-check-action@18541021811b56544d90e0f073401c2b99e249d6 # master @ 2026-05-22 (fork has no tags)
         with:
           ref: ${{ github.head_ref }}
           check-name: 'api-test'
@@ -39,7 +47,7 @@ jobs:
           LATEST_IM_TAG=$(git ls-remote --tags --sort='v:refname' https://github.com/dhis2-sre/im-manager | tail -1 | awk '{print $2}')
           echo "LATEST_IM_TAG=$LATEST_IM_TAG" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: dhis2-sre/im-manager
           ref: ${{ env.LATEST_IM_TAG }}
@@ -72,6 +80,6 @@ jobs:
         run: curl -X POST -u "${{ secrets.DHIS2_USERNAME }}:${{ secrets.DHIS2_PASSWORD }}" "$INSTANCE_HOST/$INSTANCE_NAME/api/resourceTables/analytics" -d 'executeTei=true'
 
       - name: Comment instance URL
-        uses: actions-cool/maintain-one-comment@v3
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
-          body: "Instance deployed to https://dev.im.dhis2.org/pr-${{ github.event.pull_request.number }}"
+          message: "Instance deployed to https://dev.im.dhis2.org/pr-${{ github.event.pull_request.number }}"

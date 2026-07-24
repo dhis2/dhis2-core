@@ -31,6 +31,8 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -42,6 +44,7 @@ import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -64,7 +67,8 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
     createClient("list-test-a", "Alpha Client");
 
     JsonObject response =
-        GET("/oAuth2Clients?order=displayName&fields=id,name,clientId").content(HttpStatus.OK);
+        GET("/oAuth2Clients?order=displayName&fields=id,name,clientId&gist=false")
+            .content(HttpStatus.OK);
     List<String> names =
         response.getList("oAuth2Clients", JsonObject.class).stream()
             .filter(c -> c.getString("clientId").string().startsWith("list-test-"))
@@ -444,6 +448,139 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject client = GET("/oAuth2Clients/{id}", uid).content(HttpStatus.OK);
     assertEquals("client-no-name", client.getString("name").string());
     assertEquals("client-no-name", client.getString("clientId").string());
+  }
+
+  @Test
+  void testRejectsReservedScopeOnCreate() {
+    // Reserved client.* scopes (e.g. client.create) authorize DCR self-registration via
+    // /connect/register and must never be assignable through the admin CRUD path.
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-reserved-scope',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'client.create'"
+                + "}"));
+  }
+
+  @Test
+  void testRejectsUnknownScopeOnCreate() {
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-unknown-scope',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid,evil'"
+                + "}"));
+  }
+
+  @Test
+  void testAcceptsAllowedScopes() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-allowed-scopes',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid,profile,username'"
+                + "}"));
+  }
+
+  @Test
+  void testRejectsMalformedClientSettingsJson() {
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-bad-settings-json',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid',"
+                + "'clientSettings':'{not json'"
+                + "}"));
+  }
+
+  @Test
+  void testRejectsClientSettingsMissingRequiredKeys() {
+    // Parses fine (carries the @class wrapper the service's security-configured ObjectMapper
+    // requires for Spring Security's polymorphic Collections$UnmodifiableMap deserialization)
+    // but omits both required boolean keys (require-proof-key, require-authorization-consent).
+    String body =
+        """
+        {
+          "clientId":"client-settings-missing-keys",
+          "clientSecret":"secret",
+          "clientAuthenticationMethods":"client_secret_basic",
+          "authorizationGrantTypes":"authorization_code",
+          "redirectUris":"https://example.com/callback",
+          "scopes":"openid",
+          "clientSettings":"{\\"@class\\":\\"java.util.Collections$UnmodifiableMap\\",\\"settings.client.foo\\":true}"
+        }
+        """;
+    assertStatus(HttpStatus.CONFLICT, POST("/oAuth2Clients", body));
+  }
+
+  @Test
+  void testCreateWithoutSettingsDefaultsToPkceAndConsent() {
+    // F3: creating a client without clientSettings must default to requiring S256 PKCE and
+    // consent (PR-H) — the temporary requireProofKey(false) bridge is gone.
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-default-settings',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid'"
+                + "}"));
+
+    RegisteredClient registeredClient = clientService.findByClientId("client-default-settings");
+    assertNotNull(registeredClient);
+    assertTrue(registeredClient.getClientSettings().isRequireProofKey());
+    assertTrue(registeredClient.getClientSettings().isRequireAuthorizationConsent());
+  }
+
+  @Test
+  void testExplicitProofKeyOptOutStillAccepted() {
+    // require-proof-key:false remains a supported, logged opt-out for legacy integrations.
+    String body =
+        """
+        {
+          "clientId":"client-proof-key-optout",
+          "clientSecret":"secret",
+          "clientAuthenticationMethods":"client_secret_basic",
+          "authorizationGrantTypes":"authorization_code",
+          "redirectUris":"https://example.com/callback",
+          "scopes":"openid",
+          "clientSettings":"{\\"@class\\":\\"java.util.Collections$UnmodifiableMap\\",\\"settings.client.require-proof-key\\":false,\\"settings.client.require-authorization-consent\\":true}"
+        }
+        """;
+    assertStatus(HttpStatus.CREATED, POST("/oAuth2Clients", body));
+
+    RegisteredClient registeredClient = clientService.findByClientId("client-proof-key-optout");
+    assertNotNull(registeredClient);
+    assertFalse(registeredClient.getClientSettings().isRequireProofKey());
+    assertTrue(registeredClient.getClientSettings().isRequireAuthorizationConsent());
   }
 
   private String createClient(String clientId, String name) {

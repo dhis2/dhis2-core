@@ -29,54 +29,74 @@
  */
 package org.hisp.dhis.period;
 
+import static org.hisp.dhis.period.PeriodTypeEnum.BI_MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.BI_WEEKLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.DAILY;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_YEARLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.QUARTERLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.SIX_MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.YEARLY;
+
 import org.apache.commons.lang3.EnumUtils;
 
 public enum RelativePeriodEnum {
-  TODAY,
-  YESTERDAY,
-  LAST_3_DAYS,
-  LAST_7_DAYS,
-  LAST_14_DAYS,
-  LAST_30_DAYS,
-  LAST_60_DAYS,
-  LAST_90_DAYS,
-  LAST_180_DAYS,
-  THIS_MONTH,
-  LAST_MONTH,
-  THIS_BIMONTH,
-  LAST_BIMONTH,
-  THIS_QUARTER,
-  LAST_QUARTER,
-  THIS_SIX_MONTH,
-  LAST_SIX_MONTH,
-  WEEKS_THIS_YEAR,
-  MONTHS_THIS_YEAR,
-  BIMONTHS_THIS_YEAR,
-  QUARTERS_THIS_YEAR,
-  THIS_YEAR,
-  MONTHS_LAST_YEAR,
-  QUARTERS_LAST_YEAR,
-  LAST_YEAR,
-  LAST_5_YEARS,
-  LAST_10_YEARS,
-  LAST_12_MONTHS,
-  LAST_6_MONTHS,
-  LAST_3_MONTHS,
-  LAST_6_BIMONTHS,
-  LAST_4_QUARTERS,
-  LAST_2_SIXMONTHS,
-  THIS_FINANCIAL_YEAR,
-  LAST_FINANCIAL_YEAR,
-  LAST_5_FINANCIAL_YEARS,
-  LAST_10_FINANCIAL_YEARS,
-  THIS_WEEK,
-  LAST_WEEK,
-  THIS_BIWEEK,
-  LAST_BIWEEK,
-  LAST_4_WEEKS,
-  LAST_4_BIWEEKS,
-  LAST_12_WEEKS,
-  LAST_52_WEEKS;
+  TODAY(DAILY),
+  YESTERDAY(DAILY),
+  LAST_3_DAYS(DAILY),
+  LAST_7_DAYS(DAILY),
+  LAST_14_DAYS(DAILY),
+  LAST_30_DAYS(DAILY),
+  LAST_60_DAYS(DAILY),
+  LAST_90_DAYS(DAILY),
+  LAST_180_DAYS(DAILY),
+  THIS_MONTH(MONTHLY),
+  LAST_MONTH(MONTHLY),
+  THIS_BIMONTH(BI_MONTHLY),
+  LAST_BIMONTH(BI_MONTHLY),
+  THIS_QUARTER(QUARTERLY),
+  LAST_QUARTER(QUARTERLY),
+  THIS_SIX_MONTH(SIX_MONTHLY),
+  LAST_SIX_MONTH(SIX_MONTHLY),
+  WEEKS_THIS_YEAR(WEEKLY),
+  MONTHS_THIS_YEAR(MONTHLY),
+  BIMONTHS_THIS_YEAR(BI_MONTHLY),
+  QUARTERS_THIS_YEAR(QUARTERLY),
+  THIS_YEAR(YEARLY),
+  MONTHS_LAST_YEAR(MONTHLY),
+  QUARTERS_LAST_YEAR(QUARTERLY),
+  LAST_YEAR(YEARLY),
+  LAST_5_YEARS(YEARLY),
+  LAST_10_YEARS(YEARLY),
+  LAST_12_MONTHS(MONTHLY),
+  LAST_6_MONTHS(MONTHLY),
+  LAST_3_MONTHS(MONTHLY),
+  LAST_6_BIMONTHS(BI_MONTHLY),
+  LAST_4_QUARTERS(QUARTERLY),
+  LAST_2_SIXMONTHS(SIX_MONTHLY),
+  THIS_FINANCIAL_YEAR(FINANCIAL_YEARLY),
+  LAST_FINANCIAL_YEAR(FINANCIAL_YEARLY),
+  LAST_5_FINANCIAL_YEARS(FINANCIAL_YEARLY),
+  LAST_10_FINANCIAL_YEARS(FINANCIAL_YEARLY),
+  THIS_WEEK(WEEKLY),
+  LAST_WEEK(WEEKLY),
+  THIS_BIWEEK(BI_WEEKLY),
+  LAST_BIWEEK(BI_WEEKLY),
+  LAST_4_WEEKS(WEEKLY),
+  LAST_4_BIWEEKS(BI_WEEKLY),
+  LAST_12_WEEKS(WEEKLY),
+  LAST_52_WEEKS(WEEKLY);
+
+  PeriodTypeEnum periodType;
+
+  RelativePeriodEnum(PeriodTypeEnum periodType) {
+    this.periodType = periodType;
+  }
+
+  public PeriodTypeEnum value() {
+    return periodType;
+  }
 
   public static boolean contains(String value) {
     return EnumUtils.isValidEnum(RelativePeriodEnum.class, value);

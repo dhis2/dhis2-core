@@ -599,6 +599,14 @@ prepare_database() {
   fi
 }
 
+prepare_database_for_measurement() {
+  # Drains warmup-induced WAL and reclaims dead tuples so the measured run starts
+  # from a clean state.
+  echo ""
+  echo "Preparing database for measurement (vacuum analyze + checkpoint)..."
+  docker compose exec db psql --username=dhis --quiet --command='vacuum analyze;' --command='checkpoint;' > /dev/null
+}
+
 start_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     # shellcheck disable=SC2086
@@ -831,6 +839,7 @@ if [ "$WARMUP" -gt 0 ]; then
     run_simulation "$i"
   done
   echo "Warmup complete."
+  prepare_database_for_measurement
 fi
 
 echo ""

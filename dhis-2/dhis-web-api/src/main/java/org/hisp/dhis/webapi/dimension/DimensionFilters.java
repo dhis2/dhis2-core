@@ -29,20 +29,23 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.StringTokenizer;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -90,12 +93,14 @@ public class DimensionFilters implements Predicate<DimensionResponse> {
             "uid", DimensionResponse::getUid,
             "code", DimensionResponse::getCode,
             "valueType", DimensionResponse::getValueType,
+            "aggregationType", DimensionResponse::getAggregationType,
             "name", DimensionResponse::getName,
             "dimensionType", DimensionResponse::getDimensionType,
             "displayName", DimensionResponse::getDisplayName,
             "displayShortName", DimensionResponse::getDisplayShortName);
 
-    private static final Map<String, BiPredicate<String, String>> OPERATOR_MAP = new HashMap<>();
+    private static final Map<String, Function<String, Predicate<String>>> OPERATOR_MAP =
+        new HashMap<>();
 
     static {
       putOperator("startsWith", String::startsWith, true);
@@ -105,6 +110,7 @@ public class DimensionFilters implements Predicate<DimensionResponse> {
       putOperator("ne", (fv, v) -> !fv.equals(v));
       putOperator("like", String::contains, true);
       putOperator("ilike", (fv, v) -> fv.toLowerCase().contains(v.toLowerCase()), true);
+      OPERATOR_MAP.put("in", SingleFilter::compileInPredicate);
     }
 
     private static void putOperator(String operator, BiPredicate<String, String> function) {
@@ -113,27 +119,31 @@ public class DimensionFilters implements Predicate<DimensionResponse> {
 
     private static void putOperator(
         String operator, BiPredicate<String, String> function, boolean negateAlso) {
-      OPERATOR_MAP.put(operator, function);
+      OPERATOR_MAP.put(operator, value -> fieldValue -> function.test(fieldValue, value));
       if (negateAlso) {
-        OPERATOR_MAP.put("!" + operator, (s, s2) -> !function.test(s, s2));
+        OPERATOR_MAP.put("!" + operator, value -> fieldValue -> !function.test(fieldValue, value));
       }
     }
 
     private String field;
 
-    private String operator;
-
-    private String value;
+    private Predicate<String> valuePredicate;
 
     private static SingleFilter of(String filter) {
-      StringTokenizer filterTokenizer = new StringTokenizer(filter, ":");
-      if (filterTokenizer.countTokens() == 3) {
-        String field = filterTokenizer.nextToken().trim();
-        String operator = filterTokenizer.nextToken().trim();
-        String value = filterTokenizer.nextToken().trim();
+      String[] filterParts = filter.split(":", 3);
+      if (filterParts.length == 3) {
+        String field = filterParts[0].trim();
+        String operator = filterParts[1].trim();
+        String value = filterParts[2].trim();
 
-        if (FIELD_EXTRACTORS.containsKey(field) && OPERATOR_MAP.containsKey(operator)) {
-          return new SingleFilter(field, operator, value);
+        if (!FIELD_EXTRACTORS.containsKey(field) || !OPERATOR_MAP.containsKey(operator)) {
+          return null;
+        }
+
+        Predicate<String> valuePredicate = compileValuePredicate(operator, value);
+
+        if (Objects.nonNull(valuePredicate)) {
+          return new SingleFilter(field, valuePredicate);
         }
         return null;
       }
@@ -147,14 +157,38 @@ public class DimensionFilters implements Predicate<DimensionResponse> {
               baseDimensionalItemObjectFunction ->
                   baseDimensionalItemObjectFunction.apply(dimension))
           .map(Object::toString)
-          .map(this::applyOperator)
+          .map(valuePredicate::test)
           .orElse(false);
     }
 
-    private boolean applyOperator(String fieldValue) {
+    private static Predicate<String> compileValuePredicate(String operator, String value) {
+      if (value.isEmpty()) {
+        return null;
+      }
       return Optional.ofNullable(OPERATOR_MAP.get(operator))
-          .map(operation -> operation.test(fieldValue, value))
-          .orElse(false);
+          .map(factory -> factory.apply(value))
+          .orElse(null);
+    }
+
+    private static Predicate<String> compileInPredicate(String value) {
+      Set<String> values = parseInValues(value);
+      return values.isEmpty() ? null : values::contains;
+    }
+
+    private static Set<String> parseInValues(String value) {
+      String trimmedValue = value.trim();
+      if (!trimmedValue.startsWith("[") || !trimmedValue.endsWith("]")) {
+        return Set.of();
+      }
+      String listValue = StringUtils.substringBetween(trimmedValue, "[", "]");
+      String[] values = StringUtils.split(listValue, ",");
+      if (Objects.isNull(values)) {
+        return Set.of();
+      }
+      return Arrays.stream(values)
+          .map(String::trim)
+          .filter(s -> !s.isEmpty())
+          .collect(Collectors.toSet());
     }
   }
 }

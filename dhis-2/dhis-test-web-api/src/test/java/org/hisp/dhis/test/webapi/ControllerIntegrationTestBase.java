@@ -67,6 +67,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -140,6 +141,22 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     currentUser = getAdminUser();
   }
 
+  /**
+   * Simulates a fresh per-request {@code EntityManager}. {@code /api/tracker/**} is excluded from
+   * the {@code ConditionalOpenEntityManagerInViewFilter} (OSIV is deliberately off for tracker), so
+   * its Hibernate session is transaction-scoped: it is opened for the request's
+   * {@code @Transactional} boundary and closed when that transaction completes, so each {@code
+   * /tracker} request starts with a fresh persistence context. These MockMvc tests otherwise share
+   * one thread-bound session across requests; since the tracker importer writes via JDBC (bypassing
+   * Hibernate), a previous request's now-stale managed entity would linger in the L1 cache and be
+   * returned to a later read or import preheat. Flushing then clearing the session between requests
+   * reproduces the production per-request isolation ({@code clearSession()} flushes before
+   * clearing).
+   */
+  protected final void startNewRequestSession() {
+    dbmsManager.clearSession();
+  }
+
   protected final void doInTransaction(Runnable operation) {
     final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
     txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -202,7 +219,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     return perform(multipart(makeApiUrl(url)).file(part));
   }
 
-  protected HttpResponse perform(MockHttpServletRequestBuilder request) {
+  protected HttpResponse perform(AbstractMockHttpServletRequestBuilder<?> request) {
     return exceptionAsFail(
         () ->
             new HttpResponse(
@@ -280,14 +297,16 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     }
   }
 
-  protected final MvcResult webRequestWithAsyncMvcResult(MockHttpServletRequestBuilder request) {
+  protected final MvcResult webRequestWithAsyncMvcResult(
+      AbstractMockHttpServletRequestBuilder<?> request) {
     return exceptionAsFail(
         () ->
             mvc.perform(MockMvcRequestBuilders.asyncDispatch(webRequestWithMvcResult(request)))
                 .andReturn());
   }
 
-  protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
+  protected final MvcResult webRequestWithMvcResult(
+      AbstractMockHttpServletRequestBuilder<?> request) {
     return exceptionAsFail(() -> mvc.perform(request.session(session)).andReturn());
   }
 

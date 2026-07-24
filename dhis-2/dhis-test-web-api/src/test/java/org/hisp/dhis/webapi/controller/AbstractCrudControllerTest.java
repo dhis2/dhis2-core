@@ -73,6 +73,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -103,6 +104,66 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
     assertTrue(userById.exists());
     assertEquals(id, userById.getId());
+  }
+
+  @Test
+  @DisplayName(
+      "GET single object: fields under a PropertyTransformer-controlled nested collection never"
+          + " change the response, however they're requested (DHIS2-21856)")
+  void testGetObjectPropertyTransformerFieldsAreInvariant() {
+    User user = makeUser("H");
+    user.setEmail("h@h.org");
+    userService.addUser(user);
+    UserGroup group = createUserGroup('H', Set.of(user));
+    manager.save(group);
+    manager.flush();
+
+    // UserPropertyTransformer always serializes id/code/name/displayName/username and nothing
+    // else -- verified against a live server to be byte-identical for "users", "users[href]" and
+    // "users[*]". This only pins output correctness; it can't detect the N+1 this ticket actually
+    // fixes (LinkService.generateLinks reflectively touching the real Hibernate collection before
+    // field-filtering runs), because that bug is invisible in the JSON response by construction --
+    // see FieldPathHelperPropertyTransformerPruningTest for the real regression guard, which
+    // asserts on the field-path list itself rather than on JSON content.
+    JsonObject baseline =
+        GET("/userGroups/{id}?fields=id,users", group.getUid())
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    for (String fields : List.of("users[href]", "users[*]", "users[id,name]")) {
+      JsonObject userInGroup =
+          GET("/userGroups/{id}?fields=id,{fields}", group.getUid(), fields)
+              .content(HttpStatus.OK)
+              .getArray("users")
+              .getObject(0);
+      assertEquals(baseline.toJson(), userInGroup.toJson());
+    }
+  }
+
+  @Test
+  @DisplayName(
+      "GET single object: href is still generated for a nested collection without a"
+          + " PropertyTransformer when explicitly requested (regression guard for the"
+          + " DHIS2-21856 hasHref rewrite)")
+  void testGetObjectHrefGeneratedForNonTransformerNestedCollection() {
+    UserRole role = createUserRole('H', "ALL");
+    manager.save(role);
+    User user = makeUser("H");
+    user.setEmail("h@h.org");
+    user.getUserRoles().add(role);
+    userService.addUser(user);
+    manager.flush();
+
+    JsonObject userRole =
+        GET("/users/{id}?fields=userRoles[*]", user.getUid())
+            .content(HttpStatus.OK)
+            .getArray("userRoles")
+            .getObject(0);
+
+    String href = userRole.getString("href").string();
+    assertNotNull(href);
+    assertTrue(href.endsWith("/userRoles/" + role.getUid()));
   }
 
   @Test
@@ -722,7 +783,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
     assertWebMessage(
         "OK", 200, "OK", null, DELETE("/organisationUnits/" + ouId).content(HttpStatus.OK));
-    assertEquals(0, GET("/organisationUnits").content().getArray("organisationUnits").size());
+    assertEquals(
+        0, GET("/organisationUnits?gist=false").content().getArray("organisationUnits").size());
   }
 
   @Test
@@ -1119,7 +1181,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     manager.save(dataElementGroup);
 
     JsonMixed response =
-        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR"
+        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR&gist=false"
                 .formatted(dataElementGroup.getUid()))
             .content();
     assertFalse(response.getArray("dataElements").isEmpty());

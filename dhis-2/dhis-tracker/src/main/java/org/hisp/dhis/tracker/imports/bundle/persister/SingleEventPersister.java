@@ -33,6 +33,7 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -44,25 +45,28 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -73,8 +77,29 @@ import org.springframework.stereotype.Component;
 public class SingleEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.SingleEvent, SingleEvent> {
-  public SingleEventPersister(ReservedValueService reservedValueService) {
-    super(reservedValueService);
+  public SingleEventPersister(
+      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
+    super(dataSource, fileResourceStore, objectMapper);
+  }
+
+  @Override
+  protected String sequenceName() {
+    return "singleevent_sequence";
+  }
+
+  @Override
+  protected void assignId(SingleEvent entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(SingleEvent entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(SingleEvent entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
   }
 
   @Override
@@ -152,7 +177,9 @@ public class SingleEventPersister
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent hibernateEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -216,7 +243,6 @@ public class SingleEventPersister
     eventDataValue.setDataElement(dataElement.getUid());
     eventDataValue.setCreated(new Date());
     eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    eventDataValue.setStoredBy(user.getUsername());
 
     eventDataValue.setLastUpdated(new Date());
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
@@ -266,7 +292,8 @@ public class SingleEventPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.SingleEvent trackerDto,
-      SingleEvent entity) {
+      SingleEvent entity,
+      EntityWriteBatch batch) {
     // DO NOTHING. Event creation does not create ownership records.
   }
 

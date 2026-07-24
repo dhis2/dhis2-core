@@ -32,43 +32,53 @@ package org.hisp.dhis.metadata;
 import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FIELDS;
 import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FILTER;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.Collections;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions;
-import org.hisp.dhis.test.e2e.actions.metadata.OptionActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
-import org.junit.jupiter.api.BeforeEach;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class MetadataPaginationTest extends ApiTest {
+class MetadataPaginationTest extends ApiTest {
   private MetadataPaginationActions paginationActions;
 
-  private int startPage = 1;
+  private final int startPage = 1;
 
-  private int pageSize = 5;
+  private final int pageSize = 5;
 
-  @BeforeEach
-  public void setUp() {
-    LoginActions loginActions = new LoginActions();
-    OptionActions optionActions = new OptionActions();
+  @BeforeAll
+  void setUp() {
+    new LoginActions().loginAsSuperUser();
     paginationActions = new MetadataPaginationActions("/optionSets");
-    loginActions.loginAsSuperUser();
 
-    // Creates 100 Option Sets
+    // Create all optionsets once for the whole class in one bulk import.
+    JsonArray optionSets = new JsonArray();
     for (int i = 0; i < 100; i++) {
-      optionActions.createOptionSet(
-          RandomStringUtils.randomAlphabetic(10), "INTEGER", (String[]) null);
+      optionSets.add(
+          new JsonObjectBuilder()
+              .addProperty("name", RandomStringUtils.randomAlphabetic(10) + i)
+              .addProperty("valueType", "INTEGER")
+              .build());
     }
+
+    JsonObject metadata = new JsonObject();
+    metadata.add("optionSets", optionSets);
+
+    new MetadataActions().importAndValidateMetadata(metadata);
   }
 
   @Test
-  public void checkPaginationResultsForcingInMemoryPagination() {
+  void checkPaginationResultsForcingInMemoryPagination() {
     // this test forces the metadata query engine to execute an "in memory"
     // sorting and pagination
     // since the sort ("order") value is set to 'displayName' that is a
@@ -87,7 +97,7 @@ public class MetadataPaginationTest extends ApiTest {
   }
 
   @Test
-  public void checkPaginationResultsForcingDatabaseOnlyPagination() {
+  void checkPaginationResultsForcingDatabaseOnlyPagination() {
     // this test forces the metadata query engine to execute the query
     // (including pagination) on the database only.
     // The sort ("order") value is set to 'id' that is mapped to a DB

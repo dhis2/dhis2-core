@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 
@@ -49,7 +50,7 @@ import org.hisp.dhis.common.EmbeddedObject;
   @JsonSubTypes.Type(value = MethodAllowedList.class, name = "MethodAllowedList")
 })
 @JacksonXmlRootElement(localName = "apiTokenAttribute", namespace = DxfNamespaces.DXF_2_0)
-public abstract class ApiTokenAttribute implements EmbeddedObject {
+public abstract class ApiTokenAttribute implements EmbeddedObject, Serializable {
   protected final String type;
 
   protected ApiTokenAttribute(String type) {

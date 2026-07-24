@@ -48,8 +48,6 @@ public interface ReservedValueStore extends GenericStore<ReservedValue> {
 
   int getNumberOfUsedValues(ReservedValue reservedValue);
 
-  boolean useReservedValue(String ownerUID, String value);
-
   void deleteReservedValueByUid(String uid);
 
   boolean isReserved(String ownerObject, String ownerUID, String value);

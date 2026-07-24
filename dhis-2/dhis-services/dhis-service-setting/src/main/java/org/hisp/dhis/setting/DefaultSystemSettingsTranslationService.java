@@ -31,11 +31,11 @@ package org.hisp.dhis.setting;
 
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;

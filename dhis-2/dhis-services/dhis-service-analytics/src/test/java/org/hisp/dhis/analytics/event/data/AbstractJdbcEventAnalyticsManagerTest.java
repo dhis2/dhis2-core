@@ -221,7 +221,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new DefaultStageQuerySqlFacade(
             new DefaultStageQueryItemClassifier(),
             new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
-            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder),
+            sqlBuilder);
 
     eventSubject =
         new JdbcEventAnalyticsManager(
@@ -699,7 +700,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void
-      verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite() {
+      verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnits() {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
@@ -730,8 +731,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(
         columns,
         containsInAnyOrder(
-            "ax.\"pe\"",
-            "ax.\"ou\"",
+            "ax.\"pe\" as pe",
+            "ax.\"ou\" as ou",
             "'[' || round(ST_X(ST_Centroid(\""
                 + deA.getUid()
                 + "_geom"
@@ -1107,7 +1108,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("A;B;C");
 
     // When
@@ -1133,7 +1135,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndpointAction(AGGREGATE)
             .withEndpointItem(ENROLLMENT)
             .build();
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("A;B;C");
 
     // When
@@ -1209,7 +1212,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndDate(new Date())
             .build();
 
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("ouA;ouB");
 
     String sql = eventSubject.toSql(queryItem, filter, params).trim();
@@ -1635,6 +1639,43 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql, containsString("\"occurreddate\" >= '2021-03-01'"));
     assertThat(sql, containsString("\"occurreddate\" <= '2021-05-31'"));
     assertThat(sql, containsString("\"ps\" = 'Zj7UnCAulEk'"));
+  }
+
+  /**
+   * DHIS2-20929: PI filters such as {@code #{stage.de} == 0} must not be wrapped in {@code
+   * coalesce(..., 0)} — otherwise events where the DE is NULL (or where the row belongs to a
+   * different program stage) incorrectly match the equality to zero. The filter must therefore be
+   * compiled with NULL-allowing semantics.
+   */
+  @Test
+  void verifyProgramIndicatorFilterCompiledAllowingNulls() {
+    ProgramIndicator programIndicator =
+        createProgramIndicator('A', programA, "V{event_count}", "#{ProgrmStagA.DataElmentA} == 0");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withProgramIndicator(programIndicator)
+            .build();
+
+    lenient()
+        .when(
+            programIndicatorService.getAnalyticsSqlAllowingNulls(
+                eq(programIndicator.getFilter()),
+                eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+                eq(programIndicator),
+                any(Date.class),
+                any(Date.class)))
+        .thenReturn("ax.\"DataElmentA\" = 0");
+
+    eventSubject.getWhereClause(params);
+
+    verify(programIndicatorService)
+        .getAnalyticsSqlAllowingNulls(
+            eq(programIndicator.getFilter()),
+            eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+            eq(programIndicator),
+            any(Date.class),
+            any(Date.class));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(
