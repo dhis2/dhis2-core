@@ -1,17 +1,17 @@
 # For more details see https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-.github/** @dhis2/devops
+.github/** @dhis2/team-devops
 
-dhis-2/*.sh @dhis2/devops
+dhis-2/*.sh @dhis2/team-devops
 
-dhis-2/dhis-web-server/** @dhis2/devops
+dhis-2/dhis-web-server/** @dhis2/team-devops
 
-docker/** @dhis2/devops
+docker/** @dhis2/team-devops
 
-jenkinsfiles/** @dhis2/devops
+jenkinsfiles/** @dhis2/team-devops
 
-docker-compose.yml @dhis2/devops
+docker-compose.yml @dhis2/team-devops
 
-jib.yaml @dhis2/devops
+jib.yaml @dhis2/team-devops
 
 dhis-2/dhis-tracker/** @dhis2/team-tracker-backend
