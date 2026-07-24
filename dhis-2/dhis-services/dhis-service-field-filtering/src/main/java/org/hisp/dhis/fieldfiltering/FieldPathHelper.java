@@ -295,6 +295,13 @@ public class FieldPathHelper {
       return;
     }
 
+    // A property with a PropertyTransformer (e.g. UserPropertyTransformer) always serializes a
+    // fixed shape regardless of what's requested underneath, so nothing below this point can ever
+    // reach the response -- invoking the getter here would only force needless (and, for
+    // Hibernate-backed collections, N+1-inducing) materialization to compute mutations that can
+    // never be observed (DHIS2-21867).
+    if (property.hasPropertyTransformer()) return;
+
     if (property.isCollection()) {
       Collection<?> currentObjects = safeInvoke(object, property.getGetterMethod());
 
