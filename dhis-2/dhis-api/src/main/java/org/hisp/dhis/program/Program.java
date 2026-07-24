@@ -185,11 +185,20 @@ public class Program extends BaseMetadataObject
   @Column(name = "relationshiplabel", columnDefinition = "text")
   private String relationshipLabel;
 
+  @Column(name = "relationshipslabel", columnDefinition = "text")
+  private String relationshipsLabel;
+
   @Column(name = "notelabel", columnDefinition = "text")
   private String noteLabel;
 
+  @Column(name = "noteslabel", columnDefinition = "text")
+  private String notesLabel;
+
   @Column(name = "trackedentityattributelabel", columnDefinition = "text")
   private String trackedEntityAttributeLabel;
+
+  @Column(name = "trackedentityattributeslabel", columnDefinition = "text")
+  private String trackedEntityAttributesLabel;
 
   @Column(name = "programstagelabel", columnDefinition = "text")
   private String programStageLabel;
@@ -972,6 +981,24 @@ public class Program extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
+  public String getRelationshipsLabel() {
+    return relationshipsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "relationshipsLabel", key = "RELATIONSHIPS_LABEL")
+  public String getDisplayRelationshipsLabel() {
+    return getTranslation("RELATIONSHIPS_LABEL", getRelationshipsLabel());
+  }
+
+  public void setRelationshipsLabel(String relationshipsLabel) {
+    this.relationshipsLabel = relationshipsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
   public String getNoteLabel() {
     return noteLabel;
   }
@@ -985,6 +1012,24 @@ public class Program extends BaseMetadataObject
 
   public void setNoteLabel(String noteLabel) {
     this.noteLabel = noteLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getNotesLabel() {
+    return notesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "notesLabel", key = "NOTES_LABEL")
+  public String getDisplayNotesLabel() {
+    return getTranslation("NOTES_LABEL", getNotesLabel());
+  }
+
+  public void setNotesLabel(String notesLabel) {
+    this.notesLabel = notesLabel;
   }
 
   @JsonProperty
@@ -1005,6 +1050,26 @@ public class Program extends BaseMetadataObject
 
   public void setTrackedEntityAttributeLabel(String trackedEntityAttributeLabel) {
     this.trackedEntityAttributeLabel = trackedEntityAttributeLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getTrackedEntityAttributesLabel() {
+    return trackedEntityAttributesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(
+      propertyName = "trackedEntityAttributesLabel",
+      key = "TRACKED_ENTITY_ATTRIBUTES_LABEL")
+  public String getDisplayTrackedEntityAttributesLabel() {
+    return getTranslation("TRACKED_ENTITY_ATTRIBUTES_LABEL", getTrackedEntityAttributesLabel());
+  }
+
+  public void setTrackedEntityAttributesLabel(String trackedEntityAttributesLabel) {
+    this.trackedEntityAttributesLabel = trackedEntityAttributesLabel;
   }
 
   @JsonProperty
@@ -1513,14 +1578,17 @@ public class Program extends BaseMetadataObject
     copy.setEnrollmentLabel(original.getEnrollmentLabel());
     copy.setEnrollmentsLabel(original.getEnrollmentsLabel());
     copy.setNoteLabel(original.getNoteLabel());
+    copy.setNotesLabel(original.getNotesLabel());
     copy.setFollowUpLabel(original.getFollowUpLabel());
     copy.setOrgUnitLabel(original.getOrgUnitLabel());
     copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
+    copy.setTrackedEntityAttributesLabel(original.getTrackedEntityAttributesLabel());
     copy.setProgramStageLabel(original.getProgramStageLabel());
     copy.setProgramStagesLabel(original.getProgramStagesLabel());
     copy.setEventLabel(original.getEventLabel());
     copy.setEventsLabel(original.getEventsLabel());
     copy.setRelationshipLabel(original.getRelationshipLabel());
+    copy.setRelationshipsLabel(original.getRelationshipsLabel());
     copy.setEnableChangeLog(original.isEnableChangeLog());
   }
 

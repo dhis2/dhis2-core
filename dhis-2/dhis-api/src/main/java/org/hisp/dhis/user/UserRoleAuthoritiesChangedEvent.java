@@ -27,16 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.hibernate.EnumUserType;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Chau Thu Tran
+ * Event published after the authorities of a {@link UserRole} have changed, so that active sessions
+ * of users with that role can be invalidated asynchronously, outside the updating transaction and
+ * off the request thread.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class EventStatusUserType extends EnumUserType<EventStatus> {
-  public EventStatusUserType() {
-    super(EventStatus.class);
-  }
-}
+public record UserRoleAuthoritiesChangedEvent(UID userRoleUid) {}

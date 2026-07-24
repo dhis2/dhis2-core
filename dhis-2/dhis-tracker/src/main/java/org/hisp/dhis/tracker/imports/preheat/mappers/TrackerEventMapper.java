@@ -48,8 +48,6 @@ public interface TrackerEventMapper extends PreheatMapper<TrackerEvent> {
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")
   @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "user")
   @Mapping(target = "enrollment")
   @Mapping(target = "programStage")
   @Mapping(target = "status")
