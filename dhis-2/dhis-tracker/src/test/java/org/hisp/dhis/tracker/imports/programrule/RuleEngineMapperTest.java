@@ -146,6 +146,94 @@ class RuleEngineMapperTest extends TrackerTestBase {
   }
 
   @Test
+  void shouldMergeSavedDataValuesNotInPayloadWhenUpdatingExistingTrackerEvent() {
+    // Reproduces the reported bug: an existing event is updated with only some of its data
+    // values, but a program rule references data elements that are not part of the payload.
+    // Those must be sourced from the persisted event so rules evaluate against the full state.
+    DataElement de1 = dataElement; // in payload only
+    DataElement de2 = createDataElement('E'); // in payload and DB -> payload value wins
+    DataElement de3 = createDataElement('F'); // in DB only
+    DataElement de4 = createDataElement('G'); // in DB only
+
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent payload =
+        payloadEvent(dataValue(de1, "1"), dataValue(de2, "2"));
+
+    TrackerEvent savedEvent = dbEvent();
+    savedEvent.setUid(payload.getUID().getValue());
+    savedEvent.setEventDataValues(
+        Sets.newHashSet(
+            eventDataValue(de2.getUid(), "20"),
+            eventDataValue(de3.getUid(), "3"),
+            eventDataValue(de4.getUid(), "4")));
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(programStage);
+    preheat.put(TrackerIdSchemeParam.UID, organisationUnit);
+    preheat.put(TrackerIdSchemeParam.UID, List.of(de1, de2, de3, de4));
+    preheat.putTrackerEvent(savedEvent);
+
+    List<RuleEvent> ruleEvents =
+        RuleEngineMapper.mapPayloadTrackerEvents(preheat, List.of(payload));
+
+    assertContainsOnly(
+        List.of(
+            new RuleDataValue(de1.getUid(), "1"),
+            new RuleDataValue(de2.getUid(), "2"),
+            new RuleDataValue(de3.getUid(), "3"),
+            new RuleDataValue(de4.getUid(), "4")),
+        ruleEvents.get(0).getDataValues());
+  }
+
+  @Test
+  void shouldNotFallBackToSavedDataValueWhenPayloadClearsItForExistingTrackerEvent() {
+    DataElement de1 = dataElement; // updated in the payload
+    DataElement de2 = createDataElement('E'); // cleared in the payload (null value)
+
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent payload =
+        payloadEvent(dataValue(de1, "1"), dataValue(de2, null));
+
+    TrackerEvent savedEvent = dbEvent();
+    savedEvent.setUid(payload.getUID().getValue());
+    savedEvent.setEventDataValues(
+        Sets.newHashSet(eventDataValue(de1.getUid(), "10"), eventDataValue(de2.getUid(), "20")));
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(programStage);
+    preheat.put(TrackerIdSchemeParam.UID, organisationUnit);
+    preheat.put(TrackerIdSchemeParam.UID, List.of(de1, de2));
+    preheat.putTrackerEvent(savedEvent);
+
+    List<RuleEvent> ruleEvents =
+        RuleEngineMapper.mapPayloadTrackerEvents(preheat, List.of(payload));
+
+    // de2 was cleared in the payload, so the persisted "20" must not be re-injected
+    assertContainsOnly(
+        List.of(new RuleDataValue(de1.getUid(), "1")), ruleEvents.get(0).getDataValues());
+  }
+
+  @Test
+  void shouldMapOnlyPayloadDataValuesWhenTrackerEventDoesNotExistYet() {
+    DataElement de1 = dataElement;
+    DataElement de2 = createDataElement('E');
+
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent payload =
+        payloadEvent(dataValue(de1, "1"), dataValue(de2, "2"));
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(programStage);
+    preheat.put(TrackerIdSchemeParam.UID, organisationUnit);
+    preheat.put(TrackerIdSchemeParam.UID, List.of(de1, de2));
+    // no saved event in the preheat -> the event is being created
+
+    List<RuleEvent> ruleEvents =
+        RuleEngineMapper.mapPayloadTrackerEvents(preheat, List.of(payload));
+
+    assertContainsOnly(
+        List.of(new RuleDataValue(de1.getUid(), "1"), new RuleDataValue(de2.getUid(), "2")),
+        ruleEvents.get(0).getDataValues());
+  }
+
+  @Test
   void shouldMapDBEventsToRuleEvents() {
     TrackerEvent eventA = dbEvent();
     TrackerEvent eventB = dbEvent();
@@ -375,6 +463,10 @@ class RuleEngineMapperTest extends TrackerTestBase {
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackerEvent payloadEvent() {
+    return payloadEvent(dataValue(dataElement, SAMPLE_VALUE_A));
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent payloadEvent(DataValue... dataValues) {
     return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .enrollment(UID.generate())
         .event(UID.generate())
@@ -382,12 +474,14 @@ class RuleEngineMapperTest extends TrackerTestBase {
         .orgUnit(MetadataIdentifier.ofUid(organisationUnit.getUid()))
         .scheduledAt(YESTERDAY.toInstant())
         .occurredAt(AFTER_TOMORROW.toInstant())
-        .dataValues(
-            Set.of(
-                DataValue.builder()
-                    .dataElement(MetadataIdentifier.ofUid(dataElement.getUid()))
-                    .value(SAMPLE_VALUE_A)
-                    .build()))
+        .dataValues(Set.of(dataValues))
+        .build();
+  }
+
+  private DataValue dataValue(DataElement dataElement, String value) {
+    return DataValue.builder()
+        .dataElement(MetadataIdentifier.ofUid(dataElement.getUid()))
+        .value(value)
         .build();
   }
 }
