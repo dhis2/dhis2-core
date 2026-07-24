@@ -471,6 +471,15 @@ public class AccountController {
       return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
     }
 
+    // Prefer email-token recovery when available (account recovery on + restore validates).
+    if (systemSettingManager.accountRecoveryEnabled()
+        && securityService.validateRestore(user) == null) {
+      result.put("status", "EMAIL_RECOVERY_REQUIRED");
+      result.put("message", "Password must be reset using email recovery for this account");
+
+      return ResponseEntity.badRequest().cacheControl(noStore()).body(result);
+    }
+
     PasswordValidationResult passwordValidationResult =
         passwordValidationService.validate(credentialsInfo);
 
