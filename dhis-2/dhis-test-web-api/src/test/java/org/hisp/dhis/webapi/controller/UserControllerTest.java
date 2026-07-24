@@ -902,6 +902,31 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("externalAuth is preserved across repeated full GET/PUT round-trips (DHIS2-17597)")
+  void testPutJsonObjectPreservesExternalAuth() {
+    // given a user that authenticates externally (e.g. OIDC/LDAP)
+    User user = userService.getUser(peter.getUid());
+    user.setExternalAuth(true);
+    userService.updateUser(user);
+
+    // when the full representation is fetched and PUT back unchanged
+    JsonObject body = GET("/users/{id}", peter.getUid()).content();
+    assertTrue(
+        body.getBoolean("externalAuth").booleanValue(),
+        "precondition: fetched payload should carry externalAuth=true");
+    assertStatus(HttpStatus.OK, PUT("/users/" + peter.getUid(), body.toString()));
+    assertTrue(
+        userService.getUser(peter.getUid()).isExternalAuth(),
+        "externalAuth must remain true after the first round-trip PUT");
+
+    // and again with the identical payload: guards against the reported true<->false toggle
+    assertStatus(HttpStatus.OK, PUT("/users/" + peter.getUid(), body.toString()));
+    assertTrue(
+        userService.getUser(peter.getUid()).isExternalAuth(),
+        "externalAuth must remain true after a second identical PUT (no toggle)");
+  }
+
+  @Test
   void testPutJsonObject_AddUserGroupLastUpdatedByUpdated() throws JsonProcessingException {
     // create user
     User newUser = createUserWithAuth("test", "ALL");
