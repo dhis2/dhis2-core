@@ -154,6 +154,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     // Path-extension + trailing-slash matching is handled by CustomRequestMappingHandlerMapping
     // (literal-first, then normalised path). Do not set removed/deprecated suffix flags.
+    // PR-K1: use Spring default PathPatternParser (do not force Ant with null parser).
+    // Controllers with trailing /** are PathPattern-legal; security mid-** is PR-K2/K3.
     return mapping;
   }
 
