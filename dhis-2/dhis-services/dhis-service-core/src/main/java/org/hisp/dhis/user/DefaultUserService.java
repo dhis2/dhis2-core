@@ -949,13 +949,23 @@ public class DefaultUserService implements UserService {
     List<String> dataViewOrganisationUnitsUidsByUser =
         organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
 
+    // Resolve managed-group primary keys in a single SQL query instead of letting
+    // UserDetails.createUserDetails walk User.getManagedGroups() (one lazy-load query per group).
+    Set<Long> userGroupPrimaryKeys =
+        user.getGroups() == null
+            ? Set.of()
+            : user.getGroups().stream().map(UserGroup::getId).collect(Collectors.toSet());
+    Set<Long> managedGroupLongIds = userGroupService.getManagedGroupIds(userGroupPrimaryKeys);
+
     return UserDetails.createUserDetails(
         user,
         accountNonLocked,
         credentialsNonExpired,
         new HashSet<>(organisationUnitsUidsByUser),
         new HashSet<>(searchOrganisationUnitsUidsByUser),
-        new HashSet<>(dataViewOrganisationUnitsUidsByUser));
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser),
+        true,
+        managedGroupLongIds);
   }
 
   @Override
