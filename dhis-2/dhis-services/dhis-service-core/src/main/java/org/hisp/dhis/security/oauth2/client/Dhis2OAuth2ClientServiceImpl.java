@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.security.oauth2.client;
 
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.ALLOWED_CLIENT_SCOPES;
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.CLIENT_NAME_MAX_LENGTH;
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.isAllowedClientScope;
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.isReservedScope;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +51,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -66,6 +70,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ConfigurationSettingNames;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,6 +93,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 @Service
 public class Dhis2OAuth2ClientServiceImpl
     implements Dhis2OAuth2ClientService, RegisteredClientRepository {
@@ -368,7 +374,9 @@ public class Dhis2OAuth2ClientServiceImpl
   public void validateCreate(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
     checkClientIdNotReserved(entity.getClientId(), "create a client with", errors);
     validateGrantTypes(entity, errors);
+    validateScopes(entity, errors);
     validateRedirectUris(entity, errors);
+    validateSettings(entity, errors);
   }
 
   @Override
@@ -378,7 +386,9 @@ public class Dhis2OAuth2ClientServiceImpl
       checkClientIdNotReserved(newEntity.getClientId(), "rename a client to", errors);
     }
     validateGrantTypes(newEntity, errors);
+    validateScopes(newEntity, errors);
     validateRedirectUris(newEntity, errors);
+    validateSettings(newEntity, errors);
   }
 
   @Override
@@ -388,14 +398,16 @@ public class Dhis2OAuth2ClientServiceImpl
     if (entity.getRawName() == null || entity.getRawName().isEmpty()) {
       entity.setName(truncateName(entity.getClientId()));
     }
-    // SAS 7 flips requireProofKey default false->true. Temporary bridge for existing non-PKCE
-    // clients/e2e (CRUD/API create without clientSettings) until PR-H adopts PKCE-by-default.
-    if (entity.getClientSettings() == null) {
+    // PKCE-by-default (PR-H): new admin/metadata-created clients require S256 PKCE on the
+    // authorization-code flow. Both flags are set explicitly and deliberately — SAS 7's bare
+    // builder defaults are requireProofKey(true) but requireAuthorizationConsent(false), so
+    // relying on the builder would silently drop the consent screen for admin clients.
+    if (entity.getClientSettings() == null || entity.getClientSettings().isBlank()) {
       ClientSettings defaults =
-          ClientSettings.builder().requireAuthorizationConsent(true).requireProofKey(false).build();
+          ClientSettings.builder().requireAuthorizationConsent(true).requireProofKey(true).build();
       entity.setClientSettings(writeMap(defaults.getSettings()));
     }
-    if (entity.getTokenSettings() == null) {
+    if (entity.getTokenSettings() == null || entity.getTokenSettings().isBlank()) {
       entity.setTokenSettings(writeMap(TokenSettings.builder().build().getSettings()));
     }
   }
@@ -475,6 +487,124 @@ public class Dhis2OAuth2ClientServiceImpl
                     + ". Only authorization_code and refresh_token are allowed."));
       }
     }
+  }
+
+  /**
+   * Enforce the admin scope policy: reserved scopes ({@code client.create} and anything under the
+   * {@code client.} prefix) can never be assigned through admin paths — a client carrying them
+   * could mint new clients via {@code /connect/register}. All other scopes must be members of
+   * {@link org.hisp.dhis.security.oauth2.OAuth2Constants#ALLOWED_CLIENT_SCOPES}. The DCR system
+   * registrar is exempt so a full metadata round-trip can re-import it (same exception as {@link
+   * #validateGrantTypes}).
+   */
+  private void validateScopes(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
+    if (SYSTEM_REGISTRAR_CLIENTID.equals(entity.getClientId())) {
+      return;
+    }
+    String raw = entity.getScopes();
+    if (raw == null || raw.isBlank()) {
+      return;
+    }
+    for (String scope : raw.split(",")) {
+      String trimmed = scope.trim();
+      if (trimmed.isEmpty()) {
+        continue;
+      }
+      if (isReservedScope(trimmed)) {
+        errors.accept(
+            new ErrorReport(
+                Dhis2OAuth2Client.class,
+                ErrorCode.E4000,
+                "Scope '"
+                    + trimmed
+                    + "' is reserved for the system DCR registrar and cannot be assigned to"
+                    + " clients."));
+      } else if (!isAllowedClientScope(trimmed)) {
+        errors.accept(
+            new ErrorReport(
+                Dhis2OAuth2Client.class,
+                ErrorCode.E4000,
+                "Invalid scope: '"
+                    + trimmed
+                    + "'. Allowed scopes are: "
+                    + String.join(", ", ALLOWED_CLIENT_SCOPES.stream().sorted().toList())
+                    + "."));
+      }
+    }
+  }
+
+  /**
+   * Validate admin-supplied {@code clientSettings} / {@code tokenSettings} JSON at write time, so a
+   * row that would later fail (or surprise) {@link #toObject} is rejected up front instead of
+   * breaking the authorization server at runtime.
+   *
+   * <p>{@code clientSettings} must parse with the same Jackson configuration {@link #toObject}
+   * uses, and must carry both {@code settings.client.require-proof-key} and {@code
+   * settings.client.require-authorization-consent} as booleans — Spring AS unboxes these on every
+   * authorize call, so a partial map would NPE at runtime. An explicit {@code
+   * require-proof-key:false} remains a supported (temporary) opt-out for legacy integrations, but
+   * is logged so the downgrade is auditable.
+   */
+  private void validateSettings(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
+    String clientSettings = entity.getClientSettings();
+    if (clientSettings != null && !clientSettings.isBlank()) {
+      Map<String, Object> settings = tryParseSettings("clientSettings", clientSettings, errors);
+      if (settings != null) {
+        Boolean proofKey =
+            checkRequiredBooleanSetting(
+                settings, ConfigurationSettingNames.Client.REQUIRE_PROOF_KEY, errors);
+        checkRequiredBooleanSetting(
+            settings, ConfigurationSettingNames.Client.REQUIRE_AUTHORIZATION_CONSENT, errors);
+        if (Boolean.FALSE.equals(proofKey)) {
+          log.warn(
+              "OAuth2 client '{}' explicitly opts out of PKCE (require-proof-key=false). This is a"
+                  + " temporary escape hatch for legacy integrations; new authorization-code"
+                  + " clients should use S256 PKCE.",
+              entity.getClientId());
+        }
+      }
+    }
+    String tokenSettings = entity.getTokenSettings();
+    if (tokenSettings != null && !tokenSettings.isBlank()) {
+      tryParseSettings("tokenSettings", tokenSettings, errors);
+    }
+  }
+
+  /**
+   * Parse a settings JSON string with the same mapper {@link #toObject} uses at read time; reports
+   * an {@link ErrorCode#E4000} and returns {@code null} when unreadable.
+   */
+  @CheckForNull
+  private Map<String, Object> tryParseSettings(
+      String field, String json, Consumer<ErrorReport> errors) {
+    try {
+      return this.objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+    } catch (Exception ex) {
+      errors.accept(
+          new ErrorReport(
+              Dhis2OAuth2Client.class,
+              ErrorCode.E4000,
+              "Invalid " + field + " JSON: " + ex.getMessage()));
+      return null;
+    }
+  }
+
+  /**
+   * Require the given settings key to be present and boolean; reports an error and returns {@code
+   * null} otherwise.
+   */
+  @CheckForNull
+  private static Boolean checkRequiredBooleanSetting(
+      Map<String, Object> settings, String key, Consumer<ErrorReport> errors) {
+    if (settings.get(key) instanceof Boolean value) {
+      return value;
+    }
+    errors.accept(
+        new ErrorReport(
+            Dhis2OAuth2Client.class,
+            ErrorCode.E4000,
+            "Invalid clientSettings: setting '" + key + "' must be present and a boolean."));
+    return null;
   }
 
   /**

@@ -31,18 +31,25 @@ package org.hisp.dhis.security.oidc;
 
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.annotation.PostConstruct;
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.oauth2.client.endpoint.NimbusJwtClientAuthenticationParametersConverter;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 /**
  * Spring {@link OAuth2AccessTokenResponseClient} used by the DHIS2 Relying Party during the
@@ -67,6 +74,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DhisAuthorizationCodeTokenResponseClient
     implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
+
+  /** Connect timeout for the IdP token endpoint exchange. */
+  private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+
+  /** Read timeout for the IdP token endpoint exchange. */
+  private static final Duration READ_TIMEOUT = Duration.ofSeconds(15);
+
   private final DhisOidcProviderRepository clientRegistrations;
 
   private RestClientAuthorizationCodeTokenResponseClient delegate;
@@ -109,8 +123,42 @@ public class DhisAuthorizationCodeTokenResponseClient
 
     RestClientAuthorizationCodeTokenResponseClient tokenResponseClient =
         new RestClientAuthorizationCodeTokenResponseClient();
+    // This parameters converter is load-bearing in two distinct ways:
+    // 1) For private_key_jwt registrations it injects the client_assertion /
+    //    client_assertion_type parameters into the token request (the converter self-gates on
+    //    the registration's client authentication method, contributing nothing otherwise).
+    // 2) Its mere presence disables Security 7's client-authentication-method allowlist guard
+    //    (AbstractRestClientOAuth2AccessTokenResponseClient#validateClientAuthenticationMethod),
+    //    which only accepts client_secret_basic/client_secret_post/none by default and would
+    //    otherwise reject private_key_jwt outright. Removing this converter breaks
+    //    private_key_jwt logins even if the assertion were added elsewhere.
     tokenResponseClient.addParametersConverter(parametersConverter);
+    tokenResponseClient.setRestClient(buildRestClient());
     this.delegate = tokenResponseClient;
+  }
+
+  /**
+   * Builds the {@link RestClient} for the token exchange. Replicates the delegate's default wiring
+   * (form + OAuth2 token-response message converters, OAuth2 error-response handling) but pins the
+   * request factory to the JDK {@link java.net.http.HttpClient} with explicit connect/read
+   * timeouts. Pinning is deliberate: the default factory is detected from the runtime classpath
+   * (Apache HC5 vs JDK vs simple), which made exchange behaviour deployment-dependent, and it ships
+   * without timeouts, so a hung IdP token endpoint would block a login request thread indefinitely.
+   */
+  private static RestClient buildRestClient() {
+    JdkClientHttpRequestFactory requestFactory =
+        new JdkClientHttpRequestFactory(
+            HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build());
+    requestFactory.setReadTimeout(READ_TIMEOUT);
+    return RestClient.builder()
+        .requestFactory(requestFactory)
+        .configureMessageConverters(
+            converters ->
+                converters
+                    .addCustomConverter(new FormHttpMessageConverter())
+                    .addCustomConverter(new OAuth2AccessTokenResponseHttpMessageConverter()))
+        .defaultStatusHandler(new OAuth2ErrorResponseErrorHandler())
+        .build();
   }
 
   /**
