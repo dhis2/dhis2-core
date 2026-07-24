@@ -1,0 +1,23 @@
+{
+  "additionalProperties": true,
+  "properties": {
+    "displayName": {
+      "type": "string"
+    },
+    "factor": {
+      "type": "integer"
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "factor"
+  ],
+  "type": "object"
+}
