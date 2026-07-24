@@ -119,7 +119,7 @@
     <spring-session-data-redis.version>4.0.4</spring-session-data-redis.version>
     <spring-retry.version>2.0.12</spring-retry.version>
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
-    <spring-ldap.version>2.4.4</spring-ldap.version>
+    <spring-ldap.version>4.1.0</spring-ldap.version>
     <cache2k-api.version>2.6.1.Final</cache2k-api.version>
     <lettuce.version>6.8.2.RELEASE</lettuce.version>
 
