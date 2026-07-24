@@ -64,11 +64,15 @@ public class HtmlCacheBustingService {
 
   private final DhisConfigurationProvider config;
   private final Cache<String> rewrittenHtmlCache;
+  private final StaticCacheMetrics metrics;
 
   @Autowired
   public HtmlCacheBustingService(
-      DhisConfigurationProvider config, CacheBuilderProvider cacheBuilderProvider) {
+      DhisConfigurationProvider config,
+      CacheBuilderProvider cacheBuilderProvider,
+      StaticCacheMetrics metrics) {
     this.config = config;
+    this.metrics = metrics;
     this.rewrittenHtmlCache =
         cacheBuilderProvider
             .<String>newCacheBuilder()
@@ -79,9 +83,11 @@ public class HtmlCacheBustingService {
             .build();
   }
 
-  HtmlCacheBustingService(DhisConfigurationProvider config, Cache<String> cache) {
+  HtmlCacheBustingService(
+      DhisConfigurationProvider config, Cache<String> cache, StaticCacheMetrics metrics) {
     this.config = config;
     this.rewrittenHtmlCache = cache;
+    this.metrics = metrics;
   }
 
   /**
@@ -96,15 +102,18 @@ public class HtmlCacheBustingService {
         || app == null
         || app.getCacheBustKey() == null
         || isAppOptedOut(app)) {
+      metrics.countHtmlRewrite(StaticCacheMetrics.REWRITE_SKIPPED);
       return original;
     }
 
     String cacheKey = app.getKey() + ":" + app.getCacheBustKey() + ":" + requestUri;
     Optional<String> cached = rewrittenHtmlCache.getIfPresent(cacheKey);
     if (cached.isPresent()) {
+      metrics.countHtmlRewrite(StaticCacheMetrics.REWRITE_HIT);
       return toStream(cached.get());
     }
 
+    metrics.countHtmlRewrite(StaticCacheMetrics.REWRITE_MISS);
     String rewritten = doRewrite(original, app.getCacheBustKey());
     rewrittenHtmlCache.put(cacheKey, rewritten);
     return toStream(rewritten);
