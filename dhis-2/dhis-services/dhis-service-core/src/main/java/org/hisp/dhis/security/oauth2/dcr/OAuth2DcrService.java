@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.security.oauth2.dcr;
 
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.SCOPE_CLIENT_CREATE;
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -150,7 +151,7 @@ public class OAuth2DcrService {
                           .filter(trimmed -> !trimmed.isEmpty())
                           .forEach(l::add))
               .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-              .scope("client.create")
+              .scope(SCOPE_CLIENT_CREATE)
               .build();
       oAuth2ClientService.save(registeredClient, new SystemUser());
     } else {
@@ -215,7 +216,7 @@ public class OAuth2DcrService {
             .expiresAt(ttlInSeconds)
             .subject(username)
             .id(UUID.randomUUID().toString()) // (jti) Unique token ID
-            .claim("scope", "client.create")
+            .claim("scope", SCOPE_CLIENT_CREATE)
             .claim("redirect_url", redirectUri)
             .build();
 
@@ -231,7 +232,7 @@ public class OAuth2DcrService {
             jwtEncodedToken,
             now,
             ttlInSeconds,
-            Set.of("client.create"));
+            Set.of(SCOPE_CLIENT_CREATE));
 
     // Persist the authorization so that it can be used for authentication/authorization
     OAuth2Authorization authorization =
