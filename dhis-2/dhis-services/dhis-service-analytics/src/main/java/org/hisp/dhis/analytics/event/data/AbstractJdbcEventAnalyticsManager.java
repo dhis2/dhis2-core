@@ -52,7 +52,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
@@ -1242,7 +1242,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String getFilter(String filter, QueryItem item) {
     try {
-      if (!NV.equals(filter) && item.getValueType() == ValueType.DATETIME) {
+      if (!isNoValue(filter, item.hasOptionSet()) && item.getValueType() == ValueType.DATETIME) {
         return DateFormatUtils.format(
             DateUtils.parseDate(
                 filter,
@@ -1748,13 +1748,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
 
       InQueryFilter inQueryFilter =
-          new InQueryFilter(prefixedField, sqlBuilder.escape(filterString), !item.isNumeric());
+          new InQueryFilter(
+              prefixedField,
+              sqlBuilder.escape(filterString),
+              !item.isNumeric(),
+              item.hasOptionSet());
 
       return inQueryFilter.getSqlFilter();
     } else {
-      // NV filter has its own specific logic, so skip values
-      // comparisons when NV is set as filter
-      if (!NV.equals(filter.getFilter())) {
+      // NO_VALUE filter has its own specific logic, so skip values
+      // comparisons when NO_VALUE is set as filter
+      if (!isNoValue(filter.getFilter(), item.hasOptionSet())) {
         // Specific handling for null and empty values
         switch (filter.getOperator()) {
           case NEQ:
@@ -1770,7 +1774,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       return field
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + SPACE;
@@ -1806,7 +1810,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + ", '') = '' or "
           + field
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + ") ";
@@ -1816,7 +1820,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + " is null or "
           + field
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + ") ";
@@ -3236,7 +3240,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             : filter.getFilter();
 
     InQueryCteFilter inQueryCteFilter =
-        new InQueryCteFilter("value", resolvedFilter, !item.isNumeric(), cteDef);
+        new InQueryCteFilter(
+            "value", resolvedFilter, !item.isNumeric(), item.hasOptionSet(), cteDef);
     // Compute the offset for the row number if applicable
     Integer offset =
         cteDef.getOffsets().isEmpty() ? null : computeRowNumberOffset(item.getProgramStageOffset());
@@ -3294,7 +3299,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits(), item)
             : filter.getFilter();
 
-    if ("NV".equals(filterValue)) {
+    if (isNoValue(filterValue, item.hasOptionSet())) {
       return "NULL"; // Special case for 'null' filters
     }
 
@@ -3726,9 +3731,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         filterConditions = " and " + stageOuContext.filterCondition();
       }
     } else if (filterBuilder.hasNonNvFilter(item)) {
-      // For non-stage.ou dimensions with non-NV filters, add filter to CTE.
-      // NV (null value) filters are NOT added here - they stay in the WHERE clause
-      // because NV semantics require checking if the most recent event's value is null,
+      // For non-stage.ou dimensions with non-NO_VALUE filters, add filter to CTE.
+      // NO_VALUE (null value) filters are NOT added here - they stay in the WHERE clause
+      // because NO_VALUE semantics require checking if the most recent event's value is null,
       // not finding events with null values.
       String conditions = filterBuilder.extractNonNvFiltersAsSql(item, colName, params);
       if (isNotBlank(conditions)) {

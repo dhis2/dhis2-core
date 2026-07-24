@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.supportsCustomLabel;
@@ -45,6 +46,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,11 +114,14 @@ public class MetadataParamsHandler {
                   addDimensionIdentifierToItemsIfNeeded(dimensionIdentifier, items));
 
       getUserOrganisationUnitItems(user, userOrgUnitMetaDataKeys).forEach(items::putAll);
+
       MetadataInfo metadataInfo = new MetadataInfo();
       metadataInfo.put(ITEMS.getKey(), items);
 
-      metadataInfo.put(
-          DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParsed));
+      Map<String, List<String>> dimensions =
+          new MetadataDimensionsHandler().handle(grid, commonParsed);
+      addNoValueToDimensions(dimensions, commonParsed);
+      metadataInfo.put(DIMENSIONS.getKey(), dimensions);
 
       // Org. Units.
       boolean hierarchyMeta = commonRequest.isHierarchyMeta();
@@ -145,6 +150,55 @@ public class MetadataParamsHandler {
       }
 
       grid.setMetaData(metadataInfo.getMap());
+    }
+  }
+
+  /**
+   * Appends the no-value keyword to the dimension item list of every option-set dimension whose
+   * filter explicitly contains the keyword (filter-scoped). Only {@code metaData.dimensions} is
+   * affected; rows and {@code metaData.items} are unchanged.
+   *
+   * @param dimensions the dimension items map.
+   * @param commonParsed the {@link CommonParsedParams}.
+   */
+  private void addNoValueToDimensions(
+      Map<String, List<String>> dimensions, CommonParsedParams commonParsed) {
+    for (DimensionIdentifier<DimensionParam> dimensionIdentifier :
+        commonParsed.getDimensionIdentifiers()) {
+      DimensionParam dimension = dimensionIdentifier.getDimension();
+
+      if (!isFilteredByNoValue(dimension)) {
+        continue;
+      }
+
+      // The dimensions map is keyed by getItemUid for dimensions and getItemId for filters; append
+      // to whichever key is present.
+      QueryItem item = dimension.getQueryItem();
+      appendNoValue(dimensions, getItemUid(item));
+      appendNoValue(dimensions, item.getItemId());
+    }
+  }
+
+  /**
+   * Indicates whether the dimension is option-set-backed and filtered by the reserved no-value
+   * keyword. The filter values live in the {@link DimensionParam} items (not in {@link
+   * QueryItem#getFilters()}).
+   */
+  private boolean isFilteredByNoValue(DimensionParam dimension) {
+    return dimension.isQueryItem()
+        && dimension.getQueryItem().hasOptionSet()
+        && dimension.getItems().stream()
+            .flatMap(item -> item.getValues().stream())
+            .anyMatch(NO_VALUE::equals);
+  }
+
+  private void appendNoValue(Map<String, List<String>> dimensions, String key) {
+    List<String> values = dimensions.get(key);
+
+    if (values != null && !values.contains(NO_VALUE)) {
+      List<String> withNoValue = new ArrayList<>(values);
+      withNoValue.add(NO_VALUE);
+      dimensions.put(key, withNoValue);
     }
   }
 

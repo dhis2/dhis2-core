@@ -91,6 +91,8 @@ public class TrackedEntityAnalyticsQueryService {
     CommonParsedParams commonParams = contextParams.getCommonParsed();
     TrackedEntityQueryParams trackedEntityQueryParams = contextParams.getTypedParsed();
 
+    NoValueFilterValidator.validate(commonParams);
+
     securityManager.decideAccess(
         contextParams.getCommonParsed(),
         singleton(trackedEntityQueryParams.getTrackedEntityType()));
@@ -129,6 +131,8 @@ public class TrackedEntityAnalyticsQueryService {
   public Grid getGridExplain(
       @Nonnull ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
     CommonParsedParams commonParams = contextParams.getCommonParsed();
+
+    NoValueFilterValidator.validate(commonParams);
 
     Grid grid = new ListGrid();
     String explainId = randomUUID().toString();
