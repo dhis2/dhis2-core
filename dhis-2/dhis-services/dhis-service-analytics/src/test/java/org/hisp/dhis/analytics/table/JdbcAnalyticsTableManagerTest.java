@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.qualifyVariables;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
@@ -62,6 +63,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -125,7 +127,7 @@ class JdbcAnalyticsTableManagerTest {
   @InjectMocks private JdbcAnalyticsTableManager subject;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
@@ -215,6 +217,35 @@ class JdbcAnalyticsTableManagerTest {
     assertTrue(partitionB.isUnlogged());
     assertEquals(
         partitionB.getYear().intValue(), new DateTime(partitionB.getStartDate()).getYear());
+  }
+
+  @Test
+  void testGetRegularAnalyticsTableIdColumnRemainsTextOnPostgres() {
+    // Doris needs a bounded type for the id key column (see JdbcAnalyticsTableManagerDorisTest),
+    // but that must not change Postgres behavior, since
+    // PostgreSqlBuilder.requiresUniqueKeyAnalyticsTables()
+    // is false and id is not used as a key column there.
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+    List<Integer> dataYears = List.of(2018, 2019);
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
+
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
+    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(dataYears);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+    AnalyticsTable table = tables.get(0);
+    Column idColumn =
+        table.getColumns().stream().filter(c -> "id".equals(c.getName())).findFirst().orElseThrow();
+
+    assertEquals(TEXT, idColumn.getDataType());
   }
 
   @Test

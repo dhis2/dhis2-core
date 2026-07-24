@@ -49,12 +49,17 @@ import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -83,15 +88,19 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -290,5 +299,114 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   private String toSelectExpression(String template, String uid) {
     return String.format(template, uid, uid, uid);
+  }
+
+  @Test
+  void testRegularAnalyticsTableHasUniqueKeyOnEvent() {
+    Program program = createProgram('A');
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(List.of(2018, now().getYear()));
+    when(jdbcTemplate.queryForList(Mockito.anyString(), Mockito.eq(Integer.class)))
+        .thenReturn(List.of(2018));
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
+            .build();
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+    AnalyticsTable table = tables.get(0);
+    assertTrue(table.hasPrimaryKey());
+    assertEquals(List.of("event", "year"), table.getPrimaryKey());
+    assertTrue(sqlBuilder.createTable(table).contains("unique key (`event`,`year`)"));
+  }
+
+  @Test
+  @DisplayName("removeUpdatedData emits DELETE...USING for a registration program on Doris")
+  void testRemoveUpdatedDataUsesUsingJoinForRegistration() {
+    Program program = createProgram('A');
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("eventid", 1));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastLatestPartitionUpdate);
+    when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+    assertThat(tables, hasSize(1));
+
+    subject.removeUpdatedData(tables);
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).execute(sql.capture());
+
+    assertTrue(sql.getValue().contains("using"));
+    assertTrue(sql.getValue().contains("ax.event = ev.uid"));
+    assertTrue(!sql.getValue().contains("in ("));
+  }
+
+  @Test
+  @DisplayName("removeUpdatedData emits DELETE...USING for a single event program on Doris")
+  void testRemoveUpdatedDataUsesUsingJoinForSingleEvent() {
+    ProgramStage psA = new ProgramStage();
+    psA.setId(123456);
+
+    Program program = createProgram('A');
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    program.setProgramStages(Set.of(psA));
+
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("eventid", 1));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastLatestPartitionUpdate);
+    when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+    assertThat(tables, hasSize(1));
+
+    subject.removeUpdatedData(tables);
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).execute(sql.capture());
+
+    assertTrue(sql.getValue().contains("using"));
+    assertTrue(sql.getValue().contains("ax.event ="));
+    assertTrue(!sql.getValue().contains("in ("));
   }
 }

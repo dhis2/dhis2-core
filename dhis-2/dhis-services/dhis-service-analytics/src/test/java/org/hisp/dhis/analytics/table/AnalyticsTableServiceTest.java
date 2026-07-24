@@ -32,15 +32,24 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.joda.time.DateTime;
@@ -49,12 +58,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Lars Helge Overland
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AnalyticsTableServiceTest {
+  @Mock private AnalyticsTableManager tableManager;
+
+  @Mock private OrganisationUnitService organisationUnitService;
+
+  @Mock private DataElementService dataElementService;
+
+  @Mock private ResourceTableService resourceTableService;
+
   @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private SystemSettings settings;
@@ -112,5 +132,69 @@ class AnalyticsTableServiceTest {
     when(settings.getDatabaseServerCpus()).thenReturn(8);
 
     assertEquals(8, tableService.getParallelJobs());
+  }
+
+  @Test
+  void testRemoveUpdatedDataSkippedWhenContinuousAnalyticsNotSupported() {
+    AnalyticsTable table = latestPartitionTableFixture();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(false);
+
+    tableService.create(params, JobProgress.noop());
+
+    verify(tableManager, never()).removeUpdatedData(anyList());
+  }
+
+  @Test
+  void testRemoveUpdatedDataRunWhenContinuousAnalyticsSupported() {
+    AnalyticsTable table = latestPartitionTableFixture();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+
+    tableService.create(params, JobProgress.noop());
+
+    verify(tableManager).removeUpdatedData(List.of(table));
+  }
+
+  private AnalyticsTable latestPartitionTableFixture() {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("dx")
+                .dataType(TEXT)
+                .selectExpression("dx")
+                .build());
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of(),
+        AnalyticsTablePartition.LATEST_PARTITION,
+        new DateTime(2020, 1, 1, 0, 0).toDate(),
+        new DateTime(2020, 3, 1, 10, 0).toDate());
+    return table;
   }
 }
