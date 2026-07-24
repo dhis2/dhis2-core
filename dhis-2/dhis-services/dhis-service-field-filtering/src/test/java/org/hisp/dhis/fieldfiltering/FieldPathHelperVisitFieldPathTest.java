@@ -83,7 +83,8 @@ class FieldPathHelperVisitFieldPathTest {
 
   @Test
   void visitPathsDoesNotInvokeGetterForPropertyWithTransformer() {
-    fieldPathHelper.visitPaths(root, List.of(FieldPath.of("members.access")), (obj, path) -> {});
+    FieldPath membersAccess = new FieldPath("access", List.of("members"));
+    fieldPathHelper.visitFieldPaths(root, List.of(membersAccess), obj -> {});
 
     assertFalse(
         root.membersGetterInvoked,
