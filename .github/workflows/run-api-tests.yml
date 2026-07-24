@@ -77,16 +77,6 @@ jobs:
 
       # Informational only: scan the run's Postgres csvlog for N+1 query hot spots and
       # publish an HTML report. Never affects the test result or fails the build.
-      - name: Set up Go for n1watch
-        if: always()
-        continue-on-error: true
-        uses: actions/setup-go@v7
-        with:
-          go-version: "1.26.5"
-          # No project Go module here (we only `go install` an external tool), so there is
-          # no go.sum to key a cache on. Disable caching to avoid a spurious cache warning.
-          cache: false
-
       - name: Generate N+1 query report
         if: always()
         continue-on-error: true
@@ -97,10 +87,11 @@ jobs:
           # Pull the csvlog + request-id map out of the (stopped) containers.
           $COMPOSE cp db:/var/lib/postgresql/data/log/. n1watch/pglog/ || true
           $COMPOSE cp test:/target/request-id-map.json n1watch/request-id-map.json || true
-          # Pinned SHA = reproducible. GOSUMDB=off: personal module, not in the public checksum
-          # DB. `|| true` on each command so this informational step can never fail the build.
-          GOSUMDB=off go install github.com/david-mackessy/n1watch@e7b5cf6eb2fbae72e8c8a8ab56e8e7679f857ad0 || true
-          "$(go env GOPATH)/bin/n1watch" -report \
+          # Download the prebuilt n1watch binary (no Go toolchain / compile needed). `|| true`
+          # on each command so this informational step can never fail the build.
+          curl -sSfL -o n1watch/bin \
+            https://github.com/david-mackessy/n1watch/releases/latest/download/n1watch-linux-amd64 && chmod +x n1watch/bin || true
+          n1watch/bin -report \
             -dir n1watch/pglog -format html -out n1watch/n1report-e2e.html \
             -group-keys controller,method -trace-key request_id \
             -trace-map n1watch/request-id-map.json -trace-tags setup,teardown \
