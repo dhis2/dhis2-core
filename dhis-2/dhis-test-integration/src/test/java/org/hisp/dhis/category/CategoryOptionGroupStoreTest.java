@@ -30,11 +30,16 @@
 package org.hisp.dhis.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import org.hibernate.PropertyValueException;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -57,6 +62,8 @@ class CategoryOptionGroupStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private CategoryOptionGroupStore categoryOptionGroupStore;
+
+  @Autowired private CategoryOptionGroupSetStore categoryOptionGroupSetStore;
 
   private CategoryOption coA;
 
@@ -193,5 +200,111 @@ class CategoryOptionGroupStoreTest extends PostgresIntegrationTestBase {
             .flatMap(cog -> cog.getMembers().stream())
             .toList()
             .containsAll(List.of(coA, coB, coC)));
+  }
+
+  // -------------------------------------------------------------------------
+  // CategoryOptionGroupSet JPA migration verification (HBM -> annotations)
+  // -------------------------------------------------------------------------
+
+  private CategoryOptionGroupSet saveGroupSet(char uniqueChar, CategoryOptionGroup... groups) {
+    for (CategoryOptionGroup g : groups) {
+      categoryOptionGroupStore.save(g);
+    }
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet(uniqueChar, groups);
+    categoryOptionGroupSetStore.save(cogs);
+    return cogs;
+  }
+
+  @Test
+  @DisplayName("JPA: COGS members are an ordered list persisted via categoryoptiongroupsetmembers")
+  void testJpaCogsMembersOrderedList() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('A', coA);
+    CategoryOptionGroup cogB = createCategoryOptionGroup('B', coB);
+    CategoryOptionGroup cogC = createCategoryOptionGroup('C', coC);
+    CategoryOptionGroupSet cogs = saveGroupSet('S', cogA, cogB, cogC);
+    long id = cogs.getId();
+
+    clearSession(); // force reload from DB
+
+    CategoryOptionGroupSet reloaded = categoryOptionGroupSetStore.get(id);
+    assertNotNull(reloaded);
+    // Order must be preserved (@OrderColumn sort_order / @ListIndexBase(1)).
+    assertEquals(
+        List.of(cogA.getUid(), cogB.getUid(), cogC.getUid()),
+        reloaded.getMembers().stream().map(CategoryOptionGroup::getUid).toList());
+
+    Number linkRows =
+        (Number)
+            entityManager
+                .createNativeQuery(
+                    "select count(*) from categoryoptiongroupsetmembers where categoryoptiongroupsetid = :id")
+                .setParameter("id", id)
+                .getSingleResult();
+    assertEquals(3, linkRows.intValue());
+  }
+
+  @Test
+  @DisplayName("JPA: COGS createdBy IS persisted (categoryoptiongroupset has a userid column)")
+  void testJpaCogsCreatedByPersisted() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('U', coA);
+    categoryOptionGroupStore.save(cogA);
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet('U', cogA);
+    cogs.setCreatedBy(getAdminUser());
+    categoryOptionGroupSetStore.save(cogs);
+    long id = cogs.getId();
+
+    clearSession();
+
+    CategoryOptionGroupSet reloaded = categoryOptionGroupSetStore.get(id);
+    assertNotNull(reloaded.getCreatedBy(), "createdBy must persist to the userid column");
+    assertEquals(getAdminUser().getUid(), reloaded.getCreatedBy().getUid());
+  }
+
+  @Test
+  @DisplayName("JPA: COGS dataDimension, dataDimensionType, shortName and description round-trip")
+  void testJpaCogsScalarFieldsPersist() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('D', coA);
+    categoryOptionGroupStore.save(cogA);
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet('D', cogA);
+    cogs.setDescription("a description");
+    cogs.setDataDimension(false);
+    categoryOptionGroupSetStore.save(cogs);
+    long id = cogs.getId();
+
+    clearSession();
+
+    CategoryOptionGroupSet reloaded = categoryOptionGroupSetStore.get(id);
+    assertNotNull(reloaded.getDataDimensionType());
+    assertEquals(cogs.getDataDimensionType(), reloaded.getDataDimensionType());
+    assertEquals(cogs.getShortName(), reloaded.getShortName());
+    assertEquals("a description", reloaded.getDescription());
+    assertFalse(reloaded.isDataDimension());
+  }
+
+  @Test
+  @DisplayName("JPA: COGS attributeValues (jsonb) round-trip")
+  void testJpaCogsAttributeValuesPersisted() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('V', coA);
+    categoryOptionGroupStore.save(cogA);
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet('V', cogA);
+    cogs.setAttributeValues(
+        AttributeValues.of(Map.<CharSequence, CharSequence>of("hQKI6KcEu5t", "avalue")));
+    categoryOptionGroupSetStore.save(cogs);
+    long id = cogs.getId();
+
+    clearSession();
+
+    CategoryOptionGroupSet reloaded = categoryOptionGroupSetStore.get(id);
+    assertFalse(reloaded.getAttributeValues().isEmpty());
+    assertEquals("avalue", reloaded.getAttributeValues().get("hQKI6KcEu5t"));
+  }
+
+  @Test
+  @DisplayName("JPA: COGS id is generated (SEQUENCE) on save")
+  void testJpaCogsIdGeneration() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('I', coA);
+    CategoryOptionGroupSet cogs = saveGroupSet('I', cogA);
+    assertTrue(cogs.getId() > 0, "id must be generated on save");
+    assertNotNull(cogs.getUid());
   }
 }
