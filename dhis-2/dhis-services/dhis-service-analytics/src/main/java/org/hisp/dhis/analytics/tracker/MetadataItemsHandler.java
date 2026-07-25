@@ -398,15 +398,20 @@ public class MetadataItemsHandler {
         .filter(Objects::nonNull)
         .forEach(
             item -> {
-              String key = getItemIdWithProgramStageIdPrefix(item);
               if (item.hasCustomHeader()) {
                 // For custom headers, only include the label (name), not the underlying item
                 // details
-                metadataItemMap.put(key, new MetadataItem(item.getCustomHeader().label()));
+                metadataItemMap.put(
+                    getItemIdWithProgramStageIdPrefix(item),
+                    new MetadataItem(item.getCustomHeader().label()));
               } else {
                 String name = item.getItem().getDisplayName();
-                metadataItemMap.put(
-                    key, new MetadataItem(name, includeDetails ? item.getItem() : null));
+                MetadataItem metadataItem =
+                    new MetadataItem(name, includeDetails ? item.getItem() : null);
+
+                metadataItemMap.put(getItemIdWithProgramStageIdPrefix(item), metadataItem);
+                // Done for backwards compatibility.
+                metadataItemMap.put(item.getItemId(), metadataItem);
               }
 
               addResolvedOrgUnitMetadata(metadataItemMap, params, includeDetails, item);
