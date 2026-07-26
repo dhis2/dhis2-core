@@ -77,10 +77,15 @@ import java.util.Properties;
  *   <li>{@code iterations} (default: {@code 10})
  * </ul>
  *
- * <p>No p95/max threshold assertions yet, only 100% success. Thresholds should be calibrated from
- * nightly baselines once this simulation has history (see {@link UsersPerformanceTest} for the
- * calibration workflow). On an unfixed server, the large-role PATCH may exceed Gatling's default
- * 60s request timeout; raise it with {@code -Dgatling.http.requestTimeout=600000}.
+ * <p>Thresholds calibrated 2026-07-26 from a baseline/candidate A/B run on the platform-perf DB
+ * (see PR #24489): fixed-code p95/max were empty-role PATCH 37/39ms, large-role (83,334 members)
+ * PATCH 33/35ms, GET 6/6ms &mdash; consistent with the invariant this simulation checks, that PATCH
+ * latency is independent of membership size. Thresholds are set well above that noise floor but far
+ * below the pre-fix regression (large-role PATCH p95 was 17,304ms), so a reintroduced O(members)
+ * hydration fails loudly while ordinary CI-runner jitter does not. Recalibrate the same way if
+ * thresholds start flapping (see {@link UsersPerformanceTest} for the general workflow). On an
+ * unfixed server, the large-role PATCH may exceed Gatling's default 60s request timeout; raise it
+ * with {@code -Dgatling.http.requestTimeout=600000}.
  *
  * @author Morten Svanæs
  */
@@ -125,6 +130,14 @@ public class UserRolesPerformanceTest extends Simulation {
   private static final String PATCH_EMPTY_REQUEST = "PATCH UserRole - scalar (empty role)";
   private static final String PATCH_LARGE_REQUEST = "PATCH UserRole - scalar (large role)";
   private static final String GET_LARGE_REQUEST = "GET UserRole - narrow fields (large role)";
+
+  private record Thresholds(int p95, int max) {}
+
+  // Thresholds (p95, max) in ms, calibrated 2026-07-26 (see class javadoc). Both PATCH scenarios
+  // share one threshold: the point of this simulation is that PATCH latency must not depend on
+  // membership size, so empty-role and large-role PATCH are held to the same bar.
+  private static final Thresholds PATCH_THRESH = new Thresholds(100, 150);
+  private static final Thresholds GET_THRESH = new Thresholds(30, 50);
 
   private static final String PATCH_BODY_TEMPLATE =
       """
@@ -270,8 +283,14 @@ public class UserRolesPerformanceTest extends Simulation {
                 .andThen(getLargeScenario.injectClosed(singleUser)))
         .protocols(httpProtocol)
         .assertions(
+            details(PATCH_EMPTY_REQUEST).responseTime().percentile(95).lt(PATCH_THRESH.p95()),
+            details(PATCH_EMPTY_REQUEST).responseTime().max().lt(PATCH_THRESH.max()),
             details(PATCH_EMPTY_REQUEST).successfulRequests().percent().is(100D),
+            details(PATCH_LARGE_REQUEST).responseTime().percentile(95).lt(PATCH_THRESH.p95()),
+            details(PATCH_LARGE_REQUEST).responseTime().max().lt(PATCH_THRESH.max()),
             details(PATCH_LARGE_REQUEST).successfulRequests().percent().is(100D),
+            details(GET_LARGE_REQUEST).responseTime().percentile(95).lt(GET_THRESH.p95()),
+            details(GET_LARGE_REQUEST).responseTime().max().lt(GET_THRESH.max()),
             details(GET_LARGE_REQUEST).successfulRequests().percent().is(100D));
   }
 }
