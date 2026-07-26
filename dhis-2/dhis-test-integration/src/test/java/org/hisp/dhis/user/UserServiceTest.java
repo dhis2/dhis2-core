@@ -368,6 +368,15 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testCreateUserDetailsWithNoGroupsReturnsEmptyManagedGroupLongIds() {
+    User user = addUser("W");
+
+    UserDetails details = userService.createUserDetails(user);
+
+    assertIsEmpty(details.getManagedGroupLongIds());
+  }
+
+  @Test
   void testManagedGroups() {
     settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
     settingsService.clearCurrentSettings();
