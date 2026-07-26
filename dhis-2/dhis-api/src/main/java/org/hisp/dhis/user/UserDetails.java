@@ -164,6 +164,11 @@ public interface UserDetails
       return null;
     }
 
+    Set<Long> resolvedManagedGroupLongIds =
+        managedGroupLongIds != null
+            ? managedGroupLongIds
+            : (user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups()));
+
     UserDetailsImplBuilder userDetailsImplBuilder =
         UserDetailsImpl.builder()
             .id(user.getId())
@@ -195,13 +200,7 @@ public interface UserDetails
             .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
             .userGroupIds(
                 new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
-            .managedGroupLongIds(
-                new HashSet<>(
-                    managedGroupLongIds != null
-                        ? managedGroupLongIds
-                        : (user.getUid() == null
-                            ? Set.of()
-                            : setOfPrimaryKeys(user.getManagedGroups()))))
+            .managedGroupLongIds(new HashSet<>(resolvedManagedGroupLongIds))
             .userRoleLongIds(
                 new HashSet<>(
                     user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
