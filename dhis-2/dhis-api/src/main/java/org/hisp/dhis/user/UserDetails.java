@@ -149,6 +149,8 @@ public interface UserDetails
    * null, the managed groups are resolved from the entity (legacy behaviour) for callers without
    * access to a store.
    */
+  // TODO(DHIS2-21896) this overload chain has grown too many parameters (java:S107); replace with
+  // a parameter object and change the Set<String> UID params to Set<UID>.
   @CheckForNull
   static UserDetails createUserDetails(
       @CheckForNull User user,
