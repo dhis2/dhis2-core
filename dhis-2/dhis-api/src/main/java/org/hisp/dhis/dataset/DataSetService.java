@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -82,6 +84,19 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @return the DataSet with the given UID, or null if no match.
    */
   DataSet getDataSet(String uid);
+
+  /**
+   * Returns the distinct {@link DataElement}s that are members of the given data sets, loaded in a
+   * single query (with each data element's {@code dataSetElements} and {@code categoryCombo}
+   * eagerly fetched) to avoid N+1 selects when iterating {@link DataSet#getDataElements()} and
+   * {@link DataElement#getCategoryCombos()} across many data sets. Does not apply sharing/ACL
+   * predicates on the data elements; callers are responsible for authorizing access to the data
+   * sets.
+   *
+   * @param dataSets the data sets.
+   * @return the distinct data elements of the given data sets.
+   */
+  List<DataElement> getDataElementsByDataSet(Collection<DataSet> dataSets);
 
   /**
    * Returns the DataSet with the given UID. Bypasses the ACL system.

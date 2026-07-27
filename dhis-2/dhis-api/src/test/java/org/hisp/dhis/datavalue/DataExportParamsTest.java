@@ -27,16 +27,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.datavalue;
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.hibernate.EnumUserType;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Chau Thu Tran
- */
-public class EventStatusUserType extends EnumUserType<EventStatus> {
-  public EventStatusUserType() {
-    super(EventStatus.class);
+import java.time.Duration;
+import java.util.Date;
+import org.junit.jupiter.api.Test;
+
+class DataExportParamsTest {
+
+  @Test
+  void testHasPeriodFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasPeriodFilters_LastUpdatedAloneIsNotAPeriodFilter() {
+    // lastUpdated/lastUpdatedDuration do not filter by the period table, so they must not
+    // trigger the pe_ids CTE/JOIN the query builder erases based on hasPeriodFilters().
+    DataExportParams params =
+        DataExportParams.builder()
+            .lastUpdated(new Date())
+            .lastUpdatedDuration(Duration.ofDays(10000))
+            .build();
+
+    assertFalse(params.hasPeriodFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_NoFiltersFalse() {
+    DataExportParams params = DataExportParams.builder().build();
+
+    assertFalse(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_LastUpdatedDurationTrue() {
+    DataExportParams params =
+        DataExportParams.builder().lastUpdatedDuration(Duration.ofDays(10000)).build();
+
+    assertTrue(params.hasLastUpdatedFilters());
+  }
+
+  @Test
+  void testHasLastUpdatedFilters_LastUpdatedTrue() {
+    DataExportParams params = DataExportParams.builder().lastUpdated(new Date()).build();
+
+    assertTrue(params.hasLastUpdatedFilters());
   }
 }

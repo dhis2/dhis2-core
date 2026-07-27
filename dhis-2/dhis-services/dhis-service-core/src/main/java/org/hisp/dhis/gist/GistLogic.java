@@ -31,6 +31,7 @@ package org.hisp.dhis.gist;
 
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
@@ -85,8 +86,10 @@ final class GistLogic {
     return path.length() == 11 && CodeGenerator.isValidUid(path);
   }
 
-  static boolean isAttributeValuesAttributePropertyPath(String path) {
-    return path.startsWith("attributeValues.attribute.");
+  static boolean isAttributeValuesAttributePropertyPath(PropertyPath path) {
+    return path.length() == 3
+        && path.head().contentEquals("attributeValues")
+        && path.parent().segment().contentEquals("attribute");
   }
 
   static String attributePath(String path) {

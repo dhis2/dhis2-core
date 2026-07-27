@@ -68,6 +68,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -79,8 +81,6 @@ import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.authentication.JwtClientAssertionAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.authentication.JwtClientAssertionDecoderFactory;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcClientConfigurationAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcClientRegistrationAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
@@ -156,31 +156,35 @@ public class AuthorizationServerConfig {
   @Bean
   @Order(1)
   public SecurityFilterChain authorizationServerSecurityFilterChain(
-      HttpSecurity http, CustomClaimValidator<Jwt> customClaimValidator) throws Exception {
+      HttpSecurity http, CustomClaimValidator<Jwt> customClaimValidator) {
     OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
-        OAuth2AuthorizationServerConfigurer.authorizationServer();
+        new OAuth2AuthorizationServerConfigurer();
 
-    http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-        .with(
-            authorizationServerConfigurer,
-            authorizationServer ->
-                authorizationServer
-                    .clientAuthentication(
-                        clientAuthentication ->
-                            clientAuthentication.authenticationProviders(
-                                configureJwtClientAssertionWithInlineJwks(customClaimValidator)))
-                    .oidc(
-                        oidc ->
-                            oidc.clientRegistrationEndpoint(
-                                cr -> cr.authenticationProviders(customizeDcrProviders()))))
-        .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-        .exceptionHandling(
-            exceptions ->
-                exceptions.defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/login/"),
-                    new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
+    try {
+      http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+          .with(
+              authorizationServerConfigurer,
+              authorizationServer ->
+                  authorizationServer
+                      .clientAuthentication(
+                          clientAuthentication ->
+                              clientAuthentication.authenticationProviders(
+                                  configureJwtClientAssertionWithInlineJwks(customClaimValidator)))
+                      .oidc(
+                          oidc ->
+                              oidc.clientRegistrationEndpoint(
+                                  cr -> cr.authenticationProviders(customizeDcrProviders()))))
+          .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+          .exceptionHandling(
+              exceptions ->
+                  exceptions.defaultAuthenticationEntryPointFor(
+                      new LoginUrlAuthenticationEntryPoint("/login/"),
+                      new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
-    return http.build();
+      return http.build();
+    } catch (Exception ex) {
+      throw new IllegalStateException("Failed to configure OAuth2 authorization server", ex);
+    }
   }
 
   /**

@@ -1,0 +1,103 @@
+name: Run auth IdP tests
+
+# External-IdP authentication e2e suite (Keycloak OIDC, LDAP): runs the dhis-test-e2e
+# "auth-idp" tagged tests against the docker-compose.e2e-auth.yml stack.
+# Runs on every PR (reusing the dhis2/core-pr image published by "Run api tests"
+# when possible), nightly on master, and manually.
+
+env:
+  MAVEN_OPTS: -Xmx1024m -Xms1024m -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+
+on:
+  pull_request:
+  schedule:
+    # Nightly on the default branch
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auth-idp-test:
+    runs-on: ubuntu-latest
+    env:
+      # Mirrors DOCKERHUB_PUSH in run-api-tests.yml: for same-repo PRs the api tests
+      # workflow pushes dhis2/core-pr:<number> to Docker Hub, so we pull it instead of
+      # rebuilding. Fork/dependabot PRs, nightly and dispatch runs build the image here.
+      REUSE_PR_IMAGE: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+      CORE_IMAGE_NAME: ${{ (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]') && format('dhis2/core-pr:{0}', github.event.number) || 'dhis2/core-dev:local' }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDK 17
+        if: env.REUSE_PR_IMAGE != 'true'
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+
+      - name: Wait for PR image from api tests build
+        if: env.REUSE_PR_IMAGE == 'true'
+        run: |
+          expected="${{ github.event.pull_request.head.sha }}"
+          echo "Waiting for $CORE_IMAGE_NAME with revision $expected"
+          for i in $(seq 1 60); do
+            if docker pull --quiet "$CORE_IMAGE_NAME" > /dev/null 2>&1; then
+              revision=$(docker inspect --format '{{ index .Config.Labels "DHIS2_BUILD_REVISION" }}' "$CORE_IMAGE_NAME")
+              if [ "$revision" = "$expected" ]; then
+                echo "Found $CORE_IMAGE_NAME for revision $revision"
+                exit 0
+              fi
+              echo "Image revision '$revision' is stale, retrying..."
+            fi
+            sleep 20
+          done
+          echo "Timed out waiting for $CORE_IMAGE_NAME with revision $expected (did the api tests build fail?)" >&2
+          exit 1
+
+      - name: Build container image
+        if: env.REUSE_PR_IMAGE != 'true'
+        run: |
+          mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
+            -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
+            --projects dhis-web-server --also-make --activate-profiles embedded,jibDockerBuild \
+            -Djib.to.image=$CORE_IMAGE_NAME
+
+      - name: Run auth IdP tests
+        run: |
+          cd dhis-2/dhis-test-e2e
+          DHIS2_E2E_TEST_ARGS="-Pauth-idp" SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME \
+            docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml \
+            up --remove-orphans --exit-code-from test
+
+      - name: Upload logs
+        if: failure()
+        run: |
+          cd dhis-2/dhis-test-e2e
+          docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml logs web > ~/web-logs.txt
+          docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-auth.yml logs keycloak > ~/keycloak-logs.txt
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: "auth_idp_logs"
+          path: |
+            ~/web-logs.txt
+            ~/keycloak-logs.txt
+
+  send-slack-message:
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      contains(needs.*.result, 'failure') &&
+      github.event_name == 'schedule'
+    needs: [auth-idp-test]
+    steps:
+      - uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
+          SLACK_CHANNEL: "team-backend"
+          SLACK_MESSAGE: "Nightly auth IdP (Keycloak/LDAP) e2e run failed and needs investigation :detective-duck:."
+          SLACK_COLOR: "#ff0000"

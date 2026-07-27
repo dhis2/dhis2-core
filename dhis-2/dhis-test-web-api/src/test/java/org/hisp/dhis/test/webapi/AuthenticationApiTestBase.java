@@ -31,6 +31,7 @@ package org.hisp.dhis.test.webapi;
 
 import org.hisp.dhis.test.config.H2TestConfig;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase.AuthConfigProviderConfig;
+import org.hisp.dhis.webapi.security.AntPathRequestMatcher;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.security.web.FilterChainProxy;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;

@@ -142,8 +142,16 @@ class ProgramTest {
     assertEquals(original.getDisplayEnrollmentsLabel(), copy.getDisplayEnrollmentsLabel());
     assertEquals(original.getDisplayFollowUpLabel(), copy.getDisplayFollowUpLabel());
     assertEquals(original.getDisplayNoteLabel(), copy.getDisplayNoteLabel());
+    assertEquals(original.getDisplayNotesLabel(), copy.getDisplayNotesLabel());
     assertEquals(original.getDisplayOrgUnitLabel(), copy.getDisplayOrgUnitLabel());
     assertEquals(original.getDisplayRelationshipLabel(), copy.getDisplayRelationshipLabel());
+    assertEquals(original.getDisplayRelationshipsLabel(), copy.getDisplayRelationshipsLabel());
+    assertEquals(
+        original.getDisplayTrackedEntityAttributeLabel(),
+        copy.getDisplayTrackedEntityAttributeLabel());
+    assertEquals(
+        original.getDisplayTrackedEntityAttributesLabel(),
+        copy.getDisplayTrackedEntityAttributesLabel());
 
     // check empty
     assertTrue(copy.getProgramAttributes().isEmpty());
@@ -234,7 +242,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(66, allClassFieldsIncludingInherited.length);
+    assertEquals(69, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -290,14 +298,17 @@ class ProgramTest {
     p.setEnrollmentLabel("Enrollment label");
     p.setEnrollmentsLabel("Enrollments label");
     p.setNoteLabel("Note label");
+    p.setNotesLabel("Notes label");
     p.setFollowUpLabel("Follow Up Label");
     p.setOrgUnitLabel("Org Unit Label");
     p.setTrackedEntityAttributeLabel("Tracked Entity Attribute Label");
+    p.setTrackedEntityAttributesLabel("Tracked Entity Attributes Label");
     p.setProgramStageLabel("Program Stage Label");
     p.setProgramStagesLabel("Program stages label");
     p.setEventLabel("Event Label");
     p.setEventsLabel("Events Label");
     p.setRelationshipLabel("Relationship Label");
+    p.setRelationshipsLabel("Relationships Label");
 
     return p;
   }

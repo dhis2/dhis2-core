@@ -83,7 +83,7 @@ class MetadataExportControllerUtilsTest {
     Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     Assertions.assertSame(rootNode, responseEntity.getBody());
     Assertions.assertFalse(
-        responseEntity.getHeaders().containsKey(HttpHeaders.CONTENT_DISPOSITION));
+        responseEntity.getHeaders().containsHeader(HttpHeaders.CONTENT_DISPOSITION));
   }
 
   @Test
@@ -119,7 +119,7 @@ class MetadataExportControllerUtilsTest {
     Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     Assertions.assertSame(rootNode, responseEntity.getBody());
     Assertions.assertFalse(
-        responseEntity.getHeaders().containsKey(HttpHeaders.CONTENT_DISPOSITION));
+        responseEntity.getHeaders().containsHeader(HttpHeaders.CONTENT_DISPOSITION));
   }
 
   @Test

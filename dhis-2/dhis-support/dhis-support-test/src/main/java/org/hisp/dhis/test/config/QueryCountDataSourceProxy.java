@@ -29,10 +29,17 @@
  */
 package org.hisp.dhis.test.config;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
+import net.ttddyy.dsproxy.ExecutionInfo;
+import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.ChainListener;
 import net.ttddyy.dsproxy.listener.DataSourceQueryCountListener;
+import net.ttddyy.dsproxy.listener.QueryExecutionListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -57,9 +64,36 @@ import org.springframework.stereotype.Component;
  * <pre>{@code
  * assertDeleteCount(1);
  * }</pre>
+ *
+ * <p>In addition to the aggregate counts fed to {@code QueryCountHolder}, the executed SQL text is
+ * captured so a test can assert how many statements match a specific pattern (e.g. a join table)
+ * rather than just the total by type:
+ *
+ * <pre>{@code
+ * QueryCountDataSourceProxy.clearCapturedSql();
+ * // ... run the code under test ...
+ * assertTrue(QueryCountDataSourceProxy.countCapturedSqlMatching("some_join_table") <= 1);
+ * }</pre>
  */
 @Component
 public class QueryCountDataSourceProxy implements BeanPostProcessor {
+
+  private static final List<String> CAPTURED_SQL = Collections.synchronizedList(new ArrayList<>());
+
+  /** Clears the captured SQL. Call before the code under test. */
+  public static void clearCapturedSql() {
+    CAPTURED_SQL.clear();
+  }
+
+  /** Number of executed statements whose SQL contains the given (case-insensitive) pattern. */
+  public static long countCapturedSqlMatching(String pattern) {
+    String needle = pattern.toLowerCase(Locale.ROOT);
+    synchronized (CAPTURED_SQL) {
+      return CAPTURED_SQL.stream()
+          .filter(sql -> sql.toLowerCase(Locale.ROOT).contains(needle))
+          .count();
+    }
+  }
 
   @Override
   public Object postProcessBeforeInitialization(@Nonnull Object bean, @Nonnull String beanName) {
@@ -72,6 +106,19 @@ public class QueryCountDataSourceProxy implements BeanPostProcessor {
     if (bean instanceof DataSource originalDataSource && beanName.equals("actualDataSource")) {
       ChainListener listener = new ChainListener();
       listener.addListener(new DataSourceQueryCountListener());
+      listener.addListener(
+          new QueryExecutionListener() {
+            @Override
+            public void beforeQuery(ExecutionInfo execInfo, List<QueryInfo> queryInfoList) {
+              // No-op: SQL is recorded only after execution (afterQuery), so statements that error
+              // out or never run are not counted.
+            }
+
+            @Override
+            public void afterQuery(ExecutionInfo execInfo, List<QueryInfo> queryInfoList) {
+              queryInfoList.forEach(q -> CAPTURED_SQL.add(q.getQuery()));
+            }
+          });
       return ProxyDataSourceBuilder.create(originalDataSource)
           .name("query-count-datasource-proxy")
           .listener(listener)
