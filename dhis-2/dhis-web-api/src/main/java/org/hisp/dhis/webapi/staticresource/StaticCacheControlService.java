@@ -96,7 +96,8 @@ public class StaticCacheControlService {
    * Generates an ETag suitable for cache busting on upgrades. Uses the app's cache-bust key (which
    * incorporates the app version) and the DHIS2 server version so that any app update or
    * patch/release automatically invalidates browser caches. Does not require resource I/O, so this
-   * can be called before loading the resource to support early 304 responses.
+   * can be called before loading the resource to support early 304 responses. The request URI is
+   * part of the hashed source so tags are unique per resource.
    */
   public String generateETag(@CheckForNull App app, String uri, @CheckForNull String queryString) {
     String appPart =
@@ -105,7 +106,7 @@ public class StaticCacheControlService {
             : (app != null && app.getVersion() != null ? app.getVersion() : "no-app");
     AppCacheConfig cfg = app != null ? app.getCacheConfig() : null;
     String suffix = isImmutable(uri, queryString, cfg) ? "-immutable" : "";
-    String source = appPart + "-" + getDhis2Version() + suffix;
+    String source = appPart + "-" + getDhis2Version() + "-" + uri + suffix;
     return HashUtils.hashMD5(source.getBytes(StandardCharsets.UTF_8));
   }
 
