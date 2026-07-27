@@ -48,4 +48,4 @@ import com.fasterxml.jackson.annotation.JsonFilter;
  * @author Jason Pickering
  */
 @JsonFilter(JsonPatchExcludedPropertyFilter.ID)
-public interface JsonPatchFilterMixin {}
+interface JsonPatchFilterMixin {}

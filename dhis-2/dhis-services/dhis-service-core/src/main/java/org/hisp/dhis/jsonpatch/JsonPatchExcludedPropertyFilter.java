@@ -44,7 +44,7 @@ import java.util.Set;
  *
  * @author Jason Pickering
  */
-public class JsonPatchExcludedPropertyFilter extends SimpleBeanPropertyFilter {
+class JsonPatchExcludedPropertyFilter extends SimpleBeanPropertyFilter {
 
   /**
    * Single source of truth for the filter id -- referenced by both {@link JsonPatchFilterMixin}'s
@@ -55,11 +55,11 @@ public class JsonPatchExcludedPropertyFilter extends SimpleBeanPropertyFilter {
    * JsonPatchFilterMixin} stays a truly empty marker interface, matching its precedent, {@code
    * org.hisp.dhis.fieldfiltering.FieldFilterMixin}.
    */
-  public static final String ID = "json-patch-collection-filter";
+  static final String ID = "json-patch-collection-filter";
 
   private final Set<String> excluded;
 
-  public JsonPatchExcludedPropertyFilter(Set<String> excluded) {
+  JsonPatchExcludedPropertyFilter(Set<String> excluded) {
     this.excluded = excluded;
   }
 
