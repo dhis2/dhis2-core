@@ -81,6 +81,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.FavoritableOperations;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -100,7 +101,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class EventVisualizationController
-    extends AbstractCrudController<EventVisualization, GetObjectListParams> {
+    extends AbstractCrudController<EventVisualization, GetObjectListParams>
+    implements FavoritableOperations<EventVisualization> {
+
   private final DimensionService dimensionService;
 
   private final LegendSetService legendSetService;

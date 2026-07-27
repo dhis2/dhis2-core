@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Set;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.UserDetails;
 
 /**
- * Interface for objects which can be marked as favorite by users. Object implementing this
- * interface must have a property of type {@code Set<String>} with the name 'favorites' where the
- * set contains the UIDs of users having marked the object as favorite.
+ * CRUD related operations that only some object types support.
+ *
+ * @param <T> type of the controller object
  */
-public interface FavoritableObject {
+public interface CrudOperationsSupport<T extends IdentifiableObject> {
 
-  Set<String> getFavorites();
+  boolean setAsFavorite(UID id, UserDetails user) throws NotFoundException;
 
-  @JsonProperty
-  default boolean isFavorite() {
-    Set<String> favorites = getFavorites();
-    if (favorites == null || favorites.isEmpty() || !CurrentUserUtil.hasCurrentUser()) return false;
-    return favorites.contains(CurrentUserUtil.getCurrentUserDetails().getUid());
-  }
-
-  boolean setAsFavorite(UserDetails user);
-
-  boolean removeAsFavorite(UserDetails user);
+  boolean removeAsFavorite(UID id, UserDetails user) throws NotFoundException;
 }
