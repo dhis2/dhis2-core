@@ -119,13 +119,16 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
 
   @Test
   void shouldMapPayloadEventsToRuleEvents() {
-    org.hisp.dhis.tracker.imports.domain.Event eventA = payloadEvent();
-    org.hisp.dhis.tracker.imports.domain.Event eventB = payloadEvent();
+    DataElement de1 = dataElement;
+    DataElement de2 = createDataElement('E');
+    org.hisp.dhis.tracker.imports.domain.Event eventA = payloadEvent(dataValue(de1, "1"));
+    org.hisp.dhis.tracker.imports.domain.Event eventB = payloadEvent(dataValue(de2, "2"));
 
     TrackerPreheat trackerPreheat = new TrackerPreheat();
     trackerPreheat.put(programStage);
     trackerPreheat.put(TrackerIdSchemeParam.UID, organisationUnit);
     trackerPreheat.put(TrackerIdSchemeParam.UID, dataElement);
+    trackerPreheat.put(TrackerIdSchemeParam.UID, List.of(de1, de2));
 
     List<RuleEvent> ruleEvents =
         RuleEngineMapper.mapPayloadEvents(trackerPreheat, List.of(eventA, eventB));
