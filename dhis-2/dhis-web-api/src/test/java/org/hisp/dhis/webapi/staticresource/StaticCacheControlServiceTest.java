@@ -114,6 +114,43 @@ class StaticCacheControlServiceTest {
   }
 
   @Test
+  @DisplayName("Directory URL serving index.html returns no-store")
+  void directoryUrl_returnsNoStore() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/login/", null, null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
+  }
+
+  @Test
+  @DisplayName("App directory URL returns no-store")
+  void appDirectoryUrl_returnsNoStore() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/login/", null, null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
+  }
+
+  @Test
+  @DisplayName("App no-cache rule matches directory URL via index.html normalization")
+  void appNoCacheRule_matchesDirectoryUrl() {
+    when(config.getProperty(ConfigurationKey.STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS)).thenReturn("");
+
+    App app = new App();
+    app.setName("my-app");
+    app.setShortName("my-app");
+    CacheRule rule = new CacheRule("**/index.html", 0, null, null);
+    app.setCacheConfig(new AppCacheConfig(List.of(rule), null, null));
+
+    when(appManager.getApp("my-app")).thenReturn(app);
+
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/my-app/", null, "my-app");
+
+    assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
+  }
+
+  @Test
   @DisplayName("Regular JS file gets default max-age with public caching")
   void regularJsFile_getsDefaultMaxAge() {
     MockHttpServletResponse response = new MockHttpServletResponse();
