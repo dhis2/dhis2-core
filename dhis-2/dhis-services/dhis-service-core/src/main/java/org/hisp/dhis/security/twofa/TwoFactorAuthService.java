@@ -305,8 +305,16 @@ public class TwoFactorAuthService {
     }
   }
 
+  /**
+   * Generates the TOTP enrollment QR code.
+   *
+   * <p>Takes the {@link User} entity, not {@link UserDetails}: enrollment writes a new secret and
+   * {@code ENROLLING_TOTP} type to the database without refreshing the authenticated principal, so
+   * a {@code UserDetails} snapshot from login time still reports the pre-enrollment secret and
+   * type, and this method would reject with {@link ErrorCode#E3047}.
+   */
   @NonTransactional
-  public @Nonnull byte[] generateQRCode(@Nonnull UserDetails currentUser) throws ConflictException {
+  public @Nonnull byte[] generateQRCode(@Nonnull User currentUser) throws ConflictException {
     if (!configurationProvider.isEnabled(ConfigurationKey.TOTP_2FA_ENABLED)) {
       throw new ConflictException(ErrorCode.E3046);
     }
