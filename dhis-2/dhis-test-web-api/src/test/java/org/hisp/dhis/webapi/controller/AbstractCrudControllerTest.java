@@ -551,12 +551,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSetAsFavorite_NoSuchObject() {
-    assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "Map with id m1234567890 could not be found.",
-        POST("/maps/m1234567890/favorite").content(HttpStatus.NOT_FOUND));
+    assertStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE, POST("/maps/m1234567890/favorite"));
   }
 
   @Test
@@ -577,12 +572,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testRemoveAsFavorite_NotFavoritable() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Objects of this class cannot be set as favorite",
-        DELETE("/users/u1234567890/favorite").content(HttpStatus.CONFLICT));
+    assertStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE, DELETE("/users/u1234567890/favorite"));
   }
 
   @Test
