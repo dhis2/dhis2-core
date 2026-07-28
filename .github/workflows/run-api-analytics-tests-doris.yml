@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests-doris') || (github.event_name == 'workflow_dispatch')
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Free disk space on runner (Ubuntu)
         shell: bash
@@ -70,7 +70,7 @@ jobs:
             -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Get Sierra Leone DB from cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: cache-sierra-leone-db
         with:
           path: ${{ env.SIERRA_LEONE_DB_PATH }}

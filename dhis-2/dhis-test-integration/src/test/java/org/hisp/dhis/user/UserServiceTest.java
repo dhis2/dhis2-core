@@ -351,6 +351,32 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testCreateUserDetailsResolvesManagedGroupLongIds() {
+    User user = addUser("Z");
+    UserGroup managed = createUserGroup('Y', new HashSet<>());
+    userGroupService.addUserGroup(managed);
+    UserGroup managing = createUserGroup('X', newHashSet(user));
+    managing.addManagedGroup(managed);
+    user.getGroups().add(managing);
+    userGroupService.addUserGroup(managing);
+    userService.updateUser(user);
+    idObjectManager.flush();
+
+    UserDetails details = userService.createUserDetails(user);
+
+    assertContainsOnly(Set.of(managed.getId()), details.getManagedGroupLongIds());
+  }
+
+  @Test
+  void testCreateUserDetailsWithNoGroupsReturnsEmptyManagedGroupLongIds() {
+    User user = addUser("W");
+
+    UserDetails details = userService.createUserDetails(user);
+
+    assertIsEmpty(details.getManagedGroupLongIds());
+  }
+
+  @Test
   void testManagedGroups() {
     settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
     settingsService.clearCurrentSettings();
