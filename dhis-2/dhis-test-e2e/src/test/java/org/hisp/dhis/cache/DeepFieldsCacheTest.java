@@ -74,6 +74,13 @@ class DeepFieldsCacheTest extends CacheApiTest {
   }
 
   @Test
+  void deepFieldsOnMeBypassesEtagCaching() {
+    CacheProbeUser.SUPERUSER.login(loginActions);
+    CacheAssertions.assertNoAutomaticCacheHeaders(
+        probe.get("/me?fields=organisationUnits[dataSets[name]]"));
+  }
+
+  @Test
   void shallowFieldsRequestKeepsEtagCaching() {
     CacheProbeUser.SUPERUSER.login(loginActions);
     CacheProbe.CacheResponse initialResponse = probe.get(SHALLOW_FIELDS_PATH);

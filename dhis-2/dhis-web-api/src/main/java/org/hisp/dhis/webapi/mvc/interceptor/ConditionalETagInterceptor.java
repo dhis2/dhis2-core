@@ -59,6 +59,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
@@ -189,6 +190,15 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
               "loginConfig",
               Set.of(SystemSetting.class, DatastoreEntry.class, Configuration.class)),
           Map.entry("dataStore/**", Set.of(DatastoreEntry.class)));
+
+  /**
+   * Composite endpoints whose response body is a single entity shape, giving the deep-fields hop
+   * gate an honest schema root to walk from. Endpoints absent here stay ungated: their responses
+   * have no single walkable root (settings maps, mixed dimension items) or their {@code fields=}
+   * selects JSON members rather than schema properties (datastore).
+   */
+  private static final Map<String, Class<?>> COMPOSITE_ENDPOINT_FIELDS_ROOTS =
+      Map.of("me", User.class);
 
   /**
    * Named-key endpoints whose data is not tied to a single JPA entity type. These depend on a mix
@@ -356,11 +366,16 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     }
 
     // Check composite endpoint map (non-CRUD endpoints with multi-type dependencies)
-    Set<Class<?>> compositeTypes =
-        resolveCompositeEndpointTypes(apiRelativePath, COMPOSITE_PATH_PATTERNS);
-    if (!compositeTypes.isEmpty()) {
+    CompositeEndpointPattern compositeMatch =
+        resolveCompositeEndpointPattern(apiRelativePath, COMPOSITE_PATH_PATTERNS);
+    if (compositeMatch != null) {
+      if (compositeMatch.fieldsRoot() != null
+          && isDeepFieldsRequest(request, compositeMatch.fieldsRoot())) {
+        if (cacheSkipDeepFields != null) cacheSkipDeepFields.increment();
+        return true; // controller runs; no ETag stored, no 304 path: always fresh
+      }
       if (endpointComposite != null) endpointComposite.increment();
-      return handleConditionalRequest(request, response, userDetails, compositeTypes);
+      return handleConditionalRequest(request, response, userDetails, compositeMatch.types());
     }
 
     String resourceName = extractResourceNameFromApiRelativePath(apiRelativePath);
@@ -401,6 +416,15 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       return false; // no resolvable root schema: keep status-quo caching behavior
     }
     return fieldsHopAnalyzer.analyze(schema.getKlass(), fields) == FieldsHopAnalyzer.Verdict.DEEP;
+  }
+
+  /** Variant for endpoints with a designated schema root (composite endpoints such as /me). */
+  private boolean isDeepFieldsRequest(HttpServletRequest request, Class<?> rootType) {
+    String fields = request.getParameter("fields");
+    if (fields == null || fields.isBlank()) {
+      return false;
+    }
+    return fieldsHopAnalyzer.analyze(rootType, fields) == FieldsHopAnalyzer.Verdict.DEEP;
   }
 
   /**
@@ -648,19 +672,27 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
   private static Set<Class<?>> resolveCompositeEndpointTypes(
       String apiRelativePath, List<CompositeEndpointPattern> compositeEndpointPatterns) {
+    CompositeEndpointPattern match =
+        resolveCompositeEndpointPattern(apiRelativePath, compositeEndpointPatterns);
+    return match == null ? Set.of() : match.types();
+  }
+
+  @CheckForNull
+  private static CompositeEndpointPattern resolveCompositeEndpointPattern(
+      String apiRelativePath, List<CompositeEndpointPattern> compositeEndpointPatterns) {
     if (apiRelativePath == null) {
-      return Set.of();
+      return null;
     }
 
     PathContainer pathContainer = PathContainer.parsePath(PATH_SEPARATOR + apiRelativePath);
 
     for (CompositeEndpointPattern compositeEndpointPattern : compositeEndpointPatterns) {
       if (compositeEndpointPattern.pathPattern().matches(pathContainer)) {
-        return compositeEndpointPattern.types();
+        return compositeEndpointPattern;
       }
     }
 
-    return Set.of();
+    return null;
   }
 
   private static boolean matchesAny(String apiRelativePath, List<PathPattern> patterns) {
@@ -693,7 +725,8 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
               return new CompositeEndpointPattern(
                   normalizedPattern,
                   PATH_PATTERN_PARSER.parse("/" + normalizedPattern),
-                  entry.getValue());
+                  entry.getValue(),
+                  COMPOSITE_ENDPOINT_FIELDS_ROOTS.get(entry.getKey()));
             })
         .sorted(
             Comparator.comparing(
@@ -753,7 +786,10 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   }
 
   private record CompositeEndpointPattern(
-      String pattern, PathPattern pathPattern, Set<Class<?>> types) {}
+      String pattern,
+      PathPattern pathPattern,
+      Set<Class<?>> types,
+      @CheckForNull Class<?> fieldsRoot) {}
 
   record NamedEndpointDeps(Set<Class<?>> entityTypes, Set<String> namedKeys) {}
 

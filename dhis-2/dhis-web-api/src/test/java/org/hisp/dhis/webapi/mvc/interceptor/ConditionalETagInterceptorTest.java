@@ -845,6 +845,69 @@ class ConditionalETagInterceptorTest {
     assertNotNull(ConditionalETagInterceptor.getStoredETag(request));
   }
 
+  @Test
+  void testDeepFieldsOnMeBypassesETagCaching() {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/me");
+    request.setRequestURI("/api/me");
+    request.addParameter("fields", "organisationUnits[dataSets[name]]"); // two reference hops
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+    stubHopAnalyzerSchemas();
+
+    boolean result = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(result);
+    verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Class.class));
+    verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Set.class));
+    assertNull(ConditionalETagInterceptor.getStoredETag(request));
+  }
+
+  @Test
+  void testShallowFieldsOnMeKeepsETagCaching() {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/me");
+    request.setRequestURI("/api/me");
+    request.addParameter("fields", "id,name,userGroups[name]"); // one reference hop
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+    stubHopAnalyzerSchemas();
+    when(conditionalETagService.generateETag(eq(userDetails), any(Set.class)))
+        .thenReturn("etag-me");
+    when(conditionalETagService.checkNotModified(eq(request), anyString())).thenReturn(false);
+
+    boolean result = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(result);
+    assertNotNull(ConditionalETagInterceptor.getStoredETag(request));
+  }
+
+  @Test
+  void testDeepFieldsOnRootlessCompositeStaysCached() {
+    setUpSecurityContext();
+
+    // dimensions has no designated fields root: the gate must not engage even for deep-looking
+    // fields expressions; the endpoint keeps its hand-curated dependency-set caching
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dimensions");
+    request.setRequestURI("/api/dimensions");
+    request.addParameter("fields", "items[options[name]]");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+    when(conditionalETagService.generateETag(eq(userDetails), any(Set.class)))
+        .thenReturn("etag-dimensions");
+    when(conditionalETagService.checkNotModified(eq(request), anyString())).thenReturn(false);
+
+    boolean result = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(result);
+    assertNotNull(ConditionalETagInterceptor.getStoredETag(request));
+  }
+
   /**
    * Real (non-mock) schemas for the hop-analyzer walk: {@code User.userGroups -> UserGroup} and
    * {@code UserGroup.members -> User}, so {@code userGroups[members[name]]} is two hops while
@@ -861,9 +924,18 @@ class ConditionalETagInterceptorTest {
     userGroup.addProperty(analyzerScalar("name"));
     userGroup.addProperty(analyzerCollectionRef("members", User.class));
 
+    user.addProperty(analyzerCollectionRef("organisationUnits", OrganisationUnit.class));
+    Schema organisationUnit =
+        new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+    organisationUnit.addProperty(analyzerScalar("id"));
+    organisationUnit.addProperty(analyzerScalar("name"));
+    organisationUnit.addProperty(
+        analyzerCollectionRef("dataSets", org.hisp.dhis.dataset.DataSet.class));
+
     lenient().when(schemaService.getSchemaByPluralName("users")).thenReturn(user);
     lenient().when(schemaService.getSchema(User.class)).thenReturn(user);
     lenient().when(schemaService.getSchema(UserGroup.class)).thenReturn(userGroup);
+    lenient().when(schemaService.getSchema(OrganisationUnit.class)).thenReturn(organisationUnit);
   }
 
   private static Property analyzerScalar(String name) {
