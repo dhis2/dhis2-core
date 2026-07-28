@@ -29,17 +29,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.UserDetails;
 
-/**
- * CRUD related operations that only some object types support.
- *
- * @param <T> type of the controller object
- */
-public interface CrudOperationsSupport<T extends IdentifiableObject> {
+/** CRUD related operations that only some object types support. */
+public interface CrudOperationsSupport {
 
   boolean setAsFavorite(UID id, UserDetails user) throws NotFoundException;
 

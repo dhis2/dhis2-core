@@ -117,7 +117,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
 public abstract class AbstractCrudController<
         T extends IdentifiableObject, P extends GetObjectListParams>
-    extends AbstractFullReadOnlyController<T, P> implements CrudOperationsSupport<T> {
+    extends AbstractFullReadOnlyController<T, P> implements CrudOperationsSupport {
   @Autowired protected SchemaValidator schemaValidator;
 
   @Autowired protected RenderService renderService;

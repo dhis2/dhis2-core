@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import org.hisp.dhis.common.FavoritableObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
@@ -45,8 +44,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /** Endpoints that can be added for types support {@link FavoritableObject} API */
-public interface FavoritableOperations<T extends IdentifiableObject & FavoritableObject>
-    extends CrudOperationsSupport<T> {
+public interface FavoritableOperations<T extends FavoritableObject> extends CrudOperationsSupport {
 
   @PostMapping(value = "/{uid}/favorite")
   @ResponseBody
