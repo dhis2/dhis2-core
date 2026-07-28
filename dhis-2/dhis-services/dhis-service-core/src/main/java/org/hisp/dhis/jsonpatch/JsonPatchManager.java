@@ -36,12 +36,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.Collection;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -144,7 +144,6 @@ public class JsonPatchManager {
     return (T)
         jsonToObject(node, realClass, jsonMapper, ex -> new JsonPatchException(ex.getMessage()));
   }
-
 
   /**
    * Collect JSON field names that are safe to omit during patch serialization.
