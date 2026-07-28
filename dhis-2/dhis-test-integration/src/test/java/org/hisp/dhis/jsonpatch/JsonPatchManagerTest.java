@@ -28,19 +28,15 @@
 package org.hisp.dhis.jsonpatch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import java.util.Set;
-import org.hibernate.Hibernate;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.junit.jupiter.api.DisplayName;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Set;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
@@ -49,16 +45,20 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen
  */
-class JsonPatchManagerTest extends IntegrationTestBase {
+class JsonPatchManagerTest extends TransactionalIntegrationTest {
 
   private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 

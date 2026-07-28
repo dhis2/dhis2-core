@@ -4,16 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
+ * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
- * may be used to endorse or promote products derived from this software without
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,12 +30,12 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
