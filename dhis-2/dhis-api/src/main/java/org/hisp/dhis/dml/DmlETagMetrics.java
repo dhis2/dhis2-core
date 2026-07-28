@@ -130,6 +130,13 @@ public final class DmlETagMetrics {
   public static final String RESULT_HIT = "hit";
   public static final String RESULT_MISS = "miss";
   public static final String RESULT_SKIP = "skip";
+
+  /**
+   * Request bypassed ETag caching because its {@code fields=} expression traverses more than one
+   * reference hop (see {@code FieldsHopAnalyzer}); served always-fresh instead of bounded-stale.
+   */
+  public static final String RESULT_SKIP_DEEP_FIELDS = "skip_deep_fields";
+
   public static final String ENDPOINT_COMPOSITE = "composite";
   public static final String ENDPOINT_METADATA = "metadata";
   public static final String ENDPOINT_NAMED_KEY = "named_key";

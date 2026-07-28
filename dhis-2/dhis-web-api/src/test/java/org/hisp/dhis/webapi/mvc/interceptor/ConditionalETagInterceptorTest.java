@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -54,6 +55,8 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
@@ -62,6 +65,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
+import org.hisp.dhis.webapi.etag.FieldsHopAnalyzer;
 import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,7 +95,13 @@ class ConditionalETagInterceptorTest {
 
   @BeforeEach
   void setUp() {
-    interceptor = new ConditionalETagInterceptor(conditionalETagService, schemaService, null, null);
+    interceptor =
+        new ConditionalETagInterceptor(
+            conditionalETagService,
+            schemaService,
+            new FieldsHopAnalyzer(schemaService),
+            null,
+            null);
 
     userDetails = mock(UserDetails.class);
     lenient().when(userDetails.getUid()).thenReturn("userUid123");
@@ -776,6 +786,101 @@ class ConditionalETagInterceptorTest {
     SecurityContextHolder.getContext()
         .setAuthentication(
             new UsernamePasswordAuthenticationToken(userDetails, null, java.util.List.of()));
+  }
+
+  // ========== Deep-Fields Hop Gate Tests ==========
+
+  @Test
+  void testDeepFieldsRequestBypassesETagCaching() {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/users");
+    request.setRequestURI("/api/users");
+    request.addParameter("fields", "userGroups[members[name]]"); // two reference hops
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+    List<Schema> metadataSchemas =
+        List.of(
+            metadataSchema(
+                "users", User.class, Set.of(UserRole.class, UserGroup.class), true, false, false));
+    when(schemaService.getMetadataSchemas()).thenReturn(metadataSchemas);
+    stubHopAnalyzerSchemas();
+
+    boolean result = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(result);
+    verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Class.class));
+    verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Set.class));
+    assertNull(ConditionalETagInterceptor.getStoredETag(request));
+  }
+
+  @Test
+  void testShallowFieldsRequestKeepsETagCaching() {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/users");
+    request.setRequestURI("/api/users");
+    request.addParameter("fields", "id,name,userGroups[name]"); // one reference hop
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+    List<Schema> metadataSchemas =
+        List.of(
+            metadataSchema(
+                "users", User.class, Set.of(UserRole.class, UserGroup.class), true, false, false));
+    when(schemaService.getMetadataSchemas()).thenReturn(metadataSchemas);
+    stubHopAnalyzerSchemas();
+
+    Set<Class<?>> expectedTypes =
+        ConditionalETagInterceptor.resolveMetadataEndpointTypes(
+            "users", ConditionalETagInterceptor.buildMetadataEndpointTypes(metadataSchemas));
+    String etag = "userUid123-c-42-7";
+    when(conditionalETagService.generateETag(userDetails, expectedTypes)).thenReturn(etag);
+    when(conditionalETagService.checkNotModified(eq(request), anyString())).thenReturn(false);
+
+    boolean result = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(result);
+    assertNotNull(ConditionalETagInterceptor.getStoredETag(request));
+  }
+
+  /**
+   * Real (non-mock) schemas for the hop-analyzer walk: {@code User.userGroups -> UserGroup} and
+   * {@code UserGroup.members -> User}, so {@code userGroups[members[name]]} is two hops while
+   * {@code userGroups[name]} is one.
+   */
+  private void stubHopAnalyzerSchemas() {
+    Schema user = new Schema(User.class, "user", "users");
+    user.addProperty(analyzerScalar("id"));
+    user.addProperty(analyzerScalar("name"));
+    user.addProperty(analyzerCollectionRef("userGroups", UserGroup.class));
+
+    Schema userGroup = new Schema(UserGroup.class, "userGroup", "userGroups");
+    userGroup.addProperty(analyzerScalar("id"));
+    userGroup.addProperty(analyzerScalar("name"));
+    userGroup.addProperty(analyzerCollectionRef("members", User.class));
+
+    lenient().when(schemaService.getSchemaByPluralName("users")).thenReturn(user);
+    lenient().when(schemaService.getSchema(User.class)).thenReturn(user);
+    lenient().when(schemaService.getSchema(UserGroup.class)).thenReturn(userGroup);
+  }
+
+  private static Property analyzerScalar(String name) {
+    Property p = new Property(String.class);
+    p.setName(name);
+    p.setPropertyType(PropertyType.TEXT);
+    return p;
+  }
+
+  private static Property analyzerCollectionRef(String name, Class<?> itemKlass) {
+    Property p = new Property(java.util.List.class);
+    p.setName(name);
+    p.setCollection(true);
+    p.setItemKlass(itemKlass);
+    p.setItemPropertyType(PropertyType.REFERENCE);
+    p.setPropertyType(PropertyType.COLLECTION);
+    return p;
   }
 
   // ========== Named-Key Endpoint Tests ==========

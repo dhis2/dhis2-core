@@ -37,6 +37,7 @@ import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_CACHE_REQUESTS;
 import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_HIT;
 import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_MISS;
 import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_SKIP;
+import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_SKIP_DEEP_FIELDS;
 import static org.hisp.dhis.dml.DmlETagMetrics.TAG_ENDPOINT_TYPE;
 import static org.hisp.dhis.dml.DmlETagMetrics.TAG_RESULT;
 
@@ -87,6 +88,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
+import org.hisp.dhis.webapi.etag.FieldsHopAnalyzer;
 import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.PathContainer;
@@ -223,11 +225,13 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
   private final ConditionalETagService conditionalETagService;
   private final SchemaService schemaService;
+  private final FieldsHopAnalyzer fieldsHopAnalyzer;
 
   // Metrics counters
   private final Counter cacheHit;
   private final Counter cacheMiss;
   private final Counter cacheSkip;
+  private final Counter cacheSkipDeepFields;
   private final Counter endpointComposite;
   private final Counter endpointMetadata;
   private final Counter endpointNamedKey;
@@ -236,10 +240,12 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   public ConditionalETagInterceptor(
       ConditionalETagService conditionalETagService,
       SchemaService schemaService,
+      FieldsHopAnalyzer fieldsHopAnalyzer,
       @Autowired(required = false) MeterRegistry meterRegistry,
       @Autowired(required = false) DhisConfigurationProvider config) {
     this.conditionalETagService = conditionalETagService;
     this.schemaService = schemaService;
+    this.fieldsHopAnalyzer = fieldsHopAnalyzer;
     MeterRegistry effectiveRegistry =
         config != null && config.isEnabled(ConfigurationKey.MONITORING_CACHE_ETAG_ENABLED)
             ? meterRegistry
@@ -258,6 +264,10 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
           Counter.builder(ETAG_CACHE_REQUESTS)
               .tag(TAG_RESULT, RESULT_SKIP)
               .register(effectiveRegistry);
+      cacheSkipDeepFields =
+          Counter.builder(ETAG_CACHE_REQUESTS)
+              .tag(TAG_RESULT, RESULT_SKIP_DEEP_FIELDS)
+              .register(effectiveRegistry);
       endpointComposite =
           Counter.builder(ETAG_CACHE_ENDPOINT_TYPE)
               .tag(TAG_ENDPOINT_TYPE, ENDPOINT_COMPOSITE)
@@ -274,6 +284,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       cacheHit = null;
       cacheMiss = null;
       cacheSkip = null;
+      cacheSkipDeepFields = null;
       endpointComposite = null;
       endpointMetadata = null;
       endpointNamedKey = null;
@@ -365,8 +376,31 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       return true;
     }
 
+    if (isDeepFieldsRequest(request, resourceName)) {
+      if (cacheSkipDeepFields != null) cacheSkipDeepFields.increment();
+      return true; // controller runs; no ETag stored, no 304 path: always fresh
+    }
+
     if (endpointMetadata != null) endpointMetadata.increment();
     return handleConditionalRequest(request, response, userDetails, metadataTypes);
+  }
+
+  /**
+   * Returns whether this request's {@code fields=} expression traverses more than one reference hop
+   * and must therefore bypass the ETag cache (the dependency set only covers direct references;
+   * deeper data would be served bounded-stale). Applies to schema-derived metadata endpoints only;
+   * composite and named-key endpoints keep their hand-curated dependency sets.
+   */
+  private boolean isDeepFieldsRequest(HttpServletRequest request, String resourceName) {
+    String fields = request.getParameter("fields");
+    if (fields == null || fields.isBlank()) {
+      return false;
+    }
+    Schema schema = schemaService.getSchemaByPluralName(resourceName);
+    if (schema == null) {
+      return false; // no resolvable root schema: keep status-quo caching behavior
+    }
+    return fieldsHopAnalyzer.analyze(schema.getKlass(), fields) == FieldsHopAnalyzer.Verdict.DEEP;
   }
 
   /**

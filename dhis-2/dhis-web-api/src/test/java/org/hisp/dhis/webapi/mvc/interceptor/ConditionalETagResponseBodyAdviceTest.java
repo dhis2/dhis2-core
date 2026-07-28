@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webapi.etag.FieldsHopAnalyzer;
 import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +88,12 @@ class ConditionalETagResponseBodyAdviceTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
             .addInterceptors(
-                new ConditionalETagInterceptor(conditionalETagService, schemaService, null, null))
+                new ConditionalETagInterceptor(
+                    conditionalETagService,
+                    schemaService,
+                    new FieldsHopAnalyzer(schemaService),
+                    null,
+                    null))
             .setControllerAdvice(new ConditionalETagResponseBodyAdvice(conditionalETagService))
             .build();
   }
