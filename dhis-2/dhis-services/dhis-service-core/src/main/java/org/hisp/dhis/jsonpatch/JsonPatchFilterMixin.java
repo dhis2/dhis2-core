@@ -27,16 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.jsonpatch;
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.hibernate.EnumUserType;
+import com.fasterxml.jackson.annotation.JsonFilter;
 
 /**
- * @author Chau Thu Tran
+ * Bound per patched entity type ({@code realClass}), not {@code Object.class} -- see {@link
+ * JsonPatchManager}'s {@code patchMapperCache} field for why a global binding is wrong: {@code
+ * JsonPatchExcludedPropertyFilter} matches by property name only, so binding this mixin to {@code
+ * Object.class} would apply the exclusion filter to every nested object in the graph too (e.g.
+ * {@code org.hisp.dhis.user.sharing.Sharing.users}, which collides by name with {@code
+ * UserRole.users}) and silently strip unrelated data. {@code JsonPatchManager} builds one
+ * mixin-bound {@code ObjectMapper} copy per distinct {@code realClass}, lazily, and caches it.
+ *
+ * <p>Solves the same underlying problem as {@code org.hisp.dhis.fieldfiltering.FieldFilterMixin}
+ * (skip a getter during Jackson serialization based on per-call criteria, without invoking it) for
+ * the {@code ?fields=} GET path -- but that mixin's filter is path-aware, which is what makes its
+ * own {@code Object.class}-wide binding safe; this one is not, so it must stay scoped per-class.
+ *
+ * @author Jason Pickering
  */
-public class EventStatusUserType extends EnumUserType<EventStatus> {
-  public EventStatusUserType() {
-    super(EventStatus.class);
-  }
-}
+@JsonFilter(JsonPatchExcludedPropertyFilter.ID)
+interface JsonPatchFilterMixin {}

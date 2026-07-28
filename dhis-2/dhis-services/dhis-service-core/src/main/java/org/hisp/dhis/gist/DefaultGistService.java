@@ -48,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -121,7 +122,7 @@ public class DefaultGistService implements GistService {
     RelativePropertyContext context = createPropertyContext(query);
     List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
     for (Fields.Field f : query.getFields()) {
-      String path = f.path();
+      PropertyPath path = f.path();
       if (f.isAttribute()) {
         ObjectOutput.Type type =
             f.isAttributeAsJson()
@@ -131,7 +132,9 @@ public class DefaultGistService implements GistService {
       } else if (f.isRefs()) {
         res.add(
             new ObjectOutput.Property(
-                "apiEndpoints", new ObjectOutput.Type(Map.class, String.class), false));
+                PropertyPath.of("apiEndpoints"),
+                new ObjectOutput.Type(Map.class, String.class),
+                false));
       } else {
         Property p = context.resolveMandatory(f.propertyPath());
         ObjectOutput.Type type =

@@ -30,11 +30,15 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Properties;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImpersonateUserResponse;
@@ -208,5 +212,52 @@ class ImpersonateUserControllerTest extends H2ControllerIntegrationTestBase {
         response.getMessage());
     assertEquals("Forbidden", response.getHttpStatus());
     assertEquals("ERROR", response.getStatus());
+  }
+
+  /**
+   * PIN: the {@code /api/me} {@code impersonation} field carries the impersonator USERNAME (from
+   * {@code Authentication#getName()}), never the display name. Frontends match it against the
+   * username; PR #24124 accidentally changed it to first+surname which this test would catch.
+   */
+  @Test
+  void testMeImpersonationFieldsDuringAndAfterImpersonation() {
+    User impersonator = createUserWithAuth("impuser", "F_IMPERSONATE_USER");
+    createUserWithAuth("target", "NONE");
+    injectSecurityContextUser(impersonator);
+
+    POST("/auth/impersonate?username=target").content(HttpStatus.OK);
+
+    JsonObject during =
+        GET("/me?fields=username,impersonation,canImpersonate").content(HttpStatus.OK);
+    assertEquals("target", during.getString("username").string());
+    assertEquals("impuser", during.getString("impersonation").string());
+    assertNotEquals(impersonator.getName(), during.getString("impersonation").string());
+    // the impersonated user itself holds no impersonation authority
+    assertFalse(during.get("canImpersonate").exists());
+
+    POST("/auth/impersonateExit").content(HttpStatus.OK);
+
+    JsonObject after =
+        GET("/me?fields=username,impersonation,canImpersonate").content(HttpStatus.OK);
+    assertEquals("impuser", after.getString("username").string());
+    assertFalse(after.get("impersonation").exists());
+    assertTrue(after.getBoolean("canImpersonate").booleanValue());
+  }
+
+  @Test
+  void testMeCanImpersonateForAdminWhenFeatureEnabled() {
+    JsonObject me = GET("/me?fields=canImpersonate,impersonation").content(HttpStatus.OK);
+    assertTrue(me.getBoolean("canImpersonate").booleanValue());
+    assertFalse(me.get("impersonation").exists());
+  }
+
+  @Test
+  void testMeCanImpersonateAbsentWithoutAuthority() {
+    User guest = createUserWithAuth("guestimp", "NONE");
+    injectSecurityContextUser(guest);
+
+    JsonObject me = GET("/me?fields=canImpersonate,impersonation").content(HttpStatus.OK);
+    assertFalse(me.get("canImpersonate").exists());
+    assertFalse(me.get("impersonation").exists());
   }
 }

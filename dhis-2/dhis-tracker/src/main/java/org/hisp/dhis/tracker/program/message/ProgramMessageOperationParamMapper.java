@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.program.message;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -104,7 +103,7 @@ public class ProgramMessageOperationParamMapper {
                         Enrollment.class.getSimpleName(), enrollment.getValue())));
   }
 
-  private <T extends BaseIdentifiableObject> Optional<T> findEntity(UID entity, Class<T> klass) {
+  private <T extends IdentifiableObject> Optional<T> findEntity(UID entity, Class<T> klass) {
     if (entity == null) {
       return Optional.empty();
     }

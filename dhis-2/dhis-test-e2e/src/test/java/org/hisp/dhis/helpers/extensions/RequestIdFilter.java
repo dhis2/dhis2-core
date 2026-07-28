@@ -27,50 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.vote;
+package org.hisp.dhis.helpers.extensions;
 
-import java.util.Collection;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import io.restassured.filter.Filter;
+import io.restassured.filter.FilterContext;
+import io.restassured.response.Response;
+import io.restassured.specification.FilterableRequestSpecification;
+import io.restassured.specification.FilterableResponseSpecification;
 
 /**
- * RoleVoter which requires all org.springframework.security.ConfigAttributes to be granted
- * authorities, given that the ConfigAttributes have the specified prefix ("ROLE_" by default). If
- * there are no supported ConfigAttributes it abstains from voting.
+ * Adds an {@code X-Request-ID} header carrying the current test's identifier (see {@link
+ * RequestIdExtension}) to every REST-assured request, so server-side SQL can be attributed back to
+ * the triggering test. Registered once in the shared request specification, so no individual test
+ * needs to change.
  *
- * @see org.springframework.security.access.vote.RoleVoter
- * @author Torgeir Lorange Ostby
+ * <p>No-op when there is no current test id (e.g. suite setup / teardown traffic) or when the
+ * caller already set the header explicitly.
  */
-public class AllRequiredRoleVoter extends RoleVoter {
+public class RequestIdFilter implements Filter {
+  public static final String HEADER = "X-Request-ID";
+
   @Override
-  public int vote(
-      Authentication authentication, Object object, Collection<ConfigAttribute> attributes) {
-    int supported = 0;
-
-    for (ConfigAttribute attribute : attributes) {
-      if (this.supports(attribute)) {
-        ++supported;
-        boolean found = false;
-
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-          if (attribute.getAttribute().equals(authority.getAuthority())) {
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          return ACCESS_DENIED;
-        }
-      }
+  public Response filter(
+      FilterableRequestSpecification requestSpec,
+      FilterableResponseSpecification responseSpec,
+      FilterContext ctx) {
+    String requestId = RequestIdExtension.currentRequestId();
+    if (requestId != null
+        && !requestId.isEmpty()
+        && !requestSpec.getHeaders().hasHeaderWithName(HEADER)) {
+      requestSpec.header(HEADER, requestId);
     }
-
-    if (supported > 0) {
-      return ACCESS_GRANTED;
-    }
-
-    return ACCESS_ABSTAIN;
+    return ctx.next(requestSpec, responseSpec);
   }
 }

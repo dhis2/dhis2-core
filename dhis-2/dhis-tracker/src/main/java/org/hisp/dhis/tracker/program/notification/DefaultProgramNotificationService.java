@@ -689,6 +689,9 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       } else if (template.getDeliveryChannels().contains(DeliveryChannel.EMAIL)) {
         recipients.getEmailAddresses().addAll(recipientList);
       }
+    } else if (template.getNotificationRecipient()
+        == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT) {
+      recipients.setOrganisationUnit(event.getOrganisationUnit());
     }
     return recipients;
   }
