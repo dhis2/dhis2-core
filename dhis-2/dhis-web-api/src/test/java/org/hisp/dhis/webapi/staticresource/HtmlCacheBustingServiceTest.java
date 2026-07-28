@@ -412,6 +412,27 @@ class HtmlCacheBustingServiceTest {
   }
 
   @Test
+  @DisplayName("Rewrites PWA icon links that resemble hashed filenames")
+  void rewritesPwaIconLinks() throws IOException {
+    String html =
+        "<html><head>"
+            + "<link href=\"apple-touch-icon.png\" rel=\"apple-touch-icon\">"
+            + "<link href=\"safari-pinned-tab.svg\" rel=\"mask-icon\">"
+            + "<link href=\"mstile-150x150.png\" rel=\"icon\">"
+            + "<script src=\"assets/main-Dhu2pmiS.js\"></script>"
+            + "</head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("href=\"apple-touch-icon.png?v=abc123\""));
+    assertThat(result, containsString("href=\"safari-pinned-tab.svg?v=abc123\""));
+    assertThat(result, containsString("href=\"mstile-150x150.png?v=abc123\""));
+    assertThat(result, containsString("src=\"assets/main-Dhu2pmiS.js\""));
+    assertThat(result, not(containsString("main-Dhu2pmiS.js?v=")));
+  }
+
+  @Test
   @DisplayName("invalidateAll clears the cache")
   void invalidateAllClearsCache() {
     service.invalidateAll();
