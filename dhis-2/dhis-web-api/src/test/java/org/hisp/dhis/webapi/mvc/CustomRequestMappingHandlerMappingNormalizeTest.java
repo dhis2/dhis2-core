@@ -99,6 +99,24 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
         new AnalyticsStyleController(),
         queryXml);
 
+    Method queryXlsx = AnalyticsStyleController.class.getMethod("queryXlsx", String.class);
+    mapping.registerMapping(
+        mapping.getMappingForMethod(queryXlsx, AnalyticsStyleController.class),
+        new AnalyticsStyleController(),
+        queryXlsx);
+
+    Method aggregateJson = AnalyticsStyleController.class.getMethod("aggregateJson");
+    mapping.registerMapping(
+        mapping.getMappingForMethod(aggregateJson, AnalyticsStyleController.class),
+        new AnalyticsStyleController(),
+        aggregateJson);
+
+    Method aggregateXlsx = AnalyticsStyleController.class.getMethod("aggregateXlsx");
+    mapping.registerMapping(
+        mapping.getMappingForMethod(aggregateXlsx, AnalyticsStyleController.class),
+        new AnalyticsStyleController(),
+        aggregateXlsx);
+
     Method onlyJson = AnalyticsStyleController.class.getMethod("onlyJson", String.class);
     mapping.registerMapping(
         mapping.getMappingForMethod(onlyJson, AnalyticsStyleController.class),
@@ -135,6 +153,43 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
         MediaType.APPLICATION_XML,
         request.getAttribute(
             SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE));
+  }
+
+  /**
+   * Follow-up to #24479: RestAssured-style {@code basePath("analytics.xlsx") + get("")} produces
+   * {@code /api/analytics.xlsx/}. Fully stripping both slash and extension hits the JSON produces
+   * handler (406); the literal download map must still win via a slash-only retry.
+   */
+  @Test
+  void literalDownloadMappingWinsWithTrailingSlashAfterExtension() throws Exception {
+    MockHttpServletRequest request =
+        request("/api/analytics/trackedEntities/query/nEenWmSyUEp.xml/");
+    HandlerMethod handler = mapping.getHandlerInternal(request);
+    assertNotNull(handler);
+    assertEquals("queryXml", handler.getMethod().getName());
+    assertEquals(
+        MediaType.APPLICATION_XML,
+        request.getAttribute(
+            SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE));
+  }
+
+  @Test
+  void aggregateLiteralXlsxDownloadWinsWithTrailingSlash() throws Exception {
+    MockHttpServletRequest request = request("/api/analytics.xlsx/");
+    HandlerMethod handler = mapping.getHandlerInternal(request);
+    assertNotNull(handler);
+    assertEquals("aggregateXlsx", handler.getMethod().getName());
+    assertEquals(
+        MediaType.parseMediaType("application/vnd.ms-excel"),
+        request.getAttribute(
+            SuffixMediaTypeContentNegotiationStrategy.SUFFIX_MEDIA_TYPE_ATTRIBUTE));
+  }
+
+  @Test
+  void rethrowsNotAcceptableWhenTrailingSlashAndNoLiteralFallback() {
+    MockHttpServletRequest request = request("/api/analytics/only-json/nEenWmSyUEp.xml/");
+    assertThrows(
+        HttpMediaTypeNotAcceptableException.class, () -> mapping.getHandlerInternal(request));
   }
 
   @Test
@@ -259,6 +314,23 @@ class CustomRequestMappingHandlerMappingNormalizeTest {
     @GetMapping(value = "/api/analytics/trackedEntities/query/{trackedEntityType}.xml")
     public String queryXml(String trackedEntityType) {
       return "xml";
+    }
+
+    @GetMapping(value = "/api/analytics/trackedEntities/query/{trackedEntityType}.xlsx")
+    public String queryXlsx(String trackedEntityType) {
+      return "xlsx";
+    }
+
+    @GetMapping(
+        value = "/api/analytics",
+        produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+    public String aggregateJson() {
+      return "aggregate-json";
+    }
+
+    @GetMapping(value = "/api/analytics.xlsx")
+    public String aggregateXlsx() {
+      return "aggregate-xlsx";
     }
 
     @GetMapping(

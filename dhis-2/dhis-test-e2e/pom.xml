@@ -16,7 +16,7 @@
     <junit.version>6.1.2</junit.version>
     <gson.version>2.14.0</gson.version>
     <log4j.version>2.26.1</log4j.version>
-    <rest-assured.version>5.5.6</rest-assured.version>
+    <rest-assured.version>6.0.1</rest-assured.version>
     <jackson.version.databind>2.22.1</jackson.version.databind>
     <jackson.version.annotation>2.22</jackson.version.annotation>
     <guava.version>33.6.0-jre</guava.version>
