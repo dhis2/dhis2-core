@@ -83,7 +83,7 @@ import java.util.Properties;
  * latency is independent of membership size. Thresholds are set well above that noise floor but far
  * below the pre-fix regression (large-role PATCH p95 was 17,304ms), so a reintroduced O(members)
  * hydration fails loudly while ordinary CI-runner jitter does not. Recalibrate the same way if
- * thresholds start flapping (see {@link UsersPerformanceTest} for the general workflow). On an
+ * thresholds start flapping. On an
  * unfixed server, the large-role PATCH may exceed Gatling's default 60s request timeout; raise it
  * with {@code -Dgatling.http.requestTimeout=600000}.
  *
@@ -224,7 +224,7 @@ public class UserRolesPerformanceTest extends Simulation {
   }
 
   public UserRolesPerformanceTest() {
-    // Same session strategy as UsersPerformanceTest: authenticate once per virtual user via a
+    // Authenticate once per virtual user via a
     // separately-named request so the one-time bcrypt cost stays out of the measured requests.
     HttpProtocolBuilder httpProtocol =
         http.baseUrl(BASE_URL).acceptHeader("application/json").disableCaching();
