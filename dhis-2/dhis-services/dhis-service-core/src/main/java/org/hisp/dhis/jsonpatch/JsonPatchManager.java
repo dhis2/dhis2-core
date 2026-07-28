@@ -122,7 +122,7 @@ public class JsonPatchManager {
       return null;
     }
 
-    Class realClass = HibernateProxyUtils.getRealClass(object);
+    Class<?> realClass = HibernateProxyUtils.getRealClass(object);
     Schema schema = schemaService.getSchema(realClass);
 
     Set<String> patchedPaths =
@@ -194,7 +194,7 @@ public class JsonPatchManager {
    * mixin-binding/{@code copy()} happens at most once per distinct {@code realClass}, not on every
    * patch.
    */
-  private JsonNode toJsonNode(Object object, Class realClass, Set<String> excluded) {
+  private JsonNode toJsonNode(Object object, Class<?> realClass, Set<String> excluded) {
     if (excluded.isEmpty()) {
       return jsonMapper.valueToTree(object);
     }
@@ -213,21 +213,16 @@ public class JsonPatchManager {
   private <T> void handleCollectionUpdates(
       T object, Schema schema, ObjectNode node, Set<String> excluded) {
     for (Property property : schema.getProperties()) {
+      // Skip non-collections and excluded lazy collections before invoke so they stay
+      // uninitialized.
+      if (!property.isCollection() || excluded.contains(property.getCollectionName())) {
+        continue;
+      }
 
-      if (property.isCollection()) {
-        // Skip before invoke so excluded lazy collections stay uninitialized.
-        if (excluded.contains(property.getCollectionName())) {
-          continue;
-        }
+      Object data = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Collection<?> collection = (Collection<?>) data;
 
-        Object data = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
-
-        Collection<?> collection = (Collection<?>) data;
-
-        if (CollectionUtils.isEmpty(collection)) {
-          continue;
-        }
-
+      if (!CollectionUtils.isEmpty(collection)) {
         if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())
             && !EmbeddedObject.class.isAssignableFrom(property.getItemKlass())) {
           ArrayNode arrayNode = jsonMapper.createArrayNode();
