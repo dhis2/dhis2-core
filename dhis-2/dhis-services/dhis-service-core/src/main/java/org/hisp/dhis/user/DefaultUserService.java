@@ -73,6 +73,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -957,6 +958,10 @@ public class DefaultUserService implements UserService {
             : user.getGroups().stream().map(UserGroup::getId).collect(Collectors.toSet());
     Set<Long> managedGroupLongIds = userGroupService.getManagedGroupIds(userGroupPrimaryKeys);
 
+    // Batch-load role authorities/restrictions (DHIS2-21909) without mutating UserRole entities.
+    Set<String> roleAuthorities = resolveRoleAuthorities(user);
+    Set<String> roleRestrictions = resolveRoleRestrictions(user);
+
     return UserDetails.createUserDetails(
         user,
         accountNonLocked,
@@ -965,7 +970,65 @@ public class DefaultUserService implements UserService {
         new HashSet<>(searchOrganisationUnitsUidsByUser),
         new HashSet<>(dataViewOrganisationUnitsUidsByUser),
         true,
-        managedGroupLongIds);
+        managedGroupLongIds,
+        roleAuthorities,
+        roleRestrictions);
+  }
+
+  /**
+   * Collects the user's role authorities, batch-loading only roles whose authorities collection is
+   * still lazy. Transient roles and already-initialised collections keep their in-memory values so
+   * unflushed inserts (admin bootstrap) are not lost to a separate JDBC connection.
+   */
+  private Set<String> resolveRoleAuthorities(User user) {
+    Set<UserRole> roles = user.getUserRoles();
+    if (roles == null || roles.isEmpty()) {
+      return Set.of();
+    }
+    Set<String> result = new HashSet<>();
+    Set<Long> batchIds = new HashSet<>();
+    for (UserRole role : roles) {
+      if (role == null) {
+        continue;
+      }
+      if (role.getId() <= 0 || Hibernate.isInitialized(role.getAuthorities())) {
+        if (role.getAuthorities() != null) {
+          result.addAll(role.getAuthorities());
+        }
+      } else {
+        batchIds.add(role.getId());
+      }
+    }
+    if (!batchIds.isEmpty()) {
+      userRoleStore.getAuthoritiesByUserRoleIds(batchIds).values().forEach(result::addAll);
+    }
+    return result;
+  }
+
+  /** Same batching strategy as {@link #resolveRoleAuthorities(User)} for role restrictions. */
+  private Set<String> resolveRoleRestrictions(User user) {
+    Set<UserRole> roles = user.getUserRoles();
+    if (roles == null || roles.isEmpty()) {
+      return Set.of();
+    }
+    Set<String> result = new HashSet<>();
+    Set<Long> batchIds = new HashSet<>();
+    for (UserRole role : roles) {
+      if (role == null) {
+        continue;
+      }
+      if (role.getId() <= 0 || Hibernate.isInitialized(role.getRestrictions())) {
+        if (role.getRestrictions() != null) {
+          result.addAll(role.getRestrictions());
+        }
+      } else {
+        batchIds.add(role.getId());
+      }
+    }
+    if (!batchIds.isEmpty()) {
+      userRoleStore.getRestrictionsByUserRoleIds(batchIds).values().forEach(result::addAll);
+    }
+    return result;
   }
 
   @Override
