@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,6 +65,7 @@ public record Locale(
    * @throws IllegalArgumentException in case the input is not a valid locale string
    */
   @Nonnull
+  @JsonCreator
   public static Locale of(@Nonnull String locale) throws IllegalArgumentException {
     int len = locale.length();
     // is it just ll or lll
@@ -173,6 +175,7 @@ public record Locale(
   }
 
   @Override
+  @JsonValue
   public String toString() {
     if (region == null && script == null) return language;
     if (script == null) return language + "_" + region;

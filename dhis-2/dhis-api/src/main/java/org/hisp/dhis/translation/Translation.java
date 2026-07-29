@@ -32,10 +32,8 @@ package org.hisp.dhis.translation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Objects;
-
 import lombok.Setter;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Locale;

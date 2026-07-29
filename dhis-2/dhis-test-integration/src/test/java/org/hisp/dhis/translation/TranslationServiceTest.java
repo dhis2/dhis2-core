@@ -207,12 +207,10 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     evA.setSubtitle("SubTitle");
     manager.save(evA);
     Set<Translation> translations = new HashSet<>();
-    translations.add(
-        Translation.ofLanguage(locale, "baseLineLabel", "translated BaseLineLabel"));
+    translations.add(Translation.ofLanguage(locale, "baseLineLabel", "translated BaseLineLabel"));
     translations.add(
         Translation.ofLanguage(locale, "domainAxisLabel", "translated DomainAxisLabel"));
-    translations.add(
-        Translation.ofLanguage(locale, "rangeAxisLabel", "translated RangeAxisLabel"));
+    translations.add(Translation.ofLanguage(locale, "rangeAxisLabel", "translated RangeAxisLabel"));
     translations.add(
         Translation.ofLanguage(locale, "targetLineLabel", "translated TargetLineLabel"));
     translations.add(Translation.ofLanguage(locale, "title", "translated Title"));
@@ -238,12 +236,10 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     visualization.setSubtitle("SubTitle");
     manager.save(visualization);
     Set<Translation> translations = new HashSet<>();
-    translations.add(
-        Translation.ofLanguage(locale, "baseLineLabel", "translated BaseLineLabel"));
+    translations.add(Translation.ofLanguage(locale, "baseLineLabel", "translated BaseLineLabel"));
     translations.add(
         Translation.ofLanguage(locale, "domainAxisLabel", "translated DomainAxisLabel"));
-    translations.add(
-        Translation.ofLanguage(locale, "rangeAxisLabel", "translated RangeAxisLabel"));
+    translations.add(Translation.ofLanguage(locale, "rangeAxisLabel", "translated RangeAxisLabel"));
     translations.add(
         Translation.ofLanguage(locale, "targetLineLabel", "translated TargetLineLabel"));
     translations.add(Translation.ofLanguage(locale, "title", "translated Title"));
