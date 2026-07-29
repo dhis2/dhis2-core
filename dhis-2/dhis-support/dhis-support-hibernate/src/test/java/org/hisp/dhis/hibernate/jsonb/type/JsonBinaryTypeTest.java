@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
@@ -57,7 +59,7 @@ class JsonBinaryTypeTest {
   @BeforeEach
   void setUp() {
     translation1 = new Translation();
-    translation1.setLocale("en");
+    translation1.setLocale(Locale.of("en"));
     translation1.setValue("English Test 1");
     jsonBinaryType = new JsonBinaryType();
     jsonBinaryType.init(Translation.class);

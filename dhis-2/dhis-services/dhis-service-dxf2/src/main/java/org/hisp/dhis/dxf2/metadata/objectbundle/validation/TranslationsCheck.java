@@ -101,7 +101,7 @@ public class TranslationsCheck implements ObjectValidationCheck {
     Set<String> setPropertyLocales = new HashSet<>();
 
     for (Translation translation : translations) {
-      String key = String.join("_", translation.getProperty(), translation.getLocale());
+      String key = String.join("_", translation.getProperty(), translation.getLocale().toString());
 
       if (setPropertyLocales.contains(key)) {
         objectReport.addErrorReport(

@@ -86,6 +86,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.OpenApi;
@@ -750,14 +751,14 @@ public class Program extends BaseMetadataObject
       return defaultValue;
     }
     return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+        Translation.getCacheKey(locale, translationKey),
+        key -> getTranslationValue(locale, translationKey, defaultTranslation));
   }
 
-  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+  private String getTranslationValue(Locale locale, String translationKey, String defaultValue) {
     for (Translation translation : getTranslations()) {
       if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
+          && translationKey.equalsIgnoreCase(translation.getProperty())
           && !StringUtils.isEmpty(translation.getValue())) {
         return translation.getValue();
       }

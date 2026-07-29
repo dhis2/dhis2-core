@@ -103,9 +103,9 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     String translatedShortName = "translatedShortName";
     String translatedDescription = "translatedDescription";
     Set<Translation> translations = new HashSet<>(dataElementA.getTranslations());
-    translations.add(new Translation(locale.language(), "NAME", translatedName));
-    translations.add(new Translation(locale.language(), "SHORT_NAME", translatedShortName));
-    translations.add(new Translation(locale.language(), "DESCRIPTION", translatedDescription));
+    translations.add(Translation.ofLanguage(locale, "NAME", translatedName));
+    translations.add(Translation.ofLanguage(locale, "SHORT_NAME", translatedShortName));
+    translations.add(Translation.ofLanguage(locale, "DESCRIPTION", translatedDescription));
     manager.updateTranslations(dataElementA, translations);
     assertEquals(translatedName, dataElementA.getDisplayName());
     assertEquals(translatedShortName, dataElementA.getDisplayShortName());
@@ -118,7 +118,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     manager.save(categoryCombo);
     String translatedName = "translatedName";
     Set<Translation> translations = new HashSet<>(categoryCombo.getTranslations());
-    translations.add(new Translation(locale.language(), "NAME", translatedName));
+    translations.add(Translation.ofLanguage(locale, "NAME", translatedName));
     manager.updateTranslations(categoryCombo, translations);
     assertEquals(translatedName, categoryCombo.getDisplayName());
   }
@@ -133,7 +133,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     manager.save(option);
     Set<Translation> translations = new HashSet<>(option.getTranslations());
     String translatedValue = "Option FormName Translated";
-    translations.add(new Translation(locale.language(), "FORM_NAME", translatedValue));
+    translations.add(Translation.ofLanguage(locale, "FORM_NAME", translatedValue));
     manager.updateTranslations(option, translations);
     assertEquals(translatedValue, option.getDisplayFormName());
   }
@@ -144,7 +144,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     manager.save(programStageSection);
     String translatedValue = "ProgramStageSection FormName Translated";
     Set<Translation> translations = new HashSet<>(programStageSection.getTranslations());
-    translations.add(new Translation(locale.language(), "FORM_NAME", translatedValue));
+    translations.add(Translation.ofLanguage(locale, "FORM_NAME", translatedValue));
     manager.updateTranslations(programStageSection, translations);
     assertEquals(translatedValue, programStageSection.getDisplayFormName());
   }
@@ -155,7 +155,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     manager.save(programStage);
     String translatedValue = "ProgramStage FormName Translated";
     Set<Translation> translations = new HashSet<>(programStage.getTranslations());
-    translations.add(new Translation(locale.language(), "FORM_NAME", translatedValue));
+    translations.add(Translation.ofLanguage(locale, "FORM_NAME", translatedValue));
     manager.updateTranslations(programStage, translations);
     assertEquals(translatedValue, programStage.getDisplayFormName());
   }
@@ -169,7 +169,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     manager.save(programSection);
     String translatedValue = "ProgramSection FormName Translated";
     Set<Translation> translations = new HashSet<>(programSection.getTranslations());
-    translations.add(new Translation(locale.language(), "FORM_NAME", translatedValue));
+    translations.add(Translation.ofLanguage(locale, "FORM_NAME", translatedValue));
     manager.updateTranslations(programSection, translations);
     assertEquals(translatedValue, programSection.getDisplayFormName());
   }
@@ -184,9 +184,9 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     String toFromNameTranslated = "To from name translated";
     Set<Translation> translations = new HashSet<>();
     translations.add(
-        new Translation(locale.language(), "RELATIONSHIP_TO_FROM_NAME", toFromNameTranslated));
+        Translation.ofLanguage(locale, "RELATIONSHIP_TO_FROM_NAME", toFromNameTranslated));
     translations.add(
-        new Translation(locale.language(), "RELATIONSHIP_FROM_TO_NAME", fromToNameTranslated));
+        Translation.ofLanguage(locale, "RELATIONSHIP_FROM_TO_NAME", fromToNameTranslated));
     manager.updateTranslations(relationshipType, translations);
     assertEquals(fromToNameTranslated, relationshipType.getDisplayFromToName());
     assertEquals(toFromNameTranslated, relationshipType.getDisplayToFromName());
@@ -208,15 +208,15 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     manager.save(evA);
     Set<Translation> translations = new HashSet<>();
     translations.add(
-        new Translation(locale.language(), "baseLineLabel", "translated BaseLineLabel"));
+        Translation.ofLanguage(locale, "baseLineLabel", "translated BaseLineLabel"));
     translations.add(
-        new Translation(locale.language(), "domainAxisLabel", "translated DomainAxisLabel"));
+        Translation.ofLanguage(locale, "domainAxisLabel", "translated DomainAxisLabel"));
     translations.add(
-        new Translation(locale.language(), "rangeAxisLabel", "translated RangeAxisLabel"));
+        Translation.ofLanguage(locale, "rangeAxisLabel", "translated RangeAxisLabel"));
     translations.add(
-        new Translation(locale.language(), "targetLineLabel", "translated TargetLineLabel"));
-    translations.add(new Translation(locale.language(), "title", "translated Title"));
-    translations.add(new Translation(locale.language(), "subtitle", "translated SubTitle"));
+        Translation.ofLanguage(locale, "targetLineLabel", "translated TargetLineLabel"));
+    translations.add(Translation.ofLanguage(locale, "title", "translated Title"));
+    translations.add(Translation.ofLanguage(locale, "subtitle", "translated SubTitle"));
     manager.updateTranslations(evA, translations);
     EventVisualization updated = manager.get(EventVisualization.class, evA.getUid());
     assertEquals("translated BaseLineLabel", updated.getDisplayBaseLineLabel());
@@ -239,15 +239,15 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     manager.save(visualization);
     Set<Translation> translations = new HashSet<>();
     translations.add(
-        new Translation(locale.language(), "baseLineLabel", "translated BaseLineLabel"));
+        Translation.ofLanguage(locale, "baseLineLabel", "translated BaseLineLabel"));
     translations.add(
-        new Translation(locale.language(), "domainAxisLabel", "translated DomainAxisLabel"));
+        Translation.ofLanguage(locale, "domainAxisLabel", "translated DomainAxisLabel"));
     translations.add(
-        new Translation(locale.language(), "rangeAxisLabel", "translated RangeAxisLabel"));
+        Translation.ofLanguage(locale, "rangeAxisLabel", "translated RangeAxisLabel"));
     translations.add(
-        new Translation(locale.language(), "targetLineLabel", "translated TargetLineLabel"));
-    translations.add(new Translation(locale.language(), "title", "translated Title"));
-    translations.add(new Translation(locale.language(), "subtitle", "translated SubTitle"));
+        Translation.ofLanguage(locale, "targetLineLabel", "translated TargetLineLabel"));
+    translations.add(Translation.ofLanguage(locale, "title", "translated Title"));
+    translations.add(Translation.ofLanguage(locale, "subtitle", "translated SubTitle"));
     manager.updateTranslations(visualization, translations);
     Visualization updated = manager.get(Visualization.class, visualization.getUid());
     assertNotNull(updated);
@@ -269,7 +269,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     map.setMapService(MapService.TMS);
     manager.save(map);
     Set<Translation> translations = new HashSet<>();
-    translations.add(new Translation(locale.language(), "NAME", "translated Name"));
+    translations.add(Translation.ofLanguage(locale, "NAME", "translated Name"));
     manager.updateTranslations(map, translations);
     ExternalMapLayer updatedMap = manager.get(ExternalMapLayer.class, map.getUid());
     assertEquals("translated Name", updatedMap.getDisplayName());
@@ -286,11 +286,11 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
             Calendar.getInstance().getTime());
     manager.save(template);
     Set<Translation> translations = new HashSet<>();
-    translations.add(new Translation(locale.language(), "NAME", "translated Name"));
+    translations.add(Translation.ofLanguage(locale, "NAME", "translated Name"));
     translations.add(
-        new Translation(locale.language(), "SUBJECT_TEMPLATE", "translated SUBJECT TEMPLATE"));
+        Translation.ofLanguage(locale, "SUBJECT_TEMPLATE", "translated SUBJECT TEMPLATE"));
     translations.add(
-        new Translation(locale.language(), "MESSAGE_TEMPLATE", "translated MESSAGE TEMPLATE"));
+        Translation.ofLanguage(locale, "MESSAGE_TEMPLATE", "translated MESSAGE TEMPLATE"));
     manager.updateTranslations(template, translations);
     template = manager.get(ProgramNotificationTemplate.class, template.getUid());
     assertEquals("translated Name", template.getDisplayName());
@@ -315,12 +315,12 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})",
             "descriptionA");
     expressionA.setTranslations(
-        Set.of(new Translation(locale.language(), "DESCRIPTION", "translated descriptionA")));
+        Set.of(Translation.ofLanguage(locale, "DESCRIPTION", "translated descriptionA")));
     Expression expressionB =
         new Expression(
             "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})", "descriptionB");
     expressionB.setTranslations(
-        Set.of(new Translation(locale.language(), "DESCRIPTION", "translated descriptionB")));
+        Set.of(Translation.ofLanguage(locale, "DESCRIPTION", "translated descriptionB")));
     Predictor predictor =
         createPredictor(
             dataElementX,
@@ -335,7 +335,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
             0);
     manager.save(predictor);
     manager.updateTranslations(
-        predictor, Set.of(new Translation(locale.language(), "NAME", "translated Predictor Name")));
+        predictor, Set.of(Translation.ofLanguage(locale, "NAME", "translated Predictor Name")));
     predictor = manager.get(Predictor.class, predictor.getUid());
     assertEquals("translated Predictor Name", predictor.getDisplayName());
     assertEquals("translated descriptionA", predictor.getGenerator().getDisplayDescription());
@@ -358,7 +358,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
 
     String translatedText = "Translated Dashboard Item";
     Set<Translation> translations = new HashSet<>();
-    translations.add(new Translation(locale.language(), "TEXT", translatedText));
+    translations.add(Translation.ofLanguage(locale, "TEXT", translatedText));
     manager.updateTranslations(dashboardItem, translations);
     dashboardItem = manager.get(DashboardItem.class, dashboardItem.getUid());
     assertEquals(translatedText, dashboardItem.getDisplayText());
@@ -373,7 +373,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
 
     String translatedText = "Translated Dashboard Item";
     Set<Translation> translations = new HashSet<>();
-    translations.add(new Translation(locale.language(), "text", translatedText));
+    translations.add(Translation.ofLanguage(locale, "text", translatedText));
     manager.updateTranslations(dashboardItem, translations);
     dashboardItem = manager.get(DashboardItem.class, dashboardItem.getUid());
     assertEquals(translatedText, dashboardItem.getDisplayText());
@@ -386,7 +386,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
 
     String translatedText = "Translated CategoryCombo";
     Set<Translation> translations = new HashSet<>();
-    translations.add(new Translation(locale.language(), "NAME", translatedText));
+    translations.add(Translation.ofLanguage(locale, "NAME", translatedText));
     manager.updateTranslations(categoryCombo, translations);
     categoryCombo = manager.get(CategoryCombo.class, categoryCombo.getUid());
     assertEquals(translatedText, categoryCombo.getDisplayName());
