@@ -726,6 +726,38 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     assertNull(userService.getDisplayName("notExist"));
   }
 
+  /**
+   * Regression for DHIS2-21909: {@link UserService#createUserDetails(User)} must batch-load role
+   * authorities and restrictions when role element-collections are still lazy after session clear.
+   */
+  @Test
+  void testCreateUserDetails_BatchLoadsRoleAuthoritiesAndRestrictions() {
+    User user = createAndAddUser("batchRoleUser");
+
+    for (int i = 0; i < 5; i++) {
+      char c = (char) ('A' + i);
+      UserRole role = createUserRole("BatchRole" + c, "F_BATCH21909_" + c);
+      role.getRestrictions().add("RESTR_BATCH_" + c);
+      userService.addUserRole(role);
+      user.getUserRoles().add(role);
+    }
+    userService.updateUser(user);
+
+    // Drop first-level cache so authorities/restrictions collections are lazy again.
+    entityManager.flush();
+    entityManager.clear();
+
+    User reloaded = userService.getUser(user.getUid());
+    assertNotNull(reloaded);
+
+    UserDetails details = userService.createUserDetails(reloaded);
+
+    assertTrue(details.getAllAuthorities().contains("F_BATCH21909_A"));
+    assertTrue(details.getAllAuthorities().contains("F_BATCH21909_E"));
+    assertTrue(details.hasAnyRestrictions(Set.of("RESTR_BATCH_A")));
+    assertTrue(details.hasAnyRestrictions(Set.of("RESTR_BATCH_E")));
+  }
+
   @Test
   void testBCryptedPasswordOnInputError() {
     User user = new User();

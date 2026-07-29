@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -62,4 +65,30 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @param targetUserUid UID of the user to copy to
    */
   void copyRoleMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
+
+  /**
+   * Batch-loads authorities for the given user-role primary keys in a single SQL query against
+   * {@code userroleauthorities}.
+   *
+   * <p>Used when building {@link UserDetails} so authentication does not lazy-load the authorities
+   * element-collection once per role (DHIS2-21909). Does not mutate {@link UserRole} entities.
+   *
+   * @param userRoleIds user-role primary keys; empty yields an empty map
+   * @return map of role id to authorities; missing keys mean the role has no authorities
+   */
+  @Nonnull
+  Map<Long, Set<String>> getAuthoritiesByUserRoleIds(@Nonnull Collection<Long> userRoleIds);
+
+  /**
+   * Batch-loads restrictions for the given user-role primary keys in a single SQL query against
+   * {@code userrolerestrictions}.
+   *
+   * <p>Companion to {@link #getAuthoritiesByUserRoleIds(Collection)} for the restrictions
+   * element-collection (DHIS2-21909). Does not mutate {@link UserRole} entities.
+   *
+   * @param userRoleIds user-role primary keys; empty yields an empty map
+   * @return map of role id to restrictions; missing keys mean the role has no restrictions
+   */
+  @Nonnull
+  Map<Long, Set<String>> getRestrictionsByUserRoleIds(@Nonnull Collection<Long> userRoleIds);
 }
