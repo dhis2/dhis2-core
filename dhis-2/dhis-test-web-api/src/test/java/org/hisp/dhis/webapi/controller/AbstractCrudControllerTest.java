@@ -541,12 +541,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSetAsFavorite_NotFavoritable() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Objects of this class cannot be set as favorite",
-        POST("/users/" + getAdminUid() + "/favorite").content(HttpStatus.CONFLICT));
+    assertStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE, POST("/users/" + getAdminUid() + "/favorite"));
   }
 
   @Test
@@ -577,12 +572,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testRemoveAsFavorite_NotFavoritable() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Objects of this class cannot be set as favorite",
-        DELETE("/users/u1234567890/favorite").content(HttpStatus.CONFLICT));
+    assertStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE, DELETE("/users/u1234567890/favorite"));
   }
 
   @Test

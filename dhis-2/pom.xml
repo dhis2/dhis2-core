@@ -124,7 +124,7 @@
     <lettuce.version>6.8.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>12.4.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>13.0.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.12.0</ehcache3.version>
     <jaxb-runtime.version>4.0.7</jaxb-runtime.version>
@@ -179,7 +179,7 @@
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.42.0</artemis-jakarta.version>
     <netty-all.version>4.2.15.Final</netty-all.version>
-    <classgraph.version>4.8.184</classgraph.version>
+    <classgraph.version>4.8.186</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.3.2</sms-compression.version>

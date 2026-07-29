@@ -73,9 +73,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -84,8 +82,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
  * @author Bob Jolliffe
  */
 @JacksonXmlRootElement(localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0)
-public class BaseIdentifiableObject extends BaseLinkableObject
-    implements IdentifiableObject, FavoritableObject {
+public class BaseIdentifiableObject extends BaseLinkableObject implements IdentifiableObject {
   /** The database internal identifier for this Object. */
   @Setter protected long id;
 
@@ -121,9 +118,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject
 
   /** Access information for this object. Applies to current user. */
   protected transient Access access;
-
-  /** Users who have marked this object as a favorite. */
-  @Setter protected Set<String> favorites = new HashSet<>();
 
   /** Last user updated this object. */
   @Setter protected User lastUpdatedBy;
@@ -380,24 +374,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "favorites", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "favorite", namespace = DxfNamespaces.DXF_2_0)
-  public Set<String> getFavorites() {
-    return favorites;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isFavorite() {
-    if (favorites == null || !CurrentUserUtil.hasCurrentUser()) {
-      return false;
-    }
-    return favorites.contains(CurrentUserUtil.getCurrentUserDetails().getUid());
-  }
-
-  @Override
   @Sortable(value = false)
   @Gist(included = Include.FALSE)
   @JsonProperty
@@ -408,24 +384,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject
     }
 
     return sharing;
-  }
-
-  @Override
-  public boolean setAsFavorite(UserDetails user) {
-    if (this.favorites == null) {
-      this.favorites = new HashSet<>();
-    }
-
-    return this.favorites.add(user.getUid());
-  }
-
-  @Override
-  public boolean removeAsFavorite(UserDetails user) {
-    if (this.favorites == null) {
-      this.favorites = new HashSet<>();
-    }
-
-    return this.favorites.remove(user.getUid());
   }
 
   // -------------------------------------------------------------------------
