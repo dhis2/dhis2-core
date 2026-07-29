@@ -38,8 +38,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -225,10 +227,10 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @IndirectTransactional
-  public void updatePeriodTypeLabel(String name, String label) {
+  public void updatePeriodTypeLabel(String name, String label, @CheckForNull Locale locale) {
     PeriodType type = periodStore.getPeriodTypeByName(name);
     if (type != null) {
-      periodStore.updatePeriodTypeLabel(name, label);
+      periodStore.updatePeriodTypeLabel(name, label, locale);
     } else {
       throw new IllegalArgumentException(name + " does not exist.");
     }

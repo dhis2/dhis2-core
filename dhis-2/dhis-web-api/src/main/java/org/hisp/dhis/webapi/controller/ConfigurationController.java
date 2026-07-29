@@ -483,9 +483,10 @@ public class ConfigurationController {
         configurationService.getConfiguration().getDataOutputPeriodTypes();
 
     I18n i18n = i18nManager.getI18n();
+    // FIXME elevate to entries with labels, use service
 
     return periodTypes.stream()
-        .map(periodType -> new PeriodTypeEntry(periodType, null, i18n))
+        .map(periodType -> new PeriodTypeEntry(periodType, null))
         .collect(toCollection(LinkedHashSet::new));
   }
 

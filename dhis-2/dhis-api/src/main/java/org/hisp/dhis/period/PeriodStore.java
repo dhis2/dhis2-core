@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.Locale;
 
 /**
  * Defines the functionality for persisting Periods and PeriodTypes.
@@ -130,7 +131,8 @@ public interface PeriodStore {
   void addPeriodType(PeriodType periodType);
 
   /** Updated the given {@link PeriodType}'s label. */
-  void updatePeriodTypeLabel(@Nonnull String name, @CheckForNull String label);
+  void updatePeriodTypeLabel(
+      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale);
 
   /**
    * Returns all PeriodTypes.

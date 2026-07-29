@@ -33,8 +33,10 @@ import static java.util.Objects.requireNonNull;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.Locale;
 
-public record PeriodTypeParams(@Nonnull String name, @CheckForNull String label) {
+public record PeriodTypeParams(
+    @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale) {
 
   public PeriodTypeParams {
     requireNonNull(name);
