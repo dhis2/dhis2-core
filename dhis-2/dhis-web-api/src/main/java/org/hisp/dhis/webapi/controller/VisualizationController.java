@@ -66,7 +66,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/visualizations")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class VisualizationController
-    extends AbstractCrudController<Visualization, GetObjectListParams> {
+    extends AbstractCrudController<Visualization, GetObjectListParams>
+    implements FavoritableOperations<Visualization> {
+
   private final LegendSetService legendSetService;
 
   private final DimensionService dimensionService;
