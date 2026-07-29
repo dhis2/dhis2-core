@@ -107,6 +107,12 @@ public class DataQueryRequest {
 
   protected String userOrganisationUnitCriteria;
 
+  /**
+   * Whether to restrict organisation unit dimension resolution to units that have a non-null
+   * geometry. Used by the geoFeatures endpoint, which only renders units with geometry.
+   */
+  protected boolean geometryOnly;
+
   public boolean hasAggregationType() {
     return aggregationType != null;
   }
@@ -287,6 +293,11 @@ public class DataQueryRequest {
 
     public DataQueryRequestBuilder duplicatesOnly(boolean duplicatesOnly) {
       this.request.duplicatesOnly = duplicatesOnly;
+      return this;
+    }
+
+    public DataQueryRequestBuilder geometryOnly(boolean geometryOnly) {
+      this.request.geometryOnly = geometryOnly;
       return this;
     }
 

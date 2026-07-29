@@ -1064,6 +1064,22 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  public void invalidateUserSessions(Collection<String> usernames) {
+    if (usernames == null || usernames.isEmpty()) {
+      return;
+    }
+    // Resolve all users in a single query instead of one getUserByUsername per username. That
+    // per-member lookup is the N+1 behind DHIS2-21842; under FlushModeType.AUTO each call also
+    // auto-flushes the growing persistence context, making a large-membership invalidation O(n²).
+    for (User user : userStore.getUserByUsernames(usernames)) {
+      UserDetails userDetails = createUserDetails(user);
+      if (userDetails != null) {
+        sessionRegistry.getAllSessions(userDetails, false).forEach(SessionInformation::expireNow);
+      }
+    }
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public ErrorCode validateInvite(User user) {
     if (user == null) {

@@ -69,9 +69,10 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
         (Boolean) bundle.getExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
-      for (User user : updatedUserRole.getUsers()) {
-        userService.invalidateUserSessions(user.getUsername());
-      }
+      // Batch-resolve members in one query instead of one getUserByUsername per member
+      // (DHIS2-21842).
+      userService.invalidateUserSessions(
+          updatedUserRole.getUsers().stream().map(User::getUsername).toList());
     }
 
     bundle.removeExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
