@@ -126,7 +126,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.21.2</jackson.version>
+    <jackson.version>2.22.1</jackson.version>
     <jackson-datatype-jts.version>2.21.0</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -186,7 +186,7 @@
     <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.10.1</commons-validator.version>
-    <commons-io.version>2.21.0</commons-io.version>
+    <commons-io.version>2.22.0</commons-io.version>
     <commons-codec.version>1.22.0</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
@@ -223,14 +223,14 @@
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-exec-plugin.version>3.6.3</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.5.5</maven-failsafe-plugin.version>
+    <maven-failsafe-plugin.version>3.5.6</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>3.0.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>12.2.0</dependency-check-maven.version>
+    <dependency-check-maven.version>12.2.2</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.10.3.0</spotbugs-maven-plugin.version>
     <spotless.version>3.4.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
