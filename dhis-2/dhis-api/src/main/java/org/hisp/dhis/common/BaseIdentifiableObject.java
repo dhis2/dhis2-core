@@ -316,8 +316,8 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     }
 
     return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+        Translation.getCacheKey(locale, translationKey),
+        key -> getTranslationValue(locale, translationKey, defaultTranslation));
   }
 
   @Override
@@ -550,10 +550,10 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
    *
    * @return Translation value if exists, otherwise return default value.
    */
-  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+  private String getTranslationValue(Locale locale, String translationKey, String defaultValue) {
     for (Translation translation : translations) {
       if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
+          && translationKey.equalsIgnoreCase(translation.getProperty())
           && !StringUtils.isEmpty(translation.getValue())) {
         return translation.getValue();
       }
