@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationTy
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
-import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
 import static org.hisp.dhis.common.PrefixedDimensions.ofProgramStageDataElements;
 
@@ -47,7 +46,6 @@ import org.hisp.dhis.analytics.common.DimensionsServiceCommon;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -87,10 +85,6 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                             ofItemsWithProgram(
                                 program, getTeasIfRegistrationAndNotSkipped(program))))))
         .orElse(List.of());
-  }
-
-  private boolean isTypeAttribute(CategoryOptionGroupSet categoryOptionGroupSet) {
-    return ATTRIBUTE == categoryOptionGroupSet.getDataDimensionType();
   }
 
   private List<Category> getCategories(Program program) {
