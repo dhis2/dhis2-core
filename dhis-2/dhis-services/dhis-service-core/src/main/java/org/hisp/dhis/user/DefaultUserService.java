@@ -73,6 +73,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -957,6 +958,9 @@ public class DefaultUserService implements UserService {
             : user.getGroups().stream().map(UserGroup::getId).collect(Collectors.toSet());
     Set<Long> managedGroupLongIds = userGroupService.getManagedGroupIds(userGroupPrimaryKeys);
 
+    // Batch-load role authorities/restrictions (DHIS2-21909) without mutating UserRole entities.
+    RoleAccess roleAccess = resolveRoleAccess(user);
+
     return UserDetails.createUserDetails(
         user,
         accountNonLocked,
@@ -965,7 +969,72 @@ public class DefaultUserService implements UserService {
         new HashSet<>(searchOrganisationUnitsUidsByUser),
         new HashSet<>(dataViewOrganisationUnitsUidsByUser),
         true,
-        managedGroupLongIds);
+        managedGroupLongIds,
+        roleAccess.authorities(),
+        roleAccess.restrictions());
+  }
+
+  /**
+   * Aggregated role authorities and restrictions for {@link #createUserDetails(User)}.
+   *
+   * <p>Values come from in-memory role collections when already initialised (or for transient
+   * roles), otherwise from a single batch SQL load per collection type.
+   */
+  private record RoleAccess(Set<String> authorities, Set<String> restrictions) {}
+
+  /**
+   * Collects the user's role authorities and restrictions, batch-loading only roles whose
+   * collections are still lazy. Transient roles and already-initialised collections keep their
+   * in-memory values so unflushed inserts (admin bootstrap) are not lost to a separate JDBC
+   * connection.
+   */
+  private RoleAccess resolveRoleAccess(User user) {
+    Set<UserRole> roles = user.getUserRoles();
+    if (roles == null || roles.isEmpty()) {
+      return new RoleAccess(Set.of(), Set.of());
+    }
+
+    Set<String> authorities = new HashSet<>();
+    Set<String> restrictions = new HashSet<>();
+    Set<Long> authorityBatchIds = new HashSet<>();
+    Set<Long> restrictionBatchIds = new HashSet<>();
+
+    for (UserRole role : roles) {
+      if (role == null) {
+        continue;
+      }
+
+      if (role.getId() <= 0 || Hibernate.isInitialized(role.getAuthorities())) {
+        if (role.getAuthorities() != null) {
+          authorities.addAll(role.getAuthorities());
+        }
+      } else {
+        authorityBatchIds.add(role.getId());
+      }
+
+      if (role.getId() <= 0 || Hibernate.isInitialized(role.getRestrictions())) {
+        if (role.getRestrictions() != null) {
+          restrictions.addAll(role.getRestrictions());
+        }
+      } else {
+        restrictionBatchIds.add(role.getId());
+      }
+    }
+
+    if (!authorityBatchIds.isEmpty()) {
+      userRoleStore
+          .getAuthoritiesByUserRoleIds(authorityBatchIds)
+          .values()
+          .forEach(authorities::addAll);
+    }
+    if (!restrictionBatchIds.isEmpty()) {
+      userRoleStore
+          .getRestrictionsByUserRoleIds(restrictionBatchIds)
+          .values()
+          .forEach(restrictions::addAll);
+    }
+
+    return new RoleAccess(authorities, restrictions);
   }
 
   @Override
