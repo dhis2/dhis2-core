@@ -1288,4 +1288,29 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     assertFalse(userInRole.has("email"), "email should not be exposed");
     assertEquals(user.getUid(), userInRole.getString("id").string());
   }
+
+  @Test
+  @DisplayName("PATCH /userRoles/{uid} scalar description keeps assigned users")
+  void testPatchUserRoleDescriptionKeepsUsers() {
+    UserRole role = createUserRole('P');
+    User user = makeUser("R");
+    userService.addUser(user);
+    role.addUser(user);
+    manager.save(role);
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/userRoles/" + role.getUid(),
+            "[{'op':'replace','path':'/description','value':'patched'}]"));
+
+    JsonObject patchedRole =
+        GET("/userRoles/{id}?fields=id,description,users[id]", role.getUid())
+            .content(HttpStatus.OK);
+
+    assertEquals("patched", patchedRole.getString("description").string());
+    assertEquals(1, patchedRole.getArray("users").size());
+    assertEquals(
+        user.getUid(), patchedRole.getArray("users").getObject(0).getString("id").string());
+  }
 }
