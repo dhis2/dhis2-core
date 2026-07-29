@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -100,36 +101,34 @@ public class TranslationsCheck implements ObjectValidationCheck {
 
     Set<String> setPropertyLocales = new HashSet<>();
 
-    for (Translation translation : translations) {
-      String key = String.join("_", translation.getProperty(), translation.getLocale().toString());
-
-      if (setPropertyLocales.contains(key)) {
-        objectReport.addErrorReport(
-            new ErrorReport(
-                    Translation.class,
-                    ErrorCode.E1106,
-                    translation.getProperty(),
-                    translation.getLocale(),
-                    klass.getSimpleName(),
-                    object.getUid())
-                .setErrorKlass(klass));
-      } else {
-        setPropertyLocales.add(key);
-      }
-
-      if (translation.getLocale() == null) {
+    for (Translation t : translations) {
+      Locale locale = t.getLocale();
+      String property = t.getProperty();
+      String value = t.getValue();
+      if (locale == null) {
         objectReport.addErrorReport(
             new ErrorReport(Translation.class, ErrorCode.E4000, "locale").setErrorKlass(klass));
-      }
-
-      if (translation.getProperty() == null) {
+      } else if (property == null) {
         objectReport.addErrorReport(
             new ErrorReport(Translation.class, ErrorCode.E4000, "property").setErrorKlass(klass));
-      }
-
-      if (translation.getValue() == null) {
+      } else if (value == null) {
         objectReport.addErrorReport(
             new ErrorReport(Translation.class, ErrorCode.E4000, "value").setErrorKlass(klass));
+      } else {
+        String key = String.join("_", property, locale.toString());
+        if (setPropertyLocales.contains(key)) {
+          objectReport.addErrorReport(
+              new ErrorReport(
+                      Translation.class,
+                      ErrorCode.E1106,
+                      property,
+                      locale,
+                      klass.getSimpleName(),
+                      object.getUid())
+                  .setErrorKlass(klass));
+        } else {
+          setPropertyLocales.add(key);
+        }
       }
     }
 
