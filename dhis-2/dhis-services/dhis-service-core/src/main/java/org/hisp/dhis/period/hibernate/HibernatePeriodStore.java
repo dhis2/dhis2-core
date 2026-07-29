@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
@@ -273,11 +274,13 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   }
 
   @Override
-  public void updatePeriodTypeLabel(@Nonnull String name, @CheckForNull String label) {
+  public void updatePeriodTypeLabel(
+      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale) {
 
     String sql =
         """
-        UPDATE periodtype pt SET pt.label = :label
+        UPDATE periodtype
+        SET label = :label
         WHERE name = :name""";
 
     runAutoJoinTransaction(

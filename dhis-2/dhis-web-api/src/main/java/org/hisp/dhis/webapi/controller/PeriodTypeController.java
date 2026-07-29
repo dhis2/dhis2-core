@@ -46,11 +46,17 @@ import org.hisp.dhis.period.PeriodTypeResponse;
 import org.hisp.dhis.period.PeriodTypeResponse.PeriodTypeEntry;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -70,10 +76,20 @@ public class PeriodTypeController {
 
   @RequiresAuthority(anyOf = ALL)
   @PutMapping
-  public WebMessage putPeriodType(@RequestBody PeriodTypeParams periodType) {
-    periodService.updatePeriodTypeLabel(periodType.name(), periodType.label());
+  public WebMessage putLabel(@RequestBody PeriodTypeParams params) {
+    periodService.updatePeriodTypeLabel(params.name(), params.label(), params.locale());
 
-    return ok(periodType.name() + " updated successfully.");
+    return ok(params.name() + " updated successfully.");
+  }
+
+  @RequiresAuthority(anyOf = ALL)
+  @PutMapping(value = "/{name}/translations")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void replaceTranslations(
+      @PathVariable("name") String name,
+      @CurrentUser UserDetails currentUser,
+      @RequestBody List<Translation> translations) {
+    // TODO update
   }
 
   @GetMapping
@@ -81,9 +97,12 @@ public class PeriodTypeController {
 
     I18n i18n = i18nManager.getI18n();
 
+    // TODO merge with labels => also move to service
+    // type.getDisplayName(i18n)
+
     List<PeriodTypeEntry> periodTypes =
         PeriodType.getAvailablePeriodTypes().stream()
-            .map(periodType -> new PeriodTypeEntry(periodType, null, i18n))
+            .map(periodType -> new PeriodTypeEntry(periodType, null))
             .toList();
 
     return new PeriodTypeResponse(periodTypes);

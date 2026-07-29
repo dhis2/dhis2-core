@@ -31,25 +31,44 @@ package org.hisp.dhis.period;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Value;
-import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.common.OpenApi;
 
 public record PeriodTypeResponse(@JsonProperty List<PeriodTypeEntry> periodTypes) {
   /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
   @Value
   public static class PeriodTypeEntry {
-    @JsonProperty String name;
-    @JsonProperty String displayName;
+
+    @OpenApi.Description("The ID of the period type")
+    @Nonnull
+    @JsonProperty
+    String name;
+
+    @OpenApi.Description(
+        "The name to display in the UI computed from all sources resolved for a specific `locale`")
+    @Nonnull
+    @JsonProperty
+    String displayName;
+
     @JsonProperty String isoDuration;
     @JsonProperty String isoFormat;
     @JsonProperty int frequencyOrder;
-    @JsonProperty String label;
-    @JsonProperty String displayLabel;
 
-    public PeriodTypeEntry(@Nonnull PeriodType type, PeriodTypeLabels labels, I18n i18n) {
+    @OpenApi.Description("An optional alias override for the hard-coded i18n translation of `name`")
+    @CheckForNull
+    @JsonProperty
+    String label;
+
+    @OpenApi.Description("An optional translation for `label` resolved for a specific `locale`")
+    @CheckForNull
+    @JsonProperty
+    String displayLabel;
+
+    public PeriodTypeEntry(@Nonnull PeriodType type, @CheckForNull PeriodTypeLabels labels) {
       this.name = type.getName();
-      this.displayName = type.getDisplayName(i18n);
+      this.displayName = labels == null ? type.getName() : labels.getDisplayName();
       this.frequencyOrder = type.getFrequencyOrder();
       this.isoDuration = type.getIso8601Duration();
       this.isoFormat = type.getIsoFormat();

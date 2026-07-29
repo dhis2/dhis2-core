@@ -41,17 +41,26 @@ import org.hisp.dhis.common.Locale;
  * @param name of the {@link PeriodType} (key)
  * @param locale language of the provided texts (as requested, some might be in other languages
  *     because of fallback-logic)
- * @param label
- * @param displayLabel
+ * @param i18nName the name as provided for the locale by a properties-file bundled with the server
+ * @param label the name as provided by a DB alias
+ * @param displayLabel the name as provided by custom DB translations
  */
 public record PeriodTypeLabels(
     @Nonnull String name,
     @Nonnull Locale locale,
+    @CheckForNull String i18nName,
     @CheckForNull String label,
     @CheckForNull String displayLabel) {
 
   public PeriodTypeLabels {
     requireNonNull(name);
     requireNonNull(locale);
+  }
+
+  public String getDisplayName() {
+    if (displayLabel != null) return displayLabel;
+    if (label != null) return label;
+    if (i18nName != null) return i18nName;
+    return name;
   }
 }
