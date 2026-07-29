@@ -106,7 +106,7 @@
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>10.9</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
-    <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
+    <com.google.zxing.javase.version>3.5.4</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>6.2.8</spring.version>
@@ -132,7 +132,7 @@
     <postgresql-driver.version>42.7.13</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
-    <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
+    <mysql-connector-j.version>9.7.0</mysql-connector-j.version>
     <clickhouse-jdbc.version>0.9.8</clickhouse-jdbc.version>
 
     <!-- Servlet -->
@@ -143,7 +143,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.22.0</jackson.version>
+    <jackson.version>2.22.1</jackson.version>
     <jackson-datatype-jts.version>2.21.0</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
