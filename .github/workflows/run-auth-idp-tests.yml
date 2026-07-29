@@ -29,7 +29,7 @@ jobs:
       REUSE_PR_IMAGE: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
       CORE_IMAGE_NAME: ${{ (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]') && format('dhis2/core-pr:{0}', github.event.number) || 'dhis2/core-dev:local' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         if: env.REUSE_PR_IMAGE != 'true'
         uses: actions/setup-java@v5
