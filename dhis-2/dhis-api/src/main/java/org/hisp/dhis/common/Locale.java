@@ -65,7 +65,6 @@ public record Locale(
    * @throws IllegalArgumentException in case the input is not a valid locale string
    */
   @Nonnull
-  @JsonCreator
   public static Locale of(@Nonnull String locale) throws IllegalArgumentException {
     int len = locale.length();
     // is it just ll or lll
