@@ -406,8 +406,13 @@
     </dependency>
     <dependency>
       <groupId>org.mock-server</groupId>
-      <artifactId>mockserver-client-java</artifactId>
+      <artifactId>mockserver-client-java-no-dependencies</artifactId>
       <version>5.15.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -423,7 +428,7 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
-      <version>1.5.9</version>
+      <version>3.0.6</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -476,6 +481,7 @@
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.openjdk.jmh:jmh-generator-annprocess</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>com.networknt:json-schema-validator</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>com.jayway.jsonpath:json-path</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <!-- compile dependency to get coverage in aggregate report -->
