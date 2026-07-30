@@ -32,11 +32,10 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -298,27 +297,29 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * readable attribute UIDs from the metadata (which honors both the parent program/type data-read
    * access and each attribute's own metadata sharing) and filter the values by UID.
    *
-   * <p>The program scope is constant across the result set, but the tracked entity type can differ
-   * per tracked entity, so the readable set is resolved and cached per type.
+   * <p>The program scope is taken from the query and is the same for all results, while the tracked
+   * entity type can differ per tracked entity. The readable set is therefore resolved once for all
+   * types present in the result and applied to every tracked entity; this is safe because the store
+   * only attaches attribute values belonging to a tracked entity's own type (and the queried
+   * program).
    */
   private void filterReadableAttributeValues(
       List<TrackedEntity> trackedEntities, TrackedEntityQueryParams queryParams) {
     Program program = queryParams.getEnrolledInTrackerProgram();
     List<Program> programs = program != null ? List.of(program) : List.of();
+    Set<TrackedEntityType> trackedEntityTypes =
+        trackedEntities.stream()
+            .map(TrackedEntity::getTrackedEntityType)
+            .collect(Collectors.toSet());
 
-    Map<TrackedEntityType, Set<String>> readableAttributesByType = new HashMap<>();
+    Set<String> readableAttributes =
+        trackedEntityAttributeService
+            .getAllUserReadableTrackedEntityAttributes(
+                programs, new ArrayList<>(trackedEntityTypes))
+            .stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet());
     for (TrackedEntity trackedEntity : trackedEntities) {
-      Set<String> readableAttributes =
-          readableAttributesByType.computeIfAbsent(
-              trackedEntity.getTrackedEntityType(),
-              trackedEntityType ->
-                  trackedEntityAttributeService
-                      .getAllUserReadableTrackedEntityAttributes(
-                          programs, List.of(trackedEntityType))
-                      .stream()
-                      .map(BaseIdentifiableObject::getUid)
-                      .collect(Collectors.toSet()));
-
       Set<TrackedEntityAttributeValue> filtered =
           trackedEntity.getTrackedEntityAttributeValues().stream()
               .filter(
