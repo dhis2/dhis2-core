@@ -75,6 +75,37 @@ jobs:
           cd dhis-2/dhis-test-e2e
           SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
 
+      # Informational only: scan the run's Postgres csvlog for N+1 query hot spots and
+      # publish an HTML report. Never affects the test result or fails the build.
+      - name: Generate N+1 query report
+        if: always()
+        continue-on-error: true
+        run: |
+          cd dhis-2/dhis-test-e2e
+          COMPOSE="docker compose -f docker-compose.yml -f docker-compose.e2e.yml"
+          mkdir -p n1watch/pglog
+          # Pull the csvlog + request-id map out of the (stopped) containers.
+          $COMPOSE cp db:/var/lib/postgresql/data/log/. n1watch/pglog/ || true
+          $COMPOSE cp test:/target/request-id-map.json n1watch/request-id-map.json || true
+          # Download the prebuilt n1watch binary (no Go toolchain / compile needed). `|| true`
+          # on each command so this informational step can never fail the build.
+          curl -sSfL -o n1watch/bin \
+            https://github.com/david-mackessy/n1watch/releases/latest/download/n1watch-linux-amd64 && chmod +x n1watch/bin || true
+          n1watch/bin -report \
+            -dir n1watch/pglog -format html -out n1watch/n1report-e2e.html \
+            -group-keys controller,method -trace-key request_id \
+            -trace-map n1watch/request-id-map.json -trace-tags setup,teardown \
+            -notify=false || true
+
+      - name: Upload N+1 report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: n1watch-report
+          path: dhis-2/dhis-test-e2e/n1watch/n1report-e2e.html
+          if-no-files-found: ignore
+
       - name: Upload logs
         if: failure()
         run: |

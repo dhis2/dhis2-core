@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.CoverageLoggerExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.hisp.dhis.helpers.extensions.RequestIdExtension;
-import org.hisp.dhis.test.e2e.actions.LoginActions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.user.UserDetails;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-// RequestIdExtension is first so its beforeAll stamps a request id before
-// MetadataSetupExtension issues class-setup requests (see its javadoc).
-@ExtendWith(RequestIdExtension.class)
-@ExtendWith(ConfigurationExtension.class)
-@ExtendWith(MetadataSetupExtension.class)
-@ExtendWith(CoverageLoggerExtension.class)
-public abstract class ApiTest {
-  @AfterAll
-  public void afterAll() {
-    new LoginActions().loginAsDefaultUser();
-    new TestCleanUp().deleteCreatedEntities();
-  }
+/** CRUD related operations that only some object types support. */
+public interface CrudOperationsSupport {
+
+  boolean setAsFavorite(UID id, UserDetails user) throws NotFoundException;
+
+  boolean removeAsFavorite(UID id, UserDetails user) throws NotFoundException;
 }

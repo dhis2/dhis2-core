@@ -27,32 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.helpers.extensions;
 
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.CoverageLoggerExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.hisp.dhis.helpers.extensions.RequestIdExtension;
-import org.hisp.dhis.test.e2e.actions.LoginActions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+import io.restassured.filter.Filter;
+import io.restassured.filter.FilterContext;
+import io.restassured.response.Response;
+import io.restassured.specification.FilterableRequestSpecification;
+import io.restassured.specification.FilterableResponseSpecification;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Adds an {@code X-Request-ID} header carrying the current test's identifier (see {@link
+ * RequestIdExtension}) to every REST-assured request, so server-side SQL can be attributed back to
+ * the triggering test. Registered once in the shared request specification, so no individual test
+ * needs to change.
+ *
+ * <p>No-op when there is no current test id (e.g. suite setup / teardown traffic) or when the
+ * caller already set the header explicitly.
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-// RequestIdExtension is first so its beforeAll stamps a request id before
-// MetadataSetupExtension issues class-setup requests (see its javadoc).
-@ExtendWith(RequestIdExtension.class)
-@ExtendWith(ConfigurationExtension.class)
-@ExtendWith(MetadataSetupExtension.class)
-@ExtendWith(CoverageLoggerExtension.class)
-public abstract class ApiTest {
-  @AfterAll
-  public void afterAll() {
-    new LoginActions().loginAsDefaultUser();
-    new TestCleanUp().deleteCreatedEntities();
+public class RequestIdFilter implements Filter {
+  public static final String HEADER = "X-Request-ID";
+
+  @Override
+  public Response filter(
+      FilterableRequestSpecification requestSpec,
+      FilterableResponseSpecification responseSpec,
+      FilterContext ctx) {
+    String requestId = RequestIdExtension.currentRequestId();
+    if (requestId != null
+        && !requestId.isEmpty()
+        && !requestSpec.getHeaders().hasHeaderWithName(HEADER)) {
+      requestSpec.header(HEADER, requestId);
+    }
+    return ctx.next(requestSpec, responseSpec);
   }
 }
