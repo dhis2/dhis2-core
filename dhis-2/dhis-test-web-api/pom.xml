@@ -411,6 +411,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-client</artifactId>
       <scope>test</scope>
@@ -476,6 +481,7 @@
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.openjdk.jmh:jmh-generator-annprocess</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>com.networknt:json-schema-validator</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>com.jayway.jsonpath:json-path</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <!-- compile dependency to get coverage in aggregate report -->
