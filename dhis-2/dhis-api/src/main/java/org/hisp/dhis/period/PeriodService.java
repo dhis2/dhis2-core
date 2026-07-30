@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.input.Fields;
 
 /**
  * @author Kristian Nordal
@@ -219,14 +220,5 @@ public interface PeriodService {
     return getPeriodTypeByName(periodType.getName());
   }
 
-  /**
-   * Updates the label of the given period type name.
-   *
-   * @param periodTypeName the {@link PeriodType}'s name.
-   * @param label the new label, null to erase
-   * @param locale when null label is the override for the name not associated with a locale,
-   *     otherwise it is a translation for the given locale
-   */
-  void updatePeriodTypeLabel(
-      String periodTypeName, @CheckForNull String label, @CheckForNull Locale locale);
+  PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, Fields fields);
 }

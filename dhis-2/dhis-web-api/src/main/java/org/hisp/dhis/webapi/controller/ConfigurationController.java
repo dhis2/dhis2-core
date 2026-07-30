@@ -66,7 +66,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeResponse.PeriodTypeEntry;
+import org.hisp.dhis.period.PeriodTypes.Entry;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
@@ -478,7 +478,7 @@ public class ConfigurationController {
   @GetMapping(
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Set<PeriodTypeEntry> getDataOutputPeriodTypes() {
+  public @ResponseBody Set<Entry> getDataOutputPeriodTypes() {
     Set<PeriodType> periodTypes =
         configurationService.getConfiguration().getDataOutputPeriodTypes();
 
@@ -486,7 +486,7 @@ public class ConfigurationController {
     // FIXME elevate to entries with labels, use service
 
     return periodTypes.stream()
-        .map(periodType -> new PeriodTypeEntry(periodType, null))
+        .map(periodType -> new Entry(periodType, null))
         .collect(toCollection(LinkedHashSet::new));
   }
 
@@ -495,10 +495,10 @@ public class ConfigurationController {
       value = {"/dataOutputPeriodTypes"},
       consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void setDataOutputPeriodTypes(@RequestBody Set<PeriodTypeEntry> periodTypes) {
+  public void setDataOutputPeriodTypes(@RequestBody Set<Entry> periodTypes) {
 
     // Disallow deprecated types
-    for (PeriodTypeEntry p : periodTypes) {
+    for (Entry p : periodTypes) {
       if (trimToEmpty(p.getName()).equalsIgnoreCase(TWO_YEARLY.getName())) {
         throw new IllegalQueryException(new ErrorMessage(E1101, p.getName()));
       }

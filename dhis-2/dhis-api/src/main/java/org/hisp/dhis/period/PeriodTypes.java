@@ -31,36 +31,49 @@ package org.hisp.dhis.period;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.CheckForNull;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.translation.Translation;
 
 /**
- * The display texts associated with a {@link PeriodType} for a specific language.
+ * List of (all) {@link PeriodType}s with their labels as exposed in the web API.
  *
- * @param name of the {@link PeriodType} (key)
- * @param locale language of the provided texts (as requested, some might be in other languages
- *     because of fallback-logic)
- * @param i18nName the name as provided for the locale by a properties-file bundled with the server
- * @param label the name as provided by a DB alias
- * @param displayLabel the name as provided by custom DB translations
+ * @param locale the locale for which labels were resolved
+ * @param periodTypes the list of period types
+ * @since 2.44
  */
-public record PeriodTypeLabels(
-    @Nonnull String name,
-    @Nonnull Locale locale,
-    @CheckForNull String i18nName,
-    @CheckForNull String label,
-    @CheckForNull String displayLabel) {
+public record PeriodTypes(
+    @JsonProperty @Nonnull Locale locale, @JsonProperty @Nonnull List<Entry> periodTypes) {
 
-  public PeriodTypeLabels {
-    requireNonNull(name);
+  public PeriodTypes {
     requireNonNull(locale);
+    requireNonNull(periodTypes);
   }
 
-  public String getDisplayName() {
-    if (displayLabel != null) return displayLabel;
-    if (label != null) return label;
-    if (i18nName != null) return i18nName;
-    return name;
+  /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
+  public record Entry(
+      @OpenApi.Description("The ID of the period type") @Nonnull @JsonProperty String name,
+      @JsonProperty String isoDuration,
+      @JsonProperty String isoFormat,
+      @JsonProperty Integer frequencyOrder,
+      @OpenApi.Description("The i18n translation of `name` or the custom override for it")
+          @JsonProperty
+          String label,
+      List<Translation> translations,
+      @OpenApi.Description("An optional translation for `label` resolved for a specific `locale`")
+          @JsonProperty
+          String displayLabel,
+      @OpenApi.Description(
+              "The name to display in the UI computed from all sources resolved for a specific `locale`")
+          @JsonProperty
+          String displayName) {
+
+    public Entry {
+      requireNonNull(name);
+      // all other properties may be null due to fields-filtering
+    }
   }
 }
