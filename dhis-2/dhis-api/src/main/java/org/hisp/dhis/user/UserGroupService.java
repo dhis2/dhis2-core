@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 
@@ -88,4 +89,14 @@ public interface UserGroupService {
 
   /** Get UserGroup's display name by given userGroup uid Return null if UserGroup does not exist */
   String getDisplayName(String uid);
+
+  /**
+   * Returns the primary keys of all user groups managed by the given managing user groups, resolved
+   * in a single SQL query. Avoids the per-group N+1 of iterating {@link User#getManagedGroups()}.
+   *
+   * @param userGroupIds the primary keys of the managing user groups
+   * @return the primary keys of the managed user groups; empty if the input is empty
+   */
+  @Nonnull
+  Set<Long> getManagedGroupIds(@Nonnull Collection<Long> userGroupIds);
 }

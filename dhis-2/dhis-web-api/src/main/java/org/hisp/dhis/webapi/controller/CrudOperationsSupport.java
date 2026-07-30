@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.hibernate.EnumUserType;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.user.UserDetails;
 
-/**
- * @author Chau Thu Tran
- */
-public class EventStatusUserType extends EnumUserType<EventStatus> {
-  public EventStatusUserType() {
-    super(EventStatus.class);
-  }
+/** CRUD related operations that only some object types support. */
+public interface CrudOperationsSupport {
+
+  boolean setAsFavorite(UID id, UserDetails user) throws NotFoundException;
+
+  boolean removeAsFavorite(UID id, UserDetails user) throws NotFoundException;
 }

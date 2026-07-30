@@ -57,7 +57,6 @@ public interface RelationshipMapper extends PreheatMapper<Relationship> {
   @Mapping(target = "key")
   @Mapping(target = "invertedKey")
   @Mapping(target = "created")
-  @Mapping(target = "createdBy")
   @Mapping(target = "lastUpdated")
   @Mapping(target = "lastUpdatedBy")
   @Mapping(target = "createdAtClient")
