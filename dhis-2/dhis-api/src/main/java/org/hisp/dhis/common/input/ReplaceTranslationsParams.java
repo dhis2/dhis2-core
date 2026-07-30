@@ -27,53 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.common.input;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import lombok.Value;
-import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.translation.Translation;
 
-public record PeriodTypeResponse(@JsonProperty List<PeriodTypeEntry> periodTypes) {
-  /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
-  @Value
-  public static class PeriodTypeEntry {
-
-    @OpenApi.Description("The ID of the period type")
-    @Nonnull
-    @JsonProperty
-    String name;
-
-    @OpenApi.Description(
-        "The name to display in the UI computed from all sources resolved for a specific `locale`")
-    @Nonnull
-    @JsonProperty
-    String displayName;
-
-    @JsonProperty String isoDuration;
-    @JsonProperty String isoFormat;
-    @JsonProperty int frequencyOrder;
-
-    @OpenApi.Description("An optional alias override for the hard-coded i18n translation of `name`")
-    @CheckForNull
-    @JsonProperty
-    String label;
-
-    @OpenApi.Description("An optional translation for `label` resolved for a specific `locale`")
-    @CheckForNull
-    @JsonProperty
-    String displayLabel;
-
-    public PeriodTypeEntry(@Nonnull PeriodType type, @CheckForNull PeriodTypeLabels labels) {
-      this.name = type.getName();
-      this.displayName = labels == null ? type.getName() : labels.getDisplayName();
-      this.frequencyOrder = type.getFrequencyOrder();
-      this.isoDuration = type.getIso8601Duration();
-      this.isoFormat = type.getIsoFormat();
-      this.label = labels == null ? null : labels.label();
-      this.displayLabel = labels == null ? null : labels.displayLabel();
-    }
-  }
-}
+/**
+ * Input as used for PUT translations for an object. In a way this is the shallow object with only
+ * the {@link #translations} property.
+ *
+ * @param translations list of translations to replace
+ * @author Jan Bernitt
+ * @since 2.44
+ */
+public record ReplaceTranslationsParams(@CheckForNull List<Translation> translations) {}

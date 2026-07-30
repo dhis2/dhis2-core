@@ -27,23 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.translation;
 
-import static java.util.Objects.requireNonNull;
-
+import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
 
 /**
- * @param name of the {@link PeriodType} (key)
- * @param label new value for the translation locale (null to erase)
- * @param locale locale of the given label, null if
+ * A list/set of translations as stored in DB as JSON(B).
+ *
+ * @author Jan Bernitt
+ * @since 2.44
  */
-public record PeriodTypeParams(
-    @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale) {
+public interface JsonTranslations extends JsonArray {
+  @Nonnull
+  default List<Translation> translationsList() {
+    return stream()
+        .map(
+            e ->
+                new Translation(
+                    Locale.of(e.getString("locale").string()),
+                    e.getString("property").string(),
+                    e.getString("value").string()))
+        .toList();
+  }
 
-  public PeriodTypeParams {
-    requireNonNull(name);
+  @CheckForNull
+  default String translationValue(@Nonnull Locale locale) {
+    String l = locale.toString();
+    for (JsonMixed e : this)
+      if (e.getString("locale").text().contentEquals(l)) return e.getString("value").string();
+    // fall back to just language?
+    if (locale.script() == null && locale.region() != null)
+      return translationValue(Locale.of(locale.language()));
+    return null;
   }
 }

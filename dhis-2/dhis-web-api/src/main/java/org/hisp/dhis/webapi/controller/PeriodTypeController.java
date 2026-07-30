@@ -29,26 +29,29 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.common.input.ReplaceTranslationsParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeParams;
-import org.hisp.dhis.period.PeriodTypeResponse;
-import org.hisp.dhis.period.PeriodTypeResponse.PeriodTypeEntry;
+import org.hisp.dhis.period.PeriodTypes;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,6 +59,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -70,42 +74,42 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PeriodTypeController {
 
-  private final I18nManager i18nManager;
-
   private final PeriodService periodService;
+  private final PeriodStore periodStore;
 
   @RequiresAuthority(anyOf = ALL)
   @PutMapping
-  public WebMessage putLabel(@RequestBody PeriodTypeParams params) {
-    periodService.updatePeriodTypeLabel(params.name(), params.label(), params.locale());
-
-    return ok(params.name() + " updated successfully.");
+  public WebMessage putLabel(@RequestBody PeriodTypeParams params) throws NotFoundException {
+    if (periodStore.updatePeriodTypeLabel(params.name(), params.label(), params.locale()))
+      return ok(params.name() + " updated successfully.");
+    throw new NotFoundException(PeriodType.class, params.name());
   }
 
   @RequiresAuthority(anyOf = ALL)
   @PutMapping(value = "/{name}/translations")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void replaceTranslations(
-      @PathVariable("name") String name,
-      @CurrentUser UserDetails currentUser,
-      @RequestBody List<Translation> translations) {
-    // TODO update
+  @ResponseBody
+  public WebMessage replaceTranslations(
+      @PathVariable("name") String name, @RequestBody ReplaceTranslationsParams params)
+      throws NotFoundException {
+
+    List<Translation> translations = params.translations();
+    if (translations == null) translations = List.of();
+
+    ObjectReport report = new ObjectReport(PeriodType.class, 0);
+    TranslationsCheck.checkTranslations(translations, report::addErrorReport);
+    if (!report.hasErrorReports()) {
+      if (periodStore.updatePeriodTypeLabel(name, translations)) return null;
+      throw new NotFoundException(PeriodType.class, name);
+    }
+    return objectReport(report);
   }
 
   @GetMapping
-  public PeriodTypeResponse getPeriodTypes(@RequestParam(defaultValue = "*") String fields) {
-
-    I18n i18n = i18nManager.getI18n();
-
-    // TODO merge with labels => also move to service
-    // type.getDisplayName(i18n)
-
-    List<PeriodTypeEntry> periodTypes =
-        PeriodType.getAvailablePeriodTypes().stream()
-            .map(periodType -> new PeriodTypeEntry(periodType, null))
-            .toList();
-
-    return new PeriodTypeResponse(periodTypes);
+  public PeriodTypes getPeriodTypes(
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(defaultValue = "name") String fields) {
+    return periodService.getAllPeriodTypes(locale, Fields.of(fields));
   }
 
   @GetMapping(
