@@ -898,6 +898,16 @@ public interface UserService {
    * @throws ForbiddenException if the current user lacks permission to manage any of the source
    *     user's groups
    */
+
+  /**
+   * Bulk-loads {@link User#getTeiSearchOrganisationUnits()} for the given users with one native SQL
+   * query (DHIS2-21907), replacing each user's lazy collection with a concrete set so field-filter
+   * serialization of {@code teiSearchOrganisationUnits[id,path]} does not N+1.
+   *
+   * <p>No-op when {@code users} is null or empty.
+   */
+  void loadTeiSearchOrganisationUnits(@Nonnull Collection<User> users);
+
   User replicateUser(User existingUser, String username, String password)
       throws ConflictException, NotFoundException, BadRequestException, ForbiddenException;
 }

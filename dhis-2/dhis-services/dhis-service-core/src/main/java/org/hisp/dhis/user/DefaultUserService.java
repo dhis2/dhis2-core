@@ -1558,6 +1558,27 @@ public class DefaultUserService implements UserService {
     userStore.setActiveLinkedAccounts(actingUser, activeUsername);
   }
 
+  
+  @Override
+  @Transactional(readOnly = true)
+  public void loadTeiSearchOrganisationUnits(@Nonnull Collection<User> users) {
+    if (users == null || users.isEmpty()) {
+      return;
+    }
+    List<Long> userIds =
+        users.stream().map(User::getId).filter(id -> id > 0).distinct().toList();
+    if (userIds.isEmpty()) {
+      return;
+    }
+    Map<Long, Set<OrganisationUnit>> byUser =
+        userStore.getTeiSearchOrganisationUnitsByUserIds(userIds);
+    for (User user : users) {
+      Set<OrganisationUnit> ous = byUser.getOrDefault(user.getId(), Set.of());
+      // Replace the lazy PersistentSet so field-filter getters do not hit the DB.
+      user.setTeiSearchOrganisationUnits(new HashSet<>(ous));
+    }
+  }
+
   @Override
   @Transactional
   public User replicateUser(User existingUser, String username, String password)
