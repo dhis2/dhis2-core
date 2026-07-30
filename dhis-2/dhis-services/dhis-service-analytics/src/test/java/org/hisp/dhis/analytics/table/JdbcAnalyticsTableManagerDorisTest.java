@@ -154,7 +154,7 @@ class JdbcAnalyticsTableManagerDorisTest {
   }
 
   @Test
-  void testRemoveUpdatedDataUsesUsingJoinNotSubquery() {
+  void testRemoveUpdatedDataMaterializesKeysNatively() {
     Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
     Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
@@ -179,11 +179,54 @@ class JdbcAnalyticsTableManagerDorisTest {
     subject.removeUpdatedData(tables);
 
     org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate).execute(sql.capture());
+    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.times(5)).execute(sql.capture());
+    List<String> statements = sql.getAllValues();
 
-    assertTrue(sql.getValue().contains("using"));
-    assertTrue(sql.getValue().contains("ax.id ="));
-    assertTrue(!sql.getValue().contains("in ("));
+    String drop1 = statements.get(0);
+    assertTrue(drop1.toLowerCase().contains("drop table if exists"));
+    assertTrue(drop1.contains("analytics_delete_keys"));
+
+    String create = statements.get(1);
+    assertTrue(create.toLowerCase().contains("create table"));
+    assertTrue(create.contains("analytics_delete_keys"));
+    assertTrue(create.contains("`dx`"));
+    assertTrue(create.contains("`co`"));
+    assertTrue(create.contains("`ao`"));
+    assertTrue(create.contains("`pe`"));
+    assertTrue(create.contains("`ou`"));
+    assertTrue(create.contains("`year`"));
+    assertFalse(create.contains("varchar(1020)"));
+
+    String insert = statements.get(2);
+    assertTrue(insert.toLowerCase().contains("insert into"));
+    assertTrue(insert.contains("analytics_delete_keys"));
+    assertTrue(insert.contains("datavalue"));
+    assertTrue(insert.contains("analytics_rs_dataelementstructure"));
+    assertFalse(insert.contains("concat("));
+    assertTrue(insert.contains("dv.lastupdated >="));
+    assertTrue(insert.contains("dv.lastupdated <"));
+    assertTrue(
+        insert.contains(
+            "(dx,co,ao,pe,ou,year) select des.dataelementuid, dcs.categoryoptioncombouid, "
+                + "acs.categoryoptioncombouid, ps.iso, ous.organisationunituid, ps.year"),
+        () -> "Expected column-list-to-select-list pairing to match exactly, got: " + insert);
+
+    String delete = statements.get(3);
+    assertTrue(delete.toLowerCase().contains("delete from"));
+    assertTrue(delete.toLowerCase().contains("using"));
+    assertTrue(delete.contains("analytics_delete_keys"));
+    assertTrue(delete.contains("ax.dx=k.dx"));
+    assertTrue(delete.contains("ax.co=k.co"));
+    assertTrue(delete.contains("ax.ao=k.ao"));
+    assertTrue(delete.contains("ax.pe=k.pe"));
+    assertTrue(delete.contains("ax.ou=k.ou"));
+    assertTrue(delete.contains("ax.year=k.year"));
+    assertFalse(delete.contains("datavalue"));
+    assertFalse(delete.contains("analytics_rs_"));
+
+    String drop2 = statements.get(4);
+    assertTrue(drop2.toLowerCase().contains("drop table"));
+    assertTrue(drop2.contains("analytics_delete_keys"));
   }
 
   @Test
