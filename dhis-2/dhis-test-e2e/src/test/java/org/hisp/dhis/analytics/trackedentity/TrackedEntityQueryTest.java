@@ -1478,13 +1478,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(16)))
+        .body("headers", hasSize(equalTo(17)))
         .body("rows", hasSize(equalTo(14)))
         .body("metaData.dimensions.ou", hasSize(equalTo(1)))
         .body("metaData.dimensions.ou", hasItem("BV4IomHvri4"))
         .body("height", equalTo(14))
-        .body("width", equalTo(16))
-        .body("headerWidth", equalTo(16));
+        .body("width", equalTo(17))
+        .body("headerWidth", equalTo(17));
 
     // Validate the first three rows, as samples (identical to the `ou` variant).
     validateRow(
@@ -1496,6 +1496,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:24.376",
             ",  ()",
+            "",
             "",
             "",
             "",
@@ -1520,6 +1521,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
+            "",
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
@@ -1538,6 +1540,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:22.383",
             ",  ()",
+            "",
             "",
             "",
             "",
