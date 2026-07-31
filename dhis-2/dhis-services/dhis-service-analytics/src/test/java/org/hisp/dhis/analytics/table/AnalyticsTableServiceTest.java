@@ -123,6 +123,8 @@ class AnalyticsTableServiceTest {
 
   @Test
   void testGetTablePartitionsUsesRealPartitionForLatestUpdateOnDeclarativePartitioningEngine() {
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+
     List<AnalyticsTableColumn> columns =
         List.of(
             AnalyticsTableColumn.builder().name("dx").dataType(TEXT).selectExpression("dx").build(),
@@ -149,6 +151,11 @@ class AnalyticsTableServiceTest {
     assertTrue(partition.isLatestPartition());
     assertEquals(startDate, partition.getStartDate());
     assertEquals(endDate, partition.getEndDate());
+    assertEquals(
+        table.getName(),
+        partition.getName(),
+        "Populate/create target must be the one physical table this engine actually builds,"
+            + " not a year-suffixed name nothing ever creates");
   }
 
   @Test
