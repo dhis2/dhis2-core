@@ -132,7 +132,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createTables(tables, progress);
     clock.logTime("Created analytics tables");
 
-    List<AnalyticsTablePartition> partitions = getTablePartitions(tables);
+    List<AnalyticsTablePartition> partitions = getTablePartitions(tables, params.isLatestUpdate());
     int partitionSize = partitions.size();
 
     progress.startingStage(
@@ -341,11 +341,16 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @param tables the list of {@link AnalyticsTable}.
    * @return a list of {@link AnalyticsTablePartition}.
    */
-  List<AnalyticsTablePartition> getTablePartitions(List<AnalyticsTable> tables) {
+  List<AnalyticsTablePartition> getTablePartitions(
+      List<AnalyticsTable> tables, boolean isLatestUpdate) {
     List<AnalyticsTablePartition> partitions = new ArrayList<>();
 
     for (AnalyticsTable table : tables) {
-      if (table.hasTablePartitions() && !sqlBuilder.supportsDeclarativePartitioning()) {
+      // The continuous/latest-update partition always needs its own real date range, regardless
+      // of whether the engine natively routes rows to physical partitions by column value; only
+      // regular multi-year updates on such engines can safely use one combined fake partition.
+      if (table.hasTablePartitions()
+          && (isLatestUpdate || !sqlBuilder.supportsDeclarativePartitioning())) {
         partitions.addAll(table.getTablePartitions());
       } else {
         // Fake partition representing the master table

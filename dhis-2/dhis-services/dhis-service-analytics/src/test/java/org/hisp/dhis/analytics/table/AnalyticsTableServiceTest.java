@@ -32,11 +32,14 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -112,9 +115,74 @@ class AnalyticsTableServiceTest {
         new DateTime(2011, 12, 31, 0, 0).toDate());
     AnalyticsTable tB =
         new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, sortKey, Logged.UNLOGGED);
-    List<AnalyticsTablePartition> partitions = tableService.getTablePartitions(List.of(tA, tB));
+    List<AnalyticsTablePartition> partitions =
+        tableService.getTablePartitions(List.of(tA, tB), false);
 
     assertEquals(3, partitions.size());
+  }
+
+  @Test
+  void testGetTablePartitionsUsesRealPartitionForLatestUpdateOnDeclarativePartitioningEngine() {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder().name("dx").dataType(TEXT).selectExpression("dx").build(),
+            AnalyticsTableColumn.builder()
+                .name("value")
+                .dataType(DOUBLE)
+                .selectExpression("value")
+                .build());
+    List<String> sortKey = List.of("dx");
+
+    Date startDate = new DateTime(2026, 7, 31, 12, 48, 20).toDate();
+    Date endDate = new DateTime(2026, 7, 31, 12, 55, 0).toDate();
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
+
+    List<AnalyticsTablePartition> partitions =
+        tableService.getTablePartitions(List.of(table), true);
+
+    assertEquals(1, partitions.size());
+    AnalyticsTablePartition partition = partitions.get(0);
+    assertTrue(partition.isLatestPartition());
+    assertEquals(startDate, partition.getStartDate());
+    assertEquals(endDate, partition.getEndDate());
+  }
+
+  @Test
+  void testGetTablePartitionsUsesFakePartitionForRegularUpdateOnDeclarativePartitioningEngine() {
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder().name("dx").dataType(TEXT).selectExpression("dx").build(),
+            AnalyticsTableColumn.builder()
+                .name("value")
+                .dataType(DOUBLE)
+                .selectExpression("value")
+                .build());
+    List<String> sortKey = List.of("dx");
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of(),
+        2010,
+        new DateTime(2010, 1, 1, 0, 0).toDate(),
+        new DateTime(2010, 12, 31, 0, 0).toDate());
+    table.addTablePartition(
+        List.of(),
+        2011,
+        new DateTime(2011, 1, 1, 0, 0).toDate(),
+        new DateTime(2011, 12, 31, 0, 0).toDate());
+
+    List<AnalyticsTablePartition> partitions =
+        tableService.getTablePartitions(List.of(table), false);
+
+    assertEquals(1, partitions.size());
+    assertFalse(partitions.get(0).isLatestPartition());
   }
 
   @Test
