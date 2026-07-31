@@ -159,7 +159,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.44.0</artemis.version>
     <netty-all.version>4.2.16.Final</netty-all.version>
-    <classgraph.version>4.8.184</classgraph.version>
+    <classgraph.version>4.8.185</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.3.2</sms-compression.version>
