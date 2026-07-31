@@ -79,6 +79,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                             program.getProgramIndicators().stream()
                                 .filter(pi -> aclService.canRead(currentUserDetails, pi))
                                 .collect(Collectors.toSet())),
+                        getProgramStageDataElements(QUERY, program),
                         ofItemsWithProgram(program, getCategories(program)),
                         filterByValueType(
                             QUERY,
