@@ -545,7 +545,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 ${extraJoinClause}\
                 where ev.lastupdated < '${startTime}' ${partitionClause} \
                 and ev.programstageid = ${programStageId} \
-                and ev.organisationunitid is not null \
                 and (${eventDateExpression}) is not null \
                 and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
                 and dps.year >= ${firstYear} \
@@ -609,7 +608,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 ${extraJoinClause}\
                 where ev.lastupdated < '${startTime}' ${partitionClause} \
                 and pr.programid = ${programId} \
-                and ev.organisationunitid is not null \
                 and (${eventDateExpression}) is not null \
                 and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
                 and dps.year >= ${firstYear} \
