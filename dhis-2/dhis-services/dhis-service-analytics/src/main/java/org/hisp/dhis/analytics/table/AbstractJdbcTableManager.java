@@ -427,15 +427,24 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
+    // Engines without a unique key on analytics tables (Postgres) wholesale-replace the latest
+    // partition on every run, so its window must always span back to the last full rebuild, or
+    // data captured by an earlier continuous run would be discarded rather than carried forward.
+    // Engines with a unique key (Doris) instead merge into the persistent main table with
+    // natural-key deduplication, so it's safe and correct to only (re)process what changed since
+    // the last continuous run.
+    Date partitionStartDate =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables() ? lastAnyTableUpdate : lastFullTableUpdate;
+
     AnalyticsTable table =
         new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), primaryKey, logged);
 
     if (hasUpdatedData) {
       table.addTablePartition(
-          List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
+          List.of(), AnalyticsTablePartition.LATEST_PARTITION, partitionStartDate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
-          toLongDate(lastFullTableUpdate),
+          toLongDate(partitionStartDate),
           toLongDate(endDate));
     } else {
       log.info(

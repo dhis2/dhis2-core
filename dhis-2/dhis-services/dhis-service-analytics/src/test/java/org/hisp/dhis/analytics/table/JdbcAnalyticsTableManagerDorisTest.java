@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -64,6 +65,7 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -151,6 +153,42 @@ class JdbcAnalyticsTableManagerDorisTest {
         () ->
             "id column must not use the unbounded string type as a key column, got: "
                 + createTableSql);
+  }
+
+  @Test
+  @DisplayName(
+      "Doris latest-partition window starts at the last continuous update, not the last full"
+          + " rebuild, since Doris merges into the persistent main table rather than replacing a"
+          + " partition wholesale")
+  void testGetLatestAnalyticsTableUsesLastAnyTableUpdate() {
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("dataelementid", 1));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastLatestPartitionUpdate);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
+    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+
+    AnalyticsTablePartition partition = tables.get(0).getLatestTablePartition();
+
+    assertTrue(partition.isLatestPartition());
+    assertEquals(lastLatestPartitionUpdate, partition.getStartDate());
+    assertEquals(startTime, partition.getEndDate());
   }
 
   @Test

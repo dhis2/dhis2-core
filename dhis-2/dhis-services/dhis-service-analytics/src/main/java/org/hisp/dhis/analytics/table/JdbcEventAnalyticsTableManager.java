@@ -239,7 +239,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         lastFullTableUpdate.getTime() > 0L,
         "A full analytics table update process must be run prior to a latest partition update");
 
-    Date startDate = lastFullTableUpdate;
+    // Engines without a unique key on analytics tables (Postgres) wholesale-replace the latest
+    // partition on every run, so its window must always span back to the last full rebuild, or
+    // data captured by an earlier continuous run would be discarded rather than carried forward.
+    // Engines with a unique key (Doris) instead merge into the persistent main table with
+    // natural-key deduplication, so it's safe and correct to only (re)process what changed since
+    // the last continuous run.
+    Date startDate =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables() ? lastAnyTableUpdate : lastFullTableUpdate;
     Date endDate = params.getStartTime();
 
     List<AnalyticsTable> tables = new ArrayList<>();
