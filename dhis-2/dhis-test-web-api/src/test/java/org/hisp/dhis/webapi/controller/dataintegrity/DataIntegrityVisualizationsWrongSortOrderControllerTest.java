@@ -95,7 +95,8 @@ class DataIntegrityVisualizationsWrongSortOrderControllerTest
             + "and sort_order = 2",
         viz.getUid());
 
-    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, 100, viz.getUid(), "myviz", "3 != 2", true);
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, CHECK, 100, viz.getUid(), "myviz", "3 != 2", true);
   }
 
   @Test
