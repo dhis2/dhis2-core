@@ -62,9 +62,9 @@ class DataIntegrityVisualizationsWrongSortOrderControllerTest
 
   private Visualization viz;
 
-  private static final String check = "visualizations_wrong_sort_order";
+  private static final String CHECK = "visualizations_wrong_sort_order";
 
-  private static final String detailsIdType = "visualizations";
+  private static final String DETAILS_ID_TYPE = "visualizations";
 
   @BeforeEach
   void setUp() {
@@ -95,11 +95,11 @@ class DataIntegrityVisualizationsWrongSortOrderControllerTest
             + "and sort_order = 2",
         viz.getUid());
 
-    assertHasDataIntegrityIssues(detailsIdType, check, 100, viz.getUid(), "myviz", "3 != 2", true);
+    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, 100, viz.getUid(), "myviz", "3 != 2", true);
   }
 
   @Test
   void testVisualizationRightSortOrder() {
-    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, true);
   }
 }
