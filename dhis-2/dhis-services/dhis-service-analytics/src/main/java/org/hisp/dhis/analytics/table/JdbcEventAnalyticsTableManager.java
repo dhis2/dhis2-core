@@ -81,8 +81,10 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
@@ -381,53 +383,46 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     for (AnalyticsTable table : tables) {
       AnalyticsTablePartition partition = table.getLatestTablePartition();
       Program program = table.getProgram();
-      boolean uniqueKey = sqlBuilder.requiresUniqueKeyAnalyticsTables();
-      String sql = getSql(table, program, partition, uniqueKey);
 
-      if (isNotBlank(sql)) {
-        invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getMainName());
+      if (sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+        removeUpdatedDataViaStagingKeys(table, program, partition);
+      } else {
+        String sql = getSubquerySql(table, program, partition);
+
+        if (isNotBlank(sql)) {
+          invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getMainName());
+        }
       }
     }
   }
 
-  private String getSql(
-      AnalyticsTable table, Program program, AnalyticsTablePartition partition, boolean uniqueKey) {
+  /**
+   * Removes updated and deleted events on databases which do not require a unique key for analytics
+   * tables (Postgres, ClickHouse). Runs entirely against local tables, so the federated-join
+   * problem {@link #removeUpdatedDataViaStagingKeys} works around does not apply here.
+   */
+  private String getSubquerySql(
+      AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
 
     String sql = null;
     if (table.getProgram().isRegistration()) {
       sql =
-          uniqueKey
-              ? replaceQualify(
-                  sqlBuilder,
-                  """
-                      delete from ${tableName} ax \
-                      using ${trackerevent} ev \
-                      inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-                      where ax.event = ev.uid \
-                      and en.programid = ${programId} \
-                      and ev.lastupdated >= '${startDate}' \
-                      and ev.lastupdated < '${endDate}';""",
-                  Map.of(
-                      "tableName", quote(table.getMainName()),
-                      "programId", String.valueOf(program.getId()),
-                      "startDate", toLongDate(partition.getStartDate()),
-                      "endDate", toLongDate(partition.getEndDate())))
-              : replaceQualify(
-                  sqlBuilder,
-                  """
-                      delete from ${tableName} ax \
-                      where ax.event in ( \
-                      select ev.uid \
-                      from ${trackerevent} ev \
-                      inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-                      where en.programid = ${programId} \
-                      and ev.lastupdated >= '${startDate}' \
-                      and ev.lastupdated < '${endDate}');""",
-                  Map.of(
-                      "tableName", sqlBuilder.qualifyTable(table.getMainName()),
-                      "programId", String.valueOf(program.getId()),
-                      "startDate", toLongDate(partition.getStartDate()),
-                      "endDate", toLongDate(partition.getEndDate())));
+          replaceQualify(
+              sqlBuilder,
+              """
+                  delete from ${tableName} ax \
+                  where ax.event in ( \
+                  select ev.uid \
+                  from ${trackerevent} ev \
+                  inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+                  where en.programid = ${programId} \
+                  and ev.lastupdated >= '${startDate}' \
+                  and ev.lastupdated < '${endDate}');""",
+              Map.of(
+                  "tableName", sqlBuilder.qualifyTable(table.getMainName()),
+                  "programId", String.valueOf(program.getId()),
+                  "startDate", toLongDate(partition.getStartDate()),
+                  "endDate", toLongDate(partition.getEndDate())));
     } else {
       if (isEmpty(program.getProgramStages()) || program.getProgramStages().size() > 1) {
         log.warn("Single event program {}, must have one stage", program.getUid());
@@ -438,39 +433,149 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     ? program.getProgramStages().stream().toList().get(0).getId()
                     : EMPTY);
         sql =
-            uniqueKey
-                ? replaceQualify(
-                    sqlBuilder,
-                    """
-                      delete from ${tableName} ax \
-                      using ${singleevent} ev \
-                      where ax.event = ev.uid \
-                      and ev.programstageid = ${programStageId} \
-                      and ev.lastupdated >= '${startDate}' \
-                      and ev.lastupdated < '${endDate}';""",
-                    Map.of(
-                        "tableName", quote(table.getMainName()),
-                        "programStageId", String.valueOf(programStageId),
-                        "startDate", toLongDate(partition.getStartDate()),
-                        "endDate", toLongDate(partition.getEndDate())))
-                : replaceQualify(
-                    sqlBuilder,
-                    """
-                      delete from ${tableName} ax \
-                      where ax.event in ( \
-                      select ev.uid \
-                      from ${singleevent} ev \
-                      where ev.programstageid = ${programStageId} \
-                      and ev.lastupdated >= '${startDate}' \
-                      and ev.lastupdated < '${endDate}');""",
-                    Map.of(
-                        "tableName", sqlBuilder.qualifyTable(table.getMainName()),
-                        "programStageId", String.valueOf(programStageId),
-                        "startDate", toLongDate(partition.getStartDate()),
-                        "endDate", toLongDate(partition.getEndDate())));
+            replaceQualify(
+                sqlBuilder,
+                """
+                  delete from ${tableName} ax \
+                  where ax.event in ( \
+                  select ev.uid \
+                  from ${singleevent} ev \
+                  where ev.programstageid = ${programStageId} \
+                  and ev.lastupdated >= '${startDate}' \
+                  and ev.lastupdated < '${endDate}');""",
+                Map.of(
+                    "tableName", sqlBuilder.qualifyTable(table.getMainName()),
+                    "programStageId", String.valueOf(programStageId),
+                    "startDate", toLongDate(partition.getStartDate()),
+                    "endDate", toLongDate(partition.getEndDate())));
       }
     }
     return sql;
+  }
+
+  /**
+   * Removes updated and deleted events on databases which require a unique key for analytics tables
+   * (Doris). The equivalent single {@code delete ... using <federated table>} statement is avoided
+   * here because it joins a live federated table (the operational database's {@code
+   * trackerevent}/{@code singleevent}) against local tables inside a {@code delete}, which is
+   * dramatically slower than the same join shape used as a plain {@code select} (as {@link
+   * #populateTable} already does). Instead, the matching rows' {@code event} UID is first
+   * materialized into a small native staging table via that proven-fast federated {@code select},
+   * and the actual delete runs entirely locally against that staging table. Unlike the aggregate
+   * ({@code DATA_VALUE}) case, the analytics event table's natural key is {@code event} alone (see
+   * {@link #PRIMARY_KEY}) - one physical table per program, one row per event UID - so the staging
+   * table only needs to carry that single column.
+   */
+  private void removeUpdatedDataViaStagingKeys(
+      AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
+    if (program.isRegistration()) {
+      removeUpdatedTrackerEventsViaStagingKeys(table, program, partition);
+    } else if (isEmpty(program.getProgramStages()) || program.getProgramStages().size() > 1) {
+      log.warn("Single event program {}, must have one stage", program.getUid());
+    } else {
+      removeUpdatedSingleEventsViaStagingKeys(table, program, partition);
+    }
+  }
+
+  private void removeUpdatedTrackerEventsViaStagingKeys(
+      AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
+    String keysTableName = getDeleteKeysTableName();
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName), "Drop delete-keys staging table (pre)");
+
+    invokeTimeAndLog(
+        sqlBuilder.createTable(newDeleteKeysTable(keysTableName)),
+        "Create delete-keys staging table");
+
+    String insertSql =
+        replaceQualify(
+            sqlBuilder,
+            """
+            insert into ${keysTableName} (event) \
+            select ev.uid \
+            from ${trackerevent} ev \
+            inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+            where en.programid = ${programId} \
+            and ev.lastupdated >= '${startDate}' and ev.lastupdated < '${endDate}';""",
+            Map.of(
+                "keysTableName", quote(keysTableName),
+                "programId", String.valueOf(program.getId()),
+                "startDate", toLongDate(partition.getStartDate()),
+                "endDate", toLongDate(partition.getEndDate())));
+
+    invokeTimeAndLog(insertSql, "Populate delete-keys staging table");
+
+    invokeTimeAndLog(
+        deleteFromMainTableUsingKeysSql(table, keysTableName),
+        "Remove updated events for table: '{}'",
+        table.getMainName());
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName),
+        "Drop delete-keys staging table (post)");
+  }
+
+  private void removeUpdatedSingleEventsViaStagingKeys(
+      AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
+    String programStageId =
+        String.valueOf(
+            program.isSingleProgramStage()
+                ? program.getProgramStages().stream().toList().get(0).getId()
+                : EMPTY);
+    String keysTableName = getDeleteKeysTableName();
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName), "Drop delete-keys staging table (pre)");
+
+    invokeTimeAndLog(
+        sqlBuilder.createTable(newDeleteKeysTable(keysTableName)),
+        "Create delete-keys staging table");
+
+    String insertSql =
+        replaceQualify(
+            sqlBuilder,
+            """
+            insert into ${keysTableName} (event) \
+            select ev.uid \
+            from ${singleevent} ev \
+            where ev.programstageid = ${programStageId} \
+            and ev.lastupdated >= '${startDate}' and ev.lastupdated < '${endDate}';""",
+            Map.of(
+                "keysTableName", quote(keysTableName),
+                "programStageId", programStageId,
+                "startDate", toLongDate(partition.getStartDate()),
+                "endDate", toLongDate(partition.getEndDate())));
+
+    invokeTimeAndLog(insertSql, "Populate delete-keys staging table");
+
+    invokeTimeAndLog(
+        deleteFromMainTableUsingKeysSql(table, keysTableName),
+        "Remove updated events for table: '{}'",
+        table.getMainName());
+
+    invokeTimeAndLog(
+        sqlBuilder.dropTableIfExistsCascade(keysTableName),
+        "Drop delete-keys staging table (post)");
+  }
+
+  private String deleteFromMainTableUsingKeysSql(AnalyticsTable table, String keysTableName) {
+    return replace(
+        """
+        delete from ${tableName} ax \
+        using ${keysTableName} k \
+        where ax.event=k.event;""",
+        Map.of(
+            "tableName", quote(table.getMainName()),
+            "keysTableName", quote(keysTableName)));
+  }
+
+  private String getDeleteKeysTableName() {
+    return getAnalyticsTableType().getTableName() + "_delete_keys";
+  }
+
+  private Table newDeleteKeysTable(String keysTableName) {
+    return new Table(keysTableName, List.of(new Column("event", CHARACTER_11)), List.of());
   }
 
   @Override

@@ -331,8 +331,10 @@ class JdbcEventAnalyticsTableManagerDorisTest {
   }
 
   @Test
-  @DisplayName("removeUpdatedData emits DELETE...USING for a registration program on Doris")
-  void testRemoveUpdatedDataUsesUsingJoinForRegistration() {
+  @DisplayName(
+      "removeUpdatedData materializes event keys natively for a registration program on Doris,"
+          + " instead of a federated join inside DELETE")
+  void testRemoveUpdatedDataMaterializesKeysNativelyForRegistration() {
     Program program = createProgram('A');
     program.setProgramType(ProgramType.WITH_REGISTRATION);
 
@@ -361,16 +363,49 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     subject.removeUpdatedData(tables);
 
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    verify(jdbcTemplate).execute(sql.capture());
+    verify(jdbcTemplate, Mockito.times(5)).execute(sql.capture());
+    List<String> statements = sql.getAllValues();
 
-    assertTrue(sql.getValue().contains("using"));
-    assertTrue(sql.getValue().contains("ax.event = ev.uid"));
-    assertTrue(!sql.getValue().contains("in ("));
+    String drop1 = statements.get(0);
+    assertTrue(drop1.toLowerCase().contains("drop table if exists"));
+    assertTrue(drop1.contains("analytics_event_delete_keys"));
+
+    String create = statements.get(1);
+    assertTrue(create.toLowerCase().contains("create table"));
+    assertTrue(create.contains("analytics_event_delete_keys"));
+    assertTrue(create.contains("`event`"));
+    assertTrue(!create.contains("`year`"));
+
+    String insert = statements.get(2);
+    assertTrue(insert.toLowerCase().contains("insert into"));
+    assertTrue(insert.contains("analytics_event_delete_keys"));
+    assertTrue(insert.contains("trackerevent"));
+    assertTrue(insert.contains("enrollment"));
+    assertTrue(insert.contains("en.programid ="));
+    assertTrue(insert.contains("ev.lastupdated >="));
+    assertTrue(insert.contains("ev.lastupdated <"));
+    assertTrue(
+        insert.contains("(event) select ev.uid"),
+        () -> "Expected column-list-to-select-list pairing to match exactly, got: " + insert);
+
+    String delete = statements.get(3);
+    assertTrue(delete.toLowerCase().contains("delete from"));
+    assertTrue(delete.toLowerCase().contains("using"));
+    assertTrue(delete.contains("analytics_event_delete_keys"));
+    assertTrue(delete.contains("ax.event=k.event"));
+    assertTrue(!delete.contains("trackerevent"));
+    assertTrue(!delete.contains("enrollment"));
+
+    String drop2 = statements.get(4);
+    assertTrue(drop2.toLowerCase().contains("drop table"));
+    assertTrue(drop2.contains("analytics_event_delete_keys"));
   }
 
   @Test
-  @DisplayName("removeUpdatedData emits DELETE...USING for a single event program on Doris")
-  void testRemoveUpdatedDataUsesUsingJoinForSingleEvent() {
+  @DisplayName(
+      "removeUpdatedData materializes event keys natively for a single event program on Doris,"
+          + " instead of a federated join inside DELETE")
+  void testRemoveUpdatedDataMaterializesKeysNativelyForSingleEvent() {
     ProgramStage psA = new ProgramStage();
     psA.setId(123456);
 
@@ -403,10 +438,39 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     subject.removeUpdatedData(tables);
 
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    verify(jdbcTemplate).execute(sql.capture());
+    verify(jdbcTemplate, Mockito.times(5)).execute(sql.capture());
+    List<String> statements = sql.getAllValues();
 
-    assertTrue(sql.getValue().contains("using"));
-    assertTrue(sql.getValue().contains("ax.event ="));
-    assertTrue(!sql.getValue().contains("in ("));
+    String drop1 = statements.get(0);
+    assertTrue(drop1.toLowerCase().contains("drop table if exists"));
+    assertTrue(drop1.contains("analytics_event_delete_keys"));
+
+    String create = statements.get(1);
+    assertTrue(create.toLowerCase().contains("create table"));
+    assertTrue(create.contains("analytics_event_delete_keys"));
+    assertTrue(create.contains("`event`"));
+    assertTrue(!create.contains("`year`"));
+
+    String insert = statements.get(2);
+    assertTrue(insert.toLowerCase().contains("insert into"));
+    assertTrue(insert.contains("analytics_event_delete_keys"));
+    assertTrue(insert.contains("singleevent"));
+    assertTrue(insert.contains("ev.programstageid ="));
+    assertTrue(insert.contains("ev.lastupdated >="));
+    assertTrue(insert.contains("ev.lastupdated <"));
+    assertTrue(
+        insert.contains("(event) select ev.uid"),
+        () -> "Expected column-list-to-select-list pairing to match exactly, got: " + insert);
+
+    String delete = statements.get(3);
+    assertTrue(delete.toLowerCase().contains("delete from"));
+    assertTrue(delete.toLowerCase().contains("using"));
+    assertTrue(delete.contains("analytics_event_delete_keys"));
+    assertTrue(delete.contains("ax.event=k.event"));
+    assertTrue(!delete.contains("singleevent"));
+
+    String drop2 = statements.get(4);
+    assertTrue(drop2.toLowerCase().contains("drop table"));
+    assertTrue(drop2.contains("analytics_event_delete_keys"));
   }
 }
