@@ -27,44 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.job;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobEntry;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.user.DefaultLoginEventService;
-import org.hisp.dhis.user.DefaultUserActivityService;
-import org.hisp.dhis.user.LoginEventService;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserActivityService;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Rolls raw {@code loginevent} and {@code useractivity} rows older than the retention window into
- * their daily aggregate tables and then prunes them, so the raw tables stay bounded while
- * historical logins/day and active-users/day are preserved.
+ * Marks the current user as active (one {@code useractivity} row per user per day) on every
+ * authenticated API request, regardless of client type. The heavy lifting (short-TTL guard cache,
+ * failure safety) lives in {@link UserActivityService#recordActivity(String)}, so this interceptor
+ * is effectively free on the hot path.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class LoginEventCleanupJob implements Job {
-
-  private final LoginEventService loginEventService;
+public class UserActivityInterceptor implements HandlerInterceptor {
 
   private final UserActivityService userActivityService;
 
   @Override
-  public JobType getJobType() {
-    return JobType.LOGIN_EVENT_CLEANUP;
-  }
-
-  @Override
-  public void execute(JobEntry jobConfiguration, JobProgress progress) {
-    progress.startingProcess("Login event and user activity cleanup");
-    loginEventService.cleanup(DefaultLoginEventService.DEFAULT_RETENTION_DAYS, progress);
-    userActivityService.cleanup(DefaultUserActivityService.DEFAULT_RETENTION_DAYS, progress);
-    progress.completedProcess("Login event and user activity cleanup finished");
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
+    try {
+      if (CurrentUserUtil.hasCurrentUser()) {
+        userActivityService.recordActivity(CurrentUserUtil.getCurrentUsername());
+      }
+    } catch (Exception e) {
+      // A stats write must never fail a request; the transaction proxy itself can throw
+      // (e.g. connection pool exhaustion) outside the service's own try/catch.
+      log.debug("Failed to record user activity: {}", e.getMessage());
+    }
+    return true;
   }
 }

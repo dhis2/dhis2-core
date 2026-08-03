@@ -65,6 +65,15 @@ public interface LoginEventService {
   List<DailyLoginStatistics> getDailyStatistics(LocalDate startDate, LocalDate endDate);
 
   /**
+   * Counts distinct users with at least one recorded login on or after each of the given
+   * timestamps, in one query.
+   *
+   * @param sinceDates the cutoff timestamps
+   * @return counts in the same order as the given timestamps
+   */
+  List<Integer> getDistinctActiveUsersCounts(List<java.util.Date> sinceDates);
+
+  /**
    * Rolls raw login events older than the retention window into the daily aggregate table and then
    * deletes those raw rows.
    *

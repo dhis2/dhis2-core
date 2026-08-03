@@ -52,6 +52,7 @@ import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.TrailingSlashInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.UserActivityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.FilteredPageHttpMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -119,6 +120,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
+
+  @Autowired private UserActivityInterceptor userActivityInterceptor;
 
   @Autowired private StaticCacheInterceptor staticCacheInterceptor;
 
@@ -254,6 +257,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
+    registry.addInterceptor(userActivityInterceptor).addPathPatterns("/api/**");
     registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
     registry
         .addInterceptor(staticCacheInterceptor)

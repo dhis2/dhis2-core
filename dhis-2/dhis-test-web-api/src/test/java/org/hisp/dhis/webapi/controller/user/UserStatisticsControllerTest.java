@@ -39,8 +39,10 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.DefaultLoginEventService;
+import org.hisp.dhis.user.DefaultUserActivityService;
 import org.hisp.dhis.user.LoginAuthType;
 import org.hisp.dhis.user.LoginEventService;
+import org.hisp.dhis.user.UserActivityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,9 +55,12 @@ class UserStatisticsControllerTest extends PostgresControllerIntegrationTestBase
 
   @Autowired private LoginEventService loginEventService;
 
+  @Autowired private UserActivityService userActivityService;
+
   @org.junit.jupiter.api.BeforeEach
   void clearDedup() {
     DefaultLoginEventService.clearDedupCache();
+    DefaultUserActivityService.clearDedupCache();
   }
 
   @Test
@@ -92,5 +97,40 @@ class UserStatisticsControllerTest extends PostgresControllerIntegrationTestBase
             .content(HttpStatus.OK)
             .as(JsonArray.class);
     assertTrue(body.isEmpty());
+  }
+
+  @Test
+  void getActiveUsersReturnsByRequestAndByLogin() {
+    userActivityService.recordActivity("alice");
+    userActivityService.recordActivity("bob");
+    loginEventService.recordLogin("alice", LoginAuthType.FORM);
+
+    JsonObject body =
+        GET("/api/userStatistics/activeUsers").content(HttpStatus.OK).as(JsonObject.class);
+
+    JsonObject byRequest = body.getObject("byRequest");
+    JsonObject byLogin = body.getObject("byLogin");
+    // The GET itself is an authenticated request, so the admin user may add one more.
+    assertTrue(byRequest.getNumber("0").intValue() >= 2, "byRequest last hour: " + byRequest);
+    assertTrue(byRequest.getNumber("30").intValue() >= 2, "byRequest last 30 days: " + byRequest);
+    assertEquals(1, byLogin.getNumber("0").intValue(), "byLogin last hour: " + byLogin);
+    assertEquals(1, byLogin.getNumber("30").intValue(), "byLogin last 30 days: " + byLogin);
+  }
+
+  @Test
+  void getActiveUsersPerDayReturnsDailySeries() {
+    userActivityService.recordActivity("alice");
+    userActivityService.recordActivity("bob");
+
+    LocalDate today = LocalDate.now(ZoneId.systemDefault());
+    JsonArray body =
+        GET("/api/userStatistics/activeUsersPerDay?startDate=" + today + "&endDate=" + today)
+            .content(HttpStatus.OK)
+            .as(JsonArray.class);
+
+    assertEquals(1, body.size());
+    JsonObject day = body.getObject(0);
+    assertEquals(today.toString(), day.getString("date").string());
+    assertTrue(day.getNumber("activeUsers").intValue() >= 2, "activeUsers: " + day);
   }
 }

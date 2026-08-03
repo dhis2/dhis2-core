@@ -146,4 +146,37 @@ public class HibernateLoginEventStore extends HibernateGenericStore<LoginEvent>
           return null;
         });
   }
+
+  @Override
+  public List<Integer> getDistinctUserCounts(List<java.util.Date> sinceDates) {
+    if (sinceDates.isEmpty()) {
+      return List.of();
+    }
+    StringBuilder sql = new StringBuilder("select ");
+    for (int i = 0; i < sinceDates.size(); i++) {
+      if (i > 0) {
+        sql.append(", ");
+      }
+      sql.append("count(distinct username) filter (where timestamp >= ?) as c").append(i);
+    }
+    sql.append(" from loginevent where timestamp >= ?");
+    java.util.Date earliest = sinceDates.stream().min(java.util.Date::compareTo).orElseThrow();
+    return jdbcTemplate.query(
+        sql.toString(),
+        ps -> {
+          int i = 1;
+          for (java.util.Date since : sinceDates) {
+            ps.setTimestamp(i++, new Timestamp(since.getTime()));
+          }
+          ps.setTimestamp(i, new Timestamp(earliest.getTime()));
+        },
+        rs -> {
+          rs.next();
+          List<Integer> counts = new ArrayList<>(sinceDates.size());
+          for (int i = 0; i < sinceDates.size(); i++) {
+            counts.add(rs.getInt(i + 1));
+          }
+          return counts;
+        });
+  }
 }

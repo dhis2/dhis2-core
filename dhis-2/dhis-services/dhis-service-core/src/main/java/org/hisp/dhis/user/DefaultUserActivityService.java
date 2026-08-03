@@ -33,12 +33,10 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
@@ -49,97 +47,79 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Default {@link LoginEventService}. Dedup is a per-JVM in-memory cache keyed by {@code
- * username|authType} with a 15 minute write TTL, so PAT/basic-auth request storms only produce one
- * raw row per user per auth type per window. In a multi-node cluster each node has its own cache
- * (acceptable for statistics; worst case is one extra row per node per window).
+ * Default {@link UserActivityService}. The write guard is a per-JVM cache keyed by username with a
+ * 10 minute write TTL, so an active user costs at most one small upsert per 10 minutes (and the
+ * {@code lastactive} column is at most 10 minutes stale). In a multi-node cluster each node keeps
+ * its own guard; the upsert is idempotent so extra writes are harmless.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Service
-public class DefaultLoginEventService implements LoginEventService {
+public class DefaultUserActivityService implements UserActivityService {
 
-  /** Keep raw events this many days before rolling them into the daily aggregate. */
+  /** Keep raw per-user-per-day rows this many days before rolling up. */
   public static final int DEFAULT_RETENTION_DAYS = 365;
 
-  private static final Cache<Boolean> RECENT_LOGIN_CACHE =
+  private static final Cache<Boolean> RECENT_ACTIVITY_CACHE =
       new SimpleCacheBuilder<Boolean>()
-          .forRegion("loginEventDedup")
-          .expireAfterWrite(15, TimeUnit.MINUTES)
+          .forRegion("userActivityDedup")
+          .expireAfterWrite(10, TimeUnit.MINUTES)
           .withInitialCapacity(10_000)
           .withMaximumSize(100_000)
           .build();
 
-  private final LoginEventStore loginEventStore;
+  private final UserActivityStore userActivityStore;
 
   private final Set<String> excludedUsernames;
 
-  public DefaultLoginEventService(
-      LoginEventStore loginEventStore, DhisConfigurationProvider config) {
-    this.loginEventStore = loginEventStore;
+  public DefaultUserActivityService(
+      UserActivityStore userActivityStore, DhisConfigurationProvider config) {
+    this.userActivityStore = userActivityStore;
     this.excludedUsernames =
-        parseExcludedUsernames(
+        DefaultLoginEventService.parseExcludedUsernames(
             config.getProperty(ConfigurationKey.SYSTEM_USER_STATS_EXCLUDED_USERS));
-  }
-
-  /**
-   * Parses the comma-separated {@code system.user_stats.excluded_users} value, typically monitoring
-   * or integration service accounts that would otherwise inflate the statistics.
-   */
-  static Set<String> parseExcludedUsernames(String value) {
-    if (value == null || value.isBlank()) {
-      return Set.of();
-    }
-    return Arrays.stream(value.split(","))
-        .map(String::trim)
-        .filter(s -> !s.isEmpty())
-        .collect(Collectors.toUnmodifiableSet());
   }
 
   @Override
   @Transactional
-  public void recordLogin(String username, LoginAuthType authType) {
-    if (username == null
-        || username.isBlank()
-        || authType == null
-        || excludedUsernames.contains(username)) {
+  public void recordActivity(String username) {
+    if (username == null || username.isBlank() || excludedUsernames.contains(username)) {
       return;
     }
-    String key = username + '|' + authType.name();
-    if (RECENT_LOGIN_CACHE.getIfPresent(key).isPresent()) {
+    if (RECENT_ACTIVITY_CACHE.getIfPresent(username).isPresent()) {
       return;
     }
     try {
-      loginEventStore.save(new LoginEvent(username, new Date(), authType));
-      RECENT_LOGIN_CACHE.put(key, Boolean.TRUE);
+      Date now = new Date();
+      userActivityStore.upsertActivity(username, LocalDate.now(ZoneId.systemDefault()), now);
+      RECENT_ACTIVITY_CACHE.put(username, Boolean.TRUE);
     } catch (Exception e) {
-      // Never break authentication because of a stats write.
-      log.warn("Failed to record login event for user '{}': {}", username, e.getMessage());
+      // Never break a request because of a stats write.
+      log.warn("Failed to record user activity for '{}': {}", username, e.getMessage());
     }
   }
 
-  /** Clears the write-side dedup cache. Intended for tests only. */
+  /** Clears the write-side guard cache. Intended for tests only. */
   public static void clearDedupCache() {
-    RECENT_LOGIN_CACHE.invalidateAll();
+    RECENT_ACTIVITY_CACHE.invalidateAll();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<DailyLoginStatistics> getDailyStatistics(LocalDate startDate, LocalDate endDate) {
+  public List<Integer> getActiveUsersCounts(List<Date> sinceDates) {
+    return userActivityStore.getActiveUserCounts(sinceDates);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DailyActiveUsers> getDailyStatistics(LocalDate startDate, LocalDate endDate) {
     if (startDate == null || endDate == null || endDate.isBefore(startDate)) {
       return List.of();
     }
-    // endDate is inclusive for the caller; SQL windows are half-open [start, end).
     Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     Date end = Date.from(endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-    return loginEventStore.getDailyStatistics(start, end);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Integer> getDistinctActiveUsersCounts(List<Date> sinceDates) {
-    return loginEventStore.getDistinctUserCounts(sinceDates);
+    return userActivityStore.getDailyStatistics(start, end);
   }
 
   @Override
@@ -153,12 +133,12 @@ public class DefaultLoginEventService implements LoginEventService {
                 .atStartOfDay(ZoneId.systemDefault())
                 .toInstant());
 
-    progress.startingStage("Rolling up login events older than " + days + " days", SKIP_STAGE);
-    int rolledUp = progress.runStage(0, () -> loginEventStore.rollupOlderThan(olderThan));
-    progress.startingStage("Deleting rolled-up login events", SKIP_STAGE);
-    int deleted = progress.runStage(0, () -> loginEventStore.deleteOlderThan(olderThan));
+    progress.startingStage("Rolling up user activity older than " + days + " days", SKIP_STAGE);
+    int rolledUp = progress.runStage(0, () -> userActivityStore.rollupOlderThan(olderThan));
+    progress.startingStage("Deleting rolled-up user activity", SKIP_STAGE);
+    int deleted = progress.runStage(0, () -> userActivityStore.deleteOlderThan(olderThan));
     log.info(
-        "Login event cleanup: rolled up {} day(s), deleted {} raw row(s) older than {}",
+        "User activity cleanup: rolled up {} day(s), deleted {} raw row(s) older than {}",
         rolledUp,
         deleted,
         olderThan);

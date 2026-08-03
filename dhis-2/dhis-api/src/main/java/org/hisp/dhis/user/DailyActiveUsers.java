@@ -27,44 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.job;
+package org.hisp.dhis.user;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobEntry;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.user.DefaultLoginEventService;
-import org.hisp.dhis.user.DefaultUserActivityService;
-import org.hisp.dhis.user.LoginEventService;
-import org.hisp.dhis.user.UserActivityService;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDate;
 
 /**
- * Rolls raw {@code loginevent} and {@code useractivity} rows older than the retention window into
- * their daily aggregate tables and then prunes them, so the raw tables stay bounded while
- * historical logins/day and active-users/day are preserved.
+ * Number of distinct active users for a single calendar day, based on recorded request activity.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @param date the calendar day
+ * @param activeUsers distinct users with at least one authenticated request that day
  */
-@Component
-@RequiredArgsConstructor
-public class LoginEventCleanupJob implements Job {
-
-  private final LoginEventService loginEventService;
-
-  private final UserActivityService userActivityService;
-
-  @Override
-  public JobType getJobType() {
-    return JobType.LOGIN_EVENT_CLEANUP;
-  }
-
-  @Override
-  public void execute(JobEntry jobConfiguration, JobProgress progress) {
-    progress.startingProcess("Login event and user activity cleanup");
-    loginEventService.cleanup(DefaultLoginEventService.DEFAULT_RETENTION_DAYS, progress);
-    userActivityService.cleanup(DefaultUserActivityService.DEFAULT_RETENTION_DAYS, progress);
-    progress.completedProcess("Login event and user activity cleanup finished");
-  }
-}
+public record DailyActiveUsers(@JsonProperty LocalDate date, @JsonProperty int activeUsers) {}

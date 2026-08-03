@@ -32,54 +32,48 @@ package org.hisp.dhis.user;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * Persistence for {@link LoginEvent} rows and their daily rollup.
+ * Tracks per-day user activity across all authenticated clients (web, Android, API) and exposes
+ * daily-active-user statistics. The write path is guarded by a short-TTL per-user cache so the cost
+ * is roughly one small upsert per user per cache window.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface LoginEventStore extends GenericStore<LoginEvent> {
+public interface UserActivityService {
 
   /**
-   * Aggregates login events between the given dates into one row per calendar day.
+   * Marks the given user as active now. Cache-guarded and failure-safe: never throws to the caller,
+   * so it is safe on the request hot path.
    *
-   * @param startDate inclusive start of the window
-   * @param endDate exclusive end of the window
-   * @return daily statistics ordered by date ascending
+   * @param username the active user
    */
-  List<DailyLoginStatistics> getDailyStatistics(Date startDate, Date endDate);
+  void recordActivity(String username);
 
   /**
-   * Upserts daily rollup rows covering every calendar day that has raw login events strictly older
-   * than {@code olderThan}. Existing rollup rows are overwritten with the recomputed counts.
-   *
-   * @param olderThan exclusive upper bound on the raw event timestamp
-   * @return number of calendar days rolled up
-   */
-  int rollupOlderThan(Date olderThan);
-
-  /**
-   * Deletes raw login event rows with timestamp strictly older than {@code olderThan}.
-   *
-   * @param olderThan exclusive upper bound
-   * @return number of rows deleted
-   */
-  int deleteOlderThan(Date olderThan);
-
-  /**
-   * Returns the earliest date covered by the daily rollup table, or null if empty.
-   *
-   * @return the earliest rollup date, or null
-   */
-  LocalDate getEarliestRollupDate();
-
-  /**
-   * Counts distinct usernames with at least one recorded login on or after each of the given
-   * timestamps. All counts are computed in a single query over raw rows.
+   * Counts distinct users active on or after each of the given timestamps, in one query.
    *
    * @param sinceDates the cutoff timestamps
    * @return counts in the same order as the given timestamps
    */
-  List<Integer> getDistinctUserCounts(List<Date> sinceDates);
+  List<Integer> getActiveUsersCounts(List<Date> sinceDates);
+
+  /**
+   * Returns distinct active users per calendar day for the given inclusive date range.
+   *
+   * @param startDate inclusive start day
+   * @param endDate inclusive end day
+   * @return one entry per day that has data, ordered by date ascending
+   */
+  List<DailyActiveUsers> getDailyStatistics(LocalDate startDate, LocalDate endDate);
+
+  /**
+   * Rolls raw activity rows older than the retention window into the daily aggregate table and then
+   * deletes them.
+   *
+   * @param retentionDays number of days of raw rows to keep
+   * @param progress job progress tracker
+   */
+  void cleanup(int retentionDays, JobProgress progress);
 }
