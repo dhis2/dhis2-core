@@ -292,7 +292,7 @@ PY
 
   echo "## Notes" >>"$results"
   echo >>"$results"
-  echo "- Canonical multi-run headline: pool measured \`simulation.csv\` OK samples per side (see BENCHMARKS-etag.md)." >>"$results"
+  echo "- Canonical multi-run headline: pool measured \`simulation.csv\` OK samples per side (see the local benchmark notes)." >>"$results"
   echo "- PageLoadSimulation uses \`-Detag.expect=on|off\` so a broken cache (no 304s on ON) fails the run." >>"$results"
   echo "- First measured suffix for this protocol: \`m${FIRST_MEASURED_INDEX}\` (not m1 when WARMUP>=1)." >>"$results"
   log "Wrote $results"
