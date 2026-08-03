@@ -183,8 +183,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
 
   /**
-   * Returns all usernames in the system. Cheap projection used when the session registry cannot
-   * enumerate principals (for example Redis-backed Spring Session).
+   * Returns all usernames in the system.
    *
    * @return a list of all usernames
    */
