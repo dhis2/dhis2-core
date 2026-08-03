@@ -133,9 +133,10 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
     assertLessOrEqual(
-        130,
+        140,
         doc.getObject("components.schemas")
-            .size()); // Increased from 120 to 130 due to DataApprovalLevel JPA migration
+            .size()); // Increased from 130 to 140 due to user statistics endpoints (login
+    // events and user activity, DHIS2-21931/DHIS2-21932)
   }
 
   @Test
