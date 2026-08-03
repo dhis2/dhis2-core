@@ -49,17 +49,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Micrometer gauge registration for {@link LocalETagService} memory bounds.
+ * Micrometer gauge registration for {@link ETagLocalService} memory bounds.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class LocalETagServiceGaugeTest {
+class ETagLocalServiceGaugeTest {
 
   @Test
   @DisplayName("Gauges track map sizes when monitoring.cache.etag.enabled=on")
   void gaugesTrackMapSizesWhenMonitoringOn() throws Exception {
     SimpleMeterRegistry registry = new SimpleMeterRegistry();
-    LocalETagService service = newService(true, registry);
+    ETagLocalService service = newService(true, registry);
 
     Gauge entityGauge = registry.find(ETAG_ENTITY_VERSIONS_SIZE).gauge();
     Gauge namedGauge = registry.find(ETAG_NAMED_VERSIONS_SIZE).gauge();
@@ -91,7 +91,7 @@ class LocalETagServiceGaugeTest {
   @Test
   @DisplayName("Gauges are absent when MeterRegistry is null")
   void gaugesAbsentWhenRegistryNull() throws Exception {
-    LocalETagService service = newService(true, null);
+    ETagLocalService service = newService(true, null);
     service.incrementEntityTypeVersion(DataElement.class);
     assertEquals(1, service.entityTypeVersionMapSize());
   }
@@ -100,7 +100,7 @@ class LocalETagServiceGaugeTest {
   @DisplayName("Calling afterPropertiesSet twice does not blow up meter registration")
   void doubleAfterPropertiesSetDoesNotThrow() throws Exception {
     SimpleMeterRegistry registry = new SimpleMeterRegistry();
-    LocalETagService service = newService(true, registry);
+    ETagLocalService service = newService(true, registry);
 
     assertDoesNotThrow(service::afterPropertiesSet);
     assertDoesNotThrow(service::afterPropertiesSet);
@@ -111,7 +111,7 @@ class LocalETagServiceGaugeTest {
     assertEquals(1.0, namedGauge.value());
   }
 
-  private static LocalETagService newService(boolean monitoringOn, MeterRegistry registry)
+  private static ETagLocalService newService(boolean monitoringOn, MeterRegistry registry)
       throws Exception {
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     when(config.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED)).thenReturn(true);
@@ -125,7 +125,7 @@ class LocalETagServiceGaugeTest {
             ConfigurationKey.CACHE_API_ETAG_STALE_SECONDS.getDefaultValue()))
         .thenReturn("60");
 
-    LocalETagService service = new LocalETagService();
+    ETagLocalService service = new ETagLocalService();
     setField(service, "configurationProvider", config);
     setField(service, "meterRegistry", registry);
     service.afterPropertiesSet();
@@ -133,7 +133,7 @@ class LocalETagServiceGaugeTest {
   }
 
   private static void setField(Object target, String name, Object value) throws Exception {
-    var field = LocalETagService.class.getDeclaredField(name);
+    var field = ETagLocalService.class.getDeclaredField(name);
     field.setAccessible(true);
     field.set(target, value);
   }

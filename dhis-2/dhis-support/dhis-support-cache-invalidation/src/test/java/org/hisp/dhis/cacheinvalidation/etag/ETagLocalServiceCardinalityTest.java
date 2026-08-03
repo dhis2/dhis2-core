@@ -51,12 +51,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Cardinality / memory-bound checks for {@link LocalETagService}: version maps grow by key count
+ * Cardinality / memory-bound checks for {@link ETagLocalService}: version maps grow by key count
  * (entity types + named keys), not by request or row volume.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class LocalETagServiceCardinalityTest {
+class ETagLocalServiceCardinalityTest {
 
   /**
    * Production named-version keys only (compile-time constants at call sites). A new production
@@ -65,7 +65,7 @@ class LocalETagServiceCardinalityTest {
   private static final Set<String> PRODUCTION_NAMED_VERSION_KEYS =
       Set.of("installedApps", "staticContent");
 
-  private LocalETagService service;
+  private ETagLocalService service;
 
   @BeforeEach
   void setUp() throws ReflectiveOperationException {
@@ -81,8 +81,8 @@ class LocalETagServiceCardinalityTest {
             ConfigurationKey.CACHE_API_ETAG_STALE_SECONDS.getDefaultValue()))
         .thenReturn("60");
 
-    service = new LocalETagService();
-    var field = LocalETagService.class.getDeclaredField("configurationProvider");
+    service = new ETagLocalService();
+    var field = ETagLocalService.class.getDeclaredField("configurationProvider");
     field.setAccessible(true);
     field.set(service, config);
     service.afterPropertiesSet();

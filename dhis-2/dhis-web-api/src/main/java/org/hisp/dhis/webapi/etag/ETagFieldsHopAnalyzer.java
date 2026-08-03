@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
  * conditional ETag cache.
  *
  * <p>ETag dependency sets cover exactly one reference hop (the schema class plus its direct {@code
- * REFERENCE} properties, see {@code ConditionalETagInterceptor#buildDependencyTypes}). A fields
+ * REFERENCE} properties, see {@code ETagConditionalInterceptor#buildDependencyTypes}). A fields
  * expression that traverses two or more reference hops (for example {@code
  * categoryCombo[categories[name]]} on {@code /api/dataElements}) embeds data whose changes do not
  * rotate the endpoint's ETag; without intervention such responses are served bounded-stale until
@@ -66,7 +66,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanaes
  */
 @Component
-public class FieldsHopAnalyzer {
+public class ETagFieldsHopAnalyzer {
 
   /** Outcome of analyzing one {@code fields=} expression against a root schema. */
   public enum Verdict {
@@ -89,7 +89,7 @@ public class FieldsHopAnalyzer {
           .eternal(true)
           .build();
 
-  public FieldsHopAnalyzer(SchemaService schemaService) {
+  public ETagFieldsHopAnalyzer(SchemaService schemaService) {
     this.schemaService = schemaService;
   }
 

@@ -47,12 +47,12 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Concurrency tests for {@link LocalETagService}. Verifies that concurrent increments produce
+ * Concurrency tests for {@link ETagLocalService}. Verifies that concurrent increments produce
  * monotonically increasing versions with no lost updates.
  */
-class LocalETagServiceConcurrencyTest {
+class ETagLocalServiceConcurrencyTest {
 
-  private LocalETagService service;
+  private ETagLocalService service;
 
   @BeforeEach
   void setUp() throws ReflectiveOperationException {
@@ -63,10 +63,10 @@ class LocalETagServiceConcurrencyTest {
             ConfigurationKey.CACHE_API_ETAG_TTL_MINUTES.getDefaultValue()))
         .thenReturn("60");
 
-    service = new LocalETagService();
+    service = new ETagLocalService();
 
     // Inject the mock config via reflection (field is @Autowired)
-    var field = LocalETagService.class.getDeclaredField("configurationProvider");
+    var field = ETagLocalService.class.getDeclaredField("configurationProvider");
     field.setAccessible(true);
     field.set(service, config);
 

@@ -67,7 +67,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class ConditionalETagService {
+public class ETagConditionalService {
 
   private final ETagService eTagVersionService;
 
@@ -78,12 +78,12 @@ public class ConditionalETagService {
   private final Clock clock;
 
   @Autowired
-  public ConditionalETagService(ETagService eTagVersionService) {
+  public ETagConditionalService(ETagService eTagVersionService) {
     this(eTagVersionService, Clock.systemUTC());
   }
 
   /** Test constructor that accepts a custom clock for deterministic TTL window testing. */
-  ConditionalETagService(ETagService eTagVersionService, Clock clock) {
+  ETagConditionalService(ETagService eTagVersionService, Clock clock) {
     this.eTagVersionService = eTagVersionService;
     this.clock = clock;
     this.buildRevision = loadBuildRevision();
@@ -91,7 +91,7 @@ public class ConditionalETagService {
 
   private static String loadBuildRevision() {
     try (var resource =
-        ConditionalETagService.class.getClassLoader().getResourceAsStream("build.properties")) {
+        ETagConditionalService.class.getClassLoader().getResourceAsStream("build.properties")) {
       if (resource != null) {
         Properties props = new Properties();
         props.load(resource);
@@ -215,7 +215,7 @@ public class ConditionalETagService {
    * synced clocks share the same bucket index, which is a safety net that eventually refreshes
    * ETags even when a DML event is missed. It does <strong>not</strong> make process-local version
    * counters coherent across a cluster; the API ETag cache is forced off when DHIS2 clustering is
-   * enabled (see {@code ApiETagCacheActivation}).
+   * enabled (see {@code ETagCacheActivation}).
    */
   private long calculateTimeWindow() {
     int ttlMinutes = eTagVersionService.getTtlMinutes();

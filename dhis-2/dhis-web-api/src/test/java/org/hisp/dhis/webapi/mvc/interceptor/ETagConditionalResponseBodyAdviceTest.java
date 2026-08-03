@@ -45,8 +45,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.etag.FieldsHopAnalyzer;
-import org.hisp.dhis.webapi.service.ConditionalETagService;
+import org.hisp.dhis.webapi.etag.ETagFieldsHopAnalyzer;
+import org.hisp.dhis.webapi.service.ETagConditionalService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-class ConditionalETagResponseBodyAdviceTest {
+class ETagConditionalResponseBodyAdviceTest {
 
   private final ETagService eTagService = mock(ETagService.class);
   private final SchemaService schemaService = mock(SchemaService.class);
@@ -83,18 +83,18 @@ class ConditionalETagResponseBodyAdviceTest {
     when(eTagService.getStaleWhileRevalidateSeconds()).thenReturn(60);
     lenient().when(eTagService.getEntityTypeVersion(any())).thenReturn(1L);
 
-    ConditionalETagService conditionalETagService = new ConditionalETagService(eTagService);
+    ETagConditionalService eTagConditionalService = new ETagConditionalService(eTagService);
     controller = new TestController();
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
             .addInterceptors(
-                new ConditionalETagInterceptor(
-                    conditionalETagService,
+                new ETagConditionalInterceptor(
+                    eTagConditionalService,
                     schemaService,
-                    new FieldsHopAnalyzer(schemaService),
+                    new ETagFieldsHopAnalyzer(schemaService),
                     null,
                     null))
-            .setControllerAdvice(new ConditionalETagResponseBodyAdvice(conditionalETagService))
+            .setControllerAdvice(new ETagConditionalResponseBodyAdvice(eTagConditionalService))
             .build();
   }
 

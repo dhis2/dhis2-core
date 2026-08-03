@@ -100,7 +100,7 @@ public class PageLoadSimulation extends Simulation {
   private final String adminPassword = prop("adminPassword", "district");
   private final String apiVersion = prop("apiVersion", "44");
   private final Profile profile = Profile.fromString(prop("profile", "smoke"));
-  private final EtagExpect etagExpect = EtagExpect.fromString(prop("etag.expect", "none"));
+  private final ETagExpect etagExpect = ETagExpect.fromString(prop("etag.expect", "none"));
   private final int concurrentUsers = intProp("concurrentUsers", profile.defaultUsers);
   private final int appCycles = intProp("appCycles", profile.defaultCycles);
   private final int durationSec = intProp("durationSec", profile.defaultDurationSec);
@@ -135,7 +135,7 @@ public class PageLoadSimulation extends Simulation {
     // Shared chains: login, bootstrap and the three app page loads (see CacheScenarios).
     CacheScenarios scenarios =
         new CacheScenarios(
-            api, adminUser, adminPassword, dashboardUid, etagExpect != EtagExpect.NONE);
+            api, adminUser, adminPassword, dashboardUid, etagExpect != ETagExpect.NONE);
 
     ChainBuilder login = scenarios.login();
 
@@ -251,12 +251,12 @@ public class PageLoadSimulation extends Simulation {
     return Integer.parseInt(System.getProperty(key, String.valueOf(defaultValue)));
   }
 
-  private enum EtagExpect {
+  private enum ETagExpect {
     NONE,
     ON,
     OFF;
 
-    static EtagExpect fromString(String s) {
+    static ETagExpect fromString(String s) {
       if (s == null || s.isBlank() || "none".equalsIgnoreCase(s)) {
         return NONE;
       }

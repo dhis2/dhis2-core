@@ -27,35 +27,66 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.external.conf;
+package org.hisp.dhis.cacheinvalidation.etag;
 
-import java.util.Arrays;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.external.conf.ETagCacheDisabledCondition;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Service;
 
 /**
- * Inverse of {@link ApiCacheEnabledCondition}. Satisfied when the API ETag cache is not effectively
- * enabled (config off, multi-node force-off via clustering or Redis cache invalidation, or the
- * active Spring profile is {@code "test"}). Must stay the exact inverse of {@link
- * ApiCacheEnabledCondition} so exactly one of {@code LocalETagService} / {@code NoOpETagService} is
- * registered.
+ * No-op implementation of {@link ETagService} used when ETag caching is disabled. All methods
+ * return 0 or {@code false}.
  *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Svanæs
  */
-public class ApiCacheDisabledCondition implements ConfigurationCondition {
+@Service
+@Conditional(value = ETagCacheDisabledCondition.class)
+public class ETagNoOpService implements ETagService {
 
   @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (Arrays.asList(context.getEnvironment().getActiveProfiles()).contains("test")) {
-      return true;
-    }
-    DhisConfigurationProvider config = ApiETagCacheActivation.loadConfig();
-    return !ApiETagCacheActivation.isEffectivelyEnabled(config);
+  public long getAllCacheVersion() {
+    return 0L;
   }
 
   @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.REGISTER_BEAN;
+  public long incrementAllCacheVersion() {
+    return 0L;
+  }
+
+  @Override
+  public long getEntityTypeVersion(@Nonnull Class<?> entityType) {
+    return 0L;
+  }
+
+  @Override
+  public long incrementEntityTypeVersion(@Nonnull Class<?> entityType) {
+    return 0L;
+  }
+
+  @Override
+  public long getNamedVersion(@Nonnull String key) {
+    return 0L;
+  }
+
+  @Override
+  public long incrementNamedVersion(@Nonnull String key) {
+    return 0L;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return false;
+  }
+
+  @Override
+  public int getTtlMinutes() {
+    return 0;
+  }
+
+  @Override
+  public int getStaleWhileRevalidateSeconds() {
+    return 0;
   }
 }

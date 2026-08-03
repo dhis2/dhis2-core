@@ -35,26 +35,23 @@ import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Unified Spring condition that gates both the SQL DML observer and the ETag API cache. These two
- * features are tightly coupled: the ETag cache relies on the DML observer for real-time
- * invalidation, and the DML observer serves no purpose without the ETag cache.
- *
- * <p>Satisfied when {@link ApiETagCacheActivation#isEffectivelyEnabled} is true and the active
- * Spring profile is not {@code "test"}. Multi-node signals (DHIS2 clustering or Redis cache
- * invalidation) force the feature off; see that class.
+ * Inverse of {@link ETagCacheEnabledCondition}. Satisfied when the API ETag cache is not
+ * effectively enabled (config off, multi-node force-off via clustering or Redis cache invalidation,
+ * or the active Spring profile is {@code "test"}). Must stay the exact inverse of {@link
+ * ETagCacheEnabledCondition} so exactly one of {@code ETagLocalService} / {@code ETagNoOpService}
+ * is registered.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiCacheEnabledCondition implements ConfigurationCondition {
+public class ETagCacheDisabledCondition implements ConfigurationCondition {
 
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
     if (Arrays.asList(context.getEnvironment().getActiveProfiles()).contains("test")) {
-      return false;
+      return true;
     }
-    DhisConfigurationProvider config = ApiETagCacheActivation.loadConfig();
-    ApiETagCacheActivation.logIfClusterIncompatible(config);
-    return ApiETagCacheActivation.isEffectivelyEnabled(config);
+    DhisConfigurationProvider config = ETagCacheActivation.loadConfig();
+    return !ETagCacheActivation.isEffectivelyEnabled(config);
   }
 
   @Override

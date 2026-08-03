@@ -47,7 +47,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.webapi.etag.FieldsHopAnalyzer.Verdict;
+import org.hisp.dhis.webapi.etag.ETagFieldsHopAnalyzer.Verdict;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,19 +59,19 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Policy-matrix tests for {@link FieldsHopAnalyzer}. Schemas are hand-built fixtures so the walk is
- * tested against a controlled graph: {@code User -> userGroups -> UserGroup}, {@code DataElement ->
- * categoryCombo -> CategoryCombo -> categories -> Category}.
+ * Policy-matrix tests for {@link ETagFieldsHopAnalyzer}. Schemas are hand-built fixtures so the
+ * walk is tested against a controlled graph: {@code User -> userGroups -> UserGroup}, {@code
+ * DataElement -> categoryCombo -> CategoryCombo -> categories -> Category}.
  *
  * @author Morten Svanaes
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class FieldsHopAnalyzerTest {
+class ETagFieldsHopAnalyzerTest {
 
   @Mock private SchemaService schemaService;
 
-  private FieldsHopAnalyzer analyzer;
+  private ETagFieldsHopAnalyzer analyzer;
 
   @BeforeEach
   void setUp() {
@@ -117,7 +117,7 @@ class FieldsHopAnalyzerTest {
     when(schemaService.getSchema(OptionSet.class)).thenReturn(optionSet);
     when(schemaService.getSchema(Sharing.class)).thenReturn(sharing);
 
-    analyzer = new FieldsHopAnalyzer(schemaService);
+    analyzer = new ETagFieldsHopAnalyzer(schemaService);
   }
 
   /**

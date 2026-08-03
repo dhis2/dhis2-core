@@ -32,9 +32,9 @@ package org.hisp.dhis.config.sqlobserver;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManagerFactory;
 import org.hisp.dhis.cache.ETagService;
-import org.hisp.dhis.external.conf.ApiCacheEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ETagCacheEnabledCondition;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -55,7 +55,7 @@ public class DmlObserverConfig {
   }
 
   @Bean
-  @Conditional(ApiCacheEnabledCondition.class)
+  @Conditional(ETagCacheEnabledCondition.class)
   public DmlObserverListener dmlObserverListener(
       HibernateTableEntityRegistry registry,
       ETagService eTagService,

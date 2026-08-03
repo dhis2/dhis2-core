@@ -57,16 +57,16 @@ import org.mockito.quality.Strictness;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class CompositeETagIterationOrderTest {
+class ETagCompositeIterationOrderTest {
 
   @Mock private ETagService eTagService;
 
   private UserDetails userDetails;
-  private ConditionalETagService service;
+  private ETagConditionalService service;
 
   @BeforeEach
   void setUp() {
-    service = new ConditionalETagService(eTagService);
+    service = new ETagConditionalService(eTagService);
     User user = new User();
     user.setUid("testUser123");
     user.setUsername("testuser");

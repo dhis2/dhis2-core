@@ -62,7 +62,7 @@ import org.hisp.dhis.external.location.DefaultLocationManager;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ApiETagCacheActivation {
+public final class ETagCacheActivation {
 
   /**
    * Loads {@code dhis.conf} the same way the Spring {@code ConfigurationCondition}s do: location

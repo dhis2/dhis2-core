@@ -89,8 +89,8 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
-import org.hisp.dhis.webapi.etag.FieldsHopAnalyzer;
-import org.hisp.dhis.webapi.service.ConditionalETagService;
+import org.hisp.dhis.webapi.etag.ETagFieldsHopAnalyzer;
+import org.hisp.dhis.webapi.service.ETagConditionalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
@@ -112,9 +112,9 @@ import org.springframework.web.util.pattern.PathPatternParser;
  */
 @Slf4j
 @Component
-public class ConditionalETagInterceptor implements HandlerInterceptor {
+public class ETagConditionalInterceptor implements HandlerInterceptor {
 
-  private static final String ETAG_ATTR = ConditionalETagInterceptor.class.getName() + ".etag";
+  private static final String ETAG_ATTR = ETagConditionalInterceptor.class.getName() + ".etag";
 
   /**
    * Leading separator prepended to an API-relative path before it is parsed as an absolute path.
@@ -233,9 +233,9 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   private static final List<CompositeEndpointPattern> COMPOSITE_PATH_PATTERNS =
       compileCompositeEndpointPatterns(COMPOSITE_ENDPOINTS);
 
-  private final ConditionalETagService conditionalETagService;
+  private final ETagConditionalService eTagConditionalService;
   private final SchemaService schemaService;
-  private final FieldsHopAnalyzer fieldsHopAnalyzer;
+  private final ETagFieldsHopAnalyzer eTagFieldsHopAnalyzer;
 
   // Metrics counters
   private final Counter cacheHit;
@@ -247,15 +247,15 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   private final Counter endpointNamedKey;
 
   @Autowired
-  public ConditionalETagInterceptor(
-      ConditionalETagService conditionalETagService,
+  public ETagConditionalInterceptor(
+      ETagConditionalService eTagConditionalService,
       SchemaService schemaService,
-      FieldsHopAnalyzer fieldsHopAnalyzer,
+      ETagFieldsHopAnalyzer eTagFieldsHopAnalyzer,
       @Autowired(required = false) MeterRegistry meterRegistry,
       @Autowired(required = false) DhisConfigurationProvider config) {
-    this.conditionalETagService = conditionalETagService;
+    this.eTagConditionalService = eTagConditionalService;
     this.schemaService = schemaService;
-    this.fieldsHopAnalyzer = fieldsHopAnalyzer;
+    this.eTagFieldsHopAnalyzer = eTagFieldsHopAnalyzer;
     MeterRegistry effectiveRegistry =
         config != null && config.isEnabled(ConfigurationKey.MONITORING_CACHE_ETAG_ENABLED)
             ? meterRegistry
@@ -415,7 +415,8 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     if (schema == null) {
       return false; // no resolvable root schema: keep status-quo caching behavior
     }
-    return fieldsHopAnalyzer.analyze(schema.getKlass(), fields) == FieldsHopAnalyzer.Verdict.DEEP;
+    return eTagFieldsHopAnalyzer.analyze(schema.getKlass(), fields)
+        == ETagFieldsHopAnalyzer.Verdict.DEEP;
   }
 
   /** Variant for endpoints with a designated schema root (composite endpoints such as /me). */
@@ -424,7 +425,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     if (fields == null || fields.isBlank()) {
       return false;
     }
-    return fieldsHopAnalyzer.analyze(rootType, fields) == FieldsHopAnalyzer.Verdict.DEEP;
+    return eTagFieldsHopAnalyzer.analyze(rootType, fields) == ETagFieldsHopAnalyzer.Verdict.DEEP;
   }
 
   /**
@@ -433,7 +434,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
    * the first failing check, preserving the original early-exit order.
    */
   private boolean isCacheableRequest(@Nonnull HttpServletRequest request) {
-    if (!conditionalETagService.isEnabled()) {
+    if (!eTagConditionalService.isEnabled()) {
       incrementSkip();
       return false;
     }
@@ -554,7 +555,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
   /**
    * Returns the ETag stored by {@link #preHandle} for the current request, or null when no ETag was
-   * generated. Consumed by {@link ConditionalETagResponseBodyAdvice} and by controllers that write
+   * generated. Consumed by {@link ETagConditionalResponseBodyAdvice} and by controllers that write
    * the response body directly, bypassing the message converter pipeline (the Gist bridge in
    * AbstractFullReadOnlyController), where the advice never runs and headers must be applied before
    * the response is committed.
@@ -589,17 +590,17 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
     String baseETag =
         dependencyTypes.size() == 1
-            ? conditionalETagService.generateETag(userDetails, dependencyTypes.iterator().next())
-            : conditionalETagService.generateETag(userDetails, dependencyTypes);
+            ? eTagConditionalService.generateETag(userDetails, dependencyTypes.iterator().next())
+            : eTagConditionalService.generateETag(userDetails, dependencyTypes);
 
     // Include query string in the hash so different parameters produce different ETags.
     String currentETag = hashWithQuery(baseETag, request.getQueryString());
 
-    if (conditionalETagService.checkNotModified(request, currentETag)) {
+    if (eTagConditionalService.checkNotModified(request, currentETag)) {
       log.debug("ETag match for {} - returning 304", request.getRequestURI());
       if (cacheHit != null) cacheHit.increment();
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-      conditionalETagService.setETagHeaders(response, currentETag);
+      eTagConditionalService.setETagHeaders(response, currentETag);
       return false;
     }
 
@@ -618,14 +619,14 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       Set<Class<?>> entityTypes,
       Set<String> namedKeys) {
 
-    String baseETag = conditionalETagService.generateETag(userDetails, entityTypes, namedKeys);
+    String baseETag = eTagConditionalService.generateETag(userDetails, entityTypes, namedKeys);
     String currentETag = hashWithQuery(baseETag, request.getQueryString());
 
-    if (conditionalETagService.checkNotModified(request, currentETag)) {
+    if (eTagConditionalService.checkNotModified(request, currentETag)) {
       log.debug("ETag match for {} - returning 304", request.getRequestURI());
       if (cacheHit != null) cacheHit.increment();
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-      conditionalETagService.setETagHeaders(response, currentETag);
+      eTagConditionalService.setETagHeaders(response, currentETag);
       return false;
     }
 

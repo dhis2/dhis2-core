@@ -97,8 +97,8 @@ class ETagTtlWindowFlipTest {
   @Test
   @DisplayName("Entity-type ETag stays the same within the same TTL bucket")
   void entityTypeETag_stableWithinBucket() {
-    ConditionalETagService serviceAt5 = serviceAt(BUCKET_BOUNDARY.plusMillis(5 * 60_000));
-    ConditionalETagService serviceAt55 = serviceAt(BUCKET_BOUNDARY.plusMillis(55 * 60_000));
+    ETagConditionalService serviceAt5 = serviceAt(BUCKET_BOUNDARY.plusMillis(5 * 60_000));
+    ETagConditionalService serviceAt55 = serviceAt(BUCKET_BOUNDARY.plusMillis(55 * 60_000));
 
     String etag5 = serviceAt5.generateETag(userDetails, OrganisationUnit.class);
     String etag55 = serviceAt55.generateETag(userDetails, OrganisationUnit.class);
@@ -109,8 +109,8 @@ class ETagTtlWindowFlipTest {
   @Test
   @DisplayName("Entity-type ETag changes when the TTL bucket flips")
   void entityTypeETag_changesOnBucketFlip() {
-    ConditionalETagService serviceBefore = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS - 1));
-    ConditionalETagService serviceAfter = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
+    ETagConditionalService serviceBefore = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS - 1));
+    ETagConditionalService serviceAfter = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
 
     String etagBefore = serviceBefore.generateETag(userDetails, OrganisationUnit.class);
     String etagAfter = serviceAfter.generateETag(userDetails, OrganisationUnit.class);
@@ -126,8 +126,8 @@ class ETagTtlWindowFlipTest {
   void compositeETag_stableWithinBucket() {
     Set<Class<?>> types = Set.of(OrganisationUnit.class, User.class, UserRole.class);
 
-    ConditionalETagService serviceAt10 = serviceAt(BUCKET_BOUNDARY.plusMillis(10 * 60_000));
-    ConditionalETagService serviceAt50 = serviceAt(BUCKET_BOUNDARY.plusMillis(50 * 60_000));
+    ETagConditionalService serviceAt10 = serviceAt(BUCKET_BOUNDARY.plusMillis(10 * 60_000));
+    ETagConditionalService serviceAt50 = serviceAt(BUCKET_BOUNDARY.plusMillis(50 * 60_000));
 
     String etag10 = serviceAt10.generateETag(userDetails, types);
     String etag50 = serviceAt50.generateETag(userDetails, types);
@@ -140,8 +140,8 @@ class ETagTtlWindowFlipTest {
   void compositeETag_changesOnBucketFlip() {
     Set<Class<?>> types = Set.of(OrganisationUnit.class, User.class, UserRole.class);
 
-    ConditionalETagService serviceBefore = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS - 1));
-    ConditionalETagService serviceAfter = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
+    ETagConditionalService serviceBefore = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS - 1));
+    ETagConditionalService serviceAfter = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
 
     String etagBefore = serviceBefore.generateETag(userDetails, types);
     String etagAfter = serviceAfter.generateETag(userDetails, types);
@@ -157,13 +157,13 @@ class ETagTtlWindowFlipTest {
           + " produces a stale match, but the bucket flip rescues it")
   void stale304_rescuedByBucketFlip() {
     // T=0: Client gets ETag at 5 minutes into the bucket
-    ConditionalETagService serviceT0 = serviceAt(BUCKET_BOUNDARY.plusMillis(5 * 60_000));
+    ETagConditionalService serviceT0 = serviceAt(BUCKET_BOUNDARY.plusMillis(5 * 60_000));
     String clientETag = serviceT0.generateETag(userDetails, OrganisationUnit.class);
 
     // T=1: An unobserved mutation happens (direct SQL) — version is NOT bumped.
     // T=2: Client requests again at 30 minutes into the same bucket.
     // The version hasn't changed, so the ETag is the same → stale 304.
-    ConditionalETagService serviceT2 = serviceAt(BUCKET_BOUNDARY.plusMillis(30 * 60_000));
+    ETagConditionalService serviceT2 = serviceAt(BUCKET_BOUNDARY.plusMillis(30 * 60_000));
     String serverETagT2 = serviceT2.generateETag(userDetails, OrganisationUnit.class);
     assertEquals(
         clientETag,
@@ -171,7 +171,7 @@ class ETagTtlWindowFlipTest {
         "Without a version bump, the ETag stays the same within the bucket (stale 304)");
 
     // T=3: The TTL bucket flips. Now the ETag changes even without a version bump.
-    ConditionalETagService serviceT3 = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS + 60_000));
+    ETagConditionalService serviceT3 = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS + 60_000));
     String serverETagT3 = serviceT3.generateETag(userDetails, OrganisationUnit.class);
     assertNotEquals(
         clientETag,
@@ -183,7 +183,7 @@ class ETagTtlWindowFlipTest {
   @DisplayName("Observed mutation invalidates immediately, regardless of TTL bucket")
   void observedMutation_invalidatesImmediately() {
     // T=0: Client gets ETag
-    ConditionalETagService service = serviceAt(BUCKET_BOUNDARY.plusMillis(5 * 60_000));
+    ETagConditionalService service = serviceAt(BUCKET_BOUNDARY.plusMillis(5 * 60_000));
     String clientETag = service.generateETag(userDetails, OrganisationUnit.class);
 
     // T=1: Mutation happens and observer bumps version (10 → 11)
@@ -201,11 +201,11 @@ class ETagTtlWindowFlipTest {
   @DisplayName("Worst case stale window is exactly TTL minutes when mutation is right after flip")
   void worstCaseStaleness_mutationRightAfterFlip() {
     // Mutation happens 1ms after the bucket boundary — worst case
-    ConditionalETagService serviceAtFlip = serviceAt(BUCKET_BOUNDARY.plusMillis(1));
+    ETagConditionalService serviceAtFlip = serviceAt(BUCKET_BOUNDARY.plusMillis(1));
     String etagAtFlip = serviceAtFlip.generateETag(userDetails, OrganisationUnit.class);
 
     // Just before the NEXT flip — still same bucket, so unobserved mutation stays stale
-    ConditionalETagService serviceBeforeNextFlip =
+    ETagConditionalService serviceBeforeNextFlip =
         serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS - 1));
     String etagBeforeNextFlip =
         serviceBeforeNextFlip.generateETag(userDetails, OrganisationUnit.class);
@@ -215,7 +215,7 @@ class ETagTtlWindowFlipTest {
         "Worst case: stale for almost exactly TTL_MINUTES (minus 2ms)");
 
     // At the next flip — finally invalidated
-    ConditionalETagService serviceAtNextFlip = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
+    ETagConditionalService serviceAtNextFlip = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
     String etagAtNextFlip = serviceAtNextFlip.generateETag(userDetails, OrganisationUnit.class);
     assertNotEquals(
         etagAtFlip, etagAtNextFlip, "After the next flip, the stale ETag is finally invalidated");
@@ -225,12 +225,12 @@ class ETagTtlWindowFlipTest {
   @DisplayName("Best case stale window is near-zero when mutation is right before flip")
   void bestCaseStaleness_mutationRightBeforeFlip() {
     // Mutation happens 1ms before the bucket boundary — best case
-    ConditionalETagService serviceBeforeFlip =
+    ETagConditionalService serviceBeforeFlip =
         serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS - 1));
     String etagBeforeFlip = serviceBeforeFlip.generateETag(userDetails, OrganisationUnit.class);
 
     // 1ms later the bucket flips — stale ETag is immediately invalidated
-    ConditionalETagService serviceAfterFlip = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
+    ETagConditionalService serviceAfterFlip = serviceAt(BUCKET_BOUNDARY.plusMillis(TTL_MILLIS));
     String etagAfterFlip = serviceAfterFlip.generateETag(userDetails, OrganisationUnit.class);
     assertNotEquals(
         etagBeforeFlip, etagAfterFlip, "Best case: stale for only ~1ms before the bucket flips");
@@ -238,8 +238,8 @@ class ETagTtlWindowFlipTest {
 
   // ── Helper ──
 
-  private ConditionalETagService serviceAt(Instant instant) {
+  private ETagConditionalService serviceAt(Instant instant) {
     Clock fixedClock = Clock.fixed(instant, ZoneOffset.UTC);
-    return new ConditionalETagService(eTagVersionService, fixedClock);
+    return new ETagConditionalService(eTagVersionService, fixedClock);
   }
 }

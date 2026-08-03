@@ -33,7 +33,7 @@ import com.google.common.net.HttpHeaders;
 import jakarta.servlet.http.HttpServletResponse;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.webapi.service.ConditionalETagService;
+import org.hisp.dhis.webapi.service.ETagConditionalService;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -47,22 +47,22 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 /**
  * Attaches stored conditional ETag headers before Spring writes the response body.
  *
- * <p>This advice is intentionally broad and only acts when {@link ConditionalETagInterceptor}
+ * <p>This advice is intentionally broad and only acts when {@link ETagConditionalInterceptor}
  * marked the request as cacheable.
  *
  * @author Morten Svanæs
  */
 @ControllerAdvice(basePackages = "org.hisp.dhis.webapi")
 @RequiredArgsConstructor
-public class ConditionalETagResponseBodyAdvice implements ResponseBodyAdvice<Object> {
+public class ETagConditionalResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
-  private final ConditionalETagService conditionalETagService;
+  private final ETagConditionalService eTagConditionalService;
 
   @Override
   public boolean supports(
       @Nonnull MethodParameter returnType,
       @Nonnull Class<? extends HttpMessageConverter<?>> selectedConverterType) {
-    return conditionalETagService.isEnabled();
+    return eTagConditionalService.isEnabled();
   }
 
   @Override
@@ -79,7 +79,7 @@ public class ConditionalETagResponseBodyAdvice implements ResponseBodyAdvice<Obj
     }
 
     String currentETag =
-        ConditionalETagInterceptor.getStoredETag(servletRequest.getServletRequest());
+        ETagConditionalInterceptor.getStoredETag(servletRequest.getServletRequest());
     if (currentETag == null) {
       return body;
     }
@@ -92,7 +92,7 @@ public class ConditionalETagResponseBodyAdvice implements ResponseBodyAdvice<Obj
       return body;
     }
 
-    conditionalETagService.setETagHeaders(httpResponse, currentETag);
+    eTagConditionalService.setETagHeaders(httpResponse, currentETag);
     return body;
   }
 

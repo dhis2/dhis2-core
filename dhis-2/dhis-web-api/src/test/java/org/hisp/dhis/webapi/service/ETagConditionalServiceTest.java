@@ -51,22 +51,22 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
- * Unit tests for {@link ConditionalETagService}.
+ * Unit tests for {@link ETagConditionalService}.
  *
  * @author Morten Svanæs
  */
 @ExtendWith(MockitoExtension.class)
-class ConditionalETagServiceTest {
+class ETagConditionalServiceTest {
 
   @Mock private ETagService eTagService;
 
   private UserDetails userDetails;
 
-  private ConditionalETagService service;
+  private ETagConditionalService service;
 
   @BeforeEach
   void setUp() {
-    service = new ConditionalETagService(eTagService);
+    service = new ETagConditionalService(eTagService);
 
     // Create a real User and convert to UserDetails
     User user = new User();

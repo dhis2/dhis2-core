@@ -51,19 +51,19 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Pins the inverse invariant between {@link ApiCacheEnabledCondition} and {@link
- * ApiCacheDisabledCondition} (profile branches + config-driven multi-node force-off) without a full
- * Spring application context.
+ * Pins the inverse invariant between {@link ETagCacheEnabledCondition} and {@link
+ * ETagCacheDisabledCondition} (profile branches + config-driven multi-node force-off) without a
+ * full Spring application context.
  *
  * <p>The conditions re-bootstrap {@link DefaultDhisConfigurationProvider} from {@code dhis2.home};
  * non-profile cases use a temp home with a minimal {@code dhis.conf}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ApiCacheConditionInverseTest {
+class ETagCacheConditionInverseTest {
 
-  private final ApiCacheEnabledCondition enabled = new ApiCacheEnabledCondition();
-  private final ApiCacheDisabledCondition disabled = new ApiCacheDisabledCondition();
+  private final ETagCacheEnabledCondition enabled = new ETagCacheEnabledCondition();
+  private final ETagCacheDisabledCondition disabled = new ETagCacheDisabledCondition();
 
   @Test
   @DisplayName("profile=test: Enabled is false, Disabled is true (exact inverse)")
@@ -201,7 +201,7 @@ class ApiCacheConditionInverseTest {
 
       @Override
       public ClassLoader getClassLoader() {
-        return ApiCacheConditionInverseTest.class.getClassLoader();
+        return ETagCacheConditionInverseTest.class.getClassLoader();
       }
     };
   }

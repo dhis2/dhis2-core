@@ -27,66 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.etag;
+package org.hisp.dhis.external.conf;
 
-import javax.annotation.Nonnull;
-import org.hisp.dhis.cache.ETagService;
-import org.hisp.dhis.external.conf.ApiCacheDisabledCondition;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.stereotype.Service;
+import java.util.Arrays;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.ConfigurationCondition;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * No-op implementation of {@link ETagService} used when ETag caching is disabled. All methods
- * return 0 or {@code false}.
+ * Unified Spring condition that gates both the SQL DML observer and the ETag API cache. These two
+ * features are tightly coupled: the ETag cache relies on the DML observer for real-time
+ * invalidation, and the DML observer serves no purpose without the ETag cache.
  *
- * @author Morten Svanæs
+ * <p>Satisfied when {@link ETagCacheActivation#isEffectivelyEnabled} is true and the active Spring
+ * profile is not {@code "test"}. Multi-node signals (DHIS2 clustering or Redis cache invalidation)
+ * force the feature off; see that class.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Service
-@Conditional(value = ApiCacheDisabledCondition.class)
-public class NoOpETagService implements ETagService {
+public class ETagCacheEnabledCondition implements ConfigurationCondition {
 
   @Override
-  public long getAllCacheVersion() {
-    return 0L;
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (Arrays.asList(context.getEnvironment().getActiveProfiles()).contains("test")) {
+      return false;
+    }
+    DhisConfigurationProvider config = ETagCacheActivation.loadConfig();
+    ETagCacheActivation.logIfClusterIncompatible(config);
+    return ETagCacheActivation.isEffectivelyEnabled(config);
   }
 
   @Override
-  public long incrementAllCacheVersion() {
-    return 0L;
-  }
-
-  @Override
-  public long getEntityTypeVersion(@Nonnull Class<?> entityType) {
-    return 0L;
-  }
-
-  @Override
-  public long incrementEntityTypeVersion(@Nonnull Class<?> entityType) {
-    return 0L;
-  }
-
-  @Override
-  public long getNamedVersion(@Nonnull String key) {
-    return 0L;
-  }
-
-  @Override
-  public long incrementNamedVersion(@Nonnull String key) {
-    return 0L;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return false;
-  }
-
-  @Override
-  public int getTtlMinutes() {
-    return 0;
-  }
-
-  @Override
-  public int getStaleWhileRevalidateSeconds() {
-    return 0;
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.REGISTER_BEAN;
   }
 }

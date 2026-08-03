@@ -43,11 +43,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Mockito is not a dependency of dhis-support-external; use a JDK proxy stub for the methods {@link
- * ApiETagCacheActivation} reads.
+ * ETagCacheActivation} reads.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ApiETagCacheActivationTest {
+class ETagCacheActivationTest {
 
   @ParameterizedTest(name = "etagOn={0} clustered={1} redisInvalidation={2} => enabled={3}")
   @MethodSource("activationTruthTable")
@@ -55,9 +55,9 @@ class ApiETagCacheActivationTest {
   void activationTruthTable(
       boolean etagOn, boolean clustered, boolean redisInvalidation, boolean expectedEnabled) {
     DhisConfigurationProvider config = stub(etagOn, clustered, redisInvalidation);
-    assertEquals(expectedEnabled, ApiETagCacheActivation.isEffectivelyEnabled(config));
+    assertEquals(expectedEnabled, ETagCacheActivation.isEffectivelyEnabled(config));
     assertEquals(
-        clustered || redisInvalidation, ApiETagCacheActivation.isMultiNodeIncompatible(config));
+        clustered || redisInvalidation, ETagCacheActivation.isMultiNodeIncompatible(config));
   }
 
   static Stream<Arguments> activationTruthTable() {
@@ -118,13 +118,13 @@ class ApiETagCacheActivationTest {
                   return null;
                 });
 
-    assertTrue(ApiETagCacheActivation.isEffectivelyEnabled(config));
+    assertTrue(ETagCacheActivation.isEffectivelyEnabled(config));
   }
 
   @Test
   @DisplayName("On + redis cache invalidation => forced off")
   void forcedOffWhenRedisCacheInvalidationEnabled() {
-    assertFalse(ApiETagCacheActivation.isEffectivelyEnabled(stub(true, false, true)));
+    assertFalse(ETagCacheActivation.isEffectivelyEnabled(stub(true, false, true)));
   }
 
   private static DhisConfigurationProvider stub(

@@ -40,10 +40,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.ETagService;
-import org.hisp.dhis.external.conf.ApiCacheEnabledCondition;
-import org.hisp.dhis.external.conf.ApiETagCacheActivation;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ETagCacheActivation;
+import org.hisp.dhis.external.conf.ETagCacheEnabledCondition;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
@@ -52,7 +52,7 @@ import org.springframework.stereotype.Service;
 /**
  * In-memory implementation of {@link ETagService} backed by ConcurrentHashMaps. Process-local only;
  * not registered when multi-node force-off applies (DHIS2 clustering or Redis cache invalidation;
- * see {@link ApiETagCacheActivation}).
+ * see {@link ETagCacheActivation}).
  *
  * <p>Memory is bounded by design: one {@link AtomicLong} per observed entity type name and per
  * registered named key (apps, static content, …), not per row or per request.
@@ -61,8 +61,8 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@Conditional(value = ApiCacheEnabledCondition.class)
-public class LocalETagService implements ETagService, InitializingBean {
+@Conditional(value = ETagCacheEnabledCondition.class)
+public class ETagLocalService implements ETagService, InitializingBean {
 
   /** Entity type versions — keys are FQCNs; bounded by mapped/observed entity types. */
   private final ConcurrentHashMap<String, AtomicLong> entityTypeVersions =
@@ -117,12 +117,12 @@ public class LocalETagService implements ETagService, InitializingBean {
     // Idempotent: Spring should call afterPropertiesSet once, but re-entry must not throw.
     if (meterRegistry.find(ETAG_ENTITY_VERSIONS_SIZE).gauge() == null) {
       Gauge.builder(ETAG_ENTITY_VERSIONS_SIZE, entityTypeVersions, ConcurrentHashMap::size)
-          .description("Number of entity-type version keys in LocalETagService")
+          .description("Number of entity-type version keys in ETagLocalService")
           .register(meterRegistry);
     }
     if (meterRegistry.find(ETAG_NAMED_VERSIONS_SIZE).gauge() == null) {
       Gauge.builder(ETAG_NAMED_VERSIONS_SIZE, namedVersions, ConcurrentHashMap::size)
-          .description("Number of named version keys in LocalETagService")
+          .description("Number of named version keys in ETagLocalService")
           .register(meterRegistry);
     }
   }
@@ -164,7 +164,7 @@ public class LocalETagService implements ETagService, InitializingBean {
    * <p>The named-version map is bounded only by convention: production call sites must use a small
    * fixed set of compile-time string constants ({@code "installedApps"}, {@code "staticContent"}).
    * This method does not validate keys at runtime; a new call site is a conscious change and should
-   * update the pinned key-set test in {@code LocalETagServiceCardinalityTest}.
+   * update the pinned key-set test in {@code ETagLocalServiceCardinalityTest}.
    */
   @Override
   public long incrementNamedVersion(@Nonnull String key) {
@@ -175,7 +175,7 @@ public class LocalETagService implements ETagService, InitializingBean {
 
   @Override
   public boolean isEnabled() {
-    return ApiETagCacheActivation.isEffectivelyEnabled(configurationProvider);
+    return ETagCacheActivation.isEffectivelyEnabled(configurationProvider);
   }
 
   @Override

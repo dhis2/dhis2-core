@@ -72,7 +72,7 @@ public final class DmlETagMetrics {
   public static final String ETAG_VERSION_BUMPS = "dhis2_etag_version_bumps_total";
 
   // ---------------------------------------------------------------------------
-  // ETag Cache metrics (ConditionalETagInterceptor)
+  // ETag Cache metrics (ETagConditionalInterceptor)
   // ---------------------------------------------------------------------------
 
   /** Per-request counter with tag {@link #TAG_RESULT}. */
@@ -82,13 +82,13 @@ public final class DmlETagMetrics {
   public static final String ETAG_CACHE_ENDPOINT_TYPE = "dhis2_etag_cache_endpoint_type_total";
 
   // ---------------------------------------------------------------------------
-  // Memory / cardinality gauges (LocalETagService, DmlObserverListener)
+  // Memory / cardinality gauges (ETagLocalService, DmlObserverListener)
   // ---------------------------------------------------------------------------
 
-  /** Number of entity-type version keys currently held in {@code LocalETagService}. */
+  /** Number of entity-type version keys currently held in {@code ETagLocalService}. */
   public static final String ETAG_ENTITY_VERSIONS_SIZE = "dhis2_etag_entity_versions_size";
 
-  /** Number of named version keys currently held in {@code LocalETagService}. */
+  /** Number of named version keys currently held in {@code ETagLocalService}. */
   public static final String ETAG_NAMED_VERSIONS_SIZE = "dhis2_etag_named_versions_size";
 
   /** Number of in-flight DML pending batches (keyed by connection). */
@@ -133,7 +133,8 @@ public final class DmlETagMetrics {
 
   /**
    * Request bypassed ETag caching because its {@code fields=} expression traverses more than one
-   * reference hop (see {@code FieldsHopAnalyzer}); served always-fresh instead of bounded-stale.
+   * reference hop (see {@code ETagFieldsHopAnalyzer}); served always-fresh instead of
+   * bounded-stale.
    */
   public static final String RESULT_SKIP_DEEP_FIELDS = "skip_deep_fields";
 

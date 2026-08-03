@@ -819,7 +819,7 @@ public enum ConfigurationKey {
    * key is {@code on}) when either DHIS2 clustering ({@code cluster.members} + {@code
    * cluster.hostname}) or Redis cache invalidation ({@code redis.cache.invalidation.enabled}) is
    * enabled. Plain {@code redis.enabled} alone does not force it off. See {@link
-   * ApiETagCacheActivation}. Multi-node version propagation is not implemented yet.
+   * ETagCacheActivation}. Multi-node version propagation is not implemented yet.
    */
   CACHE_API_ETAG_ENABLED("cache.api.etag.enabled", Constants.ON, false),
 
