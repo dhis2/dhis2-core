@@ -29,6 +29,14 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.util.Date;
 
 /**
@@ -38,13 +46,23 @@ import java.util.Date;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Entity
+@Table(name = "loginevent")
 public class LoginEvent {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "logineventid")
   private long id;
 
+  @Column(name = "username", nullable = false, length = 255)
   private String username;
 
+  @Column(name = "timestamp", nullable = false)
   private Date timestamp;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "authtype", nullable = false, length = 32)
   private LoginAuthType authType;
 
   public LoginEvent() {}
