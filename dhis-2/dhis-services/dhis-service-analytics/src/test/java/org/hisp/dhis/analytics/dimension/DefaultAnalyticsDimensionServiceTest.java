@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.dimension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,5 +100,21 @@ class DefaultAnalyticsDimensionServiceTest {
         Set.of("dx:uSw8GwPO417.ACTUAL_REPORTS;uSw8GwPO417.EXPECTED_REPORTS"),
         captor.getValue().getDimension(),
         "Only the data (dx) dimension should be resolved; ou/pe must be stripped");
+  }
+
+  @Test
+  void getRecommendedDimensionsHandlesNullDimension() {
+    DataQueryRequest request = DataQueryRequest.newBuilder().build();
+
+    when(dataQueryService.getFromRequest(any())).thenReturn(DataQueryParams.newBuilder().build());
+
+    service.getRecommendedDimensions(request);
+
+    ArgumentCaptor<DataQueryRequest> captor = ArgumentCaptor.forClass(DataQueryRequest.class);
+    verify(dataQueryService).getFromRequest(captor.capture());
+
+    assertNull(
+        captor.getValue().getDimension(),
+        "A request with no dimension at all must not fail resolution; null should pass through");
   }
 }
