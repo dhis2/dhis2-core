@@ -37,11 +37,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.InputFormat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -113,8 +115,8 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     assertEquals(contract.responseStatus(), response.status().code(), "HTTP status code mismatch");
 
     // And the response body should not have any JSON schema validation errors
-    Set<ValidationMessage> errors =
-        contract.jsonSchema().validate(mapper.readTree(response.content().toJson()));
+    List<Error> errors =
+        contract.jsonSchema().validate(response.content().toJson(), InputFormat.JSON);
     assertTrue(
         errors.isEmpty(),
         () -> String.format("Valid JSON should pass schema validation, errors: %s", errors));
