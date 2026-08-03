@@ -631,15 +631,40 @@ public class DefaultUserService implements UserService {
     return user;
   }
 
+  /**
+   * Guards {@link #setLastLogin(String)} so session-less clients (basic auth, personal access
+   * tokens, JWT) that authenticate on every request cause at most one lastlogin write per user per
+   * window. Per JVM; in a cluster each node may write once per window, which is harmless since the
+   * write is idempotent.
+   */
+  private static final org.hisp.dhis.cache.Cache<Boolean> LAST_LOGIN_UPDATE_GUARD =
+      new org.hisp.dhis.cache.SimpleCacheBuilder<Boolean>()
+          .forRegion("lastLoginUpdateGuard")
+          .expireAfterWrite(5, java.util.concurrent.TimeUnit.MINUTES)
+          .withInitialCapacity(10_000)
+          .withMaximumSize(100_000)
+          .build();
+
   @Override
   @Transactional
   public void setLastLogin(String username) {
+    if (username == null || LAST_LOGIN_UPDATE_GUARD.getIfPresent(username).isPresent()) {
+      return;
+    }
     User user = getUserByUsername(username);
 
     if (user != null) {
+      // Mutate the managed entity and rely on dirty checking: a login is not a metadata
+      // change, so this must not go through updateUser() which would bump lastUpdated,
+      // write an update audit log entry and invalidate caches on the authentication path.
       user.setLastLogin(new Date());
-      updateUser(user);
+      LAST_LOGIN_UPDATE_GUARD.put(username, Boolean.TRUE);
     }
+  }
+
+  /** Clears the lastlogin write guard. Intended for tests only. */
+  public static void clearLastLoginUpdateGuard() {
+    LAST_LOGIN_UPDATE_GUARD.invalidateAll();
   }
 
   @Override

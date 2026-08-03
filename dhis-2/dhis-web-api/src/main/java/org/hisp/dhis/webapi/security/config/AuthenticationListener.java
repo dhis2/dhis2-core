@@ -38,7 +38,6 @@ import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.user.LoginAuthType;
 import org.hisp.dhis.user.LoginEventService;
-import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,11 +144,13 @@ public class AuthenticationListener {
     boolean readOnly = config.isReadOnlyMode();
 
     if (Objects.nonNull(user) && !readOnly) {
-      user.updateLastLogin();
       try {
-        userService.updateUser(user, new SystemUser());
+        // Throttled: at most one lastlogin write per user per guard window, and the write
+        // does not bump lastUpdated or produce update audit entries. Session-less clients
+        // (basic auth, PAT, JWT) fire this handler on every request.
+        userService.setLastLogin(username);
       } catch (Exception e) {
-        log.warn("Failed to update the user!", e);
+        log.warn("Failed to update last login for user!", e);
       }
       loginEventService.recordLogin(username, authType);
     }

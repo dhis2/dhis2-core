@@ -322,7 +322,11 @@ public interface UserService {
   void encodeAndSetPassword(User user, String rawPassword);
 
   /**
-   * Updates the last login date of User with the given username with the current date.
+   * Updates the last login date of the User with the given username to the current date.
+   *
+   * <p>Throttled: at most one write per user per guard window (per JVM), since session-less clients
+   * authenticate on every request. Only the lastlogin column is written; lastUpdated is
+   * intentionally left untouched because a login is not a metadata change.
    *
    * @param username the username of the User.
    */

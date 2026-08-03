@@ -742,4 +742,36 @@ class UserServiceTest extends PostgresIntegrationTestBase {
         () -> userService.encodeAndSetPassword(user, encodedPassword),
         "Raw password look like BCrypt encoded password, this is most certainly a bug");
   }
+
+  @Test
+  void testSetLastLoginDoesNotBumpLastUpdatedAndIsThrottled() {
+    DefaultUserService.clearLastLoginUpdateGuard();
+    User user = addUser("lastloginuser");
+    Date lastUpdatedBefore = user.getLastUpdated();
+
+    userService.setLastLogin(user.getUsername());
+    entityManager.flush();
+
+    User afterFirst = userService.getUserByUsername(user.getUsername());
+    Date firstLastLogin = afterFirst.getLastLogin();
+    assertNotNull(firstLastLogin, "first call must set lastLogin");
+    assertEquals(
+        lastUpdatedBefore,
+        afterFirst.getLastUpdated(),
+        "a login must not bump the lastUpdated metadata timestamp");
+
+    // Overwrite lastLogin with an old value, then call again within the guard window:
+    // the write must be skipped.
+    Date oldDate = Date.from(ZonedDateTime.now().minusMonths(1).toInstant());
+    afterFirst.setLastLogin(oldDate);
+    entityManager.flush();
+
+    userService.setLastLogin(user.getUsername());
+    entityManager.flush();
+
+    assertEquals(
+        oldDate,
+        userService.getUserByUsername(user.getUsername()).getLastLogin(),
+        "second call within the guard window must be a no-op");
+  }
 }
