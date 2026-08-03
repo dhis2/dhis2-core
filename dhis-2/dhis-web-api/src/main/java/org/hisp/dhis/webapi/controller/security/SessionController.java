@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -83,7 +84,7 @@ public class SessionController {
       @JsonProperty boolean expired) {}
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  @RequiresAuthority(anyOf = ALL)
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   public List<UserSessionInfo> listAllSessions() {
     SessionCreationTimeProvider creationTimes = sessionCreationTimeProvider.getIfAvailable();
     return userService.listAllSessions().stream()
