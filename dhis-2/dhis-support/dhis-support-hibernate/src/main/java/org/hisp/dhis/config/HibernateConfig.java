@@ -176,6 +176,8 @@ public class HibernateConfig {
       if (!configFile.isBlank()) {
         properties.put(ConfigSettings.CONFIG_URI, configFile);
       }
+    } else {
+      properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "false");
     }
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
