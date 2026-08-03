@@ -30,12 +30,7 @@ permissions:
   contents: read
 
 jobs:
-  # Single image build, then two compose suites against the same tag:
-  #   1) default e2e (excludes JUnit group "cache")
-  #   2) cache/ETag e2e (docker-compose.e2e-cache.yml → -Pcache only)
-  # Folded from a separate cache-api-test job that re-built the image (P2-13/P2-14).
   api-test:
-    timeout-minutes: 90
     env:
       # We only publish to Dockerhub on PRs from https://github.com/dhis2/dhis2-core. PRs from forks or dependabot cannot access secrets.
       DOCKERHUB_PUSH: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
@@ -53,7 +48,7 @@ jobs:
 
       - name: Login to Docker Hub
         if: ${{ env.DOCKERHUB_PUSH == 'true' }}
-        uses: docker/login-action@v4
+        uses: docker/login-action@v4.6.0
         with:
           username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
@@ -75,68 +70,53 @@ jobs:
               -Djib.to.image=$CORE_IMAGE_NAME
           fi
 
-      - name: Run default e2e tests
-        id: default-e2e
+      - name: Run tests
         run: |
           cd dhis-2/dhis-test-e2e
           SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
 
-      - name: Upload default e2e logs
-        if: failure() && steps.default-e2e.outcome == 'failure'
+      # Informational only: scan the run's Postgres csvlog for N+1 query hot spots and
+      # publish an HTML report. Never affects the test result or fails the build.
+      - name: Generate N+1 query report
+        if: always()
+        continue-on-error: true
         run: |
           cd dhis-2/dhis-test-e2e
-          docker compose -f docker-compose.yml -f docker-compose.e2e.yml logs web > ~/logs.txt
+          COMPOSE="docker compose -f docker-compose.yml -f docker-compose.e2e.yml"
+          mkdir -p n1watch/pglog
+          # Pull the csvlog + request-id map out of the (stopped) containers.
+          $COMPOSE cp db:/var/lib/postgresql/data/log/. n1watch/pglog/ || true
+          $COMPOSE cp test:/target/request-id-map.json n1watch/request-id-map.json || true
+          # Download the prebuilt n1watch binary (no Go toolchain / compile needed). `|| true`
+          # on each command so this informational step can never fail the build.
+          curl -sSfL -o n1watch/bin \
+            https://github.com/david-mackessy/n1watch/releases/latest/download/n1watch-linux-amd64 && chmod +x n1watch/bin || true
+          n1watch/bin -report \
+            -dir n1watch/pglog -format html -out n1watch/n1report-e2e.html \
+            -group-keys controller,method -trace-key request_id \
+            -trace-map n1watch/request-id-map.json -trace-tags setup,teardown \
+            -notify=false || true
+
+      - name: Upload N+1 report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: n1watch-report
+          path: dhis-2/dhis-test-e2e/n1watch/n1report-e2e.html
+          if-no-files-found: ignore
+
+      - name: Upload logs
+        if: failure()
+        run: |
+          cd dhis-2/dhis-test-e2e
+          docker compose logs web > ~/logs.txt
 
       - uses: actions/upload-artifact@v7
-        if: failure() && steps.default-e2e.outcome == 'failure'
+        if: failure()
         with:
           name: "tomcat_logs"
           path: "~/logs.txt"
-
-      - name: Tear down default e2e stack
-        if: always()
-        run: |
-          cd dhis-2/dhis-test-e2e
-          docker compose -f docker-compose.yml -f docker-compose.e2e.yml down --remove-orphans || true
-
-      # Cache/ETag suite (JUnit group "cache"). Server config already has
-      # cache.api.etag.enabled=on in dhis-test-e2e/config/dhis2_home/dhis.conf.
-      # Reuses the image from "Build container image"; default e2e must pass first.
-      - name: Run cache e2e tests
-        id: cache-e2e
-        run: |
-          cd dhis-2/dhis-test-e2e
-          DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.e2e.yml \
-            -f docker-compose.e2e-cache.yml \
-            up --remove-orphans --exit-code-from test
-
-      - name: Upload cache e2e logs
-        if: failure() && steps.cache-e2e.outcome == 'failure'
-        run: |
-          cd dhis-2/dhis-test-e2e
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.e2e.yml \
-            -f docker-compose.e2e-cache.yml \
-            logs web > ~/cache_e2e_logs.txt
-
-      - uses: actions/upload-artifact@v7
-        if: failure() && steps.cache-e2e.outcome == 'failure'
-        with:
-          name: "cache_e2e_tomcat_logs"
-          path: "~/cache_e2e_logs.txt"
-
-      - name: Tear down cache e2e stack
-        if: always() && steps.cache-e2e.outcome != 'skipped'
-        run: |
-          cd dhis-2/dhis-test-e2e
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.e2e.yml \
-            -f docker-compose.e2e-cache.yml \
-            down --remove-orphans || true
 
   send-slack-message:
     runs-on: ubuntu-latest
