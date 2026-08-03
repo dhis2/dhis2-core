@@ -114,7 +114,7 @@ class ProgramRuleVariableTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(ProgramRuleVariable.class);
-    assertEquals(22, allClassFieldsIncludingInherited.length);
+    assertEquals(21, allClassFieldsIncludingInherited.length);
   }
 
   private ProgramRuleVariable getNewProgramRuleVariable(
