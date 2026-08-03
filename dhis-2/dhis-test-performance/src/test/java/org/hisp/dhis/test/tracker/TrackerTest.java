@@ -62,6 +62,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -566,6 +569,17 @@ public class TrackerTest extends Simulation {
             + "&orgUnitMode=SELECTED"
             + "&order=occurredAt:desc";
 
+    String updatedAfterCutoff =
+        DateTimeFormatter.ISO_INSTANT.format(Instant.now().minus(24, ChronoUnit.HOURS));
+    String getEventsUpdatedAfterUrl =
+        "/api/tracker/events?program="
+            + this.eventProgram
+            + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser"
+            + "&orgUnit=DiszpKrYNg8"
+            + "&orgUnitMode=DESCENDANTS"
+            + "&updatedAfter="
+            + updatedAfterCutoff;
+
     Request goToFirstPage =
         new Request(
             getEventsUrl,
@@ -583,6 +597,12 @@ public class TrackerTest extends Simulation {
             getEventsUrl + "&occurredAfter=2020-01-01&occurredBefore=2025-12-31",
             new EnumMap<>(Map.of(Profile.SMOKE, 41, Profile.LOAD, 509)),
             "Search by date range",
+            "Get ANC events");
+    Request searchEventsByUpdatedAfter =
+        new Request(
+            getEventsUpdatedAfterUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 84, Profile.LOAD, 25)),
+            "Search by updatedAfter",
             "Get ANC events");
     Request searchEventsNotAssigned =
         new Request(
@@ -631,6 +651,10 @@ public class TrackerTest extends Simulation {
                                     .action()
                                     .check(jsonPath("$.events[*]").count().gte(1))
                                     .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                            .exec(
+                                searchEventsByUpdatedAfter
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gte(1)))
                             .pause(1, 3) // user reads results, picks an event
                             // User clicks on an event -- Capture fires event + relationships
                             // together
@@ -663,6 +687,7 @@ public class TrackerTest extends Simulation {
             goToSecondPage,
             searchEventsNotAssigned,
             searchEventsByDateRange,
+            searchEventsByUpdatedAfter,
             getFirstEvent,
             getRelationshipsForFirstEvent));
   }
