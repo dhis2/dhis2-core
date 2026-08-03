@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -156,7 +157,7 @@ class JdbcCompletenessTableManagerDorisTest {
   }
 
   @Test
-  void testRemoveUpdatedDataUsesUsingJoinNotSubquery() {
+  void testRemoveUpdatedDataMaterializesKeysNatively() {
     Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
     Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
@@ -178,10 +179,52 @@ class JdbcCompletenessTableManagerDorisTest {
     subject.removeUpdatedData(tables);
 
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    verify(jdbcTemplate).execute(sql.capture());
+    verify(jdbcTemplate, times(5)).execute(sql.capture());
+    List<String> statements = sql.getAllValues();
 
-    assertTrue(sql.getValue().contains("using"));
-    assertTrue(sql.getValue().contains("ax.id ="));
-    assertTrue(!sql.getValue().contains("in ("));
+    String drop1 = statements.get(0);
+    assertTrue(drop1.toLowerCase().contains("drop table if exists"));
+    assertTrue(drop1.contains("analytics_completeness_delete_keys"));
+
+    String create = statements.get(1);
+    assertTrue(create.toLowerCase().contains("create table"));
+    assertTrue(create.contains("analytics_completeness_delete_keys"));
+    assertTrue(create.contains("`id`"));
+    assertTrue(
+        create.contains("varchar(1020)"),
+        () -> "Expected staging id column to use a bounded varchar type, got: " + create);
+    assertFalse(
+        create.contains("`id` string"),
+        () -> "Staging id column must not use the unbounded string type, got: " + create);
+
+    String insert = statements.get(2);
+    assertTrue(insert.toLowerCase().contains("insert into"));
+    assertTrue(insert.contains("analytics_completeness_delete_keys"));
+    assertTrue(insert.contains("completedatasetregistration"));
+    assertTrue(insert.contains("analytics_rs_periodstructure"));
+    assertTrue(insert.contains("analytics_rs_orgunitstructure"));
+    assertTrue(insert.contains("analytics_rs_categorystructure"));
+    assertTrue(
+        insert.contains(
+            "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid)"),
+        () -> "Expected the id concat expression in the staging select, got: " + insert);
+    assertTrue(insert.contains("cdr.lastupdated >="));
+    assertTrue(insert.contains("cdr.lastupdated <"));
+
+    String delete = statements.get(3);
+    assertTrue(delete.toLowerCase().contains("delete from"));
+    assertTrue(delete.toLowerCase().contains("using"));
+    assertTrue(delete.contains("analytics_completeness_delete_keys"));
+    assertTrue(delete.contains("ax.id=k.id"));
+    assertFalse(
+        delete.contains("completedatasetregistration"),
+        () -> "Delete statement must not reference the federated table, got: " + delete);
+    assertFalse(
+        delete.contains("analytics_rs_"),
+        () -> "Delete statement must not reference federated join tables, got: " + delete);
+
+    String drop2 = statements.get(4);
+    assertTrue(drop2.toLowerCase().contains("drop table"));
+    assertTrue(drop2.contains("analytics_completeness_delete_keys"));
   }
 }
