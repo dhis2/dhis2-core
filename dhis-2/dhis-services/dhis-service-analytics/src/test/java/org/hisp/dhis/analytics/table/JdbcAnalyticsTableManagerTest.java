@@ -127,7 +127,7 @@ class JdbcAnalyticsTableManagerTest {
   @InjectMocks private JdbcAnalyticsTableManager subject;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
