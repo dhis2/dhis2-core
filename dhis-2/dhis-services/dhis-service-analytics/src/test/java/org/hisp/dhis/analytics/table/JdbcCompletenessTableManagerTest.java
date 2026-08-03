@@ -32,8 +32,6 @@ package org.hisp.dhis.analytics.table;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -166,19 +164,10 @@ class JdbcCompletenessTableManagerTest {
     verify(jdbcTemplate, times(1)).execute(sql.capture());
 
     String delete = sql.getValue();
-    assertTrue(delete.toLowerCase().contains("delete from"));
-    assertTrue(delete.contains("where ax.id in ("));
-    assertTrue(
-        delete.contains(
-            "select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id"));
-    assertTrue(delete.contains("completedatasetregistration"));
-    assertTrue(delete.contains("cdr.lastupdated >="));
-    assertTrue(delete.contains("cdr.lastupdated <"));
-    assertFalse(
-        delete.toLowerCase().contains("using"),
-        () ->
-            "Postgres path must use the subquery delete, not the Doris staging-keys using-join"
-                + " delete, got: "
-                + delete);
+    String expected =
+        """
+        delete from "analytics_completeness" ax where ax.id in ( select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id from "completedatasetregistration" cdr inner join "dataset" ds on cdr.datasetid=ds.datasetid inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid where cdr.lastupdated >= '2019-03-01T02:00:00' and cdr.lastupdated < '2019-03-01T10:00:00');""";
+
+    assertEquals(expected, delete);
   }
 }
