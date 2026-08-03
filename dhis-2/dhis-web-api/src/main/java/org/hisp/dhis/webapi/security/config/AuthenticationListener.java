@@ -32,13 +32,18 @@ package org.hisp.dhis.webapi.security.config;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
+import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetails;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
+import org.hisp.dhis.user.LoginAuthType;
+import org.hisp.dhis.user.LoginEventService;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
@@ -52,12 +57,15 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Henning Håkonsen
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Component
 public class AuthenticationListener {
 
   @Autowired private UserService userService;
+
+  @Autowired private LoginEventService loginEventService;
 
   @Autowired private DhisConfigurationProvider config;
 
@@ -128,10 +136,10 @@ public class AuthenticationListener {
       log.debug(String.format("OIDC login attempt succeeded for remote IP: %s", remoteAddress));
     }
 
-    registerSuccessfulLogin(username);
+    registerSuccessfulLogin(username, resolveAuthType(auth));
   }
 
-  private void registerSuccessfulLogin(String username) {
+  private void registerSuccessfulLogin(String username, LoginAuthType authType) {
     User user = userService.getUserByUsername(username);
 
     boolean readOnly = config.isReadOnlyMode();
@@ -143,8 +151,44 @@ public class AuthenticationListener {
       } catch (Exception e) {
         log.warn("Failed to update the user!", e);
       }
+      loginEventService.recordLogin(username, authType);
     }
 
     userService.registerSuccessfulLogin(username);
+  }
+
+  /**
+   * Maps the Spring {@link Authentication} implementation (and its details) to a {@link
+   * LoginAuthType}. Unknown types fall through to {@link LoginAuthType#OTHER} so new auth schemes
+   * still get recorded.
+   */
+  static LoginAuthType resolveAuthType(Authentication auth) {
+    if (auth == null) {
+      return LoginAuthType.OTHER;
+    }
+    if (auth instanceof OAuth2LoginAuthenticationToken
+        || auth instanceof OidcUserInfoAuthenticationToken) {
+      return LoginAuthType.OIDC;
+    }
+    if (auth instanceof ApiTokenAuthenticationToken) {
+      return LoginAuthType.API_TOKEN;
+    }
+    if (auth instanceof JwtAuthenticationToken) {
+      return LoginAuthType.JWT;
+    }
+    if (auth instanceof UsernamePasswordAuthenticationToken) {
+      Object details = auth.getDetails();
+      if (details instanceof HttpBasicWebAuthenticationDetails) {
+        return LoginAuthType.BASIC;
+      }
+      if (details instanceof TwoFactorWebAuthenticationDetails) {
+        return LoginAuthType.FORM;
+      }
+      // Default UsernamePassword without a known details subclass: treat as form login
+      // (the /api/auth/login path always stamps TwoFactorWebAuthenticationDetails, but
+      // other form entry points may not).
+      return LoginAuthType.FORM;
+    }
+    return LoginAuthType.OTHER;
   }
 }
