@@ -34,8 +34,8 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -253,12 +253,22 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   }
 
   private ProgramMessage setAttributesBasedOnStrategy(ProgramMessage message) {
-    Set<DeliveryChannel> channels = message.getDeliveryChannels();
-
-    for (DeliveryChannel channel : channels) {
+    // Iterate over a copy: a channel the resolved recipient cannot receive on (e.g. an org unit
+    // contact with an email but no phone number) is dropped from the message so that the remaining
+    // deliverable channels are still sent, instead of aborting the whole send.
+    for (DeliveryChannel channel : new HashSet<>(message.getDeliveryChannels())) {
       for (DeliveryChannelStrategy strategy : strategies) {
         if (strategy.getDeliveryChannel().equals(channel)) {
-          strategy.setAttributes(message);
+          try {
+            strategy.setAttributes(message);
+          } catch (IllegalQueryException ex) {
+            log.warn(
+                "Skipping delivery channel {} for program message {}: {}",
+                channel,
+                message.getUid(),
+                ex.getMessage());
+            message.getDeliveryChannels().remove(channel);
+          }
         }
       }
     }
