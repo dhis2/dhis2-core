@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.message;
 
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
@@ -40,13 +40,17 @@ import java.util.Set;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.email.EmailMessageBatchCreatorService;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.SmsMessageBatchCreatorService;
-import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService;
+import org.hisp.dhis.sms.config.MessageSendingCallback;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,9 +82,15 @@ class DefaultProgramMessageServiceTest {
 
   @Mock private AclService aclService;
 
-  @Mock private ProgramMessageOperationParamMapper operationParamMapper;
+  @Mock private TrackedEntityService trackedEntityService;
 
-  @Mock private ApiTrackedEntityAuditService trackedEntityAuditService;
+  @Mock private ProgramService programService;
+
+  @Mock private UserService userService;
+
+  @Mock private MessageSender smsSender;
+
+  @Mock private MessageSendingCallback sendingCallback;
 
   @Captor private ArgumentCaptor<List<OutboundMessageBatch>> batchCaptor;
 
@@ -98,12 +108,15 @@ class DefaultProgramMessageServiceTest {
             manager,
             programMessageStore,
             organisationUnitService,
+            trackedEntityService,
+            programService,
             messageBatchService,
+            userService,
             List.of(emailStrategy, smsStrategy),
             List.of(new SmsMessageBatchCreatorService(), new EmailMessageBatchCreatorService()),
             aclService,
-            operationParamMapper,
-            trackedEntityAuditService);
+            smsSender,
+            sendingCallback);
   }
 
   @Test
