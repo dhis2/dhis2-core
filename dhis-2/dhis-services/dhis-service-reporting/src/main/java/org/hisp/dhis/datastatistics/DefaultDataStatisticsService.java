@@ -223,45 +223,20 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
     statistics.setObjectCounts(objectCounts);
 
-    // Logins
-    // Note that the source of active users and logins are different. This one is
-    // counting logins based on last login date stored in user table
-    Map<Integer, Integer> logins =
-        Map.ofEntries(
-            Map.entry(0, userService.getActiveUsersCount(hoursAgo(1))),
-            Map.entry(1, userService.getActiveUsersCount(startOfToday())),
-            Map.entry(2, userService.getActiveUsersCount(daysAgo(2))),
-            Map.entry(7, userService.getActiveUsersCount(daysAgo(7))),
-            Map.entry(30, userService.getActiveUsersCount(daysAgo(30))));
-    statistics.setLogins(logins);
+    // Distinct users by last login (userinfo.lastlogin) and by recorded view activity
+    // (datastatisticsevent), for the windows: last hour (key 0), since start of today (key 1),
+    // and the last 2, 7 and 30 days. Note that the two sources differ: logins cover all
+    // authentication, while active users only cover users generating view events in the
+    // analytics apps.
+    List<Integer> windowKeys = List.of(0, 1, 2, 7, 30);
+    List<Date> windowDates =
+        List.of(hoursAgo(1), startOfToday(), daysAgo(2), daysAgo(7), daysAgo(30));
 
-    // Active users based on DataStatisticsEventStore
-    // This one is counting active users based on activity stored in data statistics event table
-    // Consider to include all of the event types, since we are already querying them
-    Date base = new Date();
-    Map<DataStatisticsEventType, Long> eventCountMapOneHour =
-        dataStatisticsEventStore.getDataStatisticsEventCount(hoursAgo(1), base);
-    Map<DataStatisticsEventType, Long> eventCountMapToday =
-        dataStatisticsEventStore.getDataStatisticsEventCount(startOfToday(), base);
-    Map<DataStatisticsEventType, Long> eventCountMapLast2Days =
-        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(2), base);
-    Map<DataStatisticsEventType, Long> eventCountMapLast7Days =
-        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(7), base);
-    Map<DataStatisticsEventType, Long> eventCountMapLast30Days =
-        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(30), base);
-    Map<Integer, Integer> activeUsersMap =
-        Map.ofEntries(
-            Map.entry(
-                0, (int) getOrZero(eventCountMapOneHour, DataStatisticsEventType.ACTIVE_USERS)),
-            Map.entry(1, (int) getOrZero(eventCountMapToday, DataStatisticsEventType.ACTIVE_USERS)),
-            Map.entry(
-                2, (int) getOrZero(eventCountMapLast2Days, DataStatisticsEventType.ACTIVE_USERS)),
-            Map.entry(
-                7, (int) getOrZero(eventCountMapLast7Days, DataStatisticsEventType.ACTIVE_USERS)),
-            Map.entry(
-                30,
-                (int) getOrZero(eventCountMapLast30Days, DataStatisticsEventType.ACTIVE_USERS)));
-    statistics.setActiveUsers(activeUsersMap);
+    statistics.setLogins(toWindowMap(windowKeys, userService.getActiveUsersCounts(windowDates)));
+    statistics.setActiveUsers(
+        toWindowMap(
+            windowKeys,
+            dataStatisticsEventStore.getDistinctActiveUserCounts(windowDates, new Date())));
 
     // User invitations
     Map<String, Integer> userInvitations = new HashMap<>();
@@ -346,6 +321,21 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   private static long getOrZero(
       Map<DataStatisticsEventType, Long> map, DataStatisticsEventType type) {
     return map.getOrDefault(type, 0L);
+  }
+
+  /**
+   * Zips window keys with their counts into an unmodifiable map.
+   *
+   * @param keys the window keys.
+   * @param counts the counts, in the same order as the keys.
+   * @return a map from window key to count.
+   */
+  private static Map<Integer, Integer> toWindowMap(List<Integer> keys, List<Integer> counts) {
+    Map<Integer, Integer> map = new HashMap<>();
+    for (int i = 0; i < keys.size(); i++) {
+      map.put(keys.get(i), counts.get(i));
+    }
+    return Map.copyOf(map);
   }
 
   /**

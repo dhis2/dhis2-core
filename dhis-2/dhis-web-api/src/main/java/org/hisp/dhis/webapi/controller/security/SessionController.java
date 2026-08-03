@@ -32,10 +32,10 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.OpenApi;
@@ -43,8 +43,9 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.security.session.SessionCreationTimeProvider;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,51 +63,64 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class SessionController {
 
-  private final SessionRegistry sessionRegistry;
   private final UserService userService;
+  private final ObjectProvider<SessionCreationTimeProvider> sessionCreationTimeProvider;
+
+  /**
+   * Structured view of a single HTTP session for the sessions API.
+   *
+   * @param id SHA-1 hash of the raw session id
+   * @param username session owner username
+   * @param created session creation time when available, otherwise null
+   * @param lastRequest last request time from the session registry
+   * @param expired whether the session has been expired
+   */
+  public record UserSessionInfo(
+      @JsonProperty String id,
+      @JsonProperty String username,
+      @JsonProperty @CheckForNull Date created,
+      @JsonProperty Date lastRequest,
+      @JsonProperty boolean expired) {}
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = ALL)
-  public Map<String, String> listAllSessions() {
-    return listAllUserSessions().stream()
-        .collect(
-            Collectors.toMap(
-                s -> HashUtils.hashSHA1(s.getSessionId().getBytes()),
-                s ->
-                    ((UserDetails) s.getPrincipal()).getUsername()
-                        + (s.isExpired() ? ", (inactive)" : ", (active)")));
-  }
-
-  private List<SessionInformation> listAllUserSessions() {
-    List<SessionInformation> allSessions = new ArrayList<>();
-    List<User> allUsers = userService.getAllUsers();
-    for (User user : allUsers) {
-      allSessions.addAll(sessionRegistry.getAllSessions(userService.createUserDetails(user), true));
-    }
-    return allSessions;
+  public List<UserSessionInfo> listAllSessions() {
+    SessionCreationTimeProvider creationTimes = sessionCreationTimeProvider.getIfAvailable();
+    return userService.listAllSessions().stream()
+        .map(session -> toUserSessionInfo(session, creationTimes))
+        .toList();
   }
 
   @DeleteMapping(value = "/{username}")
   @RequiresAuthority(anyOf = ALL)
   public void invalidateSessions(@PathVariable("username") String username) {
-    User user = userService.getUserByUsername(username);
-    UserDetails userDetails = userService.createUserDetails(user);
-    if (userDetails != null) {
-      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
-      allSessions.forEach(SessionInformation::expireNow);
-    }
+    userService.invalidateUserSessions(username);
   }
 
   @DeleteMapping
   @RequiresAuthority(anyOf = ALL)
   public void invalidateAllSessions() {
-    List<User> allUsers = userService.getAllUsers();
-    for (User user : allUsers) {
-      UserDetails userDetails = userService.createUserDetails(user);
-      if (userDetails != null) {
-        List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
-        allSessions.forEach(SessionInformation::expireNow);
+    for (SessionInformation session : userService.listAllSessions()) {
+      if (!session.isExpired()) {
+        session.expireNow();
       }
     }
+  }
+
+  private static UserSessionInfo toUserSessionInfo(
+      SessionInformation session, @CheckForNull SessionCreationTimeProvider creationTimes) {
+    Object principal = session.getPrincipal();
+    String username =
+        principal instanceof UserDetails userDetails
+            ? userDetails.getUsername()
+            : String.valueOf(principal);
+    Date created =
+        creationTimes != null ? creationTimes.getCreationTime(session.getSessionId()) : null;
+    return new UserSessionInfo(
+        HashUtils.hashSHA1(session.getSessionId().getBytes()),
+        username,
+        created,
+        session.getLastRequest(),
+        session.isExpired());
   }
 }
