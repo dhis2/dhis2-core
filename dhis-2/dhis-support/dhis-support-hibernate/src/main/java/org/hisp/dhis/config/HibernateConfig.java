@@ -179,6 +179,12 @@ public class HibernateConfig {
       if (!configFile.isBlank()) {
         properties.put(ConfigSettings.CONFIG_URI, configFile);
       }
+    } else {
+      // Explicitly disable both caches. Without this, Hibernate auto-enables the second level
+      // cache when a RegionFactory (hibernate-jcache) is present on the classpath, but with
+      // default JCache settings instead of our ehcache.xml configuration.
+      properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "false");
+      properties.put(AvailableSettings.USE_QUERY_CACHE, "false");
     }
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
