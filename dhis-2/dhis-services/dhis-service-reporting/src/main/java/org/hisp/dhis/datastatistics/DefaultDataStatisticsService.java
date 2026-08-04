@@ -39,8 +39,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.cache.Region;
@@ -206,38 +209,76 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   /**
-   * The system statistics summary runs many count queries over the largest tables (data values,
-   * tracker events, enrollments), so the computed result is cached briefly. This bounds the cost of
-   * aggressive or misbehaving monitoring scrapers to one computation per TTL window, regardless of
-   * request rate. Stats move slowly; five minutes of staleness is acceptable.
+   * The system statistics overview covers object counts (approximate counts for the large data
+   * tables), logins, active users, user invitations and system info. These queries are cheap, but
+   * the result is still cached briefly so aggressive or misbehaving monitoring scrapers are
+   * bounded to one computation per TTL window, regardless of request rate.
    */
-  private static final org.hisp.dhis.cache.Cache<DataSummary> SUMMARY_CACHE =
-      new org.hisp.dhis.cache.SimpleCacheBuilder<DataSummary>()
-          .forRegion(Region.systemStatisticsSummary.name())
-          .expireAfterWrite(5, java.util.concurrent.TimeUnit.MINUTES)
+  private static final Cache<DataSummary> OVERVIEW_CACHE =
+      new SimpleCacheBuilder<DataSummary>()
+          .forRegion(Region.systemStatisticsOverview.name())
+          .expireAfterWrite(5, TimeUnit.MINUTES)
           .withInitialCapacity(1)
           .withMaximumSize(1)
           .build();
 
-  /** Clears the cached system statistics summary. Intended for tests only. */
+  /**
+   * The data counts run exact, windowed count queries over the largest tables (data values,
+   * tracker events, single events, enrollments), which can be very expensive on databases with a
+   * lot of data. The result is therefore cached considerably longer than the overview; these
+   * counts move slowly and 30 minutes of staleness is acceptable.
+   */
+  private static final Cache<DataSummary> DATA_COUNTS_CACHE =
+      new SimpleCacheBuilder<DataSummary>()
+          .forRegion(Region.systemStatisticsDataCounts.name())
+          .expireAfterWrite(30, TimeUnit.MINUTES)
+          .withInitialCapacity(1)
+          .withMaximumSize(1)
+          .build();
+
+  /** Clears the cached system statistics (overview and data counts). Intended for tests only. */
   @Override
   public void clearSystemStatisticsSummaryCache() {
-    SUMMARY_CACHE.invalidateAll();
+    OVERVIEW_CACHE.invalidateAll();
+    DATA_COUNTS_CACHE.invalidateAll();
   }
 
   /**
-   * Returns a summary of system statistics including object counts, active users, user invitations,
-   * data value counts, tracker event counts, single event counts, enrollment counts, and system
-   * information. The result is cached, see {@link #SUMMARY_CACHE}.
+   * Returns the full system statistics summary, composed of the cached overview (see {@link
+   * #OVERVIEW_CACHE}) and the cached data counts (see {@link #DATA_COUNTS_CACHE}).
    *
    * @return A DataSummary object containing the system statistics summary.
    */
   @Override
   public DataSummary getSystemStatisticsSummary() {
-    return SUMMARY_CACHE.get("summary", key -> computeSystemStatisticsSummary());
+    DataSummary overview = getSystemStatisticsOverview();
+    DataSummary dataCounts = getSystemStatisticsDataCounts();
+
+    DataSummary summary = new DataSummary();
+    summary.setObjectCounts(overview.getObjectCounts());
+    summary.setActiveUsers(overview.getActiveUsers());
+    summary.setLogins(overview.getLogins());
+    summary.setUserInvitations(overview.getUserInvitations());
+    summary.setSystem(overview.getSystem());
+    summary.setDataValueCount(dataCounts.getDataValueCount());
+    summary.setEventCount(dataCounts.getEventCount());
+    summary.setTrackerEventCount(dataCounts.getTrackerEventCount());
+    summary.setSingleEventCount(dataCounts.getSingleEventCount());
+    summary.setEnrollmentCount(dataCounts.getEnrollmentCount());
+    return summary;
   }
 
-  private DataSummary computeSystemStatisticsSummary() {
+  @Override
+  public DataSummary getSystemStatisticsOverview() {
+    return OVERVIEW_CACHE.get("overview", key -> computeSystemStatisticsOverview());
+  }
+
+  @Override
+  public DataSummary getSystemStatisticsDataCounts() {
+    return DATA_COUNTS_CACHE.get("dataCounts", key -> computeSystemStatisticsDataCounts());
+  }
+
+  private DataSummary computeSystemStatisticsOverview() {
     DataSummary statistics = new DataSummary();
 
     // Database objects
@@ -276,6 +317,14 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
         UserInvitationStatus.EXPIRED.getValue(), userService.getUserCount(inviteExpired));
 
     statistics.setUserInvitations(userInvitations);
+
+    statistics.setSystem(getDhis2Info());
+
+    return statistics;
+  }
+
+  private DataSummary computeSystemStatisticsDataCounts() {
+    DataSummary statistics = new DataSummary();
 
     Map<Integer, Integer> dataValueCount =
         Map.ofEntries(
@@ -324,8 +373,6 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
             Map.entry(
                 30, (long) idObjectManager.getCountByLastUpdated(Enrollment.class, daysAgo(30))));
     statistics.setEnrollmentCount(Map.copyOf(enrollmentCount));
-
-    statistics.setSystem(getDhis2Info());
 
     return statistics;
   }

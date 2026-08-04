@@ -95,15 +95,34 @@ public interface DataStatisticsService {
   FavoriteStatistics getFavoriteStatistics(String uid);
 
   /**
-   * Returns a DataSummary instance with Data Statistics about System.
+   * Returns a DataSummary instance with the full system statistics: the overview and the data
+   * counts combined. See {@link #getSystemStatisticsOverview()} and {@link
+   * #getSystemStatisticsDataCounts()}.
    *
    * @return a DataSummary instance with Data Statistics about System.
    */
   DataSummary getSystemStatisticsSummary();
 
   /**
-   * Clears the cached system statistics summary so the next call to {@link
-   * #getSystemStatisticsSummary()} recomputes it. Intended for tests.
+   * Returns the cheap part of the system statistics: object counts (approximate for the large data
+   * tables), logins, active users, user invitations and system info. Safe to compute frequently.
+   *
+   * @return a DataSummary with only the overview fields populated.
+   */
+  DataSummary getSystemStatisticsOverview();
+
+  /**
+   * Returns the expensive part of the system statistics: exact, windowed count queries over the
+   * largest tables (data values, tracker events, single events, enrollments). Cached for longer
+   * than the overview since these queries can be very costly on large databases.
+   *
+   * @return a DataSummary with only the data count fields populated.
+   */
+  DataSummary getSystemStatisticsDataCounts();
+
+  /**
+   * Clears the cached system statistics (overview and data counts) so the next call recomputes
+   * them. Intended for tests.
    */
   void clearSystemStatisticsSummaryCache();
 }

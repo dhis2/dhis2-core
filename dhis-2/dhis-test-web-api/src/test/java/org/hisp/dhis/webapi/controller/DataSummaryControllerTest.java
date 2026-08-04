@@ -87,34 +87,22 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     assertTrue(
         content.lines().anyMatch(line -> line.startsWith("data_summary_object_counts")),
         "Object counts metric is missing");
-    assertTrue(
-        content.contains("# HELP data_summary_data_value_count"),
-        "Data value count help text is missing");
-    assertTrue(
+    // Expensive windowed data counts are only exposed on /metrics/data
+    assertFalse(
         content.lines().anyMatch(line -> line.startsWith("data_summary_data_value_count")),
-        "Data value count metric is missing");
-    assertTrue(
-        content.contains("# HELP data_summary_event_count"), "Event count help text is missing");
-    assertTrue(
+        "Data value count should not be on /metrics");
+    assertFalse(
         content.lines().anyMatch(line -> line.startsWith("data_summary_event_count")),
-        "Event count metric is missing");
-    // Single event count
-    assertTrue(
-        content.contains("# HELP data_summary_single_event_count"),
-        "Single event count help text is missing");
-    assertTrue(
-        content.lines().anyMatch(line -> line.startsWith("data_summary_single_event_count")),
-        "Single event count metric is missing");
-    // Tracker event count
-    assertTrue(
-        content.contains("# HELP data_summary_tracker_event_count"),
-        "Tracker event count help text is missing");
-    assertTrue(
+        "Event count should not be on /metrics");
+    assertFalse(
         content.lines().anyMatch(line -> line.startsWith("data_summary_tracker_event_count")),
-        "Tracker event count metric is missing");
-    assertTrue(
+        "Tracker event count should not be on /metrics");
+    assertFalse(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_single_event_count")),
+        "Single event count should not be on /metrics");
+    assertFalse(
         content.lines().anyMatch(line -> line.startsWith("data_summary_enrollment_count")),
-        "Enrollment count metric is missing");
+        "Enrollment count should not be on /metrics");
     // Logins
     assertTrue(content.contains("# HELP data_summary_logins"), "Logins help text is missing");
     assertTrue(
@@ -137,6 +125,39 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     assertTrue(
         content.lines().anyMatch(line -> line.matches("data_summary_system_id\\{.*\\} 1")),
         "System ID metric should be a static value of 1");
+  }
+
+  @Test
+  void canGetPrometheusDataMetrics() {
+    HttpResponse response =
+        GET("/api/dataSummary/metrics/data", HttpClientAdapter.Accept("text/plain"));
+    assertEquals(HttpStatus.OK, response.status());
+    String content = response.content("text/plain");
+    assertFalse(content.isEmpty(), "Response content should not be empty");
+    assertTrue(
+        content.contains("# HELP data_summary_data_value_count"),
+        "Data value count help text is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_data_value_count")),
+        "Data value count metric is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_event_count")),
+        "Event count metric is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_tracker_event_count")),
+        "Tracker event count metric is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_single_event_count")),
+        "Single event count metric is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_enrollment_count")),
+        "Enrollment count metric is missing");
+    assertFalse(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_active_users")),
+        "Active users should not be on /metrics/data");
+    assertFalse(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_logins")),
+        "Logins should not be on /metrics/data");
   }
 
   @Test

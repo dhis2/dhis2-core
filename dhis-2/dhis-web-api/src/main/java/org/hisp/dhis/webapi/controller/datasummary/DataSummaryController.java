@@ -123,10 +123,15 @@ public class DataSummaryController {
     }
   }
 
+  /**
+   * Prometheus metrics for the cheap system statistics: object counts, logins, active users, user
+   * invitations, sessions and build info. Safe to scrape frequently. The expensive windowed data
+   * counts are exposed separately on {@link #getPrometheusDataMetrics()}.
+   */
   @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   public @ResponseBody String getPrometheusMetrics() {
-    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+    DataSummary summary = dataStatisticsService.getSystemStatisticsOverview();
 
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
 
@@ -150,6 +155,25 @@ public class DataSummaryController {
         "data_summary_user_invitations",
         "type",
         "Count of user invitations");
+
+    appendSessionMetrics(metrics);
+
+    appendSystemInfoMetrics(metrics, summary.getSystem());
+    return metrics.getMetrics();
+  }
+
+  /**
+   * Prometheus metrics for the expensive system statistics: exact, windowed count queries over the
+   * largest tables (data values, tracker events, single events, enrollments). Served from a
+   * separate, longer-lived cache; scrape this endpoint at a lower frequency than {@link
+   * #getPrometheusMetrics()}.
+   */
+  @GetMapping(value = "/metrics/data", produces = TEXT_PLAIN_VALUE)
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
+  public @ResponseBody String getPrometheusDataMetrics() {
+    DataSummary summary = dataStatisticsService.getSystemStatisticsDataCounts();
+
+    PrometheusTextBuilder metrics = new PrometheusTextBuilder();
 
     metrics.addMetrics(
         summary.getDataValueCount(),
@@ -181,9 +205,6 @@ public class DataSummaryController {
         "days",
         "Count of updated enrollments by day");
 
-    appendSessionMetrics(metrics);
-
-    appendSystemInfoMetrics(metrics, summary.getSystem());
     return metrics.getMetrics();
   }
 
