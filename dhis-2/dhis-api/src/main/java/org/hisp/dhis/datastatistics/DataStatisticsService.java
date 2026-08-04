@@ -119,10 +119,4 @@ public interface DataStatisticsService {
    * @return a DataSummary with only the data count fields populated.
    */
   DataSummary getSystemStatisticsDataCounts();
-
-  /**
-   * Clears the cached system statistics (overview and data counts) so the next call recomputes
-   * them. Intended for tests.
-   */
-  void clearSystemStatisticsSummaryCache();
 }

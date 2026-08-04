@@ -34,12 +34,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.cache.Region;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -70,13 +68,7 @@ public class DataSummaryController {
    * is O(number of users) with a Redis-backed session registry and Prometheus scrapes on a fixed
    * interval.
    */
-  private static final Cache<SessionGauges> SESSION_GAUGE_CACHE =
-      new SimpleCacheBuilder<SessionGauges>()
-          .forRegion(Region.dataSummarySessionGauges.name())
-          .expireAfterWrite(60, TimeUnit.SECONDS)
-          .withInitialCapacity(1)
-          .withMaximumSize(1)
-          .build();
+  private final Cache<SessionGauges> sessionGaugeCache;
 
   private record SessionGauges(long sessions, long users) {}
 
@@ -86,9 +78,12 @@ public class DataSummaryController {
 
   @Autowired
   public DataSummaryController(
-      DataStatisticsService dataStatisticsService, UserService userService) {
+      DataStatisticsService dataStatisticsService,
+      UserService userService,
+      CacheProvider cacheProvider) {
     this.dataStatisticsService = dataStatisticsService;
     this.userService = userService;
+    this.sessionGaugeCache = cacheProvider.createDataSummarySessionGaugesCache();
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -215,7 +210,7 @@ public class DataSummaryController {
    * endpoints instead.
    */
   private void appendSessionMetrics(PrometheusTextBuilder metrics) {
-    SessionGauges gauges = SESSION_GAUGE_CACHE.get("gauges", key -> computeSessionGauges());
+    SessionGauges gauges = sessionGaugeCache.get("gauges", key -> computeSessionGauges());
 
     metrics.addHelp("data_summary_active_sessions", "Number of active HTTP sessions");
     metrics.addType("data_summary_active_sessions");

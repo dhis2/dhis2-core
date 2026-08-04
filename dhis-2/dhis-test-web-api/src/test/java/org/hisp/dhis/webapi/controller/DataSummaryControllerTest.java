@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
-import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -47,14 +46,6 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
 class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
-
-  @org.springframework.beans.factory.annotation.Autowired
-  private DataStatisticsService dataStatisticsService;
-
-  @org.junit.jupiter.api.BeforeEach
-  void clearSummaryCache() {
-    dataStatisticsService.clearSystemStatisticsSummaryCache();
-  }
 
   @Test
   void canGetPrometheusMetrics() {
@@ -297,7 +288,6 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Delete the data element
     assertStatus(HttpStatus.OK, DELETE("/dataElements/" + dataElementId));
     // Get object counts after deleting the data element
-    dataStatisticsService.clearSystemStatisticsSummaryCache();
     HttpResponse responseAfterDelete = GET("/api/dataSummary");
     JsonMixed contentAfterDelete = responseAfterDelete.content();
     int dataElementCountAfterDelete;
@@ -359,8 +349,6 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     assertTrue(dashboardCountBeforeDelete > 0, "Dashboard count should be greater than zero");
     // Delete the dashboard
     assertStatus(HttpStatus.OK, DELETE("/dashboards/" + dashboardId));
-    // Get object counts after deleting the dashboard
-    dataStatisticsService.clearSystemStatisticsSummaryCache();
     HttpResponse responseAfterDelete = GET("/api/dataSummary");
     JsonMixed contentAfterDelete = responseAfterDelete.content();
     int dashboardCountAfterDelete;
@@ -423,7 +411,6 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Delete the data element group
     assertStatus(HttpStatus.OK, DELETE("/dataElementGroups/" + dataElementGroupId));
     // Get object counts after deleting the data element group
-    dataStatisticsService.clearSystemStatisticsSummaryCache();
     HttpResponse responseAfterDelete = GET("/api/dataSummary");
     JsonMixed contentAfterDelete = responseAfterDelete.content();
     int dataElementGroupCountAfterDelete;
@@ -499,8 +486,6 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     b.setLastLogin(twoDaysAgo);
     userService.addUser(b);
 
-    // Get object counts after creating a user
-    dataStatisticsService.clearSystemStatisticsSummaryCache();
     HttpResponse responseAfter = GET("/api/dataSummary");
     JsonMixed contentAfter = responseAfter.content();
     int loginsOneHourAgoCountAfter;

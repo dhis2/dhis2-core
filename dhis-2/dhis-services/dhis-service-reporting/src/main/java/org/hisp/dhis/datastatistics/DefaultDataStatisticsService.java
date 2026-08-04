@@ -39,14 +39,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.cache.Region;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -71,7 +68,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.datastatistics.DataStatisticsService")
 @Transactional
 public class DefaultDataStatisticsService implements DataStatisticsService {
@@ -91,7 +87,45 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
   private final SystemService systemService;
 
+  /**
+   * The system statistics overview covers object counts (approximate counts for the large data
+   * tables), logins, active users, user invitations and system info. These queries are cheap, but
+   * the result is still cached briefly so aggressive or misbehaving monitoring scrapers are bounded
+   * to one computation per TTL window, regardless of request rate.
+   */
+  private final Cache<DataSummary> overviewCache;
+
+  /**
+   * The data counts run exact, windowed count queries over the largest tables (data values, tracker
+   * events, single events, enrollments), which can be very expensive on databases with a lot of
+   * data. The result is therefore cached considerably longer than the overview; these counts move
+   * slowly and 30 minutes of staleness is acceptable.
+   */
+  private final Cache<DataSummary> dataCountsCache;
+
   static final ZoneId SERVER_ZONE = ZoneId.systemDefault();
+
+  public DefaultDataStatisticsService(
+      DataStatisticsStore dataStatisticsStore,
+      DataStatisticsEventStore dataStatisticsEventStore,
+      UserService userService,
+      IdentifiableObjectManager idObjectManager,
+      DataValueService dataValueService,
+      StatisticsProvider statisticsProvider,
+      EventVisualizationStore eventVisualizationStore,
+      SystemService systemService,
+      CacheProvider cacheProvider) {
+    this.dataStatisticsStore = dataStatisticsStore;
+    this.dataStatisticsEventStore = dataStatisticsEventStore;
+    this.userService = userService;
+    this.idObjectManager = idObjectManager;
+    this.dataValueService = dataValueService;
+    this.statisticsProvider = statisticsProvider;
+    this.eventVisualizationStore = eventVisualizationStore;
+    this.systemService = systemService;
+    this.overviewCache = cacheProvider.createSystemStatisticsOverviewCache();
+    this.dataCountsCache = cacheProvider.createSystemStatisticsDataCountsCache();
+  }
 
   // -------------------------------------------------------------------------
   // DataStatisticsService implementation
@@ -209,43 +243,8 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   /**
-   * The system statistics overview covers object counts (approximate counts for the large data
-   * tables), logins, active users, user invitations and system info. These queries are cheap, but
-   * the result is still cached briefly so aggressive or misbehaving monitoring scrapers are
-   * bounded to one computation per TTL window, regardless of request rate.
-   */
-  private static final Cache<DataSummary> OVERVIEW_CACHE =
-      new SimpleCacheBuilder<DataSummary>()
-          .forRegion(Region.systemStatisticsOverview.name())
-          .expireAfterWrite(5, TimeUnit.MINUTES)
-          .withInitialCapacity(1)
-          .withMaximumSize(1)
-          .build();
-
-  /**
-   * The data counts run exact, windowed count queries over the largest tables (data values,
-   * tracker events, single events, enrollments), which can be very expensive on databases with a
-   * lot of data. The result is therefore cached considerably longer than the overview; these
-   * counts move slowly and 30 minutes of staleness is acceptable.
-   */
-  private static final Cache<DataSummary> DATA_COUNTS_CACHE =
-      new SimpleCacheBuilder<DataSummary>()
-          .forRegion(Region.systemStatisticsDataCounts.name())
-          .expireAfterWrite(30, TimeUnit.MINUTES)
-          .withInitialCapacity(1)
-          .withMaximumSize(1)
-          .build();
-
-  /** Clears the cached system statistics (overview and data counts). Intended for tests only. */
-  @Override
-  public void clearSystemStatisticsSummaryCache() {
-    OVERVIEW_CACHE.invalidateAll();
-    DATA_COUNTS_CACHE.invalidateAll();
-  }
-
-  /**
    * Returns the full system statistics summary, composed of the cached overview (see {@link
-   * #OVERVIEW_CACHE}) and the cached data counts (see {@link #DATA_COUNTS_CACHE}).
+   * #overviewCache}) and the cached data counts (see {@link #dataCountsCache}).
    *
    * @return A DataSummary object containing the system statistics summary.
    */
@@ -270,12 +269,12 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
   @Override
   public DataSummary getSystemStatisticsOverview() {
-    return OVERVIEW_CACHE.get("overview", key -> computeSystemStatisticsOverview());
+    return overviewCache.get("overview", key -> computeSystemStatisticsOverview());
   }
 
   @Override
   public DataSummary getSystemStatisticsDataCounts() {
-    return DATA_COUNTS_CACHE.get("dataCounts", key -> computeSystemStatisticsDataCounts());
+    return dataCountsCache.get("dataCounts", key -> computeSystemStatisticsDataCounts());
   }
 
   private DataSummary computeSystemStatisticsOverview() {
