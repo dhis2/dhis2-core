@@ -111,6 +111,12 @@ import org.slf4j.LoggerFactory;
  *   <li>{@code -DimportEntitiesPerRequest} -- target entities (TEs + enrollments + events) per HTTP
  *       request (default: 500 for load, 50 for smoke)
  *   <li>{@code -DimportUsers} -- concurrent import users (default: 4 for load, 1 for smoke)
+ *   <li>{@code -DwidenProgramDataElements} -- adds N data elements to the MNCH / PNC program before
+ *       the run (default: 0, off). Only for reproducing the Uganda Hibernate L2 cache lock
+ *       contention. Leave at 0 for normal runs, it permanently changes the program's metadata in
+ *       the target DB. See {@link #widenMnchProgram()}.
+ *   <li>{@code -DwidenBatchSize} -- metadata objects per {@code /api/metadata} POST when widening
+ *       (default: 500)
  * </ul>
  *
  * <p><b>Import parameters (mutually exclusive):</b>
@@ -190,6 +196,7 @@ public class TrackerTest extends Simulation {
   private final int importRequestsPerUser;
   private final int importDurationSec;
   private final int importUsers;
+  private final int widenProgramDataElements;
   private NdjsonFeeder mnchFeeder;
   private NdjsonFeeder childFeeder;
   private NdjsonFeeder ancFeeder;
@@ -272,7 +279,16 @@ public class TrackerTest extends Simulation {
         };
     this.concurrentUsers = Integer.getInteger("concurrentUsers", defaults.concurrentUsers());
     this.repeat = Integer.getInteger("repeat", defaults.repeat());
-    this.provisionUsers = Integer.getInteger("provisionUsers", defaults.provisionUsers());
+    // The import scenarios now feed from the same provisioned pool as the export ones, so the pool
+    // has to cover them too. The feeder is circular, so too few users means one gets reused
+    // concurrently and the duplicate logins invalidate each other's sessions (every import request
+    // then fails with HTTP 302).
+    this.provisionUsers =
+        Integer.getInteger(
+            "provisionUsers",
+            Math.max(
+                defaults.provisionUsers(),
+                Integer.getInteger("importUsers", defaults.importUsers())));
     this.rampDurationSec = Integer.getInteger("rampDurationSec", defaults.rampDurationSec());
     this.durationSec = Integer.getInteger("durationSec", defaults.durationSec());
     this.steps = Integer.getInteger("steps", defaults.steps());
@@ -295,6 +311,15 @@ public class TrackerTest extends Simulation {
     this.importDurationSec =
         repeatSet ? 0 : Integer.getInteger("importDurationSec", defaults.importDurationSec());
     this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
+    this.widenProgramDataElements = Integer.getInteger("widenProgramDataElements", 0);
+
+    if (this.widenProgramDataElements > 0) {
+      try {
+        widenMnchProgram();
+      } catch (Exception e) {
+        throw new RuntimeException("Widening MNCH program metadata failed", e);
+      }
+    }
 
     if (this.testMode != TestMode.EXPORT) {
       String s3Base =
@@ -342,6 +367,155 @@ public class TrackerTest extends Simulation {
     if (this.profile == Profile.SMOKE) {
       setUp.disablePauses();
     }
+  }
+
+  /**
+   * Widens the MNCH / PNC program ({@code uy2gU8kT1jF}) with {@code -DwidenProgramDataElements}
+   * extra data elements, spread evenly over its 4 program stages. Only for reproducing the Uganda
+   * L2 cache lock contention (DHIS2-21924): preheat maps the whole Program and initializes every
+   * ProgramStageDataElement of every stage, and each of those initializes its DataElement proxy one
+   * at a time. Sierra Leone's MNCH has 50 PSDEs, the Uganda instance does ~1281 loads per request.
+   *
+   * <p>Generated data elements are deliberately NOT compulsory. A compulsory one would trigger
+   * E1303 "Mandatory DataElement is not present" for the Synthea payloads, which do not contain
+   * them, failing the global success rate assertion.
+   *
+   * <p>UIDs are deterministic so repeated runs against the same DB are updates rather than
+   * duplicates. Every 7th data element gets an option set to also reproduce the second lazy hop via
+   * {@code DataElement.optionSet}, which is cached read-write as well.
+   *
+   * <p>ProgramStageDataElement is an {@link org.hisp.dhis.common.EmbeddedObject}, so it cannot be
+   * imported standalone via {@code /api/metadata} (there is no {@code
+   * /api/programStageDataElements} endpoint, and a {@code programStageDataElements} payload is
+   * silently ignored). They have to be appended to the owning program stage, which is done here
+   * with JSON Patch {@code add} on {@code /programStageDataElements/-}. That appends, so the
+   * stage's existing data elements are preserved. Verified against 2.42.5.1.
+   */
+  private void widenMnchProgram() throws Exception {
+    String[] stages = {"eaDHS084uMp", "grIfo3oOf4Y", "Xgk8Wvl0jHr", "oRySG82BKE6"};
+    String optionSet = "bJwbHC5t62B"; // MNCH ANC visit
+    int n = this.widenProgramDataElements;
+    int batchSize = Integer.getInteger("widenBatchSize", 500);
+    long start = System.currentTimeMillis();
+    logger.debug("Widening MNCH program with {} data elements (batch {})...", n, batchSize);
+
+    // data elements first, in batches, since program stage data elements reference them
+    for (int from = 0; from < n; from += batchSize) {
+      int to = Math.min(from + batchSize, n);
+      StringBuilder des = new StringBuilder();
+      for (int i = from; i < to; i++) {
+        if (i > from) des.append(',');
+        des.append(
+            """
+            {"id":"PERFde%05d","name":"perf widen DE %d","shortName":"pwDE %d",\
+            "aggregationType":"NONE","domainType":"TRACKER","valueType":"TEXT",\
+            "categoryCombo":{"id":"bjDvmb4bfuf"}%s}"""
+                .formatted(
+                    i, i, i, i % 7 == 0 ? ",\"optionSet\":{\"id\":\"" + optionSet + "\"}" : ""));
+      }
+      postMetadata("{\"dataElements\":[%s]}".formatted(des));
+      logger.debug("  data elements {}/{}", to, n);
+    }
+
+    // then append them to the stages as embedded program stage data elements, one patch per stage
+    // per batch
+    for (int s = 0; s < stages.length; s++) {
+      List<Integer> mine = new ArrayList<>();
+      for (int i = s; i < n; i += stages.length) {
+        mine.add(i);
+      }
+      for (int from = 0; from < mine.size(); from += batchSize) {
+        int to = Math.min(from + batchSize, mine.size());
+        StringBuilder ops = new StringBuilder();
+        for (int j = from; j < to; j++) {
+          int i = mine.get(j);
+          if (j > from) ops.append(',');
+          ops.append(
+              """
+              {"op":"add","path":"/programStageDataElements/-","value":\
+              {"dataElement":{"id":"PERFde%05d"},"compulsory":false,\
+              "allowProvidedElsewhere":false,"displayInReports":false,"allowFutureDate":false,\
+              "skipSynchronization":false,"skipAnalytics":false,"sortOrder":%d}}"""
+                  .formatted(i, 100 + i));
+        }
+        patchProgramStage(stages[s], "[%s]".formatted(ops));
+        logger.debug("  stage {} data elements {}/{}", stages[s], to, mine.size());
+      }
+    }
+
+    logger.debug(
+        "Widening complete: {} data elements added to MNCH in {}s",
+        n,
+        (System.currentTimeMillis() - start) / 1000);
+  }
+
+  private void postMetadata(String body) throws Exception {
+    String response =
+        send(
+            "/api/metadata?importStrategy=CREATE_AND_UPDATE",
+            "POST",
+            "application/json",
+            body,
+            expectedCount(body));
+    logger.trace("Metadata import response: {}", response);
+  }
+
+  private void patchProgramStage(String stageUid, String patch) throws Exception {
+    send(
+        "/api/programStages/" + stageUid,
+        "PATCH",
+        "application/json-patch+json",
+        patch,
+        // a patch response is an ObjectReport, it carries no created/updated stats to check
+        -1);
+  }
+
+  /**
+   * Number of objects the payload should create or update, so a silently ignored import can be
+   * detected. ProgramStageDataElement being an EmbeddedObject made /api/metadata return HTTP 200
+   * with {@code "ignored":N} rather than an error, which is easy to miss without this check.
+   */
+  private static int expectedCount(String body) {
+    return body.split("\\{\"id\"", -1).length - 1;
+  }
+
+  private String send(String path, String method, String contentType, String body, int expected)
+      throws Exception {
+    String auth =
+        Base64.getEncoder()
+            .encodeToString(
+                (this.adminUser + ":" + this.adminPassword).getBytes(StandardCharsets.UTF_8));
+    HttpResponse<String> response =
+        HttpClient.newBuilder()
+            .build()
+            .send(
+                HttpRequest.newBuilder()
+                    .uri(URI.create(this.instance + path))
+                    .header("Authorization", "Basic " + auth)
+                    .header("Content-Type", contentType)
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofMinutes(10))
+                    .method(method, HttpRequest.BodyPublishers.ofString(body))
+                    .build(),
+                HttpResponse.BodyHandlers.ofString());
+    if (response.statusCode() != 200) {
+      throw new RuntimeException(
+          method + " " + path + " failed: HTTP " + response.statusCode() + " - " + response.body());
+    }
+    if (response.body().contains("\"status\":\"ERROR\"")) {
+      throw new RuntimeException(method + " " + path + " reported ERROR: " + response.body());
+    }
+    if (expected > 0 && response.body().contains("\"ignored\":" + expected)) {
+      throw new RuntimeException(
+          method
+              + " "
+              + path
+              + " ignored all "
+              + expected
+              + " objects, nothing was imported: "
+              + response.body());
+    }
+    return response.body();
   }
 
   /** Provisions test users by replicating a source user via DHIS2 API. */
@@ -465,9 +639,11 @@ public class TrackerTest extends Simulation {
   private PopulationBuilder importScenarios() {
     // entitiesPerLine: MNCH = 1 TE + 2 enrollments + 6 events, Child = 1 TE + 1 enrollment + 2
     // events
-    return importProgram("MNCH import", this.mnchFeeder, 9, "trackedEntities")
-        .andThen(importProgram("Child Programme import", this.childFeeder, 4, "trackedEntities"))
-        .andThen(importProgram("ANC import", this.ancFeeder, 1, "events"));
+    // DHIS2-21924 repro: only MNCH is widened, so Child and ANC are commented out to keep runs
+    // short. Restore both before using this test for anything else.
+    return importProgram("MNCH import", this.mnchFeeder, 9, "trackedEntities");
+    //    .andThen(importProgram("Child Programme import", this.childFeeder, 4, "trackedEntities"))
+    //    .andThen(importProgram("ANC import", this.ancFeeder, 1, "events"));
   }
 
   /**
@@ -509,13 +685,13 @@ public class TrackerTest extends Simulation {
                         StringBody(session -> wrapPayload(session.getList("payload"), wrapperKey)))
                     .check(status().is(200)));
 
-    ScenarioBuilder scenario =
-        scenario(name)
-            .exec(
-                session ->
-                    session.set("username", this.adminUser).set("password", this.adminPassword))
-            .exec(login())
-            .exitHereIfFailed();
+    // Feed a distinct provisioned user per virtual user, like the export scenarios do. Logging
+    // every
+    // importer in as the single admin user makes concurrent logins invalidate each other's
+    // sessions,
+    // showing up as HTTP 302 on every import request once importUsers goes much above 4.
+    // provisionUsers must therefore be >= importUsers.
+    ScenarioBuilder scenario = scenario(name).feed(userFeeder).exec(login()).exitHereIfFailed();
 
     if (this.importRequestsPerUser > 0) {
       return scenario
