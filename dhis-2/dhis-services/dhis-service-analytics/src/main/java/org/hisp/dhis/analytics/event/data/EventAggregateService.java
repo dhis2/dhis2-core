@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -142,6 +143,8 @@ public class EventAggregateService {
   private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
+
+  private final EventQueryExecutor queryExecutor;
 
   /**
    * Generates an aggregated for the given query. The grid will represent a table with dimensions
@@ -244,19 +247,45 @@ public class EventAggregateService {
 
     timer.getSplitTime("Planned event query, got partitions: {}", params.getPartitions());
 
-    for (EventQueryParams query : queries) {
-      if (query.hasEnrollmentProgramIndicatorDimension()) {
-        enrollmentAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
-      } else {
-        eventAnalyticsManager.getAggregatedEventData(query, grid, maxLimit);
-      }
-    }
+    // The planner emits one query per program indicator per partition, and these used to run one
+    // after another on the calling thread - 81 statements at 0.23-0.32 s each on the request
+    // UGANDA-10 traced, for a flat 21.7 s while the aggregate data-value path next door has been
+    // concurrent for years. Each query now fills a grid of its own, so no two threads write to the
+    // same grid, and the results are appended in the planner's order afterwards. That order is what
+    // the serial loop produced, so the grid is unchanged row for row.
+    List<Grid> partialGrids =
+        queryExecutor.invokeAll(
+            queries.stream().map(query -> asTask(query, grid, maxLimit)).toList());
+
+    partialGrids.forEach(grid::addRows);
 
     timer.getTime("Got aggregated events");
 
     if (maxLimit > 0 && grid.getHeight() > maxLimit) {
       throwIllegalQueryEx(E7128, maxLimit);
     }
+  }
+
+  /**
+   * Wraps one planned query as a task that writes into a grid of its own.
+   *
+   * <p>The target grid's headers are copied in because the managers read them: {@code
+   * PiDisagDataHandler.addCocAndAoc} resolves the data dimension by header index when the output
+   * format is a data value set. Only headers are shared, and they are only read.
+   */
+  private Callable<Grid> asTask(EventQueryParams query, Grid grid, int maxLimit) {
+    return () -> {
+      Grid partial = new ListGrid();
+      partial.addHeaders(0, grid.getHeaders());
+
+      if (query.hasEnrollmentProgramIndicatorDimension()) {
+        enrollmentAnalyticsManager.getAggregatedEventData(query, partial, maxLimit);
+      } else {
+        eventAnalyticsManager.getAggregatedEventData(query, partial, maxLimit);
+      }
+
+      return partial;
+    };
   }
 
   /**
