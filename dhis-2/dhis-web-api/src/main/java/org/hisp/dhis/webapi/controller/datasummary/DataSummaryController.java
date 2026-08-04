@@ -33,13 +33,20 @@ import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,11 +64,30 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/dataSummary")
 public class DataSummaryController {
 
+  /**
+   * Session gauge values for the Prometheus endpoint, cached briefly because enumerating sessions
+   * is O(number of users) with a Redis-backed session registry and Prometheus scrapes on a fixed
+   * interval.
+   */
+  private static final Cache<SessionGauges> SESSION_GAUGE_CACHE =
+      new SimpleCacheBuilder<SessionGauges>()
+          .forRegion("dataSummarySessionGauges")
+          .expireAfterWrite(60, TimeUnit.SECONDS)
+          .withInitialCapacity(1)
+          .withMaximumSize(1)
+          .build();
+
+  private record SessionGauges(long sessions, long users) {}
+
   private final DataStatisticsService dataStatisticsService;
 
+  private final UserService userService;
+
   @Autowired
-  public DataSummaryController(DataStatisticsService dataStatisticsService) {
+  public DataSummaryController(
+      DataStatisticsService dataStatisticsService, UserService userService) {
     this.dataStatisticsService = dataStatisticsService;
+    this.userService = userService;
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -154,7 +180,48 @@ public class DataSummaryController {
         "days",
         "Count of updated enrollments by day");
 
+    appendSessionMetrics(metrics);
+
     appendSystemInfoMetrics(metrics, summary.getSystem());
     return metrics.getMetrics();
+  }
+
+  /**
+   * Appends gauges for currently active HTTP sessions and the number of distinct users holding
+   * them. Values are cached for one minute, see {@link #SESSION_GAUGE_CACHE}. Sessions only exist
+   * for browser clients; PAT/basic/JWT clients are session-less and covered by the user statistics
+   * endpoints instead.
+   */
+  private void appendSessionMetrics(PrometheusTextBuilder metrics) {
+    SessionGauges gauges = SESSION_GAUGE_CACHE.get("gauges", key -> computeSessionGauges());
+
+    metrics.addHelp("data_summary_active_sessions", "Number of active HTTP sessions");
+    metrics.addType("data_summary_active_sessions");
+    metrics.append(String.format("data_summary_active_sessions %d%n", gauges.sessions()));
+
+    metrics.addHelp(
+        "data_summary_active_session_users", "Number of distinct users with an active session");
+    metrics.addType("data_summary_active_session_users");
+    metrics.append(String.format("data_summary_active_session_users %d%n", gauges.users()));
+  }
+
+  private SessionGauges computeSessionGauges() {
+    List<SessionInformation> sessions = userService.listAllSessions();
+    long active = sessions.stream().filter(s -> !s.isExpired()).count();
+    long users =
+        sessions.stream()
+            .filter(s -> !s.isExpired())
+            .map(DataSummaryController::sessionUsername)
+            .distinct()
+            .count();
+    return new SessionGauges(active, users);
+  }
+
+  /** The registry holds UserDetails principals in-memory but plain usernames under Redis. */
+  private static String sessionUsername(SessionInformation session) {
+    Object principal = session.getPrincipal();
+    return principal instanceof UserDetails userDetails
+        ? userDetails.getUsername()
+        : String.valueOf(principal);
   }
 }

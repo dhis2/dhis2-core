@@ -63,6 +63,16 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         "Active users metric should have days label and integer value");
 
     assertTrue(
+        content.contains("# HELP data_summary_active_sessions"),
+        "Active sessions help text is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.matches("^data_summary_active_sessions \\d+")),
+        "Active sessions gauge should have an integer value");
+    assertTrue(
+        content.lines().anyMatch(line -> line.matches("^data_summary_active_session_users \\d+")),
+        "Active session users gauge should have an integer value");
+
+    assertTrue(
         content.contains("# HELP data_summary_object_counts"),
         "Object counts help text is missing");
     assertTrue(
