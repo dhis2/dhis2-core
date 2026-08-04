@@ -294,9 +294,6 @@ public class DhisWebApiWebSecurityConfig {
             .requestMatchers(
                 new AntPathRequestMatcher("/api/ping"),
                 new AntPathRequestMatcher("/api/system/ping"),
-                // Public login bootstrap config: no auth side-effects (DHIS2-21909).
-                // Keeping this inside the security chain caused Basic/session auth to build
-                // full UserDetails and N+1 load userroleauthorities/userrolerestrictions.
                 new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"),
                 new AntPathRequestMatcher("/favicon.ico"));
   }
