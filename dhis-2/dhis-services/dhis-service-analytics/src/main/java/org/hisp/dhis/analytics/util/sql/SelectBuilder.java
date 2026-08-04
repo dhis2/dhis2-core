@@ -511,43 +511,70 @@ public class SelectBuilder {
    * @return this builder instance
    */
   public SelectBuilder limit(int limit) {
-    this.limit = Math.min(limit, DEFAULT_MAX_LIMIT);
+    if (limit > 0) {
+      this.limit = Math.min(limit, DEFAULT_MAX_LIMIT);
+    } else {
+      this.limit = null;
+    }
+
     return this;
   }
 
   /**
    * Sets the LIMIT clause to the specified value plus one. Useful for detecting if there are more
-   * rows available.
+   * rows available. If the requested limit is zero or negative, no LIMIT clause is added.
    *
    * @param limit the base limit value
    * @return this builder instance
    */
   public SelectBuilder limitPlusOne(int limit) {
-    this.limit = limit + 1;
+    if (limit > 0) {
+      this.limit = limit + 1;
+    } else {
+      this.limit = null;
+    }
+
     return this;
   }
 
   /**
-   * Sets the LIMIT clause with a specified maximum value.
+   * Sets the LIMIT clause with a specified maximum value. A maxLimit of zero means that there is no
+   * configured maximum, so a positive requested limit is preserved.
    *
    * @param limit the desired limit
    * @param maxLimit the maximum allowed limit
    * @return this builder instance
    */
   public SelectBuilder limitWithMax(int limit, int maxLimit) {
-    this.limit = Math.min(limit, maxLimit);
+    if (maxLimit > 0) {
+      this.limit = Math.min(limit, maxLimit);
+    } else if (limit > 0) {
+      this.limit = limit;
+    } else {
+      this.limit = null;
+    }
+
     return this;
   }
 
   /**
-   * Sets the LIMIT clause to the minimum of the specified limit and maxLimit, plus one.
+   * Sets the LIMIT clause to the minimum of the specified limit and maxLimit, plus one. A maxLimit
+   * of zero means that there is no configured maximum, so a positive requested limit is preserved
+   * before adding one.
    *
    * @param limit the desired limit
    * @param maxLimit the maximum allowed limit
    * @return this builder instance
    */
   public SelectBuilder limitWithMaxPlusOne(int limit, int maxLimit) {
-    this.limit = Math.min(limit, maxLimit) + 1;
+    if (maxLimit > 0) {
+      this.limit = Math.min(limit, maxLimit) + 1;
+    } else if (limit > 0) {
+      this.limit = limit + 1;
+    } else {
+      this.limit = null;
+    }
+
     return this;
   }
 
