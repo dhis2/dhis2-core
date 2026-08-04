@@ -34,6 +34,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Properties;
@@ -41,31 +42,44 @@ import org.hibernate.cache.jcache.ConfigSettings;
 import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Tests for {@link HibernateConfig}, verifying that the second level cache and query cache settings
  * from dhis.conf are propagated explicitly to Hibernate. In particular, disabling the second level
  * cache must set 'hibernate.cache.use_second_level_cache' to false, otherwise Hibernate
  * auto-enables it with default JCache settings when a RegionFactory is present on the classpath.
+ * All boolean spellings allowed in dhis.conf (true/TRUE/on/ON) must be recognized.
  *
  * @author Morten Svanæs
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class HibernateConfigTest {
 
   @Mock private DhisConfigurationProvider dhisConfig;
 
-  @Test
-  void secondLevelCacheEnabled() {
-    when(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE)).thenReturn("true");
-    when(dhisConfig.getProperty(USE_QUERY_CACHE)).thenReturn("true");
+  @BeforeEach
+  void setUp() {
+    // Use the real isEnabled()/isDisabled() default methods so the dhis.conf boolean
+    // spellings are interpreted exactly as in production
+    when(dhisConfig.isEnabled(any())).thenCallRealMethod();
     when(dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE)).thenReturn("");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"true", "TRUE", "on", "ON"})
+  void secondLevelCacheEnabledForAllAllowedSpellings(String configValue) {
+    when(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE)).thenReturn(configValue);
+    when(dhisConfig.getProperty(USE_QUERY_CACHE)).thenReturn("true");
 
     Properties properties = HibernateConfig.getAdditionalProperties(dhisConfig);
 
@@ -77,11 +91,22 @@ class HibernateConfigTest {
     assertFalse(properties.containsKey(ConfigSettings.CONFIG_URI));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"true", "TRUE", "on", "ON"})
+  void queryCacheEnabledForAllAllowedSpellings(String configValue) {
+    when(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE)).thenReturn("true");
+    when(dhisConfig.getProperty(USE_QUERY_CACHE)).thenReturn(configValue);
+
+    Properties properties = HibernateConfig.getAdditionalProperties(dhisConfig);
+
+    // Hibernate parses this value itself, so it must be normalized to true/false
+    assertEquals("true", properties.get(AvailableSettings.USE_QUERY_CACHE));
+  }
+
   @Test
-  void secondLevelCacheEnabledWithQueryCacheDisabled() {
+  void queryCacheDisabledWhileSecondLevelCacheEnabled() {
     when(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE)).thenReturn("true");
     when(dhisConfig.getProperty(USE_QUERY_CACHE)).thenReturn("false");
-    when(dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE)).thenReturn("");
 
     Properties properties = HibernateConfig.getAdditionalProperties(dhisConfig);
 
@@ -102,9 +127,11 @@ class HibernateConfigTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"false", "off", "FALSE", ""})
+  @ValueSource(strings = {"false", "FALSE", "off", "OFF", ""})
   void secondLevelCacheDisabledDisablesBothCachesExplicitly(String configValue) {
     when(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE)).thenReturn(configValue);
+    // An enabled query cache must not survive the second level cache being disabled
+    when(dhisConfig.getProperty(USE_QUERY_CACHE)).thenReturn("true");
 
     Properties properties = HibernateConfig.getAdditionalProperties(dhisConfig);
 

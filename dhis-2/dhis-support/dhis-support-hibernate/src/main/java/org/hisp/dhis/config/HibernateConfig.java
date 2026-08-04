@@ -167,10 +167,13 @@ public class HibernateConfig {
         // import).
         "org.springframework.orm.jpa.hibernate.SpringSessionContext");
 
-    if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
+    if (dhisConfig.isEnabled(USE_SECOND_LEVEL_CACHE)) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
-      properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
+      // Normalize to true/false: Hibernate parses this value itself and does not understand
+      // the on/off variants allowed in dhis.conf.
+      properties.put(
+          AvailableSettings.USE_QUERY_CACHE, String.valueOf(dhisConfig.isEnabled(USE_QUERY_CACHE)));
       properties.put(
           ConfigSettings.MISSING_CACHE_STRATEGY,
           MissingCacheStrategy.CREATE.getExternalRepresentation());
