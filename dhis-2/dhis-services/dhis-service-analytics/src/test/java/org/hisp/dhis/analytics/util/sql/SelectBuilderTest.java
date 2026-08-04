@@ -455,10 +455,45 @@ class SelectBuilderTest {
     }
 
     @Test
-    @DisplayName("should build query without max LIMIT")
-    void shouldBuildQueryWithoutMaxLimit() {
+    @DisplayName("should preserve requested LIMIT when max LIMIT is unlimited")
+    void shouldPreserveRequestedLimitWhenMaxLimitIsUnlimited() {
       String sql =
           new SelectBuilder().addColumn("name").from("users", "u").limitWithMax(100, 0).build();
+
+      assertEquals("select name from users as u limit 100", sql);
+    }
+
+    @Test
+    @DisplayName("should build query without LIMIT when requested and max LIMIT are unlimited")
+    void shouldBuildQueryWithoutMaxLimit() {
+      String sql =
+          new SelectBuilder().addColumn("name").from("users", "u").limitWithMax(0, 0).build();
+
+      assertEquals("select name from users as u", sql);
+    }
+
+    @Test
+    @DisplayName("should preserve requested LIMIT plus one when max LIMIT is unlimited")
+    void shouldPreserveRequestedLimitPlusOneWhenMaxLimitIsUnlimited() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("name")
+              .from("users", "u")
+              .limitWithMaxPlusOne(100, 0)
+              .build();
+
+      assertEquals("select name from users as u limit 101", sql);
+    }
+
+    @Test
+    @DisplayName("should build query without LIMIT plus one when both limits are unlimited")
+    void shouldBuildQueryWithoutMaxLimitPlusOne() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("name")
+              .from("users", "u")
+              .limitWithMaxPlusOne(0, 0)
+              .build();
 
       assertEquals("select name from users as u", sql);
     }
