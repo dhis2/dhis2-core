@@ -167,6 +167,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final String LIMIT = "limit";
 
+  /** Alias prefix for the lateral joins that serve the row-context columns. */
+  private static final String ROW_CONTEXT_TABLE_ALIAS_PREFIX = "rowcontext_";
+
   private static final Collector<CharSequence, ?, String> OR_JOINER = joining(OR, "(", ")");
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
@@ -432,14 +435,40 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params,
       boolean isGroupByClause,
       boolean isAggregated) {
-    for (QueryItem queryItem : params.getItems()) {
+    boolean lateralsApply = rowContextLateralsApply(isGroupByClause, isAggregated);
+
+    for (int index = 0; index < params.getItems().size(); index++) {
+      QueryItem queryItem = params.getItems().get(index);
       ColumnAndAlias columnAndAlias =
           getColumnAndAlias(queryItem, params, isGroupByClause, isAggregated);
 
+      // asked for row context if allowed and needed based on column and its alias
+      boolean rowContext =
+          rowContextAllowedAndNeeded(params, queryItem) && !isEmpty(columnAndAlias.alias);
+
+      Optional<RowContextLateral> lateral =
+          rowContext && lateralsApply
+              ? asRowContextLateral(columnAndAlias.column, index)
+              : Optional.empty();
+
+      if (lateral.isPresent()) {
+        String table = quote(lateral.get().tableAlias());
+        columns.add(
+            ColumnAndAlias.ofColumnAndAlias(table + ".value", columnAndAlias.alias).asSql());
+        columns.add(
+            ColumnAndAlias.ofColumnAndAlias(
+                    "coalesce(" + table + ".found, false)", columnAndAlias.alias + ".exists")
+                .asSql());
+        columns.add(
+            ColumnAndAlias.ofColumnAndAlias(
+                    table + ".eventstatus", columnAndAlias.alias + ".status")
+                .asSql());
+        continue;
+      }
+
       columns.add(columnAndAlias.asSql());
 
-      // asked for row context if allowed and needed based on column and its alias
-      if (rowContextAllowedAndNeeded(params, queryItem) && !isEmpty(columnAndAlias.alias)) {
+      if (rowContext) {
         String columnForExists = " exists (" + columnAndAlias.column + ")";
         String aliasForExists = columnAndAlias.alias + ".exists";
         columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
@@ -449,6 +478,128 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }
     }
+  }
+
+  /**
+   * A lateral join that evaluates a repeatable-stage subquery once and exposes the three things the
+   * row-context response needs from it: the value, whether a matching event was found at all, and
+   * that event's status.
+   *
+   * @param tableAlias the alias the join is given, and through which the select list reads it.
+   * @param joinSql the {@code left join lateral (...) on true} fragment.
+   */
+  protected record RowContextLateral(String tableAlias, String joinSql) {}
+
+  /**
+   * The row-context columns can only be served from a lateral join on the query shape that has one
+   * - the plain enrollment select. A group-by or aggregated select does not get the join appended,
+   * so it must keep emitting the three correlated subqueries.
+   */
+  private static boolean rowContextLateralsApply(boolean isGroupByClause, boolean isAggregated) {
+    return !isGroupByClause && !isAggregated;
+  }
+
+  /**
+   * Returns the {@code left join lateral} fragments for the row-context items of the given query,
+   * in item order.
+   *
+   * <p>This is derived from {@code params} alone and from the same {@code getColumnAndAlias} calls
+   * {@link #addItemSelectColumns} makes, so the two agree on which items get a lateral and on the
+   * alias each one is given. Nothing is threaded between them.
+   */
+  protected String getRowContextJoinClause(EventQueryParams params) {
+    if (!params.isRowContext()) {
+      return EMPTY;
+    }
+
+    StringBuilder joins = new StringBuilder();
+
+    for (int index = 0; index < params.getItems().size(); index++) {
+      QueryItem queryItem = params.getItems().get(index);
+
+      if (!rowContextAllowedAndNeeded(params, queryItem)) {
+        continue;
+      }
+
+      ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
+
+      if (isEmpty(columnAndAlias.alias)) {
+        continue;
+      }
+
+      asRowContextLateral(columnAndAlias.column, index)
+          .ifPresent(lateral -> joins.append(lateral.joinSql()));
+    }
+
+    return joins.toString();
+  }
+
+  /**
+   * Turns a repeatable-stage scalar subquery into a lateral join that evaluates it once.
+   *
+   * <p>With {@code rowContext=true} each repeatable-stage data element used to emit the same
+   * correlated subquery three times - once for the value, once wrapped in {@code exists (...)}, and
+   * once with the selected column textually replaced by {@code eventstatus}. The planner sees three
+   * independent nodes, each with its own {@code order by occurreddate desc, created desc limit 1},
+   * so an enrollment line list with 18 such dimensions generated 54 subselects. A lateral evaluates
+   * the subquery once and all three columns read from its single row.
+   *
+   * <p>Deliberately driven off the already-built subquery text rather than rebuilt from its parts:
+   * the shapes {@code getColumn} can produce are several - {@code nullif}-wrapped, coordinate,
+   * organisation-unit-with-suffix - and only the plain {@code (select <one expression> from ...
+   * limit 1)} form can be rewritten this way. Anything else returns empty and keeps the three
+   * subqueries, so this is strictly an optimisation of the recognised shape.
+   *
+   * <p>Equivalence of the three columns:
+   *
+   * <ul>
+   *   <li>{@code value} is the same expression over the same row, so the same value.
+   *   <li>{@code exists ((select ... limit 1))} is true exactly when the subquery returned a row,
+   *       which is exactly when the lateral produced one, which is what {@code found} records.
+   *   <li>{@code .status} was the same subquery selecting {@code eventstatus} instead, so it is
+   *       that row's status - the row the lateral already has.
+   * </ul>
+   */
+  private Optional<RowContextLateral> asRowContextLateral(String subquery, int index) {
+    String trimmed = StringUtils.trimToEmpty(subquery);
+
+    if (!trimmed.startsWith("(select ") || !trimmed.endsWith(")")) {
+      return Optional.empty();
+    }
+
+    String body = trimmed.substring(1, trimmed.length() - 1).trim();
+    int fromIndex = body.indexOf(" from ");
+
+    if (fromIndex < 0) {
+      return Optional.empty();
+    }
+
+    String selectList = body.substring("select".length(), fromIndex).trim();
+    String rest = body.substring(fromIndex);
+
+    // One unaliased expression, and a query that references eventstatus - which the
+    // repeatable-stage
+    // subquery does, in its "eventstatus != 'SCHEDULE'" filter. Anything else is a shape this
+    // cannot
+    // safely rewrite.
+    if (selectList.isEmpty()
+        || selectList.contains(",")
+        || selectList.contains(" as ")
+        || !rest.contains("eventstatus")) {
+      return Optional.empty();
+    }
+
+    String tableAlias = ROW_CONTEXT_TABLE_ALIAS_PREFIX + index;
+    String joinSql =
+        " left join lateral (select "
+            + selectList
+            + " as value, eventstatus, true as found"
+            + rest
+            + ") as "
+            + quote(tableAlias)
+            + " on true ";
+
+    return Optional.of(new RowContextLateral(tableAlias, joinSql));
   }
 
   /**
@@ -1010,6 +1161,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String sql = getSelectClause(params);
 
     sql += getFromClause(params);
+
+    // Must sit between the from and where clauses: the laterals reference the base table's
+    // enrollment column, and the where clause may reference the laterals' own columns.
+    sql += getRowContextJoinClause(params);
 
     sql += getWhereClause(params);
 

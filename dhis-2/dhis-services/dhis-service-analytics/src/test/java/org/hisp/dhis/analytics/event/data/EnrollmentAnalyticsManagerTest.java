@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -283,64 +284,51 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
     String dataElementUid = dataElementA.getUid();
 
+    // rowContext=true used to emit this subquery three times - the value, the same subquery wrapped
+    // in exists(...), and the same subquery with the column textually replaced by eventstatus - so
+    // 18 data elements produced 54 correlated subselects. It is now evaluated once in a lateral
+    // join
+    // and all three columns read from that one row.
+    String columnAlias = programStageUid + "[-1]." + dataElementUid;
+
     String expected =
         "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
             + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"quarterly\",ax.\"ou\","
-            + "(select \""
-            + dataElementUid
-            + "\" from analytics_event_"
-            + programUid
-            + " where analytics_event_"
-            + programUid
-            + ".eventstatus != 'SCHEDULE' and analytics_event_"
-            + programUid
-            + ".enrollment = ax.enrollment and ps = '"
-            + repeatableProgramStage.getUid()
-            + "' order by occurreddate desc, created desc offset 1 limit 1 ) "
-            + "as \""
-            + programStageUid
-            + "[-1]."
-            + dataElementUid
-            + "\", exists ((select \""
-            + dataElementUid
-            + "\" "
-            + "from analytics_event_"
-            + programUid
-            + " where analytics_event_"
-            + programUid
-            + ".eventstatus != 'SCHEDULE' and analytics_event_"
-            + programUid
-            + ".enrollment = ax.enrollment and ps = '"
-            + programStageUid
-            + "' order by occurreddate desc, created desc offset 1 limit 1 )) "
-            + "as \""
-            + programStageUid
-            + "[-1]."
-            + dataElementUid
-            + ".exists\""
-            + ",(select eventstatus "
-            + "from analytics_event_"
-            + programUid
-            + " where analytics_event_"
-            + programUid
-            + ".eventstatus != 'SCHEDULE' and analytics_event_"
-            + programUid
-            + ".enrollment = ax.enrollment and ps = '"
-            + programStageUid
-            + "' order by occurreddate desc, created desc offset 1 limit 1 ) "
-            + "as \""
-            + programStageUid
-            + "[-1]."
-            + dataElementUid
+            + "\"rowcontext_0\".value as \""
+            + columnAlias
+            + "\","
+            + "coalesce(\"rowcontext_0\".found, false) as \""
+            + columnAlias
+            + ".exists\","
+            + "\"rowcontext_0\".eventstatus as \""
+            + columnAlias
             + ".status\"  "
             + "from analytics_enrollment_"
             + programUid
-            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + " as ax "
+            + " left join lateral (select \""
+            + dataElementUid
+            + "\" as value, eventstatus, true as found from analytics_event_"
+            + programUid
+            + " where analytics_event_"
+            + programUid
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
+            + programUid
+            + ".enrollment = ax.enrollment and ps = '"
+            + programStageUid
+            + "' order by occurreddate desc, created desc offset 1 limit 1) as \"rowcontext_0\" on true "
+            + "where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
             + "and ps = '"
             + programStageUid
             + "' limit 101";
 
     assertEquals(expected, sql.getValue());
+
+    // The point of the change, asserted as a count rather than left implicit in the string above:
+    // the subquery is written once, and neither of the two duplicates survives.
+    assertEquals(1, StringUtils.countMatches(sql.getValue(), "left join lateral"));
+    assertEquals(1, StringUtils.countMatches(sql.getValue(), "order by occurreddate desc"));
+    assertEquals(0, StringUtils.countMatches(sql.getValue(), "exists (("));
   }
 
   @Test
