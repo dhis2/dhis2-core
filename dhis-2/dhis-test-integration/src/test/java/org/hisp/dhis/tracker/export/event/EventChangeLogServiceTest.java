@@ -30,21 +30,28 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -173,6 +180,37 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertNumberOfChanges(1, changeLogs);
     assertDataElementCreate(dataElement, "13", changeLogs.get(0));
+  }
+
+  @Test
+  void shouldNotReturnChangeLogsForDataElementWhenUserCannotReadDataElement()
+      throws NotFoundException {
+    String event = "kWjSezkXHVp";
+
+    // Give a non-superuser read access to the single event program and stage but remove metadata
+    // read access to GieVkTxp4HH. The event is accessible but the user cannot read that data
+    // element, so its change logs must not be returned while change logs of the other (readable)
+    // data elements of the event still are.
+    grantPublicAccess(manager.get(Program.class, "iS7eutanDry"), READ_ONLY);
+    grantPublicAccess(manager.get(ProgramStage.class, "qLZC0lvvxQH"), READ_ONLY);
+    grantPublicAccess(manager.get(DataElement.class, "GieVkTxp4HH"), DEFAULT);
+    manager.flush();
+    manager.clear();
+
+    injectSecurityContextUser(manager.get(User.class, "Hop98yh65pL"));
+
+    Page<EventChangeLog> changeLogs =
+        singleEventChangeLogService.getEventChangeLog(
+            UID.of(event), defaultOperationParams, defaultPageParams);
+
+    List<EventChangeLog> dataElementChangeLogs = getDataElementChangeLogs(changeLogs);
+    assertFalse(
+        dataElementChangeLogs.isEmpty(),
+        "expected change logs of the other readable data elements to be returned");
+    assertTrue(
+        dataElementChangeLogs.stream()
+            .noneMatch(cl -> "GieVkTxp4HH".equals(cl.dataElement().getUid())),
+        "expected no change logs of the restricted data element to be returned");
   }
 
   @Test
@@ -532,6 +570,11 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private void testAsUser(String user) {
     injectSecurityContextUser(manager.get(User.class, user));
+  }
+
+  private void grantPublicAccess(IdentifiableObject object, String access) {
+    object.getSharing().setPublicAccess(access);
+    manager.updateNoAcl(object);
   }
 
   private static void assertNumberOfChanges(int expected, List<EventChangeLog> changeLogs) {
