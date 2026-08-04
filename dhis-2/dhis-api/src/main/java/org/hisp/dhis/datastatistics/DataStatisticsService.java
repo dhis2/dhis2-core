@@ -100,4 +100,10 @@ public interface DataStatisticsService {
    * @return a DataSummary instance with Data Statistics about System.
    */
   DataSummary getSystemStatisticsSummary();
+
+  /**
+   * Clears the cached system statistics summary so the next call to {@link
+   * #getSystemStatisticsSummary()} recomputes it. Intended for tests.
+   */
+  void clearSystemStatisticsSummaryCache();
 }
