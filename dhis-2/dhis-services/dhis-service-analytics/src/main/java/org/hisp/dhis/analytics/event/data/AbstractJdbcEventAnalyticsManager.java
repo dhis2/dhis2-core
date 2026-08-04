@@ -1187,6 +1187,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     sql += getFromClause(params);
 
+    // Required, not merely an optimisation: getSelectClause may have emitted columns that read from
+    // these joins, and without them the inner select references tables that do not exist. Any
+    // assembly that calls getSelectClause has to append this too.
+    sql += getRowContextJoinClause(params);
+
     String whereClause = getWhereClause(params);
     String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
     sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);

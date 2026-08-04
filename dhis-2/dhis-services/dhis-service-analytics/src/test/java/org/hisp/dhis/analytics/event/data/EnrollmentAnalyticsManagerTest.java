@@ -72,6 +72,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -225,6 +226,37 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void verifyWithRepeatableProgramStageAndTextDataElement() {
     verifyWithRepeatableProgramStageAndDataElement(ValueType.TEXT);
+  }
+
+  /**
+   * The aggregated-enrollments query wraps its own select clause in an outer count, and that select
+   * clause goes through the same row-context handling. Every assembly that emits columns reading
+   * from a lateral join has to emit the join as well - otherwise the SQL references a table that is
+   * not in the query. This asserts they stay in step.
+   */
+  @Test
+  void verifyAggregatedEnrollmentsWithRowContextEmitsTheLateralItReadsFrom() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(repeatableProgramStage, ValueType.TEXT))
+            .withEndpointAction(RequestTypeAware.EndpointAction.AGGREGATE)
+            .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT)
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generated = sql.getValue();
+
+    // The select list reads three columns off the lateral; the lateral must be declared once.
+    assertEquals(
+        3,
+        StringUtils.countMatches(generated, "\"rowcontext_0\"."),
+        "expected value, exists and status to read from the lateral: " + generated);
+    assertEquals(
+        1,
+        StringUtils.countMatches(generated, "as \"rowcontext_0\" on true"),
+        "the lateral the select list reads from must be joined in: " + generated);
   }
 
   @Test
