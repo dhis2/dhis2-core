@@ -395,6 +395,24 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotReturnAttributeValueWhenUserCannotReadAttribute() throws NotFoundException {
+    // Remove metadata read access to the attribute for the current user. The enrollment is still
+    // accessible, but its attribute value must not be returned.
+    trackedEntityAttributeA.getSharing().setOwner(admin);
+    trackedEntityAttributeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(trackedEntityAttributeA);
+    manager.flush();
+    manager.clear();
+
+    EnrollmentFields fields = EnrollmentFields.builder().includeAttributes().build();
+
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
+
+    assertNotNull(enrollment);
+    assertTrue(attributeUids(enrollment).isEmpty());
+  }
+
+  @Test
   void shouldFailGettingEnrollmentWhenUserHasNoAccessToProgramsTrackedEntityType() {
     trackedEntityTypeA.getSharing().setOwner(admin);
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
