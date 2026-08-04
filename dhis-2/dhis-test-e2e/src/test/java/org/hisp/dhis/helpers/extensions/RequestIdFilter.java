@@ -27,16 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.helpers.extensions;
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.hibernate.EnumUserType;
+import io.restassured.filter.Filter;
+import io.restassured.filter.FilterContext;
+import io.restassured.response.Response;
+import io.restassured.specification.FilterableRequestSpecification;
+import io.restassured.specification.FilterableResponseSpecification;
 
 /**
- * @author Chau Thu Tran
+ * Adds an {@code X-Request-ID} header carrying the current test's identifier (see {@link
+ * RequestIdExtension}) to every REST-assured request, so server-side SQL can be attributed back to
+ * the triggering test. Registered once in the shared request specification, so no individual test
+ * needs to change.
+ *
+ * <p>No-op when there is no current test id (e.g. suite setup / teardown traffic) or when the
+ * caller already set the header explicitly.
  */
-public class EventStatusUserType extends EnumUserType<EventStatus> {
-  public EventStatusUserType() {
-    super(EventStatus.class);
+public class RequestIdFilter implements Filter {
+  public static final String HEADER = "X-Request-ID";
+
+  @Override
+  public Response filter(
+      FilterableRequestSpecification requestSpec,
+      FilterableResponseSpecification responseSpec,
+      FilterContext ctx) {
+    String requestId = RequestIdExtension.currentRequestId();
+    if (requestId != null
+        && !requestId.isEmpty()
+        && !requestSpec.getHeaders().hasHeaderWithName(HEADER)) {
+      requestSpec.header(HEADER, requestId);
+    }
+    return ctx.next(requestSpec, responseSpec);
   }
 }

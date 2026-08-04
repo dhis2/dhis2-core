@@ -54,6 +54,7 @@ import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.FavoritableOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,8 +69,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Deprecated
 @Controller
 @RequestMapping("/api/eventReports")
-public class EventReportController
-    extends AbstractCrudController<EventReport, GetObjectListParams> {
+public class EventReportController extends AbstractCrudController<EventReport, GetObjectListParams>
+    implements FavoritableOperations<EventReport> {
+
   @Autowired private DimensionService dimensionService;
 
   @Autowired private I18nManager i18nManager;

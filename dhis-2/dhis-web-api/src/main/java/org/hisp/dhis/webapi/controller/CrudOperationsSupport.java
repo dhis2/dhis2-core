@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.vote;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.Collection;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.user.UserDetails;
 
-/**
- * RoleVoter which requires all org.springframework.security.ConfigAttributes to be granted
- * authorities, given that the ConfigAttributes have the specified prefix ("ROLE_" by default). If
- * there are no supported ConfigAttributes it abstains from voting.
- *
- * @see org.springframework.security.access.vote.RoleVoter
- * @author Torgeir Lorange Ostby
- */
-public class AllRequiredRoleVoter extends RoleVoter {
-  @Override
-  public int vote(
-      Authentication authentication, Object object, Collection<ConfigAttribute> attributes) {
-    int supported = 0;
+/** CRUD related operations that only some object types support. */
+public interface CrudOperationsSupport {
 
-    for (ConfigAttribute attribute : attributes) {
-      if (this.supports(attribute)) {
-        ++supported;
-        boolean found = false;
+  boolean setAsFavorite(UID id, UserDetails user) throws NotFoundException;
 
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-          if (attribute.getAttribute().equals(authority.getAuthority())) {
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          return ACCESS_DENIED;
-        }
-      }
-    }
-
-    if (supported > 0) {
-      return ACCESS_GRANTED;
-    }
-
-    return ACCESS_ABSTAIN;
-  }
+  boolean removeAsFavorite(UID id, UserDetails user) throws NotFoundException;
 }

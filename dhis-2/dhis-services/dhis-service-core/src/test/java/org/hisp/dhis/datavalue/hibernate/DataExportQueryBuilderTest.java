@@ -32,9 +32,11 @@ package org.hisp.dhis.datavalue.hibernate;
 import static org.hisp.dhis.datavalue.DataExportParams.Order.*;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataExportStore.createExportQuery;
 import static org.hisp.dhis.period.Period.of;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -477,9 +479,10 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testFilter_LastUpdated() {
+    Date lastUpdated = new Date();
     DataExportParams params =
         DataExportParams.builder()
-            .lastUpdated(new Date())
+            .lastUpdated(lastUpdated)
             .includeDeleted(true)
             .orders(List.of(PE, CREATED, DE))
             .build();
@@ -509,6 +512,59 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("lastUpdated"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
+    // pin the actual bound value: the WHERE clause must be backed by the exact filter date,
+    // not merely a same-named parameter with an unrelated (or null) value
+    assertEquals(lastUpdated, paramValue("lastUpdated"));
+  }
+
+  @Test
+  void testFilter_LastUpdatedDuration() {
+    Duration lastUpdatedDuration = Duration.ofDays(10000);
+    long before = System.currentTimeMillis();
+    DataExportParams params =
+        DataExportParams.builder()
+            .lastUpdatedDuration(lastUpdatedDuration)
+            .includeDeleted(true)
+            .orders(List.of(PE, CREATED, DE))
+            .build();
+    assertSQL(
+        """
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.lastupdated >= :lastUpdated
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("lastUpdated"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
+    long after = System.currentTimeMillis();
+    // pin that lastUpdatedDuration is actually converted into a real cutoff date
+    // (now - duration), not left null/ignored, which would silently erase the WHERE line
+    Object bound = paramValue("lastUpdated");
+    assertTrue(bound instanceof Date, "lastUpdated parameter must be bound to a real Date");
+    long boundMillis = ((Date) bound).getTime();
+    long durationMillis = lastUpdatedDuration.toMillis();
+    assertTrue(
+        boundMillis >= before - durationMillis && boundMillis <= after - durationMillis,
+        () ->
+            "expected cutoff around now - duration, was: %s (now window: [%d, %d])"
+                .formatted(bound, before - durationMillis, after - durationMillis));
   }
 
   @Test

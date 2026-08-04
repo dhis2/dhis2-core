@@ -128,6 +128,25 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
   }
 
   @Override
+  public List<DataElement> getDataElementsByDataSet(Collection<DataSet> dataSets) {
+    if (dataSets == null || dataSets.isEmpty()) {
+      return List.of();
+    }
+
+    @Language("hql")
+    String hql =
+        """
+        select distinct de from DataSetElement dse
+        join dse.dataElement de
+        left join fetch de.dataSetElements
+        left join fetch de.categoryCombo
+        where dse.dataSet in :dataSets
+        """;
+
+    return getQuery(hql, DataElement.class).setParameter("dataSets", dataSets).list();
+  }
+
+  @Override
   public List<DataSet> getByCategoryCombo(List<CategoryCombo> categoryCombos) {
     if (categoryCombos == null || categoryCombos.isEmpty()) return List.of();
     @Language("hql")

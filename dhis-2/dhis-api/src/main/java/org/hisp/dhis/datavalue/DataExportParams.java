@@ -118,6 +118,10 @@ public class DataExportParams {
         || includedDate != null;
   }
 
+  public boolean hasLastUpdatedFilters() {
+    return lastUpdated != null || lastUpdatedDuration != null;
+  }
+
   public boolean hasOrgUnitFilters() {
     return notEmpty(organisationUnits) || notEmpty(organisationUnitGroups);
   }

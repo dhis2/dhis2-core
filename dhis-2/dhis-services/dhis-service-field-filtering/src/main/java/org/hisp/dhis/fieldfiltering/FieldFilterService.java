@@ -57,7 +57,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
@@ -145,8 +144,7 @@ public class FieldFilterService {
 
   @Transactional(readOnly = true)
   public <T> ObjectNode toObjectNode(T object, String filters) {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(filters);
-    return toObjectNode(object, fieldPaths);
+    return toObjectNode(object, FieldFilterParser.parse(filters));
   }
 
   @Transactional(readOnly = true)
@@ -168,25 +166,25 @@ public class FieldFilterService {
       return objectNodes;
     }
 
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFields());
-    return toObjectNodes(params.getObjects(), fieldPaths, params.getUser(), params.isSkipSharing());
+    List<FieldPath> paths = FieldFilterParser.parse(params.getFields());
+    return toObjectNodes(params.getObjects(), paths, params.getUser(), params.isSkipSharing());
   }
 
   @Transactional(readOnly = true)
-  public <T> List<ObjectNode> toObjectNodes(List<T> objects, List<FieldPath> fieldPaths) {
-    return toObjectNodes(objects, fieldPaths, null, false);
+  public <T> List<ObjectNode> toObjectNodes(List<T> objects, List<FieldPath> paths) {
+    return toObjectNodes(objects, paths, null, false);
   }
 
   @Transactional(readOnly = true)
   public <T> List<ObjectNode> toObjectNodes(
-      List<T> objects, List<FieldPath> fieldPaths, UserDetails user, boolean isSkipSharing) {
+      List<T> objects, List<FieldPath> paths, UserDetails user, boolean isSkipSharing) {
     List<ObjectNode> objectNodes = new ArrayList<>();
 
     if (objects.isEmpty()) {
       return objectNodes;
     }
 
-    toObjectNodes(objects, fieldPaths, user, isSkipSharing, objectNodes::add);
+    toObjectNodes(objects, paths, user, isSkipSharing, objectNodes::add);
 
     return objectNodes;
   }
@@ -231,7 +229,7 @@ public class FieldFilterService {
         fieldPathHelper.apply(filter, HibernateProxyUtils.getRealClass(firstObject));
 
     SimpleFilterProvider filterProvider =
-        getSimpleFilterProvider(paths, isSkipSharing, excludeDefaults);
+        createSimpleFilterProvider(paths, isSkipSharing, excludeDefaults);
 
     // only set filter provider on a local copy so that we don't affect
     // other object mappers (running across other threads)
@@ -328,12 +326,12 @@ public class FieldFilterService {
     if (params.getObjects().isEmpty()) {
       return;
     }
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(params.getFields());
+    List<FieldPath> paths = FieldFilterParser.parse(params.getFields());
 
     try {
       toObjectNodes(
           params.getObjects(),
-          fieldPaths,
+          paths,
           params.getUser(),
           params.isSkipSharing(),
           excludeDefaults,
@@ -390,42 +388,38 @@ public class FieldFilterService {
    * were usual properties of the parent object.
    */
   private void applyAttributeAsPropertyFields(
-      Object object, ObjectNode node, List<FieldPath> fieldPaths) {
-    if (!(object instanceof IdentifiableObject identifiableObject)) {
-      return;
-    }
-    for (FieldPath path : fieldPaths) {
-      applyAttributeAsPropertyField(identifiableObject, node, path);
+      Object object, ObjectNode node, List<FieldPath> paths) {
+    if ((object instanceof IdentifiableObject obj)) {
+      for (FieldPath path : paths) {
+        applyAttributeAsPropertyField(obj, node, path);
+      }
     }
   }
 
   private void applyAttributeAsPropertyField(
       IdentifiableObject object, ObjectNode node, FieldPath path) {
-    String attributeId = path.getPropertyName();
-    if (path.getProperty() != null || !CodeGenerator.isValidUid(attributeId)) {
-      return;
-    }
+    if (path.getProperty() != null || !path.getPath().isUID()) return;
 
-    String fieldValue = object.getAttributeValues().get(attributeId);
-    if (fieldValue == null) {
-      return;
-    }
+    String attributeId = path.getPropertyName();
+
+    String value = object.getAttributeValues().get(attributeId);
+    if (value == null) return;
 
     Attribute attribute = attributeService.getAttribute(attributeId);
 
-    if (!fieldValue.isBlank() && attribute.getValueType().isJson()) {
+    if (!value.isBlank() && attribute.getValueType().isJson()) {
       try {
-        node.set(attributeId, jsonMapper.readTree(fieldValue));
+        node.set(attributeId, jsonMapper.readTree(value));
       } catch (JsonProcessingException e) {
-        node.put(attributeId, fieldValue);
+        node.put(attributeId, value);
       }
     } else {
-      node.put(attributeId, fieldValue);
+      node.put(attributeId, value);
     }
   }
 
   private void applyFieldPathVisitor(
-      Object object, List<FieldPath> fieldPaths, BiConsumer<Object, PropertyPath> visitor) {
+      Object object, List<FieldPath> paths, BiConsumer<Object, PropertyPath> visitor) {
     if (object == null) {
       return;
     }
@@ -436,7 +430,7 @@ public class FieldFilterService {
       return;
     }
 
-    fieldPathHelper.visitFieldPaths(object, fieldPaths, visitor);
+    fieldPathHelper.visitPaths(object, paths, visitor);
   }
 
   public ObjectNode createObjectNode() {
@@ -479,40 +473,40 @@ public class FieldFilterService {
     }
   }
 
-  private SimpleFilterProvider getSimpleFilterProvider(
-      List<FieldPath> fieldPaths, boolean skipSharing, boolean excludeDefaults) {
-    SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+  private SimpleFilterProvider createSimpleFilterProvider(
+      List<FieldPath> paths, boolean skipSharing, boolean excludeDefaults) {
+    SimpleFilterProvider res = new SimpleFilterProvider();
     Set<String> includePaths =
-        fieldPaths.stream()
+        paths.stream()
             .map(p -> p.getPath().properties().collect(joining(".")))
             .collect(toUnmodifiableSet());
     Set<String> skipPaths =
         skipSharing
             ? Set.of("user", "publicAccess", "userGroupAccesses", "userAccesses", "sharing")
             : Set.of();
-    filterProvider.addFilter(
+    res.addFilter(
         "field-filter",
         new FieldFilterSimpleBeanPropertyFilter(includePaths, skipPaths, excludeDefaults));
 
-    return filterProvider;
+    return res;
   }
 
-  private Map<PropertyPath, List<FieldTransformer>> getTransformers(List<FieldPath> fieldPaths) {
+  private Map<PropertyPath, List<FieldTransformer>> getTransformers(List<FieldPath> paths) {
     Map<PropertyPath, List<FieldTransformer>> transformerMap = new HashMap<>();
 
-    for (FieldPath fieldPath : fieldPaths) {
+    for (FieldPath path : paths) {
       List<FieldTransformer> fieldTransformers = new ArrayList<>();
 
-      transformerMap.put(fieldPath.getPath(), fieldTransformers);
+      transformerMap.put(path.getPath(), fieldTransformers);
 
-      for (FieldPathTransformer fieldPathTransformer : fieldPath.getTransformers()) {
-        switch (fieldPathTransformer.name().toLowerCase()) {
-          case "rename" -> fieldTransformers.add(new RenameFieldTransformer(fieldPathTransformer));
+      for (FieldPathTransformer transformer : path.getTransformers()) {
+        switch (transformer.name().toLowerCase()) {
+          case "rename" -> fieldTransformers.add(new RenameFieldTransformer(transformer));
           case "size" -> fieldTransformers.add(SizeFieldTransformer.INSTANCE);
           case "isempty" -> fieldTransformers.add(IsEmptyFieldTransformer.INSTANCE);
           case "isnotempty" -> fieldTransformers.add(IsNotEmptyFieldTransformer.INSTANCE);
-          case "pluck" -> fieldTransformers.add(new PluckFieldTransformer(fieldPathTransformer));
-          case "keyby" -> fieldTransformers.add(new KeyByFieldTransformer(fieldPathTransformer));
+          case "pluck" -> fieldTransformers.add(new PluckFieldTransformer(transformer));
+          case "keyby" -> fieldTransformers.add(new KeyByFieldTransformer(transformer));
           default -> {
             // invalid transformer
           }
@@ -525,12 +519,11 @@ public class FieldFilterService {
     return transformerMap;
   }
 
-  private void applySharingDisplayNames(
-      Object root, List<FieldPath> fieldPaths, boolean isSkipSharing) {
+  private void applySharingDisplayNames(Object root, List<FieldPath> paths, boolean isSkipSharing) {
     if (isSkipSharing) return;
     applyFieldPathVisitor(
         root,
-        fieldPaths,
+        paths,
         (obj, path) -> {
           if (obj instanceof IdentifiableObject object
               && object.hasSharing()
@@ -550,11 +543,11 @@ public class FieldFilterService {
   }
 
   private void applyAccess(
-      Object root, List<FieldPath> fieldPaths, boolean isSkipSharing, UserDetails userDetails) {
+      Object root, List<FieldPath> paths, boolean isSkipSharing, UserDetails userDetails) {
     if (isSkipSharing) return;
     applyFieldPathVisitor(
         root,
-        fieldPaths,
+        paths,
         (obj, path) -> {
           if (obj instanceof IdentifiableObject object && path.segment().contentEquals("access")) {
             object.setAccess(aclService.getAccess(object, userDetails));
