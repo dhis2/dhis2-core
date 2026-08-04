@@ -651,10 +651,11 @@ public class TrackerTest extends Simulation {
                                     .action()
                                     .check(jsonPath("$.events[*]").count().gte(1))
                                     .check(jsonPath("$.events[0].event").saveAs("eventUid")))
-                            .exec(
-                                searchEventsByUpdatedAfter
-                                    .action()
-                                    .check(jsonPath("$.events[*]").count().gte(1)))
+                            // No count check: lastupdated on pre-seeded data is import-time-
+                            // dependent, so under -DtestMode=export (no fresh import) this can
+                            // legitimately match zero events depending on seed age. See PR #24716
+                            // review discussion.
+                            .exec(searchEventsByUpdatedAfter.action())
                             .pause(1, 3) // user reads results, picks an event
                             // User clicks on an event -- Capture fires event + relationships
                             // together
