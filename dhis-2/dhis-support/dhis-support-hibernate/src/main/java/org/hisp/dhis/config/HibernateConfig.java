@@ -182,7 +182,10 @@ public class HibernateConfig {
     } else {
       // Explicitly disable both caches. Without this, Hibernate auto-enables the second level
       // cache when a RegionFactory (hibernate-jcache) is present on the classpath, but with
-      // default JCache settings instead of our ehcache.xml configuration.
+      // default JCache settings instead of our ehcache.xml configuration. The query cache is
+      // deliberately forced off as well, ignoring use_query_cache: it depends on the second
+      // level cache infrastructure, and without it cached query results only store entity ids
+      // which are then hydrated row by row (N+1 queries).
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "false");
       properties.put(AvailableSettings.USE_QUERY_CACHE, "false");
     }
