@@ -164,7 +164,10 @@ public class HibernateConfig {
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
 
-    if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
+    boolean useSecondLevelCache = "true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE));
+    properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, String.valueOf(useSecondLevelCache));
+
+    if (useSecondLevelCache) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
