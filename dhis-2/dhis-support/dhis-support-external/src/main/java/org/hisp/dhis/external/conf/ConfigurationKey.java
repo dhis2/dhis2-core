@@ -47,6 +47,13 @@ public enum ConfigurationKey {
   /** Session timeout in seconds. (default: 3600). */
   SYSTEM_SESSION_TIMEOUT("system.session.timeout", "3600", false),
 
+  /**
+   * Comma-separated usernames excluded from user statistics collection (login events and user
+   * activity), typically monitoring or integration service accounts whose scripted authentication
+   * would otherwise inflate the numbers. (default: empty).
+   */
+  SYSTEM_USER_STATS_EXCLUDED_USERS("system.user_stats.excluded_users", "", false),
+
   /** System monitoring URL. */
   SYSTEM_MONITORING_URL("system.monitoring.url"),
 

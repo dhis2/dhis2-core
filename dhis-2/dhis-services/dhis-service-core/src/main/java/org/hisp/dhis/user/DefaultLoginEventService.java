@@ -33,13 +33,17 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DefaultLoginEventService implements LoginEventService {
 
   /** Keep raw events this many days before rolling them into the daily aggregate. */
@@ -70,10 +73,37 @@ public class DefaultLoginEventService implements LoginEventService {
 
   private final LoginEventStore loginEventStore;
 
+  private final Set<String> excludedUsernames;
+
+  public DefaultLoginEventService(
+      LoginEventStore loginEventStore, DhisConfigurationProvider config) {
+    this.loginEventStore = loginEventStore;
+    this.excludedUsernames =
+        parseExcludedUsernames(
+            config.getProperty(ConfigurationKey.SYSTEM_USER_STATS_EXCLUDED_USERS));
+  }
+
+  /**
+   * Parses the comma-separated {@code system.user_stats.excluded_users} value, typically monitoring
+   * or integration service accounts that would otherwise inflate the statistics.
+   */
+  static Set<String> parseExcludedUsernames(String value) {
+    if (value == null || value.isBlank()) {
+      return Set.of();
+    }
+    return Arrays.stream(value.split(","))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .collect(Collectors.toUnmodifiableSet());
+  }
+
   @Override
   @Transactional
   public void recordLogin(String username, LoginAuthType authType) {
-    if (username == null || username.isBlank() || authType == null) {
+    if (username == null
+        || username.isBlank()
+        || authType == null
+        || excludedUsernames.contains(username)) {
       return;
     }
     String key = username + '|' + authType.name();
