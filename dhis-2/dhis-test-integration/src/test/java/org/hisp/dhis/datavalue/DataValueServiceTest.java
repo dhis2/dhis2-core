@@ -545,6 +545,26 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testGetDataValueCountCountsRowsDifferingOnlyInKeyColumns() {
+    DataValue reference = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "42");
+    DataValue differingOnlyInOrgUnit = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "42");
+    DataValue differingOnlyInDataElement =
+        new DataValue(deB, peA, ouA, optionCombo, optionCombo, "42");
+    DataValue differingOnlyInPeriod = new DataValue(deA, peC, ouA, optionCombo, optionCombo, "42");
+
+    for (DataValue dataValue :
+        List.of(
+            reference, differingOnlyInOrgUnit, differingOnlyInDataElement, differingOnlyInPeriod)) {
+      dataValue.setStoredBy("thesameuser");
+      dataValue.setComment("the same comment");
+      dataValueService.addDataValue(dataValue);
+    }
+
+    assertEquals(
+        4, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, false));
+  }
+
+  @Test
   void testVAlidateMissingDataElement() {
     assertIllegalQueryEx(
         assertThrows(
