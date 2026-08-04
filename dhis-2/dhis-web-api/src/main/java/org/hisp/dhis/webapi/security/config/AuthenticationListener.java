@@ -33,6 +33,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetails;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
@@ -155,16 +156,19 @@ public class AuthenticationListener {
   }
 
   /**
-   * Categorizes the authentication into a low-cardinality method tag for metrics. "basic" is
-   * distinguished by its details type since HTTP Basic re-authenticates on every request that lacks
-   * an existing session, unlike the other methods which are tied to a single interactive login.
-   * "form" covers /api/auth/login, which itself covers username/password, LDAP and 2FA, since they
-   * all authenticate via the same endpoint and details type.
+   * Categorizes the authentication into a low-cardinality method tag for metrics. "basic" and
+   * "apitoken" re-authenticate on every request that lacks an existing session (no session reuse
+   * for either), unlike the other methods which are tied to a single interactive login. "form"
+   * covers /api/auth/login, which itself covers username/password, LDAP and 2FA, since they all
+   * authenticate via the same endpoint and details type.
    */
   private static String resolveAuthMethod(Authentication auth) {
     if (OAuth2LoginAuthenticationToken.class.isAssignableFrom(auth.getClass())
         || OidcUserInfoAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
       return "oidc";
+    }
+    if (ApiTokenAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
+      return "apitoken";
     }
     if (auth.getDetails() instanceof HttpBasicWebAuthenticationDetails) {
       return "basic";

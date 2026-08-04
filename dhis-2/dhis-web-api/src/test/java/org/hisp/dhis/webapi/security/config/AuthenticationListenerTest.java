@@ -38,6 +38,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetails;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserService;
@@ -111,6 +112,18 @@ class AuthenticationListenerTest {
 
     assertEquals(1.0, counterValue("basic"));
     assertEquals(0.0, counterValue("form"));
+  }
+
+  @Test
+  void apiTokenIsCountedUnderApitokenMethod() {
+    ApiTokenAuthenticationToken auth = mock(ApiTokenAuthenticationToken.class);
+    when(auth.getName()).thenReturn("pat-user");
+
+    listener.handleAuthenticationSuccess(new AuthenticationSuccessEvent(auth));
+
+    assertEquals(1.0, counterValue("apitoken"));
+    assertEquals(0.0, counterValue("form"));
+    assertEquals(0.0, counterValue("basic"));
   }
 
   @Test
