@@ -39,6 +39,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.cache.Region;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -71,7 +72,7 @@ public class DataSummaryController {
    */
   private static final Cache<SessionGauges> SESSION_GAUGE_CACHE =
       new SimpleCacheBuilder<SessionGauges>()
-          .forRegion("dataSummarySessionGauges")
+          .forRegion(Region.dataSummarySessionGauges.name())
           .expireAfterWrite(60, TimeUnit.SECONDS)
           .withInitialCapacity(1)
           .withMaximumSize(1)

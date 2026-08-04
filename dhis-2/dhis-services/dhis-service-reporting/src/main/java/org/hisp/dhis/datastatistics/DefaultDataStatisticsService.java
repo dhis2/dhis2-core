@@ -43,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.cache.Region;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -212,7 +213,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
    */
   private static final org.hisp.dhis.cache.Cache<DataSummary> SUMMARY_CACHE =
       new org.hisp.dhis.cache.SimpleCacheBuilder<DataSummary>()
-          .forRegion("systemStatisticsSummary")
+          .forRegion(Region.systemStatisticsSummary.name())
           .expireAfterWrite(5, java.util.concurrent.TimeUnit.MINUTES)
           .withInitialCapacity(1)
           .withMaximumSize(1)
