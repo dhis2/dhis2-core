@@ -169,6 +169,7 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetSystemStatisticsSummary() {
+    dataStatisticsService.clearSystemStatisticsSummaryCache();
     DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
 
     assertAll(

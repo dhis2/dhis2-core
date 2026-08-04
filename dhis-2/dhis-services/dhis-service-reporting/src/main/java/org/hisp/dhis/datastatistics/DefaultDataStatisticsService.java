@@ -205,14 +205,38 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   /**
-   * Generates a summary of system statistics including object counts, active users, user
-   * invitations, data value counts, tracker event counts, single event counts, enrollment counts,
-   * and system information.
+   * The system statistics summary runs many count queries over the largest tables (data values,
+   * tracker events, enrollments), so the computed result is cached briefly. This bounds the cost of
+   * aggressive or misbehaving monitoring scrapers to one computation per TTL window, regardless of
+   * request rate. Stats move slowly; five minutes of staleness is acceptable.
+   */
+  private static final org.hisp.dhis.cache.Cache<DataSummary> SUMMARY_CACHE =
+      new org.hisp.dhis.cache.SimpleCacheBuilder<DataSummary>()
+          .forRegion("systemStatisticsSummary")
+          .expireAfterWrite(5, java.util.concurrent.TimeUnit.MINUTES)
+          .withInitialCapacity(1)
+          .withMaximumSize(1)
+          .build();
+
+  /** Clears the cached system statistics summary. Intended for tests only. */
+  @Override
+  public void clearSystemStatisticsSummaryCache() {
+    SUMMARY_CACHE.invalidateAll();
+  }
+
+  /**
+   * Returns a summary of system statistics including object counts, active users, user invitations,
+   * data value counts, tracker event counts, single event counts, enrollment counts, and system
+   * information. The result is cached, see {@link #SUMMARY_CACHE}.
    *
    * @return A DataSummary object containing the system statistics summary.
    */
   @Override
   public DataSummary getSystemStatisticsSummary() {
+    return SUMMARY_CACHE.get("summary", key -> computeSystemStatisticsSummary());
+  }
+
+  private DataSummary computeSystemStatisticsSummary() {
     DataSummary statistics = new DataSummary();
 
     // Database objects
