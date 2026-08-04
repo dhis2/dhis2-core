@@ -248,6 +248,82 @@ class JdbcSubexpressionQueryGeneratorTest {
     assertEquals(expected, actual.trim());
   }
 
+  @Test
+  void testGetSql_withoutQueryDimensions() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    PeriodDimension peA = PeriodDimension.of(createPeriod("202305"));
+
+    QueryModifiers queryModsMin = QueryModifiers.builder().aggregationType(MIN).build();
+
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('B');
+    DataElement deC = createDataElement('C');
+    DataElement deD = createDataElement('D');
+    DataElement deE = createDataElement('E');
+
+    deE.setQueryMods(queryModsMin);
+
+    CategoryOptionCombo cocA = createCategoryOptionCombo('A');
+    CategoryOptionCombo cocB = createCategoryOptionCombo('B');
+    CategoryOptionCombo cocC = createCategoryOptionCombo('C');
+    CategoryOptionCombo cocD = createCategoryOptionCombo('D');
+
+    DataElementOperand deoA = new DataElementOperand(deB, cocA);
+    DataElementOperand deoB = new DataElementOperand(deC, cocB, cocC);
+    DataElementOperand deoC = new DataElementOperand(deD, null, cocD);
+
+    List<DimensionalItemObject> items = List.of(deA, deoA, deoB, deoC, deE);
+
+    String deACol = getItemColumnName(deA.getUid(), null, null, null);
+    String deoACol = getItemColumnName(deB.getUid(), cocA.getUid(), null, null);
+    String deoBCol = getItemColumnName(deC.getUid(), cocB.getUid(), cocC.getUid(), null);
+    String deoCCol = getItemColumnName(deD.getUid(), null, cocD.getUid(), null);
+    String deECol = getItemColumnName(deE.getUid(), null, null, queryModsMin);
+
+    String subexSql = deACol + "*(" + deoACol + "+" + deoBCol + ")+" + deoCCol + "-" + deECol;
+
+    SubexpressionDimensionItem subex = new SubexpressionDimensionItem(subexSql, items, null);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataType(DataType.NUMERIC)
+            .withTableName("analytics")
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(subex)))
+            .addFilters(
+                List.of(
+                    new BaseDimensionalObject(
+                        ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)),
+                    new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA))))
+            .withPeriodType("monthly")
+            .build();
+
+    JdbcSubexpressionQueryGenerator target =
+        new JdbcSubexpressionQueryGenerator(manager, params, DATA_VALUE);
+
+    String expected =
+        "select 'subexprxUID' as \"dx\","
+            + "sum(\"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghE_agg_MIN\") as \"value\" "
+            + "from (select "
+            + "sum(case when ax.\"dx\"='deabcdefghA' then \"value\"::numeric else null end) as \"deabcdefghA\","
+            + "sum(case when ax.\"dx\"='deabcdefghB' and ax.\"co\"='cuabcdefghA' then \"value\"::numeric else null end) as \"deabcdefghB_cuabcdefghA\","
+            + "sum(case when ax.\"dx\"='deabcdefghC' and ax.\"co\"='cuabcdefghB' and ax.\"ao\"='cuabcdefghC' then \"value\"::numeric else null end) as \"deabcdefghC_cuabcdefghB_cuabcdefghC\","
+            + "sum(case when ax.\"dx\"='deabcdefghD' and ax.\"ao\"='cuabcdefghD' then \"value\"::numeric else null end) as \"deabcdefghD__cuabcdefghD\","
+            + "min(case when ax.\"dx\"='deabcdefghE' then \"value\"::numeric else null end) as \"deabcdefghE_agg_MIN\" "
+            + "from analytics as ax "
+            + "where ( ax.\"pe\" in ('202305') ) "
+            + "and ( ax.\"ou\" in ('ouabcdefghA') ) "
+            + "and ax.\"dx\" in ('deabcdefghA','deabcdefghB','deabcdefghC','deabcdefghD','deabcdefghE')  "
+            + "group by ax.\"monthly\",ax.\"ou\") as ax "
+            + "where \"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghE_agg_MIN\" is not null ";
+
+    String actual = anonymize(target.getSql());
+
+    assertEquals(expected, actual);
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
