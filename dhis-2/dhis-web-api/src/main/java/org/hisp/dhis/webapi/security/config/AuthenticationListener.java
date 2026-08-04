@@ -51,6 +51,8 @@ import org.springframework.security.oauth2.server.authorization.oidc.authenticat
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * @author Henning Håkonsen
@@ -60,6 +62,13 @@ import org.springframework.stereotype.Component;
 public class AuthenticationListener {
 
   private static final String LOGIN_COUNTER_NAME = "dhis2_user_logins_total";
+
+  /**
+   * Prometheus scrapes this endpoint on a timer with fresh credentials each time (no session
+   * reuse), so counting it would make the login counter track scrape frequency rather than actual
+   * logins.
+   */
+  private static final String METRICS_SCRAPE_PATH = "/api/metrics";
 
   @Autowired private UserService userService;
 
@@ -104,7 +113,13 @@ public class AuthenticationListener {
     Authentication auth = event.getAuthentication();
     String username = event.getAuthentication().getName();
 
-    meterRegistry.counter(LOGIN_COUNTER_NAME, "method", resolveAuthMethod(auth)).increment();
+    // The form login endpoint (AuthenticationController) publishes both an
+    // InteractiveAuthenticationSuccessEvent and, via the AuthenticationManager, an
+    // AuthenticationSuccessEvent for the same login. Only count the latter to avoid double
+    // counting; mirrors the same exclusion in AuthenticationLoggerListener.
+    if (!(event instanceof InteractiveAuthenticationSuccessEvent) && !isMetricsScrapeRequest()) {
+      meterRegistry.counter(LOGIN_COUNTER_NAME, "method", resolveAuthMethod(auth)).increment();
+    }
 
     Object details = auth.getDetails();
 
@@ -155,6 +170,25 @@ public class AuthenticationListener {
       return "basic";
     }
     return "form";
+  }
+
+  /**
+   * Best-effort check for whether the current request is a scrape of our own metrics endpoint.
+   * Fails open (returns false, i.e. still counts) if the request context is unavailable, so a
+   * missing RequestContextHolder binding never blocks the login counter or auth flow itself.
+   */
+  private static boolean isMetricsScrapeRequest() {
+    try {
+      ServletRequestAttributes attributes =
+          (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+      if (attributes == null) {
+        return false;
+      }
+      String uri = attributes.getRequest().getRequestURI();
+      return uri != null && uri.endsWith(METRICS_SCRAPE_PATH);
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private void registerSuccessfulLogin(String username) {
