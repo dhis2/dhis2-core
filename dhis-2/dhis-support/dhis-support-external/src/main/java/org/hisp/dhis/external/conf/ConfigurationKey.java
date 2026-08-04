@@ -584,6 +584,12 @@ public enum ConfigurationKey {
   /** CPU monitoring. (default: off) */
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
 
+  /**
+   * JMX monitoring: expose selected statistics (user statistics) as JMX MBeans, for monitoring
+   * tools that consume JMX rather than Prometheus, such as Glowroot. (default: off)
+   */
+  MONITORING_JMX_ENABLED("monitoring.jmx.enabled", Constants.OFF, false),
+
   /** AppHub base URL. (default: https://apps.dhis2.org). */
   APPHUB_BASE_URL("apphub.base.url", "https://apps.dhis2.org", false),
 
