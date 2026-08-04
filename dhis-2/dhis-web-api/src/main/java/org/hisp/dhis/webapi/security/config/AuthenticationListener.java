@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetails;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.user.SystemUser;
@@ -57,9 +59,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthenticationListener {
 
+  private static final String LOGIN_COUNTER_NAME = "dhis2_user_logins_total";
+
   @Autowired private UserService userService;
 
   @Autowired private DhisConfigurationProvider config;
+
+  @Autowired private MeterRegistry meterRegistry;
 
   @EventListener
   public void handleAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
@@ -98,6 +104,8 @@ public class AuthenticationListener {
     Authentication auth = event.getAuthentication();
     String username = event.getAuthentication().getName();
 
+    meterRegistry.counter(LOGIN_COUNTER_NAME, "method", resolveAuthMethod(auth)).increment();
+
     Object details = auth.getDetails();
 
     if (details != null
@@ -129,6 +137,24 @@ public class AuthenticationListener {
     }
 
     registerSuccessfulLogin(username);
+  }
+
+  /**
+   * Categorizes the authentication into a low-cardinality method tag for metrics. "basic" is
+   * distinguished by its details type since HTTP Basic re-authenticates on every request that lacks
+   * an existing session, unlike the other methods which are tied to a single interactive login.
+   * "form" covers /api/auth/login, which itself covers username/password, LDAP and 2FA, since they
+   * all authenticate via the same endpoint and details type.
+   */
+  private static String resolveAuthMethod(Authentication auth) {
+    if (OAuth2LoginAuthenticationToken.class.isAssignableFrom(auth.getClass())
+        || OidcUserInfoAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
+      return "oidc";
+    }
+    if (auth.getDetails() instanceof HttpBasicWebAuthenticationDetails) {
+      return "basic";
+    }
+    return "form";
   }
 
   private void registerSuccessfulLogin(String username) {
