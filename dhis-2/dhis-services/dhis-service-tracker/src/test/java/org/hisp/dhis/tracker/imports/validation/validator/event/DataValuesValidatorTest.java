@@ -1170,22 +1170,22 @@ class DataValuesValidatorTest {
    */
   private void stubProgramStageDataElements(ProgramStage programStage) {
     Set<ProgramStageDataElement> psdes = programStage.getProgramStageDataElements();
-    // read the idScheme off the mock, as the supplier does, so tests overriding it are honoured
+    // read the idScheme off the mock, as the supplier does, so tests overriding it are honoured.
+    // build the value before stubbing, calling a mock inside thenReturn nests the stubbing.
     TrackerIdSchemeParams schemes = preheat.getIdSchemes();
-    lenient()
-        .when(preheat.getProgramStageDataElements(programStage))
-        .thenReturn(
-            new ProgramStageDataElements(
-                psdes.stream()
-                    .filter(ProgramStageDataElement::isCompulsory)
-                    .map(psde -> schemes.toMetadataIdentifier(psde.getDataElement()))
-                    .collect(Collectors.toSet()),
-                psdes.stream()
-                    .map(psde -> schemes.toMetadataIdentifier(psde.getDataElement()))
-                    .collect(Collectors.toSet()),
-                psdes.stream()
-                    .map(psde -> UID.of(psde.getDataElement().getUid()))
-                    .collect(Collectors.toSet())));
+    ProgramStageDataElements projected =
+        new ProgramStageDataElements(
+            psdes.stream()
+                .filter(ProgramStageDataElement::isCompulsory)
+                .map(psde -> schemes.toMetadataIdentifier(psde.getDataElement()))
+                .collect(Collectors.toSet()),
+            psdes.stream()
+                .map(psde -> schemes.toMetadataIdentifier(psde.getDataElement()))
+                .collect(Collectors.toSet()),
+            psdes.stream()
+                .map(psde -> UID.of(psde.getDataElement().getUid()))
+                .collect(Collectors.toSet()));
+    lenient().when(preheat.getProgramStageDataElements(programStage)).thenReturn(projected);
   }
 
   private OrganisationUnit organisationUnit() {
