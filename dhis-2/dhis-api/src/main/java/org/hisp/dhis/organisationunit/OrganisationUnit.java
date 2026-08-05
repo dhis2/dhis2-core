@@ -680,11 +680,11 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
     builder.append(
         ancestors.stream()
-            .map(BaseIdentifiableObject::getName)
+            .map(BaseIdentifiableObject::getDisplayName)
             .collect(Collectors.joining(delimiter)));
 
     if (includeThis) {
-      builder.append(delimiter).append(name);
+      builder.append(delimiter).append(getDisplayName());
     }
 
     if (withLeadingDelimiter) {
