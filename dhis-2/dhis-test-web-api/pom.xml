@@ -392,7 +392,7 @@
     <dependency>
       <groupId>org.openapitools</groupId>
       <artifactId>openapi-generator</artifactId>
-      <version>7.23.0</version>
+      <version>7.24.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
