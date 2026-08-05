@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -583,6 +584,37 @@ public class TrackerTest extends Simulation {
     String userId = matcher.group(1);
     logger.debug("Found source user '{}' with ID: {}", this.replicaUser, userId);
 
+    // /api/users/{id}/replica does not copy org units on 2.42, so replicas end up with none and
+    // every import fails E1000/E1102 before reaching preheat. Fixed on master by
+    // 3a5c21abd6 "fix: Replicate users with JDBC", which adds UserStore#copyOrgUnitMemberships.
+    // Until that is available here, copy them onto each replica ourselves.
+    // Fetched separately so the id lookup above keeps matching the user's own id rather than an
+    // org unit's.
+    HttpRequest getOrgUnitsRequest =
+        HttpRequest.newBuilder()
+            .uri(
+                URI.create(
+                    this.instance
+                        + "/api/users/"
+                        + userId
+                        + "?fields=organisationUnits%5Bid%5D,dataViewOrganisationUnits%5Bid%5D,teiSearchOrganisationUnits%5Bid%5D"))
+            .header("Authorization", "Basic " + auth)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+    String sourceOrgUnits =
+        client.send(getOrgUnitsRequest, HttpResponse.BodyHandlers.ofString()).body();
+
+    String orgUnits = extractOrgUnits(sourceOrgUnits, "organisationUnits");
+    String dataViewOrgUnits = extractOrgUnits(sourceOrgUnits, "dataViewOrganisationUnits");
+    String searchOrgUnits = extractOrgUnits(sourceOrgUnits, "teiSearchOrganisationUnits");
+    if (orgUnits.isEmpty()) {
+      throw new RuntimeException(
+          "Source user '"
+              + this.replicaUser
+              + "' has no capture org unit, replicas would not be able to import");
+    }
+
     // Throttle user creation to avoid overwhelming the system
     int provisionDelayMs = Integer.getInteger("provisionDelayMs", 100);
     for (int i = 1; i <= this.provisionUsers; i++) {
@@ -623,6 +655,10 @@ public class TrackerTest extends Simulation {
                 + replicateResponse.body());
       }
 
+      // Applies whether the replica was just created or already existed, so reruns repair users
+      // provisioned before this workaround existed.
+      copyOrgUnits(client, auth, username, orgUnits, dataViewOrgUnits, searchOrgUnits);
+
       if (i < this.provisionUsers && provisionDelayMs > 0) {
         Thread.sleep(provisionDelayMs);
       }
@@ -639,6 +675,85 @@ public class TrackerTest extends Simulation {
       logger.debug("Waiting {}s for system to stabilize...", pauseAfterProvisioningSec);
       Thread.sleep(pauseAfterProvisioningSec * 1000L);
       logger.debug("Starting test execution...");
+    }
+  }
+
+  /**
+   * Reads the ids of one org unit collection out of the /api/users response as a JSON array, ready
+   * to be sent straight back in a patch. Returns an empty string if the collection is absent or
+   * empty.
+   */
+  private static String extractOrgUnits(String body, String field) {
+    Matcher collection =
+        Pattern.compile("\"" + field + "\"\\s*:\\s*\\[(.*?)]", Pattern.DOTALL).matcher(body);
+    if (!collection.find()) {
+      return "";
+    }
+
+    Matcher ids = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"").matcher(collection.group(1));
+    StringJoiner joined = new StringJoiner(",", "[", "]");
+    boolean any = false;
+    while (ids.find()) {
+      joined.add("{\"id\":\"%s\"}".formatted(ids.group(1)));
+      any = true;
+    }
+    return any ? joined.toString() : "";
+  }
+
+  /** Copies the source user's org units onto a replica. See the caller for why this is needed. */
+  private void copyOrgUnits(
+      HttpClient client,
+      String auth,
+      String username,
+      String orgUnits,
+      String dataViewOrgUnits,
+      String searchOrgUnits)
+      throws Exception {
+    HttpRequest getReplica =
+        HttpRequest.newBuilder()
+            .uri(URI.create(this.instance + "/api/users?filter=username:eq:" + username + "&fields=id"))
+            .header("Authorization", "Basic " + auth)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+    HttpResponse<String> replicaResponse =
+        client.send(getReplica, HttpResponse.BodyHandlers.ofString());
+    Matcher id = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"").matcher(replicaResponse.body());
+    if (!id.find()) {
+      throw new RuntimeException("Could not find replica user '" + username + "'");
+    }
+
+    StringJoiner operations = new StringJoiner(",", "[", "]");
+    operations.add("{\"op\":\"add\",\"path\":\"/organisationUnits\",\"value\":%s}".formatted(orgUnits));
+    if (!dataViewOrgUnits.isEmpty()) {
+      operations.add(
+          "{\"op\":\"add\",\"path\":\"/dataViewOrganisationUnits\",\"value\":%s}"
+              .formatted(dataViewOrgUnits));
+    }
+    if (!searchOrgUnits.isEmpty()) {
+      operations.add(
+          "{\"op\":\"add\",\"path\":\"/teiSearchOrganisationUnits\",\"value\":%s}"
+              .formatted(searchOrgUnits));
+    }
+
+    HttpRequest patch =
+        HttpRequest.newBuilder()
+            .uri(URI.create(this.instance + "/api/users/" + id.group(1)))
+            .header("Authorization", "Basic " + auth)
+            .header("Content-Type", "application/json-patch+json")
+            .header("Accept", "application/json")
+            .method("PATCH", HttpRequest.BodyPublishers.ofString(operations.toString()))
+            .build();
+    HttpResponse<String> patchResponse =
+        client.send(patch, HttpResponse.BodyHandlers.ofString());
+    if (patchResponse.statusCode() != 200) {
+      throw new RuntimeException(
+          "Failed to copy org units to "
+              + username
+              + ": HTTP "
+              + patchResponse.statusCode()
+              + " - "
+              + patchResponse.body());
     }
   }
 
