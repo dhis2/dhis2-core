@@ -32,17 +32,17 @@ package org.hisp.dhis.webapi.monitoring;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Map;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
-import org.hisp.dhis.webapi.security.session.SessionStatisticsProvider;
-import org.hisp.dhis.webapi.security.session.SessionStatisticsProvider.SessionGauges;
+import org.hisp.dhis.webapi.security.config.AuthenticationListener;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jmx.export.annotation.AnnotationMBeanExporter;
@@ -55,16 +55,33 @@ class UserStatisticsMBeanTest {
 
   @Mock private DataStatisticsService dataStatisticsService;
 
-  @Mock private SessionStatisticsProvider sessionStatisticsProvider;
+  private SimpleMeterRegistry meterRegistry;
 
-  @InjectMocks private UserStatisticsMBean mBean;
+  private UserStatisticsMBean mBean;
+
+  @BeforeEach
+  void setUp() {
+    meterRegistry = new SimpleMeterRegistry();
+    mBean = new UserStatisticsMBean(dataStatisticsService, meterRegistry);
+  }
 
   @Test
-  void sessionGaugesAreExposed() {
-    when(sessionStatisticsProvider.getSessionGauges()).thenReturn(new SessionGauges(5, 3));
+  void loginsSinceStartupMirrorTheLoginCounter() {
+    count(AuthenticationListener.LOGIN_METHOD_FORM, 3);
+    count(AuthenticationListener.LOGIN_METHOD_BASIC, 2);
+    count(AuthenticationListener.LOGIN_METHOD_OIDC, 1);
 
-    assertEquals(5, mBean.getActiveSessions());
-    assertEquals(3, mBean.getActiveSessionUsers());
+    assertEquals(3, mBean.getLoginsSinceStartupForm());
+    assertEquals(2, mBean.getLoginsSinceStartupBasic());
+    assertEquals(1, mBean.getLoginsSinceStartupOidc());
+    assertEquals(0, mBean.getLoginsSinceStartupApiToken());
+    assertEquals(6, mBean.getLoginsSinceStartupTotal());
+  }
+
+  @Test
+  void loginsSinceStartupAreZeroBeforeAnyLogin() {
+    assertEquals(0, mBean.getLoginsSinceStartupForm());
+    assertEquals(0, mBean.getLoginsSinceStartupTotal());
   }
 
   @Test
@@ -96,7 +113,7 @@ class UserStatisticsMBeanTest {
 
   @Test
   void mBeanRegistersAndIsReadableViaJmx() throws Exception {
-    when(sessionStatisticsProvider.getSessionGauges()).thenReturn(new SessionGauges(2, 1));
+    count(AuthenticationListener.LOGIN_METHOD_API_TOKEN, 8);
     DataSummary overview = new DataSummary();
     overview.setLogins(Map.of(1, 42));
     when(dataStatisticsService.getSystemStatisticsOverview()).thenReturn(overview);
@@ -107,9 +124,17 @@ class UserStatisticsMBeanTest {
     ObjectName name = new ObjectName(UserStatisticsMBean.OBJECT_NAME);
     exporter.registerManagedResource(mBean, name);
 
-    assertEquals(2L, server.getAttribute(name, "ActiveSessions"));
-    assertEquals(1L, server.getAttribute(name, "ActiveSessionUsers"));
     assertEquals(42, server.getAttribute(name, "LoginsToday"));
     assertEquals(0, server.getAttribute(name, "LoginsPastHour"));
+    assertEquals(8L, server.getAttribute(name, "LoginsSinceStartupApiToken"));
+    assertEquals(8L, server.getAttribute(name, "LoginsSinceStartupTotal"));
+  }
+
+  private void count(String method, int times) {
+    for (int i = 0; i < times; i++) {
+      meterRegistry
+          .counter(AuthenticationListener.LOGIN_COUNTER_NAME, "method", method)
+          .increment();
+    }
   }
 }

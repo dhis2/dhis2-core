@@ -62,7 +62,16 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Component
 public class AuthenticationListener {
 
-  private static final String LOGIN_COUNTER_NAME = "dhis2_user_logins_total";
+  /** Name of the login counter in the meter registry, also read by {@code UserStatisticsMBean}. */
+  public static final String LOGIN_COUNTER_NAME = "dhis2_user_logins_total";
+
+  public static final String LOGIN_METHOD_FORM = "form";
+
+  public static final String LOGIN_METHOD_BASIC = "basic";
+
+  public static final String LOGIN_METHOD_OIDC = "oidc";
+
+  public static final String LOGIN_METHOD_API_TOKEN = "apitoken";
 
   /**
    * Prometheus scrapes this endpoint on a timer with fresh credentials each time (no session
@@ -165,15 +174,15 @@ public class AuthenticationListener {
   private static String resolveAuthMethod(Authentication auth) {
     if (OAuth2LoginAuthenticationToken.class.isAssignableFrom(auth.getClass())
         || OidcUserInfoAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
-      return "oidc";
+      return LOGIN_METHOD_OIDC;
     }
     if (ApiTokenAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
-      return "apitoken";
+      return LOGIN_METHOD_API_TOKEN;
     }
     if (auth.getDetails() instanceof HttpBasicWebAuthenticationDetails) {
-      return "basic";
+      return LOGIN_METHOD_BASIC;
     }
-    return "form";
+    return LOGIN_METHOD_FORM;
   }
 
   /**

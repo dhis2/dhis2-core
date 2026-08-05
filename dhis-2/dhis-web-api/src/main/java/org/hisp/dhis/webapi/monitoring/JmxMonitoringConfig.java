@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.monitoring;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_JMX_ENABLED;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.MetricsEnabler;
@@ -57,9 +58,14 @@ public class JmxMonitoringConfig {
 
   @Bean
   public UserStatisticsMBean userStatisticsMBean(
-      DataStatisticsService dataStatisticsService,
+      DataStatisticsService dataStatisticsService, MeterRegistry meterRegistry) {
+    return new UserStatisticsMBean(dataStatisticsService, meterRegistry);
+  }
+
+  @Bean
+  public SessionStatisticsMBean sessionStatisticsMBean(
       SessionStatisticsProvider sessionStatisticsProvider) {
-    return new UserStatisticsMBean(dataStatisticsService, sessionStatisticsProvider);
+    return new SessionStatisticsMBean(sessionStatisticsProvider);
   }
 
   @Bean

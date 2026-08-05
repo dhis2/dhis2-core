@@ -30,27 +30,41 @@
 package org.hisp.dhis.webapi.security.session;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.user.UserService;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.security.web.session.HttpSessionDestroyedEvent;
 import org.springframework.stereotype.Component;
 
 /**
- * Provides gauges for currently active HTTP sessions and the number of distinct users holding them.
- * Values are cached briefly because enumerating sessions is O(number of users) with a Redis-backed
- * session registry, while consumers (Prometheus scrapes, JMX polling) run on fixed intervals.
- * Sessions only exist for browser clients; PAT/basic/JWT clients are session-less and covered by
- * the user statistics endpoints instead.
+ * Provides gauges for currently active HTTP sessions and the number of distinct users holding them,
+ * plus servlet container session lifecycle counters. Gauge values are cached briefly because
+ * enumerating sessions is O(number of users) with a Redis-backed session registry, while consumers
+ * (Prometheus scrapes, JMX polling) run on fixed intervals.
+ *
+ * <p>The container session count is kept from HTTP session lifecycle events, so reading it is O(1)
+ * and a session is counted from the moment it is created until it is invalidated, logged out or
+ * expired. The lifecycle counts are per JVM and reset on restart.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Stian Sandvold
  */
 @Component
 public class SessionStatisticsProvider {
 
   /** Number of active (non-expired) HTTP sessions and distinct users holding them. */
   public record SessionGauges(long sessions, long users) {}
+
+  private final AtomicLong httpSessions = new AtomicLong();
+
+  private final AtomicLong sessionsCreatedTotal = new AtomicLong();
+
+  private final AtomicLong sessionsDestroyedTotal = new AtomicLong();
 
   private final UserService userService;
 
@@ -64,6 +78,37 @@ public class SessionStatisticsProvider {
   /** Returns the current session gauges, cached for one minute. */
   public SessionGauges getSessionGauges() {
     return sessionGaugeCache.get("gauges", key -> computeSessionGauges());
+  }
+
+  @EventListener
+  public void onSessionCreated(HttpSessionCreatedEvent event) {
+    sessionsCreatedTotal.incrementAndGet();
+    httpSessions.incrementAndGet();
+  }
+
+  @EventListener
+  public void onSessionDestroyed(HttpSessionDestroyedEvent event) {
+    sessionsDestroyedTotal.incrementAndGet();
+    httpSessions.updateAndGet(held -> held > 0 ? held - 1 : 0);
+  }
+
+  /**
+   * Every HTTP session the servlet container currently holds, which is a strictly larger population
+   * than {@link SessionGauges#sessions()}: it also counts API-token clients and unauthenticated
+   * visitors whose request was saved for a post-login redirect.
+   */
+  public long getHttpSessions() {
+    return httpSessions.get();
+  }
+
+  /** Sessions created since this instance started. Rises steeply if clients do not reuse them. */
+  public long getSessionsCreatedTotal() {
+    return sessionsCreatedTotal.get();
+  }
+
+  /** Sessions invalidated, logged out or expired since this instance started. */
+  public long getSessionsDestroyedTotal() {
+    return sessionsDestroyedTotal.get();
   }
 
   private SessionGauges computeSessionGauges() {
