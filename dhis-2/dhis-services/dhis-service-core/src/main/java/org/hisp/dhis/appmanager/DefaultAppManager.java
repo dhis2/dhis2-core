@@ -72,6 +72,7 @@ import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.Locale;
@@ -121,6 +122,7 @@ public class DefaultAppManager implements AppManager {
   private final DatastoreService datastoreService;
   private final BundledAppManager bundledAppManager;
   private final I18nManager i18nManager;
+  private final ETagService eTagService;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
@@ -136,7 +138,8 @@ public class DefaultAppManager implements AppManager {
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,
       LocaleManager localeManager,
-      BundledAppManager bundledAppManager) {
+      BundledAppManager bundledAppManager,
+      ETagService eTagService) {
 
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(blobStoreAppStorageService);
@@ -145,6 +148,7 @@ public class DefaultAppManager implements AppManager {
     checkNotNull(i18nManager);
     checkNotNull(bundledAppManager);
     checkNotNull(localeManager);
+    checkNotNull(eTagService);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
@@ -154,6 +158,7 @@ public class DefaultAppManager implements AppManager {
     this.i18nManager = i18nManager;
     this.localeManager = localeManager;
     this.bundledAppManager = bundledAppManager;
+    this.eTagService = eTagService;
   }
 
   /**
@@ -532,6 +537,7 @@ public class DefaultAppManager implements AppManager {
         String.format(
             "Installed App with AppHub ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
     cacheApp(app);
+    eTagService.incrementNamedVersion("installedApps");
     return app;
   }
 
@@ -614,6 +620,7 @@ public class DefaultAppManager implements AppManager {
 
     blobStoreAppStorageService.deleteApp(app);
     reloadApps();
+    eTagService.incrementNamedVersion("installedApps");
 
     // If a bundled version exists it will replace the deleted override.
     // In that case, deleting the app should not remove the namespace protection

@@ -75,7 +75,9 @@ services:
       timeout: 3s
       retries: 5
     ports:
-      - "127.0.0.1:5432:5432"
+      # Host port overridable when 5432 is already taken (e.g. another local Postgres).
+      # Container-internal port stays 5432 (web talks to db over the compose network).
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
 
   # Prometheus for scraping DHIS2 metrics (HikariCP, JVM, etc.)
   prometheus:

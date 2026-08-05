@@ -1,0 +1,24 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgPIN01",
+      "name": "Cache Program for PI",
+      "shortName": "Cache PI Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "programIndicators": [
+    {
+      "id": "CchPI000001",
+      "name": "Cache Test Program Indicator",
+      "shortName": "Cache PI",
+      "program": { "id": "CchPrgPIN01" },
+      "expression": "V{event_count}",
+      "analyticsType": "EVENT",
+      "aggregationType": "COUNT"
+    }
+  ]
+}

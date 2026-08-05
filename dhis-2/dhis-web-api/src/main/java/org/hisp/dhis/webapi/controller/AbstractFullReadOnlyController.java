@@ -93,7 +93,9 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
+import org.hisp.dhis.webapi.mvc.interceptor.ETagConditionalInterceptor;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.service.ETagConditionalService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
@@ -142,6 +144,9 @@ public abstract class AbstractFullReadOnlyController<
   @Autowired protected SchemaService schemaService;
 
   @Autowired private GistBridge gistBridge;
+
+  @Autowired(required = false)
+  private ETagConditionalService eTagConditionalService;
 
   private Schema schema;
 
@@ -240,6 +245,10 @@ public abstract class AbstractFullReadOnlyController<
       if (additionalFilters.isEmpty()) {
         GistBridge.GistBridgeParams p = toGistBridgeParams(params, request);
         if (gistBridge.isSupportedObjectList(p)) {
+          // Gist writes the body directly and this handler returns null, so the response never
+          // passes through ETagConditionalResponseBodyAdvice; ETag headers must be applied
+          // before the response is committed.
+          applyStoredETagHeaders(request, response);
           getObjectListGist(GistBridge.toObjectListParams(p), request, response);
           return null; // response already created by Gist
         }
@@ -546,7 +555,18 @@ public abstract class AbstractFullReadOnlyController<
 
   private void cachePrivate(HttpServletResponse response) {
     response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
+        ContextUtils.HEADER_CACHE_CONTROL,
+        noCache().cachePrivate().mustRevalidate().getHeaderValue());
+  }
+
+  private void applyStoredETagHeaders(HttpServletRequest request, HttpServletResponse response) {
+    if (eTagConditionalService == null) {
+      return;
+    }
+    String storedETag = ETagConditionalInterceptor.getStoredETag(request);
+    if (storedETag != null) {
+      eTagConditionalService.setETagHeaders(response, storedETag);
+    }
   }
 
   /**
