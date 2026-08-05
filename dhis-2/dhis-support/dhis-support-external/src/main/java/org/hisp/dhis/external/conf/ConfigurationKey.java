@@ -585,8 +585,9 @@ public enum ConfigurationKey {
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
 
   /**
-   * JMX monitoring: expose selected statistics (user statistics) as JMX MBeans, for monitoring
-   * tools that consume JMX rather than Prometheus, such as Glowroot. (default: off)
+   * JMX monitoring: expose selected statistics (user statistics) and HikariCP connection pool
+   * MBeans, for monitoring tools that consume JMX rather than Prometheus, such as Glowroot.
+   * (default: off)
    */
   MONITORING_JMX_ENABLED("monitoring.jmx.enabled", Constants.OFF, false),
 

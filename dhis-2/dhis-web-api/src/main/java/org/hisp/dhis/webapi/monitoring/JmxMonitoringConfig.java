@@ -46,6 +46,9 @@ import org.springframework.jmx.support.RegistrationPolicy;
  * dhis.conf. Intended for monitoring tools that consume JMX rather than Prometheus, such as
  * Glowroot.
  *
+ * <p>The same setting also registers the HikariCP connection pool MBeans, see {@code
+ * org.hisp.dhis.datasource.DatabasePoolUtils}.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
