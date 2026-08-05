@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.security.oauth2.dcr.OAuth2DcrService.createIaToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -48,6 +49,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
@@ -75,9 +77,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -86,12 +90,15 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
@@ -226,6 +233,131 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
   }
 
   @Test
+  @DisplayName("Test refresh token rotation and sliding window expiry")
+  void testRefreshTokenRotationAndSlidingWindow() throws Exception {
+    // Given a DCR-registered client with the refresh_token grant
+    KeyPair keyPair = createKeys();
+    String clientId = registerRefreshCapableClient(keyPair);
+    RegisteredClient client = oAuth2ClientService.findByClientId(clientId);
+
+    // Given a persisted authorization holding a valid refresh token, as after a completed
+    // authorization_code flow
+    String initialRefreshToken = UUID.randomUUID().toString();
+    saveAuthorizationWithRefreshToken(
+        client, initialRefreshToken, Instant.now(), Instant.now().plus(Duration.ofDays(30)));
+
+    // When refreshing with the valid refresh token, then new tokens are issued
+    String response =
+        callRefreshTokenEndpoint(keyPair, clientId, initialRefreshToken)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.access_token").exists())
+            .andExpect(jsonPath("$.refresh_token").exists())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    // Then the refresh token is rotated: the response contains a NEW refresh token
+    String rotatedRefreshToken =
+        ((JsonObject) JsonValue.of(response)).getString("refresh_token").string();
+    assertNotEquals(initialRefreshToken, rotatedRefreshToken);
+
+    // Then the rotated refresh token has a fresh 30 day expiry (sliding window), enforced from
+    // the persisted refresh_token_expires_at
+    OAuth2Authorization refreshed =
+        dhis2OAuth2AuthorizationService.findByToken(
+            rotatedRefreshToken, OAuth2TokenType.REFRESH_TOKEN);
+    assertNotNull(refreshed);
+    Instant rotatedExpiresAt = refreshed.getRefreshToken().getToken().getExpiresAt();
+    assertNotNull(rotatedExpiresAt);
+    assertTrue(
+        rotatedExpiresAt.isAfter(Instant.now().plus(Duration.ofDays(29)))
+            && rotatedExpiresAt.isBefore(Instant.now().plus(Duration.ofDays(31))),
+        "rotated refresh token must expire ~30 days from now, was: " + rotatedExpiresAt);
+
+    // Then replaying the superseded refresh token is rejected (rotation invalidates it)
+    callRefreshTokenEndpoint(keyPair, clientId, initialRefreshToken)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("invalid_grant"));
+  }
+
+  @Test
+  @DisplayName("Test expired refresh token is rejected")
+  void testExpiredRefreshTokenRejected() throws Exception {
+    // Given a DCR-registered client with the refresh_token grant
+    KeyPair keyPair = createKeys();
+    String clientId = registerRefreshCapableClient(keyPair);
+    RegisteredClient client = oAuth2ClientService.findByClientId(clientId);
+
+    // Given a persisted authorization whose refresh token expired one hour ago. Expiry is
+    // enforced against the persisted refresh_token_expires_at, so backdating it simulates the
+    // passage of time without mocking any clock.
+    String expiredRefreshToken = UUID.randomUUID().toString();
+    saveAuthorizationWithRefreshToken(
+        client,
+        expiredRefreshToken,
+        Instant.now().minus(Duration.ofDays(31)),
+        Instant.now().minus(Duration.ofHours(1)));
+
+    // When refreshing with the expired token, then the grant is rejected
+    callRefreshTokenEndpoint(keyPair, clientId, expiredRefreshToken)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("invalid_grant"));
+  }
+
+  /** Registers a client with the authorization_code and refresh_token grants via DCR. */
+  private String registerRefreshCapableClient(KeyPair keyPair) throws Exception {
+    String initialAccessToken = createClientAndIat();
+    MockHttpServletRequestBuilder registration =
+        getGetClientRegPost(
+            initialAccessToken, keyPair, "[\"authorization_code\", \"refresh_token\"]");
+    String response =
+        mvc.perform(registration)
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    return ((JsonObject) JsonValue.of(response)).getString("client_id").string();
+  }
+
+  /**
+   * Persists an {@link OAuth2Authorization} holding a refresh token with the given lifetime, as it
+   * would exist after a completed authorization_code flow.
+   */
+  private void saveAuthorizationWithRefreshToken(
+      RegisteredClient client, String refreshTokenValue, Instant issuedAt, Instant expiresAt) {
+    // MockMvc requests clear the thread's security context; the authorization store needs a
+    // current user for auditing
+    injectAdminIntoSecurityContext();
+    OAuth2RefreshToken refreshToken =
+        new OAuth2RefreshToken(refreshTokenValue, issuedAt, expiresAt);
+    UsernamePasswordAuthenticationToken principal =
+        UsernamePasswordAuthenticationToken.authenticated("admin", null, List.of());
+    OAuth2Authorization authorization =
+        OAuth2Authorization.withRegisteredClient(client)
+            .id(UUID.randomUUID().toString())
+            .principalName("admin")
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .authorizedScopes(Set.of("username"))
+            .attribute(Principal.class.getName(), principal)
+            .refreshToken(refreshToken)
+            .build();
+    dhis2OAuth2AuthorizationService.save(authorization);
+  }
+
+  private ResultActions callRefreshTokenEndpoint(
+      KeyPair keyPair, String clientId, String refreshToken) throws Exception {
+    return mvc.perform(
+        post("/oauth2/token")
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .param("client_id", clientId)
+            .param(
+                "client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
+            .param("grant_type", "refresh_token")
+            .param("refresh_token", refreshToken)
+            .param("client_assertion", createClientAssertion(keyPair, clientId)));
+  }
+
+  @Test
   @DisplayName("Test iat can only be used once ")
   void testIatCanOnlyBeUsedOnce() throws Exception {
     // Given an initial access token (iat)
@@ -324,6 +456,11 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
    * @return
    */
   private static MockHttpServletRequestBuilder getGetClientRegPost(String iat, KeyPair keyPair) {
+    return getGetClientRegPost(iat, keyPair, "[\"client_credentials\"]");
+  }
+
+  private static MockHttpServletRequestBuilder getGetClientRegPost(
+      String iat, KeyPair keyPair, String grantTypesJson) {
     return post("/connect/register")
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + iat)
         .contentType(MediaType.APPLICATION_JSON)
@@ -333,7 +470,7 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
                  {
                    "client_name": "Test DHIS2 Android Client",
                    "redirect_uris": ["https://dhis2.org"],
-                   "grant_types": ["client_credentials"],
+                   "grant_types": %s,
                    "response_types": ["code"],
                    "token_endpoint_auth_method": "private_key_jwt",
                    "token_endpoint_auth_signing_alg": "RS256",
@@ -341,6 +478,7 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
                    "jwks": %s
                  }
                 """,
+                grantTypesJson,
                 keyPair
                     .jwkSet())); // Inline JWKS , note jwks_uri is also set but should be ignored,
     // validation will fail if not set, only jwks is used
@@ -370,7 +508,7 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
     return iaToken.iatJwt();
   }
 
-  private String callTokenEndpoint(KeyPair keyPair, String clientId) throws Exception {
+  private String createClientAssertion(KeyPair keyPair, String clientId) {
     // This is the server base URL with trailing slash!!!
     String serverBaseUrlWithTrailingSlash = authorizationServerSettings.getIssuer();
 
@@ -389,10 +527,13 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
             .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
             .build();
 
-    String clientAssertion =
-        clientJwtEncoder
-            .encode(JwtEncoderParameters.from(assertionHeader, assertionClaims))
-            .getTokenValue();
+    return clientJwtEncoder
+        .encode(JwtEncoderParameters.from(assertionHeader, assertionClaims))
+        .getTokenValue();
+  }
+
+  private String callTokenEndpoint(KeyPair keyPair, String clientId) throws Exception {
+    String clientAssertion = createClientAssertion(keyPair, clientId);
 
     return mvc.perform(
             post("/oauth2/token")
