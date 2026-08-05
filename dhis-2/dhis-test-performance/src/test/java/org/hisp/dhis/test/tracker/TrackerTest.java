@@ -380,9 +380,12 @@ public class TrackerTest extends Simulation {
    * E1303 "Mandatory DataElement is not present" for the Synthea payloads, which do not contain
    * them, failing the global success rate assertion.
    *
-   * <p>UIDs are deterministic so repeated runs against the same DB are updates rather than
-   * duplicates. Every 7th data element gets an option set to also reproduce the second lazy hop via
-   * {@code DataElement.optionSet}, which is cached read-write as well.
+   * <p>UIDs are deterministic, so repeated runs against the same DB update the data elements rather
+   * than duplicating them. The program stage data elements need explicit handling: JSON Patch
+   * {@code add} always appends, so each stage is queried first and only the missing ones are
+   * attached, otherwise a rerun violates {@code programstagedataelement_unique_key}. Every 7th data
+   * element gets an option set to also reproduce the second lazy hop via {@code
+   * DataElement.optionSet}, which is cached read-write as well.
    *
    * <p>ProgramStageDataElement is an {@link org.hisp.dhis.common.EmbeddedObject}, so it cannot be
    * imported standalone via {@code /api/metadata} (there is no {@code
@@ -418,11 +421,27 @@ public class TrackerTest extends Simulation {
     }
 
     // then append them to the stages as embedded program stage data elements, one patch per stage
-    // per batch
+    // per batch. JSON Patch "add" on a collection always appends, so re-running against an already
+    // widened DB would violate programstagedataelement_unique_key. Skip what is already attached.
     for (int s = 0; s < stages.length; s++) {
+      String attached =
+          send(
+              "/api/programStages/"
+                  + stages[s]
+                  + "?fields=programStageDataElements%5BdataElement%5Bid%5D%5D",
+              "GET",
+              "application/json",
+              null,
+              -1);
       List<Integer> mine = new ArrayList<>();
       for (int i = s; i < n; i += stages.length) {
-        mine.add(i);
+        if (!attached.contains("\"PERFde%05d\"".formatted(i))) {
+          mine.add(i);
+        }
+      }
+      if (mine.isEmpty()) {
+        logger.debug("  stage {} already widened, nothing to attach", stages[s]);
+        continue;
       }
       for (int from = 0; from < mine.size(); from += batchSize) {
         int to = Math.min(from + batchSize, mine.size());
@@ -495,7 +514,11 @@ public class TrackerTest extends Simulation {
                     .header("Content-Type", contentType)
                     .header("Accept", "application/json")
                     .timeout(Duration.ofMinutes(10))
-                    .method(method, HttpRequest.BodyPublishers.ofString(body))
+                    .method(
+                        method,
+                        body == null
+                            ? HttpRequest.BodyPublishers.noBody()
+                            : HttpRequest.BodyPublishers.ofString(body))
                     .build(),
                 HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() != 200) {
