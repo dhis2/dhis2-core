@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.cache;
+package org.hisp.dhis.analytics.trackedentity;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Enum is used to make sure we do not use same region twice. Each method should have its own
- * constant.
+ * The resolved program-stage event value an aggregate query aggregates over: a numeric data element
+ * of a program stage, collapsed to one chosen event per tracked entity. The {@code offset} selects
+ * which occurrence of the stage to read (0 = latest, negative = earlier, positive = ascending from
+ * the first), matching the row-level query offset semantics.
  */
-@SuppressWarnings("squid:S115") // allow non enum-ish names
-public enum Region {
-  analyticsResponse,
-  defaultObjectCache,
-  allConstantsCache,
-  inUserOrgUnitHierarchy,
-  periodIdCache,
-  userAccountRecoverAttempt,
-  userFailedLoginAttempt,
-  twoFaDisableFailedAttempt,
-  programOwner,
-  programTempOwner,
-  currentUserGroupInfoCache,
-  attrOptionComboIdCache,
-  googleAccessToken,
-  dataItemsPagination,
-  metadataAttributes,
-  canDataWriteCocCache,
-  analyticsSql,
-  propertyTransformerCache,
-  programHasRulesCache,
-  userGroupNameCache,
-  userDisplayNameCache,
-  pgmOrgUnitAssocCache,
-  catOptOrgUnitAssocCache,
-  dataSetOrgUnitAssocCache,
-  apiTokensCache,
-  teAttributesCache,
-  programTeAttributesCache,
-  userGroupUIDCache,
-  securityCache,
-  dataIntegritySummaryCache,
-  dataIntegrityDetailsCache,
-  queryAliasCache,
-  corsWhitelistCache,
-  notificationTemplateCache,
-  systemStatisticsOverview,
-  systemStatisticsDataCounts,
-  dataSummarySessionGauges
-}
+public record EventValue(ProgramStage programStage, DataElement dataElement, int offset) {}

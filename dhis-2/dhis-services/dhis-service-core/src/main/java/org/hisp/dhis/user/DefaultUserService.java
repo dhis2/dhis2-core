@@ -644,19 +644,8 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public int getActiveUsersCount(int days) {
-    Calendar cal = PeriodType.createCalendarInstance();
-    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
-
-    return getActiveUsersCount(cal.getTime());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getActiveUsersCount(Date since) {
-    UserQueryParams params = new UserQueryParams();
-    params.setLastLogin(since);
-    return getUserCount(params);
+  public List<Integer> getActiveUsersCounts(List<Date> sinceDates) {
+    return userStore.getActiveUserCounts(sinceDates);
   }
 
   @Override
@@ -1027,10 +1016,18 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<SessionInformation> listAllSessions() {
+    return getAllSessionPrincipals().stream()
+        .flatMap(principal -> sessionRegistry.getAllSessions(principal, true).stream())
+        .toList();
+  }
+
+  @Override
   public void invalidateAllSessions() {
-    for (Object allPrincipal : sessionRegistry.getAllPrincipals()) {
-      for (SessionInformation allSession : sessionRegistry.getAllSessions(allPrincipal, true)) {
-        sessionRegistry.removeSessionInformation(allSession.getSessionId());
+    for (Object principal : getAllSessionPrincipals()) {
+      for (SessionInformation session : sessionRegistry.getAllSessions(principal, true)) {
+        sessionRegistry.removeSessionInformation(session.getSessionId());
       }
     }
   }
@@ -1043,6 +1040,21 @@ public class DefaultUserService implements UserService {
     List<SessionInformation> sessions =
         sessionRegistry.getAllSessions(sessionLookupPrincipal(username), false);
     sessions.forEach(SessionInformation::expireNow);
+  }
+
+  /**
+   * Returns every principal currently known to the session registry. Tries {@link
+   * SessionRegistry#getAllPrincipals()} first; when that is unsupported (Redis-backed Spring
+   * Session registry), falls back to looking up sessions by username for every user in the system.
+   */
+  private List<Object> getAllSessionPrincipals() {
+    try {
+      return List.copyOf(sessionRegistry.getAllPrincipals());
+    } catch (UnsupportedOperationException ex) {
+      return userStore.getAllUsernames().stream()
+          .map(username -> (Object) sessionLookupPrincipal(username))
+          .toList();
+    }
   }
 
   /**

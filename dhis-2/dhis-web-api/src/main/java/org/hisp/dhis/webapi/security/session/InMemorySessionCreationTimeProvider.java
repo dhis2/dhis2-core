@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.cache;
+package org.hisp.dhis.webapi.security.session;
+
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.CheckForNull;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.security.web.session.HttpSessionDestroyedEvent;
 
 /**
- * Enum is used to make sure we do not use same region twice. Each method should have its own
- * constant.
+ * Map-backed {@link SessionCreationTimeProvider} for the in-memory (non-Redis) session stack.
+ * Creation times are recorded from {@link HttpSessionCreatedEvent} and removed on {@link
+ * HttpSessionDestroyedEvent}.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@SuppressWarnings("squid:S115") // allow non enum-ish names
-public enum Region {
-  analyticsResponse,
-  defaultObjectCache,
-  allConstantsCache,
-  inUserOrgUnitHierarchy,
-  periodIdCache,
-  userAccountRecoverAttempt,
-  userFailedLoginAttempt,
-  twoFaDisableFailedAttempt,
-  programOwner,
-  programTempOwner,
-  currentUserGroupInfoCache,
-  attrOptionComboIdCache,
-  googleAccessToken,
-  dataItemsPagination,
-  metadataAttributes,
-  canDataWriteCocCache,
-  analyticsSql,
-  propertyTransformerCache,
-  programHasRulesCache,
-  userGroupNameCache,
-  userDisplayNameCache,
-  pgmOrgUnitAssocCache,
-  catOptOrgUnitAssocCache,
-  dataSetOrgUnitAssocCache,
-  apiTokensCache,
-  teAttributesCache,
-  programTeAttributesCache,
-  userGroupUIDCache,
-  securityCache,
-  dataIntegritySummaryCache,
-  dataIntegrityDetailsCache,
-  queryAliasCache,
-  corsWhitelistCache,
-  notificationTemplateCache,
-  systemStatisticsOverview,
-  systemStatisticsDataCounts,
-  dataSummarySessionGauges
+public class InMemorySessionCreationTimeProvider implements SessionCreationTimeProvider {
+
+  private final Map<String, Date> creationTimes = new ConcurrentHashMap<>();
+
+  @Override
+  @CheckForNull
+  public Date getCreationTime(String sessionId) {
+    if (sessionId == null) {
+      return null;
+    }
+    return creationTimes.get(sessionId);
+  }
+
+  @EventListener
+  public void sessionCreated(HttpSessionCreatedEvent event) {
+    creationTimes.put(event.getSession().getId(), new Date(event.getSession().getCreationTime()));
+  }
+
+  @EventListener
+  public void sessionDestroyed(HttpSessionDestroyedEvent event) {
+    creationTimes.remove(event.getSession().getId());
+  }
 }
