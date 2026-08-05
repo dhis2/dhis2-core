@@ -52,12 +52,12 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Configuration for monitoring Hibernate's second-level EHCache implementation.
  *
- * <p>This class creates metrics for cache hits, misses, and other statistics for each region in
- * the Hibernate second-level cache. Ehcache2 variant (2.41 runs {@code net.sf.ehcache} /
- * Hibernate's {@link EhcacheRegionFactory}, not Ehcache3/JSR-107 like current master), adapted
- * from master's {@code EhCacheMetricsConfig} (PR #20398) so it targets the native Ehcache2
- * {@link CacheManager}/{@link StatisticsGateway} API directly instead of reflecting into a
- * JSR-107 wrapper.
+ * <p>This class creates metrics for cache hits, misses, and other statistics for each region in the
+ * Hibernate second-level cache. Ehcache2 variant (2.41 runs {@code net.sf.ehcache} / Hibernate's
+ * {@link EhcacheRegionFactory}, not Ehcache3/JSR-107 like current master), adapted from master's
+ * {@code EhCacheMetricsConfig} (PR #20398) so it targets the native Ehcache2 {@link
+ * CacheManager}/{@link StatisticsGateway} API directly instead of reflecting into a JSR-107
+ * wrapper.
  */
 @Slf4j
 @Configuration
@@ -182,8 +182,8 @@ public class EhCacheMetricsConfig {
      * segment starting with an uppercase letter and includes all subsequent segments.
      *
      * @param fullCacheName The full name of the cache region.
-     * @return A simplified name based on the first capitalized segment, or the original name if
-     *     no capitalized segment is found.
+     * @return A simplified name based on the first capitalized segment, or the original name if no
+     *     capitalized segment is found.
      */
     private String deriveNamePart(String fullCacheName) {
       if (fullCacheName == null || fullCacheName.isEmpty()) {
