@@ -527,12 +527,6 @@ public enum ConfigurationKey {
   LOGGING_FILE_MAX_ARCHIVES("logging.file.max_archives", "1"),
 
   /**
-   * Adds a hashed (SHA-256) session ID to the MDC ({@code sessionId} key). Include it in log output
-   * via {@code %X{sessionId}} in the log4j2 pattern layout.
-   */
-  LOGGING_SESSION_ID("logging.session_id", Constants.ON, false),
-
-  /**
    * Enables SQL query logging via a datasource proxy. All {@code logging.query.*} keys below
    * require this to be enabled.
    */
@@ -541,6 +535,15 @@ public enum ConfigurationKey {
   /** Threshold in milliseconds for logging slow queries at WARN level. */
   LOGGING_QUERY_SLOW_THRESHOLD(
       "logging.query.slow_threshold", String.valueOf(SECONDS.toMillis(1)), false),
+
+  /** Adds a hashed session identifier to the X-Session-ID response header. (default: off). */
+  LOGGING_SESSION_ID_HEADER_ENABLED("logging.session_id_header.enabled", Constants.OFF, false),
+
+  /** Adds an encrypted user identifier to the X-User-ID response header. (default: off). */
+  LOGGING_USER_ID_HEADER_ENABLED("logging.user_id_header.enabled", Constants.OFF, false),
+
+  /** Base64-encoded 32-byte encryption key for X-User-ID header value (sensitive). */
+  LOGGING_USER_ID_ENCRYPTION_KEY("logging.user_id_encryption_key", "", true),
 
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
