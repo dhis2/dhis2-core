@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.webapi.monitoring;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import lombok.extern.slf4j.Slf4j;
