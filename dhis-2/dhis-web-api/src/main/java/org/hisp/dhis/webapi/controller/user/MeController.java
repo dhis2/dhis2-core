@@ -161,7 +161,9 @@ public class MeController {
     List<String> programs =
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
-    UserDetails userDetails = UserDetails.fromUser(user);
+    // Use the service path so managed-group PKs are batch-resolved (one SQL) instead of
+    // UserDetails.fromUser walking User.getManagedGroups() (lazy N+1 per membership group).
+    UserDetails userDetails = userService.createUserDetails(user);
 
     List<String> dataSets =
         dataSetService.getUserDataRead(userDetails).stream()
