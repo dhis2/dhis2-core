@@ -193,6 +193,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>net.ttddyy</groupId>
+      <artifactId>datasource-proxy</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>minio</artifactId>
       <scope>test</scope>

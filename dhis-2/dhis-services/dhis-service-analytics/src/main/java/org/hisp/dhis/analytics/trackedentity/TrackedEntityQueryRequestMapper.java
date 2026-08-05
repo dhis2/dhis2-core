@@ -31,20 +31,29 @@ package org.hisp.dhis.analytics.trackedentity;
 
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getProgramAttributes;
 import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getTrackedEntityAttributes;
 import static org.hisp.dhis.feedback.ErrorCode.E7125;
 import static org.hisp.dhis.feedback.ErrorCode.E7142;
+import static org.hisp.dhis.feedback.ErrorCode.E7254;
+import static org.hisp.dhis.feedback.ErrorCode.E7255;
+import static org.hisp.dhis.feedback.ErrorCode.E7256;
 
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Strings;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Component;
@@ -61,10 +70,22 @@ public class TrackedEntityQueryRequestMapper {
 
   private final ProgramService programService;
 
+  /** The aggregation functions a tracked entity aggregate query supports. */
+  private static final Set<AggregationType> SUPPORTED_AGGREGATION_TYPES =
+      EnumSet.of(
+          AggregationType.COUNT,
+          AggregationType.SUM,
+          AggregationType.AVERAGE,
+          AggregationType.MIN,
+          AggregationType.MAX,
+          AggregationType.STDDEV,
+          AggregationType.VARIANCE);
+
   /**
    * Maps incoming query requests into a valid and usable {@link TrackedEntityQueryParams}. Be aware
    * that it changes the state of the given {@link CommonRequestParams} in specific cases.
    *
+   * @param trackedEntityTypeUid the tracked entity type uid.
    * @param requestParams the {@link CommonRequestParams}.
    * @return the populated {@link TrackedEntityQueryParams}.
    * @throws IllegalQueryException if the current TrackedEntityType specified in the given request
@@ -89,7 +110,80 @@ public class TrackedEntityQueryRequestMapper {
         .addAll(
             getTrackedEntityAttributes(trackedEntityType).map(IdentifiableObject::getUid).toList());
 
-    return TrackedEntityQueryParams.builder().trackedEntityType(trackedEntityType).build();
+    validateAggregationType(requestParams);
+    TrackedEntityAttribute value = resolveValue(requestParams, trackedEntityType);
+
+    return TrackedEntityQueryParams.builder()
+        .trackedEntityType(trackedEntityType)
+        .value(value)
+        .aggregationType(aggregationTypeFor(requestParams.getAggregationType(), value))
+        .build();
+  }
+
+  /**
+   * Validates the requested aggregation type: it must be one this endpoint supports, and a
+   * non-COUNT type requires a {@code value} to aggregate over.
+   *
+   * @param requestParams the {@link CommonRequestParams}.
+   * @throws IllegalQueryException if the aggregation type is unsupported or requires a missing
+   *     value.
+   */
+  private void validateAggregationType(CommonRequestParams requestParams) {
+    AggregationType aggregationType = requestParams.getAggregationType();
+    if (aggregationType == null) {
+      return;
+    }
+
+    if (!SUPPORTED_AGGREGATION_TYPES.contains(aggregationType)) {
+      throw new IllegalQueryException(E7254, aggregationType.name());
+    }
+
+    if (aggregationType != AggregationType.COUNT && requestParams.getValue() == null) {
+      throw new IllegalQueryException(E7255, aggregationType.name());
+    }
+  }
+
+  /**
+   * Resolves the requested value UID into a numeric attribute to aggregate over. The candidates are
+   * the tracked entity type's own attributes and the attributes of the requested programs — the
+   * same set the analytics_te table flattens into columns, so both resolve to a bare {@code
+   * t_1."<uid>"} column. Data elements and program indicators are not accepted.
+   *
+   * @param requestParams the {@link CommonRequestParams} carrying the value UID and programs.
+   * @param trackedEntityType the {@link TrackedEntityType}.
+   * @return the resolved {@link TrackedEntityAttribute}, or null when no value was requested.
+   * @throws IllegalQueryException if the UID does not refer to a numeric attribute of the tracked
+   *     entity type or its programs.
+   */
+  private TrackedEntityAttribute resolveValue(
+      CommonRequestParams requestParams, TrackedEntityType trackedEntityType) {
+    String valueUid = requestParams.getValue();
+    if (valueUid == null) {
+      return null;
+    }
+
+    List<Program> programs = List.copyOf(programService.getPrograms(requestParams.getProgram()));
+
+    return Stream.concat(
+            getTrackedEntityAttributes(trackedEntityType), getProgramAttributes(programs))
+        .filter(attribute -> valueUid.equals(attribute.getUid()))
+        .filter(attribute -> attribute.getValueType().isNumeric())
+        .findFirst()
+        .orElseThrow(() -> new IllegalQueryException(E7256, valueUid, trackedEntityType.getUid()));
+  }
+
+  /**
+   * Returns the aggregation function to apply: the requested one, falling back to AVERAGE when a
+   * value attribute is present — matching the event/enrollment aggregate contract. Without a value
+   * attribute the aggregate query counts TEIs, so no function is materialized.
+   */
+  private AggregationType aggregationTypeFor(
+      AggregationType requested, TrackedEntityAttribute value) {
+    if (requested != null) {
+      return requested;
+    }
+
+    return value != null ? AggregationType.AVERAGE : null;
   }
 
   private Set<String> getProgramUidsFromTrackedEntityType(TrackedEntityType trackedEntityType) {

@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -56,10 +55,10 @@ class FieldPathConverterTest {
   void setUp() {
     List<FieldPath> expected =
         List.of(
-            new FieldPath("attributes", Collections.emptyList()),
-            new FieldPath("attribute", List.of("attributes")),
-            new FieldPath("value", List.of("attributes")),
-            new FieldPath("deleted", Collections.emptyList()));
+            FieldPath.of("attributes"),
+            FieldPath.of("attributes.attribute"),
+            FieldPath.of("attributes.value"),
+            FieldPath.of("deleted"));
 
     DefaultFormattingConversionService formattingConversionService =
         new DefaultFormattingConversionService();

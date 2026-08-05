@@ -210,8 +210,6 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "AND",
         sharedParams.getString("{GetObjectListParams.rootJunction}.schema.default").string());
-    assertTrue(
-        sharedParams.getBoolean("{GistObjectParams.translate}.schema.default").booleanValue());
 
     // defaults in individual parameters (from endpoint method parameter analysis)
     JsonObject fileResources = GET("/openapi/openapi.json?scope=path:/api/fileResources").content();

@@ -100,10 +100,11 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<IncomingSms>> getObjectList(
       GetObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, ConflictException {
-    return super.getObjectList(params, response, currentUser);
+    return super.getObjectList(params, request, response, currentUser);
   }
 
   @PostMapping(produces = APPLICATION_JSON_VALUE)

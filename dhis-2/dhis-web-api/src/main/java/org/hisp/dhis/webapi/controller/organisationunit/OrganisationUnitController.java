@@ -44,6 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -216,10 +217,11 @@ public class OrganisationUnitController
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeChildren(
       @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
-    return getChildren(uid, params, response, currentUser);
+    return getChildren(uid, params, request, response, currentUser);
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
@@ -227,6 +229,7 @@ public class OrganisationUnitController
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildren(
       @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
@@ -235,7 +238,7 @@ public class OrganisationUnitController
         List.of(
             in("level", List.of(parent.getLevel(), parent.getLevel() + 1)),
             like("path", uid.getValue(), MatchMode.ANYWHERE));
-    return getObjectListWith(params, response, currentUser, children);
+    return getObjectListWith(params, request, response, currentUser, children);
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
@@ -244,10 +247,11 @@ public class OrganisationUnitController
       @PathVariable("uid") UID uid,
       @RequestParam int level,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
-    return getChildrenWithLevel(uid, level, params, response, currentUser);
+    return getChildrenWithLevel(uid, level, params, request, response, currentUser);
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
@@ -256,6 +260,7 @@ public class OrganisationUnitController
       @PathVariable("uid") UID uid,
       @RequestParam int level,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
@@ -263,7 +268,7 @@ public class OrganisationUnitController
     List<Filter> childrenWithLevel = List.of(like("path", parent.getStoredPath(), MatchMode.START));
     params.setParentLevel(parent.getLevel());
     params.setLevel(level);
-    return getObjectListWith(params, response, currentUser, childrenWithLevel);
+    return getObjectListWith(params, request, response, currentUser, childrenWithLevel);
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
@@ -271,10 +276,11 @@ public class OrganisationUnitController
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeDescendants(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, ConflictException {
-    return getDescendants(uid, params, response, currentUser);
+    return getDescendants(uid, params, request, response, currentUser);
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
@@ -282,11 +288,12 @@ public class OrganisationUnitController
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getDescendants(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, ConflictException {
     Filter descendants = like("path", uid, MatchMode.ANYWHERE);
-    return getObjectListWith(params, response, currentUser, List.of(descendants));
+    return getObjectListWith(params, request, response, currentUser, List.of(descendants));
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
@@ -294,10 +301,11 @@ public class OrganisationUnitController
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeAncestors(
       @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
-    return getAncestors(uid, params, response, currentUser);
+    return getAncestors(uid, params, request, response, currentUser);
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
@@ -305,6 +313,7 @@ public class OrganisationUnitController
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getAncestors(
       @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
@@ -315,7 +324,7 @@ public class OrganisationUnitController
       ancestorPaths.add(String.join("/", ancestorsIds.subList(0, i + 1)));
     Filter ancestors = in("path", ancestorPaths);
     params.addOrder("level:asc");
-    return getObjectListWith(params, response, currentUser, List.of(ancestors));
+    return getObjectListWith(params, request, response, currentUser, List.of(ancestors));
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
@@ -323,20 +332,22 @@ public class OrganisationUnitController
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getParents(
       @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit parent = getEntity(uid);
     // when parent is root => no matches by adding an impossible in filter
     if (parent.getLevel() == 1)
-      return getObjectListWith(params, response, currentUser, List.of(in("id", List.<String>of())));
+      return getObjectListWith(
+          params, request, response, currentUser, List.of(in("id", List.<String>of())));
     List<String> ancestorsIds = List.of(parent.getStoredPath().split("/"));
     List<String> parentPaths = new ArrayList<>();
     for (int i = 1; i < ancestorsIds.size() - 1; i++)
       parentPaths.add(String.join("/", ancestorsIds.subList(0, i + 1)));
     Filter parents = in("path", parentPaths);
     params.addOrder("level:asc");
-    return getObjectListWith(params, response, currentUser, List.of(parents));
+    return getObjectListWith(params, request, response, currentUser, List.of(parents));
   }
 
   @Override

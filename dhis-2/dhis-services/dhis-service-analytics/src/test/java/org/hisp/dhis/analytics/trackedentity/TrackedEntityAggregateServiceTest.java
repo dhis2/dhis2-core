@@ -41,6 +41,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -196,6 +197,46 @@ class TrackedEntityAggregateServiceTest {
             .map(DimensionIdentifier::getKey)
             .toList();
     assertEquals(List.of("ou"), metadataHeaderKeys);
+  }
+
+  @Test
+  void getGridRoundsDecimalValueByDefault() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParamsWithOuDimension();
+    SqlRowSet rowSet =
+        fakeRowSet(
+            new String[] {"ou", "value"},
+            List.of(
+                new Object[] {"OU1", new BigDecimal("10.126")},
+                new Object[] {"OU2", new BigDecimal("7.000")}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(10.13, grid.getRow(0).get(1));
+    assertEquals(7L, grid.getRow(1).get(1));
+  }
+
+  @Test
+  void getGridKeepsPrecisionWhenSkipRounding() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParamsWithOuDimension();
+    ctx.getCommonRaw().setSkipRounding(true);
+    SqlRowSet rowSet =
+        fakeRowSet(
+            new String[] {"ou", "value"},
+            List.<Object[]>of(new Object[] {"OU1", new BigDecimal("10.123456789012345")}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(10.123456789, grid.getRow(0).get(1));
   }
 
   @Test

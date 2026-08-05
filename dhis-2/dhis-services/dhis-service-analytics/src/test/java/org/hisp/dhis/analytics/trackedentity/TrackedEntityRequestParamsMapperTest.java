@@ -31,15 +31,23 @@ package org.hisp.dhis.analytics.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -121,6 +129,185 @@ class TrackedEntityRequestParamsMapperTest {
         .thenReturn(trackedEntityType);
 
     assertDoesNotThrow(() -> mapper.map(trackedEntityTypeUid, requestParams));
+  }
+
+  @Test
+  void testValueResolvesToNumericAttributeAndDefaultsToAverage() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    TrackedEntityAttribute attribute = stubAttribute(trackedEntityType, ValueType.NUMBER);
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setValue(attribute.getUid());
+
+    TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, requestParams);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertEquals(AggregationType.AVERAGE, params.getAggregationType());
+  }
+
+  @Test
+  void testExplicitAggregationTypeIsKept() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    TrackedEntityAttribute attribute = stubAttribute(trackedEntityType, ValueType.INTEGER);
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setValue(attribute.getUid());
+    requestParams.setAggregationType(AggregationType.SUM);
+
+    TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, requestParams);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertEquals(AggregationType.SUM, params.getAggregationType());
+  }
+
+  @Test
+  void testValueResolvesToProgramAttribute() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    Program program = stubProgram("A", trackedEntityTypeUid);
+    TrackedEntityAttribute attribute = stubProgramAttribute(program, ValueType.NUMBER);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A"));
+    requestParams.setValue(attribute.getUid());
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+    when(programService.getPrograms(Set.of("A"))).thenReturn(Set.of(program));
+
+    TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, requestParams);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertEquals(AggregationType.AVERAGE, params.getAggregationType());
+  }
+
+  @Test
+  void testValueNotAnAttributeOfTrackedEntityType() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setValue("PxAttUid001");
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7256, thrown.getErrorCode());
+  }
+
+  @Test
+  void testValueNotNumeric() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    TrackedEntityAttribute attribute = stubAttribute(trackedEntityType, ValueType.TEXT);
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setValue(attribute.getUid());
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7256, thrown.getErrorCode());
+  }
+
+  @Test
+  void testUnsupportedAggregationTypeIsRejected() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+    TrackedEntityAttribute attribute = stubAttribute(trackedEntityType, ValueType.NUMBER);
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setValue(attribute.getUid());
+    requestParams.setAggregationType(AggregationType.FIRST);
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7254, thrown.getErrorCode());
+  }
+
+  @Test
+  void testNumericAggregationTypeWithoutValueIsRejected() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setAggregationType(AggregationType.SUM);
+
+    IllegalQueryException thrown =
+        assertThrows(
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
+
+    assertEquals(ErrorCode.E7255, thrown.getErrorCode());
+  }
+
+  @Test
+  void testCountAggregationTypeWithoutValueIsAllowed() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setAggregationType(AggregationType.COUNT);
+
+    assertDoesNotThrow(() -> mapper.map(trackedEntityTypeUid, requestParams));
+  }
+
+  @Test
+  void testNoValueLeavesAggregationUnset() {
+    String trackedEntityTypeUid = "T1";
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
+
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
+
+    TrackedEntityQueryParams params = mapper.map(trackedEntityTypeUid, new CommonRequestParams());
+
+    assertNull(params.getValue());
+    assertNull(params.getAggregationType());
+  }
+
+  private TrackedEntityAttribute stubAttribute(
+      TrackedEntityType trackedEntityType, ValueType valueType) {
+    TrackedEntityAttribute attribute = new TrackedEntityAttribute();
+    attribute.setUid("TeAttrUid01");
+    attribute.setValueType(valueType);
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        List.of(new TrackedEntityTypeAttribute(trackedEntityType, attribute)));
+    return attribute;
+  }
+
+  private TrackedEntityAttribute stubProgramAttribute(Program program, ValueType valueType) {
+    TrackedEntityAttribute attribute = new TrackedEntityAttribute();
+    attribute.setUid("ProgAttrU01");
+    attribute.setValueType(valueType);
+    program.setProgramAttributes(List.of(new ProgramTrackedEntityAttribute(program, attribute)));
+    return attribute;
   }
 
   private Program stubProgram(String uid, String tetUid) {

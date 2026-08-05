@@ -35,9 +35,11 @@ import static java.util.stream.Collectors.toCollection;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getAggregateGridHeaders;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,6 +48,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.QueryExecutor;
@@ -76,7 +79,23 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
-/** Executes tracked-entity aggregate (grouped) queries and assembles the grouped grid. */
+/**
+ * Executes tracked-entity aggregate (grouped) queries and assembles the grouped grid.
+ *
+ * <p>The grid carries one column per grouped dimension holding the dimension-item UID, plus a
+ * trailing numeric {@code value} column. Grouped org unit UIDs are resolved to display names in
+ * {@code metaData.items}. Because the grid is assembled directly (bypassing the row-level {@code
+ * GridAdaptor} post-processing), the following request parameters are not applied to aggregate
+ * responses:
+ *
+ * <ul>
+ *   <li>{@code outputIdScheme} / {@code dataIdScheme} — rows always carry raw dimension-item UIDs
+ *   <li>option-set / legend-set value mapping — attribute columns show the stored value, not the
+ *       option or legend representation
+ *   <li>{@code hierarchyMeta} / {@code showHierarchy} — the org unit parent-graph maps are not
+ *       built
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class TrackedEntityAggregateService {
@@ -126,7 +145,8 @@ public class TrackedEntityAggregateService {
     getAggregateGridHeaders(contextParams).forEach(grid::addHeader);
     grid.addHeader(VALUE_HEADER);
 
-    result.ifPresent(r -> addGroupedRows(grid, r.result()));
+    result.ifPresent(
+        r -> addGroupedRows(grid, r.result(), contextParams.getCommonRaw().isSkipRounding()));
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     metadataParamsHandler.handle(
@@ -290,12 +310,27 @@ public class TrackedEntityAggregateService {
     }
   }
 
-  private void addGroupedRows(Grid grid, SqlRowSet rs) {
+  private void addGroupedRows(Grid grid, SqlRowSet rs, boolean skipRounding) {
     List<String> columns = grid.getHeaders().stream().map(GridHeader::getName).toList();
+    DataQueryParams rounding = DataQueryParams.newBuilder().withSkipRounding(skipRounding).build();
+    String valueColumn = VALUE_HEADER.getName();
     while (rs.next()) {
       grid.addRow();
-      columns.forEach(col -> grid.addValue(rs.getObject(col)));
+      columns.forEach(
+          col ->
+              grid.addValue(
+                  valueColumn.equals(col)
+                      ? getRoundedValueObject(rounding, toDouble(rs.getObject(col)))
+                      : rs.getObject(col)));
     }
+  }
+
+  /**
+   * Normalizes a decimal-typed aggregate (PostgreSQL returns numeric aggregates as BigDecimal) to a
+   * Double so the shared rounding applies; integral counts pass through unchanged.
+   */
+  private static Object toDouble(Object value) {
+    return value instanceof BigDecimal decimal ? decimal.doubleValue() : value;
   }
 
   public Grid getGridExplain(

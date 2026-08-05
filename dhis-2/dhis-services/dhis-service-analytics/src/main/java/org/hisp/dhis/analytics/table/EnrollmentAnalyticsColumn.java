@@ -159,6 +159,12 @@ public final class EnrollmentAnalyticsColumn {
             .dataType(CHARACTER_11)
             .nullable(NOT_NULL)
             .selectExpression("coalesce(registrationou.uid,ou.uid)")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.AO_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("acs.categoryoptioncombouid")
             .build());
   }
 

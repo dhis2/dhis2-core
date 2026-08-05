@@ -37,14 +37,20 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
@@ -66,12 +72,15 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
   private final IdentifiableObjectManager objectManager;
 
+  private final DimensionService dimensionService;
+
   @Override
   public void handleAnalyticalObject(
       EntityManager entityManager,
       Schema schema,
       BaseAnalyticalObject analyticalObject,
       ObjectBundle bundle) {
+    handleAnalyticalDimensions(analyticalObject);
     handleDataDimensionItems(entityManager, schema, analyticalObject, bundle);
     handleCategoryDimensions(entityManager, schema, analyticalObject, bundle);
     handleDataElementDimensions(entityManager, schema, analyticalObject, bundle);
@@ -80,6 +89,36 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     handleAnalyticalLegendSet(schema, analyticalObject, bundle);
     handleRelativePeriods(schema, analyticalObject);
     handleOrgUnitGroupSetDimensions(entityManager, schema, analyticalObject, bundle);
+    handleCategoryOptionGroupSetDimensions(entityManager, schema, analyticalObject, bundle);
+  }
+
+  /**
+   * Reconstructs the persisted dimension state of an analytical object from its transient {@code
+   * columns}/{@code rows}/{@code filters}
+   */
+  private void handleAnalyticalDimensions(BaseAnalyticalObject analyticalObject) {
+    if (!(analyticalObject instanceof MapView mapView) || !hasAnalyticalDimensions(mapView)) {
+      return;
+    }
+
+    dimensionService.mergeAnalyticalObject(mapView);
+    dimensionService.mergeEventAnalyticalObject(mapView);
+
+    mapView.getColumnDimensions().clear();
+    mapView.getFilterDimensions().clear();
+
+    mapView
+        .getColumnDimensions()
+        .addAll(DimensionalObjectUtils.getDimensions(mapView.getColumns()));
+    mapView
+        .getFilterDimensions()
+        .addAll(DimensionalObjectUtils.getDimensions(mapView.getFilters()));
+  }
+
+  private boolean hasAnalyticalDimensions(BaseAnalyticalObject analyticalObject) {
+    return !analyticalObject.getColumns().isEmpty()
+        || !analyticalObject.getRows().isEmpty()
+        || !analyticalObject.getFilters().isEmpty();
   }
 
   /**
@@ -170,6 +209,82 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
           organisationUnitGroupSetDimension, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
       entityManager.persist(organisationUnitGroupSetDimension);
+    }
+  }
+
+  /**
+   * This method implements required custom handling for {@link CategoryOptionGroupSetDimension}s.
+   * Without it, when importing, these objects throw TransientObjectException because the dimension
+   * ({@link CategoryOptionGroupSet}) and its items ({@link CategoryOptionGroup}) are cascade
+   * persisted from the analytical object while still referencing transient, deserialized instances.
+   *
+   * @param entityManager entityManager to save object
+   * @param schema schema to check object property
+   * @param analyticalObject object that needs custom handling
+   * @param bundle bundle with preheat objects
+   */
+  private void handleCategoryOptionGroupSetDimensions(
+      EntityManager entityManager,
+      Schema schema,
+      BaseAnalyticalObject analyticalObject,
+      ObjectBundle bundle) {
+    if (!schema.hasPersistedProperty("categoryOptionGroupSetDimensions")) return;
+
+    for (CategoryOptionGroupSetDimension categoryOptionGroupSetDimension :
+        analyticalObject.getCategoryOptionGroupSetDimensions()) {
+
+      // handle dimension
+      CategoryOptionGroupSet catOptionGroupSetBundle =
+          bundle
+              .getPreheat()
+              .get(bundle.getPreheatIdentifier(), categoryOptionGroupSetDimension.getDimension());
+
+      // use from bundle if available
+      if (catOptionGroupSetBundle != null) {
+        categoryOptionGroupSetDimension.setDimension(catOptionGroupSetBundle);
+      } else {
+        // use from persisted if available
+        CategoryOptionGroupSet catOptionGroupSetPersisted =
+            objectManager.get(
+                CategoryOptionGroupSet.class,
+                categoryOptionGroupSetDimension.getDimension().getUid());
+
+        if (catOptionGroupSetPersisted != null) {
+          categoryOptionGroupSetDimension.setDimension(catOptionGroupSetPersisted);
+
+          bundle
+              .getPreheat()
+              .put(bundle.getPreheatIdentifier(), categoryOptionGroupSetDimension.getDimension());
+        }
+      }
+
+      // handle items
+      List<CategoryOptionGroup> categoryOptionGroups =
+          new ArrayList<>(categoryOptionGroupSetDimension.getItems());
+      categoryOptionGroupSetDimension.getItems().clear();
+
+      categoryOptionGroups.forEach(
+          cog -> {
+            // use from bundle if available
+            CategoryOptionGroup catOptionGroupBundle =
+                bundle.getPreheat().get(bundle.getPreheatIdentifier(), cog);
+            if (catOptionGroupBundle != null) {
+              categoryOptionGroupSetDimension.getItems().add(catOptionGroupBundle);
+            } else {
+              // use from persisted if available
+              CategoryOptionGroup catOptionGroupPersisted =
+                  objectManager.get(CategoryOptionGroup.class, cog.getUid());
+              if (catOptionGroupPersisted != null) {
+                categoryOptionGroupSetDimension.getItems().add(catOptionGroupPersisted);
+                bundle.getPreheat().put(bundle.getPreheatIdentifier(), catOptionGroupPersisted);
+              }
+            }
+          });
+
+      preheatService.connectReferences(
+          categoryOptionGroupSetDimension, bundle.getPreheat(), bundle.getPreheatIdentifier());
+
+      entityManager.persist(categoryOptionGroupSetDimension);
     }
   }
 

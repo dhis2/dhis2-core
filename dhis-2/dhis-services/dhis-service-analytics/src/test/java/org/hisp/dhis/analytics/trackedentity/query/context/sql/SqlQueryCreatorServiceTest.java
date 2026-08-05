@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
@@ -71,6 +72,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -318,6 +320,77 @@ class SqlQueryCreatorServiceTest extends TestBase {
     // and not grouped.
     assertContains("select t_1.\"ou\", t_1.\"attr1\", count(1) as \"value\"", sql);
     assertContains("group by t_1.\"ou\", t_1.\"attr1\"", sql);
+  }
+
+  @Test
+  void testAggregateAverageOverValueAttribute() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityAttribute valueAttribute = createTrackedEntityAttribute('V');
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .value(valueAttribute)
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("avg(t_1.\"" + valueAttribute.getUid() + "\") as \"value\"", sql);
+    assertContains("group by t_1.\"ou\"", sql);
+    assertFalse(sql.contains("count(1)"), "value aggregation must replace the count(1) column");
+  }
+
+  @Test
+  void testAggregateCountOverValueAttributeCountsNonNullValues() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityAttribute valueAttribute = createTrackedEntityAttribute('V');
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .value(valueAttribute)
+            .aggregationType(AggregationType.COUNT)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("count(t_1.\"" + valueAttribute.getUid() + "\") as \"value\"", sql);
+    assertFalse(sql.contains("count(1)"), "explicit COUNT over a value counts non-null values");
   }
 
   @Test

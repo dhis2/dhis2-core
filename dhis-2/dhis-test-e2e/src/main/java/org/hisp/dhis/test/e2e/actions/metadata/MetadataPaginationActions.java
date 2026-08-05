@@ -46,7 +46,7 @@ import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
  */
 public class MetadataPaginationActions extends RestApiActions {
   public static final String DEFAULT_METADATA_FIELDS =
-      "displayName,shortName,id,lastUpdated,created,displayDescription,code,publicAccess,access,href,level,displayName,publicAccess,lastUpdated,order";
+      "displayName,id,lastUpdated,created,displayDescription,code,publicAccess,access,href,level,displayName,publicAccess,lastUpdated,order";
 
   public static final String DEFAULT_METADATA_FILTER = "name:ne:default";
 
