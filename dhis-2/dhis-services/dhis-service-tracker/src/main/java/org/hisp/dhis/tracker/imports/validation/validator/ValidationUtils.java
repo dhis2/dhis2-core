@@ -37,6 +37,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -117,7 +118,7 @@ public class ValidationUtils {
   public static List<MetadataIdentifier> validateDeletionMandatoryDataValue(
       Event event,
       @Nonnull ProgramStage programStage,
-      List<MetadataIdentifier> mandatoryDataElements) {
+      Collection<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
@@ -135,7 +136,7 @@ public class ValidationUtils {
       TrackerBundle bundle,
       Event event,
       @Nonnull ProgramStage programStage,
-      List<MetadataIdentifier> mandatoryDataElements) {
+      Collection<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
