@@ -8,7 +8,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem" table="expressiondimensionitem">
 
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="expressiondimensionitemid">
             <generator class="native"/>

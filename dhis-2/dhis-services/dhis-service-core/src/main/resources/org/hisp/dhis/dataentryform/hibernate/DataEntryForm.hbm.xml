@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataentryform.DataEntryForm" table="dataentryform">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="dataentryformid">
       <generator class="native" />

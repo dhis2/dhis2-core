@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.report.Report" table="report">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="reportid">
       <generator class="native" />

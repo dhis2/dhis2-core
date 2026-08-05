@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataset.Section" table="section">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="sectionid">
       <generator class="native" />
@@ -26,7 +26,7 @@
       unique-key="key_sectionnamedataset" foreign-key="fk_section_datasetid" not-null="true" />
 
     <list name="dataElements" table="sectiondataelements">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="sectionid" foreign-key="fk_sectiondataelements_sectionid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
@@ -34,7 +34,7 @@
     </list>
 
     <list name="indicators" table="sectionindicators">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="sectionid" foreign-key="fk_sectionindicators_sectionid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.indicator.Indicator" column="indicatorid"
@@ -42,7 +42,7 @@
     </list>
 
     <set name="greyedFields" table="sectiongreyedfields" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="sectionid" foreign-key="fk_sectiongreyedfields_sectionid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementOperand" column="dataelementoperandid"
         foreign-key="fk_section_dataelementoperandid" />

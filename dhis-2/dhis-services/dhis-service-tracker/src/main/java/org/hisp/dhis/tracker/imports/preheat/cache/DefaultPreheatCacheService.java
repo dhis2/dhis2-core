@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.cache;
 
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,8 +41,11 @@ import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,6 +56,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class DefaultPreheatCacheService implements PreheatCacheService {
+  private final DhisConfigurationProvider config;
+
+  private final Environment environment;
+
   /**
    * Data structure to hold the metadata cache:
    *
@@ -154,13 +163,7 @@ public class DefaultPreheatCacheService implements PreheatCacheService {
   }
 
   private boolean isCacheEnabled() {
-    return false;
-
-    // Due to concerns and issues with the current cache implementation, we
-    // decided to
-    // deactivate the cache in the preheat completely for now.
-    // return !isTestRun( this.environment.getActiveProfiles() )
-    // && config.isEnabled(
-    // ConfigurationKey.TRACKER_IMPORT_PREHEAT_CACHE_ENABLED );
+    return !isTestRun(this.environment.getActiveProfiles())
+        && config.isEnabled(ConfigurationKey.TRACKER_IMPORT_PREHEAT_CACHE_ENABLED);
   }
 }

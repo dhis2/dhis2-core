@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.program.ProgramIndicator" table="programindicator">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="programindicatorid">
       <generator class="native" />
@@ -33,7 +33,7 @@
       column="programid" foreign-key="fk_programindicator_program" not-null="true" />
 
     <set name="groups" table="programindicatorgroupmembers" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="programindicatorid" />
       <many-to-many class="org.hisp.dhis.program.ProgramIndicatorGroup" column="programindicatorgroupid" />
     </set>
@@ -53,7 +53,7 @@
     <property name="decimals" />
 
     <list name="legendSets" table="programindicatorlegendsets">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="programindicatorid" />
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_programindicator_legendsetid" />
@@ -74,7 +74,7 @@
     </property>
     
     <set name="analyticsPeriodBoundaries" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="programindicatorid" />
       <one-to-many class="org.hisp.dhis.program.AnalyticsPeriodBoundary" />
     </set>

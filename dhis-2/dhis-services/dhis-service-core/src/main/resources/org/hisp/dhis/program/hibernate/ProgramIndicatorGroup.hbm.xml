@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.program.ProgramIndicatorGroup" table="programindicatorgroup">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="programindicatorgroupid">
       <generator class="native" />
@@ -20,7 +20,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <set name="members" table="programindicatorgroupmembers">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="programindicatorgroupid" foreign-key="fk_programindicatorgroupmembers_programindicatorgroupid" />
       <many-to-many class="org.hisp.dhis.program.ProgramIndicator" column="programindicatorid"
         foreign-key="fk_programindicatorgroup_programindicatorid" />

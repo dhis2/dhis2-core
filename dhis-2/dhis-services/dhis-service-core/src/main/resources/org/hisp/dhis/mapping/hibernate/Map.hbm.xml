@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.mapping.Map" table="map">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="mapid">
       <generator class="native" />
@@ -32,7 +32,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <list name="mapViews" table="mapmapviews" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapid" foreign-key="fk_mapmapview_mapid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="mapviewid" class="org.hisp.dhis.mapping.MapView"

@@ -7,7 +7,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.relationship.Relationship" table="relationship">
 
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="relationshipid">
             <generator class="native"/>

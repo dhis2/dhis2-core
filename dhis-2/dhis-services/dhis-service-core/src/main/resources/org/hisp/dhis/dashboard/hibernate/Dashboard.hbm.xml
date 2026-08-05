@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dashboard.Dashboard" table="dashboard">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="dashboardid">
       <generator class="native" />
@@ -22,7 +22,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <list name="items" table="dashboard_items" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="dashboardid" foreign-key="fk_dashboard_items_dashboardid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="dashboarditemid" class="org.hisp.dhis.dashboard.DashboardItem"

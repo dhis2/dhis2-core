@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.mapping.MapView" table="mapview">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="mapviewid">
       <generator class="native" />
@@ -22,7 +22,7 @@
     <!-- AnalyticalObject -->
 
     <list name="dataDimensionItems" table="mapview_datadimensionitems" cascade="all, delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_datadimensionitems_mapviewid" />
       <list-index column="sort_order"/>
       <many-to-many column="datadimensionitemid" class="org.hisp.dhis.common.DataDimensionItem"
@@ -30,7 +30,7 @@
     </list>
 
     <list name="organisationUnits" table="mapview_organisationunits">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_organisationunits_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="organisationunitid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
@@ -38,7 +38,7 @@
     </list>
 
     <list name="periods" table="mapview_periods">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_periods_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="periodid" class="org.hisp.dhis.period.Period"
@@ -52,7 +52,7 @@
     <property name="rawPeriods" column="relativeperiods" type="jbList"/>
 
     <list name="categoryDimensions" table="mapview_categorydimensions" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_categorydimensions_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="categorydimensionid" class="org.hisp.dhis.category.CategoryDimension"
@@ -60,7 +60,7 @@
     </list>
 
     <list name="organisationUnitGroupSetDimensions" table="mapview_orgunitgroupsetdimensions" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_orgunitgroupsetdimensions_mapviewid" />
       <list-index column="sort_order" />
       <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
@@ -68,7 +68,7 @@
     </list>
 
     <list name="categoryOptionGroupSetDimensions" table="mapview_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_catoptiongroupsetdimensions_mapviewid" />
       <list-index column="sort_order" />
       <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.category.CategoryOptionGroupSetDimension"
@@ -76,14 +76,14 @@
     </list>
 
     <list name="organisationUnitLevels" table="mapview_orgunitlevels">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_orgunitlevels_mapviewid" />
       <list-index column="sort_order" base="0" />
       <element column="orgunitlevel" type="integer" />
     </list>
 
     <list name="itemOrganisationUnitGroups" table="mapview_itemorgunitgroups">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_itemorgunitunitgroups_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
@@ -93,7 +93,7 @@
     <!-- EventAnalyticalObject -->
 
     <list name="attributeDimensions" table="mapview_attributedimensions" cascade="all, delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_attributedimensions_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentityattributedimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension"
@@ -101,7 +101,7 @@
     </list>
 
     <list name="dataElementDimensions" table="mapview_dataelementdimensions" cascade="all, delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_dataelementdimensions_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentitydataelementdimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension"
@@ -109,14 +109,14 @@
     </list>
 
     <list name="columnDimensions" table="mapview_columns">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_columns_mapviewid" />
       <list-index column="sort_order" base="0" />
       <element type="string" column="dimension" />
     </list>
 
     <list name="filterDimensions" table="mapview_filters">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_filters_mapviewid" />
       <list-index column="sort_order" base="0" />
       <element type="string" column="dimension" />    

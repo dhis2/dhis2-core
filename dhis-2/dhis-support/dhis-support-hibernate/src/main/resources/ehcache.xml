@@ -2,30 +2,66 @@
 <ehcache>
 
   <!-- Default cache -->
-  
-  <!-- 
+  <!-- Increased from 1M/6h to 5M/12h — revival of #20390's experiment -->
+  <!--
     Ensure that default cache has less frequent expiration than query cache
     to avoid individual select queries per entity.
   -->
 
   <defaultCache
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false" 
+    maxElementsInMemory="5000000"
+    eternal="false"
+    timeToIdleSeconds="21600"
+    timeToLiveSeconds="43200"
+    memoryStoreEvictionPolicy="LRU"
+    overflowToDisk="false"
+    diskPersistent="false" />
+
+  <!-- Hibernate Entity Cache for `OptionSet` -->
+  <cache name="org.hisp.dhis.option.OptionSet"
+    maxElementsInMemory="5000000"
+    eternal="false"
+    timeToIdleSeconds="21600"
+    timeToLiveSeconds="43200"
+    memoryStoreEvictionPolicy="LRU"
+    overflowToDisk="false"
+    diskPersistent="false" />
+
+  <!-- Hibernate Collection Cache for `OptionSet.options` -->
+  <cache name="org.hisp.dhis.option.OptionSet.options"
+    maxElementsInMemory="5000000"
+    eternal="false"
+    timeToIdleSeconds="21600"
+    timeToLiveSeconds="43200"
+    memoryStoreEvictionPolicy="LRU"
+    overflowToDisk="false"
+    diskPersistent="false" />
+
+  <!-- Hibernate Entity Cache for `Option` -->
+  <cache name="org.hisp.dhis.option.Option"
+    maxElementsInMemory="5000000"
+    eternal="false"
+    timeToIdleSeconds="21600"
+    timeToLiveSeconds="43200"
+    memoryStoreEvictionPolicy="LRU"
+    overflowToDisk="false"
     diskPersistent="false" />
 
   <!-- Hibernate query cache -->
 
   <cache name="org.hibernate.cache.internal.StandardQueryCache"
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false" 
+    maxElementsInMemory="5000000"
+    eternal="false"
+    timeToIdleSeconds="21600"
+    timeToLiveSeconds="43200"
+    memoryStoreEvictionPolicy="LRU"
+    overflowToDisk="false"
     diskPersistent="false" />
 
-  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" 
-    maxElementsInMemory="5000" />
+  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
+    maxElementsInMemory="10000"
+    eternal="true"
+    memoryStoreEvictionPolicy="LRU"
+    overflowToDisk="false"
+    diskPersistent="false" />
 </ehcache>

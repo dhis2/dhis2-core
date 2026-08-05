@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.validation.ValidationRule" table="validationrule">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="validationruleid">
       <generator class="native" />
@@ -51,7 +51,7 @@
     </set>
 
     <set name="notificationTemplates" table="validationnotificationtemplatevalidationrules" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="validationruleid" foreign-key="fk_validationrule_validationnotificationtemplateid" />
       <many-to-many class="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"
         column="validationnotificationtemplateid" />
@@ -61,7 +61,7 @@
       foreign-key="fk_validationrule_periodtypeid" not-null="true" />
 
     <set name="organisationUnitLevels" table="validationruleorganisationunitlevels">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="validationruleid" foreign-key="fk_organisationunitlevel_validationtuleid" />
       <element column="organisationunitlevel" type="int" />
     </set>

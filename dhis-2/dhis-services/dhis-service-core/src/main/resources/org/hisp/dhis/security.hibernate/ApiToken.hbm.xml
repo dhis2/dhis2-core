@@ -8,7 +8,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.security.apikey.ApiToken" table="api_token">
 
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="apiTokenId">
             <generator class="native" />

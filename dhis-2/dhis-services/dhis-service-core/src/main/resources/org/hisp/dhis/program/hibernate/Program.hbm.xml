@@ -8,7 +8,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.program.Program" table="program">
 
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="programid">
             <generator class="native"/>
@@ -56,7 +56,7 @@
         </set>
 
         <set name="organisationUnits" table="program_organisationunits">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="programid" foreign-key="fk_program_organisationunits_programid"/>
             <many-to-many column="organisationunitid"
                           class="org.hisp.dhis.organisationunit.OrganisationUnit"

@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.programrule.ProgramRuleVariable" table="programrulevariable">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="programrulevariableid">
       <generator class="native" />

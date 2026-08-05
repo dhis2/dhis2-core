@@ -7,7 +7,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.deduplication.PotentialDuplicate" table="potentialduplicate">
 
-        <cache usage="read-write" />
+        <cache usage="nonstrict-read-write" />
 
         <id name="id" column="potentialduplicateid">
             <generator class="sequence">

@@ -6,7 +6,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.version.Version" table="version">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="versionid">
       <generator class="native" />

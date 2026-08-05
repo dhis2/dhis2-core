@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.security.oauth2.OAuth2Client" table="oauth2client">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="oauth2clientid">
       <generator class="native" />
@@ -22,14 +22,14 @@
     <property name="secret" column="secret" not-null="true" unique="false" length="512" />
 
     <list name="redirectUris" table="oauth2clientredirecturis" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="oauth2clientid" foreign-key="fk_oauth2clientredirecturis_oauth2clientid" />
       <list-index column="sort_order" base="0" />
       <element type="string" column="redirecturi" />
     </list>
 
     <list name="grantTypes" table="oauth2clientgranttypes" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="oauth2clientid" foreign-key="fk_oauth2clientgranttypes_oauth2clientid" />
       <list-index column="sort_order" base="0" />
       <element type="string" column="granttype" />

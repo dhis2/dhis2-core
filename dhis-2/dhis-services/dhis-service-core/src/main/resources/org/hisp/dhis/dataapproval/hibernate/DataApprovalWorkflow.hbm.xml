@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataapproval.DataApprovalWorkflow" table="dataapprovalworkflow">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="workflowid">
       <generator class="native" />
@@ -24,7 +24,7 @@
     <many-to-one name="categoryCombo" class="org.hisp.dhis.category.CategoryCombo" column="categorycomboid" foreign-key="fk_dataapprovalworkflow_categorycomboid" />
 
     <set name="levels" table="dataapprovalworkflowlevels">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="workflowid" foreign-key="fk_dataapprovalworkflowlevels_workflowid" />
       <many-to-many class="org.hisp.dhis.dataapproval.DataApprovalLevel" column="dataapprovallevelid" foreign-key="fk_dataapprovalworkflowlevels_levelid" />
     </set>

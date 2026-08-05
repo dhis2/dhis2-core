@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.validation.ValidationRuleGroup" table="validationrulegroup">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="validationrulegroupid">
       <generator class="native" />
@@ -22,7 +22,7 @@
     <property name="description" type="text" />
 
     <set name="members" table="validationrulegroupmembers">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="validationgroupid" foreign-key="fk_validationrulegroupmembers_validationrulegroupid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid"
         foreign-key="fk_validationrulegroup_validationruleid" />

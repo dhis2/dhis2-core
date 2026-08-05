@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.analytics.AnalyticsTableHook" table="tablehook">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="analyticstablehookid">
       <generator class="native" />

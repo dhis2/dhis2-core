@@ -6,7 +6,7 @@
         >
 <hibernate-mapping>
     <class name="org.hisp.dhis.eventreport.EventReport" table="eventvisualization">
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="eventvisualizationid">
             <generator class="native"/>
@@ -18,7 +18,7 @@
         <property name="description" type="text"/>
 
         <list name="organisationUnits" table="eventvisualization_organisationunits">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_eventvisualization_organisationunits_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <many-to-many column="organisationunitid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
@@ -26,7 +26,7 @@
         </list>
 
         <list name="periods" table="eventvisualization_periods">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_periods_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <many-to-many column="periodid" class="org.hisp.dhis.period.Period"
@@ -34,7 +34,7 @@
         </list>
 
         <list name="categoryDimensions" table="eventvisualization_categorydimensions" cascade="all-delete-orphan">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_categorydimensions_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <many-to-many column="categorydimensionid" class="org.hisp.dhis.category.CategoryDimension"
@@ -43,7 +43,7 @@
 
         <list name="organisationUnitGroupSetDimensions" table="eventvisualization_orgunitgroupsetdimensions"
               cascade="all-delete-orphan">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid"
                  foreign-key="fk_evisualization_orgunitgroupsetdimensions_evisualizationid"/>
             <list-index column="sort_order"/>
@@ -54,7 +54,7 @@
 
         <list name="categoryOptionGroupSetDimensions" table="eventvisualization_categoryoptiongroupsetdimensions"
               cascade="all-delete-orphan">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid"
                  foreign-key="fk_evisualization_catoptiongroupsetdimensions_evisualizationid"/>
             <list-index column="sort_order"/>
@@ -64,14 +64,14 @@
         </list>
 
         <list name="organisationUnitLevels" table="eventvisualization_orgunitlevels">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_orgunitlevels_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <element column="orgunitlevel" type="integer"/>
         </list>
 
         <list name="itemOrganisationUnitGroups" table="eventvisualization_itemorgunitgroups">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_itemorgunitunitgroups_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
@@ -79,7 +79,7 @@
         </list>
 
         <list name="attributeDimensions" table="eventvisualization_attributedimensions" cascade="all, delete-orphan">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_attributedimensions_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <many-to-many column="trackedentityattributedimensionid"
@@ -89,7 +89,7 @@
 
         <list name="dataElementDimensions" table="eventvisualization_dataelementdimensions"
               cascade="all, delete-orphan">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_dataelementdimensions_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <many-to-many column="trackedentitydataelementdimensionid"
@@ -99,7 +99,7 @@
 
         <list name="programIndicatorDimensions" table="eventvisualization_programindicatordimensions"
               cascade="all, delete-orphan">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid"
                  foreign-key="fk_evisualization_programindicatordimensions_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
@@ -170,21 +170,21 @@
         </property>
 
         <list name="columnDimensions" table="eventvisualization_columns">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_columns_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <element type="string" column="dimension"/>
         </list>
 
         <list name="rowDimensions" table="eventvisualization_rows">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_rows_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <element type="string" column="dimension"/>
         </list>
 
         <list name="filterDimensions" table="eventvisualization_filters">
-            <cache usage="read-write"/>
+            <cache usage="nonstrict-read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_filters_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
             <element type="string" column="dimension"/>

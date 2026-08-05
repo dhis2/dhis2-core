@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.constant.Constant" table="constant">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="constantid">
       <generator class="native" />

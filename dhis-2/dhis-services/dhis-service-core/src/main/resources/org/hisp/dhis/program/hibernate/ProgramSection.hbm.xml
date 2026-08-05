@@ -8,7 +8,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.program.ProgramSection" table="programsection">
 
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="programsectionid">
             <generator class="native"/>
