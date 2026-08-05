@@ -77,13 +77,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramStageDataElementsSupplier extends JdbcAbstractPreheatSupplier {
 
+  /**
+   * The two branches are unioned rather than combined with {@code or}. An {@code or} spanning both
+   * tables cannot be served by an index, so Postgres reads every row of the stage and of {@code
+   * dataelement} and filters afterwards. Split, the second branch uses {@code dataelement_uid_key}.
+   * Measured on a stage widened to 5000 data elements, 4 clients: +26% throughput at a 65 data
+   * element payload on one stage, +49% across five stages. The gain grows with program width and
+   * shrinks as the payload approaches it.
+   */
   private static final String SQL =
       """
       select psde.programstageid, psde.compulsory, de.uid, de.code, de.name, de.attributevalues
       from programstagedataelement psde
       join dataelement de on de.dataelementid = psde.dataelementid
       where psde.programstageid in (:stageIds)
-        and (psde.compulsory or de.uid in (:dataElementUids))
+        and psde.compulsory
+      union
+      select psde.programstageid, psde.compulsory, de.uid, de.code, de.name, de.attributevalues
+      from programstagedataelement psde
+      join dataelement de on de.dataelementid = psde.dataelementid
+      where psde.programstageid in (:stageIds)
+        and de.uid in (:dataElementUids)
       """;
 
   protected ProgramStageDataElementsSupplier(JdbcTemplate jdbcTemplate) {

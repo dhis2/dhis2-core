@@ -1183,7 +1183,11 @@ class DataValuesValidatorTest {
                 .map(psde -> schemes.toMetadataIdentifier(psde.getDataElement()))
                 .collect(Collectors.toSet()),
             psdes.stream()
-                .map(psde -> UID.of(psde.getDataElement().getUid()))
+                .map(psde -> psde.getDataElement().getUid())
+                // this test uses placeholder uids like MANDATORY_DE that UID.of rejects. The uid
+                // set only matters to the program rule mapper, which these tests do not exercise.
+                .filter(UID::isValid)
+                .map(UID::of)
                 .collect(Collectors.toSet()));
     lenient().when(preheat.getProgramStageDataElements(programStage)).thenReturn(projected);
   }
