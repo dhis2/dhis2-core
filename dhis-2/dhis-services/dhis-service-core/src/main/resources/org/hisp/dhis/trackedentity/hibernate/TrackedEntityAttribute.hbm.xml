@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.trackedentity.TrackedEntityAttribute" table="trackedentityattribute">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="trackedentityattributeid">
       <generator class="native" />
@@ -43,7 +43,7 @@
       column="optionsetid" foreign-key="fk_trackedentityattribute_optionsetid" />
 
     <list name="legendSets" table="trackedentityattributelegendsets">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="trackedentityattributeid" />
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid"

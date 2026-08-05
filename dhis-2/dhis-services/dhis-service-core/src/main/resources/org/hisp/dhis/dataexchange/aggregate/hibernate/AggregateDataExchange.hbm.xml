@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange" table="aggregatedataexchange">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="aggregatedataexchangeid">
       <generator class="native" />

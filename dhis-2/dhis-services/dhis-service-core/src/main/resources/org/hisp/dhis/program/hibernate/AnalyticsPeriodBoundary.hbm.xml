@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.program.AnalyticsPeriodBoundary" table="periodboundary">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="periodboundaryid">
       <generator class="native" />

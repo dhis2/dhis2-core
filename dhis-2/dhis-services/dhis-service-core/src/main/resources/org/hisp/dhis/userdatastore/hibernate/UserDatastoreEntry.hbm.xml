@@ -8,7 +8,7 @@
 
   <class name="org.hisp.dhis.userdatastore.UserDatastoreEntry" table="userkeyjsonvalue">
 
-    <cache usage="read-write"/>
+    <cache usage="nonstrict-read-write"/>
 
     <id name="id" column="userkeyjsonvalueid">
       <generator class="native"/>

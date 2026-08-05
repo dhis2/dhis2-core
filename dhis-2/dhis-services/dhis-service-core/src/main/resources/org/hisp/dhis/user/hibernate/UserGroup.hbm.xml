@@ -9,7 +9,7 @@
   <typedef class="org.hibernate.type.PostgresUUIDType" name="pg-uuid" />
   <class name="org.hisp.dhis.user.UserGroup" table="usergroup">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="usergroupid">
       <generator class="native" />
@@ -38,7 +38,7 @@
     </set>
 
     <set name="managedGroups" table="usergroupmanaged">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="managedbygroupid" />
       <many-to-many column="managedgroupid" class="org.hisp.dhis.user.UserGroup" />
     </set>

@@ -8,7 +8,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.eventhook.EventHook" table="eventhook">
 
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="eventhookid">
             <generator class="native"/>

@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.user.UserRole" table="userrole">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="userroleid">
       <generator class="native" />
@@ -27,13 +27,13 @@
     </set>
 
     <set name="authorities" table="userroleauthorities">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userroleid" foreign-key="fk_userroleauthorities_userroleid" />
       <element type="string" column="authority" />
     </set>
 
     <set name="restrictions" table="userrolerestrictions">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userroleid" foreign-key="fk_userrolerestrictions_userroleid" />
       <element type="string" column="restriction" />
     </set>

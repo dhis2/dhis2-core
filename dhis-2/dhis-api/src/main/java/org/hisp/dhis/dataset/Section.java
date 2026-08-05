@@ -106,7 +106,7 @@ import org.hisp.dhis.user.sharing.Sharing;
         @UniqueConstraint(
             name = "key_sectionnamedataset",
             columnNames = {"name", "datasetid"}))
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Section extends BaseLinkableObject implements IdentifiableObject, MetadataObject {
 
   @Id
@@ -150,7 +150,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
       inverseJoinColumns = @JoinColumn(name = "dataelementid"))
   @OrderColumn(name = "sort_order")
   @ListIndexBase(value = 1)
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<DataElement> dataElements = new ArrayList<>();
 
   @ManyToMany
@@ -160,7 +160,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
       inverseJoinColumns = @JoinColumn(name = "indicatorid"))
   @OrderColumn(name = "sort_order")
   @ListIndexBase(value = 1)
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<Indicator> indicators = new ArrayList<>();
 
   @ManyToMany
@@ -173,7 +173,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
       name = "sectiongreyedfields",
       joinColumns = @JoinColumn(name = "sectionid"),
       inverseJoinColumns = @JoinColumn(name = "dataelementoperandid"))
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<DataElementOperand> greyedFields = new HashSet<>();
 
   @Column(name = "sortorder", nullable = false)

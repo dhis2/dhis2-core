@@ -6,7 +6,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.common.DataDimensionItem" table="datadimensionitem">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="datadimensionitemid">
       <generator class="native" />

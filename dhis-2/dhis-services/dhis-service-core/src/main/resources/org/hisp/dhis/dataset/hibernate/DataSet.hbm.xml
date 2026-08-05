@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataset.DataSet" table="dataset">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="datasetid">
       <generator class="native" />
@@ -31,40 +31,40 @@
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 
     <set name="dataInputPeriods" table="datasetdatainputperiods" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="datasetid" foreign-key="fk_datasetdatainputperiods_datasetid" />
       <one-to-many class="org.hisp.dhis.dataset.DataInputPeriod" />
     </set>
 
     <set name="dataSetElements" table="datasetelement" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
 
     <set name="indicators" table="datasetindicators">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="datasetid" foreign-key="fk_datasetindicators_datasetid" />
       <many-to-many class="org.hisp.dhis.indicator.Indicator" column="indicatorid"
         foreign-key="fk_dataset_indicatorid" />
     </set>
 
     <set name="compulsoryDataElementOperands" table="datasetoperands" cascade="all-delete-orphan">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="datasetid" foreign-key="fk_datasetoperands_datasetid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementOperand" column="dataelementoperandid"
         foreign-key="fk_dataset_dataelementoperandid" />
     </set>
 
     <set name="sources" table="datasetsource">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="datasetid" foreign-key="fk_datasetsource_datasetid" />
       <many-to-many column="sourceid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
         foreign-key="fk_dataset_organisationunit" />
     </set>
 
     <set name="sections" order-by="sortorder" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="datasetid" />
       <one-to-many class="org.hisp.dhis.dataset.Section" />
     </set>
@@ -121,7 +121,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <list name="legendSets" table="datasetlegendsets">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="datasetid" />
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataset_legendsetid"></many-to-many>

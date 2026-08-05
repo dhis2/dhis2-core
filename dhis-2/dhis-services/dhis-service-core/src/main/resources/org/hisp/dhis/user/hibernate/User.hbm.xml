@@ -11,7 +11,7 @@
 
   <class name="org.hisp.dhis.user.User" lazy="false" table="userinfo">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="userinfoid">
       <generator class="native" />
@@ -76,27 +76,27 @@
     <many-to-one name="avatar" class="org.hisp.dhis.fileresource.FileResource" column="avatar" foreign-key="fk_user_fileresourceid" />
 
     <set name="groups" table="usergroupmembers" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userid" />
       <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid" />
     </set>
 
     <set name="organisationUnits" table="usermembership">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userinfoid" foreign-key="fk_usermembership_userinfoid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
         foreign-key="fk_userinfo_organisationunitid" />
     </set>
 
     <set name="dataViewOrganisationUnits" table="userdatavieworgunits">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userinfoid" foreign-key="fk_userdatavieworgunits_userinfoid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
         foreign-key="fk_userdatavieworgunits_organisationunitid" />
     </set>
 
     <set name="teiSearchOrganisationUnits" table="userteisearchorgunits">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userinfoid" foreign-key="fk_userteisearchorgunits_userinfoid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
         foreign-key="fk_userteisearchorgunits_organisationunitid" />
@@ -109,7 +109,7 @@
     <property name="attributeValues" type="jsbAttributeValues"/>
 
     <list name="apps" table="userapps">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userinfoid" foreign-key="fk_userapps_userinfoid" />
       <list-index column="sort_order" base="0" />
       <element type="string" column="app" />
@@ -142,7 +142,7 @@
     <property name="passwordLastUpdated" />
 
     <set name="userRoles" table="userrolemembers" cascade="save-update,persist,merge">
-      <cache usage="read-write"/>
+      <cache usage="nonstrict-read-write"/>
       <key column="userid" foreign-key="fk_userrolemembers_userid"/>
       <many-to-many column="userroleid" class="org.hisp.dhis.user.UserRole"/>
     </set>
@@ -154,14 +154,14 @@
     </list>
 
     <set name="cogsDimensionConstraints" table="users_cogsdimensionconstraints">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userid" foreign-key="fk_users_cogsconstraints_userid" />
       <many-to-many column="categoryoptiongroupsetid" class="org.hisp.dhis.category.CategoryOptionGroupSet"
                     foreign-key="fk_fk_users_cogsconstraints_categoryoptiongroupsetid" />
     </set>
 
     <set name="catDimensionConstraints" table="users_catdimensionconstraints">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="userid" foreign-key="fk_users_catconstraints_userid" />
       <many-to-many column="dataelementcategoryid" class="org.hisp.dhis.category.Category"
                     foreign-key="fk_fk_users_catconstraints_dataelementcategoryid" />

@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.document.Document" table="document">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="documentid">
       <generator class="native" />

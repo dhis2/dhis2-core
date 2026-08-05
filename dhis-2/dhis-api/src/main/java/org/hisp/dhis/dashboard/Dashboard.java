@@ -93,7 +93,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "dashboard")
 @Cacheable
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "dashboard", namespace = DxfNamespaces.DXF_2_0)
 public class Dashboard extends BaseMetadataObject implements IdentifiableObject, FavoritableObject {
@@ -123,7 +123,7 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
               name = "dashboarditemid",
               foreignKey = @ForeignKey(name = "fk_dashboard_items_dashboarditemid")))
   @OrderColumn(name = "sort_order")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DashboardItem> items = new ArrayList<>();
 

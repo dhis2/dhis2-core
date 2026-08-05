@@ -8,7 +8,7 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.program.ProgramStage" table="programstage">
 
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="programstageid">
             <generator class="native"/>

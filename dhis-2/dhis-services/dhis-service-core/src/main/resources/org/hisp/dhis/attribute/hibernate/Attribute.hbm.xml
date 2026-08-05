@@ -8,7 +8,7 @@
 <hibernate-mapping package="org.hisp.dhis.attribute">
   <class name="Attribute" table="attribute">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="attributeid">
       <generator class="native" />

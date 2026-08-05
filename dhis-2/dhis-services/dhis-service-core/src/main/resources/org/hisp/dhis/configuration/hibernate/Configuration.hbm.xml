@@ -6,7 +6,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.configuration.Configuration" table="configuration">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="configurationid">
       <generator class="native" />
@@ -45,13 +45,13 @@
         column="facilityorgunitlevel" foreign-key="fk_configuration_facilityorgunitlevel" />
 
     <set name="corsWhitelist" table="configuration_corswhitelist" lazy="false">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="configurationid" foreign-key="fk_configuration_corswhitelist" />
       <element type="string" column="corswhitelist" />
     </set>
 
     <set name="dataOutputPeriodTypes" table="configuration_dataoutputperiodtype" lazy="false">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="configurationid" foreign-key="fk_configuration_dataoutputperiodtype_configurationid" not-null="true" />
       <many-to-many class="org.hisp.dhis.period.PeriodType" column="periodtypeid" foreign-key="fk_configuration_dataoutputperiodtype_periodtypeid" />
     </set>

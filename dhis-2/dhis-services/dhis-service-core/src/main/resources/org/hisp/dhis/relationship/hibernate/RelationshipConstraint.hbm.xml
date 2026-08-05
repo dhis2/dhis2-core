@@ -6,7 +6,7 @@
 
 <hibernate-mapping>
     <class name="org.hisp.dhis.relationship.RelationshipConstraint" table="relationshipconstraint">
-        <cache usage="read-write"/>
+        <cache usage="nonstrict-read-write"/>
 
         <id name="id" column="relationshipconstraintid">
             <generator class="native"/>

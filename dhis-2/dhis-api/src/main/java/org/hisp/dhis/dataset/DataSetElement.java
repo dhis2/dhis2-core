@@ -62,7 +62,7 @@ import org.hisp.dhis.dataelement.DataElement;
 @Entity
 @Table(name = "dataSetElement")
 @Cacheable
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @JacksonXmlRootElement(localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0)
 public class DataSetElement implements EmbeddedObject, Serializable {
 

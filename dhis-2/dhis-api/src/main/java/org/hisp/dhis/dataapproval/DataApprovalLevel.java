@@ -78,7 +78,7 @@ import org.hisp.dhis.user.sharing.Sharing;
         @UniqueConstraint(
             name = "dataapprovallevel_orgunitlevel_categoryoptiongroupset_unique_key",
             columnNames = {"orgunitlevel", "categoryoptiongroupsetid"}))
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class DataApprovalLevel extends BaseMetadataObject implements IdentifiableObject {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)

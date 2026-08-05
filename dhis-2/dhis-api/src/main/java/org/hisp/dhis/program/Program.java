@@ -126,7 +126,7 @@ import org.hisp.dhis.user.sharing.Sharing;
  */
 @Entity
 @Table(name = "program")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @JacksonXmlRootElement(localName = "program", namespace = DxfNamespaces.DXF_2_0)
 public class Program extends BaseMetadataObject
     implements IdentifiableObject, NameableObject, VersionedObject {
@@ -218,7 +218,7 @@ public class Program extends BaseMetadataObject
       name = "program_organisationunits",
       joinColumns = @JoinColumn(name = "programid"),
       inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   @OneToMany

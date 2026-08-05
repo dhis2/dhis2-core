@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.predictor.PredictorGroup" table="predictorgroup">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="predictorgroupid">
       <generator class="native" />
@@ -22,7 +22,7 @@
     <property name="description" type="text" />
 
     <set name="members" table="predictorgroupmembers">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="predictorgroupid" foreign-key="fk_predictorgroupmembers_predictorgroupid" />
       <many-to-many class="org.hisp.dhis.predictor.Predictor" column="predictorid"
                     foreign-key="fk_predictorgroup_predictorid" />

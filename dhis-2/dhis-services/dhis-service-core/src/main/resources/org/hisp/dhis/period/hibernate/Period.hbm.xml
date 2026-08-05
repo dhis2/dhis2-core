@@ -6,7 +6,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.period.Period" table="period" mutable="false">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="periodid">
       <generator class="native" />

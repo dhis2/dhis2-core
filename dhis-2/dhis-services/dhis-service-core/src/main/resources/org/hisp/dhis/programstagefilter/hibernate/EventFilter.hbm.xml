@@ -7,7 +7,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.programstagefilter.EventFilter" table="eventfilter">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="eventfilterid">
       <generator class="native" />
