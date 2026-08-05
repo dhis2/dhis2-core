@@ -160,21 +160,6 @@ public class CteContext {
   }
 
   /**
-   * Adds a special "exists" CTE definition to the context. This CTE definition is required when a
-   * non-aggregated query has the flag "rowContext" set to true
-   *
-   * @param programStage the ProgramStage object
-   * @param item the QueryItem object
-   * @param cteDefinition the CTE definition (the SQL query)
-   */
-  public void addExistsCte(ProgramStage programStage, QueryItem item, String cteDefinition) {
-    var cteDef =
-        new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
-            .setExists(true);
-    cteDefinitions.put(programStage.getUid(), cteDef);
-  }
-
-  /**
    * Adds a CTE definition to the context.
    *
    * @param programIndicator The program indicator
