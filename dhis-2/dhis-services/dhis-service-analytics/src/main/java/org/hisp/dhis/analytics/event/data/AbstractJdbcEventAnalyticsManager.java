@@ -76,6 +76,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -169,6 +170,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /** Alias prefix for the lateral joins that serve the row-context columns. */
   private static final String ROW_CONTEXT_TABLE_ALIAS_PREFIX = "rowcontext_";
+
+  /** Name prefix for the per-item value columns a row-context lateral join returns. */
+  private static final String ROW_CONTEXT_VALUE_COLUMN_PREFIX = "v";
 
   private static final Collector<CharSequence, ?, String> OR_JOINER = joining(OR, "(", ")");
 
@@ -435,10 +439,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params,
       boolean isGroupByClause,
       boolean isAggregated) {
-    boolean lateralsApply = rowContextLateralsApply(isGroupByClause, isAggregated);
+    // Only consulted on the shape that gets the joins appended, which is also the shape
+    // getRowContextLaterals builds its columns for - so both sides pass the same flags.
+    Map<String, RowContextRef> lateralRefs =
+        params.isRowContext() && rowContextLateralsApply(isGroupByClause, isAggregated)
+            ? getRowContextLaterals(params).refs()
+            : Map.of();
 
-    for (int index = 0; index < params.getItems().size(); index++) {
-      QueryItem queryItem = params.getItems().get(index);
+    for (QueryItem queryItem : params.getItems()) {
       ColumnAndAlias columnAndAlias =
           getColumnAndAlias(queryItem, params, isGroupByClause, isAggregated);
 
@@ -446,15 +454,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       boolean rowContext =
           rowContextAllowedAndNeeded(params, queryItem) && !isEmpty(columnAndAlias.alias);
 
-      Optional<RowContextLateral> lateral =
-          rowContext && lateralsApply
-              ? asRowContextLateral(columnAndAlias.column, index)
-              : Optional.empty();
+      RowContextRef ref = rowContext ? lateralRefs.get(columnAndAlias.alias) : null;
 
-      if (lateral.isPresent()) {
-        String table = quote(lateral.get().tableAlias());
+      if (ref != null) {
+        String table = quote(ref.tableAlias());
         columns.add(
-            ColumnAndAlias.ofColumnAndAlias(table + ".value", columnAndAlias.alias).asSql());
+            ColumnAndAlias.ofColumnAndAlias(
+                    table + "." + quote(ref.valueColumn()), columnAndAlias.alias)
+                .asSql());
         columns.add(
             ColumnAndAlias.ofColumnAndAlias(
                     "coalesce(" + table + ".found, false)", columnAndAlias.alias + ".exists")
@@ -481,14 +488,26 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * A lateral join that evaluates a repeatable-stage subquery once and exposes the three things the
-   * row-context response needs from it: the value, whether a matching event was found at all, and
-   * that event's status.
-   *
-   * @param tableAlias the alias the join is given, and through which the select list reads it.
-   * @param joinSql the {@code left join lateral (...) on true} fragment.
+   * Where one item's three row-context columns are read from: the lateral join that evaluated its
+   * subquery, and the column in that join holding this item's value. {@code found} and {@code
+   * eventstatus} are shared by every item on the join, so they need no per-item name.
    */
-  protected record RowContextLateral(String tableAlias, String joinSql) {}
+  private record RowContextRef(String tableAlias, String valueColumn) {}
+
+  /**
+   * One lateral join under construction: its alias, the subquery text from {@code from} onwards -
+   * which is the grouping key - and the expression each member item selects.
+   */
+  private record RowContextLateral(String tableAlias, String rest, List<String> valueExpressions) {}
+
+  /**
+   * The row-context laterals of a query: the joins to append, and where each item reads from them.
+   *
+   * @param joinClause the {@code left join lateral (...) on true} fragments, one per subquery
+   *     shape.
+   * @param refs where each row-context item's columns are read from, keyed by the item's alias.
+   */
+  private record RowContextLaterals(String joinClause, Map<String, RowContextRef> refs) {}
 
   /**
    * The row-context columns can only be served from a lateral join on the query shape that has one
@@ -499,56 +518,44 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return !isGroupByClause && !isAggregated;
   }
 
-  /**
-   * Returns the {@code left join lateral} fragments for the row-context items of the given query,
-   * in item order.
-   *
-   * <p>This is derived from {@code params} alone and from the same {@code getColumnAndAlias} calls
-   * {@link #addItemSelectColumns} makes, so the two agree on which items get a lateral and on the
-   * alias each one is given. Nothing is threaded between them.
-   */
+  /** Returns the {@code left join lateral} fragments for the row-context items of the query. */
   protected String getRowContextJoinClause(EventQueryParams params) {
-    if (!params.isRowContext()) {
-      return EMPTY;
-    }
-
-    StringBuilder joins = new StringBuilder();
-
-    for (int index = 0; index < params.getItems().size(); index++) {
-      QueryItem queryItem = params.getItems().get(index);
-
-      if (!rowContextAllowedAndNeeded(params, queryItem)) {
-        continue;
-      }
-
-      ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
-
-      if (isEmpty(columnAndAlias.alias)) {
-        continue;
-      }
-
-      asRowContextLateral(columnAndAlias.column, index)
-          .ifPresent(lateral -> joins.append(lateral.joinSql()));
-    }
-
-    return joins.toString();
+    return params.isRowContext() ? getRowContextLaterals(params).joinClause() : EMPTY;
   }
 
   /**
-   * Turns a repeatable-stage scalar subquery into a lateral join that evaluates it once.
+   * Rewrites the repeatable-stage scalar subqueries of a row-context query into lateral joins, one
+   * per distinct subquery, and says where each item reads its columns back from.
    *
    * <p>With {@code rowContext=true} each repeatable-stage data element used to emit the same
    * correlated subquery three times - once for the value, once wrapped in {@code exists (...)}, and
    * once with the selected column textually replaced by {@code eventstatus}. The planner sees three
    * independent nodes, each with its own {@code order by occurreddate desc, created desc limit 1},
-   * so an enrollment line list with 18 such dimensions generated 54 subselects. A lateral evaluates
-   * the subquery once and all three columns read from its single row.
+   * so an enrollment line list with 18 such dimensions generated 54 subselects.
+   *
+   * <p>Two reductions, and the second is the larger one:
+   *
+   * <ul>
+   *   <li>A lateral evaluates the subquery once and all three columns read from its single row: 54
+   *       subselects become 18 joins.
+   *   <li>Every data element on the same repeatable stage produces the <em>same</em> {@code from
+   *       ... where ... order by ... limit 1}, differing only in the expression selected - so they
+   *       are grouped onto one join that returns one value column each: 18 joins become 1.
+   * </ul>
+   *
+   * <p>That matters because the cost is the planner's, not the executor's. Each subquery expands to
+   * an {@code Append} over every year partition of the event table plus the inheritance parent, and
+   * planning is paid per relation reference: on Uganda's instance 54 subselects x 22 relations =
+   * 1,188 references cost 15.1 s to plan and 30 ms to execute. One join is 22 references.
    *
    * <p>Deliberately driven off the already-built subquery text rather than rebuilt from its parts:
    * the shapes {@code getColumn} can produce are several - {@code nullif}-wrapped, coordinate,
    * organisation-unit-with-suffix - and only the plain {@code (select <one expression> from ...
-   * limit 1)} form can be rewritten this way. Anything else returns empty and keeps the three
-   * subqueries, so this is strictly an optimisation of the recognised shape.
+   * limit 1)} form can be rewritten this way. Anything else is left out of the grouping and keeps
+   * its three subqueries, so this is strictly an optimisation of the recognised shape. Grouping on
+   * the subquery text, rather than on the program stage, is safe for the same reason: two items
+   * share a join only when everything but the selected expression is character-for-character equal,
+   * which is what makes them one evaluation.
    *
    * <p>Equivalence of the three columns:
    *
@@ -559,8 +566,82 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *   <li>{@code .status} was the same subquery selecting {@code eventstatus} instead, so it is
    *       that row's status - the row the lateral already has.
    * </ul>
+   *
+   * <p>Derived from {@code params} alone, so {@link #addItemSelectColumns} and {@link
+   * #getRowContextJoinClause} agree on the grouping and on every alias without threading anything
+   * between them.
    */
-  private Optional<RowContextLateral> asRowContextLateral(String subquery, int index) {
+  private RowContextLaterals getRowContextLaterals(EventQueryParams params) {
+    Map<String, RowContextLateral> laterals = new LinkedHashMap<>();
+    Map<String, RowContextRef> refs = new LinkedHashMap<>();
+
+    for (QueryItem queryItem : params.getItems()) {
+      if (!rowContextAllowedAndNeeded(params, queryItem)) {
+        continue;
+      }
+
+      ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
+
+      if (isEmpty(columnAndAlias.alias)) {
+        continue;
+      }
+
+      Optional<String[]> parts = splitRowContextSubquery(columnAndAlias.column);
+
+      if (parts.isEmpty()) {
+        continue;
+      }
+
+      String selectExpression = parts.get()[0];
+      String rest = parts.get()[1];
+
+      // Computed outside computeIfAbsent so the mapping function does not read the map it is
+      // populating: laterals are numbered in the order their subquery is first seen.
+      String tableAlias = ROW_CONTEXT_TABLE_ALIAS_PREFIX + laterals.size();
+
+      RowContextLateral lateral =
+          laterals.computeIfAbsent(
+              rest, key -> new RowContextLateral(tableAlias, key, new ArrayList<>()));
+
+      refs.put(
+          columnAndAlias.alias,
+          new RowContextRef(
+              lateral.tableAlias(),
+              ROW_CONTEXT_VALUE_COLUMN_PREFIX + lateral.valueExpressions().size()));
+      lateral.valueExpressions().add(selectExpression);
+    }
+
+    StringBuilder joins = new StringBuilder();
+
+    for (RowContextLateral lateral : laterals.values()) {
+      joins.append(" left join lateral (select ");
+
+      for (int ordinal = 0; ordinal < lateral.valueExpressions().size(); ordinal++) {
+        joins
+            .append(lateral.valueExpressions().get(ordinal))
+            .append(" as ")
+            .append(quote(ROW_CONTEXT_VALUE_COLUMN_PREFIX + ordinal))
+            .append(", ");
+      }
+
+      joins
+          .append("eventstatus, true as found")
+          .append(lateral.rest())
+          .append(") as ")
+          .append(quote(lateral.tableAlias()))
+          .append(" on true ");
+    }
+
+    return new RowContextLaterals(joins.toString(), refs);
+  }
+
+  /**
+   * Splits a repeatable-stage scalar subquery into the one expression it selects and everything
+   * from its {@code from} keyword onwards, or empty if it is not that shape.
+   *
+   * @return {@code [selected expression, rest]}, where {@code rest} is the grouping key.
+   */
+  private Optional<String[]> splitRowContextSubquery(String subquery) {
     String trimmed = StringUtils.trimToEmpty(subquery);
 
     if (!trimmed.startsWith("(select ") || !trimmed.endsWith(")")) {
@@ -578,28 +659,22 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String rest = body.substring(fromIndex);
 
     // One unaliased expression, and a query that references eventstatus - which the
-    // repeatable-stage
-    // subquery does, in its "eventstatus != 'SCHEDULE'" filter. Anything else is a shape this
-    // cannot
-    // safely rewrite.
+    // repeatable-stage subquery does, in its "eventstatus != 'SCHEDULE'" filter. Anything else is
+    // a shape this cannot safely rewrite.
+    //
+    // Balanced parentheses matter as more than tidiness: " from " is also a token inside
+    // expressions such as "extract(year from occurreddate)", and splitting on the first one would
+    // leave a half expression on each side. Requiring the select list to close every bracket it
+    // opens rejects that shape instead of emitting SQL that does not parse.
     if (selectList.isEmpty()
         || selectList.contains(",")
         || selectList.contains(" as ")
-        || !rest.contains("eventstatus")) {
+        || !rest.contains("eventstatus")
+        || StringUtils.countMatches(selectList, '(') != StringUtils.countMatches(selectList, ')')) {
       return Optional.empty();
     }
 
-    String tableAlias = ROW_CONTEXT_TABLE_ALIAS_PREFIX + index;
-    String joinSql =
-        " left join lateral (select "
-            + selectList
-            + " as value, eventstatus, true as found"
-            + rest
-            + ") as "
-            + quote(tableAlias)
-            + " on true ";
-
-    return Optional.of(new RowContextLateral(tableAlias, joinSql));
+    return Optional.of(new String[] {selectList, rest});
   }
 
   /**

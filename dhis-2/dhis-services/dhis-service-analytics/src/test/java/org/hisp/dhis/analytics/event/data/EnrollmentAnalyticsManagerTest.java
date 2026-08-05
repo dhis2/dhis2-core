@@ -259,6 +259,70 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
         "the lateral the select list reads from must be joined in: " + generated);
   }
 
+  /**
+   * The point of the grouping. Every data element on the same repeatable stage generates the same
+   * subquery apart from the expression it selects, so they share one lateral and one evaluation of
+   * it: Uganda's traced request has 18 of them and used to emit 54 correlated subselects, then 18
+   * joins, and now emits one. Goes red if the grouping is removed - each item would take its own
+   * {@code rowcontext_<n>} and its own join.
+   */
+  @Test
+  void verifyRepeatableStageDataElementsShareOneLateral() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(repeatableProgramStage, ValueType.TEXT))
+            .addItem(repeatableStageItem("bBk3nGGkNbF"))
+            .addItem(repeatableStageItem("cCk3nGGkNbG"))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generated = sql.getValue();
+
+    assertEquals(
+        1,
+        StringUtils.countMatches(generated, "left join lateral"),
+        "three data elements on one stage must share one lateral: " + generated);
+    assertEquals(
+        1,
+        StringUtils.countMatches(generated, "order by occurreddate desc"),
+        "the subquery must be evaluated once: " + generated);
+    assertEquals(
+        0,
+        StringUtils.countMatches(generated, "rowcontext_1"),
+        "a second lateral means the grouping did not happen: " + generated);
+
+    // One value column per item on the single join, and each read exactly once by the select list.
+    for (int ordinal = 0; ordinal < 3; ordinal++) {
+      assertEquals(
+          1,
+          StringUtils.countMatches(generated, "as \"v" + ordinal + "\""),
+          "expected a value column v" + ordinal + ": " + generated);
+      assertEquals(
+          1,
+          StringUtils.countMatches(generated, "\"rowcontext_0\".\"v" + ordinal + "\""),
+          "expected the select list to read v" + ordinal + ": " + generated);
+    }
+  }
+
+  /**
+   * A repeatable-stage query item for the given data element, on {@code repeatableProgramStage}.
+   */
+  private QueryItem repeatableStageItem(String dataElementUid) {
+    QueryItem item = new QueryItem(new BaseDimensionalItemObject(dataElementUid));
+    item.setProgram(programA);
+    item.setProgramStage(repeatableProgramStage);
+    item.setValueType(ValueType.TEXT);
+
+    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+    repeatableStageParams.setDimension(repeatableProgramStage.getUid() + "[-1]." + dataElementUid);
+    repeatableStageParams.setIndex(-1);
+    item.setRepeatableStageParams(repeatableStageParams);
+
+    return item;
+  }
+
   @Test
   void verifyWithProgramStageAndTextDataElement() {
     verifyWithProgramStageAndDataElement(ValueType.TEXT);
@@ -326,7 +390,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
             + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"quarterly\",ax.\"ou\","
-            + "\"rowcontext_0\".value as \""
+            + "\"rowcontext_0\".\"v0\" as \""
             + columnAlias
             + "\","
             + "coalesce(\"rowcontext_0\".found, false) as \""
@@ -340,7 +404,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + " as ax "
             + " left join lateral (select \""
             + dataElementUid
-            + "\" as value, eventstatus, true as found from analytics_event_"
+            + "\" as \"v0\", eventstatus, true as found from analytics_event_"
             + programUid
             + " where analytics_event_"
             + programUid
