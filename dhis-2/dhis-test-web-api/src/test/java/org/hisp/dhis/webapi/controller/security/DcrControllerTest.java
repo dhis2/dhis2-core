@@ -50,6 +50,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -89,6 +90,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -194,6 +196,33 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
     assertFalse(
         client.getScopes().contains("email"),
         "DCR default scopes must not include email (PR-H, OAuth2Constants.DCR_DEFAULT_SCOPES)");
+  }
+
+  @Test
+  @DisplayName("Test DCR-registered client refresh token settings")
+  void testDcrRegisteredClientRefreshTokenSettings() throws Exception {
+    // Given an initial access token (iat)
+    String initialAccessToken = createClientAndIat();
+
+    // Given a key pair to be used for the client's private_key_jwt authentication
+    KeyPair keyPair = createKeys();
+
+    // When registering a client
+    String clientId = doClientRegistrationRequest(initialAccessToken, keyPair);
+    RegisteredClient client = oAuth2ClientService.findByClientId(clientId);
+    assertNotNull(client);
+
+    // Then the refresh token TTL is the oauth2.server.dcr.refresh-token-ttl default (30 days),
+    // not the SAS framework default of 60 minutes
+    TokenSettings tokenSettings = client.getTokenSettings();
+    assertEquals(Duration.ofDays(30), tokenSettings.getRefreshTokenTimeToLive());
+
+    // Then refresh tokens are rotated on every use (OAuth 2.1 requirement for public clients),
+    // making the TTL a sliding window instead of a hard wall after the initial login
+    assertFalse(tokenSettings.isReuseRefreshTokens());
+
+    // Then the id-token signature algorithm set by the SAS delegate converter is preserved
+    assertEquals(SignatureAlgorithm.RS256, tokenSettings.getIdTokenSignatureAlgorithm());
   }
 
   @Test
