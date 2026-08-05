@@ -466,4 +466,20 @@ public class DefaultCacheProvider implements CacheProvider {
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_100))));
   }
+
+  /**
+   * Cache for user organisation unit UIDs looked up via raw JDBC while building {@code
+   * UserDetails}. Keyed by "{username}:{OU|SEARCH|DATAVIEW}". Cuts repeated SQL on PAT, JWT and
+   * Basic Auth principal rebuilds.
+   */
+  @Override
+  public <V> Cache<V> createUserOrgUnitUidsCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.userOrgUnitUidsCache.name())
+            .expireAfterWrite(1, HOURS)
+            .withInitialCapacity(200)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
+  }
 }
