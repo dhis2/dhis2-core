@@ -30,14 +30,22 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging.PagedDataSynchronisationContext;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
 
 public final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
 
   private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
+
+  // Every entity UID fetched so far this run, across all pages. At the end of the run we compare
+  // this against the total count to report how many entities never got a turn at all — this can
+  // happen when a few entities keep failing and keep reappearing at the front of the queue (see
+  // the javadoc on fetchEntitiesForPage), crowding out everything behind them.
+  private final Set<UID> attemptedUids = new HashSet<>();
 
   private TrackerSynchronizationContext(
       Date skipChangedBefore,
@@ -54,14 +62,7 @@ public final class TrackerSynchronizationContext extends PagedDataSynchronisatio
     return new TrackerSynchronizationContext(skipChangedBefore, 0, null, pageSize, Map.of());
   }
 
-  static TrackerSynchronizationContext forTrackedEntities(
-      Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance, int pageSize) {
-
-    return new TrackerSynchronizationContext(
-        skipChangedBefore, objectsToSynchronize, instance, pageSize, Map.of());
-  }
-
-  static TrackerSynchronizationContext forEvents(
+  static TrackerSynchronizationContext forEntities(
       Date skipChangedBefore,
       long objectsToSynchronize,
       SystemInstance instance,
@@ -82,5 +83,9 @@ public final class TrackerSynchronizationContext extends PagedDataSynchronisatio
 
   Map<String, Set<String>> getSkipSyncDataElementsByProgramStage() {
     return skipSyncDataElementsByProgramStage;
+  }
+
+  Set<UID> getAttemptedUids() {
+    return attemptedUids;
   }
 }

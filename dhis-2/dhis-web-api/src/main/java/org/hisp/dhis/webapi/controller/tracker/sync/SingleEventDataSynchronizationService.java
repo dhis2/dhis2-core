@@ -30,10 +30,14 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
@@ -45,12 +49,14 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -94,14 +100,14 @@ public class SingleEventDataSynchronizationService
   }
 
   @Override
-  public List<SingleEvent> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
+  public List<SingleEvent> fetchEntitiesForPage(TrackerSynchronizationContext context)
       throws ForbiddenException, BadRequestException {
     return singleEventService
         .findEvents(
             SingleEventOperationParams.builderForDataSync(
                     context.getSkipChangedBefore(), context.getSkipSyncDataElementsByProgramStage())
                 .build(),
-            PageParams.of(page, context.getPageSize(), false))
+            PageParams.of(1, context.getPageSize(), false))
         .getItems();
   }
 
@@ -155,12 +161,57 @@ public class SingleEventDataSynchronizationService
     Map<String, Set<String>> skipSyncProgramStageDataElements =
         getSkipSyncProgramStageDataElements();
 
-    return TrackerSynchronizationContext.forEvents(
+    return TrackerSynchronizationContext.forEntities(
         skipChangedBefore, eventCount, instance, pageSize, skipSyncProgramStageDataElements);
   }
 
   private Map<String, Set<String>> getSkipSyncProgramStageDataElements() {
     return programStageDataElementService
         .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  }
+
+  @Override
+  public TrackerType getTrackerType() {
+    return TrackerType.EVENT;
+  }
+
+  @Override
+  public UID getUid(Event entity) {
+    return entity.getEvent();
+  }
+
+  @Override
+  protected NestedDeletion<Event> splitDeletedChildren(List<Event> activeEntities) {
+    Map<UID, Relationship> deletedRelationshipsByUid = new LinkedHashMap<>();
+    // Maps each active event to the relationship UIDs it owns. If deleting one of those
+    // relationships really fails (not just "already deleted"), we must not save a sync
+    // timestamp for that event later, or it would never be retried.
+    Map<UID, Set<UID>> deletedChildUidsByEvent = new HashMap<>();
+
+    for (Event event : activeEntities) {
+      Set<UID> ownedDeletedChildUids =
+          deletedChildUidsByEvent.computeIfAbsent(event.getEvent(), k -> new HashSet<>());
+      event.setRelationships(
+          stripDeletedRelationships(
+              event.getRelationships(), deletedRelationshipsByUid, ownedDeletedChildUids));
+    }
+
+    Map<String, List<?>> deletedPayloadByJsonKey =
+        Map.of(
+            "relationships",
+            deletedRelationshipsByUid.values().stream()
+                .map(r -> toMinimalRelationship(r))
+                .toList());
+    Map<TrackerType, Integer> deletedCountByType =
+        Map.of(TrackerType.RELATIONSHIP, deletedRelationshipsByUid.size());
+
+    return new NestedDeletion<>(
+        activeEntities, deletedPayloadByJsonKey, deletedCountByType, deletedChildUidsByEvent);
+  }
+
+  @Override
+  protected boolean hasFailedChild(Event event, Map<TrackerType, Set<UID>> failedChildUidsByType) {
+    return hasFailedRelationship(
+        event.getRelationships(), failedChildUidsByType.get(TrackerType.RELATIONSHIP));
   }
 }
