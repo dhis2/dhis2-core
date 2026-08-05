@@ -44,10 +44,10 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
- * Minimal cached entity owning a cached collection, used to observe the real SQL cost of
- * collection cache hits. It is mapped exactly like the production entities: READ_WRITE concurrency
- * on both the entity and the lazy collection, which is the only strategy used in DHIS2 (see the
- * {@code <cache usage="read-write"/>} tags on collections in the hbm.xml mappings).
+ * Minimal cached entity owning a cached collection, used to observe the real SQL cost of collection
+ * cache hits. It is mapped exactly like the production entities: READ_WRITE concurrency on both the
+ * entity and the lazy collection, which is the only strategy used in DHIS2 (see the {@code <cache
+ * usage="read-write"/>} tags on collections in the hbm.xml mappings).
  *
  * @author Morten Svanæs
  */
