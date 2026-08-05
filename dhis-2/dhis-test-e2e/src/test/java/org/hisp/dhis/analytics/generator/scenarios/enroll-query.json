@@ -190,6 +190,13 @@
       }
     },
     {
+      "name": "rowContextWithItemsFromTwoRepeatableStages",
+      "query": "/api/analytics/enrollments/query/M3xtLkYBlKI.json?dimension=ou:USER_ORGUNIT&headers=ouname,enrollmentdate,uvMKOn1oWvd.DX4LVYeP7bw,CWaAcQYKVpq.HDRons6AfbL&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&desc=enrollmentdate,CWaAcQYKVpq.HDRons6AfbL",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "ouMultipleLevels",
       "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT;LEVEL-wjP19dkFeIk;LEVEL-tTUf91fCytl;LEVEL-m9lBJogzE95&headers=ouname,lastupdated&totalPages=false&rowContext=true&lastUpdated=201707&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT",
       "version": {
