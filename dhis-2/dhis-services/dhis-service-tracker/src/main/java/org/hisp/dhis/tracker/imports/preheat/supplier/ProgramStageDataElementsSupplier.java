@@ -31,16 +31,19 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -106,14 +109,22 @@ public class ProgramStageDataElementsSupplier extends JdbcAbstractPreheatSupplie
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<ProgramStage> programStages = preheat.getAll(ProgramStage.class);
-    if (programStages.isEmpty()) {
+    // Stages named by the payload, plus the stages of every preheated program. An event in an
+    // event program does not carry a program stage, EventProgramPreProcessor derives it from the
+    // program, but that runs after preheat. Projecting the program's stages as well means the
+    // derived stage is covered. Without this E1305 rejects every data value of such an event.
+    Map<Long, ProgramStage> stagesById =
+        Stream.concat(
+                preheat.getAll(ProgramStage.class).stream(),
+                preheat.getAll(Program.class).stream()
+                    .map(Program::getProgramStages)
+                    .filter(Objects::nonNull)
+                    .flatMap(Collection::stream))
+            .collect(Collectors.toMap(IdentifiableObject::getId, ps -> ps, (a, b) -> a));
+
+    if (stagesById.isEmpty()) {
       return;
     }
-
-    Map<Long, ProgramStage> stagesById =
-        programStages.stream()
-            .collect(Collectors.toMap(IdentifiableObject::getId, ps -> ps, (a, b) -> a));
 
     // Data elements of the payload and of the program rules. Both are already preheated, so
     // reading their uids costs nothing. Program rules only ever refer to data elements by uid.
