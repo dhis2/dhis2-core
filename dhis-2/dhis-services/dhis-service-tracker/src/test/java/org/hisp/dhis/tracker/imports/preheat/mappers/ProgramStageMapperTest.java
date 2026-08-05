@@ -31,11 +31,10 @@ package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.dataelement.DataElement;
@@ -91,15 +90,9 @@ class ProgramStageMapperTest {
         AttributeValues.of(Map.of("m0GpPuMUfFW", "yellow")),
         mapped.getProgram().getAttributeValues());
 
-    Optional<ProgramStageDataElement> actual =
-        mapped.getProgramStageDataElements().stream().findFirst();
-    assertTrue(actual.isPresent());
-    ProgramStageDataElement value = actual.get();
-    assertEquals("khBzbxTLo8k", value.getDataElement().getUid());
-    assertEquals("clouds", value.getDataElement().getName());
-    assertEquals("orange", value.getDataElement().getCode());
-    assertEquals(
-        AttributeValues.of(Map.of("m0GpPuMUfFW", "purple")),
-        value.getDataElement().getAttributeValues());
+    // programStageDataElements is deliberately not mapped, as initializing it loaded one
+    // DataElement entity per element. ProgramStageDataElementsSupplier projects what the import
+    // needs instead.
+    assertIsEmpty(mapped.getProgramStageDataElements());
   }
 }

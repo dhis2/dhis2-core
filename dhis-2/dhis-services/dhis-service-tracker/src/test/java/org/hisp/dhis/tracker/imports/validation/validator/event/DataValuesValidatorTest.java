@@ -33,6 +33,7 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -1169,15 +1170,18 @@ class DataValuesValidatorTest {
    */
   private void stubProgramStageDataElements(ProgramStage programStage) {
     Set<ProgramStageDataElement> psdes = programStage.getProgramStageDataElements();
-    when(preheat.getProgramStageDataElements(programStage))
+    // read the idScheme off the mock, as the supplier does, so tests overriding it are honoured
+    TrackerIdSchemeParams schemes = preheat.getIdSchemes();
+    lenient()
+        .when(preheat.getProgramStageDataElements(programStage))
         .thenReturn(
             new ProgramStageDataElements(
                 psdes.stream()
                     .filter(ProgramStageDataElement::isCompulsory)
-                    .map(psde -> idSchemes.toMetadataIdentifier(psde.getDataElement()))
+                    .map(psde -> schemes.toMetadataIdentifier(psde.getDataElement()))
                     .collect(Collectors.toSet()),
                 psdes.stream()
-                    .map(psde -> idSchemes.toMetadataIdentifier(psde.getDataElement()))
+                    .map(psde -> schemes.toMetadataIdentifier(psde.getDataElement()))
                     .collect(Collectors.toSet()),
                 psdes.stream()
                     .map(psde -> UID.of(psde.getDataElement().getUid()))
