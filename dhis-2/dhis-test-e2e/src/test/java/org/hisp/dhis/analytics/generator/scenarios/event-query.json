@@ -342,6 +342,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "optionSetDimensionFilteredByNoValueKeyword",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=ou:ImspTQPwCqd,fWIAEtYVEGk:IN:D2__NOVALUE&stage=Zj7UnCAulEk&eventDate=2021&headers=ouname,fWIAEtYVEGk&includeMetadataDetails=true&paging=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

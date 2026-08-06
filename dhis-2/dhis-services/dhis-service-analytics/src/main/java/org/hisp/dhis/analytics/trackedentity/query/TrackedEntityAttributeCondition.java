@@ -52,17 +52,19 @@ public class TrackedEntityAttributeCondition extends BaseRenderable {
   public String render() {
     List<BinaryConditionRenderer> renderers = new ArrayList<>();
 
-    ValueTypeMapping valueTypeMapping =
-        ValueTypeMapping.fromValueType(dimensionIdentifier.getDimension().getValueType());
+    DimensionParam dimension = dimensionIdentifier.getDimension();
+    ValueTypeMapping valueTypeMapping = ValueTypeMapping.fromValueType(dimension.getValueType());
+    boolean isOptionSet = dimension.isQueryItem() && dimension.getQueryItem().hasOptionSet();
 
-    for (DimensionParamItem item : dimensionIdentifier.getDimension().getItems()) {
+    for (DimensionParamItem item : dimension.getItems()) {
       BinaryConditionRenderer binaryConditionRenderer =
           BinaryConditionRenderer.of(
-              Field.of(dimensionIdentifier.getDimension().getUid()),
+              Field.of(dimension.getUid()),
               item.getOperator(),
               item.getValues(),
               valueTypeMapping,
-              queryContext);
+              queryContext,
+              isOptionSet);
 
       renderers.add(binaryConditionRenderer);
     }

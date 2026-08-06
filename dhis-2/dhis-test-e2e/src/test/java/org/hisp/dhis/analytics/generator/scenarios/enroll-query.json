@@ -195,6 +195,13 @@
       "version": {
         "min": 41
       }
+    },
+    {
+      "name": "optionSetDimensionFilteredByNoValueKeyword",
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n.json?dimension=ou:ImspTQPwCqd,cejWyOfXge6:IN:D2__NOVALUE&headers=ouname,cejWyOfXge6&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=ouname&relativePeriodDate=2022-07-01",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

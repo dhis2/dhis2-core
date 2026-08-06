@@ -30,10 +30,12 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
+import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.feedback.ErrorCode.E7229;
 import static org.hisp.dhis.feedback.ErrorCode.E7234;
+import static org.hisp.dhis.feedback.ErrorCode.E7246;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -192,7 +194,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
         return new ErrorMessage(ErrorCode.E7216, item.getItemId());
       } else {
         for (QueryFilter filter : item.getFilters()) {
-          ErrorMessage error = validateQueryFilter(filter, item.getValueType());
+          ErrorMessage error =
+              validateQueryFilter(filter, item.getValueType(), item.hasOptionSet());
           if (error != null) {
             return error;
           }
@@ -274,22 +277,22 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
    * @param valueType the {@link ValueType}.
    * @return the validation {@link ErrorMessage}, or null if no error is found.
    */
-  private ErrorMessage validateQueryFilter(QueryFilter filter, ValueType valueType) {
+  ErrorMessage validateQueryFilter(QueryFilter filter, ValueType valueType, boolean isOptionSet) {
     String filterValue = trimToEmpty(filter.getFilter());
     ErrorMessage errorMessage = null;
 
     if (filter.getOperator().isIn()) {
-      // A filter value may contain multiple options, ie.: 1;0;NV.
+      // A filter value may contain multiple options, ie.: 1;0;D2__NOVALUE.
       Set<String> filterValues = Set.of(filterValue.split(";"));
 
       for (String f : filterValues) {
-        errorMessage = validateFilterValue(IN, valueType, f);
+        errorMessage = validateFilterValue(IN, valueType, f, isOptionSet);
         if (errorMessage != null) {
           return errorMessage;
         }
       }
     } else {
-      errorMessage = validateFilterValue(filter.getOperator(), valueType, filterValue);
+      errorMessage = validateFilterValue(filter.getOperator(), valueType, filterValue, isOptionSet);
     }
 
     return errorMessage;
@@ -304,10 +307,17 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
    * @return the validation {@link ErrorMessage}, or null if no error is found.
    */
   private ErrorMessage validateFilterValue(
-      QueryOperator operator, ValueType valueType, String filterValue) {
-    if (!operator.isNullAllowed() && filterValue.contains(NV)) {
+      QueryOperator operator, ValueType valueType, String filterValue, boolean isOptionSet) {
+    // The reserved no-value keyword may only be used with option set dimensions.
+    if (NO_VALUE.equals(filterValue) && !isOptionSet) {
+      return new ErrorMessage(E7246, NO_VALUE);
+    }
+
+    boolean noValue = isNoValue(filterValue, isOptionSet);
+
+    if (!operator.isNullAllowed() && noValue) {
       return new ErrorMessage(E7229, operator.getValue());
-    } else if (!filterValue.contains(NV)
+    } else if (!noValue
         && !valueIsComparable(convertFilterValue(valueType, filterValue), valueType)) {
       return new ErrorMessage(E7234, filterValue, valueType);
     }
