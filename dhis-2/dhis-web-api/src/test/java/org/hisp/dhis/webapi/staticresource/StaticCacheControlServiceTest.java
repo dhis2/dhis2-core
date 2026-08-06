@@ -51,6 +51,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -118,6 +119,43 @@ class StaticCacheControlServiceTest {
   void htmlFile_matchesNoCachePattern() {
     MockHttpServletResponse response = new MockHttpServletResponse();
     service.setHeaders(response, "/apps/dashboard/index.html", null, null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
+  }
+
+  @Test
+  @DisplayName("Directory URL serving index.html returns no-store")
+  void directoryUrl_returnsNoStore() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/login/", null, null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
+  }
+
+  @Test
+  @DisplayName("App directory URL returns no-store")
+  void appDirectoryUrl_returnsNoStore() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/login/", null, null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
+  }
+
+  @Test
+  @DisplayName("App no-cache rule matches directory URL via index.html normalization")
+  void appNoCacheRule_matchesDirectoryUrl() {
+    when(config.getProperty(ConfigurationKey.STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS)).thenReturn("");
+
+    App app = new App();
+    app.setName("my-app");
+    app.setShortName("my-app");
+    CacheRule rule = new CacheRule("**/index.html", 0, null, null);
+    app.setCacheConfig(new AppCacheConfig(List.of(rule), null, null));
+
+    when(appManager.getApp("my-app")).thenReturn(app);
+
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/my-app/", null, "my-app");
 
     assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
   }
@@ -200,13 +238,22 @@ class StaticCacheControlServiceTest {
     assertThat(cc, containsString("immutable"));
   }
 
-  @Test
-  @DisplayName("Normal multi-dash filename is NOT treated as hashed")
-  void multiDash_normalFilename_notHashed() {
+  @ParameterizedTest(name = "Unhashed filename {0} is NOT treated as hashed")
+  @ValueSource(
+      strings = {
+        "/apps/dashboard/app-dashboard-plugin.js",
+        "/apps/login/apple-touch-icon.png",
+        "/apps/login/safari-pinned-tab.svg",
+        "/apps/mstile-150x150.png",
+        "/apps/android-chrome-192x192.png"
+      })
+  void unhashedFilename_notTreatedAsHashed(String uri) {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/app-dashboard-plugin.js", null, null);
+    service.setHeaders(response, uri, null, null);
 
-    assertThat(response.getHeader("Cache-Control"), containsString("max-age=3600"));
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, not(containsString("immutable")));
+    assertThat(cc, containsString("max-age=3600"));
   }
 
   @Test
@@ -297,6 +344,45 @@ class StaticCacheControlServiceTest {
 
     String etag = service.generateETag(null, "/dhis-web-commons/css/style.css", null);
     assertThat("ETag should not be null or empty", etag, not(org.hamcrest.Matchers.emptyString()));
+  }
+
+  @Test
+  @DisplayName("ETag differs between different request URIs of the same app")
+  void eTag_differsPerUri() {
+    when(systemService.getSystemInfoVersion()).thenReturn("2.42.0");
+
+    App app = new App();
+    app.setVersion("1.0.0");
+
+    String etagA = service.generateETag(app, "/apps/dashboard/a.css", null);
+    String etagB = service.generateETag(app, "/apps/dashboard/b.css", null);
+
+    assertThat("ETag must be per resource", etagA, not(org.hamcrest.Matchers.is(etagB)));
+  }
+
+  @Test
+  @DisplayName("ETag differs between different core URIs without an app")
+  void eTag_nullApp_differsPerUri() {
+    when(systemService.getSystemInfoVersion()).thenReturn("2.42.0");
+
+    String etagA = service.generateETag(null, "/dhis-web-commons/css/a.css", null);
+    String etagB = service.generateETag(null, "/dhis-web-commons/css/b.css", null);
+
+    assertThat("ETag must be per resource", etagA, not(org.hamcrest.Matchers.is(etagB)));
+  }
+
+  @Test
+  @DisplayName("ETag is stable for repeated calls with the same URI")
+  void eTag_stableForSameUri() {
+    when(systemService.getSystemInfoVersion()).thenReturn("2.42.0");
+
+    App app = new App();
+    app.setVersion("1.0.0");
+
+    String etagA = service.generateETag(app, "/apps/dashboard/a.css", null);
+    String etagB = service.generateETag(app, "/apps/dashboard/a.css", null);
+
+    assertThat(etagA, org.hamcrest.Matchers.is(etagB));
   }
 
   @Test
