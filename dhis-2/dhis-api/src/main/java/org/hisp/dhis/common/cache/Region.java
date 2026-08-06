@@ -69,5 +69,8 @@ public enum Region {
   queryAliasCache,
   corsWhitelistCache,
   notificationTemplateCache,
+  systemStatisticsOverview,
+  systemStatisticsDataCounts,
+  dataSummarySessionGauges,
   userDetailsAuthzCache
 }

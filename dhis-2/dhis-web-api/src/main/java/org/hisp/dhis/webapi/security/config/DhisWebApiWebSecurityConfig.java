@@ -78,11 +78,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer.SessionFixationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
@@ -247,37 +247,43 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Bean
-  protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
-      http.csrf(
-              c ->
-                  c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                      .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
-          .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-    } else {
-      http.csrf(AbstractHttpConfigurer::disable);
+  protected SecurityFilterChain filterChain(HttpSecurity http) {
+    try {
+      if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
+        http.csrf(
+                c ->
+                    c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+            .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
+      } else {
+        http.csrf(AbstractHttpConfigurer::disable);
+      }
+
+      http.cors(Customizer.withDefaults());
+
+      if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
+        http.requestCache(rc -> rc.requestCache(requestCache));
+      } else {
+        http.requestCache(rc -> rc.disable());
+      }
+
+      configureMatchers(http);
+      configureCspFilter(http, dhisConfig, configurationService);
+      configureApiTokenAuthorizationFilter(http);
+      configureOAuthTokenFilters(http);
+
+      http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
+
+      setHttpHeaders(http);
+
+      return http.build();
+    } catch (Exception ex) {
+      throw new IllegalStateException("Failed to configure web security filter chain", ex);
     }
 
-    http.cors(Customizer.withDefaults());
-
-    if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
-      http.requestCache(rc -> rc.requestCache(requestCache));
-    } else {
-      http.requestCache(rc -> rc.disable());
-    }
-
-    configureMatchers(http);
-    configureCspFilter(http, dhisConfig, configurationService);
-    configureApiTokenAuthorizationFilter(http);
-    configureOAuthTokenFilters(http);
-
-    http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
-    setHttpHeaders(http);
-
-    return http.build();
   }
 
-  public static void setHttpHeaders(HttpSecurity http) throws Exception {
+  public static void setHttpHeaders(HttpSecurity http) {
     http.headers(
         headers ->
             headers
@@ -295,10 +301,11 @@ public class DhisWebApiWebSecurityConfig {
             .requestMatchers(
                 new AntPathRequestMatcher("/api/ping"),
                 new AntPathRequestMatcher("/api/system/ping"),
+                new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"),
                 new AntPathRequestMatcher("/favicon.ico"));
   }
 
-  private void configureMatchers(HttpSecurity http) throws Exception {
+  private void configureMatchers(HttpSecurity http) {
     // Replicates the configurer's default repository pair, with the HttpSession delegate
     // decorated for authz soft-refresh (session-only by construction; JWT/PAT never load
     // through it).
@@ -337,8 +344,6 @@ public class DhisWebApiWebSecurityConfig {
               .requestMatchers(new AntPathRequestMatcher("/api/apps/login/**"))
               .permitAll()
               .requestMatchers(new AntPathRequestMatcher("/login/**"))
-              .permitAll()
-              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"))
               .permitAll()
               .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
               .permitAll()
@@ -455,8 +460,7 @@ public class DhisWebApiWebSecurityConfig {
     http.sessionManagement(
         session ->
             session
-                .sessionFixation(
-                    SessionManagementConfigurer.SessionFixationConfigurer::migrateSession)
+                .sessionFixation(SessionFixationConfigurer::migrateSession)
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .enableSessionUrlRewriting(false)
                 .maximumSessions(
@@ -546,7 +550,10 @@ public class DhisWebApiWebSecurityConfig {
         (request, response, exception) -> {
           authenticationEventPublisher.publishAuthenticationFailure(
               exception,
-              new AbstractAuthenticationToken(null) {
+              new AbstractAuthenticationToken(
+                  (java.util.Collection<
+                          ? extends org.springframework.security.core.GrantedAuthority>)
+                      null) {
                 @Override
                 public Object getCredentials() {
                   return null;

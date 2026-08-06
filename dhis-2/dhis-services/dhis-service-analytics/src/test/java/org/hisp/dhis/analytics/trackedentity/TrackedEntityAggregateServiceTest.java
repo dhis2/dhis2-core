@@ -32,7 +32,9 @@ package org.hisp.dhis.analytics.trackedentity;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,9 +44,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
@@ -65,10 +69,15 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -128,6 +137,55 @@ class TrackedEntityAggregateServiceTest {
     assertEquals(42, grid.getRow(0).get(1));
     verify(securityManager).decideAccess(any(), any());
     verify(metadataParamsHandler).handle(eq(grid), any(), any(), eq(0L));
+  }
+
+  @Test
+  void getGridChecksDataReadAccessForEventValueProgramStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("PsUid000001");
+    DataElement dataElement = new DataElement();
+    dataElement.setUid("DeUid000001");
+    dataElement.setValueType(ValueType.NUMBER);
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid("TetUid00001");
+
+    TrackedEntityQueryParams teParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .aggregate(true)
+            .eventValue(new EventValue(programStage, dataElement, 0))
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(teParams)
+            .commonRaw(new CommonRequestParams().withDimension(Set.of("ou")))
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    SqlRowSet rowSet =
+        fakeRowSet(new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 5}));
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    service.getGrid(ctx);
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Collection<IdentifiableObject>> captor =
+        ArgumentCaptor.forClass(Collection.class);
+    verify(securityManager).decideAccess(any(), captor.capture());
+    Collection<IdentifiableObject> checked = captor.getValue();
+    assertTrue(checked.contains(trackedEntityType), "tracked entity type must be access-checked");
+    assertTrue(checked.contains(programStage), "event value program stage must be access-checked");
+    // The data element is intentionally not checked: event-data access is governed by the program
+    // stage, and data elements are in the security manager's data-read skip set.
+    assertFalse(
+        checked.contains(dataElement), "event value data element must not be access-checked");
   }
 
   @Test

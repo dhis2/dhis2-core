@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -74,7 +74,7 @@ class DataIntegrityYamlReaderTest {
 
         try (InputStream checkStream = new ClassPathResource(resourcePath).getInputStream()) {
           JsonNode checkJson = yaml.readValue(checkStream, JsonNode.class);
-          Set<ValidationMessage> validationMessages =
+          List<Error> validationMessages =
               JsonSchemaValidator.validateDataIntegrityCheck(checkJson);
 
           assertTrue(

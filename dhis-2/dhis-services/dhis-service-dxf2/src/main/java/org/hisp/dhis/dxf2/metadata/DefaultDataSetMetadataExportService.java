@@ -144,12 +144,18 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
         dataSetService.getDataSetOrganisationUnitsAssociations();
 
     List<DataSet> dataSets = idObjectManager.getDataWriteAll(DataSet.class);
-    List<DataElement> dataElements = sortById(flatMapToSet(dataSets, DataSet::getDataElements));
+    List<DataElement> dataElements =
+        sortById(new HashSet<>(dataSetService.getDataElementsByDataSet(dataSets)));
     List<Indicator> indicators = sortById(flatMapToSet(dataSets, DataSet::getIndicators));
     List<CategoryCombo> dataElementCategoryCombos =
         sortById(flatMapToSet(dataElements, DataElement::getCategoryCombos));
     List<CategoryCombo> dataSetCategoryCombos =
         sortById(mapToSet(dataSets, DataSet::getCategoryCombo));
+
+    // Preload the category options of the data-element category-option-combos in a single query, so
+    // field-filter serialisation of categoryOptionCombos[...,categoryOptions~pluck[id]] does not
+    // trigger a per-combo N+1 (categoryoptioncombos_categoryoptions).
+    categoryService.getCategoryOptionCombosWithCategoryOptions(dataElementCategoryCombos);
     List<Category> dataElementCategories =
         sortById(flatMapToSet(dataElementCategoryCombos, CategoryCombo::getCategories));
     List<Category> dataSetCategories =

@@ -631,6 +631,20 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public List<String> getUsernamesByUserRole(@Nonnull UID roleUid) {
+    return getSession()
+        .createQuery(
+            "select u.username from User u join u.userRoles r where r.uid = :roleUid", String.class)
+        .setParameter("roleUid", roleUid.getValue())
+        .list();
+  }
+
+  @Override
+  public List<String> getAllUsernames() {
+    return getSession().createQuery("select u.username from User u", String.class).list();
+  }
+
+  @Override
   public void setActiveLinkedAccounts(
       @Nonnull String actingUsername, @Nonnull String activeUsername) {
 
@@ -941,6 +955,36 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           attrUid.getValue(),
           userUid.getValue());
     }
+  }
+
+  @Override
+  public List<Integer> getActiveUserCounts(List<Date> sinceDates) {
+    if (sinceDates.isEmpty()) {
+      return List.of();
+    }
+    StringBuilder sql = new StringBuilder("select ");
+    for (int i = 0; i < sinceDates.size(); i++) {
+      if (i > 0) {
+        sql.append(", ");
+      }
+      sql.append("count(*) filter (where lastlogin >= ?) as c").append(i);
+    }
+    sql.append(" from userinfo");
+    return jdbcTemplate.query(
+        sql.toString(),
+        ps -> {
+          for (int i = 0; i < sinceDates.size(); i++) {
+            ps.setTimestamp(i + 1, new java.sql.Timestamp(sinceDates.get(i).getTime()));
+          }
+        },
+        rs -> {
+          rs.next();
+          List<Integer> counts = new ArrayList<>(sinceDates.size());
+          for (int i = 0; i < sinceDates.size(); i++) {
+            counts.add(rs.getInt(i + 1));
+          }
+          return counts;
+        });
   }
 
   @Override

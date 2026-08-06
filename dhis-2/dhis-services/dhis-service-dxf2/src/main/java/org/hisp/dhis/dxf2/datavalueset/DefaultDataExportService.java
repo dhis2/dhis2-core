@@ -39,6 +39,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -345,7 +346,7 @@ public class DefaultDataExportService implements DataExportService {
     return value == null || value.isEmpty() ? null : value;
   }
 
-  private DataExportParams decodeParams(DataExportParams.Input params) {
+  private DataExportParams decodeParams(DataExportParams.Input params) throws ConflictException {
     boolean codeFallback = Boolean.TRUE.equals(params.getInputUseCodeFallback());
     IdentifiableProperty anyIn = params.getInputIdScheme();
     IdentifiableProperty dsIn = params.getInputDataSetIdScheme();
@@ -358,24 +359,6 @@ public class DefaultDataExportService implements DataExportService {
     if (ouIn == null) ouIn = anyIn;
     if (degIn == null) degIn = anyIn;
 
-    List<UID> attributeOptionCombos = decodeIds(COC, anyIn, params.getAttributeOptionCombo());
-    if (attributeOptionCombos.isEmpty() && params.getAttributeOptions() != null) {
-      UID aoc =
-          store.getAttributeOptionCombo(
-              params.getAttributeCombo(), params.getAttributeOptions().stream());
-      if (aoc != null) attributeOptionCombos = List.of(aoc);
-    }
-
-    List<Order> orders = params.getOrder();
-    if (params.isOrderByPeriod()) {
-      if (orders == null) {
-        orders = List.of(Order.PE);
-      } else if (!orders.contains(Order.PE)) {
-        orders = new ArrayList<>(orders);
-        orders.add(0, Order.PE);
-      }
-    }
-
     return DataExportParams.builder()
         .dataSets(decodeIds(DS, dsIn, params.getDataSet()))
         .dataElementGroups(decodeIds(DEG, degIn, params.getDataElementGroup()))
@@ -384,18 +367,52 @@ public class DefaultDataExportService implements DataExportService {
         .organisationUnitGroups(decodeIds(OUG, anyIn, params.getOrgUnitGroup()))
         .orgUnitLevel(params.getLevel())
         .categoryOptionCombos(decodeIds(COC, anyIn, params.getCategoryOptionCombo()))
-        .attributeOptionCombos(attributeOptionCombos)
+        .attributeOptionCombos(resolveAttributeOptionCombos(anyIn, params))
         .periods(decodePeriods(params.getPeriod()))
         .startDate(params.getStartDate())
         .endDate(params.getEndDate())
         .includeDescendants(params.isChildren())
         .includeDeleted(params.isIncludeDeleted())
         .lastUpdated(params.getLastUpdated())
-        .lastUpdatedDuration(DateUtils.getDuration(params.getLastUpdatedDuration()))
+        .lastUpdatedDuration(resolveLastUpdatedDuration(params))
         .limit(params.getLimit())
         .offset(params.getOffset())
-        .orders(orders)
+        .orders(resolveOrders(params))
         .build();
+  }
+
+  @Nonnull
+  private List<UID> resolveAttributeOptionCombos(
+      IdentifiableProperty anyIn, DataExportParams.Input params) {
+    List<UID> attributeOptionCombos = decodeIds(COC, anyIn, params.getAttributeOptionCombo());
+    if (!attributeOptionCombos.isEmpty() || params.getAttributeOptions() == null) {
+      return attributeOptionCombos;
+    }
+    UID aoc =
+        store.getAttributeOptionCombo(
+            params.getAttributeCombo(), params.getAttributeOptions().stream());
+    return aoc == null ? attributeOptionCombos : List.of(aoc);
+  }
+
+  private List<Order> resolveOrders(DataExportParams.Input params) {
+    List<Order> orders = params.getOrder();
+    if (!params.isOrderByPeriod()) return orders;
+    if (orders == null) return List.of(Order.PE);
+    if (orders.contains(Order.PE)) return orders;
+    orders = new ArrayList<>(orders);
+    orders.add(0, Order.PE);
+    return orders;
+  }
+
+  private Duration resolveLastUpdatedDuration(DataExportParams.Input params)
+      throws ConflictException {
+    String lastUpdatedDurationIn = params.getLastUpdatedDuration();
+    Duration lastUpdatedDuration = DateUtils.getDuration(lastUpdatedDurationIn);
+    if (lastUpdatedDurationIn != null
+        && !lastUpdatedDurationIn.isBlank()
+        && lastUpdatedDuration == null)
+      throw new ConflictException(ErrorCode.E2005, lastUpdatedDurationIn);
+    return lastUpdatedDuration;
   }
 
   @Nonnull

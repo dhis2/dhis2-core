@@ -36,6 +36,7 @@ import java.util.Map;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.view.SuffixMediaTypeContentNegotiationStrategy;
 import org.springframework.http.MediaType;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
@@ -53,11 +54,20 @@ import org.springframework.web.util.UrlPathHelper;
  *
  * <p>It also reinstates path-extension and trailing-slash matching without relying on Spring's
  * removed/deprecated handler-mapping flags ({@code setUseSuffixPatternMatch} / {@code
- * setUseTrailingSlashMatch} / {@code favorPathExtension}). For each request the literal path is
- * matched first so controllers that map an extension literally (e.g. OpenAPI's {@code
- * /openapi/openapi.json}) keep working. Only if that has no handler do we fall back to matching the
- * path with a trailing slash and/or a registered media-type extension removed (e.g. {@code
- * /api/dataElements.json} to {@code /api/dataElements}), recording the resolved media type for
+ * setUseTrailingSlashMatch} / {@code favorPathExtension}). For each request that ends with a
+ * registered media-type extension (or trailing slash), the suffix-stripped path is matched first so
+ * content negotiation works and generic {@code /{property}} handlers do not swallow names like
+ * {@code metadata.json}. If the stripped lookup finds no handler, or finds one whose {@code
+ * produces} cannot satisfy the extension-derived media type ({@code 406}), we fall back in order:
+ *
+ * <ol>
+ *   <li>slash-only strip when both a trailing slash and a registered extension were present (so
+ *       literal maps like {@code /api/analytics.xlsx} still match {@code /api/analytics.xlsx/})
+ *   <li>the original path (literal-extension controllers such as OpenAPI's {@code
+ *       /openapi/openapi.json})
+ * </ol>
+ *
+ * Rethrow the 406 only when no fallback mapping exists. The resolved media type is recorded for
  * {@link SuffixMediaTypeContentNegotiationStrategy}.
  *
  * <p>Forward-compatible on Spring 6.2 (Spring 7 readiness PR-F).
@@ -92,21 +102,76 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
     // When the path ends with a registered media-type extension (e.g. .json / .json.zip), prefer
     // matching the suffix-stripped path so content negotiation works and generic /{property}
     // handlers do not swallow "metadata.json" as a property name. If that fails (literal-extension
-    // controller mappings such as /openapi/openapi.json), fall back to the original path.
+    // controller mappings such as /openapi/openapi.json), or the stripped path matches a handler
+    // whose produces cannot satisfy the extension-derived media type (406 - common for analytics
+    // download endpoints that map .xml/.csv/... literally next to a JSON produces handler), fall
+    // back toward the original path. When both a trailing slash and an extension were present,
+    // try keeping the extension first (slash-only strip) before the raw original URI.
     //
     // Paths without a registered extension: match as-is, then fall back to trailing-slash strip.
     HttpServletRequest normalized = normalize(request);
-    if (normalized != request) {
-      clearAndReparsePathCaches(normalized);
+    if (normalized == request) {
+      return super.getHandlerInternal(request);
+    }
+
+    HttpMediaTypeNotAcceptableException notAcceptable = null;
+
+    clearAndReparsePathCaches(normalized);
+    try {
       HandlerMethod stripped = super.getHandlerInternal(normalized);
       if (stripped != null) {
         return stripped;
       }
-      // No stripped handler - try the original path (literal extension mappings).
-      clearAndReparsePathCaches(request);
+    } catch (HttpMediaTypeNotAcceptableException ex) {
+      // Stripped path matched a handler, but its produces does not include the media type forced
+      // by the path extension. Prefer a literal-suffix mapping when one exists; otherwise rethrow
+      // so the client still gets 406 rather than a misleading 404.
+      notAcceptable = ex;
     }
 
-    return super.getHandlerInternal(request);
+    // /api/analytics.xlsx/ fully strips to /api/analytics (JSON produces → 406). Retry with only
+    // the trailing slash removed so the literal /api/analytics.xlsx mapping can still win.
+    HttpServletRequest slashOnly = trailingSlashOnly(request);
+    if (slashOnly != null) {
+      clearAndReparsePathCaches(slashOnly);
+      try {
+        HandlerMethod literalWithExtension = super.getHandlerInternal(slashOnly);
+        if (literalWithExtension != null) {
+          return literalWithExtension;
+        }
+      } catch (HttpMediaTypeNotAcceptableException ex) {
+        if (notAcceptable == null) {
+          notAcceptable = ex;
+        }
+      }
+    }
+
+    clearAndReparsePathCaches(request);
+    HandlerMethod original = super.getHandlerInternal(request);
+    if (original != null) {
+      return original;
+    }
+    if (notAcceptable != null) {
+      throw notAcceptable;
+    }
+    return null;
+  }
+
+  /**
+   * When the original URI ends with a registered media-type extension <em>and</em> a trailing
+   * slash, returns a request with only the trailing slash removed (extension kept). Otherwise
+   * {@code null}.
+   */
+  private HttpServletRequest trailingSlashOnly(HttpServletRequest request) {
+    String uri = request.getRequestURI();
+    if (uri == null || uri.length() <= 1 || uri.charAt(uri.length() - 1) != PATH_SEPARATOR) {
+      return null;
+    }
+    String withoutSlash = uri.substring(0, uri.length() - 1);
+    if (getRegisteredExtension(withoutSlash) == null) {
+      return null;
+    }
+    return new PathNormalizingRequestWrapper(request, null, true);
   }
 
   private static void clearAndReparsePathCaches(HttpServletRequest request) {
