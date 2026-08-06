@@ -8,23 +8,27 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.option.Option" table="optionvalue" batch-size="100">
 
-    <!-- L2 cache intentionally removed (canary experiment): tracker preheat's query-driven
-         bulk loads unconditionally re-put every row on every fetch with no freshness check,
-         and that put path contends on Ehcache's per-key lock under concurrent imports. Live
-         training-server data (ehcache_puts_total/ehcache_gets_total{cache="Option"}) showed
-         put:get ratio climbing from ~0.06 to ~0.19 as concurrent load ramped up, i.e. puts
-         scaling faster than genuine lookups, not just proportional volume growth.
+    <cache usage="read-write" />
 
-         batch-size="100" added separately: without L2 cache absorbing them, individual
-         session.get(Option.class, id)/lazy-proxy resolutions became ~9,000 single-row
-         SELECTs per request (live-traced, same shape as the original preheat-cache N+1).
-         This folds pending proxy inits within one session into WHERE id IN (...) batches
-         instead, an intra-request fix, orthogonal to L2 caching and to the cross-request
-         service-layer cache sketch on canary/2.41-optionservice-cache. Same category as the
-         existing CategoryOption batch-size="100" precedent; Option inherits identity/UID-based
-         equals/hashCode (no override) and owns no mutable collection itself, so it doesn't share
-         either risk factor from the CategoryOptionCombo batch-fetch regression found earlier
-         (content-based equals over a mutable Set + an active in-place mutation path). -->
+    <!-- L2 cache re-enabled as read-write, not removed (canary experiment, revised): originally
+         removed entirely (see git history) after live evidence that tracker preheat's
+         query-driven bulk loads unconditionally re-put every row on every fetch, contending on
+         Ehcache's per-key lock under concurrent imports (put:get ratio climbing from ~0.06 to
+         ~0.19 under load). Root cause turned out to be strategy-specific, not caching-in-general:
+         confirmed by decompiling the actual Hibernate 5.6.15 jar in use,
+         NONSTRICT_READ_WRITE's putFromLoad (AbstractCachedDomainDataAccess) always puts
+         unconditionally, but READ_WRITE's putFromLoad (AbstractReadWriteAccess) skips the put
+         entirely when the item is already cache-resident, for any non-versioned entity (no
+         Hibernate <version> column, true here). Option is confirmed never written in this
+         workload, and only rarely written at all (admin edits), so READ_WRITE's soft-lock
+         forced-miss downside (which only engages on a concurrent write) costs almost nothing,
+         while its put-skip recovers exactly the redundant-put/contention mechanism that
+         motivated removing caching entirely. This should restore Option's ~99.97%-hit-ratio
+         free keyed-lookup benefit (lost entirely while uncached) without reintroducing the
+         concurrency-scaling put cost. batch-size="100" (added while uncached, to fold the
+         resulting ~9,000 individual session.get() calls per request into WHERE id IN (...)
+         batches) is left in place as a defense-in-depth for cold-cache/eviction bursts; expected
+         to matter far less now that the cache is warm most of the time again. -->
 
     <id name="id" column="optionvalueid">
       <generator class="native" />
