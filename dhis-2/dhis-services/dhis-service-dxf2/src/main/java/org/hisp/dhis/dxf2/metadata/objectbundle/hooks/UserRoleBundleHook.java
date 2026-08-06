@@ -33,8 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
@@ -69,10 +69,11 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
         (Boolean) bundle.getExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
-      // Batch-resolve members in one query instead of one getUserByUsername per member
-      // (DHIS2-21842).
+      // Read the member usernames as a projection. Going via updatedUserRole.getUsers() would
+      // initialise the whole members collection, hydrating one User entity per member into the
+      // persistence context of the import transaction.
       userService.invalidateUserSessions(
-          updatedUserRole.getUsers().stream().map(User::getUsername).toList());
+          userService.getUsernamesByUserRole(UID.of(updatedUserRole)));
     }
 
     bundle.removeExtras(updatedUserRole, INVALIDATE_SESSION_KEY);
