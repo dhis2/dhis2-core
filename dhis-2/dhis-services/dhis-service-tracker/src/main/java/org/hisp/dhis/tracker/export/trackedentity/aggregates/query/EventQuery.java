@@ -67,15 +67,7 @@ public class EventQuery {
     ORGUNIT_UID(new TableColumn("o", "uid", "ou_uid")),
     ORGUNIT_NAME(new TableColumn("o", "name", "ou_name")),
     COC_UID(new TableColumn("coc", "uid", "cocuid")),
-    CAT_OPTIONS(
-        new Subselect(
-            "( "
-                + "SELECT string_agg(opt.uid::text, ';') "
-                + "FROM categoryoption opt "
-                + "join categoryoptioncombos_categoryoptions ccc "
-                + "on opt.categoryoptionid = ccc.categoryoptionid "
-                + "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )",
-            "catoptions")),
+    CAT_OPTIONS(new TableColumn("catopts", "catoptions")),
     ASSIGNED_USER(new TableColumn("ui", "uid", "userid")),
     ASSIGNED_USER_FIRST_NAME(new TableColumn("ui", "firstname")),
     ASSIGNED_USER_SURNAME(new TableColumn("ui", "surname")),
@@ -114,6 +106,13 @@ public class EventQuery {
         + "join organisationunit o on ev.organisationunitid = o.organisationunitid "
         + "join categoryoptioncombo coc on ev.attributeoptioncomboid = coc.categoryoptioncomboid "
         + "left join userinfo ui on ev.assigneduserid = ui.userinfoid "
+        + "left join lateral ("
+        + "select string_agg(opt.uid::text, ';') as catoptions "
+        + "from categoryoption opt "
+        + "join categoryoptioncombos_categoryoptions ccc "
+        + "on opt.categoryoptionid = ccc.categoryoptionid "
+        + "where coc.categoryoptioncomboid = ccc.categoryoptioncomboid "
+        + ") catopts on true "
         + "where en.enrollmentid in (:ids)";
   }
 
