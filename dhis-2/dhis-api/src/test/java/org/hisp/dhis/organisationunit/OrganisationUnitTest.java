@@ -31,6 +31,8 @@ import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Geometry;
+import org.mockito.Mockito;
 
 /**
  * @author Lars Helge Overland
@@ -116,21 +119,24 @@ class OrganisationUnitTest {
 
   @Test
   void testGetAncestorNames() {
-    unitD.setParent(unitC);
+    OrganisationUnit unitDSpy = Mockito.spy(unitD);
+    unitDSpy.setParent(unitC);
     unitC.setParent(unitB);
     unitB.setParent(unitA);
     List<String> expected =
         new ArrayList<>(
             Arrays.asList(unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName()));
-    assertEquals(expected, unitD.getAncestorNames(null, false));
+    assertEquals(expected, unitDSpy.getAncestorNames(null, false));
     expected =
         new ArrayList<>(
             Arrays.asList(
                 unitA.getDisplayName(),
                 unitB.getDisplayName(),
                 unitC.getDisplayName(),
-                unitD.getDisplayName()));
-    assertEquals(expected, unitD.getAncestorNames(null, true));
+                unitDSpy.getDisplayName()));
+    assertEquals(expected, unitDSpy.getAncestorNames(null, true));
+
+    verify(unitDSpy, atLeast(2)).getDisplayName();
   }
 
   @Test
