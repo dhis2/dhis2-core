@@ -329,19 +329,13 @@ public interface UserService {
   void setLastLogin(String username);
 
   /**
-   * Returns the number of active users since the given number of days.
+   * Returns the number of users whose last login is on or after each of the given dates. All counts
+   * are computed in a single query.
    *
-   * @param days the number of days.
+   * @param sinceDates the last login cutoff dates.
+   * @return the user counts in the same order as the given dates.
    */
-  int getActiveUsersCount(int days);
-
-  /**
-   * Returns the number of active users since the given date.
-   *
-   * @param since the date to check for active users.
-   * @return the number of active users since the given date.
-   */
-  int getActiveUsersCount(Date since);
+  List<Integer> getActiveUsersCounts(List<Date> sinceDates);
 
   /**
    * Checks if the user account is not expired.
@@ -573,7 +567,19 @@ public interface UserService {
   List<SessionInformation> listSessions(UserDetails principal);
 
   /**
-   * Invalidate all sessions for all users WARNING: This does not work when using Redis sessions.
+   * Lists every session known to the session registry, including expired sessions.
+   *
+   * <p>Works for both the in-memory registry and the Redis-backed registry. Under Redis, principals
+   * are resolved from usernames rather than {@code SessionRegistry#getAllPrincipals()}, which is
+   * unsupported there.
+   *
+   * @return all session information entries
+   */
+  List<SessionInformation> listAllSessions();
+
+  /**
+   * Invalidate all sessions for all users. Works for both in-memory and Redis-backed session
+   * registries.
    */
   void invalidateAllSessions();
 
