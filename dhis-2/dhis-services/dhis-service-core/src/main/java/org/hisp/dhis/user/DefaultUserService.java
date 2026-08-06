@@ -1055,12 +1055,12 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void invalidateUserSessions(String username) {
-    User user = getUserByUsername(username);
-    UserDetails userDetails = createUserDetails(user);
-    if (userDetails != null) {
-      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
-      allSessions.forEach(SessionInformation::expireNow);
+    if (username == null) {
+      return;
     }
+    sessionRegistry
+        .getAllSessions(sessionLookupPrincipal(username), false)
+        .forEach(SessionInformation::expireNow);
   }
 
   @Override
@@ -1068,15 +1068,41 @@ public class DefaultUserService implements UserService {
     if (usernames == null || usernames.isEmpty()) {
       return;
     }
-    // Resolve all users in a single query instead of one getUserByUsername per username. That
-    // per-member lookup is the N+1 behind DHIS2-21842; under FlushModeType.AUTO each call also
-    // auto-flushes the growing persistence context, making a large-membership invalidation O(n²).
-    for (User user : userStore.getUserByUsernames(usernames)) {
-      UserDetails userDetails = createUserDetails(user);
-      if (userDetails != null) {
-        sessionRegistry.getAllSessions(userDetails, false).forEach(SessionInformation::expireNow);
-      }
-    }
+    usernames.forEach(this::invalidateUserSessions);
+  }
+
+  /**
+   * Builds the minimal principal needed to look sessions up in the {@link SessionRegistry}. Both
+   * registry implementations key on the username alone: {@code SessionRegistryImpl} looks the
+   * principal up in a map and {@link UserDetailsImpl} includes only the username in its
+   * equals/hashCode, while {@code SpringSessionBackedSessionRegistry} resolves the principal to
+   * {@link UserDetails#getUsername()} before querying the session repository.
+   *
+   * <p>Loading the user and building a full {@link UserDetails} instead costs five queries per
+   * username — the three org unit lookups plus the lazy init of the role and group collections —
+   * which is the N+1 behind an authority change on a user role with a large membership.
+   */
+  private static UserDetails sessionLookupPrincipal(String username) {
+    return UserDetailsImpl.builder()
+        .username(username)
+        .authorities(List.of())
+        .allAuthorities(Set.of())
+        .allRestrictions(Set.of())
+        .userGroupIds(Set.of())
+        .userOrgUnitIds(Set.of())
+        .userDataOrgUnitIds(Set.of())
+        .userSearchOrgUnitIds(Set.of())
+        .userEffectiveSearchOrgUnitIds(Set.of())
+        .userRoleIds(Set.of())
+        .managedGroupLongIds(Set.of())
+        .userRoleLongIds(Set.of())
+        .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getUsernamesByUserRole(@Nonnull UID roleUid) {
+    return userStore.getUsernamesByUserRole(roleUid);
   }
 
   @Override
