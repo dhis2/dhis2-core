@@ -287,7 +287,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldUpdateOnlyFromSingleEventWhenUnidirectionalRelationshipIsCreated() throws IOException {
+  void shouldUpdateOnlyFromSingleEventWhenUnidirectionalRelationshipIsCreated() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "EvE2Ev2Type");
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
@@ -311,8 +311,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldUpdateFromAndToSingleEventsWhenBidirectionalRelationshipIsCreated()
-      throws IOException {
+  void shouldUpdateFromAndToSingleEventsWhenBidirectionalRelationshipIsCreated() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "EvE2Ev2Type");
     relationshipType.setBidirectional(true);
     manager.update(relationshipType);
@@ -336,7 +335,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldUpdateOnlyFromSingleEventWhenUnidirectionalRelationshipIsDeleted() throws IOException {
+  void shouldUpdateOnlyFromSingleEventWhenUnidirectionalRelationshipIsDeleted() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "EvE2Ev2Type");
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
@@ -367,8 +366,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldUpdateFromAndToSingleEventsWhenBidirectionalRelationshipIsDeleted()
-      throws IOException {
+  void shouldUpdateFromAndToSingleEventsWhenBidirectionalRelationshipIsDeleted() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "EvE2Ev2Type");
     relationshipType.setBidirectional(true);
     manager.update(relationshipType);
@@ -912,10 +910,6 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   TrackerEvent getEvent() {
     return getEntityJpql(TrackerEvent.class.getSimpleName(), event.getUID().getValue());
-  }
-
-  TrackerEvent getEvent(UID uid) {
-    return getEntityJpql(TrackerEvent.class.getSimpleName(), uid.getValue());
   }
 
   SingleEvent getSingleEvent(UID uid) {
