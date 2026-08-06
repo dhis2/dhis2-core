@@ -8,7 +8,19 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.programrule.ProgramRule" table="programrule">
 
-    <cache usage="nonstrict-read-write" />
+    <!-- read-write, not nonstrict-read-write (canary experiment): ProgramRule is non-versioned
+         and effectively static relative to data-entry traffic (rarely written concurrently with
+         reads). Live-traced: getProgramRulesByActionTypes()'s JOIN pr.programRuleActions query
+         runs on every event/enrollment validation, redundantly re-loading the same rows every
+         time. Under NONSTRICT_READ_WRITE (AbstractCachedDomainDataAccess.putFromLoad),
+         every load unconditionally re-puts, no check at all. Under READ_WRITE
+         (AbstractReadWriteAccess.putFromLoad), a non-versioned entity that's already
+         cache-resident makes Item.isWriteable() return false, skipping the put entirely,
+         confirmed by decompiling the actual Hibernate 5.6.15 jar in use. The soft-lock
+         forced-miss downside of READ_WRITE only engages on a concurrent write, which is rare
+         here, so this trades away little to get the skip-redundant-put behavior back. -->
+
+    <cache usage="read-write" />
 
     <id name="id" column="programruleid">
       <generator class="native" />
@@ -28,7 +40,10 @@
       column="programstageid" foreign-key="fk_programrule_programstage" />
 
     <set name="programRuleActions" cascade="all-delete-orphan">
-      <cache usage="nonstrict-read-write"/>
+      <!-- read-write, same rationale as the class-level cache above: CollectionReadWriteAccess
+           shares AbstractReadWriteAccess's skip-redundant-put behavior; CollectionNonStrictReadWriteAccess
+           does not. -->
+      <cache usage="read-write"/>
       <key column="programruleid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleAction" />
     </set>

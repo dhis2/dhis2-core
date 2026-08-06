@@ -8,7 +8,12 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.programrule.ProgramRuleAction" table="programruleaction">
 
-    <cache usage="nonstrict-read-write" />
+    <!-- read-write, not nonstrict-read-write (canary experiment): same rationale as
+         ProgramRule.hbm.xml, non-versioned, rarely written concurrently with reads,
+         redundantly re-loaded on every event/enrollment validation via
+         getProgramRulesByActionTypes()'s JOIN pr.programRuleActions query. -->
+
+    <cache usage="read-write" />
 
     <id name="id" column="programruleactionid">
       <generator class="native" />
