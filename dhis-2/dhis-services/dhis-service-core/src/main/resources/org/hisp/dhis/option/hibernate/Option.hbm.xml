@@ -13,7 +13,7 @@
          and that put path contends on Ehcache's per-key lock under concurrent imports. Live
          training-server data (ehcache_puts_total/ehcache_gets_total{cache="Option"}) showed
          put:get ratio climbing from ~0.06 to ~0.19 as concurrent load ramped up, i.e. puts
-         scaling faster than genuine lookups -- not just proportional volume growth. -->
+         scaling faster than genuine lookups, not just proportional volume growth. -->
 
     <id name="id" column="optionvalueid">
       <generator class="native" />

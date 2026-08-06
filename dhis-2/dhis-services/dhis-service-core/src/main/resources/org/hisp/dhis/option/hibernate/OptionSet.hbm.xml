@@ -8,8 +8,8 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.option.OptionSet" table="optionset">
 
-    <!-- L2 cache intentionally removed (canary experiment) -- see Option.hbm.xml for the
-         rationale and live evidence; same mechanism applies here. -->
+    <!-- L2 cache intentionally removed (canary experiment); see Option.hbm.xml for the
+         rationale and live evidence, same mechanism applies here. -->
 
     <id name="id" column="optionsetid">
       <generator class="native" />
