@@ -485,11 +485,21 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
   private Set<String> skipSyncAttributeUids(List<TrackedEntity> trackedEntities) {
     return trackedEntities.stream()
-        .flatMap(te -> te.getTrackedEntityAttributeValues().stream())
+        .flatMap(
+            te ->
+                Stream.concat(
+                    te.getTrackedEntityAttributeValues().stream(),
+                    getEnrollmentAttributeValues(te)))
         .map(TrackedEntityAttributeValue::getAttribute)
         .filter(a -> Boolean.TRUE.equals(a.getSkipSynchronization()))
         .map(BaseIdentifiableObject::getUid)
         .collect(Collectors.toSet());
+  }
+
+  private Stream<TrackedEntityAttributeValue> getEnrollmentAttributeValues(TrackedEntity te) {
+    return te.getEnrollments().stream()
+        .map(org.hisp.dhis.program.Enrollment::getTrackedEntity)
+        .flatMap(t -> t.getTrackedEntityAttributeValues().stream());
   }
 
   private void stripSkipSyncFields(
