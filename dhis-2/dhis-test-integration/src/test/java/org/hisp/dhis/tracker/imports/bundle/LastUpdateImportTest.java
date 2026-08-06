@@ -82,6 +82,8 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity;
   private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
   private org.hisp.dhis.tracker.imports.domain.TrackerEvent event;
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent singleEventA;
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent singleEventB;
 
   private OrganisationUnit organisationUnit;
 
@@ -112,6 +114,9 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     organisationUnit =
         manager.get(OrganisationUnit.class, trackedEntity.getOrgUnit().getIdentifier());
+
+    singleEventA = createSingleEvent(UID.of("SnglEvnt001"));
+    singleEventB = createSingleEvent(UID.of("SnglEvnt002"));
   }
 
   @BeforeEach
@@ -279,6 +284,118 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, importUser);
     assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, importUser);
+  }
+
+  @Test
+  void shouldUpdateOnlyFromSingleEventWhenUnidirectionalRelationshipIsCreated() throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "EvE2Ev2Type");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    SingleEvent fromBeforeUpdate = getSingleEvent(singleEventA.getUID());
+    SingleEvent toBeforeUpdate = getSingleEvent(singleEventB.getUID());
+    clearSession();
+
+    importEventToEventRelationship(
+        new TrackerImportParams(),
+        UID.of("EvEvRel0001"),
+        singleEventA.getUID(),
+        singleEventB.getUID());
+    clearSession();
+
+    SingleEvent fromAfterUpdate = getSingleEvent(singleEventA.getUID());
+    SingleEvent toAfterUpdate = getSingleEvent(singleEventB.getUID());
+
+    assertSingleEventUpdated(fromBeforeUpdate, fromAfterUpdate);
+    assertSingleEventNotUpdated(toBeforeUpdate, toAfterUpdate);
+  }
+
+  @Test
+  void shouldUpdateFromAndToSingleEventsWhenBidirectionalRelationshipIsCreated()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "EvE2Ev2Type");
+    relationshipType.setBidirectional(true);
+    manager.update(relationshipType);
+
+    SingleEvent fromBeforeUpdate = getSingleEvent(singleEventA.getUID());
+    SingleEvent toBeforeUpdate = getSingleEvent(singleEventB.getUID());
+    clearSession();
+
+    importEventToEventRelationship(
+        new TrackerImportParams(),
+        UID.of("EvEvRel0001"),
+        singleEventA.getUID(),
+        singleEventB.getUID());
+    clearSession();
+
+    SingleEvent fromAfterUpdate = getSingleEvent(singleEventA.getUID());
+    SingleEvent toAfterUpdate = getSingleEvent(singleEventB.getUID());
+
+    assertSingleEventUpdated(fromBeforeUpdate, fromAfterUpdate);
+    assertSingleEventUpdated(toBeforeUpdate, toAfterUpdate);
+  }
+
+  @Test
+  void shouldUpdateOnlyFromSingleEventWhenUnidirectionalRelationshipIsDeleted() throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "EvE2Ev2Type");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    importEventToEventRelationship(
+        new TrackerImportParams(),
+        UID.of("EvEvRel0001"),
+        singleEventA.getUID(),
+        singleEventB.getUID());
+    clearSession();
+
+    SingleEvent fromBeforeUpdate = getSingleEvent(singleEventA.getUID());
+    SingleEvent toBeforeUpdate = getSingleEvent(singleEventB.getUID());
+    clearSession();
+
+    importEventToEventRelationship(
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+        UID.of("EvEvRel0001"),
+        singleEventA.getUID(),
+        singleEventB.getUID());
+    clearSession();
+
+    SingleEvent fromAfterUpdate = getSingleEvent(singleEventA.getUID());
+    SingleEvent toAfterUpdate = getSingleEvent(singleEventB.getUID());
+
+    assertSingleEventUpdated(fromBeforeUpdate, fromAfterUpdate);
+    assertSingleEventNotUpdated(toBeforeUpdate, toAfterUpdate);
+  }
+
+  @Test
+  void shouldUpdateFromAndToSingleEventsWhenBidirectionalRelationshipIsDeleted()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "EvE2Ev2Type");
+    relationshipType.setBidirectional(true);
+    manager.update(relationshipType);
+
+    importEventToEventRelationship(
+        new TrackerImportParams(),
+        UID.of("EvEvRel0001"),
+        singleEventA.getUID(),
+        singleEventB.getUID());
+    clearSession();
+
+    SingleEvent fromBeforeUpdate = getSingleEvent(singleEventA.getUID());
+    SingleEvent toBeforeUpdate = getSingleEvent(singleEventB.getUID());
+    clearSession();
+
+    importEventToEventRelationship(
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+        UID.of("EvEvRel0001"),
+        singleEventA.getUID(),
+        singleEventB.getUID());
+    clearSession();
+
+    SingleEvent fromAfterUpdate = getSingleEvent(singleEventA.getUID());
+    SingleEvent toAfterUpdate = getSingleEvent(singleEventB.getUID());
+
+    assertSingleEventUpdated(fromBeforeUpdate, fromAfterUpdate);
+    assertSingleEventUpdated(toBeforeUpdate, toAfterUpdate);
   }
 
   @Test
@@ -726,9 +843,14 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   private org.hisp.dhis.tracker.imports.domain.TrackerEvent importEventProgram()
       throws IOException {
+    return createSingleEvent(UID.generate());
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent createSingleEvent(UID uid)
+      throws IOException {
     TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/one_tracker_event.json");
     org.hisp.dhis.tracker.imports.domain.TrackerEvent ev = trackerObjects.getEvents().get(0);
-    ev.setEvent(UID.generate());
+    ev.setEvent(uid);
     ev.setProgramStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null));
     ev.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, "BFcipDERJne", null));
 
@@ -737,6 +859,41 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
             new TrackerImportParams(), TrackerObjects.builder().events(List.of(ev)).build()));
 
     return ev;
+  }
+
+  private void importEventToEventRelationship(
+      TrackerImportParams params, UID relationship, UID from, UID to) {
+    org.hisp.dhis.tracker.imports.domain.Relationship rel =
+        org.hisp.dhis.tracker.imports.domain.Relationship.builder()
+            .relationship(relationship)
+            .relationshipType(MetadataIdentifier.ofUid("EvE2Ev2Type"))
+            .from(
+                org.hisp.dhis.tracker.imports.domain.RelationshipItem.builder().event(from).build())
+            .to(org.hisp.dhis.tracker.imports.domain.RelationshipItem.builder().event(to).build())
+            .build();
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, TrackerObjects.builder().relationships(List.of(rel)).build()));
+  }
+
+  private void assertSingleEventUpdated(SingleEvent before, SingleEvent after) {
+    assertTrue(
+        after.getLastUpdated().getTime() > before.getLastUpdated().getTime(),
+        String.format(
+            "Data integrity error for single event %s. The lastUpdated date has not been updated"
+                + " after the import",
+            after.getUid()));
+  }
+
+  private void assertSingleEventNotUpdated(SingleEvent before, SingleEvent after) {
+    assertEquals(
+        before.getLastUpdated().getTime(),
+        after.getLastUpdated().getTime(),
+        String.format(
+            "Data integrity error for single event %s. The lastUpdated date has been updated"
+                + " after the import",
+            after.getUid()));
   }
 
   void enrollTrackerEntity() {
