@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.cache;
+package org.hisp.dhis.webapi.security.session;
+
+import java.util.Date;
+import javax.annotation.CheckForNull;
 
 /**
- * Enum is used to make sure we do not use same region twice. Each method should have its own
- * constant.
+ * Provides the creation time of an HTTP session by id.
+ *
+ * <p>Two implementations exist, one per session backend:
+ *
+ * <ul>
+ *   <li>In-memory (non-Redis): records creation times from {@code HttpSessionCreatedEvent} into a
+ *       map and clears them on {@code HttpSessionDestroyedEvent}.
+ *   <li>Redis-backed Spring Session: looks up the session via {@code
+ *       RedisIndexedSessionRepository#findById(String)} and returns its creation time.
+ * </ul>
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@SuppressWarnings("squid:S115") // allow non enum-ish names
-public enum Region {
-  analyticsResponse,
-  defaultObjectCache,
-  allConstantsCache,
-  inUserOrgUnitHierarchy,
-  periodIdCache,
-  userAccountRecoverAttempt,
-  userFailedLoginAttempt,
-  twoFaDisableFailedAttempt,
-  programOwner,
-  programTempOwner,
-  currentUserGroupInfoCache,
-  attrOptionComboIdCache,
-  googleAccessToken,
-  dataItemsPagination,
-  metadataAttributes,
-  canDataWriteCocCache,
-  analyticsSql,
-  propertyTransformerCache,
-  programHasRulesCache,
-  userGroupNameCache,
-  userDisplayNameCache,
-  pgmOrgUnitAssocCache,
-  catOptOrgUnitAssocCache,
-  dataSetOrgUnitAssocCache,
-  apiTokensCache,
-  teAttributesCache,
-  programTeAttributesCache,
-  userGroupUIDCache,
-  securityCache,
-  dataIntegritySummaryCache,
-  dataIntegrityDetailsCache,
-  queryAliasCache,
-  corsWhitelistCache,
-  notificationTemplateCache,
-  systemStatisticsOverview,
-  systemStatisticsDataCounts,
-  dataSummarySessionGauges
+public interface SessionCreationTimeProvider {
+
+  /**
+   * Returns the creation time of the session with the given id, or {@code null} when the session is
+   * unknown or creation time is unavailable.
+   *
+   * @param sessionId the raw session id (not the hashed value exposed by the API)
+   * @return creation time, or null
+   */
+  @CheckForNull
+  Date getCreationTime(String sessionId);
 }
