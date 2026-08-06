@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.query;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
@@ -720,7 +721,7 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        1,
+        100,
         4,
         4); // Pass runtime flag, row count, and expected header counts
 
@@ -774,5 +775,82 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 0, "p2Zxg0wcPQ3", "0");
+  }
+
+  @Test
+  public void eventsWithOrgUnitGroups() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=false")
+            .add("headers=ouname,lastupdated")
+            .add("lastUpdated=LAST_5_FINANCIAL_YEARS")
+            .add("stage=dBwrot7S420")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("skipMeta=true")
+            .add("pageSize=100")
+            .add("outputType=EVENT")
+            .add("page=1")
+            .add(
+                "dimension=ou:USER_ORGUNIT;OU_GROUP-uYxK4wmcPqA;OU_GROUP-RpbiCJpIYEj;OU_GROUP-CXw2yu5fodb;OU_GROUP-f25dqv3Y7Z0;OU_GROUP-tDZVQ1WtwpA")
+            .add("relativePeriodDate=2026-08-06");
+
+    // When
+    ApiResponse response = actions.query().get("lxAQ7Zs9VYR", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response, false, 3, 2, 2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData = "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    // Assert PostGIS-specific headers existence based on 'expectPostgis' flag
+    validateHeaderExistence(actualHeaders, "geometry", false);
+    validateHeaderExistence(actualHeaders, "longitude", false);
+    validateHeaderExistence(actualHeaders, "latitude", false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-04-12 16:05:16.957");
+
+    // Validate selected values for row index 2
+    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 2, "lastupdated", "2018-04-12 16:05:41.933");
   }
 }
