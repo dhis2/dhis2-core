@@ -147,10 +147,22 @@ public class HibernateConfig {
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
 
-    if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
+    if (dhisConfig.isEnabled(USE_SECOND_LEVEL_CACHE)) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
-      properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
+      // Normalize to true/false: Hibernate parses this value itself and does not understand
+      // the on/off variants allowed in dhis.conf.
+      properties.put(
+          AvailableSettings.USE_QUERY_CACHE, String.valueOf(dhisConfig.isEnabled(USE_QUERY_CACHE)));
+    } else {
+      // Explicitly disable both caches. On this branch Hibernate happens to fall back to
+      // NoCachingRegionFactory anyway (hibernate-ehcache registers two RegionFactory strategies,
+      // so none is auto-selected), but we set it explicitly rather than depend on that fallback.
+      // The query cache is deliberately forced off as well, ignoring use_query_cache: it depends
+      // on the second level cache infrastructure, and without it cached query results only store
+      // entity ids which are then hydrated row by row (N+1 queries).
+      properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "false");
+      properties.put(AvailableSettings.USE_QUERY_CACHE, "false");
     }
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
