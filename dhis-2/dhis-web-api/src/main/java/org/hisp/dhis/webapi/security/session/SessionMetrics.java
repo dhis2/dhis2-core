@@ -73,7 +73,7 @@ public class SessionMetrics {
   static final String SESSIONS_ENDED_TOTAL = "dhis2_sessions_ended_total";
 
   @Autowired
-  public SessionMetrics(
+  SessionMetrics(
       SessionStatisticsProvider provider, ObjectProvider<MeterRegistry> registryProvider) {
     this(provider, registryProvider.getIfAvailable());
   }
