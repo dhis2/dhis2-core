@@ -246,6 +246,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       if (!sqlBuilder.supportsDeclarativePartitioning()) {
         swappedPartitions.forEach(
             partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+      } else if (params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics()) {
+        // For databases with declarative partitioning that support continuous analytics (e.g.
+        // Doris): staging data must be inserted directly into the main table since there is no
+        // inheritance-based partition attachment. Stale rows are already removed by
+        // removeUpdatedData().
+        String fromTable = sqlBuilder.quote(table.getName());
+        jdbcTemplate.execute(sqlBuilder.insertIntoSelectFrom(table.fromStaging(), fromTable));
       }
       dropTable(table);
     }
@@ -374,14 +381,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
       List<AnalyticsTableColumn> columns,
-      List<String> sortKey) {
+      List<String> sortKey,
+      List<String> primaryKey) {
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsTableSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, logged);
+    AnalyticsTable table =
+        new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, primaryKey, logged);
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -402,7 +411,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getLatestAnalyticsTable(
-      AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
+      AnalyticsTableUpdateParams params,
+      List<AnalyticsTableColumn> columns,
+      List<String> primaryKey) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     Date lastFullTableUpdate = settings.getLastSuccessfulAnalyticsTablesUpdate();
     Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
@@ -416,14 +427,24 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), logged);
+    // Engines without a unique key on analytics tables (Postgres) wholesale-replace the latest
+    // partition on every run, so its window must always span back to the last full rebuild, or
+    // data captured by an earlier continuous run would be discarded rather than carried forward.
+    // Engines with a unique key (Doris) instead merge into the persistent main table with
+    // natural-key deduplication, so it's safe and correct to only (re)process what changed since
+    // the last continuous run.
+    Date partitionStartDate =
+        sqlBuilder.requiresUniqueKeyAnalyticsTables() ? lastAnyTableUpdate : lastFullTableUpdate;
+
+    AnalyticsTable table =
+        new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), primaryKey, logged);
 
     if (hasUpdatedData) {
       table.addTablePartition(
-          List.of(), AnalyticsTablePartition.LATEST_PARTITION, lastFullTableUpdate, endDate);
+          List.of(), AnalyticsTablePartition.LATEST_PARTITION, partitionStartDate, endDate);
       log.info(
           "Added latest analytics partition with start: '{}' and end: '{}'",
-          toLongDate(lastFullTableUpdate),
+          toLongDate(partitionStartDate),
           toLongDate(endDate));
     } else {
       log.info(

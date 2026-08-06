@@ -132,7 +132,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createTables(tables, progress);
     clock.logTime("Created analytics tables");
 
-    List<AnalyticsTablePartition> partitions = getTablePartitions(tables);
+    List<AnalyticsTablePartition> partitions = getTablePartitions(tables, params.isLatestUpdate());
     int partitionSize = partitions.size();
 
     progress.startingStage(
@@ -169,7 +169,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Analyzed tables");
     }
 
-    if (params.isLatestUpdate()) {
+    if (params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics()) {
       progress.startingStage(
           format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
       progress.runStage(() -> tableManager.removeUpdatedData(tables));
@@ -341,12 +341,23 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @param tables the list of {@link AnalyticsTable}.
    * @return a list of {@link AnalyticsTablePartition}.
    */
-  List<AnalyticsTablePartition> getTablePartitions(List<AnalyticsTable> tables) {
+  List<AnalyticsTablePartition> getTablePartitions(
+      List<AnalyticsTable> tables, boolean isLatestUpdate) {
     List<AnalyticsTablePartition> partitions = new ArrayList<>();
 
     for (AnalyticsTable table : tables) {
       if (table.hasTablePartitions() && !sqlBuilder.supportsDeclarativePartitioning()) {
+        // Each partition is its own physical table, so its own real date range and name apply.
         partitions.addAll(table.getTablePartitions());
+      } else if (table.hasTablePartitions() && isLatestUpdate) {
+        // A single physical table serves every logical partition on this engine (CREATE only
+        // ever builds the master table's name), so the continuous/latest-update partition must
+        // target that name - while still carrying its own real date range, needed to correctly
+        // scope the populate window.
+        AnalyticsTablePartition latest = table.getTablePartitions().get(0);
+        partitions.add(
+            new AnalyticsTablePartition(
+                table, latest.getYear(), latest.getStartDate(), latest.getEndDate()));
       } else {
         // Fake partition representing the master table
         partitions.add(new AnalyticsTablePartition(table));
