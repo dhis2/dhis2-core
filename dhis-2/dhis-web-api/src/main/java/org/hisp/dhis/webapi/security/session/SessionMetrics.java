@@ -48,6 +48,17 @@ import org.springframework.stereotype.Component;
  * scrape rather than caching its own copy, so this view can never drift from the JMX MBean, which
  * reads the same provider.
  *
+ * <p><b>Naming note:</b> the two lifecycle counters are named {@code dhis2_sessions_started_total}
+ * / {@code dhis2_sessions_ended_total}, not {@code _created_total} / {@code _destroyed_total} as
+ * the JMX {@code SessionStatisticsMBean} attributes ({@code SessionsCreatedTotal} / {@code
+ * SessionsDestroyedTotal}) would suggest. This is deliberate, not an inconsistency to "fix":
+ * OpenMetrics reserves the {@code _created} suffix for a companion created-timestamp series, so
+ * Prometheus's naming sanitizer strips {@code _created} (along with {@code _total}) from a counter
+ * name before re-appending {@code _total} — {@code dhis2_sessions_created_total} would therefore
+ * actually be scraped as {@code dhis2_sessions_total}, silently losing the "created" meaning and
+ * colliding in appearance with a gauge-like total. Renaming to {@code started}/{@code ended}
+ * sidesteps the reserved word entirely so the exposed name matches the constant.
+ *
  * <p>No-ops when no {@link MeterRegistry} is available in the application context.
  *
  * @author Jason Pickering
@@ -58,8 +69,8 @@ public class SessionMetrics {
   static final String ACTIVE_SESSIONS = "dhis2_active_sessions";
   static final String ACTIVE_SESSION_USERS = "dhis2_active_session_users";
   static final String HTTP_SESSIONS = "dhis2_http_sessions";
-  static final String SESSIONS_CREATED_TOTAL = "dhis2_sessions_created_total";
-  static final String SESSIONS_DESTROYED_TOTAL = "dhis2_sessions_destroyed_total";
+  static final String SESSIONS_STARTED_TOTAL = "dhis2_sessions_started_total";
+  static final String SESSIONS_ENDED_TOTAL = "dhis2_sessions_ended_total";
 
   @Autowired
   public SessionMetrics(
@@ -85,14 +96,12 @@ public class SessionMetrics {
         .register(registry);
 
     FunctionCounter.builder(
-            SESSIONS_CREATED_TOTAL, provider, SessionStatisticsProvider::getSessionsCreatedTotal)
+            SESSIONS_STARTED_TOTAL, provider, SessionStatisticsProvider::getSessionsCreatedTotal)
         .description("Sessions created since this instance started")
         .register(registry);
 
     FunctionCounter.builder(
-            SESSIONS_DESTROYED_TOTAL,
-            provider,
-            SessionStatisticsProvider::getSessionsDestroyedTotal)
+            SESSIONS_ENDED_TOTAL, provider, SessionStatisticsProvider::getSessionsDestroyedTotal)
         .description("Sessions invalidated, logged out or expired since this instance started")
         .register(registry);
   }

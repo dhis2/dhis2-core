@@ -31,11 +31,14 @@ package org.hisp.dhis.webapi.security.session;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -92,8 +95,27 @@ class SessionMetricsTest {
     new SessionMetrics(provider, registry);
 
     assertEquals(
-        12.0, registry.get(SessionMetrics.SESSIONS_CREATED_TOTAL).functionCounter().count());
-    assertEquals(
-        5.0, registry.get(SessionMetrics.SESSIONS_DESTROYED_TOTAL).functionCounter().count());
+        12.0, registry.get(SessionMetrics.SESSIONS_STARTED_TOTAL).functionCounter().count());
+    assertEquals(5.0, registry.get(SessionMetrics.SESSIONS_ENDED_TOTAL).functionCounter().count());
+  }
+
+  @Test
+  @DisplayName("Metric names survive Prometheus's naming sanitization unchanged")
+  void meterNames_surviveScrape() {
+    SessionStatisticsProvider provider = mock(SessionStatisticsProvider.class);
+    when(provider.getSessionGauges()).thenReturn(new SessionStatisticsProvider.SessionGauges(3, 2));
+    when(provider.getHttpSessions()).thenReturn(4L);
+    when(provider.getSessionsCreatedTotal()).thenReturn(12L);
+    when(provider.getSessionsDestroyedTotal()).thenReturn(5L);
+    PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+
+    new SessionMetrics(provider, registry);
+    String scrape = registry.scrape();
+
+    assertTrue(scrape.contains(SessionMetrics.ACTIVE_SESSIONS), scrape);
+    assertTrue(scrape.contains(SessionMetrics.ACTIVE_SESSION_USERS), scrape);
+    assertTrue(scrape.contains(SessionMetrics.HTTP_SESSIONS), scrape);
+    assertTrue(scrape.contains(SessionMetrics.SESSIONS_STARTED_TOTAL), scrape);
+    assertTrue(scrape.contains(SessionMetrics.SESSIONS_ENDED_TOTAL), scrape);
   }
 }
