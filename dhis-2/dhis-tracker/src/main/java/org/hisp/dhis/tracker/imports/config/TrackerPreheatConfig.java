@@ -43,6 +43,7 @@ import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatStrategyScanner;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramOrgUnitsSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramOwnerSupplier;
+import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramStageDataElementsSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.TrackedEntityEnrollmentSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.TrackerEventProgramStageMapSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.UniqueAttributesSupplier;
@@ -61,6 +62,7 @@ public class TrackerPreheatConfig {
           EnrollmentsWithAtLeastOneEventSupplier.class,
           TrackerEventProgramStageMapSupplier.class,
           ProgramOrgUnitsSupplier.class,
+          ProgramStageDataElementsSupplier.class,
           ProgramOwnerSupplier.class,
           UniqueAttributesSupplier.class,
           CurrentUserSupplier.class,
