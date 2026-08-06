@@ -6,14 +6,25 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.option.Option" table="optionvalue">
+  <class name="org.hisp.dhis.option.Option" table="optionvalue" batch-size="100">
 
     <!-- L2 cache intentionally removed (canary experiment): tracker preheat's query-driven
          bulk loads unconditionally re-put every row on every fetch with no freshness check,
          and that put path contends on Ehcache's per-key lock under concurrent imports. Live
          training-server data (ehcache_puts_total/ehcache_gets_total{cache="Option"}) showed
          put:get ratio climbing from ~0.06 to ~0.19 as concurrent load ramped up, i.e. puts
-         scaling faster than genuine lookups, not just proportional volume growth. -->
+         scaling faster than genuine lookups, not just proportional volume growth.
+
+         batch-size="100" added separately: without L2 cache absorbing them, individual
+         session.get(Option.class, id)/lazy-proxy resolutions became ~9,000 single-row
+         SELECTs per request (live-traced, same shape as the original preheat-cache N+1).
+         This folds pending proxy inits within one session into WHERE id IN (...) batches
+         instead, an intra-request fix, orthogonal to L2 caching and to the cross-request
+         service-layer cache sketch on canary/2.41-optionservice-cache. Same category as the
+         existing CategoryOption batch-size="100" precedent; Option inherits identity/UID-based
+         equals/hashCode (no override) and owns no mutable collection itself, so it doesn't share
+         either risk factor from the CategoryOptionCombo batch-fetch regression found earlier
+         (content-based equals over a mutable Set + an active in-place mutation path). -->
 
     <id name="id" column="optionvalueid">
       <generator class="native" />
