@@ -17,35 +17,10 @@
     overflowToDisk="false"
     diskPersistent="false" />
 
-  <!-- Hibernate Entity Cache for `OptionSet` -->
-  <cache name="org.hisp.dhis.option.OptionSet"
-    maxElementsInMemory="5000000"
-    eternal="false"
-    timeToIdleSeconds="21600"
-    timeToLiveSeconds="43200"
-    memoryStoreEvictionPolicy="LRU"
-    overflowToDisk="false"
-    diskPersistent="false" />
-
-  <!-- Hibernate Collection Cache for `OptionSet.options` -->
-  <cache name="org.hisp.dhis.option.OptionSet.options"
-    maxElementsInMemory="5000000"
-    eternal="false"
-    timeToIdleSeconds="21600"
-    timeToLiveSeconds="43200"
-    memoryStoreEvictionPolicy="LRU"
-    overflowToDisk="false"
-    diskPersistent="false" />
-
-  <!-- Hibernate Entity Cache for `Option` -->
-  <cache name="org.hisp.dhis.option.Option"
-    maxElementsInMemory="5000000"
-    eternal="false"
-    timeToIdleSeconds="21600"
-    timeToLiveSeconds="43200"
-    memoryStoreEvictionPolicy="LRU"
-    overflowToDisk="false"
-    diskPersistent="false" />
+  <!-- org.hisp.dhis.option.OptionSet / OptionSet.options / org.hisp.dhis.option.Option
+       named regions removed (canary experiment): L2 cache dropped entirely for these three
+       via their .hbm.xml mappings (see Option.hbm.xml for rationale + live evidence), so
+       Hibernate never requests these regions and named config here would be dead. -->
 
   <!-- Hibernate query cache -->
 

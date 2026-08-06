@@ -8,7 +8,8 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.option.OptionSet" table="optionset">
 
-    <cache usage="nonstrict-read-write" />
+    <!-- L2 cache intentionally removed (canary experiment) -- see Option.hbm.xml for the
+         rationale and live evidence; same mechanism applies here. -->
 
     <id name="id" column="optionsetid">
       <generator class="native" />
@@ -32,7 +33,6 @@
     <property name="version" />
 
     <bag name="options" cascade="all" order-by="sort_order">
-      <cache usage="nonstrict-read-write" />
       <key column="optionsetid" foreign-key="fk_optionsetmembers_optionsetid" />
       <one-to-many class="org.hisp.dhis.option.Option" />
     </bag>
