@@ -172,11 +172,18 @@ public class DefaultPeriodService implements PeriodService {
    * Fix issue DHIS2-7539 If period doesn't exist in cache and database. Need to add and sync with
    * database right away in a separate session/transaction. Otherwise will get foreign key
    * constraint error in subsequence calls of batch.flush()
+   *
+   * <p>Unlike {@link #reloadIsoPeriod(String)}, the period is committed in its own transaction even
+   * when the caller is already inside an active read-write transaction (e.g. the
+   * {@code @Transactional} complete data set registration import). This is required so the {@code
+   * quick} BatchHandler, which inserts on its own separate autoCommit connection, can see the
+   * freshly created period; otherwise the dependent insert fails with a foreign key violation while
+   * the import still reports success (DHIS2-21617).
    */
   @Override
   @IndirectTransactional
   public Period reloadIsoPeriodInStatelessSession(String isoPeriod) {
-    return reloadPeriod(Period.of(isoPeriod));
+    return periodStore.reloadForceAddPeriodInNewTransaction(Period.of(isoPeriod));
   }
 
   @Override

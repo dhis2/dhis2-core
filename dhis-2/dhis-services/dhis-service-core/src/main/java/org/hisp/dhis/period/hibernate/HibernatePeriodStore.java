@@ -109,6 +109,17 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
    */
   @Override
   public void save(Period period) {
+    // Default path: join the caller's active read-write transaction when there is one (so the
+    // mapping is visible within - and rolls back with - it), otherwise run in its own transaction.
+    applyPeriodId(period, runInTransaction(upsertPeriod(period)));
+  }
+
+  /**
+   * The load-or-create upsert for a period, as a unit of work that can be run in any stateless
+   * session. Returns the existing primary key when the iso period is already present, otherwise
+   * inserts it and returns the new primary key.
+   */
+  private Function<StatelessSession, Object> upsertPeriod(Period period) {
     String sql1 = "SELECT periodid FROM period WHERE iso = :iso";
     String sql2 =
         """
@@ -116,26 +127,27 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         VALUES (nextval('hibernate_sequence'),
           (SELECT periodtypeid FROM periodtype WHERE name = :type), :start, :end, :iso)""";
     String isoDate = period.getIsoDate();
-    Object id =
-        runAutoJoinTransaction(
-            session -> {
-              Object pk =
-                  getSingleResult(session.createNativeQuery(sql1).setParameter("iso", isoDate));
-              if (pk != null) {
-                return pk;
-              }
-              session
-                  .createNativeQuery(sql2)
-                  .setParameter("type", period.getPeriodType().getName())
-                  .setParameter("start", period.getStartDate())
-                  .setParameter("end", period.getEndDate())
-                  .setParameter("iso", isoDate)
-                  .executeUpdate();
-              return session.createNativeQuery("SELECT lastval()").uniqueResult();
-            });
+    return session -> {
+      Object pk = getSingleResult(session.createNativeQuery(sql1).setParameter("iso", isoDate));
+      if (pk != null) {
+        return pk;
+      }
+      session
+          .createNativeQuery(sql2)
+          .setParameter("type", period.getPeriodType().getName())
+          .setParameter("start", period.getStartDate())
+          .setParameter("end", period.getEndDate())
+          .setParameter("iso", isoDate)
+          .executeUpdate();
+      return session.createNativeQuery("SELECT lastval()").uniqueResult();
+    };
+  }
+
+  /** Caches and links the resolved primary key onto the transient period instance. */
+  private void applyPeriodId(Period period, Object id) {
     if (id instanceof Number n) {
       long periodId = n.longValue();
-      periodIdByIsoPeriod.putIfAbsent(isoDate, periodId);
+      periodIdByIsoPeriod.putIfAbsent(period.getIsoDate(), periodId);
       period.setId(periodId);
     }
   }
@@ -240,6 +252,14 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
     return period;
   }
 
+  @Override
+  public Period reloadForceAddPeriodInNewTransaction(Period period) {
+    // Immediate-commit path: always commit in its own transaction so a separate connection (the
+    // quick BatchHandler) can see the period - see runInNewTransaction (DHIS2-7539, DHIS2-21617).
+    applyPeriodId(period, runInNewTransaction(upsertPeriod(period)));
+    return period;
+  }
+
   // -------------------------------------------------------------------------
   // PeriodType (do not use generic store which is linked to Period)
   // -------------------------------------------------------------------------
@@ -254,7 +274,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         INSERT INTO periodtype (periodtypeid, name)
         VALUES (nextval('hibernate_sequence'), :name)""";
     Object id =
-        runAutoJoinTransaction(
+        runInTransaction(
             session -> {
               Object pk =
                   getSingleResult(session.createNativeQuery(sql1).setParameter("name", name));
@@ -282,7 +302,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         UPDATE periodtype SET label = :label
         WHERE name = :name""";
 
-    runAutoJoinTransaction(
+    runInTransaction(
         session ->
             session
                 .createNativeQuery(sql)
@@ -306,19 +326,57 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         .uniqueResult();
   }
 
-  private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
-    boolean active = TransactionSynchronizationManager.isActualTransactionActive();
-    boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+  /**
+   * The single place that decides how an implicit period/period-type mapping is persisted: it joins
+   * the caller's active read-write transaction when there is one (so the mapping is visible within
+   * - and rolls back with - that transaction), and otherwise commits it in a new, independent
+   * transaction. This is the right behaviour for ordinary period creation, where the caller may or
+   * may not already be inside a transaction (e.g. a controller calling {@code reloadPeriod}
+   * directly). Callers that must commit the mapping immediately even inside an active transaction
+   * use {@link #runInNewTransaction} directly.
+   */
+  private <R> R runInTransaction(Function<StatelessSession, R> query) {
+    return isActiveReadWriteTransaction()
+        ? joinActiveTransaction(query)
+        : runInNewTransaction(query);
+  }
 
-    if (active && !readOnly) {
-      // run in existing TX (for visibility)
-      Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
-      StatelessSession session =
-          getSession().getSessionFactory().openStatelessSession(borrowedConnection);
-      return query.apply(session);
+  private boolean isActiveReadWriteTransaction() {
+    return TransactionSynchronizationManager.isActualTransactionActive()
+        && !TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+  }
+
+  /**
+   * Joins the caller's active read-write transaction by borrowing its transaction-bound connection,
+   * so the mapping is visible within - and rolls back with - it. The active read-write transaction
+   * is a hard precondition: this method never opens one of its own, so it throws if there is none
+   * (the {@link #runInTransaction} dispatcher is the only place that decides join-vs-new; this
+   * guard protects any other/future caller from silently running outside a transaction).
+   */
+  private <R> R joinActiveTransaction(Function<StatelessSession, R> query) {
+    if (!isActiveReadWriteTransaction()) {
+      throw new IllegalStateException(
+          "joinActiveTransaction requires an active read-write transaction; "
+              + "use runInTransaction or runInNewTransaction when none is guaranteed");
     }
+    Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
+    StatelessSession session =
+        getSession().getSessionFactory().openStatelessSession(borrowedConnection);
+    return query.apply(session);
+  }
 
-    // run in new TX
+  /**
+   * Runs the query in - and commits - its own session/transaction, independently of any transaction
+   * active on the calling thread. Required by the complete data set registration import, which
+   * references the freshly created period through a SEPARATE JDBC connection (the {@code quick}
+   * BatchHandler, which inserts with autoCommit on its own pooled connection): a period that only
+   * lives in the caller's still-open transaction is invisible to that connection, so the dependent
+   * insert fails with a foreign key violation while the import still reports success (DHIS2-7539,
+   * DHIS2-21617). Committing here makes the period visible to every connection immediately; periods
+   * are an append-only iso -> PK mapping, so committing them even when an outer transaction later
+   * rolls back is safe.
+   */
+  private <R> R runInNewTransaction(Function<StatelessSession, R> query) {
     StatelessSession session = getSession().getSessionFactory().openStatelessSession();
 
     Transaction transaction = null;
