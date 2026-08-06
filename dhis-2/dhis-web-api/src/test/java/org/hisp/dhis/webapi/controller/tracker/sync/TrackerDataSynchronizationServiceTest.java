@@ -197,6 +197,9 @@ class TrackerDataSynchronizationServiceTest {
     TrackedEntityAttribute regularAttribute = new TrackedEntityAttribute();
     regularAttribute.setUid("KeepAttr001");
     regularAttribute.setSkipSynchronization(false);
+    TrackedEntityAttribute programSkipAttribute = new TrackedEntityAttribute();
+    programSkipAttribute.setUid("SkipAttr002");
+    programSkipAttribute.setSkipSynchronization(true);
 
     org.hisp.dhis.tracker.model.TrackedEntity domainTe =
         new org.hisp.dhis.tracker.model.TrackedEntity();
@@ -205,6 +208,17 @@ class TrackerDataSynchronizationServiceTest {
         Set.of(
             new TrackedEntityAttributeValue(skipAttribute, domainTe),
             new TrackedEntityAttributeValue(regularAttribute, domainTe)));
+
+    org.hisp.dhis.tracker.model.TrackedEntity enrollmentTrackedEntity =
+        new org.hisp.dhis.tracker.model.TrackedEntity();
+    enrollmentTrackedEntity.setUid("TrackedEnt1");
+    enrollmentTrackedEntity.setTrackedEntityAttributeValues(
+        Set.of(new TrackedEntityAttributeValue(programSkipAttribute, enrollmentTrackedEntity)));
+    org.hisp.dhis.tracker.model.Enrollment domainEnrollment =
+        new org.hisp.dhis.tracker.model.Enrollment();
+    domainEnrollment.setUid("Enrol000001");
+    domainEnrollment.setTrackedEntity(enrollmentTrackedEntity);
+    domainTe.setEnrollments(Set.of(domainEnrollment));
 
     Event event =
         Event.builder()
@@ -222,6 +236,7 @@ class TrackerDataSynchronizationServiceTest {
             .attributes(
                 List.of(
                     Attribute.builder().attribute("SkipAttr001").build(),
+                    Attribute.builder().attribute("SkipAttr002").build(),
                     Attribute.builder().attribute("KeepAttr001").build()))
             .build();
     org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity teDto =

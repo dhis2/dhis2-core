@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
@@ -225,11 +226,20 @@ public class TrackerDataSynchronizationService
 
   private Set<String> skipSyncAttributeUids(List<TrackedEntity> trackedEntities) {
     return trackedEntities.stream()
-        .flatMap(te -> te.getTrackedEntityAttributeValues().stream())
+        .flatMap(
+            te ->
+                Stream.concat(
+                    te.getTrackedEntityAttributeValues().stream(), getProgramAttributeValues(te)))
         .map(TrackedEntityAttributeValue::getAttribute)
         .filter(a -> Boolean.TRUE.equals(a.getSkipSynchronization()))
         .map(BaseIdentifiableObject::getUid)
         .collect(Collectors.toSet());
+  }
+
+  private Stream<TrackedEntityAttributeValue> getProgramAttributeValues(TrackedEntity te) {
+    return te.getEnrollments().stream()
+        .map(org.hisp.dhis.tracker.model.Enrollment::getTrackedEntity)
+        .flatMap(t -> t.getTrackedEntityAttributeValues().stream());
   }
 
   private List<Attribute> stripSkipSyncAttributes(
