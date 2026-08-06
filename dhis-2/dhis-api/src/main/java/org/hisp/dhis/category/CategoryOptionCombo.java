@@ -812,10 +812,6 @@ public class CategoryOptionCombo
     return DimensionItemType.DATA_ELEMENT_OPERAND;
   }
 
-  public void setDimensionItemType(DimensionItemType dimensionItemType) {
-    this.dimensionItemType = dimensionItemType;
-  }
-
   @Override
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
