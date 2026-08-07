@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.trackedentity;
 
-import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toCollection;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
@@ -40,6 +39,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -65,6 +65,7 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.ValueType;
@@ -122,7 +123,7 @@ public class TrackedEntityAggregateService {
     CommonParsedParams commonParams = contextParams.getCommonParsed();
     TrackedEntityQueryParams teParams = contextParams.getTypedParsed();
 
-    securityManager.decideAccess(commonParams, singleton(teParams.getTrackedEntityType()));
+    securityManager.decideAccess(commonParams, dataReadObjects(teParams));
     securityManager.applyOrganisationUnitConstraint(commonParams);
     securityManager.applyDimensionConstraints(commonParams);
 
@@ -153,6 +154,28 @@ public class TrackedEntityAggregateService {
         grid, withGroupedDimensionsOnly(contextParams), currentUser, rowsCount);
     addGroupedOrgUnitMetadata(grid, contextParams);
     return grid;
+  }
+
+  /**
+   * The objects whose data-read access must be checked beyond the query's dimensions: the tracked
+   * entity type, and — when aggregating over a program-stage data element value — that program
+   * stage. The event value is not a dimension identifier, so it is not covered by the
+   * dimension-based checks in {@link CommonParamsSecurityManager#decideAccess}; without adding the
+   * stage here a user with program/TET access but no data-read access to the stage could read its
+   * event values. The data element itself is intentionally not checked: event-data access is
+   * governed by the program stage, and data elements are in {@code CommonParamsSecurityManager}'s
+   * data-read skip set.
+   */
+  private static Set<IdentifiableObject> dataReadObjects(TrackedEntityQueryParams teParams) {
+    Set<IdentifiableObject> objects = new HashSet<>();
+    objects.add(teParams.getTrackedEntityType());
+
+    EventValue eventValue = teParams.getEventValue();
+    if (eventValue != null) {
+      objects.add(eventValue.programStage());
+    }
+
+    return objects;
   }
 
   /**
