@@ -48,6 +48,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
+import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
@@ -166,6 +168,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
   private final ObjectMapper jsonMapper;
 
   private final DataValueSetImportValidator importValidator;
+
+  private final EntityManager entityManager;
 
   private final SchemaService schemaService;
 
@@ -759,19 +763,35 @@ public class DefaultDataValueSetService implements DataValueSetService {
       Date now,
       int index,
       DataValueEntry dataValue) {
-    ImportContext.DataValueContext valueContext =
-        createDataValueContext(index, dataValue, context, dataSetContext);
+    // Metadata resolution, cache preheating and validation only read. Under the default
+    // FlushModeType.AUTO every query they issue makes Hibernate dirty-check the entire persistence
+    // context first, and that context grows for the whole import (one session, one transaction), so
+    // the cost per value rises with the values already processed. Suppressing the flush over this
+    // read-only span removes that quadratic without changing what any query returns: nothing here
+    // writes through Hibernate, so there is never a pending change for a flush to make visible.
+    // The window closes before the first write below.
+    ImportContext.DataValueContext valueContext;
+    boolean skip;
+    FlushModeType previousFlushMode = entityManager.getFlushMode();
+    entityManager.setFlushMode(FlushModeType.COMMIT);
+    try {
+      valueContext = createDataValueContext(index, dataValue, context, dataSetContext);
 
-    // -----------------------------------------------------------------
-    // Potentially heat caches
-    // -----------------------------------------------------------------
+      // -----------------------------------------------------------------
+      // Potentially heat caches
+      // -----------------------------------------------------------------
 
-    autoPreheatCaches(context);
+      autoPreheatCaches(context);
 
-    // -----------------------------------------------------------------
-    // Validation & Constraints
-    // -----------------------------------------------------------------
-    if (importValidator.skipDataValue(dataValue, context, dataSetContext, valueContext)) {
+      // -----------------------------------------------------------------
+      // Validation & Constraints
+      // -----------------------------------------------------------------
+      skip = importValidator.skipDataValue(dataValue, context, dataSetContext, valueContext);
+    } finally {
+      entityManager.setFlushMode(previousFlushMode);
+    }
+
+    if (skip) {
       importCount.incrementIgnored();
       context.addRejected(valueContext.getIndex());
       return;

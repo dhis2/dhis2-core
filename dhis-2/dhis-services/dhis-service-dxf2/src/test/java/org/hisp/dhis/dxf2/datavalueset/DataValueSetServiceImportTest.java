@@ -39,6 +39,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.CalendarService;
@@ -122,10 +124,14 @@ class DataValueSetServiceImportTest extends DhisConvenienceTest {
 
   @Mock private UserService userService;
 
+  @Mock private EntityManager entityManager;
+
   @InjectMocks private DefaultDataValueSetService dataValueSetService;
 
   @Test
   void testImportDataValuesUpdatedSkipNoChange() {
+    // the import suppresses auto-flush over its read-only span and restores the previous mode
+    when(entityManager.getFlushMode()).thenReturn(FlushModeType.AUTO);
     Calendar calendar = mock(Calendar.class);
     when(calendarService.getSystemCalendar()).thenReturn(calendar);
 
