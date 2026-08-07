@@ -73,6 +73,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
@@ -133,6 +134,8 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 @Table(name = "dataelement")
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+// Batch-load lazy DataElement proxies (e.g. ProgramStageDataElement.dataElement) [DHIS2-21903]
+@BatchSize(size = 100)
 @JacksonXmlRootElement(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
 public class DataElement extends BaseMetadataObject
     implements DimensionalItemObject,
