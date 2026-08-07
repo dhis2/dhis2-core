@@ -32,6 +32,7 @@ package org.hisp.dhis.monitoring.metrics;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_EHCACHE_ENABLED;
 
 import io.micrometer.core.instrument.FunctionCounter;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -42,6 +43,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.ehcache.CacheManager;
 import org.ehcache.core.statistics.CacheStatistics;
+import org.ehcache.core.statistics.TierStatistics;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.ServiceRegistry;
@@ -284,6 +286,22 @@ public class EhCacheMetricsConfig {
           .description(
               "The total number of times cache lookup methods did not find a requested entry in the cache")
           .register(registry);
+
+      // Point-in-time value (goes up and down), unlike the monotonic counters above, so this is a
+      // Gauge rather than a FunctionCounter. Ehcache3 has no direct heap-size accessor on
+      // CacheStatistics; the on-heap tier's occupied byte size is the equivalent value.
+      Gauge.builder(
+              "ehcache_local_heap_size_bytes",
+              stats,
+              EhCacheDirectStatisticsMetrics::onHeapOccupiedBytes)
+          .tags(cacheTags)
+          .description("The current size in bytes of the local heap store for this cache region")
+          .register(registry);
+    }
+
+    private static long onHeapOccupiedBytes(CacheStatistics stats) {
+      TierStatistics onHeap = stats.getTierStatistics().get("OnHeap");
+      return onHeap == null ? 0L : onHeap.getOccupiedByteSize();
     }
 
     /**
