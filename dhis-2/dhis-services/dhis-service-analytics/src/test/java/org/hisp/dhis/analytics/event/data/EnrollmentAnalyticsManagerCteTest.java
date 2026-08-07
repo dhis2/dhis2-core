@@ -59,11 +59,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.TimeField;
@@ -1032,21 +1036,44 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
                 """
                     .formatted(stageUid, deUid, deUid, programAUid, stageUid))));
 
-    // Existence CTE
+    // Row context is served by the value CTE, so no separate enrollment existence CTE is emitted
     assertThat(
         generatedSql,
-        containsString(
-            noEof(
-                """
-                select distinct enrollment from analytics_event_%s
-                where eventstatus != 'SCHEDULE' and ps = '%s'
-                """
-                    .formatted(programAUid, stageUid))));
+        not(
+            containsString(
+                noEof(
+                    """
+                    select distinct enrollment from analytics_event_%s
+                    where eventstatus != 'SCHEDULE' and ps = '%s'
+                    """
+                        .formatted(programAUid, stageUid)))));
 
     // SELECT projections for repeatable stage
     assertThat(generatedSql, containsString("\"" + stageUid + "[-1]." + deUid + "\""));
     assertThat(generatedSql, containsString("\"" + stageUid + "[-1]." + deUid + ".exists\""));
     assertThat(generatedSql, containsString("\"" + stageUid + "[-1]." + deUid + ".status\""));
+  }
+
+  @Test
+  void verifyRepeatableStagesFromDifferentStagesProduceUniqueJoinAliases() {
+    ProgramStage otherRepeatableStage =
+        org.hisp.dhis.test.TestBase.createProgramStage('C', programA);
+    otherRepeatableStage.setRepeatable(true);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(repeatableProgramStage, ValueType.NUMBER))
+            .addItem(createRepeatableDataElementItem(otherRepeatableStage))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 100);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    List<String> aliases = joinAliases(noEof(sql.getValue()));
+
+    assertThat(
+        "join aliases must be unique: " + aliases,
+        aliases.size(),
+        is(new HashSet<>(aliases).size()));
   }
 
   @Test
@@ -1378,6 +1405,27 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     item.setRepeatableStageParams(
         RepeatableStageParams.of(offset, stageUid + "[" + offset + "]." + dataElementA.getUid()));
     return item;
+  }
+
+  private QueryItem createRepeatableDataElementItem(ProgramStage stage) {
+    QueryItem item = new QueryItem(new BaseDimensionalItemObject(dataElementA.getUid()));
+    item.setProgram(programA);
+    item.setProgramStage(stage);
+    item.setValueType(ValueType.NUMBER);
+    item.setRepeatableStageParams(
+        RepeatableStageParams.of(-1, stage.getUid() + "[-1]." + dataElementA.getUid()));
+    return item;
+  }
+
+  /** Extracts the table alias of every join in the given SQL statement. */
+  private List<String> joinAliases(String sql) {
+    Matcher matcher =
+        Pattern.compile("(?:left|inner|cross)\\s+join\\s+\\S+\\s+(\\S+)\\s+on\\s").matcher(sql);
+    List<String> aliases = new ArrayList<>();
+    while (matcher.find()) {
+      aliases.add(matcher.group(1));
+    }
+    return aliases;
   }
 
   private EventQueryParams createAggregateEnrollmentWithEventDateParams() {

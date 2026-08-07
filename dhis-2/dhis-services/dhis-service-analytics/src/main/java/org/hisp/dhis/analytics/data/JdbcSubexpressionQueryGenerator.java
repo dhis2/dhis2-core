@@ -238,6 +238,11 @@ public class JdbcSubexpressionQueryGenerator {
     String subexItemColumns =
         subex.getItems().stream().map(this::getItemSql).distinct().collect(joining(","));
 
+    // Dimensions can be empty if the query is a Single Value query.
+    if (StringUtils.isBlank(dimensionColumns)) {
+      return "select " + subexItemColumns + " ";
+    }
+
     return "select " + dimensionColumns + ", " + subexItemColumns + " ";
   }
 

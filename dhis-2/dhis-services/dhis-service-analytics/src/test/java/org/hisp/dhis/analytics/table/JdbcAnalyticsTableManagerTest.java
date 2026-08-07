@@ -41,6 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -78,6 +80,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -426,5 +429,84 @@ class JdbcAnalyticsTableManagerTest {
         "outlier stats subquery must filter by valuetype");
     assertTrue(joinStatement.contains("'NUMBER'"), "numeric value types must be included");
     assertFalse(joinStatement.contains("'LONG_TEXT'"), "text value types must not be included");
+  void testRemoveLatestPartitionOverlap() {
+    AnalyticsTable table =
+        tableWithPartitionChecks(List.of(List.of("year = 2022"), List.of("year = 2023")));
+
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytics_0")));
+
+    subject.removeLatestPartitionOverlap(List.of(table));
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).execute(sql.capture());
+
+    assertEquals(
+        "delete from \"analytics_0\" where (year = 2022) or (year = 2023);", sql.getValue());
+  }
+
+  @Test
+  void testRemoveLatestPartitionOverlapJoinsChecksOfSamePartition() {
+    AnalyticsTable table =
+        tableWithPartitionChecks(List.of(List.of("year = 2022", "pestartdate < '2023-01-01'")));
+
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytics_0")));
+
+    subject.removeLatestPartitionOverlap(List.of(table));
+
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).execute(sql.capture());
+
+    assertEquals(
+        "delete from \"analytics_0\" where (year = 2022 and pestartdate < '2023-01-01');",
+        sql.getValue());
+  }
+
+  @Test
+  void testRemoveLatestPartitionOverlapWhenLatestPartitionAbsent() {
+    AnalyticsTable table = tableWithPartitionChecks(List.of(List.of("year = 2022")));
+
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of());
+
+    subject.removeLatestPartitionOverlap(List.of(table));
+
+    verify(jdbcTemplate, never()).execute(anyString());
+  }
+
+  @Test
+  void testRemoveLatestPartitionOverlapWhenPartitionsHaveNoChecks() {
+    AnalyticsTable table = tableWithPartitionChecks(List.of(List.of()));
+
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytics_0")));
+
+    subject.removeLatestPartitionOverlap(List.of(table));
+
+    verify(jdbcTemplate, never()).execute(anyString());
+  }
+
+  /** Returns a data value analytics table with one partition per given list of partition checks. */
+  private AnalyticsTable tableWithPartitionChecks(List<List<String>> checks) {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("year")
+                .dataType(INTEGER)
+                .selectExpression("")
+                .build());
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of("dx"), LOGGED);
+
+    int year = 2022;
+
+    for (List<String> partitionChecks : checks) {
+      table.addTablePartition(
+          partitionChecks,
+          year,
+          new DateTime(year, 1, 1, 0, 0).toDate(),
+          new DateTime(year + 1, 1, 1, 0, 0).toDate());
+      year++;
+    }
+
+    return table;
   }
 }
