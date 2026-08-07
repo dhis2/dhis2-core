@@ -98,6 +98,8 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         """;
     return getSession()
         .createNativeQuery(sql)
+        // join table, so the store entity class would declare the wrong space
+        .addSynchronizedQuerySpace("categorycombos_categories")
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))

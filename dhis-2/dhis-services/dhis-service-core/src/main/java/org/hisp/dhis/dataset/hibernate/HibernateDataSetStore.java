@@ -173,6 +173,8 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
         """;
     return getSession()
         .createNativeQuery(sql)
+        // DataSetElement, not the DataSet table the store owns
+        .addSynchronizedQuerySpace("datasetelement")
         .setParameter("targetCategoryComboId", targetCategoryComboId)
         .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))

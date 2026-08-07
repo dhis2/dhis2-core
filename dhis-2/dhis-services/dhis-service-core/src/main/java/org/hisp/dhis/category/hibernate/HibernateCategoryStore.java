@@ -120,6 +120,8 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
               """;
     return getSession()
         .createNativeQuery(sql)
+        // join table, so the store entity class would declare the wrong space
+        .addSynchronizedQuerySpace("categories_categoryoptions")
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();

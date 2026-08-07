@@ -744,6 +744,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
+        // the User collection table, not the User table, so the entity class would be wrong here
+        .addSynchronizedQuerySpace("users_catdimensionconstraints")
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -761,6 +763,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
+        .addSynchronizedQuerySpace("users_catdimensionconstraints")
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
@@ -782,6 +785,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
+        .addSynchronizedQuerySpace("users_catdimensionconstraints")
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
