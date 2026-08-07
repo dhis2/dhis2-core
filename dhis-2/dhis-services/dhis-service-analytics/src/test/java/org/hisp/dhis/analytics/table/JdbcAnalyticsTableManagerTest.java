@@ -429,6 +429,9 @@ class JdbcAnalyticsTableManagerTest {
         "outlier stats subquery must filter by valuetype");
     assertTrue(joinStatement.contains("'NUMBER'"), "numeric value types must be included");
     assertFalse(joinStatement.contains("'LONG_TEXT'"), "text value types must not be included");
+  }
+
+  @Test
   void testRemoveLatestPartitionOverlap() {
     AnalyticsTable table =
         tableWithPartitionChecks(List.of(List.of("year = 2022"), List.of("year = 2023")));
