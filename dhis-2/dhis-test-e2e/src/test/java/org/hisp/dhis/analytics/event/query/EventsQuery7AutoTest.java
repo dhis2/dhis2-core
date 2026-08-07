@@ -708,6 +708,7 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("outputType=EVENT")
             .add("page=1")
+            .add("desc=lastupdated")
             .add(
                 "dimension=GxdhnY5wmHq,ou:USER_ORGUNIT;LEVEL-wjP19dkFeIk;LEVEL-tTUf91fCytl;LEVEL-m9lBJogzE95,p2Zxg0wcPQ3");
 
@@ -790,6 +791,7 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("skipMeta=true")
             .add("pageSize=100")
+            .add("desc=lastupdated")
             .add("outputType=EVENT")
             .add("page=1")
             .add(
@@ -847,10 +849,10 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     // 7. Assert row values by name at specific indices (sorted results).
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-04-12 16:05:16.957");
+    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-04-12 16:05:41.933");
 
     // Validate selected values for row index 2
     validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 2, "lastupdated", "2018-04-12 16:05:41.933");
+    validateRowValueByName(response, actualHeaders, 2, "lastupdated", "2018-04-12 16:05:16.957");
   }
 }
