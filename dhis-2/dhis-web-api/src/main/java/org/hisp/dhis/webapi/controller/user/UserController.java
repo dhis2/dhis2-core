@@ -101,6 +101,7 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -217,6 +218,23 @@ public class UserController
     @OpenApi.Description(
         "Shorthand for `canManage=true` + `authSubset=true` (takes precedence over individual parameters)")
     boolean manage;
+  }
+
+  /**
+   * DHIS2-21907: when the list field filter includes {@code teiSearchOrganisationUnits}, bulk-load
+   * those associations with one native SQL query before field-filter serialization (avoids one
+   * Hibernate select per listed user).
+   */
+  @Override
+  protected void getEntityListPostProcess(GetUserObjectListParams params, List<User> entities) {
+    if (entities == null || entities.isEmpty()) {
+      return;
+    }
+    String fields = params.getFieldsJsonList();
+    if (fields == null || !fields.contains("teiSearchOrganisationUnits")) {
+      return;
+    }
+    userService.loadTeiSearchOrganisationUnits(entities);
   }
 
   @Override

@@ -45,6 +45,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -956,6 +958,39 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           userUid.getValue());
     }
   }
+
+
+  @Override
+  @Nonnull
+  public Map<Long, Set<OrganisationUnit>> getTeiSearchOrganisationUnitsByUserIds(
+      @Nonnull Collection<Long> userIds) {
+    if (userIds.isEmpty()) {
+      return Map.of();
+    }
+    // One native query: only columns needed for teiSearchOrganisationUnits[id,path].
+    String placeholders = String.join(",", Collections.nCopies(userIds.size(), "?"));
+    String sql =
+        "SELECT t.userinfoid, o.organisationunitid, o.uid, o.path "
+            + "FROM userteisearchorgunits t "
+            + "INNER JOIN organisationunit o ON o.organisationunitid = t.organisationunitid "
+            + "WHERE t.userinfoid IN ("
+            + placeholders
+            + ")";
+    Map<Long, Set<OrganisationUnit>> result = new HashMap<>();
+    jdbcTemplate.query(
+        sql,
+        userIds.toArray(),
+        rs -> {
+          long userId = rs.getLong(1);
+          OrganisationUnit ou = new OrganisationUnit();
+          ou.setId(rs.getLong(2));
+          ou.setUid(rs.getString(3));
+          ou.setPath(rs.getString(4));
+          result.computeIfAbsent(userId, k -> new HashSet<>()).add(ou);
+        });
+    return result;
+  }
+
 
   @Override
   public List<Integer> getActiveUserCounts(List<Date> sinceDates) {

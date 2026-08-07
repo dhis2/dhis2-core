@@ -355,5 +355,22 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * subsequent lookups by username reflect the new row rather than a stale cached result. Only the
    * username query region is evicted; all other query cache regions are left intact.
    */
+
+  /**
+   * Bulk-loads TEI-search organisation units for the given user primary keys in a single native
+   * SQL query (DHIS2-21907). Returns lightweight {@link OrganisationUnit} shells populated with
+   * {@code id}, {@code uid}, and {@code path} only — enough for field-filter
+   * {@code teiSearchOrganisationUnits[id,path]} without Hibernate collection selects.
+   *
+   * <p>Users with no TEI-search OUs are absent from the map (callers should treat missing keys as
+   * empty).
+   *
+   * @param userIds userinfo primary keys
+   * @return map of userinfoid → TEI-search organisation units
+   */
+  @Nonnull
+  Map<Long, Set<OrganisationUnit>> getTeiSearchOrganisationUnitsByUserIds(
+      @Nonnull Collection<Long> userIds);
+
   void clearUserQueryCache();
 }
