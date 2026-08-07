@@ -30,8 +30,11 @@ package org.hisp.dhis.dxf2.metadata;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import net.ttddyy.dsproxy.QueryCountHolder;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -55,7 +58,10 @@ import org.springframework.test.context.ContextConfiguration;
  * /api/dataEntry/metadata} handler), guarding against the N+1 selects that previously fired once
  * per {@link org.hisp.dhis.dataset.DataSetElement} ({@code DataSet.getDataElements()} / {@code
  * DataElement.getCategoryCombos()}) and once per {@link org.hisp.dhis.category.CategoryOptionCombo}
- * ({@code CategoryOptionCombo.getCategoryOptions()}).
+ * ({@code CategoryOptionCombo.getCategoryOptions()}), and once per {@link
+ * org.hisp.dhis.category.CategoryCombo} ({@code CategoryCombo.getCategories()} / {@code
+ * CategoryCombo.getOptionCombos()}) or {@link org.hisp.dhis.category.Category} ({@code
+ * Category.getCategoryOptions()}).
  *
  * @author david mackessy
  */
@@ -145,6 +151,111 @@ class DataSetMetadataExportServiceQueryCountTest extends IntegrationTestBase {
             + " times");
   }
 
+  @Test
+  @DisplayName("Adding category combos does not add SQL selects to the metadata export")
+  void categoryComboCountDoesNotScaleQueryCount() {
+    // baseline: export with two data elements that each have their own category combo
+    addDataElementsWithOwnCategoryCombo(dataSet, 2);
+    manager.update(dataSet);
+    long baseline = countCategoryJoinTableSelects();
+    assertTrue(baseline > 0, "expected the metadata export to query the category join tables");
+
+    // reload the now-managed data set (the previous measurement cleared then repopulated the
+    // session) before mutating it, then add four more category combos
+    DataSet managedDataSet = manager.get(DataSet.class, dataSet.getUid());
+    addDataElementsWithOwnCategoryCombo(managedDataSet, 4);
+    manager.update(managedDataSet);
+
+    long withMoreCategoryCombos = countCategoryJoinTableSelects();
+
+    // Each of these associations is preloaded in one fetch-joining query, so the select count must
+    // not grow with the number of category combos. If it does, the association is being initialised
+    // one parent at a time again — during data gathering for CategoryCombo.getCategories() and
+    // Category.getCategoryOptions(), or during serialization for the other two.
+    assertEquals(
+        baseline,
+        withMoreCategoryCombos,
+        "adding category combos must not increase the number of SQL selects against the category"
+            + " join tables");
+  }
+
+  @Test
+  @DisplayName("Preloading the category combos keeps the exported categories in sort order")
+  void preloadedCategoriesKeepTheirOrder() {
+    // the categories of a combo, and the options of a category, are ordered lists (sort_order), and
+    // the data entry app relies on that order. Preloading them with a fetch join must not disturb
+    // it
+    List<CategoryOption> options = saveCategoryOptions(2);
+    Category first = createCategory("first" + uniqueCounter++, options.get(0), options.get(1));
+    Category second = createCategory("second" + uniqueCounter++, options.get(1), options.get(0));
+    manager.save(first);
+    manager.save(second);
+    CategoryCombo combo = createCategoryCombo("cc" + uniqueCounter++, first, second);
+    manager.save(combo);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(combo);
+
+    DataElement dataElement = createDataElement((char) ('A' + uniqueCounter++));
+    dataElement.setCategoryCombo(combo);
+    manager.save(dataElement);
+    dataSet.addDataSetElement(dataElement);
+    manager.update(dataSet);
+
+    clearSession();
+    ObjectNode metadata = exportService.getDataSetMetadata();
+
+    assertEquals(
+        List.of(first.getUid(), second.getUid()),
+        pluckedIds(metadata, "categoryCombos", combo.getUid(), "categories"),
+        "the combo's categories must be exported in sort order");
+    assertEquals(
+        List.of(options.get(0).getUid(), options.get(1).getUid()),
+        pluckedIds(metadata, "categories", first.getUid(), "categoryOptions"),
+        "the first category's options must be exported in sort order");
+    assertEquals(
+        List.of(options.get(1).getUid(), options.get(0).getUid()),
+        pluckedIds(metadata, "categories", second.getUid(), "categoryOptions"),
+        "the second category's options must be exported in its own sort order");
+  }
+
+  /** The {@code ~pluck[id]} array of the given property, on the object with the given uid. */
+  private List<String> pluckedIds(
+      ObjectNode metadata, String collection, String uid, String property) {
+    for (JsonNode object : metadata.get(collection)) {
+      if (uid.equals(object.get("id").asText())) {
+        List<String> ids = new ArrayList<>();
+        object.get(property).forEach(id -> ids.add(id.asText()));
+        return ids;
+      }
+    }
+    throw new AssertionError(uid + " not found in " + collection);
+  }
+
+  /**
+   * Runs the metadata export from a freshly cleared session and returns the number of selects
+   * issued against the join tables behind the category-combo associations it reads and serialises.
+   */
+  private long countCategoryJoinTableSelects() {
+    clearSession();
+    QueryCountDataSourceProxy.clearCapturedSql();
+    exportService.getDataSetMetadata();
+    return Stream.of(
+            "categorycombos_categories",
+            "categories_categoryoptions",
+            "categorycombos_optioncombos",
+            "categoryoptioncombos_categoryoptions")
+        .mapToLong(QueryCountDataSourceProxy::countCapturedSqlMatching)
+        .sum();
+  }
+
+  private void addDataElementsWithOwnCategoryCombo(DataSet ds, int count) {
+    for (int i = 0; i < count; i++) {
+      DataElement dataElement = createDataElement((char) ('A' + uniqueCounter++));
+      dataElement.setCategoryCombo(createCategoryComboWithOptions(4));
+      manager.save(dataElement);
+      ds.addDataSetElement(dataElement);
+    }
+  }
+
   /**
    * Runs the metadata export from a freshly cleared Hibernate session (to mimic a new request and
    * force queries to hit the database) and returns the number of select statements issued.
@@ -171,13 +282,18 @@ class DataSetMetadataExportServiceQueryCountTest extends IntegrationTestBase {
     }
   }
 
-  private CategoryCombo createCategoryComboWithOptions(int optionCount) {
+  private List<CategoryOption> saveCategoryOptions(int optionCount) {
     List<CategoryOption> options = new ArrayList<>();
     for (int i = 0; i < optionCount; i++) {
       CategoryOption option = createCategoryOption((char) ('A' + uniqueCounter++));
       manager.save(option);
       options.add(option);
     }
+    return options;
+  }
+
+  private CategoryCombo createCategoryComboWithOptions(int optionCount) {
+    List<CategoryOption> options = saveCategoryOptions(optionCount);
     Category category =
         createCategory("cat" + uniqueCounter++, options.toArray(new CategoryOption[0]));
     manager.save(category);
