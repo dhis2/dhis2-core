@@ -342,6 +342,10 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
           outputGrid.addHeader(new GridHeader(display, display, ValueType.NUMBER, false, false));
         });
 
+    // The value map is a pure function of the input grid, which is not modified below. Build it
+    // once here instead of once per row permutation.
+    Map<String, Object> valueMap = EventAnalyticsUtils.getAggregatedEventDataMapping(grid);
+
     for (Map<String, EventAnalyticsDimensionalItem> rowCombination : rowPermutations) {
       outputGrid.addRow();
       List<List<String>> ids = new ArrayList<>();
@@ -370,7 +374,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
       addValuesInOutputGrid(rowDimensions, outputGrid, displayObjects, params);
 
-      EventAnalyticsUtils.addValues(ids, grid, outputGrid);
+      EventAnalyticsUtils.addValues(ids, valueMap, outputGrid);
     }
 
     return getGridWithRows(grid, outputGrid);
@@ -391,19 +395,19 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
    * empty.
    *
    * @param rowDimensions the list of row dimensions.
-   * @param grid the {@link Grid}.
+   * @param outputGrid the output {@link Grid}.
    * @param displayObjects the map of display objects.
    * @param params the {@link EventQueryParams}.
    */
   private static void addValuesInOutputGrid(
       List<String> rowDimensions,
-      Grid grid,
+      Grid outputGrid,
       Map<String, EventAnalyticsDimensionalItem> displayObjects,
       EventQueryParams params) {
     if (!displayObjects.isEmpty()) {
       rowDimensions.forEach(
           dimension ->
-              grid.addValue(
+              outputGrid.addValue(
                   displayObjects.get(dimension).getDisplayProperty(params.getDisplayProperty())));
     }
   }
