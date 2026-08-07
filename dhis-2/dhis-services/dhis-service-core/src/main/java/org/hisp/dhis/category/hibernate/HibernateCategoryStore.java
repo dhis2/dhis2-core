@@ -120,8 +120,9 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
               """;
     return getSession()
         .createNativeQuery(sql)
-        // join table, so the store entity class would declare the wrong space
-        .addSynchronizedQuerySpace("categories_categoryoptions")
+        // Category owns the cached categoryOptions collection on this join table. Naming the
+        // entity rather than the raw table is what makes Hibernate evict that collection region.
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();

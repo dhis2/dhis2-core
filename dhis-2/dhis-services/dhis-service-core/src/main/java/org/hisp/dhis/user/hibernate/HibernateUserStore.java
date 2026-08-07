@@ -744,8 +744,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
-        // the User collection table, not the User table, so the entity class would be wrong here
-        .addSynchronizedQuerySpace("users_catdimensionconstraints")
+        // User owns the cached catDimensionConstraints collection on this table. Naming the
+        // entity, not the raw table, is what evicts that collection region.
+        .addSynchronizedEntityClass(User.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -763,7 +764,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
-        .addSynchronizedQuerySpace("users_catdimensionconstraints")
+        .addSynchronizedEntityClass(User.class)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
@@ -785,7 +786,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
-        .addSynchronizedQuerySpace("users_catdimensionconstraints")
+        .addSynchronizedEntityClass(User.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
