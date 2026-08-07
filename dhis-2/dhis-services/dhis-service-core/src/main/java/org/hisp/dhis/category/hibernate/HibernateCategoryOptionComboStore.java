@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.category.hibernate;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
