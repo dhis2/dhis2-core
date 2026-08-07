@@ -73,7 +73,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       DELETE FROM datavalueaudit dva
       WHERE dva.organisationunitid = (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = :ou)""";
 
-    entityManager.createNativeQuery(sql).setParameter("ou", orgUnit.getValue()).executeUpdate();
+    nativeSynchronizedQuery(sql).setParameter("ou", orgUnit.getValue()).executeUpdate();
   }
 
   @Override
@@ -83,7 +83,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       DELETE FROM datavalueaudit dva
       WHERE dva.dataelementid = (SELECT de.dataelementid FROM dataelement de WHERE de.uid = :de)""";
 
-    entityManager.createNativeQuery(sql).setParameter("de", dataElement.getValue()).executeUpdate();
+    nativeSynchronizedQuery(sql).setParameter("de", dataElement.getValue()).executeUpdate();
   }
 
   @Override
@@ -93,8 +93,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         DELETE FROM datavalueaudit dva
         WHERE dva.categoryoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc)
            OR dva.attributeoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc);""";
-    entityManager
-        .createNativeQuery(sql)
+    nativeSynchronizedQuery(sql)
         .setParameter("coc", categoryOptionCombo.getValue())
         .executeUpdate();
   }
@@ -258,7 +257,9 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
           END IF;
       END;
       $$""";
-    getSession().createNativeQuery(sql).executeUpdate();
+    // DDL on the datavalue table. An empty space set is not expressible: Hibernate reads that as
+    // "unknown", which invalidates every region, so declare the one table the trigger sits on.
+    getSession().createNativeQuery(sql).addSynchronizedQuerySpace("datavalue").executeUpdate();
   }
 
   @Override
@@ -266,6 +267,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     String sql =
         """
       DROP TRIGGER IF EXISTS trg_datavalue_audit ON datavalue""";
-    getSession().createNativeQuery(sql).executeUpdate();
+    // DDL on the datavalue table. An empty space set is not expressible: Hibernate reads that as
+    // "unknown", which invalidates every region, so declare the one table the trigger sits on.
+    getSession().createNativeQuery(sql).addSynchronizedQuerySpace("datavalue").executeUpdate();
   }
 }

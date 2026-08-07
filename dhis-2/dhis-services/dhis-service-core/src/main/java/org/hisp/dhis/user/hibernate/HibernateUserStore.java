@@ -744,6 +744,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
+        // User owns the cached catDimensionConstraints collection on this table. Naming the
+        // entity, not the raw table, is what evicts that collection region.
+        .addSynchronizedEntityClass(User.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -761,6 +764,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
+        .addSynchronizedEntityClass(User.class)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
@@ -782,6 +786,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
+        .addSynchronizedEntityClass(User.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))

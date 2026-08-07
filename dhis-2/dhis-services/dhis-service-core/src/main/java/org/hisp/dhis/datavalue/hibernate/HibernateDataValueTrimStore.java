@@ -89,6 +89,8 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
           AND (dv.value IS NULL OR dv.value = '')""";
     return getSession()
         .createNativeQuery(sql)
+        // only datavalue is written; dataelement is read for the join, so it needs no space
+        .addSynchronizedQuerySpace("datavalue")
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(1000))
         .executeUpdate();
   }

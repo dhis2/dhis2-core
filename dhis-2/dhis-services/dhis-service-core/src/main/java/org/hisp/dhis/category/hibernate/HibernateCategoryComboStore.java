@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.hibernate.LockOptions;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
@@ -98,6 +99,13 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         """;
     return getSession()
         .createNativeQuery(sql)
+        // This writes the join table behind both CategoryCombo.categories and the inverse
+        // Category.categoryCombos, and both of those collections are cached. Declaring the raw
+        // table name is not enough: BulkOperationCleanupAction only evicts collection roles for
+        // entities whose own query spaces match, so a bare join table matches nothing. Naming
+        // both entities pulls in their collection regions.
+        .addSynchronizedEntityClass(CategoryCombo.class)
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
