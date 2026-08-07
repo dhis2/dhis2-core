@@ -73,6 +73,10 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   void tearDown() {
     settingsService.put("keyLockMultipleFailedLogins", false);
     settingsService.put("credentialsExpires", 0);
+    settingsService.put("keyAccountRecovery", false);
+    settingsService.put("keyEmailHostName", "");
+    settingsService.put("keyEmailUsername", "");
+    settingsService.put("keyEmailPassword", "");
     settingsService.clearCurrentSettings();
     userService.invalidateAllSessions();
     clearSecurityContext();
@@ -269,9 +273,71 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   @Test
   void testLoginWithCredentialsExpiredUser() {
     settingsService.put("credentialsExpires", 1);
+    settingsService.put("keyAccountRecovery", false);
+    settingsService.put("keyEmailHostName", "");
+    settingsService.put("keyEmailUsername", "");
+    settingsService.put("keyEmailPassword", "");
     settingsService.clearCurrentSettings();
 
     User admin = userService.getUserByUsername("admin");
+
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(admin.getPasswordLastUpdated());
+    calendar.add(Calendar.MONTH, -2);
+
+    admin.setPasswordLastUpdated(calendar.getTime());
+    userService.updateUser(admin);
+
+    JsonLoginResponse loginResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("PASSWORD_EXPIRED", loginResponse.getLoginStatus());
+    assertNull(loginResponse.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginWithCredentialsExpiredUserEmailRecovery() {
+    settingsService.put("credentialsExpires", 1);
+    settingsService.put("keyAccountRecovery", true);
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "noreply");
+    settingsService.put("keyEmailPassword", "secret");
+    settingsService.clearCurrentSettings();
+
+    User admin = userService.getUserByUsername("admin");
+    // Admin fixtures often carry a non-RFC email (e.g. "emaila"); force a valid one so
+    // validateRestore (real EmailMessageSender) can succeed.
+    admin.setEmail("admin@dhis2.org");
+
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(admin.getPasswordLastUpdated());
+    calendar.add(Calendar.MONTH, -2);
+
+    admin.setPasswordLastUpdated(calendar.getTime());
+    userService.updateUser(admin);
+
+    JsonLoginResponse loginResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("PASSWORD_EXPIRED_EMAIL_RECOVERY", loginResponse.getLoginStatus());
+    assertNull(loginResponse.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginWithCredentialsExpiredUserNoEmailKeepsOldPasswordPath() {
+    settingsService.put("credentialsExpires", 1);
+    settingsService.put("keyAccountRecovery", true);
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "noreply");
+    settingsService.put("keyEmailPassword", "secret");
+    settingsService.clearCurrentSettings();
+
+    User admin = userService.getUserByUsername("admin");
+    admin.setEmail(null);
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(admin.getPasswordLastUpdated());
