@@ -30,6 +30,12 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
@@ -90,5 +96,43 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
     query.setParameter("dataSet", dataSet);
 
     return query.getSingleResult().intValue();
+  }
+
+  @Override
+  @Nonnull
+  public Map<Long, Set<String>> getAuthoritiesByUserRoleIds(@Nonnull Collection<Long> userRoleIds) {
+    return loadElementCollectionByRoleIds(
+        userRoleIds, "select userroleid, authority from userroleauthorities where userroleid in (");
+  }
+
+  @Override
+  @Nonnull
+  public Map<Long, Set<String>> getRestrictionsByUserRoleIds(
+      @Nonnull Collection<Long> userRoleIds) {
+    return loadElementCollectionByRoleIds(
+        userRoleIds,
+        "select userroleid, restriction from userrolerestrictions where userroleid in (");
+  }
+
+  @Nonnull
+  private Map<Long, Set<String>> loadElementCollectionByRoleIds(
+      @Nonnull Collection<Long> userRoleIds, @Nonnull String sqlPrefix) {
+    if (userRoleIds.isEmpty()) {
+      return Map.of();
+    }
+    String placeholders = String.join(",", Collections.nCopies(userRoleIds.size(), "?"));
+    String sql = sqlPrefix + placeholders + ")";
+    Map<Long, Set<String>> result = new HashMap<>();
+    jdbcTemplate.query(
+        sql,
+        rs -> {
+          long roleId = rs.getLong(1);
+          String value = rs.getString(2);
+          if (value != null) {
+            result.computeIfAbsent(roleId, id -> new HashSet<>()).add(value);
+          }
+        },
+        userRoleIds.toArray());
+    return result;
   }
 }
