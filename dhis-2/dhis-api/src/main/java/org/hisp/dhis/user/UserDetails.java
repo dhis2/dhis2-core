@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +48,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
@@ -149,6 +151,34 @@ public interface UserDetails
    * null, the managed groups are resolved from the entity (legacy behaviour) for callers without
    * access to a store.
    */
+  @CheckForNull
+  static UserDetails createUserDetails(
+      @CheckForNull User user,
+      boolean accountNonLocked,
+      boolean credentialsNonExpired,
+      @CheckForNull Set<String> orgUnitUids,
+      @CheckForNull Set<String> searchOrgUnitUids,
+      @CheckForNull Set<String> dataViewUnitUids,
+      boolean loadOrgUnits,
+      @CheckForNull Set<Long> managedGroupLongIds) {
+    return createUserDetails(
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        orgUnitUids,
+        searchOrgUnitUids,
+        dataViewUnitUids,
+        loadOrgUnits,
+        managedGroupLongIds,
+        null,
+        null);
+  }
+
+  /**
+   * Variant that also accepts pre-resolved role authorities and restrictions. When non-null, these
+   * sets are used instead of walking each {@link UserRole} lazy element-collection (DHIS2-21909).
+   * When null, legacy per-role lazy loads remain.
+   */
   // TODO(DHIS2-21896) this overload chain has grown too many parameters (java:S107); replace with
   // a parameter object and change the Set<String> UID params to Set<UID>.
   @CheckForNull
@@ -160,7 +190,9 @@ public interface UserDetails
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
       boolean loadOrgUnits,
-      @CheckForNull Set<Long> managedGroupLongIds) {
+      @CheckForNull Set<Long> managedGroupLongIds,
+      @CheckForNull Set<String> roleAuthorities,
+      @CheckForNull Set<String> roleRestrictions) {
 
     if (user == null) {
       return null;
@@ -170,6 +202,26 @@ public interface UserDetails
         managedGroupLongIds != null
             ? managedGroupLongIds
             : (user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups()));
+
+    final Collection<GrantedAuthority> grantedAuthorities;
+    final Set<String> allAuthorities;
+    final boolean isSuper;
+    if (roleAuthorities != null) {
+      allAuthorities = Set.copyOf(roleAuthorities);
+      List<GrantedAuthority> granted = new ArrayList<>(allAuthorities.size());
+      for (String authority : allAuthorities) {
+        granted.add(new SimpleGrantedAuthority(authority));
+      }
+      grantedAuthorities = granted;
+      isSuper = allAuthorities.contains(Authorities.ALL.toString());
+    } else {
+      grantedAuthorities = new ArrayList<>(user.getAuthorities());
+      allAuthorities =
+          grantedAuthorities.stream()
+              .map(GrantedAuthority::getAuthority)
+              .collect(Collectors.toSet());
+      isSuper = user.isSuper();
+    }
 
     UserDetailsImplBuilder userDetailsImplBuilder =
         UserDetailsImpl.builder()
@@ -191,14 +243,9 @@ public interface UserDetails
             .accountNonLocked(accountNonLocked)
             .credentialsNonExpired(credentialsNonExpired)
             .dataViewMaxOrganisationUnitLevel(user.getDataViewMaxOrganisationUnitLevel())
-            .authorities(user.getAuthorities())
-            .allAuthorities(
-                new HashSet<>(
-                    Set.copyOf(
-                        user.getAuthorities().stream()
-                            .map(GrantedAuthority::getAuthority)
-                            .toList())))
-            .isSuper(user.isSuper())
+            .authorities(grantedAuthorities)
+            .allAuthorities(new HashSet<>(allAuthorities))
+            .isSuper(isSuper)
             .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
             .userGroupIds(
                 new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
@@ -227,12 +274,17 @@ public interface UserDetails
               ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
               : (dataViewUnitUids.isEmpty() ? orgUnitUids : dataViewUnitUids);
 
+      Set<String> resolvedRestrictions =
+          roleRestrictions != null
+              ? new HashSet<>(roleRestrictions)
+              : new HashSet<>(user.getAllRestrictions());
+
       userDetailsImplBuilder
           .userOrgUnitIds(new HashSet<>(userOrgUnitIds))
           .userSearchOrgUnitIds(new HashSet<>(userSearchOrgUnitIds))
           .userEffectiveSearchOrgUnitIds(new HashSet<>(userEffectiveSearchOrgUnitIds))
           .userDataOrgUnitIds(new HashSet<>(userDataOrgUnitIds))
-          .allRestrictions(new HashSet<>(user.getAllRestrictions()));
+          .allRestrictions(resolvedRestrictions);
 
     } else {
       userDetailsImplBuilder
