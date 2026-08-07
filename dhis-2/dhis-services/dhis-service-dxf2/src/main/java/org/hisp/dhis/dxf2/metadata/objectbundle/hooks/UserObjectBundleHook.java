@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -59,6 +60,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingsService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,7 +70,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String USERNAME = "username";
-  public static final String INVALIDATE_SESSIONS_KEY = "shouldInvalidateUserSessions";
+  public static final String AUTHZ_SNAPSHOT_CHANGED_KEY = "authzSnapshotChanged";
   public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
@@ -80,6 +82,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   private final UserSettingsService userSettingsService;
 
   private final DhisConfigurationProvider dhisConfig;
+
+  private final AuthzService authzService;
 
   @Override
   public void validate(User user, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
@@ -180,7 +184,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     if (user == null) return;
 
     bundle.putExtras(user, PRE_UPDATE_USER_KEY, user);
-    bundle.putExtras(persisted, INVALIDATE_SESSIONS_KEY, userRolesUpdated(user, persisted));
+    bundle.putExtras(persisted, AUTHZ_SNAPSHOT_CHANGED_KEY, authzSnapshotChanged(user, persisted));
 
     if (persisted.getAvatar() != null
         && (user.getAvatar() == null
@@ -197,20 +201,30 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     }
   }
 
-  private Boolean userRolesUpdated(User preUpdateUser, User persistedUser) {
-    Set<String> before =
-        preUpdateUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
-    Set<String> after =
-        persistedUser.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
+  private Boolean authzSnapshotChanged(User preUpdateUser, User persistedUser) {
+    return !Objects.equals(uids(preUpdateUser.getUserRoles()), uids(persistedUser.getUserRoles()))
+        || !Objects.equals(
+            uids(preUpdateUser.getOrganisationUnits()), uids(persistedUser.getOrganisationUnits()))
+        || !Objects.equals(
+            uids(preUpdateUser.getDataViewOrganisationUnits()),
+            uids(persistedUser.getDataViewOrganisationUnits()))
+        || !Objects.equals(
+            uids(preUpdateUser.getTeiSearchOrganisationUnits()),
+            uids(persistedUser.getTeiSearchOrganisationUnits()));
+  }
 
-    return !Objects.equals(before, after);
+  private static Set<String> uids(Collection<? extends IdentifiableObject> objects) {
+    if (objects == null) {
+      return Set.of();
+    }
+    return objects.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());
   }
 
   @Override
   public void postUpdate(User persistedUser, ObjectBundle bundle) {
     final User preUpdateUser = (User) bundle.getExtras(persistedUser, PRE_UPDATE_USER_KEY);
-    final Boolean invalidateSessions =
-        (Boolean) bundle.getExtras(persistedUser, INVALIDATE_SESSIONS_KEY);
+    final Boolean authzChanged =
+        (Boolean) bundle.getExtras(persistedUser, AUTHZ_SNAPSHOT_CHANGED_KEY);
 
     if (!StringUtils.isEmpty(preUpdateUser.getPassword())) {
       userService.encodeAndSetPassword(persistedUser, preUpdateUser.getPassword());
@@ -219,12 +233,12 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
     updateUserSettings(persistedUser);
 
-    if (Boolean.TRUE.equals(invalidateSessions)) {
-      userService.invalidateUserSessions(persistedUser.getUsername());
+    if (Boolean.TRUE.equals(authzChanged)) {
+      authzService.bumpUserAuthz(persistedUser.getUid());
     }
 
     bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);
-    bundle.removeExtras(persistedUser, INVALIDATE_SESSIONS_KEY);
+    bundle.removeExtras(persistedUser, AUTHZ_SNAPSHOT_CHANGED_KEY);
   }
 
   @Override
