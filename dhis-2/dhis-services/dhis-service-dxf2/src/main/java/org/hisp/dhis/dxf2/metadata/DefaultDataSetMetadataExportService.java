@@ -153,10 +153,10 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
     List<CategoryCombo> dataSetCategoryCombos =
         sortById(mapToSet(dataSets, DataSet::getCategoryCombo));
 
-    // Preload the category options of the data-element category-option-combos in a single query, so
-    // field-filter serialisation of categoryOptionCombos[...,categoryOptions~pluck[id]] does not
-    // trigger a per-combo N+1 (categoryoptioncombos_categoryoptions).
-    categoryService.getCategoryOptionCombosWithCategoryOptions(dataElementCategoryCombos);
+    // Preload the data-element category combos' associations, so that neither reading their
+    // categories below nor field-filter serialisation of categories~pluck[id] and
+    // categoryOptionCombos[...,categoryOptions~pluck[id]] initialises them one parent at a time.
+    categoryService.preloadCategoryComboAssociations(dataElementCategoryCombos);
     List<Category> dataElementCategories =
         sortById(flatMapToSet(dataElementCategoryCombos, CategoryCombo::getCategories));
     List<Category> dataSetCategories =

@@ -498,9 +498,8 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<CategoryOptionCombo> getCategoryOptionCombosWithCategoryOptions(
-      Collection<CategoryCombo> categoryCombos) {
-    return categoryOptionComboStore.getCategoryOptionCombosWithCategoryOptions(categoryCombos);
+  public void preloadCategoryComboAssociations(Collection<CategoryCombo> categoryCombos) {
+    categoryComboStore.preloadCategoryComboAssociations(categoryCombos);
   }
 
   @Override
