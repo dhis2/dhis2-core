@@ -40,6 +40,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,9 +67,12 @@ class HtmlCacheBustingServiceTest {
 
   private HtmlCacheBustingService service;
 
+  private SimpleMeterRegistry meterRegistry;
+
   @BeforeEach
   void setUp() {
-    service = new HtmlCacheBustingService(config, cache);
+    meterRegistry = new SimpleMeterRegistry();
+    service = new HtmlCacheBustingService(config, cache, new StaticCacheMetrics(meterRegistry));
     lenient()
         .when(config.isEnabled(ConfigurationKey.STATIC_CACHE_HTML_REWRITE_ENABLED))
         .thenReturn(true);
@@ -409,6 +413,40 @@ class HtmlCacheBustingServiceTest {
     assertThat(result, containsString("href=\"style.css?v=abc123\""));
     assertThat(result, containsString("src=\"favicon.ico?v=abc123\""));
     assertThat(result, containsString("src=\"favicon-48x48.png?v=abc123\""));
+  }
+
+  @Test
+  @DisplayName("Rewrite counter records miss then hit")
+  void rewriteCounter_missAndHit() throws IOException {
+    String html = "<html><head><script src=\"app.js\"></script></head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    rewrite(html, app, "/apps/my-app/index.html");
+    when(cache.getIfPresent(anyString())).thenReturn(Optional.of("<html></html>"));
+    rewrite(html, app, "/apps/my-app/index.html");
+
+    assertEquals(
+        1.0,
+        meterRegistry
+            .counter(StaticCacheMetrics.HTML_REWRITES, "result", StaticCacheMetrics.REWRITE_MISS)
+            .count());
+    assertEquals(
+        1.0,
+        meterRegistry
+            .counter(StaticCacheMetrics.HTML_REWRITES, "result", StaticCacheMetrics.REWRITE_HIT)
+            .count());
+  }
+
+  @Test
+  @DisplayName("Rewrite counter records skipped for non-HTML URIs")
+  void rewriteCounter_skipped() throws IOException {
+    rewrite("<html></html>", appWithCacheBustKey("abc123"), "/apps/my-app/style.css");
+
+    assertEquals(
+        1.0,
+        meterRegistry
+            .counter(StaticCacheMetrics.HTML_REWRITES, "result", StaticCacheMetrics.REWRITE_SKIPPED)
+            .count());
   }
 
   @Test

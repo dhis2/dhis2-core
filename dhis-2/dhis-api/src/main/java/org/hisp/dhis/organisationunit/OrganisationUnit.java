@@ -666,10 +666,12 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     List<OrganisationUnit> ancestors = getAncestors(roots);
 
     builder.append(
-        ancestors.stream().map(IdentifiableObject::getName).collect(Collectors.joining(delimiter)));
+        ancestors.stream()
+            .map(IdentifiableObject::getDisplayName)
+            .collect(Collectors.joining(delimiter)));
 
     if (includeThis) {
-      builder.append(delimiter).append(name);
+      builder.append(delimiter).append(getDisplayName());
     }
 
     if (withLeadingDelimiter) {
