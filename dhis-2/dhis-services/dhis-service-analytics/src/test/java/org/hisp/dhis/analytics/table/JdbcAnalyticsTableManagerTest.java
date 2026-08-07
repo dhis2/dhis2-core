@@ -51,6 +51,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -380,6 +382,53 @@ class JdbcAnalyticsTableManagerTest {
   void testGetStartEndDatesCondition() {
     assertTrue(subject.getStartEndDatesCondition(false).isEmpty());
     assertTrue(subject.getStartEndDatesCondition(true).startsWith(" "));
+  }
+
+  @Test
+  @DisplayName(
+      "Outlier stats join statement must not treat text values like serial numbers "
+          + "(e.g. '224E10000913') as numeric, since PostgreSQL cannot cast the implied "
+          + "scientific-notation exponent to double precision and aborts the whole table build")
+  void testGetOutliersJoinStatementDoesNotMatchScientificNotationLikeText() {
+    String joinStatement = subject.getOutliersJoinStatement();
+
+    Matcher regexLiterals = Pattern.compile("~ '([^']+)'").matcher(joinStatement);
+    List<Pattern> valueRegexes = new ArrayList<>();
+    while (regexLiterals.find()) {
+      valueRegexes.add(Pattern.compile(regexLiterals.group(1)));
+    }
+
+    assertFalse(valueRegexes.isEmpty(), "expected to find dv1.value numeric regex in SQL");
+
+    for (Pattern valueRegex : valueRegexes) {
+      assertFalse(
+          valueRegex.matcher("224E10000913").matches(),
+          "serial-number-like text must not be treated as numeric: " + valueRegex.pattern());
+      assertFalse(
+          valueRegex.matcher("46E-1309013").matches(),
+          "serial-number-like text must not be treated as numeric: " + valueRegex.pattern());
+      assertTrue(valueRegex.matcher("12.34").matches(), "genuine decimal values must still match");
+      assertTrue(valueRegex.matcher("-5").matches(), "genuine negative integers must still match");
+    }
+  }
+
+  @Test
+  @DisplayName(
+      "Outlier stats subquery must be structurally scoped to numeric-type data elements, "
+          + "so a LONG_TEXT (or other text/date/boolean) data element is never fed into the "
+          + "double precision stats regardless of what its stored value looks like")
+  void testGetOutliersJoinStatementScopedToNumericDataElements() {
+    String joinStatement = subject.getOutliersJoinStatement();
+
+    assertTrue(
+        joinStatement.contains(
+            "inner join dataelement de1 on dv1.dataelementid = de1.dataelementid"),
+        "outlier stats subquery must join to dataelement to check valuetype");
+    assertTrue(
+        joinStatement.contains("de1.valuetype in ("),
+        "outlier stats subquery must filter by valuetype");
+    assertTrue(joinStatement.contains("'NUMBER'"), "numeric value types must be included");
+    assertFalse(joinStatement.contains("'LONG_TEXT'"), "text value types must not be included");
   }
 
   @Test
