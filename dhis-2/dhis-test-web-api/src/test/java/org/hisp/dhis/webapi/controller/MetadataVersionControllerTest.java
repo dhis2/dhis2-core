@@ -30,13 +30,14 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonMetadataVersion;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class MetadataVersionControllerTest extends H2ControllerIntegrationTestBase {
+class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   @DisplayName("A valid metadata version should be returned from the versions endpoint")
@@ -177,5 +178,32 @@ class MetadataVersionControllerTest extends H2ControllerIntegrationTestBase {
     // then
     assertTrue(response.success(), "response is successful");
     assertEquals("application/gzip", response.header("Content-Type"));
+  }
+
+  @Test
+  @DisplayName("Missing version on data endpoint returns an error, not a 2xx empty body")
+  void getMissingMetadataVersionDataReturnsError() {
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+
+    HttpResponse response = GET("/metadata/version/DoesNotExist/data");
+
+    assertFalse(response.success(), "response should not be 2xx for a missing snapshot");
+    assertTrue(
+        response.error().getMessage().contains("DoesNotExist"),
+        "error message should reference the missing version name");
+  }
+
+  @Test
+  @DisplayName(
+      "Missing version on data.gz endpoint returns an error, not a 2xx empty gzip (GZIPOutputStream commits the response on construction)")
+  void getMissingMetadataVersionDataGzReturnsError() {
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+
+    HttpResponse response = GET("/metadata/version/DoesNotExist/data.gz");
+
+    assertFalse(response.success(), "response should not be 2xx for a missing snapshot");
+    assertTrue(
+        response.error().getMessage().contains("DoesNotExist"),
+        "error message should reference the missing version name");
   }
 }

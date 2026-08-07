@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -370,7 +369,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
-    Note note = new Note("note1", "ant");
+    Note note = new Note("note1");
     note.setUid(generateUid());
     note.setCreated(new Date());
     note.setLastUpdated(new Date());
@@ -796,6 +795,30 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertContainsOnly(
         Set.of("A", "B", "C"),
         attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
+  }
+
+  @Test
+  void shouldReturnOnlyReadableAttributesWhenUserCannotReadSomeAttributes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    // Remove metadata read access to attribute C for the current user; A and B stay readable. The
+    // export must return only the attribute values the user is allowed to read.
+    injectSecurityContextUser(superuser);
+    teaC.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(teaC);
+    injectSecurityContextUser(user);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .orgUnitMode(SELECTED)
+            .program(programA)
+            .fields(TrackedEntityFields.builder().includeAttributes().build())
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        Set.of("A", "B"), attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
   }
 
   @Test
@@ -1473,9 +1496,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> checkDate(currentTime, trackedEntity.getCreated()),
         () -> checkDate(currentTime, trackedEntity.getCreatedAtClient()),
         () -> checkDate(currentTime, trackedEntity.getLastUpdatedAtClient()),
-        () -> checkDate(currentTime, trackedEntity.getLastUpdated()),
-        // get stored by is always null
-        () -> assertNull(trackedEntity.getStoredBy()));
+        () -> checkDate(currentTime, trackedEntity.getLastUpdated()));
   }
 
   @Test
@@ -1514,8 +1535,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> checkDate(currentTime, enrollment.getLastUpdated()),
         () -> checkDate(currentTime, enrollment.getLastUpdatedAtClient()),
         () -> checkDate(currentTime, enrollment.getEnrollmentDate()),
-        () -> checkDate(currentTime, enrollment.getOccurredDate()),
-        () -> assertNull(enrollment.getStoredBy()));
+        () -> checkDate(currentTime, enrollment.getOccurredDate()));
   }
 
   @Test

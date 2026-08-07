@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
@@ -413,8 +414,21 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 "startTime", toLongDate(params.getStartTime()),
                 "deletedClause", sqlBuilder.isFalse("dv", "deleted"))));
 
+    sql.append(getStartEndDatesCondition(respectStartEndDates));
+
+    if (whereClause != null) {
+      sql.append(" and " + whereClause + " ");
+    }
+
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}' {}", tableName, valueTypes);
+  }
+
+  String getStartEndDatesCondition(boolean respectStartEndDates) {
+    StringBuilder condition = new StringBuilder("");
+
     if (respectStartEndDates) {
-      sql.append(
+      condition.append(SPACE);
+      condition.append(
           """
           and (aon.startdate is null or aon.startdate <= ps.startdate) \
           and (aon.enddate is null or aon.enddate >= ps.enddate) \
@@ -422,11 +436,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
           and (con.enddate is null or con.enddate >= ps.enddate)\s""");
     }
 
-    if (whereClause != null) {
-      sql.append(" and " + whereClause + " ");
-    }
-
-    invokeTimeAndLog(sql.toString(), "Populating table: '{}' {}", tableName, valueTypes);
+    return condition.toString();
   }
 
   /**

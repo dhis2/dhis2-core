@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.category;
 
+import static java.util.Comparator.comparing;
+
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -514,6 +516,13 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<CategoryOptionCombo> getCategoryOptionCombosWithCategoryOptions(
+      Collection<CategoryCombo> categoryCombos) {
+    return categoryOptionComboStore.getCategoryOptionCombosWithCategoryOptions(categoryCombos);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<CategoryOptionCombo> getAllCategoryOptionCombos() {
     return categoryOptionComboStore.getAll();
   }
@@ -651,21 +660,24 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional(readOnly = true)
   public List<DataElementOperand> getOperands(
       Collection<DataElement> dataElements, boolean includeTotals) {
-    List<DataElementOperand> operands = Lists.newArrayList();
+    List<DataElementOperand> operands = new ArrayList<>();
 
-    for (DataElement dataElement : dataElements) {
-      Set<CategoryCombo> categoryCombos = dataElement.getCategoryCombos();
+    dataElements.stream()
+        .sorted(comparing(DataElement::getName))
+        .forEach(
+            dataElement -> {
+              Set<CategoryCombo> categoryCombos = dataElement.getCategoryCombos();
 
-      boolean anyIsDefault = categoryCombos.stream().anyMatch(cc -> cc.isDefault());
+              boolean anyIsDefault = categoryCombos.stream().anyMatch(CategoryCombo::isDefault);
 
-      if (includeTotals && !anyIsDefault) {
-        operands.add(new DataElementOperand(dataElement));
-      }
+              if (includeTotals && !anyIsDefault) {
+                operands.add(new DataElementOperand(dataElement));
+              }
 
-      for (CategoryCombo categoryCombo : categoryCombos) {
-        operands.addAll(getOperands(dataElement, categoryCombo));
-      }
-    }
+              for (CategoryCombo categoryCombo : categoryCombos) {
+                operands.addAll(getOperands(dataElement, categoryCombo));
+              }
+            });
 
     return operands;
   }

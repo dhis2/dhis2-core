@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.security.oauth2.authorization;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
@@ -36,52 +37,102 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
 
+/**
+ * DHIS2 persistence representation of a Spring Authorization Server {@code OAuth2Authorization}.
+ *
+ * <p>An {@code OAuth2Authorization} is a single authorization grant and its associated tokens for
+ * one principal authenticating against one registered client. It holds the authorization code,
+ * access token, refresh token, OIDC id-token, device code and user code, each with its own
+ * issued/expires timestamps and opaque metadata blob. Spring Authorization Server operates
+ * exclusively on the framework type {@code
+ * org.springframework.security.oauth2.server.authorization.OAuth2Authorization}, which is an
+ * immutable, builder-constructed value object not wired for JPA or DHIS2 ACL.
+ *
+ * <p>This class is the mutable DHIS2-side mirror: a {@link BaseIdentifiableObject} with a Hibernate
+ * mapping and a JSON/XML view, so the authorization can live in the DHIS2 database alongside all
+ * other identifiable objects and be inspected through the admin REST surface. Conversion between
+ * the two representations happens in {@code Dhis2OAuth2AuthorizationServiceImpl}: {@code
+ * toEntity(OAuth2Authorization)} builds a {@link Dhis2OAuth2Authorization} for persistence, and
+ * {@code toObject(Dhis2OAuth2Authorization)} reconstructs the Spring-side {@code
+ * OAuth2Authorization} for the authorization-server runtime.
+ *
+ * <p>Marked {@link SecondaryMetadataObject} so the type is excluded from the default {@code
+ * /api/metadata} export; token-bearing fields are additionally {@link JsonIgnore}'d so no REST
+ * surface can leak them even on explicit requests. Persistence uses Hibernate field access ({@code
+ * Dhis2OAuth2Authorization.hbm.xml}) and is independent of the JSON annotations.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Getter
 @Setter
 @JacksonXmlRootElement(localName = "oauth2Authorization", namespace = DxfNamespaces.DXF_2_0)
-public class Dhis2OAuth2Authorization extends BaseIdentifiableObject implements MetadataObject {
+@SuppressWarnings("java:S2160") // Identity is uid, handled by BaseIdentifiableObject.equals.
+public class Dhis2OAuth2Authorization extends BaseIdentifiableObject
+    implements SecondaryMetadataObject {
 
-  Dhis2OAuth2Authorization() {}
+  /** Required by Hibernate + Jackson for reflective instantiation. */
+  public Dhis2OAuth2Authorization() {}
 
+  /**
+   * Reference to the {@link org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client} this grant was
+   * issued to. Holds the internal id of the registered client, not its public {@code clientId}.
+   */
   @JsonProperty private String registeredClientId;
-  @JsonProperty private String principalName;
-  @JsonProperty private String authorizationGrantType;
-  @JsonProperty private String authorizedScopes;
-  @JsonProperty private String attributes;
-  @JsonProperty private String state;
 
-  @JsonProperty private String authorizationCodeValue;
+  /**
+   * Name of the resource owner the grant is tied to. For user-delegated flows this is the DHIS2
+   * username; for {@code client_credentials} it is the client itself.
+   */
+  @JsonProperty private String principalName;
+
+  /**
+   * The grant type that produced this authorization (e.g. {@code authorization_code}, {@code
+   * client_credentials}, {@code refresh_token}, {@code
+   * urn:ietf:params:oauth:grant-type:device_code}).
+   */
+  @JsonProperty private String authorizationGrantType;
+
+  /** Comma-separated list of scopes that were actually granted for this authorization. */
+  @JsonProperty private String authorizedScopes;
+
+  /** JSON-encoded Spring AS attributes map (authenticated principal, request metadata, etc.). */
+  @JsonIgnore private String attributes;
+
+  /** Opaque {@code state} value used by Spring AS for OAuth2 CSRF protection during the flow. */
+  @JsonIgnore private String state;
+
+  @JsonIgnore private String authorizationCodeValue;
   @JsonProperty private Date authorizationCodeIssuedAt;
   @JsonProperty private Date authorizationCodeExpiresAt;
-  @JsonProperty private String authorizationCodeMetadata;
+  @JsonIgnore private String authorizationCodeMetadata;
 
-  @JsonProperty private String accessTokenValue;
+  @JsonIgnore private String accessTokenValue;
   @JsonProperty private Date accessTokenIssuedAt;
   @JsonProperty private Date accessTokenExpiresAt;
-  @JsonProperty private String accessTokenMetadata;
+  @JsonIgnore private String accessTokenMetadata;
   @JsonProperty private String accessTokenType;
   @JsonProperty private String accessTokenScopes;
 
-  @JsonProperty private String refreshTokenValue;
+  @JsonIgnore private String refreshTokenValue;
   @JsonProperty private Date refreshTokenIssuedAt;
   @JsonProperty private Date refreshTokenExpiresAt;
-  @JsonProperty private String refreshTokenMetadata;
+  @JsonIgnore private String refreshTokenMetadata;
 
-  @JsonProperty private String oidcIdTokenValue;
+  @JsonIgnore private String oidcIdTokenValue;
   @JsonProperty private Date oidcIdTokenIssuedAt;
   @JsonProperty private Date oidcIdTokenExpiresAt;
-  @JsonProperty private String oidcIdTokenMetadata;
-  @JsonProperty private String oidcIdTokenClaims;
+  @JsonIgnore private String oidcIdTokenMetadata;
+  @JsonIgnore private String oidcIdTokenClaims;
 
-  @JsonProperty private String userCodeValue;
+  @JsonIgnore private String userCodeValue;
   @JsonProperty private Date userCodeIssuedAt;
   @JsonProperty private Date userCodeExpiresAt;
-  @JsonProperty private String userCodeMetadata;
+  @JsonIgnore private String userCodeMetadata;
 
-  @JsonProperty private String deviceCodeValue;
+  @JsonIgnore private String deviceCodeValue;
   @JsonProperty private Date deviceCodeIssuedAt;
   @JsonProperty private Date deviceCodeExpiresAt;
-  @JsonProperty private String deviceCodeMetadata;
+  @JsonIgnore private String deviceCodeMetadata;
 }

@@ -29,26 +29,18 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
+import static org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper.mapSingleEvent;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.SingleEvent;
-import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component("org.hisp.dhis.tracker.imports.validation.validator.event.SecuritySingleEventValidator")
@@ -56,89 +48,72 @@ import org.springframework.stereotype.Component;
 class SecuritySingleEventValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
 
-  @Nonnull private final AclService aclService;
+  @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
   public void validate(
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    if (!(event instanceof SingleEvent)) {
+    if (!(event instanceof SingleEvent singleEvent)) {
       return;
     }
 
     TrackerImportStrategy strategy = bundle.getStrategy(event);
-    org.hisp.dhis.tracker.model.SingleEvent preheatEvent =
-        bundle.getPreheat().getSingleEvent(event.getEvent());
 
-    OrganisationUnit organisationUnit =
-        strategy.isUpdateOrDelete()
-            ? preheatEvent.getOrganisationUnit()
-            : bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
-    ProgramStage programStage =
-        strategy.isUpdateOrDelete()
-            ? preheatEvent.getProgramStage()
-            : bundle.getPreheat().getProgramStage(event.getProgramStage());
+    if (strategy.isCreate()) {
+      handleCreate(reporter, bundle, singleEvent);
+    } else {
+      org.hisp.dhis.tracker.model.SingleEvent databaseSingleEvent =
+          bundle.getPreheat().getSingleEvent(singleEvent.getUID());
 
-    CategoryOptionCombo categoryOptionCombo =
-        bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
-
-    checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
-    checkProgramWriteAccess(reporter, event, programStage.getProgram(), bundle.getUser());
-    checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo, bundle.getUser());
-
-    if (strategy.isUpdate()) {
-      OrganisationUnit payloadOrgUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
-      if (!preheatEvent.getOrganisationUnit().getUid().equals(payloadOrgUnit.getUid())) {
-        checkOrgUnitInCaptureScope(reporter, event, payloadOrgUnit, bundle.getUser());
+      if (strategy.isUpdate()) {
+        handleUpdate(reporter, bundle, databaseSingleEvent, singleEvent);
+      } else if (strategy.isDelete()) {
+        handleDelete(reporter, bundle, databaseSingleEvent, singleEvent);
       }
-
-      checkCompletablePermission(reporter, event, preheatEvent, bundle.getUser());
     }
   }
 
-  private void checkCompletablePermission(
+  private void handleCreate(Reporter reporter, TrackerBundle bundle, SingleEvent singleEvent) {
+    org.hisp.dhis.tracker.model.SingleEvent mappedEvent =
+        mapSingleEvent(bundle.getPreheat(), singleEvent, bundle.getUser());
+
+    trackerAccessManager
+        .canCreate(bundle.getUser(), mappedEvent)
+        .forEach(em -> reporter.addError(singleEvent, em.validationCode(), em.args().toArray()));
+  }
+
+  private void handleUpdate(
       Reporter reporter,
-      org.hisp.dhis.tracker.imports.domain.Event event,
-      org.hisp.dhis.tracker.model.SingleEvent preheatEvent,
-      UserDetails user) {
-    if (EventStatus.COMPLETED == preheatEvent.getStatus()
-        && event.getStatus() != preheatEvent.getStatus()
-        && (!user.isSuper() && !user.isAuthorized(F_UNCOMPLETE_EVENT))) {
-      reporter.addError(event, E1083, user);
-    }
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.model.SingleEvent databaseSingleEvent,
+      SingleEvent singleEvent) {
+    OrganisationUnit payloadOrgUnit =
+        bundle.getPreheat().getOrganisationUnit(singleEvent.getOrgUnit());
+    OrganisationUnit orgUnit =
+        payloadOrgUnit != null ? payloadOrgUnit : databaseSingleEvent.getOrganisationUnit();
+
+    CategoryOptionCombo payloadAoc =
+        bundle.getPreheat().getCategoryOptionCombo(singleEvent.getAttributeOptionCombo());
+    CategoryOptionCombo aoc =
+        payloadAoc != null ? payloadAoc : databaseSingleEvent.getAttributeOptionCombo();
+
+    trackerAccessManager
+        .canUpdate(bundle.getUser(), databaseSingleEvent, orgUnit, aoc)
+        .forEach(em -> reporter.addError(singleEvent, em.validationCode(), em.args().toArray()));
+  }
+
+  private void handleDelete(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.model.SingleEvent databaseSingleEvent,
+      SingleEvent singleEvent) {
+    trackerAccessManager
+        .canDelete(bundle.getUser(), databaseSingleEvent)
+        .forEach(em -> reporter.addError(singleEvent, em.validationCode(), em.args().toArray()));
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
     return true;
-  }
-
-  private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit eventOrgUnit, UserDetails user) {
-    if (!user.isInUserHierarchy(eventOrgUnit.getStoredPath())) {
-      reporter.addError(dto, ValidationCode.E1000, user, eventOrgUnit);
-    }
-  }
-
-  private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
-    if (!aclService.canDataWrite(user, program)) {
-      reporter.addError(dto, ValidationCode.E1091, user, program);
-    }
-  }
-
-  public void checkWriteCategoryOptionComboAccess(
-      Reporter reporter,
-      TrackerDto dto,
-      CategoryOptionCombo categoryOptionCombo,
-      UserDetails user) {
-    if (categoryOptionCombo == null) {
-      return;
-    }
-
-    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataWrite(user, categoryOption)) {
-        reporter.addError(dto, ValidationCode.E1099, user, categoryOption);
-      }
-    }
   }
 }

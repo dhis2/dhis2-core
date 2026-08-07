@@ -50,10 +50,12 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
+@Transactional
 class DataApprovalStoreUserTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataApprovalStore dataApprovalStore;
@@ -145,6 +147,8 @@ class DataApprovalStoreUserTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryCombo(catComboA);
     CategoryOptionCombo catOptionComboA = createCategoryOptionCombo(catComboA, catOptionA);
     categoryService.addCategoryOptionCombo(catOptionComboA);
+    // flush so the raw-SQL data-approval status query sees the session writes
+    entityManager.flush();
     List<DataApprovalStatus> statuses =
         dataApprovalStore.getDataApprovalStatuses(
             workflowA,

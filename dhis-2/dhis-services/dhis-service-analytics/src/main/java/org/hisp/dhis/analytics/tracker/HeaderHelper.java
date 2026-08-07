@@ -78,6 +78,23 @@ public class HeaderHelper {
           new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
     }
 
+    if (params.hasEnrollmentOuDimension()) {
+      grid.addHeader(
+          new GridHeader(
+              ColumnHeader.ENROLLMENT_OU.getItem(),
+              ColumnHeader.ENROLLMENT_OU.getName(),
+              TEXT,
+              false,
+              true));
+      grid.addHeader(
+          new GridHeader(
+              ColumnHeader.ENROLLMENT_OU_NAME.getItem(),
+              ColumnHeader.ENROLLMENT_OU_NAME.getName(),
+              TEXT,
+              false,
+              true));
+    }
+
     DisplayProperty displayProperty = params.getDisplayProperty();
     HeaderBuildContext context = HeaderBuildContext.of(params, displayProperty);
 
@@ -113,23 +130,6 @@ public class HeaderHelper {
                   null));
         }
       }
-    }
-
-    if (params.hasEnrollmentOuDimension()) {
-      grid.addHeader(
-          new GridHeader(
-              ColumnHeader.ENROLLMENT_OU.getItem(),
-              ColumnHeader.ENROLLMENT_OU.getName(),
-              TEXT,
-              false,
-              true));
-      grid.addHeader(
-          new GridHeader(
-              ColumnHeader.ENROLLMENT_OU_NAME.getItem(),
-              ColumnHeader.ENROLLMENT_OU_NAME.getName(),
-              TEXT,
-              false,
-              true));
     }
   }
 

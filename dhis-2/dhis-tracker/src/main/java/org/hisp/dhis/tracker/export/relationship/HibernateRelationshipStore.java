@@ -84,7 +84,12 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
+    // cacheable=false: every query space this store reads (relationship, relationshipitem,
+    // trackedentity, enrollment, trackerevent, singleevent) is written via raw JDBC in the
+    // importer, which bypasses Hibernate's query-cache invalidation -- cached results would go
+    // stale across imports (e.g. an empty duplicate-check result would silently disable
+    // duplicate detection).
+    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, false);
   }
 
   public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity, boolean includeDeleted) {

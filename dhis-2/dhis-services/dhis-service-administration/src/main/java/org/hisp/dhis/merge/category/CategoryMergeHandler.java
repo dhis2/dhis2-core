@@ -41,7 +41,7 @@ import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryStore;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.stereotype.Component;
@@ -69,7 +69,7 @@ public class CategoryMergeHandler {
   public void handleCategoryOptions(List<Category> sources, Category target) {
     int removed =
         categoryStore.removeCatOptionCategoryRefs(
-            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()));
+            sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()));
 
     log.info("{} category options with source category refs removed", removed);
   }
@@ -83,7 +83,7 @@ public class CategoryMergeHandler {
   public void handleCategoryCombos(List<Category> sources, Category target) {
     int updated =
         categoryComboStore.updateCatComboCategoryRefs(
-            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
             target.getId());
     log.info("{} category combos with source category refs updated", updated);
   }
@@ -114,7 +114,7 @@ public class CategoryMergeHandler {
    */
   public void handleUsers(List<Category> sources, Category target) {
     Set<Long> sourceUids =
-        sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet());
+        sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
     int rowsDeleted1 =
         userStore.deleteCatDimensionConstraintsWhenUserHasTarget(sourceUids, target.getId());
     int rowsUpdated =
@@ -135,7 +135,7 @@ public class CategoryMergeHandler {
   public void handleCategoryDimensions(List<Category> sources, Category target) {
     int updated =
         categoryDimensionStore.updateCatDimensionCategoryRefs(
-            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
             target.getId());
     log.info("{} category dimensions with source category refs updated", updated);
   }

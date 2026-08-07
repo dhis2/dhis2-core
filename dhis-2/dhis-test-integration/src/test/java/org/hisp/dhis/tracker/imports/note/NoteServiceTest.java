@@ -227,7 +227,6 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
               .orElse(null);
       assertNotNull(dbNote);
       assertEquals(note.getValue(), dbNote.getNoteText());
-      assertEquals(note.getStoredBy(), dbNote.getCreator());
       assertEquals(updatedBy.getUid(), dbNote.getLastUpdatedBy().getUid());
       assertEquals(updatedBy.getUsername(), dbNote.getLastUpdatedBy().getUsername());
       assertEquals(updatedBy.getFirstName(), dbNote.getLastUpdatedBy().getFirstName());
@@ -236,10 +235,6 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   }
 
   private Note note() {
-    return Note.builder()
-        .note(UID.generate())
-        .storedBy("This is the creator")
-        .value("This is a note")
-        .build();
+    return Note.builder().note(UID.generate()).value("This is a note").build();
   }
 }

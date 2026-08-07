@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data.aggregate;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Collections;
@@ -38,14 +39,23 @@ import java.util.Set;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
 
 class AggregatedEnrollmentHeaderColumnResolverTest {
   private final StageHeaderClassifier stageHeaderClassifier = new StageHeaderClassifier();
   private final AggregatedEnrollmentHeaderColumnResolver subject =
-      new AggregatedEnrollmentHeaderColumnResolver(stageHeaderClassifier);
+      new AggregatedEnrollmentHeaderColumnResolver(
+          stageHeaderClassifier,
+          new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder()));
 
   @Test
   void shouldUseFilterCteForStageEventDate() {
@@ -59,6 +69,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         Set.of("\"stage1.eventdate\""),
         cteContext,
         sb,
+        Collections.emptyMap(),
         Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
@@ -80,6 +91,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         cteContext,
         sb,
         Collections.emptyMap(),
+        Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
     String sql = sb.build();
@@ -99,6 +111,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         Set.of("\"stage1.oucode\""),
         cteContext,
         sb,
+        Collections.emptyMap(),
         Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
@@ -120,6 +133,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         cteContext,
         sb,
         Collections.emptyMap(),
+        Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
     String sql = sb.build();
@@ -139,6 +153,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         Set.of("\"stage1.ou\""),
         cteContext,
         sb,
+        Collections.emptyMap(),
         Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
@@ -160,6 +175,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         cteContext,
         sb,
         Collections.emptyMap(),
+        Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
     String sql = sb.build();
@@ -179,6 +195,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         Set.of("`stage1.de1`"),
         cteContext,
         sb,
+        Collections.emptyMap(),
         Collections.emptyMap(),
         column -> "`" + column + "`");
 
@@ -200,6 +217,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         new CteContext(EndpointItem.ENROLLMENT),
         sb,
         cteDefinitionMap,
+        Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
     String sql = sb.build();
@@ -217,6 +235,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         new CteContext(EndpointItem.ENROLLMENT),
         sb,
         Collections.emptyMap(),
+        Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
     String sql = sb.build();
@@ -233,6 +252,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         Set.of("\"stage1.de1\""),
         new CteContext(EndpointItem.ENROLLMENT),
         sb,
+        Collections.emptyMap(),
         Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
@@ -255,6 +275,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         cteContext,
         sb,
         Collections.emptyMap(),
+        Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
     String sql = sb.build();
@@ -276,11 +297,156 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
         cteContext,
         sb,
         Collections.emptyMap(),
+        Collections.emptyMap(),
         column -> "\"" + column + "\"");
 
     String sql = sb.build();
 
     assertThat(sql, containsString("ev_occurreddate as \"stage1.eventdate\""));
     assertThat(sql, containsString("ev_eventstatus as \"stage1.eventstatus\""));
+  }
+
+  @Test
+  void shouldBucketStageEventDateWithPeriodValue() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+    String alias = cteContext.getDefinitionByItemUid("latest_events_stage1").getAlias();
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("\"stage1.eventdate\""),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        Map.of(
+            "stage1.eventdate",
+            stageDateItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, "202205")),
+        column -> "\"" + column + "\"");
+
+    String sql = sb.build();
+    String expected = monthlyBucket(alias + ".ev_occurreddate");
+
+    assertThat(sql, containsString(expected + " as \"stage1.eventdate\""));
+    assertThat(sql, containsString("group by " + expected));
+  }
+
+  @Test
+  void shouldUseRawColumnForStageEventDateWithoutPeriodValue() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+    String alias = cteContext.getDefinitionByItemUid("latest_events_stage1").getAlias();
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("\"stage1.eventdate\""),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        Map.of(
+            "stage1.eventdate", stageDateItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)),
+        column -> "\"" + column + "\"");
+
+    String sql = sb.build();
+
+    assertThat(sql, containsString(alias + ".ev_occurreddate as \"stage1.eventdate\""));
+    assertThat(sql, not(containsString("analytics_rs_dateperiodstructure")));
+  }
+
+  @Test
+  void shouldBucketStageScheduledDateWithPeriodValue() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+    String alias = cteContext.getDefinitionByItemUid("latest_events_stage1").getAlias();
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("\"stage1.scheduleddate\""),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        Map.of(
+            "stage1.scheduleddate",
+            stageDateItem(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, "202107")),
+        column -> "\"" + column + "\"");
+
+    String sql = sb.build();
+    String expected = monthlyBucket(alias + ".ev_scheduleddate");
+
+    assertThat(sql, containsString(expected + " as \"stage1.scheduleddate\""));
+    assertThat(sql, containsString("group by " + expected));
+  }
+
+  @Test
+  void shouldBucketStageEventDateWithMultiplePeriodsOfSameType() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+    String alias = cteContext.getDefinitionByItemUid("latest_events_stage1").getAlias();
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("\"stage1.eventdate\""),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        Map.of(
+            "stage1.eventdate",
+            stageDateItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, "202205", "202206")),
+        column -> "\"" + column + "\"");
+
+    String sql = sb.build();
+
+    assertThat(sql, containsString(monthlyBucket(alias + ".ev_occurreddate")));
+  }
+
+  @Test
+  void shouldUseRawColumnForStageEventDateWithMixedPeriodTypes() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+    String alias = cteContext.getDefinitionByItemUid("latest_events_stage1").getAlias();
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("\"stage1.eventdate\""),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        Map.of(
+            "stage1.eventdate",
+            stageDateItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, "202205", "2022")),
+        column -> "\"" + column + "\"");
+
+    String sql = sb.build();
+
+    assertThat(sql, containsString(alias + ".ev_occurreddate as \"stage1.eventdate\""));
+    assertThat(sql, not(containsString("analytics_rs_dateperiodstructure")));
+  }
+
+  private QueryItem stageDateItem(String itemId, String... periodValues) {
+    QueryItem item = new QueryItem(new BaseDimensionalItemObject(itemId));
+    item.setValueType(ValueType.DATE);
+    ProgramStage stage = new ProgramStage();
+    stage.setUid("stage1");
+    item.setProgramStage(stage);
+    for (String value : periodValues) {
+      item.addDimensionValue(value);
+    }
+    return item;
+  }
+
+  private String monthlyBucket(String dateColumn) {
+    return "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_stage where dps_stage."
+        + "\"dateperiod\" = cast("
+        + dateColumn
+        + " as date))";
   }
 }

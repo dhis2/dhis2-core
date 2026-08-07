@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.merge.category;
 
+import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
 import static org.hisp.dhis.feedback.ErrorCode.E1540;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
@@ -45,6 +46,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryCombo;
@@ -2272,7 +2274,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   private DataValueChangelogQueryParams getQueryParams(CategoryOptionCombo coc) {
-    return new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of(coc));
+    return decodeInput(DataValueChangelogQueryParams.class, Map.of("co", UID.of(coc)));
   }
 
   private DataValue addDataValue(DataValue value) {

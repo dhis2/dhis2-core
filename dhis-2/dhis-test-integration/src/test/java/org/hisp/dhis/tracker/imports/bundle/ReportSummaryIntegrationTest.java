@@ -277,6 +277,29 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldCountIgnoredEventsWhenEachEventHasMultipleErrors() throws IOException {
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
+    TrackerImportParams params =
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = testSetup.fromJson("tracker/four_events_two_with_invalid_data_element.json");
+    params = TrackerImportParams.builder().atomicMode(AtomicMode.ALL).build();
+
+    ImportReport report = trackerImportService.importTracker(params, trackerObjects);
+
+    assertNotNull(report);
+    assertEquals(Status.ERROR, report.getStatus());
+    assertEquals(2L, report.getValidationReport().size());
+    assertEquals(4, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getCreated());
+    assertEquals(0, report.getStats().getUpdated());
+  }
+
+  @Test
   void testStatsCountForOneUpdateEventAndOneNewEventAndOneInvalidEvent() throws IOException {
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =

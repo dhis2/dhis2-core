@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
@@ -163,12 +164,13 @@ public class DefaultTrackerImportService implements TrackerImportService {
   private Map<TrackerType, Integer> calculatePayloadSize(
       TrackerBundle bundle, ValidationReport validationReport) {
     final Map<TrackerType, Integer> bundleSize = new EnumMap<>(TrackerType.class);
-    for (Error error : validationReport.getErrors()) {
-      TrackerType type = TrackerType.fromName(error.getTrackerType()).orElse(null);
-      if (type != null) {
-        bundleSize.merge(type, 1, Integer::sum);
-      }
-    }
+    validationReport.getErrors().stream()
+        .filter(e -> TrackerType.fromName(e.getTrackerType()).isPresent())
+        .collect(
+            Collectors.groupingBy(
+                e -> TrackerType.fromName(e.getTrackerType()).orElseThrow(),
+                Collectors.mapping(Error::getUid, Collectors.toSet())))
+        .forEach((type, uids) -> bundleSize.merge(type, uids.size(), Integer::sum));
     bundleSize.merge(TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size(), Integer::sum);
     bundleSize.merge(TrackerType.ENROLLMENT, bundle.getEnrollments().size(), Integer::sum);
     bundleSize.merge(TrackerType.EVENT, bundle.getEvents().size(), Integer::sum);

@@ -126,6 +126,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
@@ -142,7 +147,7 @@
     <dependency>
       <groupId>com.google.code.java-allocation-instrumenter</groupId>
       <artifactId>java-allocation-instrumenter</artifactId>
-      <version>3.3.4</version>
+      <version>3.3.5</version>
       <scope>test</scope>
     </dependency>
 
@@ -197,8 +202,8 @@
     </dependency>
 
     <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>javax.annotation-api</artifactId>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -253,7 +258,8 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <configuration>
           <ignoredUnusedDeclaredDependencies combine.children="append">
-            <ignoredUnusedDeclaredDependency>javax.annotation:javax.annotation-api</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>jakarta.annotation:jakarta.annotation-api</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>com.google.code.java-allocation-instrumenter:java-allocation-instrumenter</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.ehcache:ehcache</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>

@@ -121,42 +121,39 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
   @Override
   public int getNumberOfUsedValues(ReservedValue reservedValue) {
-    Query<Long> query =
+    Query<Long> countReservedValuesQuery =
         getTypedQuery("SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key");
 
     Long count =
-        query
+        countReservedValuesQuery
             .setParameter("uid", reservedValue.getOwnerUid())
             .setParameter("key", reservedValue.getKey())
             .getSingleResult();
 
     if (Objects.valueOf(reservedValue.getOwnerObject()).equals(TRACKEDENTITYATTRIBUTE)) {
-      Query<Long> attrQuery =
-          getTypedQuery(
-              "SELECT count(*) "
-                  + "FROM TrackedEntityAttributeValue "
-                  + "WHERE attribute = "
-                  + "( FROM TrackedEntityAttribute "
-                  + "WHERE uid = :uid ) "
-                  + "AND value LIKE :value ");
+      String countTeavQuery =
+          "SELECT count(*) "
+              + "FROM TrackedEntityAttributeValue "
+              + "WHERE attribute = "
+              + "( FROM TrackedEntityAttribute "
+              + "WHERE uid = :uid ) ";
 
-      count +=
-          attrQuery
-              .setParameter("uid", reservedValue.getOwnerUid())
-              .setParameter("value", reservedValue.getValue())
-              .getSingleResult();
+      if (reservedValue.getValue().equals("%")) {
+        Query<Long> attrQuery = getTypedQuery(countTeavQuery);
+        count += attrQuery.setParameter("uid", reservedValue.getOwnerUid()).getSingleResult();
+      } else {
+        countTeavQuery += "AND value LIKE :value ";
+        Query<Long> attrQuery = getTypedQuery(countTeavQuery);
+
+        count +=
+            attrQuery
+                .setParameter("uid", reservedValue.getOwnerUid())
+                .setParameter("value", reservedValue.getValue())
+                .getSingleResult();
+      }
     }
 
     return count.intValue();
-  }
-
-  @Override
-  public boolean useReservedValue(String ownerUID, String value) {
-    return getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value")
-            .setParameter("uid", ownerUID)
-            .setParameter("value", value)
-            .executeUpdate()
-        == 1;
   }
 
   @Override
@@ -181,17 +178,22 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   }
 
   @Override
-  public void removeUsedOrExpiredReservations() {
-    String deleteQuery =
-        "DELETE FROM ReservedValue r WHERE r.expiryDate < CURRENT_TIMESTAMP OR r.value IN ("
-            + "SELECT teav.plainValue FROM TrackedEntityAttributeValue teav JOIN teav.attribute tea "
-            + "WHERE r.ownerUid = tea.uid AND r.value = teav.plainValue"
-            + ")";
+  public int removeExpiredValues() {
+    return jdbcTemplate.update(
+        "DELETE FROM reservedvalue WHERE reservedvalueid IN "
+            + "(SELECT reservedvalueid FROM reservedvalue WHERE expirydate < now() LIMIT ?)",
+        DELETE_BATCH_SIZE);
+  }
 
-    log.info("Starting deleting expired or used reserved values ....");
-
-    getQuery(deleteQuery).executeUpdate();
-
-    log.info("... Completed deleting expired or used reserved values");
+  @Override
+  public int removeUsedValues() {
+    return jdbcTemplate.update(
+        "DELETE FROM reservedvalue WHERE reservedvalueid IN ("
+            + "SELECT rv.reservedvalueid FROM reservedvalue rv "
+            + "JOIN trackedentityattribute tea ON rv.owneruid = tea.uid "
+            + "JOIN trackedentityattributevalue teav ON teav.trackedentityattributeid = tea.trackedentityattributeid "
+            + "AND lower(teav.value) = lower(rv.value) "
+            + "LIMIT ?)",
+        DELETE_BATCH_SIZE);
   }
 }

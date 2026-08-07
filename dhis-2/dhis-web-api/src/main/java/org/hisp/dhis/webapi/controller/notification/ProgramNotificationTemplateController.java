@@ -96,9 +96,6 @@ public class ProgramNotificationTemplateController
 
     return ResponseEntity.ok(
         new StreamingJsonRoot<>(
-            pager,
-            getSchema().getCollectionName(),
-            FieldFilterParams.of(entities, List.of("*")),
-            false));
+            pager, getSchema().getCollectionName(), FieldFilterParams.of(entities, "*"), false));
   }
 }

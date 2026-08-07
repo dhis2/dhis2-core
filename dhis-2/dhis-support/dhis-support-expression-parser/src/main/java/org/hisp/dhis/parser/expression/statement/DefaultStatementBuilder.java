@@ -43,6 +43,7 @@ import java.util.regex.Matcher;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
@@ -138,7 +139,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
       programStageCondition = "and ps = '" + programStageUid + "' ";
     }
 
-    String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+    String eventTableName = AnalyticsTableNames.eventTable(programIndicator.getProgram());
     return "(select "
         + columnName
         + " from "

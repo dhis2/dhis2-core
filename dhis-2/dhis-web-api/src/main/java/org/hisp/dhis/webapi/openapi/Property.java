@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.openapi;
 import static java.lang.Character.isUpperCase;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.groupingBy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -62,6 +63,7 @@ import org.hisp.dhis.common.OpenApi.Access;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.setting.Settings;
 
 /**
@@ -110,7 +112,7 @@ class Property {
   private Property(JsonObject.Property p, Type type) {
     this(
         p.in(),
-        p.jsonName(),
+        p.jsonName().toString(),
         getType(p.source(), type),
         p.source(),
         Access.DEFAULT,
@@ -178,13 +180,11 @@ class Property {
         || methodsIn(object).anyMatch(m -> m.isAnnotationPresent(OpenApi.Property.class));
   }
 
-  @SuppressWarnings("unchecked")
   private static List<Property> propertiesInJson(Class<?> object) {
     if (!JsonObject.class.isAssignableFrom(object)) return List.of();
     List<Property> res = new ArrayList<>();
-    Map<String, List<JsonObject.Property>> propertiesByName =
-        JsonObject.properties((Class<? extends JsonObject>) object).stream()
-            .collect(Collectors.groupingBy(JsonObject.Property::jsonName));
+    Map<Text, List<JsonObject.Property>> propertiesByName =
+        JsonObject.properties(object).stream().collect(groupingBy(JsonObject.Property::jsonName));
     propertiesByName.forEach(
         (name, properties) -> {
           JsonObject.Property p0 = properties.get(0);

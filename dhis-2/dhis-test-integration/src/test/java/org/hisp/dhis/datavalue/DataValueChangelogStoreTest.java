@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -112,15 +114,15 @@ class DataValueChangelogStoreTest extends PostgresIntegrationTestBase {
     // state before delete
     List<DataValueChangelog> dvaCoc1Before =
         dataValueChangelogStore.getEntries(
-            new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of(coc1)));
+            decodeInput(DataValueChangelogQueryParams.class, Map.of("co", UID.of(coc1))));
     List<DataValueChangelog> dvaCoc2Before =
         dataValueChangelogStore.getEntries(
-            new DataValueChangelogQueryParams().setAttributeOptionCombo(UID.of(coc2)));
+            decodeInput(DataValueChangelogQueryParams.class, Map.of("cc", UID.of(coc2))));
     List<DataValueChangelog> dvaCoc3Before =
         dataValueChangelogStore.getEntries(
-            new DataValueChangelogQueryParams()
-                .setCategoryOptionCombo(UID.of(coc3))
-                .setAttributeOptionCombo(UID.of(coc3)));
+            decodeInput(
+                DataValueChangelogQueryParams.class,
+                Map.of("co", UID.of(coc3), "cc", UID.of(coc3))));
 
     assertEquals(2, dvaCoc1Before.size(), "There should be 2 audits referencing Cat Opt Combo 1");
     assertEquals(2, dvaCoc2Before.size(), "There should be 2 audits referencing Cat Opt Combo 2");
@@ -133,15 +135,15 @@ class DataValueChangelogStoreTest extends PostgresIntegrationTestBase {
     // then
     List<DataValueChangelog> dvaCoc1After =
         dataValueChangelogStore.getEntries(
-            new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of(coc1)));
+            decodeInput(DataValueChangelogQueryParams.class, Map.of("co", UID.of(coc1))));
     List<DataValueChangelog> dvaCoc2After =
         dataValueChangelogStore.getEntries(
-            new DataValueChangelogQueryParams().setAttributeOptionCombo(UID.of(coc2)));
+            decodeInput(DataValueChangelogQueryParams.class, Map.of("cc", UID.of(coc2))));
     List<DataValueChangelog> dvaCoc3After =
         dataValueChangelogStore.getEntries(
-            new DataValueChangelogQueryParams()
-                .setCategoryOptionCombo(UID.of(coc3))
-                .setAttributeOptionCombo(UID.of(coc3)));
+            decodeInput(
+                DataValueChangelogQueryParams.class,
+                Map.of("co", UID.of(coc3), "cc", UID.of(coc3))));
 
     assertTrue(dvaCoc1After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 1");
     assertTrue(dvaCoc2After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 2");

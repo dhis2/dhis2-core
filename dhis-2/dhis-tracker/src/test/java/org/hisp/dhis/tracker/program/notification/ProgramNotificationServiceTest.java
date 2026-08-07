@@ -171,7 +171,7 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
   private ProgramNotificationInstance programNotificationInstaceForToday;
 
   @BeforeEach
-  public void initTest() {
+  void initTest() {
     programNotificationService =
         new DefaultProgramNotificationService(
             this.programMessageService,
@@ -429,6 +429,29 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
 
     assertEquals(1, sentProgramMessages.size());
+  }
+
+  @Test
+  void shouldSendMessageToEventOrgUnitWhenSingleEventRecipientIsOrgUnitContact() {
+    when(programMessageService.sendMessages(anyList()))
+        .thenAnswer(
+            invocation -> {
+              sentProgramMessages.addAll((List<ProgramMessage>) invocation.getArguments()[0]);
+              return new BatchResponseStatus(Collections.emptyList());
+            });
+
+    when(singleEventNotificationRenderer.render(
+            any(SingleEvent.class), any(NotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+
+    programNotificationTemplate.setNotificationRecipient(
+        ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT);
+
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
+
+    assertEquals(1, sentProgramMessages.size());
+    ProgramMessage programMessage = sentProgramMessages.iterator().next();
+    assertEquals(lvlTwoLeftLeft, programMessage.getRecipients().getOrganisationUnit());
   }
 
   @Test

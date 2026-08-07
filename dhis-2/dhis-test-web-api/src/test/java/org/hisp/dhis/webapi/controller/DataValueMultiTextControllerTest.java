@@ -34,7 +34,6 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -126,13 +125,11 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest {
             orgUnitId, multiTextDataElementId, categoryOptionComboId);
     JsonWebMessage message =
         POST("/38/dataValueSets/", body).content(HttpStatus.CONFLICT).as(JsonWebMessage.class);
-    JsonImportConflict conflict =
-        message.find(JsonImportConflict.class, c -> c.getErrorCode() == ErrorCode.E8123);
-    assertTrue(conflict.isObject());
+    JsonImportConflict conflict = message.findImportConflict(ErrorCode.E8123);
     assertEquals(
         format(
             "Value #0 value `D` is no valid option for data element `%s`", multiTextDataElementId),
-        conflict.getValue());
+        conflict.value());
   }
 
   private String addOptionSet(String name, ValueType valueType) {

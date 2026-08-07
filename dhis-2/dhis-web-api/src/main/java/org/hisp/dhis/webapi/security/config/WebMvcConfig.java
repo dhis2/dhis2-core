@@ -47,6 +47,7 @@ import org.hisp.dhis.webapi.fields.FieldsConverter;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
+import org.hisp.dhis.webapi.mvc.UrlParamsMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
@@ -59,7 +60,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConvert
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.staticresource.StaticCacheInterceptor;
-import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.hisp.dhis.webapi.view.SuffixMediaTypeContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -79,7 +80,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -98,7 +99,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @Configuration
 @Order(1000)
 @ComponentScan(basePackages = {"org.hisp.dhis"})
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   // Paths where XML should still be allowed.
   public static final List<Pattern> XML_PATTERNS =
@@ -106,12 +107,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
           Pattern.compile("/api/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
           Pattern.compile("/api/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
 
-  @Autowired
-  private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+  @Autowired private CurrentUserHandlerMethodArgumentResolver currentUserArgResolver;
 
   @Autowired
-  private CurrentSystemSettingsHandlerMethodArgumentResolver
-      currentSystemSettingsHandlerMethodArgumentResolver;
+  private CurrentSystemSettingsHandlerMethodArgumentResolver currentSystemSettingsArgResolver;
+
+  @Autowired private UrlParamsMethodArgumentResolver urlParamsArgResolver;
 
   @Autowired private FieldsConverter fieldsConverter;
 
@@ -156,8 +157,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(currentUserHandlerMethodArgumentResolver);
-    resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
+    resolvers.add(currentUserArgResolver);
+    resolvers.add(currentSystemSettingsArgResolver);
+    resolvers.add(urlParamsArgResolver);
   }
 
   @Bean
@@ -225,13 +227,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Bean
   @Override
   public ContentNegotiationManager mvcContentNegotiationManager() {
-    CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
-    pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
-
     return new ContentNegotiationManager(
         Arrays.asList(
-            pathExtensionNegotiationStrategy,
+            new SuffixMediaTypeContentNegotiationStrategy(),
             new HeaderContentNegotiationStrategy(),
             new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON)));
   }
@@ -241,9 +239,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
-    mapping.setUseTrailingSlashMatch(true);
-    mapping.setUseSuffixPatternMatch(true);
-    mapping.setUseRegisteredSuffixPatternMatch(true);
+    // Path-extension + trailing-slash matching is reinstated by
+    // CustomRequestMappingHandlerMapping#getHandlerInternal (literal-first, then normalised path).
+    // Do not rely on setUseSuffixPatternMatch / setUseTrailingSlashMatch / favorPathExtension -
+    // those are removed in Spring Framework 7.
+    // PR-K1: use Spring default PathPatternParser (do not force Ant with null parser).
+    // Controllers with trailing /** are PathPattern-legal; security mid-** is PR-K2/K3.
     return mapping;
   }
 
@@ -261,8 +262,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer config) {
+    // favorPathExtension removed in Spring 7; path-extension negotiation is provided by
+    // SuffixMediaTypeContentNegotiationStrategy (fed by CustomRequestMappingHandlerMapping).
     config
-        .favorPathExtension(true)
         .favorParameter(false)
         .ignoreAcceptHeader(false)
         .defaultContentType(MediaType.APPLICATION_JSON)

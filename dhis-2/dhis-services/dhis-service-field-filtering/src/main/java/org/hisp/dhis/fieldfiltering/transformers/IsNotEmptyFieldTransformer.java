@@ -31,6 +31,7 @@ package org.hisp.dhis.fieldfiltering.transformers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
 /**
@@ -44,18 +45,11 @@ public class IsNotEmptyFieldTransformer implements FieldTransformer {
   public static final IsNotEmptyFieldTransformer INSTANCE = new IsNotEmptyFieldTransformer();
 
   @Override
-  public JsonNode apply(String path, JsonNode value, JsonNode parent) {
-    if (!parent.isObject()) {
-      return value;
-    }
-
-    String fieldName = getFieldName(path);
-
-    if (value.isArray()) {
+  public JsonNode apply(PropertyPath path, JsonNode value, JsonNode parent) {
+    if (parent.isObject() && value.isArray()) {
       // overwrite array node with true/false depending on empty status
-      ((ObjectNode) parent).put(fieldName, !value.isEmpty());
+      ((ObjectNode) parent).put(path.property().toString(), !value.isEmpty());
     }
-
     return value;
   }
 }

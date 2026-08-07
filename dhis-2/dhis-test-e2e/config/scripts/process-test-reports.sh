@@ -6,14 +6,27 @@ set -e
 
 echo "Starting test reports processing..."
 
-apt-get update && apt-get install -y git gnupg2
+apt-get update && apt-get install -y git openssh-client
 
-if [ -n "$GPG_PRIVATE_KEY" ]; then
-    echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import
-    echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --sign-key "$GPG_KEY_ID"
-    git config --global user.signingkey "$GPG_KEY_ID"
+if [ -n "$SSH_SIGNING_KEY" ]; then
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
+    printf '%s\n' "$SSH_SIGNING_KEY" > ~/.ssh/signing_key
+    chmod 600 ~/.ssh/signing_key
+
+    # strip the passphrase from this throwaway copy so the container can sign
+    # non-interactively; the decrypted key only exists in the ephemeral CI container.
+    ssh-keygen -p -P "$SSH_SIGNING_PASSPHRASE" -N "" -f ~/.ssh/signing_key
+
+    # build an allowed-signers entry so the post-commit verification below can
+    # confirm the signature locally against the committer email.
+    ssh-keygen -y -f ~/.ssh/signing_key > ~/.ssh/signing_key.pub
+    echo "$GIT_COMMITTER_EMAIL $(cat ~/.ssh/signing_key.pub)" > ~/.ssh/allowed_signers
+
+    git config --global gpg.format ssh
+    git config --global user.signingkey ~/.ssh/signing_key
     git config --global commit.gpgsign true
-    git config --global gpg.program gpg
+    git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
 fi
 
 git config --global user.name "$GIT_AUTHOR_NAME"
@@ -42,7 +55,8 @@ if git diff --cached --quiet; then
 else
     commit_message="Add test results from $(date -Iseconds)"
     echo "Committing with message: $commit_message"
-    git commit -m "$commit_message"    
+    git commit -m "$commit_message"
+    git log --show-signature -1 || true
     git push origin main
 fi
 

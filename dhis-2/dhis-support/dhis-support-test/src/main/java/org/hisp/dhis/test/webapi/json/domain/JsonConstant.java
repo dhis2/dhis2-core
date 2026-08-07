@@ -35,7 +35,7 @@ package org.hisp.dhis.test.webapi.json.domain;
  * @author Jan Bernitt
  */
 public interface JsonConstant extends JsonNameableObject {
-  default double getValue() {
+  default double value() {
     return getNumber("value").doubleValue();
   }
 }

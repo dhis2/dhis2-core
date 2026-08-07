@@ -98,10 +98,12 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
+@Transactional
 class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ValidationService validationService;
@@ -1672,8 +1674,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
     validationRuleService.saveValidationRule(rule);
     String instructionTranslated = "Validation rule instruction translated";
     Set<Translation> listObjectTranslation = new HashSet<>(rule.getTranslations());
-    listObjectTranslation.add(
-        new Translation(locale.language(), "INSTRUCTION", instructionTranslated));
+    listObjectTranslation.add(Translation.ofLanguage(locale, "INSTRUCTION", instructionTranslated));
     identifiableObjectManager.updateTranslations(rule, listObjectTranslation);
     assertEquals(instructionTranslated, rule.getDisplayInstruction());
   }

@@ -45,10 +45,6 @@ public class vDueDate extends ProgramDateVariable {
 
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
-    if (!visitor.isUseExperimentalSqlEngine()) {
-      return getSqlLegacy(visitor);
-    }
-
     ProgramExpressionParams params = visitor.getProgParams();
 
     if (params != null
@@ -60,22 +56,5 @@ public class vDueDate extends ProgramDateVariable {
       // For Event analytics context (or others), return the direct column name "scheduleddate"
       return "scheduleddate";
     }
-  }
-
-  public Object getSqlLegacy(CommonExpressionVisitor visitor) {
-    ProgramExpressionParams params = visitor.getProgParams();
-
-    if (AnalyticsType.EVENT == params.getProgramIndicator().getAnalyticsType()) {
-      return "scheduleddate";
-    }
-
-    return visitor
-        .getStatementBuilder()
-        .getProgramIndicatorEventColumnSql(
-            null,
-            "scheduleddate",
-            params.getReportingStartDate(),
-            params.getReportingEndDate(),
-            params.getProgramIndicator());
   }
 }

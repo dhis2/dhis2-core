@@ -30,6 +30,7 @@
 package org.hisp.dhis.common.adapter;
 
 import java.math.BigDecimal;
+import org.hisp.dhis.common.RawJsonValue;
 
 /**
  * Simple component responsible do enforce specific output/format to types where this is required.
@@ -54,6 +55,10 @@ public class OutputFormatter {
    *     or is null it will return the given parameter object itself
    */
   public static Object maybeFormat(final Object object) {
+    if (object instanceof RawJsonValue json) {
+      return json.value();
+    }
+
     if (object instanceof Double) {
       return formatDouble((Double) object);
     }

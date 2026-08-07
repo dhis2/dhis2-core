@@ -82,12 +82,14 @@ public class WebModule {
 
     String defaultAction = app.getLaunchUrl();
 
-    String icon = hasIcon ? app.getBaseUrl() + "/" + app.getIcons().getIcon48() : null;
-
     String description = subString(app.getDescription(), 0, 80);
     String displayDescription = subString(app.getDisplayDescription(), 0, 80);
 
     String key = app.isBundled() ? AppManager.BUNDLED_APP_PREFIX + app.getKey() : app.getKey();
+    String icon =
+        hasIcon
+            ? app.getBaseUrl() + "/" + app.getIcons().getIcon48()
+            : app.getBaseUrl() + "/icons/" + key + ".png";
 
     WebModule module = new WebModule(key, app.getBasePath(), defaultAction);
     module.setIcon(icon);

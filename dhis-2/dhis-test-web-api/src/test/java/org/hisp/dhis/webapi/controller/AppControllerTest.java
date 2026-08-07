@@ -55,11 +55,13 @@ import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.JCloudsAppStorageService;
+import org.hisp.dhis.appmanager.BlobStoreAppStorageService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -93,7 +95,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Autowired private AppManager appManager;
-  @Autowired private JCloudsAppStorageService jCloudsAppStorageService;
+  @Autowired private BlobStoreAppStorageService blobStoreAppStorageService;
 
   static {
     try {
@@ -115,6 +117,25 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     // make sure we reset the UI locale to default in case a test changes it
     DELETE("/systemSettings/keyUiLocale");
     DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
+  }
+
+  @Test
+  void testGetAppMenuWhenInstalledAppWithoutIconInManifest() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-wihout-icon.zip").getFile());
+
+    HttpResponse response = GET("/apps/menu");
+    JsonArray apps = response.content(HttpStatus.OK);
+    String icon =
+        apps.asObject()
+            .get("modules")
+            .asList(JsonObject.class)
+            .get(0)
+            .get("icon")
+            .as(JsonString.class)
+            .string();
+    assertTrue(
+        icon.equals("http://localhost/api/apps/test/icons/test.png")
+            || icon.equals("http://localhost/api/apps/myapp/dhis2-app-icon.png"));
   }
 
   @Test
@@ -145,14 +166,14 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   void testInstallMultipleSameKey() throws IOException {
     // Clean up first
     Map<String, Pair<App, BundledAppInfo>> installedApps =
-        jCloudsAppStorageService.discoverInstalledApps();
+        blobStoreAppStorageService.discoverInstalledApps();
     installedApps.values().forEach(p -> appManager.deleteApp(p.getLeft(), true));
 
     appManager.installApp(new ClassPathResource("app/app_ver1.zip").getFile());
     appManager.installApp(new ClassPathResource("app/app_ver3.zip").getFile());
     appManager.installApp(new ClassPathResource("app/app_ver2.zip").getFile());
 
-    installedApps = jCloudsAppStorageService.discoverInstalledApps();
+    installedApps = blobStoreAppStorageService.discoverInstalledApps();
 
     assertEquals(1, installedApps.size());
     assertEquals("2.0.0", installedApps.values().stream().findFirst().get().getLeft().getVersion());

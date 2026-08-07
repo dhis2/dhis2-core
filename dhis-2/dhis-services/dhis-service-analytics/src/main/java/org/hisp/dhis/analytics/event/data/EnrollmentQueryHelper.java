@@ -42,6 +42,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -167,7 +168,11 @@ public class EnrollmentQueryHelper {
           String column =
               OUTER_SQL_ALIAS
                   + DOT
-                  + ((PeriodDimension) itemObject).getPeriodType().getPeriodTypeEnum().getName();
+                  + ((PeriodDimension) itemObject)
+                      .getPeriodType()
+                      .getPeriodTypeEnum()
+                      .getName()
+                      .toLowerCase(Locale.ROOT);
           periods.add(column);
         }
       }

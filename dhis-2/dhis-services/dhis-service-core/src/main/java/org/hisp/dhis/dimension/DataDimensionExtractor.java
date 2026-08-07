@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -445,7 +445,7 @@ public class DataDimensionExtractor {
     }
 
     try {
-      DimensionalItemObject clone = (DimensionalItemObject) BeanUtils.cloneBean(item);
+      DimensionalItemObject clone = SerializationUtils.clone(item);
       clone.setQueryMods(id.getQueryMods());
       return clone;
     } catch (Exception e) {

@@ -40,7 +40,7 @@ import org.hisp.dhis.jsontree.JsonObject;
  */
 public interface JsonIcon extends JsonObject {
 
-  default String getKey() {
+  default String key() {
     return getString("key").string();
   }
 
@@ -64,8 +64,8 @@ public interface JsonIcon extends JsonObject {
     return getObject("createdBy");
   }
 
-  default JsonObject getFileResource() {
-    return getObject("fileResource");
+  default JsonIdentifiableObject getFileResource() {
+    return get("fileResource", JsonIdentifiableObject.class);
   }
 
   default Set<String> getKeywords() {

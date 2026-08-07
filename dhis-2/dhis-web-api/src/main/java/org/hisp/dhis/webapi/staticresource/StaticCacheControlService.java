@@ -65,9 +65,12 @@ public class StaticCacheControlService {
   private static final Pattern VITE_HASH =
       Pattern.compile("[-_]([a-zA-Z0-9_-]{7,12})\\.[a-z0-9]{2,5}$");
 
+  private static final Pattern DIMENSIONS_TOKEN = Pattern.compile("\\d+x\\d+");
+
   private final DhisConfigurationProvider config;
   private final AppManager appManager;
   private final SystemService systemService;
+  private final StaticCacheMetrics metrics;
 
   /**
    * Sets appropriate {@code Cache-Control} headers on the response for the given static resource
@@ -85,19 +88,32 @@ public class StaticCacheControlService {
       @CheckForNull String appKey) {
     if (!isCacheEnabled() || isDevModeForceNoCache()) {
       response.setHeader("Cache-Control", CacheControl.noStore().getHeaderValue());
+      metrics.countRequest(StaticCacheMetrics.POLICY_NO_STORE);
       return;
     }
 
     AppCacheConfig appConfig = resolveAppConfig(appKey);
     CacheControl cc = computeCacheControl(requestUri, queryString, appConfig);
-    response.setHeader("Cache-Control", cc.getHeaderValue());
+    String headerValue = cc.getHeaderValue();
+    response.setHeader("Cache-Control", headerValue);
+    metrics.countRequest(classifyPolicy(headerValue));
+  }
+
+  /** Maps a Cache-Control header value to the policy tag used by {@link StaticCacheMetrics}. */
+  private static String classifyPolicy(@CheckForNull String headerValue) {
+    if (headerValue == null) return StaticCacheMetrics.POLICY_DEFAULT;
+    if (headerValue.contains("no-store")) return StaticCacheMetrics.POLICY_NO_STORE;
+    if (headerValue.contains("immutable")) return StaticCacheMetrics.POLICY_IMMUTABLE;
+    if (headerValue.contains("must-revalidate")) return StaticCacheMetrics.POLICY_MUST_REVALIDATE;
+    return StaticCacheMetrics.POLICY_DEFAULT;
   }
 
   /**
    * Generates an ETag suitable for cache busting on upgrades. Uses the app's cache-bust key (which
    * incorporates the app version) and the DHIS2 server version so that any app update or
    * patch/release automatically invalidates browser caches. Does not require resource I/O, so this
-   * can be called before loading the resource to support early 304 responses.
+   * can be called before loading the resource to support early 304 responses. The request URI is
+   * part of the hashed source so tags are unique per resource.
    */
   public String generateETag(@CheckForNull App app, String uri, @CheckForNull String queryString) {
     String appPart =
@@ -106,12 +122,17 @@ public class StaticCacheControlService {
             : (app != null && app.getVersion() != null ? app.getVersion() : "no-app");
     AppCacheConfig cfg = app != null ? app.getCacheConfig() : null;
     String suffix = isImmutable(uri, queryString, cfg) ? "-immutable" : "";
-    String source = appPart + "-" + getDhis2Version() + suffix;
+    String source = appPart + "-" + getDhis2Version() + "-" + uri + suffix;
     return HashUtils.hashMD5(source.getBytes(StandardCharsets.UTF_8));
   }
 
   private CacheControl computeCacheControl(
       String uri, @CheckForNull String queryString, AppCacheConfig config) {
+    // Directory URLs serve the index.html entry point, normalize so the same cache rules
+    // apply to both forms of the URL (DHIS2-21881)
+    if (uri.endsWith("/")) {
+      uri = uri + "index.html";
+    }
     if (matchesAnyNoCachePattern(uri) || matchesNoCacheRule(uri, config)) {
       return CacheControl.noStore();
     }
@@ -215,19 +236,28 @@ public class StaticCacheControlService {
   /**
    * Detects hashed filenames produced by common bundlers. Webpack uses dot-separated lowercase hex
    * ({@code main.abc12345.js}). Vite/Rollup uses dash-separated base64url ({@code
-   * main-Dhu2pmiS.js}, {@code main-D-tfNpnx.js}). The Vite pattern requires at least one uppercase
-   * letter to distinguish hashes from normal dash-separated filenames like {@code
-   * main-component.js}.
+   * main-Dhu2pmiS.js}, {@code main-zwggxcug.js}).
    */
-  private static boolean looksLikeHashedFilename(String uri) {
+  static boolean looksLikeHashedFilename(String uri) {
     if (WEBPACK_HASH.matcher(uri).find()) return true;
+    Matcher matcher = VITE_HASH.matcher(uri);
+    return matcher.find() && !isFalsePositiveHashToken(matcher.group(1));
+  }
 
-    Matcher m = VITE_HASH.matcher(uri);
-    if (m.find()) {
-      String candidate = m.group(1);
-      return candidate.chars().anyMatch(Character::isUpperCase);
+  /**
+   * Filters out common unhashed filename patterns that happen to fit the Vite hash shape, such as
+   * PWA icon names like {@code apple-touch-icon.png} (lowercase word chains) and {@code
+   * mstile-150x150.png} (pixel dimensions). See DHIS2-21879.
+   */
+  private static boolean isFalsePositiveHashToken(String token) {
+    if (DIMENSIONS_TOKEN.matcher(token).matches()) return true;
+    boolean hasSeparator = token.indexOf('-') >= 0 || token.indexOf('_') >= 0;
+    if (!hasSeparator) return false;
+    for (int i = 0; i < token.length(); i++) {
+      char c = token.charAt(i);
+      if (Character.isDigit(c) || Character.isUpperCase(c)) return false;
     }
-    return false;
+    return true;
   }
 
   private boolean isHtmlPath(String uri) {

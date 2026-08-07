@@ -495,6 +495,24 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateSuccessWithStageDateItemFilter_OccurredDate() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .addItemFilter(qi)
+            .build();
+
+    // Should not throw - stage date item filter provides period context
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+    assertNull(error);
+  }
+
+  @Test
   void validateSuccessWithStaticDateItem_EnrollmentDate() {
     BaseDimensionalItemObject item =
         new BaseDimensionalItemObject(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME);

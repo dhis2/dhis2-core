@@ -102,7 +102,6 @@ class JdbcSingleEventStore {
        n.noteid as note_id,\
        n.notetext as note_text,\
        n.created as note_created,\
-       n.creator as note_creator,\
        n.uid as note_uid,\
        userinfo.userinfoid as note_user_id,\
        userinfo.code as note_user_code,\
@@ -132,7 +131,6 @@ class JdbcSingleEventStore {
           entry("organisationUnit.uid", "orgunit_uid"),
           entry("occurredDate", "ev_occurreddate"),
           entry("status", "ev_status"),
-          entry("storedBy", "ev_storedby"),
           entry("lastUpdatedBy", "ev_lastupdatedbyuserinfo"),
           entry("createdBy", "ev_createdbyuserinfo"),
           entry("created", "ev_created"),
@@ -279,7 +277,6 @@ class JdbcSingleEventStore {
               coc.setCategoryOptions(options);
               event.setAttributeOptionCombo(coc);
 
-              event.setStoredBy(resultSet.getString("ev_storedby"));
               event.setOccurredDate(resultSet.getTimestamp("ev_occurreddate"));
               event.setCreated(resultSet.getTimestamp("ev_created"));
               event.setCreatedAtClient(resultSet.getTimestamp("ev_createdatclient"));
@@ -340,7 +337,6 @@ class JdbcSingleEventStore {
               note.setUid(resultSet.getString("note_uid"));
               note.setNoteText(resultSet.getString("note_text"));
               note.setCreated(resultSet.getTimestamp("note_created"));
-              note.setCreator(resultSet.getString("note_creator"));
 
               if (resultSet.getObject("note_user_id") != null) {
                 User noteLastUpdatedBy = new User();
@@ -397,7 +393,6 @@ class JdbcSingleEventStore {
     eventDataValue.setValue(dataValueJson.getString("value").string(""));
     eventDataValue.setProvidedElsewhere(
         dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
-    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
 
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     eventDataValue.setCreatedByUserInfo(
@@ -619,7 +614,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     sql.append(
         """
             \s as ev_eventdatavalues,
-            ev.completedby as ev_completedby, ev.storedby as ev_storedby,
+            ev.completedby as ev_completedby,
             ev.created as ev_created, ev.createdatclient as ev_createdatclient,
             ev.createdbyuserinfo as ev_createdbyuserinfo,
             ev.lastupdated as ev_lastupdated, ev.lastupdatedatclient as ev_lastupdatedatclient,

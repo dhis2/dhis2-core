@@ -42,7 +42,6 @@ import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.postgresql.util.PGobject;
@@ -85,7 +84,7 @@ public class H2SqlFunction {
     if (content == null) {
       return "null";
     }
-    return JsonValue.of(content).node().getType().name().toLowerCase();
+    return JsonValue.of(content).type().name().toLowerCase();
   }
 
   // Postgres inbuilt function
@@ -99,10 +98,10 @@ public class H2SqlFunction {
       if (!value.exists()) {
         return null;
       }
-      if (value.node().getType() == JsonNodeType.STRING) {
+      if (value.node().isString()) {
         return value.as(JsonString.class).string();
       }
-      return value.node().getDeclaration();
+      return value.toJson();
     } catch (Exception e) {
       log.error("Failed to extract path", e);
       throw e;
@@ -120,7 +119,7 @@ public class H2SqlFunction {
       if (!value.exists()) {
         return null;
       }
-      return value.node().getDeclaration();
+      return value.toJson();
     } catch (Exception e) {
       log.error("Failed to extract path", e);
       throw e;

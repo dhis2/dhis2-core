@@ -213,6 +213,16 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
+  public void updateAssignment(
+      @Nonnull String uid, boolean assigned, @Nonnull String fileResourceOwner) {
+    jdbcTemplate.update(
+        "update fileresource set isassigned = ?, fileresourceowner = ?, lastupdated = now() where uid = ?",
+        assigned,
+        fileResourceOwner,
+        uid);
+  }
+
+  @Override
   public List<FileResource> getUnassignedPassedGracePeriod(
       Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime gracePeriod) {
     @Language("SQL")

@@ -153,7 +153,7 @@ public class Access implements EmbeddedObject, JsonBuilder.JsonEncodable {
   }
 
   @Override
-  public void addTo(String name, JsonBuilder.JsonObjectBuilder obj) {
+  public void addTo(CharSequence name, JsonBuilder.JsonObjectBuilder obj) {
     obj.addObject(name, this::addAsObj);
   }
 

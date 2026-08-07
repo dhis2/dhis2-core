@@ -30,6 +30,7 @@
 package org.hisp.dhis.gist;
 
 import lombok.Data;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 
 @Data
@@ -41,14 +42,6 @@ public class GistObjectParams {
       Switch translation language of display names. If not specified the translation language is the one configured in the users account settings.
       See [Gist locale parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_locale).""")
   String locale = "";
-
-  @OpenApi.Description(
-      """
-      Fields like _name_ or _shortName_ can be translated (internationalised).
-      By default, any translatable field that has a translation is returned translated given that the user requesting the gist has an interface language configured.
-      To return the plain non-translated field use `translate=false`.
-      See [Gist translate parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_translate).""")
-  boolean translate = true;
 
   @OpenApi.Description(
       """
@@ -66,6 +59,14 @@ public class GistObjectParams {
       """
       By default, the Gist API includes links to referenced objects. This can be disabled by using `references=false`.""")
   boolean references = true;
+
+  @OpenApi.Description(
+      """
+    When `fields` is selecting only 1 property the result is not wrapped in an object (`unwrap=true`),
+    `false` to always wrap fields in objects.""")
+  @OpenApi.Since(44)
+  @Maturity.Alpha
+  boolean unwrap = true;
 
   @OpenApi.Description(
       """

@@ -95,7 +95,7 @@ public interface JsonFollowupValue extends JsonObject {
     return getString("aocName").string();
   }
 
-  default String getValue() {
+  default String value() {
     return getString("value").string();
   }
 

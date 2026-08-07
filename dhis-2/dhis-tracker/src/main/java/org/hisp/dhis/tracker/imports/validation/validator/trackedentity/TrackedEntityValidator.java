@@ -47,7 +47,7 @@ public class TrackedEntityValidator implements Validator<TrackerBundle> {
   private final Validator<TrackerBundle> validator;
 
   public TrackedEntityValidator(
-      SecurityOwnershipValidator securityOwnershipValidator,
+      SecurityTrackedEntityValidator securityTrackedEntityValidator,
       AttributeValidator attributeValidator) {
     validator =
         each(
@@ -57,7 +57,7 @@ public class TrackedEntityValidator implements Validator<TrackerBundle> {
                 new MandatoryFieldsValidator(),
                 new MetaValidator(),
                 new UpdatableFieldsValidator(),
-                securityOwnershipValidator,
+                all(securityTrackedEntityValidator, new CascadeDeleteTrackedEntityValidator()),
                 all(attributeValidator)));
   }
 

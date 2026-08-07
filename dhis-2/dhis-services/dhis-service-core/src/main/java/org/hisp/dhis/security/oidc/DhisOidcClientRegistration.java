@@ -44,6 +44,44 @@ import lombok.Data;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 
 /**
+ * DHIS2 wrapper around Spring Security's {@link ClientRegistration} that bundles the Spring
+ * registration with DHIS2-specific metadata needed to operate as an OpenID Connect Relying Party
+ * (RP) against an external OIDC Identity Provider (IdP).
+ *
+ * <p>Each registered instance corresponds to one OIDC provider configured in {@code dhis.conf}
+ * (e.g. {@code google}, {@code azure.0}, {@code wso2}, or any generic provider under {@code
+ * oidc.provider.<id>.*}), and becomes a login button on the DHIS2 web login page when {@code
+ * oidc.oauth2.login.enabled=on}. The auto-registered {@code dhis2-internal} provider is the
+ * exception: it is used by the Android Capture app's authorization-code flow against DHIS2 as
+ * authorization server and is not rendered on the web login page.
+ *
+ * <p>Instances are produced by the provider builders (e.g. {@code GoogleProvider}, {@code
+ * AzureAdProvider}, {@code Wso2Provider}, {@code GenericOidcProviderBuilder}, {@code
+ * Dhis2InternalOidcProvider}) and registered in the {@link DhisOidcProviderRepository}, which
+ * exposes them to Spring's {@code oauth2Login} filter chain.
+ *
+ * <p>Fields:
+ *
+ * <ul>
+ *   <li>{@code clientRegistration}: the underlying Spring {@link ClientRegistration} describing
+ *       client id/secret, authorization/token/userinfo/JWK endpoints, scopes, and client
+ *       authentication method.
+ *   <li>{@code mappingClaimKey}: the ID-token/userinfo claim DHIS2 uses to look up the local user
+ *       (default {@code email} for external providers; {@code username} for the internal DHIS2
+ *       provider).
+ *   <li>{@code loginIcon}, {@code loginIconPadding}, {@code loginText}: rendering hints for the
+ *       login button on the DHIS2 web login page.
+ *   <li>{@code jwk}, {@code rsaPublicKey}, {@code keyId}, {@code jwkSetUrl}: per-provider signing
+ *       material used when DHIS2 authenticates to the IdP's token endpoint with a {@code
+ *       private_key_jwt} assertion. Loaded from {@code oidc.provider.<id>.keystore_path}, {@code
+ *       keystore_password}, {@code key_alias}, {@code key_password}. Distinct from the
+ *       authorization-server signing keystore ({@code oauth2.server.jwt.keystore.*}).
+ *   <li>{@code visibleOnLoginPage}: whether this registration renders a button on the web login
+ *       page; {@code false} for the internal DHIS2 provider.
+ *   <li>{@code externalClients}: client ids and secrets for additional clients authorized to
+ *       present tokens issued by the same IdP (used when validating inbound bearer tokens).
+ * </ul>
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
@@ -71,6 +109,13 @@ public class DhisOidcClientRegistration {
 
   @Builder.Default private final Map<String, Map<String, String>> externalClients = new HashMap<>();
 
+  /**
+   * Returns the set of client ids associated with this registration: the primary client id from the
+   * underlying {@link ClientRegistration} plus every client id declared for the configured external
+   * clients.
+   *
+   * @return unmodifiable set of client ids accepted for this provider
+   */
   public Collection<String> getClientIds() {
     Set<String> allExternalClientIds =
         externalClients.entrySet().stream()

@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.test.integration;
 
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.test.IntegrationTest;
 import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.test.config.PostgresTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -42,4 +44,20 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @IntegrationTest
 @ContextConfiguration(classes = {PostgresTestConfig.class})
-public abstract class PostgresIntegrationTestBase extends IntegrationTestBase {}
+public abstract class PostgresIntegrationTestBase extends IntegrationTestBase {
+
+  @Autowired private DbmsManager dbmsManager;
+
+  /**
+   * Flushes then detaches all Hibernate-managed entities. The tracker importer writes via JDBC,
+   * bypassing Hibernate, so entities loaded into the test's thread-bound session before an import
+   * linger there with stale pre-import state. Call this after importing tracker data whenever the
+   * test reads the import's outcome back through Hibernate. Only call it inside the test
+   * transaction (test methods of {@code @Transactional} tests) -- in {@code @BeforeAll} there is no
+   * transaction (the flush throws {@code TransactionRequiredException}) and no thread-bound session
+   * to clear in the first place.
+   */
+  protected final void clearSession() {
+    dbmsManager.clearSession();
+  }
+}

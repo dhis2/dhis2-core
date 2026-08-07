@@ -29,23 +29,23 @@
  */
 package org.hisp.dhis.artemis.audit.configuration;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.audit.AuditScope.AGGREGATE;
 import static org.hisp.dhis.audit.AuditScope.METADATA;
 import static org.hisp.dhis.audit.AuditScope.TRACKER;
 import static org.hisp.dhis.audit.AuditType.CREATE;
 import static org.hisp.dhis.audit.AuditType.DELETE;
 import static org.hisp.dhis.audit.AuditType.READ;
-import static org.hisp.dhis.audit.AuditType.SEARCH;
 import static org.hisp.dhis.audit.AuditType.SECURITY;
 import static org.hisp.dhis.audit.AuditType.UPDATE;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.artemis.config.ArtemisConfigData;
+import org.hisp.dhis.artemis.config.ArtemisMode;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -55,122 +55,170 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuditMatrixConfigurerTest {
   @Mock private DhisConfigurationProvider config;
 
+  private ArtemisConfigData artemisConfig;
+
   private AuditMatrixConfigurer subject;
 
-  private Map<AuditScope, Map<AuditType, Boolean>> matrix;
+  private Map<AuditScope, Set<AuditType>> matrix;
 
   @BeforeEach
   public void setUp() {
-    this.subject = new AuditMatrixConfigurer(config);
+    artemisConfig = new ArtemisConfigData();
+    artemisConfig.setMode(ArtemisMode.EMBEDDED);
+    // lenient because configure() iterates all scopes calling getProperty() and isEnabled()
+    // with different ConfigurationKey args, but tests only stub the ones relevant to each case
+    this.subject = new AuditMatrixConfigurer(config, artemisConfig);
   }
 
   @Test
   void verifyConfigurationForMatrixIsIngested() {
+    enableDatabaseSink();
     when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX)).thenReturn("READ;");
+    when(config.getProperty(ConfigurationKey.AUDIT_AGGREGATE_MATRIX))
+        .thenReturn("CREATE;UPDATE;DELETE");
     when(config.getProperty(ConfigurationKey.AUDIT_TRACKER_MATRIX))
         .thenReturn("CREATE;READ;UPDATE;DELETE");
-    when(config.getProperty(ConfigurationKey.AUDIT_AGGREGATE_MATRIX))
+
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(READ), matrix.get(METADATA));
+    assertEquals(Set.of(CREATE, UPDATE, DELETE), matrix.get(AGGREGATE));
+    assertEquals(Set.of(CREATE, READ, UPDATE, DELETE), matrix.get(TRACKER));
+  }
+
+  @Test
+  void verifyDisabledAsOnlyValue() {
+    when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX)).thenReturn("DISABLED");
+    when(config.getProperty(ConfigurationKey.AUDIT_AGGREGATE_MATRIX)).thenReturn("DISABLED");
+    when(config.getProperty(ConfigurationKey.AUDIT_TRACKER_MATRIX)).thenReturn("DISABLED");
+
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(), matrix.get(METADATA));
+    assertEquals(Set.of(), matrix.get(AGGREGATE));
+    assertEquals(Set.of(), matrix.get(TRACKER));
+  }
+
+  @Test
+  void verifyDisabledCombinedWithValidTypesEnablesTypes() {
+    enableDatabaseSink();
+    when(config.getProperty(ConfigurationKey.AUDIT_TRACKER_MATRIX))
+        .thenReturn("DISABLED;CREATE;UPDATE");
+
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(CREATE, UPDATE), matrix.get(TRACKER));
+  }
+
+  @Test
+  void verifyInvalidConfigurationThrows() {
+    when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX)).thenReturn("READX;UPDATE");
+
+    IllegalArgumentException ex =
+        assertThrows(IllegalArgumentException.class, () -> this.subject.configure());
+    assertTrue(ex.getMessage().contains("READX"));
+    assertTrue(ex.getMessage().contains("audit.metadata"));
+  }
+
+  @Test
+  void verifyWhitespaceInConfigIsTrimmed() {
+    enableLoggerSink();
+    when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX))
+        .thenReturn(" CREATE ; UPDATE ; DELETE ");
+
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(CREATE, UPDATE, DELETE), matrix.get(METADATA));
+  }
+
+  @Test
+  void verifyDefaultConfigDisablesTrackerInEmbeddedMode() {
+    // audit.logger absent from dhis.conf: defaults to "on" so isEnabled() returns true.
+    // TrackerAuditConsumer uses getPropertyOrDefault(AUDIT_LOGGER, "off") which returns "off"
+    // since the property is absent. Metadata/aggregate have logger on, tracker has it off.
+    enableLoggerSink();
+
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(METADATA));
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(AGGREGATE));
+    assertEquals(Set.of(), matrix.get(TRACKER));
+  }
+
+  @Test
+  void verifyTrackerEnabledWhenDatabaseSinkIsOn() {
+    enableDatabaseSink();
+
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(METADATA));
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(AGGREGATE));
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(TRACKER));
+  }
+
+  @Test
+  void verifyTrackerEnabledWhenLoggerSetInConfig() {
+    // audit.logger=on explicitly set in dhis.conf: both isEnabled() and
+    // getPropertyOrDefault(AUDIT_LOGGER, "off") return "on", so tracker logger is enabled
+    enableLoggerSink();
+    when(config.getPropertyOrDefault(ConfigurationKey.AUDIT_LOGGER, "off")).thenReturn("on");
+
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(METADATA));
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(AGGREGATE));
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(TRACKER));
+  }
+
+  @Test
+  void verifySinksOffKeepsAllScopesEnabledInNativeMode() {
+    // sinks off but external consumers can connect in native mode
+    artemisConfig.setMode(ArtemisMode.NATIVE);
+    subject = new AuditMatrixConfigurer(config, artemisConfig);
+
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(METADATA));
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(AGGREGATE));
+    assertEquals(Set.of(CREATE, UPDATE, DELETE, SECURITY), matrix.get(TRACKER));
+  }
+
+  @Test
+  void verifySinksOffDisablesAllScopesInEmbeddedMode() {
+    matrix = this.subject.configure();
+
+    assertEquals(Set.of(), matrix.get(METADATA));
+    assertEquals(Set.of(), matrix.get(AGGREGATE));
+    assertEquals(Set.of(), matrix.get(TRACKER));
+  }
+
+  @Test
+  void verifyExplicitMatrixOverriddenWhenSinksOffInEmbeddedMode() {
+    when(config.getProperty(ConfigurationKey.AUDIT_TRACKER_MATRIX))
         .thenReturn("CREATE;UPDATE;DELETE");
 
     matrix = this.subject.configure();
 
-    assertThat(matrix.get(METADATA).keySet(), hasSize(6));
-    assertMatrixEnabled(METADATA, READ);
-    assertMatrixDisabled(METADATA, CREATE, UPDATE, DELETE);
-
-    assertThat(matrix.get(TRACKER).keySet(), hasSize(6));
-    assertMatrixDisabled(TRACKER, SEARCH, SECURITY);
-    assertMatrixEnabled(TRACKER, CREATE, UPDATE, DELETE, READ);
-
-    assertThat(matrix.get(AGGREGATE).keySet(), hasSize(6));
-    assertMatrixDisabled(AGGREGATE, READ, SECURITY, SEARCH);
-    assertMatrixEnabled(AGGREGATE, CREATE, UPDATE, DELETE);
+    // explicitly configured but both sinks off + embedded = no consumer, so disabled
+    assertEquals(Set.of(), matrix.get(TRACKER));
   }
 
-  @Test
-  void allDisabled() {
-    when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX)).thenReturn("DISABLED");
-    when(config.getProperty(ConfigurationKey.AUDIT_TRACKER_MATRIX)).thenReturn("DISABLED");
-    when(config.getProperty(ConfigurationKey.AUDIT_AGGREGATE_MATRIX)).thenReturn("DISABLED");
-
-    matrix = this.subject.configure();
-
-    assertMatrixAllDisabled(METADATA);
-    assertMatrixAllDisabled(TRACKER);
-    assertMatrixAllDisabled(AGGREGATE);
+  private void enableLoggerSink() {
+    when(config.isEnabled(ConfigurationKey.AUDIT_LOGGER)).thenReturn(true);
   }
 
-  @Test
-  void verifyInvalidConfigurationIsIgnored() {
-    when(config.getProperty(ConfigurationKey.AUDIT_METADATA_MATRIX)).thenReturn("READX;UPDATE");
-
-    matrix = this.subject.configure();
-    assertThat(matrix.get(METADATA).keySet(), hasSize(6));
-    assertAllFalseBut(matrix.get(METADATA), UPDATE);
-  }
-
-  @Test
-  void verifyDefaultAuditingConfiguration() {
-    matrix = this.subject.configure();
-    assertMatrixDisabled(METADATA, READ);
-    assertMatrixEnabled(METADATA, CREATE);
-    assertMatrixEnabled(METADATA, UPDATE);
-    assertMatrixEnabled(METADATA, DELETE);
-
-    assertMatrixDisabled(TRACKER, READ);
-    assertMatrixEnabled(TRACKER, CREATE);
-    assertMatrixEnabled(TRACKER, UPDATE);
-    assertMatrixEnabled(TRACKER, DELETE);
-
-    assertMatrixDisabled(AGGREGATE, READ);
-    assertMatrixEnabled(AGGREGATE, CREATE);
-    assertMatrixEnabled(AGGREGATE, UPDATE);
-    assertMatrixEnabled(AGGREGATE, DELETE);
-  }
-
-  private void assertAllFalseBut(
-      Map<AuditType, Boolean> auditTypeBooleanMap, AuditType trueAuditType) {
-    for (AuditType auditType : auditTypeBooleanMap.keySet()) {
-      if (!auditType.name().equals(trueAuditType.name())) {
-        assertFalse(auditTypeBooleanMap.get(auditType));
-      } else {
-        assertTrue(auditTypeBooleanMap.get(auditType));
-      }
-    }
-  }
-
-  private void assertMatrixEnabled(AuditScope auditScope, AuditType... auditTypes) {
-    for (AuditType auditType : auditTypes) {
-      assertThat(
-          "Expecting true for audit type: " + auditType.name(),
-          matrix.get(auditScope).get(auditType),
-          is(true));
-    }
-  }
-
-  private void assertMatrixDisabled(AuditScope auditScope, AuditType... auditTypes) {
-    for (AuditType auditType : auditTypes) {
-      assertThat(
-          "Expecting false for audit type: " + auditType.name(),
-          matrix.get(auditScope).get(auditType),
-          is(false));
-    }
-  }
-
-  private void assertMatrixAllDisabled(AuditScope auditScope) {
-    for (AuditType auditType : AuditType.values()) {
-      assertThat(
-          "Expecting false for audit type: " + auditType.name(),
-          matrix.get(auditScope).get(auditType),
-          is(false));
-    }
+  private void enableDatabaseSink() {
+    when(config.isEnabled(ConfigurationKey.AUDIT_DATABASE)).thenReturn(true);
   }
 }

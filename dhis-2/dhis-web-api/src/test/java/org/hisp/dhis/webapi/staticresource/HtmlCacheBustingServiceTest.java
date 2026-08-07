@@ -40,6 +40,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,9 +67,12 @@ class HtmlCacheBustingServiceTest {
 
   private HtmlCacheBustingService service;
 
+  private SimpleMeterRegistry meterRegistry;
+
   @BeforeEach
   void setUp() {
-    service = new HtmlCacheBustingService(config, cache);
+    meterRegistry = new SimpleMeterRegistry();
+    service = new HtmlCacheBustingService(config, cache, new StaticCacheMetrics(meterRegistry));
     lenient()
         .when(config.isEnabled(ConfigurationKey.STATIC_CACHE_HTML_REWRITE_ENABLED))
         .thenReturn(true);
@@ -333,6 +337,137 @@ class HtmlCacheBustingServiceTest {
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
     assertThat(result, containsString("src=\"app.js?v=abc123\""));
+  }
+
+  @Test
+  @DisplayName("Skips assets with content hashes in filenames (Vite-style)")
+  void skipsContentHashedViteAssets() throws IOException {
+    String html =
+        "<html><head>"
+            + "<script type=\"module\" crossorigin src=\"./assets/main-DBGta5R0.js\"></script>"
+            + "<link rel=\"stylesheet\" crossorigin href=\"./assets/main-Dmx4sX17.css\">"
+            + "</head><body>"
+            + "<img src=\"./assets/logo-BxK9a3Qp.png\">"
+            + "</body></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("src=\"./assets/main-DBGta5R0.js\""));
+    assertThat(result, not(containsString("main-DBGta5R0.js?v=")));
+    assertThat(result, containsString("href=\"./assets/main-Dmx4sX17.css\""));
+    assertThat(result, not(containsString("main-Dmx4sX17.css?v=")));
+    assertThat(result, containsString("src=\"./assets/logo-BxK9a3Qp.png\""));
+    assertThat(result, not(containsString("logo-BxK9a3Qp.png?v=")));
+  }
+
+  @Test
+  @DisplayName("Skips assets with all-lowercase Vite hash in filenames (deployed pattern)")
+  void skipsContentHashedViteAssetsAllLowercase() throws IOException {
+    String html =
+        "<html><head>"
+            + "<script type=\"module\" crossorigin src=\"./assets/main-zwggxcug.js\"></script>"
+            + "<link rel=\"stylesheet\" crossorigin href=\"./assets/main-Dmx4sX17.css\">"
+            + "</head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/login/index.html");
+
+    assertThat(result, containsString("src=\"./assets/main-zwggxcug.js\""));
+    assertThat(result, not(containsString("main-zwggxcug.js?v=")));
+    assertThat(result, containsString("href=\"./assets/main-Dmx4sX17.css\""));
+    assertThat(result, not(containsString("main-Dmx4sX17.css?v=")));
+  }
+
+  @Test
+  @DisplayName("Skips assets with content hashes in filenames (Webpack-style)")
+  void skipsContentHashedWebpackAssets() throws IOException {
+    String html =
+        "<html><head>"
+            + "<script src=\"static/js/main.abc123ef.js\"></script>"
+            + "<link href=\"static/css/main.9f3b1c2d.css\" rel=\"stylesheet\">"
+            + "</head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, not(containsString("?v=")));
+  }
+
+  @Test
+  @DisplayName("Still rewrites non-hashed assets")
+  void rewritesNonHashedAssets() throws IOException {
+    String html =
+        "<html><head>"
+            + "<script src=\"app.js\"></script>"
+            + "<link href=\"style.css\" rel=\"stylesheet\">"
+            + "</head><body>"
+            + "<img src=\"favicon.ico\">"
+            + "<img src=\"favicon-48x48.png\">"
+            + "</body></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("src=\"app.js?v=abc123\""));
+    assertThat(result, containsString("href=\"style.css?v=abc123\""));
+    assertThat(result, containsString("src=\"favicon.ico?v=abc123\""));
+    assertThat(result, containsString("src=\"favicon-48x48.png?v=abc123\""));
+  }
+
+  @Test
+  @DisplayName("Rewrite counter records miss then hit")
+  void rewriteCounter_missAndHit() throws IOException {
+    String html = "<html><head><script src=\"app.js\"></script></head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    rewrite(html, app, "/apps/my-app/index.html");
+    when(cache.getIfPresent(anyString())).thenReturn(Optional.of("<html></html>"));
+    rewrite(html, app, "/apps/my-app/index.html");
+
+    assertEquals(
+        1.0,
+        meterRegistry
+            .counter(StaticCacheMetrics.HTML_REWRITES, "result", StaticCacheMetrics.REWRITE_MISS)
+            .count());
+    assertEquals(
+        1.0,
+        meterRegistry
+            .counter(StaticCacheMetrics.HTML_REWRITES, "result", StaticCacheMetrics.REWRITE_HIT)
+            .count());
+  }
+
+  @Test
+  @DisplayName("Rewrite counter records skipped for non-HTML URIs")
+  void rewriteCounter_skipped() throws IOException {
+    rewrite("<html></html>", appWithCacheBustKey("abc123"), "/apps/my-app/style.css");
+
+    assertEquals(
+        1.0,
+        meterRegistry
+            .counter(StaticCacheMetrics.HTML_REWRITES, "result", StaticCacheMetrics.REWRITE_SKIPPED)
+            .count());
+  }
+
+  @Test
+  @DisplayName("Rewrites PWA icon links that resemble hashed filenames")
+  void rewritesPwaIconLinks() throws IOException {
+    String html =
+        "<html><head>"
+            + "<link href=\"apple-touch-icon.png\" rel=\"apple-touch-icon\">"
+            + "<link href=\"safari-pinned-tab.svg\" rel=\"mask-icon\">"
+            + "<link href=\"mstile-150x150.png\" rel=\"icon\">"
+            + "<script src=\"assets/main-Dhu2pmiS.js\"></script>"
+            + "</head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("href=\"apple-touch-icon.png?v=abc123\""));
+    assertThat(result, containsString("href=\"safari-pinned-tab.svg?v=abc123\""));
+    assertThat(result, containsString("href=\"mstile-150x150.png?v=abc123\""));
+    assertThat(result, containsString("src=\"assets/main-Dhu2pmiS.js\""));
+    assertThat(result, not(containsString("main-Dhu2pmiS.js?v=")));
   }
 
   @Test

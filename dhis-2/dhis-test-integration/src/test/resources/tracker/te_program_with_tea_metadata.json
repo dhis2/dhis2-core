@@ -582,7 +582,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "DATE",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -612,7 +611,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "INTEGER_POSITIVE",
       "orgunitScope": false,
-      "confidential": false,
       "unique": true,
       "inherit": false,
       "lastUpdatedBy": {
@@ -642,7 +640,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "INTEGER",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -672,7 +669,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "TEXT",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -702,7 +698,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "PERCENTAGE",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {

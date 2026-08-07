@@ -29,10 +29,11 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
@@ -144,12 +145,14 @@ class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testAddGetDataValueAuditSingleRecord() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setDataElements(List.of(UID.of(dataElementA)))
-            .setPeriods(List.of(periodA))
-            .setOrgUnits(List.of(UID.of(orgUnitA)))
-            .setCategoryOptionCombo(UID.of(optionCombo))
-            .setAttributeOptionCombo(UID.of(optionCombo));
+        decodeInput(
+            DataValueChangelogQueryParams.class,
+            Map.of(
+                "de", UID.of(dataElementA),
+                "pe", periodA,
+                "ou", UID.of(orgUnitA),
+                "co", UID.of(optionCombo),
+                "cc", UID.of(optionCombo)));
 
     assertEquals(1, dataValueChangelogService.getChangelogEntries(params).size());
   }
@@ -157,45 +160,55 @@ class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetDataValueAudit() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setDataElements(List.of(UID.of(dataElementA)))
-            .setPeriods(List.of(periodA))
-            .setOrgUnits(List.of(UID.of(orgUnitA)))
-            .setCategoryOptionCombo(UID.of(optionCombo))
-            .setTypes(List.of(DataValueChangelogType.CREATE));
+        decodeInput(
+            DataValueChangelogQueryParams.class,
+            Map.of(
+                "de", UID.of(dataElementA),
+                "pe", periodA,
+                "ou", UID.of(orgUnitA),
+                "co", UID.of(optionCombo),
+                "type", DataValueChangelogType.CREATE));
     assertEquals(1, dataValueChangelogService.getChangelogEntries(params).size());
 
     params =
-        new DataValueChangelogQueryParams()
-            .setDataElements(List.of(UID.of(dataElementA), UID.of(dataElementB)))
-            .setPeriods(List.of(periodA, periodB))
-            .setOrgUnits(List.of(UID.of(orgUnitA), UID.of(orgUnitB)))
-            .setCategoryOptionCombo(UID.of(optionCombo))
-            .setTypes(List.of(DataValueChangelogType.CREATE));
+        decodeInput(
+            DataValueChangelogQueryParams.class,
+            "de=%s&de=%s&pe=%s&pe=%s&ou=%s&ou=%s&co=%s&type=%s"
+                .formatted(
+                    UID.of(dataElementA),
+                    UID.of(dataElementB),
+                    periodA,
+                    periodB,
+                    UID.of(orgUnitA),
+                    UID.of(orgUnitB),
+                    UID.of(optionCombo),
+                    DataValueChangelogType.CREATE));
     assertEquals(2, dataValueChangelogService.getChangelogEntries(params).size());
 
     dataValueC.setValue("5");
     addDataValues(dataValueC);
-    params = new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE));
+    params = DataValueChangelogQueryParams.ofType(DataValueChangelogType.UPDATE);
     assertEquals(1, dataValueChangelogService.getChangelogEntries(params).size());
 
     dataValueD.setDeleted(true);
     addDataValues(dataValueD);
     params =
-        new DataValueChangelogQueryParams()
-            .setTypes(List.of(DataValueChangelogType.UPDATE, DataValueChangelogType.DELETE));
+        DataValueChangelogQueryParams.ofType(
+            DataValueChangelogType.UPDATE, DataValueChangelogType.DELETE);
     assertEquals(2, dataValueChangelogService.getChangelogEntries(params).size());
   }
 
   @Test
   void testGetDataValueAuditNoResult() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setDataElements(List.of(UID.of(dataElementA)))
-            .setPeriods(List.of(periodD))
-            .setOrgUnits(List.of(UID.of(orgUnitA)))
-            .setCategoryOptionCombo(UID.of(optionCombo))
-            .setTypes(List.of(DataValueChangelogType.DELETE));
+        decodeInput(
+            DataValueChangelogQueryParams.class,
+            Map.of(
+                "de", UID.of(dataElementA),
+                "pe", periodD,
+                "ou", UID.of(orgUnitA),
+                "co", UID.of(optionCombo),
+                "type", DataValueChangelogType.DELETE));
 
     assertEquals(0, dataValueChangelogService.getChangelogEntries(params).size());
   }

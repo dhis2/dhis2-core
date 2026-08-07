@@ -149,7 +149,6 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
 
-    systemSettingsService.put("experimentalAnalyticsSqlEngineEnabled", false);
     systemSettingsService.clearCurrentSettings();
 
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
@@ -617,19 +616,17 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   void testNestedSubqueryWithTableAlias() {
     Date dateFrom = getDate(2019, 1, 1);
     Date dateTo = getDate(2019, 12, 31);
-    // Generated subquery, since indicatorF is type Enrollment
-    String expected =
-        "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.enrollment = axx1.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '"
-            + "2020-01-11"
-            + "' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 )::numeric,0) - "
-            + "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.enrollment = axx1.enrollment and \"DataElmentC\" is not null and occurreddate < cast( '"
-            + "2020-01-11"
-            + "' as date ) and ps = 'ProgrmStagB' order by occurreddate desc limit 1 )::numeric,0)";
     String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";
-    assertEquals(
-        expected,
+    String sql =
         programIndicatorService.getAnalyticsSql(
-            expression, NUMERIC, indicatorF, dateFrom, dateTo, "axx1"));
+            expression, NUMERIC, indicatorF, dateFrom, dateTo, "axx1");
+    assertTrue(
+        sql.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0'"));
+    assertTrue(
+        sql.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagB', deUid='DataElmentC', offset='0'"));
+    assertTrue(sql.contains("piUid='" + indicatorF.getUid() + "'"));
   }
 
   // -------------------------------------------------------------------------

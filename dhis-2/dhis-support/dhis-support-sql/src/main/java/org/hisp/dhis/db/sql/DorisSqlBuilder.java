@@ -61,6 +61,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   private static final String QUOTE = "`";
 
+  /** Maximum length in bytes of a Doris {@code varchar} column. */
+  private static final int VARCHAR_MAX_BYTES = 65533;
+
+  /** Maximum number of bytes a single UTF-8 character can occupy. */
+  private static final int UTF8_MAX_BYTES_PER_CHAR = 4;
+
   // Database
 
   @Override
@@ -115,9 +121,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("char(%d)", length);
   }
 
+  /**
+   * PostgreSQL {@code varchar(n)} limits the number of characters, while Doris {@code varchar(n)}
+   * limits the number of bytes. Widen the length by the maximum number of bytes a UTF-8 character
+   * can occupy so that any value valid in PostgreSQL also fits the generated Doris column.
+   */
   @Override
   public String dataTypeVarchar(int length) {
-    return String.format("varchar(%d)", length);
+    int byteLength = Math.min(length * UTF8_MAX_BYTES_PER_CHAR, VARCHAR_MAX_BYTES);
+    return String.format("varchar(%d)", byteLength);
   }
 
   @Override

@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.common.params;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 
 import java.util.ArrayList;
@@ -174,37 +173,6 @@ public class CommonParams {
 
   /** Whether the programs come from the request or not. */
   @With private final boolean programsFromRequest;
-
-  /**
-   * Indicates whether this query defines a master identifier scheme different from the default
-   * (UID).
-   */
-  public boolean isGeneralOutputIdSchemeSet() {
-    return outputIdScheme != null && !UID.equals(outputIdScheme);
-  }
-
-  /**
-   * Indicates whether this query defines a master identifier scheme different from the default
-   * (UID).
-   */
-  public boolean isOutputDataElementIdSchemeSet() {
-    return outputDataElementIdScheme != null && !UID.equals(outputDataElementIdScheme);
-  }
-
-  /**
-   * Indicates whether this query defines a master identifier scheme different from the default
-   * (UID).
-   */
-  public boolean isOutputOrgUnitIdSchemeSet() {
-    return outputOrgUnitIdScheme != null && !UID.equals(outputOrgUnitIdScheme);
-  }
-
-  /** Indicates whether a non-default identifier scheme is specified. */
-  public boolean hasCustomIdSchemaSet() {
-    return isGeneralOutputIdSchemeSet()
-        || isOutputDataElementIdSchemeSet()
-        || isOutputOrgUnitIdSchemeSet();
-  }
 
   public List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers() {
     return emptyIfNull(dimensionIdentifiers).stream().filter(Objects::nonNull).collect(toList());

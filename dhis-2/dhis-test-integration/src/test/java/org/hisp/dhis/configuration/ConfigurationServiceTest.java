@@ -89,18 +89,26 @@ class ConfigurationServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCorsWhitelist() {
-    Configuration config = configurationService.getConfiguration();
     Set<String> cors = new HashSet<>();
     cors.add("http://localhost:3000/");
     cors.add("http://*.local.tld:3000/");
     cors.add("*.remote.tld/");
-    config.setCorsWhitelist(cors);
-    configurationService.setConfiguration(config);
+    configurationService.setCorsWhitelist(cors);
+
     assertTrue(configurationService.isCorsWhitelisted("http://localhost:3000/"));
     assertTrue(configurationService.isCorsWhitelisted("http://foobar.local.tld:3000/"));
     assertTrue(configurationService.isCorsWhitelisted("http://magic.remote.tld/"));
     assertFalse(configurationService.isCorsWhitelisted("http://localhost:9000/"));
     assertFalse(configurationService.isCorsWhitelisted("http://another.local.tld/"));
     assertFalse(configurationService.isCorsWhitelisted("http://some.other.tld/"));
+  }
+
+  @Test
+  void testSetCorsWhitelistInvalidatesCachedRead() {
+    configurationService.setCorsWhitelist(Set.of("http://first.example/"));
+    assertEquals(Set.of("http://first.example/"), configurationService.getCorsWhitelist());
+
+    configurationService.setCorsWhitelist(Set.of("http://second.example/"));
+    assertEquals(Set.of("http://second.example/"), configurationService.getCorsWhitelist());
   }
 }

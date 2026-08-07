@@ -187,9 +187,19 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional(readOnly = true)
   public List<OrganisationUnit> getOrganisationUnits(
       Collection<OrganisationUnitGroup> groups, Collection<OrganisationUnit> parents) {
+    return getOrganisationUnits(groups, parents, false);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<OrganisationUnit> getOrganisationUnits(
+      Collection<OrganisationUnitGroup> groups,
+      Collection<OrganisationUnit> parents,
+      boolean geometryOnly) {
     OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
     params.setParents(Sets.newHashSet(parents));
     params.setGroups(Sets.newHashSet(groups));
+    params.setGeometryOnly(geometryOnly);
 
     return organisationUnitStore.getOrganisationUnits(params);
   }
@@ -310,9 +320,17 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional(readOnly = true)
   public List<OrganisationUnit> getOrganisationUnitsAtLevels(
       Collection<Integer> levels, Collection<OrganisationUnit> parents) {
+    return getOrganisationUnitsAtLevels(levels, parents, false);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<OrganisationUnit> getOrganisationUnitsAtLevels(
+      Collection<Integer> levels, Collection<OrganisationUnit> parents, boolean geometryOnly) {
     OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
     params.setLevels(Sets.newHashSet(levels));
     params.setParents(Sets.newHashSet(parents));
+    params.setGeometryOnly(geometryOnly);
 
     return organisationUnitStore.getOrganisationUnits(params);
   }

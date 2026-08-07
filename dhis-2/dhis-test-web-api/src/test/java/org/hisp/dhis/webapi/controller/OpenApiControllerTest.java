@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.jsontree.JsonSelector.AT;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
@@ -54,12 +55,15 @@ import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.openapi.OpenApiObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ResponseObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.SchemaObject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,8 +101,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   void testGetOpenApiDocumentJson_NoValidationErrors() {
     JsonObject doc =
         GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
-    SwaggerParseResult result =
-        new OpenAPIParser().readContents(doc.node().getDeclaration(), null, null);
+    SwaggerParseResult result = new OpenAPIParser().readContents(doc.toJson(), null, null);
     assertEquals(List.of(), result.getMessages(), "There should not be any errors");
   }
 
@@ -143,6 +146,60 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertContains("#DataElement", html);
   }
 
+  /**
+   * Regression: the full HTML document (no scope filter) must render without error. It previously
+   * failed with HTTP 500 because resolving a schema/parameter shared name stringified a JSON path
+   * containing an operation path that cannot be escaped (e.g. {@code .../{trackedEntityType}.csv}).
+   */
+  @Test
+  void testGetOpenApiDocumentHtml_FullDocument() {
+    String html = GET("/openapi/openapi.html", Accept(TEXT_HTML_VALUE)).content(TEXT_HTML_VALUE);
+    assertContains("DHIS2 Full API", html);
+  }
+
+  /**
+   * Reflected XSS regression: the {@code scope} request parameter is echoed into the page header,
+   * both as the scope key (rendered as a {@code <dt>}) and the scope value (rendered as the text of
+   * an {@code <a>}). HTML-significant characters are stripped when the scope is parsed, so an
+   * injected payload can never become live markup. The remaining inert text is still reflected.
+   */
+  @ParameterizedTest
+  @CsvSource({
+    // malicious scope KEY -> <dt> sink
+    "'<script>alert(1)</script>:x', 'scriptalert(1)/script'",
+    // malicious scope VALUE -> <a> text sink
+    "'entity:<img/onerror=alert(1)>', 'img/onerror=alert(1)'",
+  })
+  void testGetOpenApiDocumentHtml_ScopeHtmlIsStripped(String scope, String strippedReflection) {
+    // MockMvc percent-encodes the raw payload into the request URI; the controller decodes it back.
+    String html =
+        GET("/openapi/openapi.html?scope={s}", scope, Accept(TEXT_HTML_VALUE))
+            .content(TEXT_HTML_VALUE);
+
+    assertFalse(html.contains("<script>alert(1)"), "script payload must not be live markup");
+    assertFalse(html.contains("<img/onerror=alert(1)"), "img payload must not be live markup");
+    // the scope is still reflected, only with the HTML-significant characters removed
+    assertContains(strippedReflection, html);
+  }
+
+  /**
+   * Reflected XSS regression: the scope value is concatenated into the inline {@code onclick}
+   * JavaScript ({@code setLocationSearch('scope', '...')}). A single quote previously broke out of
+   * that JS string literal; stripping it on input removes the breakout entirely.
+   */
+  @Test
+  void testGetOpenApiDocumentHtml_ScopeQuoteIsStrippedFromOnclickJs() {
+    String html =
+        GET("/openapi/openapi.html?scope={s}", "entity:x');alert(1);//", Accept(TEXT_HTML_VALUE))
+            .content(TEXT_HTML_VALUE);
+
+    // appendAttr HTML-escapes the onclick attribute, so a surviving single quote would appear as
+    // the entity &#039; right before the breakout. Stripping the quote on input removes it.
+    assertFalse(
+        html.contains("&#039;);alert(1)"),
+        "scope value must not break out of the onclick JS string");
+  }
+
   @Test
   void testGetOpenApiDocument_DefaultValue() {
     // defaults in parameter objects (from Property analysis)
@@ -153,8 +210,6 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "AND",
         sharedParams.getString("{GetObjectListParams.rootJunction}.schema.default").string());
-    assertTrue(
-        sharedParams.getBoolean("{GistObjectParams.translate}.schema.default").booleanValue());
 
     // defaults in individual parameters (from endpoint method parameter analysis)
     JsonObject fileResources = GET("/openapi/openapi.json?scope=path:/api/fileResources").content();
@@ -220,7 +275,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         Set.of("pager", "organisationUnits"),
-        properties.keys().collect(toSet()),
+        Set.copyOf(properties.keys().map(Text::toString).toList()),
         "there should only be a pager and an entity list property");
 
     SchemaObject listSchema = properties.get("organisationUnits");
@@ -240,15 +295,11 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
         jobConfiguration.getObject("properties").size()
             > jobConfigurationParams.getObject("properties").size());
     assertTrue(
-        jobConfiguration
-            .node()
-            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
-            .isPresent());
+        jobConfiguration.queryExists(
+            AT.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
     assertFalse(
-        jobConfigurationParams
-            .node()
-            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
-            .isPresent());
+        jobConfigurationParams.queryExists(
+            AT.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
   }
 
   @Test
@@ -256,7 +307,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
 
     Path tmpFile = Files.createTempFile("openapi", ".json");
-    Files.writeString(tmpFile, doc.node().getDeclaration());
+    Files.writeString(tmpFile, doc.toJson());
 
     CodegenConfigurator configurator =
         new CodegenConfigurator()

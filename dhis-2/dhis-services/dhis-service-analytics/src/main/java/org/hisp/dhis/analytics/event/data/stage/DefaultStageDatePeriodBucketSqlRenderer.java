@@ -106,9 +106,7 @@ public class DefaultStageDatePeriodBucketSqlRenderer implements StageDatePeriodB
 
   /** {@inheritDoc} */
   @Override
-  public String renderPeriodBucketExpression(QueryItem item, String periodBucketColumn) {
-    String stageDateColumn = sqlBuilder.quoteAx(item.getItemId());
-
+  public String renderPeriodBucketExpression(String stageDateColumn, String periodBucketColumn) {
     Optional<String> dbExpression =
         sqlBuilder.renderStageDatePeriodBucket(stageDateColumn, periodBucketColumn);
     if (dbExpression.isPresent()) {

@@ -46,10 +46,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
+@Transactional
 class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest {
 
   @Autowired private DataSetService dataSetService;

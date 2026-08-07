@@ -46,19 +46,68 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.util.StringUtils;
 
 /**
- * JwtDecoderFactory for client assertions that uses inline JWKS (if present in ClientSettings)
+ * DHIS2-specific {@link JwtDecoderFactory} used by Spring Authorization Server to verify {@code
+ * private_key_jwt} client assertions (RFC 7523) at the {@code /oauth2/token} endpoint.
+ *
+ * <p>In the {@code private_key_jwt} authentication method, an OAuth2 client authenticates to the
+ * token endpoint by signing a short-lived JWT (a "client assertion") with its private key instead
+ * of sending a shared {@code client_secret}. The Authorization Server verifies the assertion's
+ * signature against the client's public JWKS. Spring Authorization Server supports two JWKS sources
+ * for this:
+ *
+ * <ul>
+ *   <li>A public {@code jwks_uri} that the Authorization Server fetches over HTTP, handled by the
+ *       default {@link JwtClientAssertionDecoderFactory}.
+ *   <li>An inline JWKS stored directly in the client's {@link
+ *       org.springframework.security.oauth2.server.authorization.settings.ClientSettings} under the
+ *       {@link #CLIENT_INLINE_JWKS} key, which is the extension this factory adds.
+ * </ul>
+ *
+ * <p>Inline JWKS support exists for clients that cannot host a public JWKS URL. The primary use
+ * case is the DHIS2 Android Capture app: each device generates its keypair inside the Android
+ * Keystore, registers with DHIS2 via Dynamic Client Registration (DCR) sending its public JWK
+ * inline in the registration payload, and from then on authenticates to the token endpoint with
+ * {@code private_key_jwt} signed by the Keystore-held private key.
+ *
+ * <p>For a given {@link RegisteredClient} this factory returns a {@link JwtDecoder} that:
+ *
+ * <ol>
+ *   <li>If an inline JWKS string is present in {@code ClientSettings} under {@link
+ *       #CLIENT_INLINE_JWKS}, parses it, extracts the first RSA key, and builds a {@link
+ *       NimbusJwtDecoder} from that public key, honouring the client's configured token endpoint
+ *       signing algorithm when present.
+ *   <li>Otherwise delegates to the default {@link JwtClientAssertionDecoderFactory}, which handles
+ *       {@code jwks_uri}, {@code client_secret_jwt}, and other standard cases.
+ * </ol>
+ *
+ * <p>The same {@link OAuth2TokenValidator} is applied to both paths so inline-JWKS clients get the
+ * same assertion validation rules (audience, issuer, expiry, and so on) as {@code jwks_uri}
+ * clients.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class InlineJwksJwtClientAssertionDecoderFactory
     implements JwtDecoderFactory<RegisteredClient> {
 
+  /**
+   * {@link org.springframework.security.oauth2.server.authorization.settings.ClientSettings} key
+   * under which the inline JWKS JSON is stored for a {@link RegisteredClient}.
+   */
   public static final String CLIENT_INLINE_JWKS = "client.inline.jwks";
+
   private final JwtClientAssertionDecoderFactory delegate = new JwtClientAssertionDecoderFactory();
 
   private Function<RegisteredClient, OAuth2TokenValidator<Jwt>> jwtValidatorFactory =
       JwtClientAssertionDecoderFactory.DEFAULT_JWT_VALIDATOR_FACTORY;
 
+  /**
+   * Set the factory used to build the {@link OAuth2TokenValidator} applied to each decoded client
+   * assertion. Both the inline-JWKS decoder and the delegate {@link
+   * JwtClientAssertionDecoderFactory} are kept in sync so validation is identical regardless of
+   * which decoder path a client uses.
+   *
+   * @param factory function producing a validator for a given {@link RegisteredClient}
+   */
   public void setJwtValidatorFactory(
       Function<RegisteredClient, OAuth2TokenValidator<Jwt>> factory) {
     this.jwtValidatorFactory = factory;
@@ -67,13 +116,17 @@ public class InlineJwksJwtClientAssertionDecoderFactory
   }
 
   /**
-   * Create a JwtDecoder for the given RegisteredClient. When the client has inline JWKS configured
-   * in its ClientSettings, use that to create an RSA public key JwtDecoder. Otherwise, delegate to
-   * default JwtClientAssertionDecoderFactory (which supports jwks_uri, client_secret, etc).
+   * Create a {@link JwtDecoder} for verifying {@code private_key_jwt} client assertions from the
+   * given {@link RegisteredClient}. If the client has an inline JWKS configured in its {@code
+   * ClientSettings} under {@link #CLIENT_INLINE_JWKS}, a {@link NimbusJwtDecoder} is built from the
+   * first RSA key in that set. Otherwise the call is delegated to {@link
+   * JwtClientAssertionDecoderFactory}, which supports {@code jwks_uri}, {@code client_secret_jwt},
+   * and other standard sources.
    *
-   * @param client the RegisteredClient
-   * @return the JwtDecoder
-   * @throws IllegalStateException if the inline JWKS is invalid or does not contain an RSA key
+   * @param client the client whose assertion is being verified
+   * @return a decoder configured for this client's JWKS source
+   * @throws IllegalStateException if the inline JWKS is present but cannot be parsed, or does not
+   *     contain an RSA key
    */
   @Override
   public JwtDecoder createDecoder(RegisteredClient client) {

@@ -35,14 +35,16 @@ import static java.util.Collections.unmodifiableSet;
 import static org.hisp.dhis.security.Authorities.F_METADATA_EXPORT;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.common.input.Fields.Field;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.gist.GistQuery.Comparison;
-import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
@@ -123,7 +125,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
                   GistQuery.builder()
                       .elementType(ioType)
                       .autoType(GistAutoType.M)
-                      .fields(singletonList(new Field("sharing", Transform.NONE)))
+                      .fields(new Fields(List.of(new Field("sharing", Transform.NONE))))
                       .filters(singletonList(new Filter("id", Comparison.EQ, uid)))
                       .build())
               .values();

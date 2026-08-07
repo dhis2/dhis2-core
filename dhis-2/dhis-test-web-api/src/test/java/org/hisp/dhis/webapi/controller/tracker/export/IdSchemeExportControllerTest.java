@@ -281,10 +281,9 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     // dataElement is asserted in other tests
     assertAll(
         "assert dataValue fields",
-        () -> assertEquals(uidDataValue.getValue(), nameDataValue.getValue(), "value"),
+        () -> assertEquals(uidDataValue.value(), nameDataValue.value(), "value"),
         () -> assertEquals(uidDataValue.getCreatedAt(), nameDataValue.getCreatedAt(), "createdAt"),
         () -> assertEquals(uidDataValue.getUpdatedAt(), nameDataValue.getUpdatedAt(), "updatedAt"),
-        () -> assertEquals(uidDataValue.getStoredBy(), nameDataValue.getStoredBy(), "storedBy"),
         () ->
             assertEquals(
                 uidDataValue.getProvidedElsewhere(),

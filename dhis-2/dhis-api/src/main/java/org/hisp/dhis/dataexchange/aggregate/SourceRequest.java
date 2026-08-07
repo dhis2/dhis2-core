@@ -81,4 +81,7 @@ public class SourceRequest implements Serializable {
 
   /** Output identifier scheme. */
   @JsonProperty private IdProperty outputIdScheme;
+
+  /** Optional target data set identifier. */
+  @JsonProperty private String dataSet;
 }

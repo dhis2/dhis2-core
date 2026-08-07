@@ -30,12 +30,9 @@
 package org.hisp.dhis.tracker.imports.validation.validator;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1077;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1112;
 
 import java.util.List;
 import java.util.Objects;
-import org.hisp.dhis.encryption.EncryptionStatus;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -50,14 +47,10 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
  * @author Luciano Fiandesio
  */
 public abstract class AttributeValidator {
-  private final DhisConfigurationProvider dhisConfigurationProvider;
 
-  protected AttributeValidator(DhisConfigurationProvider dhisConfigurationProvider) {
-    this.dhisConfigurationProvider = dhisConfigurationProvider;
-  }
+  protected AttributeValidator() {}
 
-  public void validateAttributeValue(
-      Reporter reporter, TrackerDto trackerDto, TrackedEntityAttribute tea, String value) {
+  public void validateAttributeValue(Reporter reporter, TrackerDto trackerDto, String value) {
     // Validate value (string) don't exceed the max length
     reporter.addErrorIf(
         () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH,
@@ -65,17 +58,6 @@ public abstract class AttributeValidator {
         E1077,
         value,
         Constant.MAX_ATTR_VALUE_LENGTH);
-
-    // Validate if that encryption is configured properly if someone sets
-    // value to (confidential)
-    boolean isConfidential = tea.isConfidentialBool();
-    EncryptionStatus encryptionStatus = dhisConfigurationProvider.getEncryptionStatus();
-    reporter.addErrorIf(
-        () -> isConfidential && !encryptionStatus.isOk(),
-        trackerDto,
-        E1112,
-        value,
-        encryptionStatus.getKey());
   }
 
   protected void validateAttributeUniqueness(

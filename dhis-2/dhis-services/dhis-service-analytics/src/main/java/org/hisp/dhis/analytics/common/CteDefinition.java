@@ -68,8 +68,12 @@ public class CteDefinition {
     PROGRAM_STAGE_DATE_ELEMENT(10),
     /** CTE replacing a d2:function(...) subquery (like d2:countIfValue). */
     D2_FUNCTION(10),
+    /** Per-trackedEntity relationship count CTE backing {@code d2:relationshipCount(...)}. */
+    D2_RELATIONSHIP_COUNT(10),
     /** CTE for checking existence (rowContext=true). */
     EXISTS(10),
+    /** Candidate event rows used as input for EVENT program indicator CTEs. */
+    EVENT_PROGRAM_INDICATOR_CANDIDATES(4),
     /** Special CTE for pre-aggregated enrollments. */
     TOP_ENROLLMENTS(1),
     SHADOW_ENROLLMENT_TABLE(2),
@@ -110,6 +114,9 @@ public class CteDefinition {
   /** Whether the query item has a filter that requires non-null values from this CTE */
   private final boolean hasFilter;
 
+  /** Whether the CTE exposes a display-name column as value_name. */
+  private final boolean hasValueName;
+
   private CteDefinition(
       String itemId,
       String programStageUid,
@@ -123,7 +130,8 @@ public class CteDefinition {
       String joinColumn,
       Integer targetRank,
       CteType cteType,
-      boolean hasFilter) {
+      boolean hasFilter,
+      boolean hasValueName) {
     this.itemId = itemId;
     this.programStageUid = programStageUid;
     this.programIndicatorUid = programIndicatorUid;
@@ -137,6 +145,7 @@ public class CteDefinition {
     this.targetRank = targetRank;
     this.cteType = cteType;
     this.hasFilter = hasFilter;
+    this.hasValueName = hasValueName;
   }
 
   /** Creates a CTE definition for program stage data elements. */
@@ -155,7 +164,8 @@ public class CteDefinition {
         null, // joinColumn
         null, // targetRank
         CteType.PROGRAM_STAGE, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
     this.offsets.add(offset);
   }
 
@@ -177,6 +187,18 @@ public class CteDefinition {
       int offset,
       boolean isRowContext,
       boolean hasFilter) {
+    this(programStageUid, queryItemId, cteDefinition, offset, isRowContext, hasFilter, false);
+  }
+
+  // Constructor for standard Program Stage CTEs with rowContext, hasFilter, and value_name
+  public CteDefinition(
+      String programStageUid,
+      String queryItemId,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext,
+      boolean hasFilter,
+      boolean hasValueName) {
     this(
         queryItemId,
         programStageUid,
@@ -190,7 +212,8 @@ public class CteDefinition {
         null, // joinColumn
         null, // targetRank
         CteType.PROGRAM_STAGE, // Set type
-        hasFilter); // Pass hasFilter
+        hasFilter, // Pass hasFilter
+        hasValueName); // Pass hasValueName
     this.offsets.add(offset);
   }
 
@@ -208,7 +231,8 @@ public class CteDefinition {
         null, // joinColumn
         null, // targetRank
         CteType.BASE_AGGREGATION, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /** Creates a CTE definition for program indicators. */
@@ -217,6 +241,17 @@ public class CteDefinition {
       AnalyticsType programIndicatorType,
       String cteDefinition,
       boolean requiresCoalesce) {
+    return forProgramIndicator(
+        programIndicatorUid, programIndicatorType, cteDefinition, requiresCoalesce, null);
+  }
+
+  /** Creates a CTE definition for program indicators. */
+  public static CteDefinition forProgramIndicator(
+      String programIndicatorUid,
+      AnalyticsType programIndicatorType,
+      String cteDefinition,
+      boolean requiresCoalesce,
+      String joinColumn) {
     // Calls private constructor, passing CteType.PROGRAM_INDICATOR
     return new CteDefinition(
         programIndicatorUid, // itemId
@@ -228,12 +263,13 @@ public class CteDefinition {
         false, // isExists
         requiresCoalesce, // requiresCoalesce
         null, // aggregateWhereClause
-        null, // joinColumn
+        joinColumn, // joinColumn
         null, // targetRank
         programIndicatorType == AnalyticsType.EVENT
             ? PROGRAM_INDICATOR_EVENT
             : PROGRAM_INDICATOR_ENROLLMENT, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /** Creates a CTE definition for filter CTEs (replacing filter subqueries). */
@@ -253,7 +289,8 @@ public class CteDefinition {
         null, // joinColumn
         null, // targetRank
         CteType.FILTER, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /**
@@ -280,7 +317,8 @@ public class CteDefinition {
         joinColumn, // Pass joinColumn
         null, // targetRank
         CteType.VARIABLE, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /**
@@ -302,7 +340,8 @@ public class CteDefinition {
         joinColumn, // Pass joinColumn
         targetRank, // Pass targetRank
         CteType.PROGRAM_STAGE_DATE_ELEMENT, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /**
@@ -328,7 +367,34 @@ public class CteDefinition {
         joinColumn,
         null, // targetRank
         CteType.D2_FUNCTION,
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
+  }
+
+  /**
+   * Creates a CTE definition for a d2:relationshipCount aggregation, joined per trackedEntity.
+   *
+   * @param key A unique key identifying this relationship-count CTE instance.
+   * @param cteDefinitionSql The SQL body for the CTE (selects {@code trackedentityid} and {@code
+   *     value}).
+   * @return The created CteDefinition.
+   */
+  public static CteDefinition forRelationshipCount(String key, String cteDefinitionSql) {
+    return new CteDefinition(
+        key,
+        null,
+        null,
+        cteDefinitionSql,
+        generateRandomAlias(),
+        false,
+        false,
+        false,
+        null,
+        "trackedentity",
+        null,
+        CteType.D2_RELATIONSHIP_COUNT,
+        false,
+        false);
   }
 
   public static CteDefinition forShadowTable(String tableName, String sql, CteType cteType) {
@@ -343,7 +409,8 @@ public class CteDefinition {
         null, // aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        cteType, false); // hasFilter
+        cteType, false, // hasFilter
+        false); // hasValueName
   }
 
   public CteDefinition setExists(boolean exists) {
@@ -372,6 +439,10 @@ public class CteDefinition {
 
   public boolean isProgramStage() {
     return this.cteType == CteType.PROGRAM_STAGE && !isExists;
+  }
+
+  public boolean hasValueName() {
+    return hasValueName;
   }
 
   private static String generateRandomAlias() {

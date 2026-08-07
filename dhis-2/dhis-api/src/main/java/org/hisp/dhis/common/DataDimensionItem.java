@@ -337,7 +337,7 @@ public class DataDimensionItem {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
+  @JsonSerialize(as = NameableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;

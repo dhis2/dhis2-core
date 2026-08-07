@@ -35,6 +35,9 @@ import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.HiddenNotFoundException;
 
 /**
  * Service that handles user account activities, e.g. create/update account. The Validation can be
@@ -83,4 +86,49 @@ public interface UserAccountService {
    */
   void validateInvitedUser(RegistrationParams params, String remoteIpAddress)
       throws BadRequestException, IOException;
+
+  /**
+   * Initiates the account-recovery flow by sending a restore email to the user, if account recovery
+   * is enabled. Attempts are throttled per account via the account-recovery lockout.
+   *
+   * @param emailOrUsername email address or username identifying the account
+   * @throws HiddenNotFoundException when the user does not exist or cannot be restored
+   * @throws ConflictException when recovery is disabled, unconfigured, or sending fails
+   * @throws ForbiddenException when the account is temporarily locked due to too many attempts
+   */
+  void forgotPassword(String emailOrUsername)
+      throws HiddenNotFoundException, ConflictException, ForbiddenException;
+
+  /**
+   * Completes the account-recovery flow by setting a new password for the account identified by the
+   * restore token.
+   *
+   * @param token encoded id and restore token pair from the recovery email
+   * @param newPassword new password, subject to the password policy
+   * @throws ConflictException when recovery is disabled or the token does not resolve to a user
+   * @throws BadRequestException when input is missing or the new password is not acceptable
+   */
+  void resetPassword(String token, String newPassword)
+      throws ConflictException, BadRequestException;
+
+  /**
+   * Self-service change of an <b>expired</b> password. The caller is not logged in, so the method
+   * is self-guarding: it only proceeds for an expired account whose current password is supplied
+   * correctly. It deliberately does not establish a session; once the password is changed the
+   * account is no longer expired, and the caller logs in through the regular login endpoint.
+   *
+   * <p>The current-password check runs <b>before</b> the expiry check, so "Account is not expired"
+   * can only be observed by a caller who already knows the password (no username enumeration), and
+   * repeated attempts against one account are throttled via the shared account-recovery lockout
+   * (mirrors {@link #forgotPassword(String)}).
+   *
+   * @param username username identifying the account
+   * @param oldPassword the current (expired) password
+   * @param newPassword new password, subject to the password policy
+   * @throws BadRequestException when input is missing, credentials are wrong, the account is not
+   *     expired, or the new password is not acceptable
+   * @throws ForbiddenException when the account is temporarily locked due to too many attempts
+   */
+  void updateExpiredPassword(String username, String oldPassword, String newPassword)
+      throws BadRequestException, ForbiddenException;
 }

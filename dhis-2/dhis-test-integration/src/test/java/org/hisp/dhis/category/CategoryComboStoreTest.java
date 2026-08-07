@@ -37,8 +37,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
@@ -120,9 +120,9 @@ class CategoryComboStoreTest extends PostgresIntegrationTestBase {
 
   private void checkHasExpectedCategories(CategoryCombo cc, Category... categories) {
     Set<String> allCategoryUids =
-        Arrays.stream(categories).map(BaseIdentifiableObject::getUid).collect(Collectors.toSet());
+        Arrays.stream(categories).map(IdentifiableObject::getUid).collect(Collectors.toSet());
     Set<String> catComboCategoryUids =
-        cc.getCategories().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet());
+        cc.getCategories().stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());
     assertEquals(allCategoryUids, catComboCategoryUids);
   }
 }

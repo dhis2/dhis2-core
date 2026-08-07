@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.metadata.version;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.GenericStore;
@@ -75,4 +77,29 @@ public interface MetadataVersionStore extends GenericStore<MetadataVersion> {
    * @return Initial/First MetadataVersion of the system
    */
   MetadataVersion getInitialVersion();
+
+  /**
+   * Streams the metadata snapshot for the given version name directly from the underlying datastore
+   * row to the output stream. Avoids materialising the snapshot as a Java String, which is
+   * memory-prohibitive for large snapshots and would also trip Jackson's default 20MB string-token
+   * limit during deserialisation of the wrapper object.
+   *
+   * @param versionName the version name
+   * @param out the output stream to write the snapshot to
+   * @return true if the snapshot was found and written, false if no snapshot exists
+   * @throws IOException if writing to the output stream fails
+   */
+  boolean streamMetadataVersionData(String versionName, OutputStream out) throws IOException;
+
+  /**
+   * Returns whether a metadata snapshot exists for the given version name. Intended as a cheap
+   * pre-flight check before opening a response output stream — once {@link
+   * #streamMetadataVersionData} starts writing, response headers are committed and an error status
+   * can no longer be returned to the client (especially relevant for the gzipped variant where
+   * {@code GZIPOutputStream} writes its magic header on construction).
+   *
+   * @param versionName the version name
+   * @return true if a snapshot row exists in the metadata datastore namespace
+   */
+  boolean metadataVersionSnapshotExists(String versionName);
 }

@@ -37,7 +37,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,8 +96,6 @@ class ProgramRuleControllerTest extends H2ControllerIntegrationTestBase {
             .as(JsonImportSummary.class);
     assertEquals(
         "The Program Rule name test already exist in Program ProgramA",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4057)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E4057).getMessage());
   }
 }

@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asser
 
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -49,11 +50,12 @@ class DataElementMapperTest {
         new DataElementMapper(),
         DataElement::new,
         List.of(
-            b -> b.setDimensionItemType(DIMENSION_ITEM_TYPE),
             b -> b.setValueType(ValueType.TEXT),
+            b -> b.setAggregationType(AggregationType.AVERAGE),
             b -> b.setUid("DE_ID")),
         List.of(
             Pair.of(DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE),
+            Pair.of(DimensionResponse::getAggregationType, AggregationType.AVERAGE),
             Pair.of(DimensionResponse::getId, "PROGRAM_STAGE_ID.DE_ID")),
         "PROGRAM_STAGE_ID");
   }

@@ -47,7 +47,7 @@ import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonInteger;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonString;
 import org.junit.jupiter.api.Test;
 
@@ -102,11 +102,10 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(149, keys.size());
+    assertEquals(148, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
-    assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
     assertTrue(keys.contains("notifierGistOverview"));
     assertTrue(keys.contains("keyCustomTranslationsEnabled"));
     assertTrue(keys.contains(("keyCustomColor")));
@@ -119,7 +118,7 @@ class SystemSettingsTest {
         SystemSettings.of(Map.of("applicationTitle", "Hello World", "keyUiLocale", "uz_UZ_Latn"));
     JsonMap<JsonMixed> asJson = settings.toJson(false);
     // it does contain the set value
-    JsonPrimitive stringValue = asJson.get("applicationTitle");
+    JsonString stringValue = asJson.get("applicationTitle");
     assertTrue(stringValue.isString());
     assertEquals("Hello World", stringValue.as(JsonString.class).string());
 
@@ -128,10 +127,10 @@ class SystemSettingsTest {
     assertEquals("uz_UZ_Latn", strLocaleVal.as(JsonString.class).string());
 
     // but also all defaults (test some)
-    JsonPrimitive intValue = asJson.get("keyParallelJobsInAnalyticsTableExport");
+    JsonNumber intValue = asJson.get("keyParallelJobsInAnalyticsTableExport");
     assertTrue(intValue.isNumber());
     assertEquals(-1, intValue.as(JsonInteger.class).intValue());
-    JsonPrimitive booleanValue = asJson.get("startModuleEnableLightweight");
+    JsonBoolean booleanValue = asJson.get("startModuleEnableLightweight");
     assertTrue(booleanValue.isBoolean());
     assertFalse(booleanValue.as(JsonBoolean.class).booleanValue());
     JsonString dateValue = asJson.get("keyLastMetaDataSyncSuccess");
@@ -257,6 +256,11 @@ class SystemSettingsTest {
     assertTrue(settings.isValid("keyLastMonitoringRun", date));
     assertFalse(settings.isValid("keyLastMonitoringRun", "hello"));
     assertFalse(settings.isValid("keyLastMonitoringRun", "true"));
+    // the correctly serialized form of a Date is accepted ...
+    assertTrue(settings.isValid("keyLastMonitoringRun", Settings.valueOf(new Date())));
+    // ... but Date.toString() output is NOT
+    assertFalse(settings.isValid("keyLastMonitoringRun", new Date().toString()));
+    assertFalse(settings.isValid("keyLastMonitoringRun", "Mon Jun 08 07:50:29 IST 2026"));
   }
 
   @Test

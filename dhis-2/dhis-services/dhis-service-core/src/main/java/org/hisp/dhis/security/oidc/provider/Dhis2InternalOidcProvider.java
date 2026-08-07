@@ -48,8 +48,23 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 /**
- * Internal only OIDC provider, used when authorization server is enabled in dhis.conf with
- * (OAUTH2_SERVER_ENABLED).
+ * Builds the internal DHIS2-as-IdP {@link DhisOidcClientRegistration} with registration id {@code
+ * dhis2-internal}. This provider is built-in and is auto-registered when {@code
+ * oauth2.server.enabled=on} in {@code dhis.conf}; the {@code oidc.oauth2.login.enabled} flag does
+ * NOT gate it.
+ *
+ * <p>All endpoint URIs ({@code /oauth2/authorize}, {@code /oauth2/token}, {@code /oauth2/jwks},
+ * {@code /oauth2/userinfo}, issuer) are derived from {@code server.base.url} (or the explicit
+ * {@code oidc.provider.dhis2.server_url} override), so the DHIS2 instance itself acts as both
+ * authorization server and resource server.
+ *
+ * <p>The registration is intentionally hidden from the web login page ({@code
+ * visibleOnLoginPage=false}); it is consumed only by the DHIS2 Android Capture app's {@code
+ * authorization_code} flow against this DHIS2 instance as authorization server, and for
+ * resource-server JWT validation of tokens it issues.
+ *
+ * <p>Defaults: {@code client_id=dhis2-internal}, {@code client_secret=secret}, {@code
+ * mapping_claim=username}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

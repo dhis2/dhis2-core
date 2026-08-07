@@ -36,12 +36,12 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_RELOG
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -54,6 +54,31 @@ import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuc
 import org.springframework.stereotype.Component;
 
 /**
+ * Spring {@link LogoutSuccessHandler} that drives the redirect after a DHIS2 user logs out of a
+ * session backed by an OIDC Identity Provider.
+ *
+ * <p>Pick logic in {@link #init()}:
+ *
+ * <ul>
+ *   <li>When {@code oidc.oauth2.login.enabled=on} and the selected provider exposes an {@code
+ *       end_session_endpoint} ({@code oidc.provider.<id>.end_session_endpoint}) with {@code
+ *       enable_logout=on}, the handler becomes a Spring {@link
+ *       OidcClientInitiatedLogoutSuccessHandler} that redirects the browser to the IdP's
+ *       RP-initiated logout endpoint using {@code oidc.logout.redirect_url} as the post-logout
+ *       redirect URI.
+ *   <li>When the linked-accounts feature is enabled ({@code linked_accounts.enabled=on}), or when
+ *       OIDC login is disabled, logout falls back to a {@link SimpleUrlLogoutSuccessHandler}
+ *       targeting {@code oidc.logout.redirect_url} (or {@code /} when unset).
+ * </ul>
+ *
+ * <p>In addition, {@link #onLogoutSuccess} supports a {@code redirect_uri} query parameter used by
+ * the Android Capture app's deep-link logout flow (e.g. {@code dhis2oauth://oauth}). The value is
+ * accepted only if it matches the configured device-enrollment redirect allowlist, to prevent
+ * open-redirect abuse. When the linked-accounts feature is active and a {@code switch} parameter is
+ * present, the handler switches active linked account via {@code
+ * UserService.setActiveLinkedAccounts} and redirects to {@code linked_accounts.relogin_url};
+ * otherwise it redirects to {@code linked_accounts.logout_url}.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component

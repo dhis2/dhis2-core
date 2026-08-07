@@ -35,7 +35,6 @@ import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.dxf2.webmessage.responses.TrackerJobWebMessageResponse;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -88,9 +87,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
     assertContains("/tracker/jobs/", location);
     String jobId = location.substring(location.lastIndexOf('/') + 1);
     assertEquals(jobId, response.getString("id").string());
-    assertEquals(
-        TrackerJobWebMessageResponse.class.getSimpleName(),
-        response.getString("responseType").string());
+    assertEquals("TrackerJob", response.getString("responseType").string());
   }
 
   @Test

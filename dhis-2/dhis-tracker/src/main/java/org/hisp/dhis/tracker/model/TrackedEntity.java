@@ -40,7 +40,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
@@ -82,18 +81,17 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @Getter
 @Table(name = "trackedentity")
-@NamedNativeQuery(
-    name = "updateTrackedEntitiesLastUpdated",
-    query =
-        "update trackedentity set lastUpdated = :lastUpdated, lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) WHERE uid in :trackedEntities")
 @Auditable(scope = AuditScope.TRACKER)
 public class TrackedEntity extends BaseTrackerObject
     implements IdentifiableObject, SoftDeletableEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(sequenceName = "trackedentityinstance_sequence")
   @Column(name = "trackedentityid")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "trackedentity_sequence")
+  @SequenceGenerator(
+      name = "trackedentity_sequence",
+      sequenceName = "trackedentity_sequence",
+      allocationSize = 1)
   private long id;
 
   private boolean deleted = false;
@@ -208,8 +206,6 @@ public class TrackedEntity extends BaseTrackerObject
   @Override
   public int hashCode() {
     int result = getUid() != null ? getUid().hashCode() : 0;
-    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
-    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
     return Objects.hash(result, deleted);
   }
 
@@ -220,10 +216,7 @@ public class TrackedEntity extends BaseTrackerObject
     if (getRealClass(this) != getRealClass(obj)) return false;
 
     TrackedEntity other = (TrackedEntity) obj;
-    return Objects.equals(getUid(), other.getUid())
-        && Objects.equals(getCode(), other.getCode())
-        && Objects.equals(getName(), other.getName())
-        && isDeleted() == other.isDeleted();
+    return Objects.equals(getUid(), other.getUid()) && isDeleted() == other.isDeleted();
   }
 
   // -------------------------------------------------------------------------

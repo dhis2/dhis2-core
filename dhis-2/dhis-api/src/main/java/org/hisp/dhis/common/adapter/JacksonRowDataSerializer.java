@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
 import java.util.List;
+import org.hisp.dhis.common.RawJsonValue;
 
 /**
  * TODO switch to <code>jgen.writeObject( field )</code>
@@ -54,7 +55,11 @@ public class JacksonRowDataSerializer extends JsonSerializer<List<List<Object>>>
       jgen.writeStartArray();
 
       for (Object field : row) {
-        jgen.writeString(field != null ? String.valueOf(maybeFormat(field)) : EMPTY);
+        if (field instanceof RawJsonValue json) {
+          jgen.writeRawValue(json.value());
+        } else {
+          jgen.writeString(field != null ? String.valueOf(maybeFormat(field)) : EMPTY);
+        }
       }
 
       jgen.writeEndArray();

@@ -32,25 +32,21 @@ package org.hisp.dhis.fieldfilter;
 import static java.beans.Introspector.decapitalize;
 import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
@@ -82,7 +78,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -156,7 +151,8 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
   @Override
   public CollectionNode toCollectionNode(Class<?> wrapper, FieldFilterParams params) {
-    String fields = params.getFields() == null ? "" : Joiner.on(",").join(params.getFields());
+    String fields = params.getFields();
+    if (fields == null) fields = "";
 
     Schema rootSchema = schemaService.getSchema(wrapper);
 
@@ -165,20 +161,9 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
     List<?> objects = params.getObjects();
 
-    if (params.getSkipSharing()) {
-      final List<String> fieldList =
-          CollectionUtils.isEmpty(params.getFields())
-              ? Collections.singletonList("*")
-              : params.getFields();
-      // excludes must be preserved (e.g. when field collections like
-      // :owner are used, which is not expanded by modify filter)
-      fields =
-          Stream.concat(
-                  fieldParser.modifyFilter(fieldList, SHARING_FIELDS).stream(),
-                  SHARING_FIELDS.stream())
-              .filter(org.apache.commons.lang3.StringUtils::isNotBlank)
-              .distinct()
-              .collect(Collectors.joining(","));
+    if (params.isSkipSharing()) {
+      if (fields.isEmpty()) fields = "*";
+      fields += "," + String.join(",", SHARING_FIELDS);
     }
 
     if (params.getObjects().isEmpty() || objects.stream().allMatch(Objects::isNull)) {
@@ -226,7 +211,8 @@ public class DefaultFieldFilterService implements FieldFilterService {
       final FieldFilterParams params,
       final String collectionName,
       final String namespace) {
-    final String fields = params.getFields() == null ? "" : Joiner.on(",").join(params.getFields());
+    String fields = params.getFields();
+    if (fields == null) fields = "";
 
     final CollectionNode collectionNode = new CollectionNode(collectionName);
     collectionNode.setNamespace(namespace);

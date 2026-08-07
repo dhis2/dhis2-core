@@ -347,6 +347,32 @@ class HeaderHelperTest {
   }
 
   @Test
+  @DisplayName("enrollmentou/enrollmentouname headers must precede item headers to match SQL order")
+  void enrollmentOuHeadersPrecedeItemHeaders() {
+    Grid grid = new ListGrid();
+
+    QueryItem item = queryItem("deUidA001", "Item A", TEXT);
+
+    BaseDimensionalItemObject ouItem = new BaseDimensionalItemObject("ouUid", "ou", "Ngelehun");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addItem(item)
+            .withEnrollmentOuDimension(List.of(ouItem))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of());
+
+    List<GridHeader> headers = grid.getHeaders();
+
+    assertEquals(3, headers.size());
+    assertEquals("enrollmentou", headers.get(0).getName());
+    assertEquals("enrollmentouname", headers.get(1).getName());
+    assertEquals("deUidA001", headers.get(2).getName());
+  }
+
+  @Test
   @DisplayName("stage.ou without headers param should only add ou header")
   void stageOuWithNoHeadersParam() {
     Grid grid = new ListGrid();

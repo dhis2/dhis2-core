@@ -111,16 +111,19 @@ public class HibernateTrackedEntityProgramOwnerStore
   @Override
   public void save(@Nonnull TrackedEntityProgramOwner trackedEntityProgramOwner) {
     super.save(trackedEntityProgramOwner);
-    ownerCache.invalidate(
-        getOwnershipCacheKey(
-            trackedEntityProgramOwner.getTrackedEntity(), trackedEntityProgramOwner.getProgram()));
+    invalidateOwnershipCache(
+        trackedEntityProgramOwner.getTrackedEntity(), trackedEntityProgramOwner.getProgram());
   }
 
   @Override
   public void update(@Nonnull TrackedEntityProgramOwner trackedEntityProgramOwner) {
     super.update(trackedEntityProgramOwner);
-    ownerCache.invalidate(
-        getOwnershipCacheKey(
-            trackedEntityProgramOwner.getTrackedEntity(), trackedEntityProgramOwner.getProgram()));
+    invalidateOwnershipCache(
+        trackedEntityProgramOwner.getTrackedEntity(), trackedEntityProgramOwner.getProgram());
+  }
+
+  @Override
+  public void invalidateOwnershipCache(TrackedEntity te, Program program) {
+    ownerCache.invalidate(getOwnershipCacheKey(te, program));
   }
 }

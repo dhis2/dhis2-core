@@ -38,11 +38,42 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 /**
+ * DHIS2-specific {@link JwtAuthenticationToken} produced after a JWT bearer token has been
+ * validated and mapped to a DHIS2 user.
+ *
+ * <p>Instances are created by {@link Dhis2JwtAuthenticationManagerResolver} once the token
+ * signature has been verified against the issuer's JWKS and the token's mapping claim (typically
+ * {@code username} or {@code email}) has been resolved to a DHIS2 {@link UserDetails}. The mapping
+ * claim has already been consumed upstream by the resolver, so the wrapped {@link DhisOidcUser}
+ * uses {@link IdTokenClaimNames#SUB} as its name attribute. The token wraps three things:
+ *
+ * <ul>
+ *   <li>The raw validated {@link Jwt}, available through {@link #getToken()}.
+ *   <li>The collection of {@link GrantedAuthority} authorities granted to the authenticated DHIS2
+ *       user.
+ *   <li>A {@link DhisOidcUser} principal that carries the full DHIS2 {@link UserDetails}, exposed
+ *       via {@link #getPrincipal()}.
+ * </ul>
+ *
+ * <p>This is the concrete {@code Authentication} instance returned by {@code
+ * SecurityContextHolder.getContext().getAuthentication()} for every JWT-authenticated request, and
+ * the type downstream code should cast to when it needs access to the DHIS2 user and the original
+ * JWT claims.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class DhisJwtAuthenticationToken extends JwtAuthenticationToken {
   private final DhisOidcUser dhisOidcUser;
 
+  /**
+   * Create a new authenticated token for a validated JWT and the DHIS2 user it maps to.
+   *
+   * @param jwt the validated JWT bearer token
+   * @param authorities the authorities granted to the DHIS2 user
+   * @param name the value of the token's mapping claim (used as the {@code name} of the
+   *     authentication)
+   * @param user the DHIS2 {@link UserDetails} the mapping claim resolved to
+   */
   public DhisJwtAuthenticationToken(
       Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name, UserDetails user) {
     super(jwt, authorities, name);
@@ -50,6 +81,11 @@ public class DhisJwtAuthenticationToken extends JwtAuthenticationToken {
     this.dhisOidcUser = new DhisOidcUser(user, jwt.getClaims(), IdTokenClaimNames.SUB, null);
   }
 
+  /**
+   * Return the {@link DhisOidcUser} principal wrapping the resolved DHIS2 {@link UserDetails} and
+   * the JWT claims. Overrides the default {@link JwtAuthenticationToken} behaviour of returning the
+   * raw {@link Jwt} as principal.
+   */
   @Override
   public Object getPrincipal() {
     return this.dhisOidcUser;

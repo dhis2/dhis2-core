@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -43,16 +44,19 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
-public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableObject> {
+public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableEntity> {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdBy";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
@@ -135,6 +139,16 @@ public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableObj
 
       hql += String.format(" and %s = :filterValue ", filterField);
     }
+
+    // Honor data element (metadata) sharing: a user may access the event but not be allowed to read
+    // some of its data elements. Change logs for those data elements must not be returned, while
+    // change logs of event fields (which have no data element) always are. The sharing check is
+    // applied in the query so pagination stays correct; it resolves to 1=1 for superusers.
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    hql +=
+        " and (ecl.dataElement is null or "
+            + generateHqlQueryForSharingCheck("d", currentUser, AclService.LIKE_READ_METADATA)
+            + ") ";
 
     hql += String.format("order by %s".formatted(sortExpressions(operationParams.getOrder())));
 

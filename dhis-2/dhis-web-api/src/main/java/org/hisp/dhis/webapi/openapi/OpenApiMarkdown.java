@@ -29,13 +29,15 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.escapeHtml;
+import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.appendEscaped;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.jsontree.Text;
+import org.hisp.dhis.jsontree.TextBuilder;
 
 /**
  * This is a simplified markdown to HTML helper used in {@link OpenApiRenderer} to render
@@ -68,7 +70,7 @@ final class OpenApiMarkdown {
 
   private record MarkupHeading(int level, MarkupLine text) implements MarkdownBlock {}
 
-  private record MarkupCodeBlock(String language, String verbatim) implements MarkdownBlock {}
+  private record MarkupCodeBlock(Text language, Text verbatim) implements MarkdownBlock {}
 
   private record MarkdownBlockQuote(List<MarkupLine> quoted) implements MarkdownBlock {}
 
@@ -76,7 +78,11 @@ final class OpenApiMarkdown {
 
   private record MarkupSpacer() implements MarkdownBlock {}
 
-  private record MarkupSpan(MarkupSpanType type, String value, List<MarkupSpan> inner) {}
+  private record MarkupSpan(MarkupSpanType type, Text value, List<MarkupSpan> inner) {
+    MarkupSpan(MarkupSpanType type, String value, List<MarkupSpan> inner) {
+      this(type, Text.of(value), inner);
+    }
+  }
 
   private enum MarkupListType {
     BULLET,
@@ -93,13 +99,13 @@ final class OpenApiMarkdown {
   }
 
   private final StringBuilder html;
-  private final Set<String> keywords;
+  private final Set<Text> keywords;
 
   public static String markdownToHTML(String markdown) {
     return markdownToHTML(markdown, Set.of());
   }
 
-  public static String markdownToHTML(String markdown, Set<String> keywords) {
+  public static String markdownToHTML(String markdown, Set<Text> keywords) {
     if (markdown == null || markdown.isBlank()) return null;
     OpenApiMarkdown renderer = new OpenApiMarkdown(new StringBuilder(markdown.length()), keywords);
     renderer.renderText(MarkdownParser.parse(markdown));
@@ -128,9 +134,14 @@ final class OpenApiMarkdown {
 
   private void renderCodeBlock(MarkupCodeBlock block) {
     html.append("<pre");
-    if (!block.language.isEmpty())
-      html.append(" lang='").append(escapeHtml(block.language)).append("'");
-    html.append(">\n").append(escapeHtml(block.verbatim)).append("</pre>\n");
+    if (!block.language.isEmpty()) {
+      html.append(" lang='");
+      appendEscaped(block.language, html);
+      html.append("'");
+    }
+    html.append(">\n");
+    appendEscaped(block.verbatim, html);
+    html.append("</pre>\n");
   }
 
   private void renderBlockQuote(MarkdownBlockQuote block) {
@@ -210,22 +221,27 @@ final class OpenApiMarkdown {
         span.inner.forEach(this::renderSpan);
         html.append("</strong>");
       }
-      case IMAGE ->
-          html.append("<img src=\"")
-              .append(escapeHtml(span.value))
-              .append("\" alt=\"")
-              .append(escapeHtml(span.inner.get(0).value))
-              .append(" />");
+      case IMAGE -> {
+        html.append("<img src=\"");
+        appendEscaped(span.value, html);
+        html.append("\" alt=\"");
+        appendEscaped(span.inner.get(0).value, html);
+        html.append(" />");
+      }
       case LINK -> {
-        html.append("<a target=\"_blank\" href=\"").append(escapeHtml(span.value)).append("\">");
+        html.append("<a target=\"_blank\" href=\"");
+        appendEscaped(span.value, html);
+        html.append("\">");
         span.inner.forEach(this::renderSpan);
         html.append("</a>");
       }
-      case PLAIN -> html.append(escapeHtml(span.value));
+      case PLAIN -> appendEscaped(span.value, html);
       case CODE -> {
         html.append("<code");
         if (keywords.contains(span.value)) html.append(" class=\"keyword\"");
-        html.append(">").append(escapeHtml(span.value)).append("</code>");
+        html.append(">");
+        appendEscaped(span.value, html);
+        html.append("</code>");
       }
     }
   }
@@ -274,14 +290,14 @@ final class OpenApiMarkdown {
     }
 
     private MarkupCodeBlock parseCodeBlock() {
-      StringBuilder verbatim = new StringBuilder();
+      TextBuilder verbatim = new TextBuilder();
       String language = lines[lineNo++].trim().substring(3);
       String line = lines[lineNo++];
       while (!REGEX_CODE_BLOCK.matcher(line).matches()) {
         verbatim.append(line).append('\n');
         line = lines[lineNo++];
       }
-      return new MarkupCodeBlock(language, verbatim.toString());
+      return new MarkupCodeBlock(Text.of(language), verbatim.textValue());
     }
 
     private MarkupRuler parseRuler() {

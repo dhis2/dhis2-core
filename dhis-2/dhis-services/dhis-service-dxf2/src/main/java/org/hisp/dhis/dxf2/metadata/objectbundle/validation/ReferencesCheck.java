@@ -265,8 +265,10 @@ public class ReferencesCheck implements ValidationCheck {
       List<PreheatErrorReport> preheatErrorReports) {
     object
         .getAttributeValues()
+        .keys()
         .forEach(
-            (attributeId, value) -> {
+            key -> {
+              String attributeId = key.toString();
               if (preheat.get(PreheatIdentifier.UID, Attribute.class, attributeId) == null) {
                 preheatErrorReports.add(
                     new PreheatErrorReport(

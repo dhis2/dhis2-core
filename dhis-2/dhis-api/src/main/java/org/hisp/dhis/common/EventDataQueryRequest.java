@@ -373,6 +373,7 @@ public class EventDataQueryRequest {
               .userOrgUnit(criteria.getUserOrgUnit())
               .coordinateField(criteria.getCoordinateField())
               .sortOrder(criteria.getSortOrder())
+              .limit(criteria.getLimit())
               .totalPages(criteria.isTotalPages())
               .endpointItem(criteria.getEndpointItem())
               .endpointAction(criteria.getEndpointAction())

@@ -70,9 +70,12 @@ public class DefaultStageOrgUnitSqlService implements StageOrgUnitSqlService {
   /** {@inheritDoc} */
   @Override
   public ColumnAndAlias selectColumn(
-      QueryItem item, EventQueryParams params, boolean isGroupByClause) {
+      QueryItem item,
+      EventQueryParams params,
+      boolean isGroupByClause,
+      String valueColumnTableAlias) {
     OrganisationUnitResolver.StageOuCteContext stageOuContext =
-        organisationUnitResolver.buildStageOuCteContext(item, params);
+        organisationUnitResolver.buildStageOuCteContext(item, params, valueColumnTableAlias);
     if (isGroupByClause) {
       return ColumnAndAlias.ofColumn(stageOuContext.valueColumn());
     }

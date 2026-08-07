@@ -46,7 +46,5 @@ import lombok.NoArgsConstructor;
 public class Attribute implements Serializable {
   @JsonProperty private MetadataIdentifier attribute;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private String value;
 }

@@ -33,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.staticJsonMapper;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -44,7 +45,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.google.common.collect.Lists;
 import com.jayway.jsonpath.JsonPath;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -56,6 +56,7 @@ import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.DefaultNodeService;
@@ -101,6 +102,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class DataElementOperandControllerTest {
   private MockMvc mockMvc;
 
+  @Mock private DataElementService dataElementService;
+
   @Mock private IdentifiableObjectManager manager;
 
   @Mock private FieldFilterService fieldFilterService;
@@ -120,7 +123,7 @@ class DataElementOperandControllerTest {
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     injectSecurityContextNoSettings(new SystemUser());
 
     QueryService _queryService =
@@ -137,7 +140,12 @@ class DataElementOperandControllerTest {
     // Controller under test
     final DataElementOperandController controller =
         new DataElementOperandController(
-            manager, queryService, fieldFilterService, linkService, dataElementCategoryService);
+            dataElementService,
+            manager,
+            queryService,
+            fieldFilterService,
+            linkService,
+            dataElementCategoryService);
 
     // Set custom Node Message converter //
     Jackson2JsonNodeSerializer serializer = new Jackson2JsonNodeSerializer(staticJsonMapper());
@@ -168,7 +176,7 @@ class DataElementOperandControllerTest {
     final List<DataElement> dataElements =
         rnd.objects(DataElement.class, 1).collect(Collectors.toList());
 
-    when(manager.getAllSorted(DataElement.class)).thenReturn(dataElements);
+    when(dataElementService.getAllDataElements()).thenReturn(dataElements);
 
     final List<DataElementOperand> dataElementOperands =
         rnd.objects(DataElementOperand.class, (int) totalSize).collect(Collectors.toList());
@@ -201,7 +209,7 @@ class DataElementOperandControllerTest {
 
     final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
     assertThat(fieldFilterParams.getObjects(), hasSize(pageSize));
-    assertThat(fieldFilterParams.getFields(), Matchers.is(Lists.newArrayList("*")));
+    assertEquals("*", fieldFilterParams.getFields());
 
     // Make sure that the first and last element in the page matches with
     // the
@@ -225,7 +233,7 @@ class DataElementOperandControllerTest {
     final List<DataElement> dataElements =
         rnd.objects(DataElement.class, 1).collect(Collectors.toList());
 
-    when(manager.getAllSorted(DataElement.class)).thenReturn(dataElements);
+    when(dataElementService.getAllDataElements()).thenReturn(dataElements);
 
     final List<DataElementOperand> dataElementOperands =
         rnd.objects(DataElementOperand.class, (int) totalSize).collect(Collectors.toList());
@@ -262,7 +270,7 @@ class DataElementOperandControllerTest {
 
     final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
     assertThat(fieldFilterParams.getObjects(), hasSize(pageSize));
-    assertThat(fieldFilterParams.getFields(), Matchers.is(Lists.newArrayList("*")));
+    assertEquals("*", fieldFilterParams.getFields());
 
     // Make sure that the first and last element in the page matches with
     // the

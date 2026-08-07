@@ -61,7 +61,8 @@ public record BlobKeyPrefix(@Nonnull String value) {
   /**
    * Creates a {@link BlobKeyPrefix} from {@code value}, stripping any leading or trailing {@code /}
    * before construction. Prefer this over the canonical constructor when the input may carry
-   * store-native separators (e.g. JClouds appends a trailing {@code /} to folder names).
+   * store-native separators (e.g. S3's {@code CommonPrefix} entries arrive with a trailing {@code
+   * /}).
    *
    * <p>Examples:
    *

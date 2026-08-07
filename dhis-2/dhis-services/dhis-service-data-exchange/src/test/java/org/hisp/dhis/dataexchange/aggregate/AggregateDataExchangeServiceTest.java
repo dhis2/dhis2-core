@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
@@ -54,16 +56,21 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataExportGroup;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
@@ -281,5 +288,43 @@ class AggregateDataExchangeServiceTest {
     assertEquals("deTargetUid01", el.dataElement());
     assertEquals("cocTarget001", el.categoryOptionCombo());
     assertEquals("aocTarget001", el.attributeOptionCombo());
+  }
+
+  @Test
+  void testToDataEntryGroupDataSetIsNull() {
+    DataEntryGroup.Input group = AggregateDataExchangeService.toDataEntryGroup(emptyGrid(), null);
+    assertNull(group.dataSet());
+  }
+
+  @Test
+  void testToDataEntryGroupWithDataSet() {
+    DataEntryGroup.Input group =
+        AggregateDataExchangeService.toDataEntryGroup(emptyGrid(), "myDataSetUid");
+    assertEquals("myDataSetUid", group.dataSet());
+  }
+
+  @Test
+  void testToDataExportGroupDataSetIsNull() {
+    DataExportGroup.Output group =
+        AggregateDataExchangeService.toDataExportGroup(emptyGrid(), null);
+    assertNull(group.dataSet());
+  }
+
+  @Test
+  void testToDataExportGroupWithDataSet() {
+    DataExportGroup.Output group =
+        AggregateDataExchangeService.toDataExportGroup(emptyGrid(), "myDataSetUid");
+    assertEquals("myDataSetUid", group.dataSet());
+  }
+
+  private Grid emptyGrid() {
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID, "Data", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID, "OrgUnit", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID, "COC", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
+    return grid;
   }
 }

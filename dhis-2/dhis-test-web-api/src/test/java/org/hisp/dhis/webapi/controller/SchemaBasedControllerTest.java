@@ -87,6 +87,7 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
           "jobConfiguration", // API requires configurable=true
           "messageConversation", // needs recipients (not a required field)
           "programRuleAction", // needs DataElement and TrackedEntityAttribute
+          "programRuleVariable", // needs DataElement and TrackedEntityAttribute
           "validationRule", // generator insufficient (embedded fields)
           "programStage", // body request does not include mandatory field programId
           "programStageWorkingList", // same reason as programStage
@@ -251,7 +252,8 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
                     .getObject("attributeValues")
                     .node()
                     .replaceWith("[{\"value\":\"42\", \"attribute\":{\"id\":\"" + attrId + "\"}}]")
-                    .getDeclaration()),
+                    .getDeclaration()
+                    .toString()),
             ContentType(MediaType.APPLICATION_JSON)));
     assertEquals(
         "42",
@@ -260,7 +262,7 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
             .as(JsonIdentifiableObject.class)
             .getAttributeValues()
             .get(0)
-            .getValue());
+            .value());
   }
 
   private boolean isExcludedFromTest(JsonSchema schema) {

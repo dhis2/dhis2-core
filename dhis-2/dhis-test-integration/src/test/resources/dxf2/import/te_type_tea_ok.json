@@ -125,7 +125,6 @@
       "aggregationType": "COUNT",
       "attributeValues": [],
       "code": "area_urban_rural",
-      "confidential": false,
       "description": "Whether client lives in an urban or rural setting",
       "dimensionItem": "YCqoNJZKvAG",
       "dimensionItemType": "PROGRAM_ATTRIBUTE",

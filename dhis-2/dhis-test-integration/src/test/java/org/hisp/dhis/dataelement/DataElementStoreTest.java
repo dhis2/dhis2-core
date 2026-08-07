@@ -347,6 +347,7 @@ class DataElementStoreTest extends PostgresIntegrationTestBase {
     DataElement dataElementA = createDataElement('A');
     dataElementA.setCreatedBy(userA);
     dataElementStore.save(dataElementA);
+    entityManager.flush();
     assertTrue(dataElementStore.existsByUser(userA, Set.of("createdBy")));
     assertFalse(dataElementStore.existsByUser(userB, Set.of("createdBy")));
 

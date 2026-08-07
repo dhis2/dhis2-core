@@ -58,6 +58,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -67,6 +69,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -95,6 +98,7 @@ public class StaticContentController {
   private final StyleManager styleManager;
   private final FileResourceContentStore contentStore;
   private final StaticCacheControlService staticCacheControlService;
+  private final DhisConfigurationProvider dhisConfig;
   static final String LOGO_BANNER = "logo_banner";
   static final String LOGO_FRONT = "logo_front";
   private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
@@ -195,6 +199,9 @@ public class StaticContentController {
     if (file == null || file.isEmpty()) {
       throw new BadRequestException("Missing parameter 'file'");
     }
+
+    FileResourceUtils.validateFileSize(
+        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
 
     // Only PNG is accepted at the current time
 

@@ -48,7 +48,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -173,26 +172,6 @@ public class AnalyticsDimensionsTest extends ApiTest {
         .getDimensions(trackerProgram.getProgramStages().get(0))
         .validate()
         .body("dimensions.uid", not(hasItem(equalTo(teaNotAssignedToProgram))));
-  }
-
-  @Test
-  public void shouldOnlyReturnConfidentialAttributeInAggregateDimensions() {
-    String confidentialAttribute = trackedEntityAttributeActions.create("NUMBER", true, true);
-    programActions
-        .addAttribute(Constants.TRACKER_PROGRAM_ID, confidentialAttribute, false)
-        .validateStatus(200);
-
-    analyticsEnrollmentsActions
-        .query()
-        .getDimensionsByDimensionType(trackerProgram.getUid(), "PROGRAM_ATTRIBUTE")
-        .validate()
-        .body("dimensions.uid", not(CoreMatchers.hasItem(confidentialAttribute)));
-
-    analyticsEnrollmentsActions
-        .aggregate()
-        .getDimensionsByDimensionType(trackerProgram.getUid(), "PROGRAM_ATTRIBUTE")
-        .validate()
-        .body("dimensions.uid", CoreMatchers.hasItem(confidentialAttribute));
   }
 
   @ValueSource(strings = {"DATA_ELEMENT", "PROGRAM_ATTRIBUTE"})

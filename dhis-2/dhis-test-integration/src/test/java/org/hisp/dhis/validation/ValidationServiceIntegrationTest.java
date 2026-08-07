@@ -58,12 +58,14 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * ValidationService tests that need to run against a Postgres db.
  *
  * @author Jim Grace
  */
+@Transactional
 class ValidationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private ValidationService validationService;

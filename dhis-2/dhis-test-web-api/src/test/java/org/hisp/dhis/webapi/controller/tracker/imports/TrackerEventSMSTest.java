@@ -222,7 +222,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     trackedEntityType = trackedEntityTypeAccessible();
 
     teaA = createTrackedEntityAttribute('A', ValueType.PHONE_NUMBER);
-    teaA.setConfidential(false);
     teaA.getSharing().setOwner(user1);
     teaA.getSharing().addUserAccess(fullAccess(user1));
     manager.save(teaA, false);
@@ -467,7 +466,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getProgramStage(), actual.getProgramStage()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(submission.getEventDate(), actual.getOccurredDate()),
         () -> assertEquals(submission.getDueDate(), actual.getScheduledDate()),
         () -> assertEquals(EventStatus.COMPLETED, actual.getStatus()),
@@ -534,7 +532,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getProgramStage(), actual.getProgramStage()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertNull(actual.getStoredBy()),
         () -> assertEquals(event.getOccurredDate(), actual.getOccurredDate()),
         () -> assertEquals(event.getScheduledDate(), actual.getScheduledDate()),
         () -> assertEquals(EventStatus.COMPLETED, actual.getStatus()),
@@ -542,7 +539,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertNotNull(actual.getCompletedDate()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         },
         () -> assertNull(actual.getGeometry()));
@@ -604,15 +600,12 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getOrgUnit(), actual.getOrganisationUnit()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(submission.getEventDate(), actual.getOccurredDate()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertNull(actual.getCompletedDate()),
         () -> assertGeometry(submission.getCoordinates(), actual.getGeometry()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -669,12 +662,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(orgUnit, actual.getOrganisationUnit()),
         () -> assertEqualUids(eventProgram, actual.getProgramStage().getProgram()),
         () -> assertEqualUids(eventProgramStage, actual.getProgramStage()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -751,12 +741,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(trackerProgram, actualEvent.getEnrollment().getProgram()),
         () -> assertEqualUids(trackerProgramStage, actualEvent.getProgramStage()),
         () -> assertEqualUids(actualEnrollment, actualEvent.getEnrollment()),
-        () -> assertEquals(user1.getUsername(), actualEvent.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actualEvent.getStatus()),
-        () -> assertEquals(user1.getUsername(), actualEvent.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actualEvent.getEventDataValues());
         });
   }
@@ -818,12 +805,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(trackerProgram, actual.getEnrollment().getProgram()),
         () -> assertEqualUids(trackerProgramStage, actual.getProgramStage()),
         () -> assertEqualUids(enrollment, actual.getEnrollment()),
-        () -> assertEquals(user2.getUsername(), actual.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user2.getUsername(), actual.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user2.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -882,7 +866,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     event.setProgramStage(trackerProgramStage);
     event.setOrganisationUnit(enrollment.getOrganisationUnit());
     event.setAttributeOptionCombo(coc);
-    event.setOccurredDate(new Date());
+    // SMS submissions encode dates with second precision, so the occurred date must not carry
+    // milliseconds or it won't survive the SMS encode/decode round-trip in shouldUpdateEvent().
+    event.setOccurredDate(DateUtils.getDate(2024, 9, 2, 10, 15));
     event.setAutoFields();
     manager.save(event);
     return event;
@@ -920,13 +906,10 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "mismatch in latitude"));
   }
 
+  // Assert only specific fields of data values since actual values from the DB have auto-generated
+  // fields (created, lastUpdated) that we cannot predict in expected.
   private static void assertDataValues(Set<EventDataValue> expected, Set<EventDataValue> actual) {
-    // The current EventDataValues.equals implementation does not take the value/storedBy into
-    // account
-    // it does check the data element. So we first assert we have a data value for every data
-    // element we expect.
-    // We then assert on fields that are not covered by the equals implementation.
-    assertContainsOnly(expected, actual);
+    assertContainsOnly(expected, actual, EventDataValue::getDataElement);
     assertAll(
         "assert data values", expected.stream().map(e -> assertDataValue(e, actual)).toList());
   }
@@ -941,8 +924,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
       assertAll(
           "assert data value " + expected.getDataElement(),
           () -> assertEquals(expected.getDataElement(), actual.getDataElement()),
-          () -> assertEquals(expected.getValue(), actual.getValue()),
-          () -> assertEquals(expected.getStoredBy(), actual.getStoredBy()));
+          () -> assertEquals(expected.getValue(), actual.getValue()));
     };
   }
 }

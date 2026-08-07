@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +67,7 @@ import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
-import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.program.function.RelationshipCountPlaceholder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,8 +95,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
   private final SqlBuilder sqlBuilder;
 
-  private final SystemSettingsService settingsService;
-
   @Getter private final ImmutableMap<Integer, ExpressionItem> programIndicatorItems;
 
   public DefaultProgramIndicatorService(
@@ -110,8 +107,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       DimensionService dimensionService,
       I18nManager i18nManager,
       CacheProvider cacheProvider,
-      SqlBuilder sqlBuilder,
-      SystemSettingsService settingsService) {
+      SqlBuilder sqlBuilder) {
     checkNotNull(programIndicatorStore);
     checkNotNull(programIndicatorGroupStore);
     checkNotNull(programStageService);
@@ -121,7 +117,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
     checkNotNull(sqlBuilder);
-    checkNotNull(settingsService);
 
     this.programIndicatorStore = programIndicatorStore;
     this.programIndicatorGroupStore = programIndicatorGroupStore;
@@ -132,8 +127,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     this.i18nManager = i18nManager;
     this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
     this.sqlBuilder = sqlBuilder;
-    this.settingsService = settingsService;
-
     this.programIndicatorItems = new ExpressionMapBuilder().getExpressionItemMap();
   }
 
@@ -249,7 +242,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date startDate,
       Date endDate) {
     return getAnalyticsSqlCached(
-        expression, dataType, programIndicator, startDate, endDate, null, true);
+        ProgramIndicatorSqlContext.of(expression, dataType, programIndicator, startDate, endDate));
   }
 
   @Override
@@ -261,7 +254,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date startDate,
       Date endDate) {
     return getAnalyticsSqlCached(
-        expression, dataType, programIndicator, startDate, endDate, null, false);
+        ProgramIndicatorSqlContext.of(expression, dataType, programIndicator, startDate, endDate)
+            .allowingNulls());
   }
 
   @Override
@@ -274,102 +268,224 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date endDate,
       String tableAlias) {
     return getAnalyticsSqlCached(
-        expression, dataType, programIndicator, startDate, endDate, tableAlias, true);
+        ProgramIndicatorSqlContext.of(expression, dataType, programIndicator, startDate, endDate)
+            .withTableAlias(tableAlias));
   }
 
-  private String getAnalyticsSqlCached(
+  @Override
+  @Transactional(readOnly = true)
+  public String getAnalyticsSqlDeferRelationshipCount(
       String expression,
       DataType dataType,
       ProgramIndicator programIndicator,
       Date startDate,
       Date endDate,
-      String tableAlias,
-      boolean replaceNulls) {
-    if (expression == null) {
-      return null;
-    }
-
-    String cacheKey =
-        getAnalyticsSqlCacheKey(
-            expression, dataType, programIndicator, startDate, endDate, tableAlias, replaceNulls);
-    return analyticsSqlCache.get(
-        cacheKey,
-        k ->
-            getAnalyticsSqlInternal(
-                expression,
-                dataType,
-                programIndicator,
-                startDate,
-                endDate,
-                tableAlias,
-                replaceNulls));
+      String tableAlias) {
+    return getAnalyticsSqlCached(
+        ProgramIndicatorSqlContext.of(expression, dataType, programIndicator, startDate, endDate)
+            .withTableAlias(tableAlias)
+            .deferRelationshipCount());
   }
 
-  private String getAnalyticsSqlCacheKey(
+  @Override
+  @Transactional(readOnly = true)
+  public String getAnalyticsSqlAllowingNulls(
       String expression,
       DataType dataType,
       ProgramIndicator programIndicator,
       Date startDate,
       Date endDate,
-      String tableAlias,
-      boolean replaceNulls) {
-    return expression
-        + "|"
-        + dataType.name()
-        + "|"
-        + programIndicator.getUid()
-        + dateIfPresent(startDate)
-        + dateIfPresent(endDate)
-        + "|"
-        + (tableAlias == null ? "" : tableAlias)
-        + replaceNulls;
+      String tableAlias) {
+    return getAnalyticsSqlCached(
+        ProgramIndicatorSqlContext.of(expression, dataType, programIndicator, startDate, endDate)
+            .withTableAlias(tableAlias)
+            .allowingNulls());
   }
 
   /**
-   * Returns the time in milliseconds if the date is present, otherwise an empty string.
+   * Returns the analytics SQL for a program indicator expression, using a cache entry scoped to all
+   * inputs that affect the generated SQL.
    *
-   * @param date the date
-   * @return the time in milliseconds if the date is present, otherwise an empty string.
+   * <p>The request captures both SQL rendering context (expression, type, program indicator,
+   * reporting dates and table alias) and rendering modes. {@link NullHandling#REPLACE_NULLS}
+   * substitutes data element and attribute nulls with type-specific defaults, while {@link
+   * NullHandling#PRESERVE_NULLS} leaves those nulls visible to null-sensitive expressions. {@link
+   * RelationshipCountRendering#EXPAND_CORRELATED} expands {@code d2:relationshipCount} placeholders
+   * immediately to correlated subqueries, while {@link
+   * RelationshipCountRendering#DEFER_PLACEHOLDER} leaves them for dialect-specific expansion by the
+   * analytics layer.
+   *
+   * @param request the SQL rendering request.
+   * @return the generated SQL, or {@code null} when the request expression is {@code null}.
    */
-  private String dateIfPresent(Date date) {
-    return Optional.ofNullable(date)
-        .map(Date::getTime)
-        .map(millis -> "|" + millis)
-        .orElse(StringUtils.EMPTY);
+  private String getAnalyticsSqlCached(ProgramIndicatorSqlContext request) {
+    if (request.expression() == null) {
+      return null;
+    }
+
+    String cacheKey = request.cacheKey();
+    return analyticsSqlCache.get(cacheKey, k -> getAnalyticsSqlInternal(request));
   }
 
-  private String getAnalyticsSqlInternal(
+  /**
+   * Request object for rendering a program indicator expression to analytics SQL.
+   *
+   * <p>The record groups the expression rendering context with the SQL generation modes so cached
+   * and uncached helper methods do not need to pass the same long parameter list around.
+   *
+   * @param expression the program indicator expression or filter to render as SQL.
+   * @param dataType the expected analytics result type for the rendered expression.
+   * @param programIndicator the program indicator that supplies parser metadata and analytics
+   *     context.
+   * @param startDate the reporting-period start date used by period-aware program indicator items.
+   * @param endDate the reporting-period end date used by period-aware program indicator items.
+   * @param tableAlias optional replacement for the default analytics table alias.
+   * @param nullHandling whether data element and attribute nulls are replaced with defaults or
+   *     preserved.
+   * @param relationshipCountRendering whether {@code d2:relationshipCount} placeholders are
+   *     expanded immediately or left for later analytics-layer expansion.
+   */
+  private record ProgramIndicatorSqlContext(
       String expression,
       DataType dataType,
       ProgramIndicator programIndicator,
       Date startDate,
       Date endDate,
       String tableAlias,
-      boolean replaceNulls) {
+      NullHandling nullHandling,
+      RelationshipCountRendering relationshipCountRendering) {
+
+    private static ProgramIndicatorSqlContext of(
+        String expression,
+        DataType dataType,
+        ProgramIndicator programIndicator,
+        Date startDate,
+        Date endDate) {
+      return new ProgramIndicatorSqlContext(
+          expression,
+          dataType,
+          programIndicator,
+          startDate,
+          endDate,
+          null,
+          NullHandling.REPLACE_NULLS,
+          RelationshipCountRendering.EXPAND_CORRELATED);
+    }
+
+    private ProgramIndicatorSqlContext allowingNulls() {
+      return new ProgramIndicatorSqlContext(
+          expression,
+          dataType,
+          programIndicator,
+          startDate,
+          endDate,
+          tableAlias,
+          NullHandling.PRESERVE_NULLS,
+          relationshipCountRendering);
+    }
+
+    private ProgramIndicatorSqlContext withTableAlias(String tableAlias) {
+      return new ProgramIndicatorSqlContext(
+          expression,
+          dataType,
+          programIndicator,
+          startDate,
+          endDate,
+          tableAlias,
+          nullHandling,
+          relationshipCountRendering);
+    }
+
+    private ProgramIndicatorSqlContext deferRelationshipCount() {
+      return new ProgramIndicatorSqlContext(
+          expression,
+          dataType,
+          programIndicator,
+          startDate,
+          endDate,
+          tableAlias,
+          nullHandling,
+          RelationshipCountRendering.DEFER_PLACEHOLDER);
+    }
+
+    private boolean shouldReplaceNulls() {
+      return nullHandling == NullHandling.REPLACE_NULLS;
+    }
+
+    private boolean shouldExpandRelationshipCount() {
+      return relationshipCountRendering == RelationshipCountRendering.EXPAND_CORRELATED;
+    }
+
+    private String outerAlias() {
+      return tableAlias != null ? tableAlias : ANALYTICS_TBL_ALIAS;
+    }
+
+    private String cacheKey() {
+      return "expression="
+          + expression
+          + "|dataType="
+          + dataType.name()
+          + "|programIndicator="
+          + programIndicator.getUid()
+          + "|startDate="
+          + dateValue(startDate)
+          + "|endDate="
+          + dateValue(endDate)
+          + "|tableAlias="
+          + (tableAlias == null ? "" : tableAlias)
+          + "|nullHandling="
+          + nullHandling
+          + "|relationshipCountRendering="
+          + relationshipCountRendering;
+    }
+
+    private static String dateValue(Date date) {
+      return date == null ? StringUtils.EMPTY : Long.toString(date.getTime());
+    }
+  }
+
+  private enum NullHandling {
+    REPLACE_NULLS,
+    PRESERVE_NULLS
+  }
+
+  private enum RelationshipCountRendering {
+    EXPAND_CORRELATED,
+    DEFER_PLACEHOLDER
+  }
+
+  private String getAnalyticsSqlInternal(ProgramIndicatorSqlContext request) {
     // Get the uids from the expression even if this is the filter
     Set<String> uids =
         getDataElementAndAttributeIdentifiers(
-            programIndicator.getExpression(), programIndicator.getAnalyticsType());
+            request.programIndicator().getExpression(),
+            request.programIndicator().getAnalyticsType());
 
-    ExpressionParams params = ExpressionParams.builder().dataType(dataType).build();
+    ExpressionParams params = ExpressionParams.builder().dataType(request.dataType()).build();
 
     ProgramExpressionParams progParams =
         ProgramExpressionParams.builder()
-            .programIndicator(programIndicator)
-            .reportingStartDate(startDate)
-            .reportingEndDate(endDate)
+            .programIndicator(request.programIndicator())
+            .reportingStartDate(request.startDate())
+            .reportingEndDate(request.endDate())
             .dataElementAndAttributeIdentifiers(uids)
             .build();
 
-    CommonExpressionVisitor visitor = newVisitor(ITEM_GET_SQL, params, progParams, replaceNulls);
+    CommonExpressionVisitor visitor =
+        newVisitor(ITEM_GET_SQL, params, progParams, request.shouldReplaceNulls());
 
     visitor.setExpressionLiteral(new SqlLiteral(visitor.getSqlBuilder()));
 
-    String sql = castString(Parser.visit(expression, visitor));
+    String sql = castString(Parser.visit(request.expression(), visitor));
 
-    return (tableAlias != null
-        ? sql.replaceAll(ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\.")
-        : sql);
+    String aliasedSql =
+        request.tableAlias() != null
+            ? sql.replaceAll(ANALYTICS_TBL_ALIAS + "\\.", request.tableAlias() + "\\.")
+            : sql;
+
+    return request.shouldExpandRelationshipCount()
+        ? RelationshipCountPlaceholder.expandCorrelated(aliasedSql, request.outerAlias())
+        : aliasedSql;
   }
 
   @Override
@@ -462,8 +578,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .params(params)
         .progParams(progParams)
         .sqlBuilder(sqlBuilder)
-        .useExperimentalSqlEngine(
-            this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine())
         .state(ExpressionState.builder().replaceNulls(replaceNulls).build())
         .build();
   }

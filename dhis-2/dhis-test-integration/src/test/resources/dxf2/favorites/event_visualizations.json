@@ -1,6 +1,9 @@
 {
   "eventVisualizations": [
     {
+      "program": {
+        "id": "s5uvS0Q7jnX"
+      },
       "completedOnly": false,
       "externalAccess": false,
       "showData": true,
@@ -212,6 +215,9 @@
       ]
     },
     {
+      "program": {
+        "id": "s5uvS0Q7jnX"
+      },
       "organisationUnits": [
         {
           "id": "uyHni0GvBpD"
@@ -430,6 +436,9 @@
       ]
     },
     {
+      "program": {
+        "id": "s5uvS0Q7jnX"
+      },
       "aggregationType": "SUM",
       "hideTitle": false,
       "hideSubtitle": false,

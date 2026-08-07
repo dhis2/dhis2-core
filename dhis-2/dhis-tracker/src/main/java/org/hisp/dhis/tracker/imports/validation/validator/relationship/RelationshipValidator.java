@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 public class RelationshipValidator implements Validator<TrackerBundle> {
   private final Validator<TrackerBundle> validator;
 
-  public RelationshipValidator(SecurityOwnershipValidator securityOwnershipValidator) {
+  public RelationshipValidator(SecurityRelationshipValidator securityRelationshipValidator) {
     validator =
         each(
             TrackerBundle::getRelationships,
@@ -54,7 +54,7 @@ public class RelationshipValidator implements Validator<TrackerBundle> {
                 new MetaValidator(),
                 new LinkValidator(),
                 new ConstraintValidator(),
-                securityOwnershipValidator,
+                securityRelationshipValidator,
                 new DuplicationValidator()));
   }
 

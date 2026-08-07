@@ -46,7 +46,7 @@ public class JsonValueSerializer extends JsonSerializer<JsonValue> {
     if (obj == null || !obj.exists()) {
       generator.writeNull();
     } else {
-      generator.writeRawValue(obj.node().getDeclaration());
+      generator.writeRawValue(obj.toJson());
     }
   }
 }

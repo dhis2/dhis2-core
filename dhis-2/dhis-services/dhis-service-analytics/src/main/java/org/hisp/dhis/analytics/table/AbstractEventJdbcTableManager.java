@@ -121,6 +121,23 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
+   * Returns the distinct {@link AnalyticsTableColumn#getJoinClause() column-contributed join
+   * clauses} joined by a single space, or an empty string when no column declares one. Callers are
+   * responsible for inserting the result into the populating SELECT at the appropriate position via
+   * the {@code ${extraJoinClause}} template placeholder.
+   *
+   * <p>Used to support engines that populate lookup-driven columns via JOINs rather than correlated
+   * subqueries (e.g. ClickHouse).
+   */
+  protected static String collectColumnJoinClauses(List<AnalyticsTableColumn> columns) {
+    return columns.stream()
+        .map(AnalyticsTableColumn::getJoinClause)
+        .filter(s -> s != null && !s.isBlank())
+        .distinct()
+        .collect(Collectors.joining(" "));
+  }
+
+  /**
    * Returns a list of columns based on the given attribute.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
@@ -143,7 +160,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
-    return program.getNonConfidentialTrackedEntityAttributes().stream()
+    return program.getAnalyzableTrackedEntityAttributes().stream()
         .map(attribute -> replaceQualify(sqlBuilder, template, toVariableMap(attribute)))
         .collect(Collectors.joining());
   }

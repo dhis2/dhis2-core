@@ -111,14 +111,12 @@ class GistPagerControllerTest extends AbstractGistControllerTest {
     String baseUrl = "/users/{uid}/userGroups/gist";
     assertEquals(
         JsonNodeType.OBJECT,
-        GET(baseUrl, getAdminUid()).content().node().getType(),
+        GET(baseUrl, getAdminUid()).content().type(),
         "by default list should have a pager");
 
     assertEquals(
-        JsonNodeType.ARRAY,
-        GET(baseUrl + "?headless=true", getAdminUid()).content().node().getType());
+        JsonNodeType.ARRAY, GET(baseUrl + "?headless=true", getAdminUid()).content().type());
     assertEquals(
-        JsonNodeType.OBJECT,
-        GET(baseUrl + "?headless=false", getAdminUid()).content().node().getType());
+        JsonNodeType.OBJECT, GET(baseUrl + "?headless=false", getAdminUid()).content().type());
   }
 }

@@ -133,4 +133,10 @@ public class DefaultProgramNotificationTemplateService
 
     return store.getProgramNotificationTemplates(queryParams);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramNotificationTemplate> getScheduledTemplates() {
+    return store.getAll().stream().filter(n -> n.getNotificationTrigger().isScheduled()).toList();
+  }
 }

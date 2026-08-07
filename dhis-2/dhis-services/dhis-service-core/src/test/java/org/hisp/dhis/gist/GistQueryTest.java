@@ -96,7 +96,7 @@ class GistQueryTest {
   private void assertFilterEquals(
       Filter actual, int group, String name, Comparison op, String... value) {
     assertEquals(group, actual.getGroup());
-    assertEquals(name, actual.getPropertyPath());
+    assertEquals(name, actual.getPropertyPath().toString());
     assertEquals(op, actual.getOperator());
     assertArrayEquals(value, actual.getValue());
   }

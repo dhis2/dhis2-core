@@ -253,7 +253,8 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
   void testGetKeyJsonValue_ComplexValue() {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{'x':[1,2,3]}"));
     assertEquals(
-        asList(1, 2, 3), GET("/dataStore/pets/cat").content().getArray("x").numberValues());
+        asList(1, 2, 3),
+        GET("/dataStore/pets/cat").content().getArray("x").intValues().boxed().toList());
   }
 
   @Test
@@ -304,8 +305,8 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
     JsonDatastoreValue metaData =
         GET("/dataStore/pets/cat/metaData").content().as(JsonDatastoreValue.class);
     assertEquals("pets", metaData.getNamespace());
-    assertEquals("cat", metaData.getKey());
-    assertTrue(metaData.getValue().isUndefined(), "metadata should not contain the value");
+    assertEquals("cat", metaData.key());
+    assertTrue(metaData.value().isUndefined(), "metadata should not contain the value");
     JsonObject access = metaData.getObject("access");
     assertTrue(access.isObject());
     assertTrue(access.has("manage", "write", "read", "update", "delete"));

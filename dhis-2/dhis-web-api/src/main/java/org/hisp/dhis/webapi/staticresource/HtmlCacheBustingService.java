@@ -64,11 +64,15 @@ public class HtmlCacheBustingService {
 
   private final DhisConfigurationProvider config;
   private final Cache<String> rewrittenHtmlCache;
+  private final StaticCacheMetrics metrics;
 
   @Autowired
   public HtmlCacheBustingService(
-      DhisConfigurationProvider config, CacheBuilderProvider cacheBuilderProvider) {
+      DhisConfigurationProvider config,
+      CacheBuilderProvider cacheBuilderProvider,
+      StaticCacheMetrics metrics) {
     this.config = config;
+    this.metrics = metrics;
     this.rewrittenHtmlCache =
         cacheBuilderProvider
             .<String>newCacheBuilder()
@@ -79,9 +83,11 @@ public class HtmlCacheBustingService {
             .build();
   }
 
-  HtmlCacheBustingService(DhisConfigurationProvider config, Cache<String> cache) {
+  HtmlCacheBustingService(
+      DhisConfigurationProvider config, Cache<String> cache, StaticCacheMetrics metrics) {
     this.config = config;
     this.rewrittenHtmlCache = cache;
+    this.metrics = metrics;
   }
 
   /**
@@ -96,15 +102,18 @@ public class HtmlCacheBustingService {
         || app == null
         || app.getCacheBustKey() == null
         || isAppOptedOut(app)) {
+      metrics.countHtmlRewrite(StaticCacheMetrics.REWRITE_SKIPPED);
       return original;
     }
 
     String cacheKey = app.getKey() + ":" + app.getCacheBustKey() + ":" + requestUri;
     Optional<String> cached = rewrittenHtmlCache.getIfPresent(cacheKey);
     if (cached.isPresent()) {
+      metrics.countHtmlRewrite(StaticCacheMetrics.REWRITE_HIT);
       return toStream(cached.get());
     }
 
+    metrics.countHtmlRewrite(StaticCacheMetrics.REWRITE_MISS);
     String rewritten = doRewrite(original, app.getCacheBustKey());
     rewrittenHtmlCache.put(cacheKey, rewritten);
     return toStream(rewritten);
@@ -146,7 +155,11 @@ public class HtmlCacheBustingService {
 
   private void rewriteAttribute(Element el, String attr, String param) {
     String url = el.attr(attr).trim();
-    if (url.isEmpty() || isExternal(url) || url.contains("?v=") || url.contains("&v=")) {
+    if (url.isEmpty()
+        || isExternal(url)
+        || url.contains("?v=")
+        || url.contains("&v=")
+        || hasContentHash(url)) {
       return;
     }
     // Split off fragment (#...) — query params must come before the fragment
@@ -158,6 +171,16 @@ public class HtmlCacheBustingService {
     }
     String separator = url.contains("?") ? "&" : "?";
     el.attr(attr, url + separator + param + fragment);
+  }
+
+  /**
+   * Returns {@code true} if the URL contains a content hash from a bundler, making {@code ?v=}
+   * cache-busting redundant. Critically, for ES modules adding {@code ?v=} to the HTML {@code
+   * <script>} tag but not to inter-chunk {@code import()} statements inside the JS causes the
+   * browser to treat them as different modules and fetch+execute the bundle twice.
+   */
+  private static boolean hasContentHash(String url) {
+    return StaticCacheControlService.looksLikeHashedFilename(url);
   }
 
   private boolean isExternal(String url) {

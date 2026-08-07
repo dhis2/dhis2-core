@@ -298,7 +298,7 @@ class TrackerEventSecurityImportValidationTest extends PostgresIntegrationTestBa
     injectSecurityContextUser(userService.getUser(USER_5));
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasError(importReport, ValidationCode.E1000);
+    assertHasError(importReport, ValidationCode.E1105);
   }
 
   @Test

@@ -65,7 +65,7 @@ class EnrollmentQueryServiceTest {
             null,
             securityManager(params),
             eventQueryValidator(),
-            new MetadataItemsHandler(null, null, null),
+            new MetadataItemsHandler(null, null, null, null),
             new SchemeIdHandler(null),
             sqlBuilder());
 

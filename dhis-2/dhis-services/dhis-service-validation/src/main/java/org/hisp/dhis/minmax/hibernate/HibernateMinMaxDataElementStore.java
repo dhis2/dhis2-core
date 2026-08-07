@@ -47,13 +47,13 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
+import org.hisp.dhis.minmax.MinMaxDataElementParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.minmax.MinMaxValueKey;
@@ -134,29 +134,29 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   }
 
   @Override
-  public List<MinMaxDataElement> query(MinMaxDataElementQueryParams query) {
+  public List<MinMaxDataElement> query(MinMaxDataElementParams query) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     JpaQueryParameters<MinMaxDataElement> parameters = newJpaParameters();
-    parameters.addPredicate(root -> parseFilter(builder, root, query.getFilters()));
+    parameters.addPredicate(root -> parseFilter(builder, root, query.filters()));
 
-    if (!query.isSkipPaging()) {
-      Pager pager = query.getPager();
-      parameters.setFirstResult(pager.getOffset());
-      parameters.setMaxResults(pager.getPageSize());
+    PagedParams paged = query.paged();
+    if (paged.isPaged()) {
+      parameters.setFirstResult(paged.offset());
+      parameters.setMaxResults(paged.pageSize());
     }
 
     return getList(builder, parameters);
   }
 
   @Override
-  public int countMinMaxDataElements(MinMaxDataElementQueryParams query) {
+  public int countMinMaxDataElements(MinMaxDataElementParams query) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getCount(
             builder,
             newJpaParameters()
-                .addPredicate(root -> parseFilter(builder, root, query.getFilters()))
+                .addPredicate(root -> parseFilter(builder, root, query.filters()))
                 .setUseDistinct(true))
         .intValue();
   }

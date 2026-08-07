@@ -279,8 +279,11 @@ public class OpenApiController {
     for (String s : scoping.scope) {
       int split = s.indexOf(':');
       if (split > 0) {
-        String key = s.substring(0, split);
-        String value = s.substring(split + 1);
+        // The scope key/value come from the `scope` request parameter and are reflected into the
+        // generated HTML page header. Strip any HTML-significant characters here, at the single
+        // point where the scope is parsed, so no untrusted markup can reach those rendering sinks.
+        String key = OpenApiHtmlUtils.stripHtml(s.substring(0, split));
+        String value = OpenApiHtmlUtils.stripHtml(s.substring(split + 1));
         filters.computeIfAbsent(key, k -> new HashSet<>()).add(value);
       }
     }

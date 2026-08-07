@@ -41,6 +41,8 @@ node_modules
 CLAUDE.local.md
 # ignore generated artifact directory
 docker/artifacts
+# ignore downloaded curl binary used for container healthchecks
+dhis-2/dhis-web-server/src/main/jib/usr/local/bin/curl
 # ignore local docker override files
 docker-compose.override.yml
 .env

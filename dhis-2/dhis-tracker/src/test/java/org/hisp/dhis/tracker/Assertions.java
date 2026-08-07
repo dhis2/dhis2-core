@@ -332,11 +332,6 @@ public class Assertions {
                                       "noteText"),
                               () ->
                                   assertEquals(
-                                      expectedNote.getCreator(),
-                                      actualNote.getCreator(),
-                                      "creator"),
-                              () ->
-                                  assertEquals(
                                       expectedNote.getCreated(),
                                       actualNote.getCreated(),
                                       "created"));

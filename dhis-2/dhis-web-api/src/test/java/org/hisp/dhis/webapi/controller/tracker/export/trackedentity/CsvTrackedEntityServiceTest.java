@@ -73,7 +73,7 @@ class CsvTrackedEntityServiceTest {
     assertEquals(
         "h4w96yEMlzO,,"
             + instant.toString()
-            + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,,\n",
+            + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,\n",
         out.toString());
   }
 
@@ -92,7 +92,7 @@ class CsvTrackedEntityServiceTest {
     assertEquals(
         "h4w96yEMlzO,,"
             + instant.toString()
-            + ",,,,\"Test org unit\",false,false,false,\"LINESTRING (40 5, 41 6)\",,,,,,,,,,,\n",
+            + ",,,,\"Test org unit\",false,false,false,\"LINESTRING (40 5, 41 6)\",,,,,,,,,,\n",
         out.toString());
   }
 
@@ -112,13 +112,13 @@ class CsvTrackedEntityServiceTest {
     assertEquals(
         "h4w96yEMlzO,,"
             + instant.toString()
-            + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,,\n"
+            + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,\n"
             + "h4w96yEMlzO,,"
             + instant
-            + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,,\n"
+            + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,\n"
             + "h4w96yEMlzO,,"
             + instant
-            + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,,\n",
+            + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,\n",
         out.toString());
   }
 
@@ -142,16 +142,16 @@ class CsvTrackedEntityServiceTest {
     assertEquals(
         "h4w96yEMlzO,,"
             + instant.toString()
-            + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,,\n"
+            + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,\n"
             + "h4w96yEMlzO,,"
             + instant
-            + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,,\n"
+            + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,\n"
             + "h4w96yEMlzO,,"
             + instant
-            + ",,,,\"Test org unit\",false,false,false,,,,,,,,,\"attribute 1\",,\"Age test\",AGE\n"
+            + ",,,,\"Test org unit\",false,false,false,,,,,,,,\"attribute 1\",,\"Age test\",AGE\n"
             + "h4w96yEMlzO,,"
             + instant
-            + ",,,,\"Test org unit\",false,false,false,,,,,,,,,\"attribute 2\",,\"Text test\",TEXT\n",
+            + ",,,,\"Test org unit\",false,false,false,,,,,,,,\"attribute 2\",,\"Text test\",TEXT\n",
         out.toString());
   }
 
@@ -182,8 +182,8 @@ class CsvTrackedEntityServiceTest {
 
     assertEquals(
 """
-h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
-h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
+h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,"attribute 1",,"Age test",AGE
+h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,"attribute 2",,"Text test",TEXT
 """,
         csvStream.toString(),
         "The tracked entity does not match or not exists in the Zip File.");
@@ -211,8 +211,8 @@ h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (4
 
     assertEquals(
 """
-h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
-h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
+h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,"attribute 1",,"Age test",AGE
+h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,"attribute 2",,"Text test",TEXT
 """,
         csvStream.toString(),
         "The tracked entity does not match or not exists in the Zip File.");

@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholde
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 
@@ -149,7 +150,7 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
       log.error("PI {} has no Program – cannot create CTE {}", pi.getUid(), key);
       return;
     }
-    String table = "analytics_event_" + pi.getProgram().getUid();
+    String table = AnalyticsTableNames.eventTable(pi.getProgram());
     String boundaries =
         BoundarySqlBuilder.buildSql(
             pi.getAnalyticsPeriodBoundaries(),

@@ -160,11 +160,6 @@ public final class EventAnalyticsColumn {
                     "ev.lastupdated"))
             .build(),
         AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.STORED_BY_COLUMN_NAME)
-            .dataType(VARCHAR_255)
-            .selectExpression("ev.storedby")
-            .build(),
-        AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME)
             .dataType(VARCHAR_50)
             .selectExpression("ev.status")

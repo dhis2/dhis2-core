@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -122,8 +123,8 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
   @Test
   void testValidation_Field_NonPersistentPluck() {
     assertEquals(
-        "Property `displayName` cannot be plucked as it is not a persistent field.",
-        GET("/users/gist?fields=id,userGroups~pluck(displayName)")
+        "Property `user` cannot be plucked as it is not a persistent field.",
+        GET("/users/gist?fields=id,userGroups~pluck(user)")
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
@@ -186,7 +187,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
             .getObject("sharing")
             .node()
             .extract()
-            .member("public")
+            .member(Text.of("public"))
             .replaceWith("\"--------\"")
             .toString();
     assertStatus(HttpStatus.NO_CONTENT, PUT("/userGroups/" + userGroupId + "/sharing", sharing));

@@ -58,7 +58,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
 
   private Program programA;
@@ -188,9 +190,6 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
     programRuleService.updateProgramRule(ruleB);
     programRuleService.updateProgramRule(ruleC);
 
-    entityManager.clear();
-    entityManager.flush();
-
     List<String> dataElementsPresentInProgramRules =
         programRuleActonService.getDataElementsPresentInProgramRuleActions();
 
@@ -244,9 +243,6 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
     programRuleService.updateProgramRule(ruleA);
     programRuleService.updateProgramRule(ruleB);
     programRuleService.updateProgramRule(ruleC);
-
-    entityManager.clear();
-    entityManager.flush();
 
     List<String> trackedEntityAttributesPresentInProgramRules =
         programRuleActonService.getTrackedEntityAttributesPresentInProgramRuleActions();
@@ -346,9 +342,6 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
     programRuleService.updateProgramRule(ruleD);
     programRuleService.updateProgramRule(ruleG);
     programRuleService.updateProgramRule(ruleF);
-
-    entityManager.clear();
-    entityManager.flush();
 
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(

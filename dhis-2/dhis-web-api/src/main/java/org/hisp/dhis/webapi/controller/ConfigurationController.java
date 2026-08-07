@@ -459,7 +459,7 @@ public class ConfigurationController {
       value = {"/corsWhitelist", "/corsAllowlist"},
       produces = APPLICATION_JSON_VALUE)
   public @ResponseBody Set<String> getCorsWhitelist(Model model, HttpServletRequest request) {
-    return configurationService.getConfiguration().getCorsWhitelist();
+    return configurationService.getCorsWhitelist();
   }
 
   @SuppressWarnings("unchecked")
@@ -471,11 +471,7 @@ public class ConfigurationController {
   public void setCorsWhitelist(@RequestBody String input) throws IOException {
     Set<String> corsWhitelist = renderService.fromJson(input, Set.class);
 
-    Configuration configuration = configurationService.getConfiguration();
-
-    configuration.setCorsWhitelist(corsWhitelist);
-
-    configurationService.setConfiguration(configuration);
+    configurationService.setCorsWhitelist(corsWhitelist);
   }
 
   @GetMapping(

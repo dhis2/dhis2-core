@@ -31,6 +31,7 @@ package org.hisp.dhis.merge;
 
 import java.util.List;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * Functional interface representing a common {@link BaseIdentifiableObject} merge operation.
@@ -39,5 +40,5 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
  */
 @FunctionalInterface
 public interface MergeHandler {
-  <T extends BaseIdentifiableObject> void merge(List<T> sources, T target);
+  <T extends IdentifiableObject> void merge(List<T> sources, T target);
 }

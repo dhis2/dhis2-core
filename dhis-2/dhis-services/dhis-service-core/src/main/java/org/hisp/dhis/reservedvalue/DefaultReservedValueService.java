@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.reservedvalue;
 
-import static org.hisp.dhis.util.Constants.RESERVED_VALUE_GENERATION_ATTEMPT;
-import static org.hisp.dhis.util.Constants.RESERVED_VALUE_GENERATION_TIMEOUT;
+import static java.util.Objects.requireNonNullElse;
+import static org.hisp.dhis.reservedvalue.ReservedValueStore.DELETE_BATCH_SIZE;
+import static org.hisp.dhis.textpattern.TextPatternMethod.SEQUENTIAL;
+import static org.hisp.dhis.textpattern.TextPatternValidationUtils.getTotalPotentialValues;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
@@ -38,34 +40,49 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternGenerationException;
-import org.hisp.dhis.textpattern.TextPatternMethod;
 import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.hisp.dhis.textpattern.TextPatternService;
-import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Stian Sandvold
  */
 @Slf4j
 @Service("org.hisp.dhis.reservedvalue.ReservedValueService")
-@RequiredArgsConstructor
 public class DefaultReservedValueService implements ReservedValueService {
+  private static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
+  private static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+
   private final TextPatternService textPatternService;
 
   private final ReservedValueStore reservedValueStore;
 
   private final ValueGeneratorService valueGeneratorService;
+
+  private final TransactionTemplate transactionTemplate;
+
+  public DefaultReservedValueService(
+      TextPatternService textPatternService,
+      ReservedValueStore reservedValueStore,
+      ValueGeneratorService valueGeneratorService,
+      PlatformTransactionManager transactionManager) {
+    this.textPatternService = textPatternService;
+    this.reservedValueStore = reservedValueStore;
+    this.valueGeneratorService = valueGeneratorService;
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
+    this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+  }
 
   @Override
   @Transactional
@@ -76,28 +93,25 @@ public class DefaultReservedValueService implements ReservedValueService {
       Date expires)
       throws ReserveValueException, TextPatternGenerationException {
     long startTime = System.currentTimeMillis();
-    int attemptsLeft = RESERVED_VALUE_GENERATION_ATTEMPT;
-
-    List<ReservedValue> resultList = new ArrayList<>();
 
     TextPattern textPattern = trackedEntityAttribute.getTextPattern();
 
-    TextPatternSegment generatedSegment =
+    TextPatternSegment segment =
         textPattern.getSegments().stream()
             .filter(
-                (tp) ->
-                    tp.getMethod().isGenerated()
+                tps ->
+                    tps.getMethod().isGenerated()
                         && Boolean.TRUE.equals(trackedEntityAttribute.isGenerated()))
             .findFirst()
-            .orElse(null);
+            .orElse(textPattern.getSegments().get(0));
 
     String key = textPatternService.resolvePattern(textPattern, values);
 
     // Used for searching value tables
     String valueKey =
-        Optional.ofNullable(generatedSegment)
-            .map(gs -> key.replaceAll(Pattern.quote(gs.getRawSegment()), "%"))
-            .orElse(key);
+        segment.getMethod().isGenerated()
+            ? key.replaceAll(Pattern.quote(segment.getRawSegment()), "%")
+            : key;
 
     ReservedValue reservedValue =
         ReservedValue.builder()
@@ -109,59 +123,73 @@ public class DefaultReservedValueService implements ReservedValueService {
             .expiryDate(expires)
             .build();
 
-    checkIfEnoughValues(numberOfReservations, generatedSegment, reservedValue);
+    checkIfEnoughValues(numberOfReservations, segment, reservedValue);
 
-    if (generatedSegment == null) {
-      if (numberOfReservations == 1) {
-        List<ReservedValue> reservedValues =
-            Collections.singletonList(reservedValue.toBuilder().value(key).build());
+    if (segment.getMethod().isGenerated()) {
+      return reserveMultipleValues(
+          numberOfReservations,
+          segment,
+          reservedValue,
+          trackedEntityAttribute,
+          startTime,
+          key,
+          values);
+    }
+    if (numberOfReservations == 1) {
+      List<ReservedValue> reservedValues =
+          Collections.singletonList(reservedValue.toBuilder().value(key).build());
+      reservedValueStore.reserveValues(reservedValues);
+      return reservedValues;
+    }
+    return List.of();
+  }
 
-        reservedValueStore.reserveValues(reservedValues);
+  private List<ReservedValue> reserveMultipleValues(
+      int numberOfReservations,
+      TextPatternSegment segment,
+      ReservedValue reservedValue,
+      TrackedEntityAttribute trackedEntityAttribute,
+      long startTime,
+      String key,
+      Map<String, String> values)
+      throws ReserveValueException, TextPatternGenerationException {
+    int attemptsLeft = RESERVED_VALUE_GENERATION_ATTEMPT;
+    boolean isPersistable = segment.getMethod().isPersistable();
+    reservedValue.setTrackedEntityAttributeId(trackedEntityAttribute.getId());
+    List<ReservedValue> reservedValues = new ArrayList<>();
+    TextPattern textPattern = trackedEntityAttribute.getTextPattern();
 
-        return reservedValues;
+    try {
+      List<String> generatedValues = new ArrayList<>();
+
+      while (attemptsLeft-- > 0 && numberOfReservations - reservedValues.size() > 0) {
+        checkTimeout(startTime);
+        generatedValues.addAll(
+            valueGeneratorService.generateValues(
+                segment, textPattern, key, numberOfReservations - reservedValues.size()));
+        List<String> resolvedPatterns =
+            getResolvedPatterns(values, textPattern, segment, generatedValues);
+
+        saveGeneratedValues(
+            numberOfReservations - reservedValues.size(),
+            reservedValues,
+            textPattern,
+            reservedValue,
+            isPersistable,
+            resolvedPatterns);
+
+        generatedValues = new ArrayList<>();
       }
-    } else {
-      int numberOfValuesLeftToGenerate = numberOfReservations;
 
-      boolean isPersistable = generatedSegment.getMethod().isPersistable();
-
-      reservedValue.setTrackedEntityAttributeId(trackedEntityAttribute.getId());
-
-      try {
-        List<String> generatedValues = new ArrayList<>();
-
-        while (attemptsLeft-- > 0 && numberOfValuesLeftToGenerate > 0) {
-          checkTimeout(startTime);
-
-          generatedValues.addAll(
-              valueGeneratorService.generateValues(
-                  generatedSegment, textPattern, key, numberOfReservations - resultList.size()));
-
-          List<String> resolvedPatterns =
-              getResolvedPatterns(values, textPattern, generatedSegment, generatedValues);
-
-          saveGeneratedValues(
-              numberOfReservations,
-              resultList,
-              textPattern,
-              reservedValue,
-              isPersistable,
-              resolvedPatterns);
-
-          numberOfValuesLeftToGenerate = numberOfReservations - resultList.size();
-
-          generatedValues = new ArrayList<>();
-        }
-
-      } catch (TimeoutException ex) {
-        log.warn(
-            String.format(
-                "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
-                textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), resultList.size()));
-      }
+    } catch (TimeoutException ex) {
+      log.warn(
+          "Generation and reservation of values for {} with uid {} timed out. {} values was reserved. You might be running low on available values",
+          textPattern.getOwnerObject().name(),
+          textPattern.getOwnerUid(),
+          reservedValues.size());
     }
 
-    return resultList;
+    return reservedValues;
   }
 
   private void checkTimeout(long startTime) throws TimeoutException {
@@ -173,7 +201,7 @@ public class DefaultReservedValueService implements ReservedValueService {
   private List<String> getResolvedPatterns(
       Map<String, String> values,
       TextPattern textPattern,
-      TextPatternSegment generatedSegment,
+      TextPatternSegment segment,
       List<String> generatedValues)
       throws TextPatternGenerationException {
     List<String> resolvedPatterns = new ArrayList<>();
@@ -184,7 +212,7 @@ public class DefaultReservedValueService implements ReservedValueService {
               textPattern,
               ImmutableMap.<String, String>builder()
                   .putAll(values)
-                  .put(generatedSegment.getMethod().name(), generatedValue)
+                  .put(segment.getMethod().name(), generatedValue)
                   .build()));
     }
 
@@ -192,21 +220,17 @@ public class DefaultReservedValueService implements ReservedValueService {
   }
 
   private void checkIfEnoughValues(
-      int numberOfReservations, TextPatternSegment generatedSegment, ReservedValue reservedValue)
+      int numberOfReservations, TextPatternSegment segment, ReservedValue reservedValue)
       throws ReserveValueException {
-    if ((generatedSegment == null
-            || !TextPatternMethod.SEQUENTIAL.equals(generatedSegment.getMethod()))
-        && !hasEnoughValuesLeft(
-            reservedValue,
-            TextPatternValidationUtils.getTotalValuesPotential(generatedSegment),
-            numberOfReservations)) {
+    if (!SEQUENTIAL.equals(segment.getMethod())
+        && !hasEnoughValuesLeft(reservedValue, segment, numberOfReservations)) {
       throw new ReserveValueException(
           "Not enough values left to reserve " + numberOfReservations + " values.");
     }
   }
 
   private void saveGeneratedValues(
-      int numberOfReservations,
+      int remainingValuesToReserve,
       List<ReservedValue> resultList,
       TextPattern textPattern,
       ReservedValue reservedValue,
@@ -220,7 +244,7 @@ public class DefaultReservedValueService implements ReservedValueService {
               textPattern.getOwnerObject().name());
 
       List<ReservedValue> requiredValues =
-          availableValues.subList(0, Math.min(availableValues.size(), numberOfReservations));
+          availableValues.subList(0, Math.min(availableValues.size(), remainingValuesToReserve));
 
       reservedValueStore.bulkInsertReservedValues(requiredValues);
 
@@ -229,28 +253,16 @@ public class DefaultReservedValueService implements ReservedValueService {
       resultList.addAll(
           resolvedPatterns.stream()
               .map(value -> reservedValue.toBuilder().value(value).build())
-              .collect(Collectors.toList()));
+              .toList());
     }
   }
 
   private boolean hasEnoughValuesLeft(
-      ReservedValue reservedValue, long totalValues, int valuesRequired) {
+      ReservedValue reservedValue, TextPatternSegment segment, int valuesRequired) {
+    long totalValues = getTotalPotentialValues(segment);
     int used = reservedValueStore.getNumberOfUsedValues(reservedValue);
 
     return totalValues >= valuesRequired + used;
-  }
-
-  @Override
-  @Transactional
-  public boolean useReservedValue(TextPattern textPattern, String value) {
-    return reservedValueStore.useReservedValue(textPattern.getOwnerUid(), value);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isReserved(TextPattern textPattern, String value) {
-    return reservedValueStore.isReserved(
-        textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), value);
   }
 
   @Override
@@ -260,8 +272,24 @@ public class DefaultReservedValueService implements ReservedValueService {
   }
 
   @Override
-  @Transactional
-  public void removeUsedOrExpiredReservations() {
-    reservedValueStore.removeUsedOrExpiredReservations();
+  public int removeUsedOrExpiredReservations() {
+    int total = 0;
+    int deleted;
+
+    do {
+      deleted =
+          requireNonNullElse(
+              transactionTemplate.execute(s -> reservedValueStore.removeExpiredValues()), 0);
+      total += deleted;
+    } while (deleted >= DELETE_BATCH_SIZE);
+
+    do {
+      deleted =
+          requireNonNullElse(
+              transactionTemplate.execute(s -> reservedValueStore.removeUsedValues()), 0);
+      total += deleted;
+    } while (deleted >= DELETE_BATCH_SIZE);
+
+    return total;
   }
 }

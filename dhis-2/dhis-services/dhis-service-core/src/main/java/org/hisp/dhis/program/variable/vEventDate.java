@@ -45,9 +45,6 @@ public class vEventDate extends ProgramDateVariable {
 
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
-    if (!visitor.isUseExperimentalSqlEngine()) {
-      return getSqlLegacy(visitor);
-    }
     ProgramExpressionParams params = visitor.getProgParams();
 
     if (params != null
@@ -59,37 +56,5 @@ public class vEventDate extends ProgramDateVariable {
       // For Event analytics or other contexts, return the direct column name
       return "occurreddate";
     }
-  }
-
-  public Object getSqlLegacy(CommonExpressionVisitor visitor) {
-    ProgramExpressionParams params = visitor.getProgParams();
-
-    if (AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {
-      String sqlStatement =
-          visitor
-              .getStatementBuilder()
-              .getProgramIndicatorEventColumnSql(
-                  null,
-                  "occurreddate",
-                  params.getReportingStartDate(),
-                  params.getReportingEndDate(),
-                  params.getProgramIndicator());
-
-      return maybeAppendEventStatusFilterIntoWhere(sqlStatement);
-    }
-
-    return "occurreddate";
-  }
-
-  private String maybeAppendEventStatusFilterIntoWhere(String sqlStatement) {
-    int index = sqlStatement.indexOf("order by occurreddate");
-
-    if (index == -1) {
-      return sqlStatement;
-    }
-
-    return sqlStatement.substring(0, index)
-        + " and eventstatus IN ('COMPLETED', 'ACTIVE') "
-        + sqlStatement.substring(index);
   }
 }

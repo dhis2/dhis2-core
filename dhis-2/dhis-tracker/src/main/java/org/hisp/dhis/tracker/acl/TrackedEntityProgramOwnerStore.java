@@ -47,4 +47,11 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
   TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program);
 
   List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teIds);
+
+  /**
+   * Invalidates the cached ownership org unit for the te-program combination. Used by write paths
+   * that persist ownership outside this store (e.g. the JDBC tracker-import write batch) and so do
+   * not go through {@link #save} / {@link #update}, which invalidate the cache themselves.
+   */
+  void invalidateOwnershipCache(TrackedEntity te, Program program);
 }

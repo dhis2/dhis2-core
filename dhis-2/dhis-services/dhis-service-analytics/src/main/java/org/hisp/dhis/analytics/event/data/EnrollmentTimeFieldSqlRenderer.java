@@ -50,6 +50,7 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
@@ -141,7 +142,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
     for (String programStage : map.keySet()) {
       Set<AnalyticsPeriodBoundary> boundaries = map.get(programStage);
 
-      String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+      String eventTableName = AnalyticsTableNames.eventTable(programIndicator.getProgram());
       sql +=
           (firstIteration ? "" : " and ")
               + " exists(select 1 from "
