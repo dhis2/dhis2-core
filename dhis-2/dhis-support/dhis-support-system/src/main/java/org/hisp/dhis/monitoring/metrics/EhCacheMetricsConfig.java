@@ -30,7 +30,6 @@ package org.hisp.dhis.monitoring.metrics;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_EHCACHE_ENABLED;
 
 import io.micrometer.core.instrument.FunctionCounter;
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -177,13 +176,14 @@ public class EhCacheMetricsConfig {
               "The total number of times cache lookup methods did not find a requested entry in the cache")
           .register(registry);
 
-      // Point-in-time value (goes up and down), unlike the monotonic counters above, so this is a
-      // Gauge rather than a FunctionCounter.
-      Gauge.builder(
-              "ehcache_local_heap_size_bytes", stats, StatisticsGateway::getLocalHeapSizeInBytes)
-          .tags(cacheTags)
-          .description("The current size in bytes of the local heap store for this cache region")
-          .register(registry);
+      // Deliberately no ehcache_local_heap_size_bytes gauge: StatisticsGateway.
+      // getLocalHeapSizeInBytes() -> MemoryStore.getInMemorySizeInBytes() only returns a cheap,
+      // incrementally-maintained value when the cache has byte-based sizing (maxBytesLocalHeap)
+      // configured. None of our regions do (ehcache.xml only uses maxElementsInMemory), so it
+      // falls back to walking every element's object graph with Ehcache's SizeOfEngine on every
+      // single call -- i.e. on every Prometheus scrape, per region. Confirmed live: "configured
+      // limit of 1,000 object references was reached" warnings from ObjectGraphWalker, and this
+      // is O(cache size) work repeating every scrape, not a one-off cost.
     }
 
     /**
