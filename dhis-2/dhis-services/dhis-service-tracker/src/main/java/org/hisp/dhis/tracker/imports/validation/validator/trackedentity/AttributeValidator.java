@@ -131,7 +131,7 @@ class AttributeValidator
 
       validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
       validateValueType(reporter, bundle, trackedEntity, attribute.getValue(), tea);
-      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
+      validateOptionSet(reporter, bundle.getPreheat(), trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
           reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);

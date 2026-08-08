@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,7 +41,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -885,15 +883,12 @@ class DataValuesValidatorTest {
     DataValue nullDataValue = dataValue(null);
 
     OptionSet optionSet = new OptionSet();
-    Option option = new Option();
-    option.setCode("CODE");
-    Option option1 = new Option();
-    option1.setCode("CODE1");
-    optionSet.setOptions(List.of(option, option1));
+    optionSet.setId(1L);
 
     DataElement dataElement = dataElement();
     dataElement.setOptionSet(optionSet);
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.isValidOptionCode(1L, "CODE")).thenReturn(true);
 
     ProgramStage programStage = programStage(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
@@ -917,15 +912,12 @@ class DataValuesValidatorTest {
     validDataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
 
     OptionSet optionSet = new OptionSet();
-    Option option = new Option();
-    option.setCode("CODE");
-    Option option1 = new Option();
-    option1.setCode("CODE1");
-    optionSet.setOptions(List.of(option, option1));
+    optionSet.setId(1L);
 
     DataElement dataElement = dataElement();
     dataElement.setOptionSet(optionSet);
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.isValidOptionCode(1L, "value")).thenReturn(false);
 
     ProgramStage programStage = programStage(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
@@ -950,15 +942,13 @@ class DataValuesValidatorTest {
     DataValue nullDataValue = dataValue(null);
 
     OptionSet optionSet = new OptionSet();
-    Option option = new Option();
-    option.setCode("CODE");
-    Option option1 = new Option();
-    option1.setCode("CODE1");
-    optionSet.setOptions(List.of(option, option1));
+    optionSet.setId(1L);
 
     DataElement dataElement = dataElement(ValueType.MULTI_TEXT);
     dataElement.setOptionSet(optionSet);
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.isValidOptionCode(1L, "CODE")).thenReturn(true);
+    when(preheat.isValidOptionCode(1L, "CODE1")).thenReturn(true);
 
     ProgramStage programStage = programStage(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
@@ -982,15 +972,13 @@ class DataValuesValidatorTest {
     validDataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
 
     OptionSet optionSet = new OptionSet();
-    Option option = new Option();
-    option.setCode("CODE");
-    Option option1 = new Option();
-    option1.setCode("CODE1");
-    optionSet.setOptions(List.of(option, option1));
+    optionSet.setId(1L);
 
     DataElement dataElement = dataElement(ValueType.MULTI_TEXT);
     dataElement.setOptionSet(optionSet);
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.isValidOptionCode(1L, "CODE1")).thenReturn(true);
+    when(preheat.isValidOptionCode(1L, "CODE2")).thenReturn(false);
 
     ProgramStage programStage = programStage(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))

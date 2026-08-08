@@ -110,7 +110,7 @@ class DataValuesValidator implements Validator<Event> {
     }
 
     if (dataElement.hasOptionSet()) {
-      validateOptionSet(reporter, event, dataElement, dataValue.getValue());
+      validateOptionSet(reporter, bundle.getPreheat(), event, dataElement, dataValue.getValue());
     }
     validateValueType(reporter, bundle, event, dataValue.getValue(), dataElement);
   }
