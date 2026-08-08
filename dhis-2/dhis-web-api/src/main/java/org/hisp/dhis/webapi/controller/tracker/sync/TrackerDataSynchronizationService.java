@@ -29,9 +29,18 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
@@ -39,16 +48,23 @@ import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -66,14 +82,17 @@ public class TrackerDataSynchronizationService
       Mappers.getMapper(TrackedEntityMapper.class);
 
   private final TrackedEntityService trackedEntityService;
+  private final ProgramStageDataElementService programStageDataElementService;
 
   public TrackerDataSynchronizationService(
       TrackedEntityService trackedEntityService,
+      ProgramStageDataElementService programStageDataElementService,
       SystemSettingsService systemSettingsService,
       RestTemplate restTemplate,
       RenderService renderService) {
     super(renderService, restTemplate, systemSettingsService);
     this.trackedEntityService = trackedEntityService;
+    this.programStageDataElementService = programStageDataElementService;
   }
 
   @Override
@@ -87,12 +106,12 @@ public class TrackerDataSynchronizationService
   }
 
   @Override
-  public List<TrackedEntity> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
+  public List<TrackedEntity> fetchEntitiesForPage(TrackerSynchronizationContext context)
       throws BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.buildForDataSync(context.getSkipChangedBefore()).build();
     return trackedEntityService
-        .findTrackedEntities(params, PageParams.of(page, context.getPageSize(), false))
+        .findTrackedEntities(params, PageParams.of(1, context.getPageSize(), false))
         .getItems();
   }
 
@@ -131,6 +150,16 @@ public class TrackerDataSynchronizationService
   }
 
   @Override
+  public TrackerType getTrackerType() {
+    return TrackerType.TRACKED_ENTITY;
+  }
+
+  @Override
+  public UID getUid(org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity entity) {
+    return entity.getTrackedEntity();
+  }
+
+  @Override
   public org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalEntity(
       TrackedEntity trackedEntity) {
     org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity minimalTrackedEntity =
@@ -152,7 +181,178 @@ public class TrackerDataSynchronizationService
 
     SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
 
-    return TrackerSynchronizationContext.forTrackedEntities(
-        skipChangedBefore, trackedEntityCount, instance, pageSize);
+    return TrackerSynchronizationContext.forEntities(
+        skipChangedBefore,
+        trackedEntityCount,
+        instance,
+        pageSize,
+        getSkipSyncDataElementsByProgramStage());
+  }
+
+  private Map<String, Set<String>> getSkipSyncDataElementsByProgramStage() {
+    return programStageDataElementService
+        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  }
+
+  @Override
+  protected void stripSkipSyncFields(
+      List<TrackedEntity> activeDomainEntities,
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeDtos,
+      TrackerSynchronizationContext context) {
+    Set<String> skipSyncAttributeUids = skipSyncAttributeUids(activeDomainEntities);
+    Map<String, Set<String>> skipSyncDataElementsByProgramStage =
+        context.getSkipSyncDataElementsByProgramStage();
+
+    for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te : activeDtos) {
+      te.setAttributes(stripSkipSyncAttributes(te.getAttributes(), skipSyncAttributeUids));
+
+      for (Enrollment enrollment : te.getEnrollments()) {
+        enrollment.setAttributes(
+            stripSkipSyncAttributes(enrollment.getAttributes(), skipSyncAttributeUids));
+
+        for (Event event : enrollment.getEvents()) {
+          Set<String> skipDataElements =
+              skipSyncDataElementsByProgramStage.getOrDefault(event.getProgramStage(), Set.of());
+          if (!skipDataElements.isEmpty()) {
+            event.setDataValues(
+                event.getDataValues().stream()
+                    .filter(dv -> !skipDataElements.contains(dv.getDataElement()))
+                    .collect(Collectors.toSet()));
+          }
+        }
+      }
+    }
+  }
+
+  private Set<String> skipSyncAttributeUids(List<TrackedEntity> trackedEntities) {
+    return trackedEntities.stream()
+        .flatMap(
+            te ->
+                Stream.concat(
+                    te.getTrackedEntityAttributeValues().stream(), getProgramAttributeValues(te)))
+        .map(TrackedEntityAttributeValue::getAttribute)
+        .filter(a -> Boolean.TRUE.equals(a.getSkipSynchronization()))
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toSet());
+  }
+
+  private Stream<TrackedEntityAttributeValue> getProgramAttributeValues(TrackedEntity te) {
+    return te.getEnrollments().stream()
+        .map(org.hisp.dhis.tracker.model.Enrollment::getTrackedEntity)
+        .flatMap(t -> t.getTrackedEntityAttributeValues().stream());
+  }
+
+  private List<Attribute> stripSkipSyncAttributes(
+      List<Attribute> attributes, Set<String> skipSyncAttributeUids) {
+    if (skipSyncAttributeUids.isEmpty()) {
+      return attributes;
+    }
+    return attributes.stream()
+        .filter(a -> !skipSyncAttributeUids.contains(a.getAttribute()))
+        .toList();
+  }
+
+  @Override
+  protected NestedDeletion<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity>
+      splitDeletedChildren(
+          List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeEntities) {
+    List<Enrollment> deletedEnrollments = new ArrayList<>();
+    List<Event> deletedEvents = new ArrayList<>();
+    Map<UID, Relationship> deletedRelationshipsByUid = new LinkedHashMap<>();
+    // Maps each active TE to the enrollment/event/relationship UIDs it owns. If deleting one of
+    // those really fails (not just "already deleted"), we must not save a sync timestamp for
+    // that TE later, or it would never be retried.
+    Map<UID, Set<UID>> deletedChildUidsByTe = new HashMap<>();
+
+    for (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te : activeEntities) {
+      Set<UID> ownedDeletedChildUids =
+          deletedChildUidsByTe.computeIfAbsent(te.getTrackedEntity(), k -> new HashSet<>());
+
+      List<Enrollment> enrollments = te.getEnrollments();
+      List<Enrollment> deletedEnrollmentsForTe =
+          enrollments.stream().filter(Enrollment::isDeleted).toList();
+      deletedEnrollments.addAll(deletedEnrollmentsForTe);
+      deletedEnrollmentsForTe.forEach(e -> ownedDeletedChildUids.add(e.getEnrollment()));
+      List<Enrollment> activeEnrollments =
+          enrollments.stream().filter(e -> !e.isDeleted()).toList();
+      te.setEnrollments(activeEnrollments);
+
+      for (Enrollment enrollment : activeEnrollments) {
+        List<Event> events = enrollment.getEvents();
+        List<Event> deletedEventsForEnrollment = events.stream().filter(Event::isDeleted).toList();
+        deletedEvents.addAll(deletedEventsForEnrollment);
+        deletedEventsForEnrollment.forEach(e -> ownedDeletedChildUids.add(e.getEvent()));
+        List<Event> activeEvents = events.stream().filter(e -> !e.isDeleted()).toList();
+        enrollment.setEvents(activeEvents);
+
+        enrollment.setRelationships(
+            stripDeletedRelationships(
+                enrollment.getRelationships(), deletedRelationshipsByUid, ownedDeletedChildUids));
+        for (Event event : activeEvents) {
+          event.setRelationships(
+              stripDeletedRelationships(
+                  event.getRelationships(), deletedRelationshipsByUid, ownedDeletedChildUids));
+        }
+      }
+
+      te.setRelationships(
+          stripDeletedRelationships(
+              te.getRelationships(), deletedRelationshipsByUid, ownedDeletedChildUids));
+    }
+
+    Map<String, List<?>> deletedPayloadByJsonKey =
+        Map.of(
+            "enrollments", deletedEnrollments.stream().map(this::toMinimalEnrollment).toList(),
+            "events", deletedEvents.stream().map(this::toMinimalEvent).toList(),
+            "relationships",
+                deletedRelationshipsByUid.values().stream()
+                    .map(r -> toMinimalRelationship(r))
+                    .toList());
+    Map<TrackerType, Integer> deletedCountByType =
+        Map.of(
+            TrackerType.ENROLLMENT, deletedEnrollments.size(),
+            TrackerType.EVENT, deletedEvents.size(),
+            TrackerType.RELATIONSHIP, deletedRelationshipsByUid.size());
+
+    return new NestedDeletion<>(
+        activeEntities, deletedPayloadByJsonKey, deletedCountByType, deletedChildUidsByTe);
+  }
+
+  @Override
+  protected boolean hasFailedChild(
+      org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity te,
+      Map<TrackerType, Set<UID>> failedChildUidsByType) {
+    Set<UID> failedEnrollments = failedChildUidsByType.get(TrackerType.ENROLLMENT);
+    Set<UID> failedEvents = failedChildUidsByType.get(TrackerType.EVENT);
+    Set<UID> failedRelationships = failedChildUidsByType.get(TrackerType.RELATIONSHIP);
+
+    if (hasFailedRelationship(te.getRelationships(), failedRelationships)) {
+      return true;
+    }
+    for (Enrollment enrollment : te.getEnrollments()) {
+      if (failedEnrollments.contains(enrollment.getEnrollment())
+          || hasFailedRelationship(enrollment.getRelationships(), failedRelationships)) {
+        return true;
+      }
+      for (Event event : enrollment.getEvents()) {
+        if (failedEvents.contains(event.getEvent())
+            || hasFailedRelationship(event.getRelationships(), failedRelationships)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private Enrollment toMinimalEnrollment(Enrollment enrollment) {
+    Enrollment minimal = new Enrollment();
+    minimal.setEnrollment(enrollment.getEnrollment());
+    return minimal;
+  }
+
+  private Event toMinimalEvent(Event event) {
+    Event minimal = new Event();
+    minimal.setEvent(event.getEvent());
+    return minimal;
   }
 }

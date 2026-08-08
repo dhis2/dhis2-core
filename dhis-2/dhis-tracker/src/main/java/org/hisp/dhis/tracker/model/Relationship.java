@@ -200,6 +200,19 @@ public class Relationship extends BaseTrackerObject
     return uids;
   }
 
+  @JsonIgnore
+  public Set<UID> getSingleEventOrigins() {
+    Set<UID> uids = new HashSet<>();
+
+    Optional.ofNullable(this.getFrom().getSingleEvent()).map(UID::of).ifPresent(uids::add);
+
+    if (this.getRelationshipType().isBidirectional()) {
+      Optional.ofNullable(this.getTo().getSingleEvent()).map(UID::of).ifPresent(uids::add);
+    }
+
+    return uids;
+  }
+
   @JsonProperty
   public Date getCreatedAtClient() {
     return createdAtClient;
