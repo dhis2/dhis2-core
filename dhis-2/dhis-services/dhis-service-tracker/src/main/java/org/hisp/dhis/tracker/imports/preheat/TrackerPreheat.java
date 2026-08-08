@@ -47,6 +47,7 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -271,6 +272,36 @@ public class TrackerPreheat {
    * payload.
    */
   @Getter @Setter private Map<String, List<String>> programWithOrgUnitsMap;
+
+  /**
+   * Data elements of a program stage, projected instead of loaded as entities. Keyed by program
+   * stage uid.
+   *
+   * <p>These replace walking {@link
+   * org.hisp.dhis.program.ProgramStage#getProgramStageDataElements()} on a preheated stage, which
+   * is no longer mapped. A program can have thousands of data elements while an event references a
+   * handful, so loading them all as entities is the dominant cost of preheat on wide programs.
+   *
+   * <p>Only the data elements needed to answer the validations are projected: the compulsory ones,
+   * plus those referenced by the payload or by program rules. See {@link
+   * org.hisp.dhis.tracker.imports.preheat.supplier.ProgramStageDataElementsSupplier}.
+   */
+  private final Map<UID, ProgramStageDataElements> programStageDataElements = new HashMap<>();
+
+  public void putProgramStageDataElements(
+      @Nonnull UID programStage, @Nonnull ProgramStageDataElements des) {
+    programStageDataElements.put(programStage, des);
+  }
+
+  /**
+   * Returns the projected data elements of the given program stage, never null. An unknown stage
+   * yields empty sets, matching the previous behaviour of a stage with no data elements.
+   */
+  @Nonnull
+  public ProgramStageDataElements getProgramStageDataElements(@Nonnull ProgramStage programStage) {
+    return programStageDataElements.getOrDefault(
+        UID.of(programStage), ProgramStageDataElements.EMPTY);
+  }
 
   public TrackerPreheat() {}
 
