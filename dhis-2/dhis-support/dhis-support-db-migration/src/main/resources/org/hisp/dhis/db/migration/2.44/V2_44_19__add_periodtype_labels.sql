@@ -1,0 +1,1 @@
+alter table periodtype add column if not exists translations jsonb not null default '[]';
