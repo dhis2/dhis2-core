@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.EnumMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -86,11 +87,15 @@ import org.slf4j.LoggerFactory;
  *   <li><b>MNCH / PNC</b> ({@code uy2gU8kT1jF}) -- tracker program, import only
  *   <li><b>Child Programme</b> ({@code IpHINAT79UW}) -- tracker program, import + export
  *   <li><b>Antenatal care visit</b> ({@code lxAQ7Zs9VYR}) -- event program, import + export
+ *   <li><b>Inpatient morbidity and mortality</b> ({@code eBAyeGv0exc}) -- event program, import +
+ *       export
  * </ul>
  *
- * <p>Import data is pre-generated <a href="https://github.com/synthetichealth/synthea">Synthea</a>
- * patient data fetched from S3 (see {@code SyntheaToNdjson}). All scenarios run sequentially:
- * imports first (MNCH, Child, ANC), then exports (ANC Events, Child Programme).
+ * <p>MNCH, Child and ANC import data is pre-generated <a
+ * href="https://github.com/synthetichealth/synthea">Synthea</a> patient data fetched from S3 (see
+ * {@code SyntheaToNdjson}); the Inpatient event is embedded in this simulation. All scenarios run
+ * sequentially: imports first (MNCH, Child, ANC, Inpatient), then exports (ANC Events, Inpatient
+ * Events, Child Programme).
  *
  * <p><b>User provisioning:</b> The test provisions users via {@code -DprovisionUsers} (defaults to
  * an estimated value that should accommodate the peak concurrent users for the profiles' default
@@ -174,6 +179,7 @@ public class TrackerTest extends Simulation {
   private final Profile profile;
   private final String instance;
   private final String eventProgram;
+  private final String inpatientProgram;
   private final String trackerProgram;
   private final String adminUser;
   private final String adminPassword;
@@ -193,6 +199,13 @@ public class TrackerTest extends Simulation {
   private NdjsonFeeder mnchFeeder;
   private NdjsonFeeder childFeeder;
   private NdjsonFeeder ancFeeder;
+  private Iterator<Map<String, Object>> inpatientFeeder;
+
+  private static final String INPATIENT_EVENT_PAYLOAD_TEMPLATE =
+      """
+      {"orgUnit":"DiszpKrYNg8","occurredAt":"2026-08-02","geometry":null,"status":"COMPLETED","notes":[],"program":"%s","programStage":"Zj7UnCAulEk","dataValues":[{"dataElement":"oZg33kd9taw","value":"Male"},{"dataElement":"qrur9Dvnyt5","value":"56"},{"dataElement":"GieVkTxp4HH","value":"176"},{"dataElement":"vV9UWAZohSf","value":"102"},{"dataElement":"eMyVanycQSC","value":"2026-08-01"},{"dataElement":"K6uUAvq500H","value":"A011"},{"dataElement":"msodh3rEMJa","value":"2026-08-06"},{"dataElement":"fWIAEtYVEGk","value":"MODDISCH"}]}
+      """
+          .trim();
 
   private enum Profile {
     SMOKE,
@@ -247,6 +260,8 @@ public class TrackerTest extends Simulation {
     this.profile = Profile.fromString(System.getProperty("profile", "smoke"));
     this.instance = System.getProperty("instance", "http://localhost:8080");
     this.eventProgram = System.getProperty("eventProgram", "lxAQ7Zs9VYR"); // Antenatal care visit
+    this.inpatientProgram =
+        System.getProperty("inpatientProgram", "eBAyeGv0exc"); // Inpatient morbidity and mortality
     this.trackerProgram = System.getProperty("trackerProgram", "IpHINAT79UW"); // Child Programme
     this.adminUser = System.getProperty("adminUser", "admin");
     this.adminPassword = System.getProperty("adminPassword", "district");
@@ -308,6 +323,13 @@ public class TrackerTest extends Simulation {
       this.mnchFeeder = new NdjsonFeeder(cacheDir.resolve("mnch.ndjson.gz"));
       this.childFeeder = new NdjsonFeeder(cacheDir.resolve("child.ndjson.gz"));
       this.ancFeeder = new NdjsonFeeder(cacheDir.resolve("anc.ndjson.gz"));
+      this.inpatientFeeder =
+          Stream.generate(
+                  () ->
+                      Map.<String, Object>of(
+                          "payload",
+                          INPATIENT_EVENT_PAYLOAD_TEMPLATE.formatted(this.inpatientProgram)))
+              .iterator();
     }
 
     try {
@@ -316,14 +338,28 @@ public class TrackerTest extends Simulation {
       throw new RuntimeException("User provisioning failed", e);
     }
 
-    ScenarioWithRequests eventScenario = exportEnabled() ? eventProgramScenario() : null;
+    ScenarioWithRequests eventScenario =
+        exportEnabled()
+            ? eventProgramScenario(
+                this.eventProgram, "ANC Events export", "Get ANC events", "2025-12-31")
+            : null;
+    ScenarioWithRequests inpatientEventScenario =
+        exportEnabled()
+            ? eventProgramScenario(
+                this.inpatientProgram,
+                "Inpatient Events export",
+                "Get Inpatient events",
+                "2026-12-31")
+            : null;
     ScenarioWithRequests trackerScenario = exportEnabled() ? trackerProgramScenario() : null;
 
     PopulationBuilder populationBuilder =
         switch (this.testMode) {
-          case ALL -> importScenarios().andThen(exportScenarios(eventScenario, trackerScenario));
+          case ALL ->
+              importScenarios()
+                  .andThen(exportScenarios(eventScenario, inpatientEventScenario, trackerScenario));
           case IMPORT -> importScenarios();
-          case EXPORT -> exportScenarios(eventScenario, trackerScenario);
+          case EXPORT -> exportScenarios(eventScenario, inpatientEventScenario, trackerScenario);
         };
 
     HttpProtocolBuilder httpProtocolBuilder =
@@ -337,7 +373,8 @@ public class TrackerTest extends Simulation {
             .disableCaching() // to repeat the same request without HTTP cache influence (304)
             .check(status().is(200)); // global check for all requests
 
-    List<Assertion> assertions = getAssertions(this.profile, eventScenario, trackerScenario);
+    List<Assertion> assertions =
+        getAssertions(this.profile, eventScenario, inpatientEventScenario, trackerScenario);
     SetUp setUp = setUp(populationBuilder).protocols(httpProtocolBuilder).assertions(assertions);
     if (this.profile == Profile.SMOKE) {
       setUp.disablePauses();
@@ -467,7 +504,8 @@ public class TrackerTest extends Simulation {
     // events
     return importProgram("MNCH import", this.mnchFeeder, 9, "trackedEntities")
         .andThen(importProgram("Child Programme import", this.childFeeder, 4, "trackedEntities"))
-        .andThen(importProgram("ANC import", this.ancFeeder, 1, "events"));
+        .andThen(importProgram("ANC import", this.ancFeeder, 1, "events"))
+        .andThen(importProgram("Inpatient import", this.inpatientFeeder, 1, "events"));
   }
 
   /**
@@ -486,12 +524,12 @@ public class TrackerTest extends Simulation {
    * UIDs (DHIS2 generates them), so every request creates new entities.
    */
   private PopulationBuilder importProgram(
-      String name, NdjsonFeeder feeder, int entitiesPerLine, String wrapperKey) {
+      String name, Iterator<Map<String, Object>> feeder, int entitiesPerLine, String wrapperKey) {
     int linesPerRequest = this.importEntitiesPerRequest / entitiesPerLine;
     logger.debug(
         "Import {}: {} lines, {} lines/request, {} users, {}",
         name,
-        feeder.lineCount(),
+        feeder instanceof NdjsonFeeder ndjsonFeeder ? ndjsonFeeder.lineCount() : 1,
         linesPerRequest,
         this.importUsers,
         this.importRequestsPerUser > 0
@@ -545,22 +583,26 @@ public class TrackerTest extends Simulation {
   }
 
   private PopulationBuilder exportScenarios(
-      ScenarioWithRequests eventScenario, ScenarioWithRequests trackerScenario) {
+      ScenarioWithRequests eventScenario,
+      ScenarioWithRequests inpatientEventScenario,
+      ScenarioWithRequests trackerScenario) {
     List<ClosedInjectionStep> closedProfile = buildClosedInjectionProfile();
     return eventScenario
         .scenario()
         .injectClosed(closedProfile)
+        .andThen(inpatientEventScenario.scenario().injectClosed(closedProfile))
         .andThen(trackerScenario.scenario().injectClosed(closedProfile));
   }
 
-  private ScenarioWithRequests eventProgramScenario() {
+  private ScenarioWithRequests eventProgramScenario(
+      String program, String scenarioName, String groupName, String occurredBefore) {
     String singleEventUrl = "/api/tracker/events/#{eventUid}";
     String relationshipUrl =
         "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
 
     String getEventsUrl =
         "/api/tracker/events?program="
-            + this.eventProgram
+            + program
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser"
             + "&orgUnit=DiszpKrYNg8"
             + "&orgUnitMode=SELECTED"
@@ -571,44 +613,44 @@ public class TrackerTest extends Simulation {
             getEventsUrl,
             new EnumMap<>(Map.of(Profile.SMOKE, 107, Profile.LOAD, 131)),
             "Go to first page",
-            "Get ANC events");
+            groupName);
     Request goToSecondPage =
         new Request(
             getEventsUrl + "&page=2",
             new EnumMap<>(Map.of(Profile.SMOKE, 107, Profile.LOAD, 153)),
             "Go to second page",
-            "Get ANC events");
+            groupName);
     Request searchEventsByDateRange =
         new Request(
-            getEventsUrl + "&occurredAfter=2020-01-01&occurredBefore=2025-12-31",
+            getEventsUrl + "&occurredAfter=2020-01-01&occurredBefore=" + occurredBefore,
             new EnumMap<>(Map.of(Profile.SMOKE, 41, Profile.LOAD, 509)),
             "Search by date range",
-            "Get ANC events");
+            groupName);
     Request searchEventsNotAssigned =
         new Request(
             getEventsUrl + "&assignedUserMode=NONE",
             new EnumMap<>(Map.of(Profile.SMOKE, 108, Profile.LOAD, 173)),
             "Search not assigned",
-            "Get ANC events");
+            groupName);
     Request getFirstEvent =
         new Request(
             singleEventUrl,
             new EnumMap<>(Map.of(Profile.SMOKE, 55, Profile.LOAD, 118)),
             "Get first event",
-            "Get ANC events",
+            groupName,
             "Get one event");
     Request getRelationshipsForFirstEvent =
         new Request(
             relationshipUrl,
             new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get relationships for first event",
-            "Get ANC events",
+            groupName,
             "Get one event");
 
     var exportRequests =
         exec(session -> session.remove("eventUid"))
             .exec(
-                group("Get ANC events")
+                group(groupName)
                     .on(
                         // User opens event list
                         exec(goToFirstPage.action().check(jsonPath("$.events[*]").count().gte(1)))
@@ -650,7 +692,7 @@ public class TrackerTest extends Simulation {
                                                             .is(0)))))));
 
     ScenarioBuilder scenarioBuilder =
-        scenario("ANC Events export")
+        scenario(scenarioName)
             .feed(userFeeder)
             .exec(login())
             .exitHereIfFailed()
@@ -1048,11 +1090,24 @@ public class TrackerTest extends Simulation {
   private static final EnumMap<Profile, Integer> ANC_IMPORT_P95 =
       new EnumMap<>(Map.of(Profile.SMOKE, 71, Profile.LOAD, 1124));
 
+  // Provisional, not yet calibrated from performance-tests-compare.yml. Derived from ad hoc
+  // sequential POSTs of a 50-event batch (this scenario's default importEntitiesPerRequest)
+  // against the same real 2.41 Sierra Leone DB copy on the same machine, swapping only the running
+  // build: ~530-565ms steady-state on unpatched 2.41-dev vs ~190-220ms on the
+  // fix/2.41-optionset-preheat-n1 candidate. Threshold below is the candidate number rounded up
+  // with margin, times a 10x safety factor for the gap between this setup and the perf runner's
+  // dedicated hardware/lightweight demo DB (different environment, not directly comparable to
+  // ANC_IMPORT_P95's real calibrated numbers above). Replace with real numbers from a compare run
+  // before relying on this for anything but a smoke check.
+  private static final EnumMap<Profile, Integer> INPATIENT_IMPORT_P95 =
+      new EnumMap<>(Map.of(Profile.SMOKE, 300, Profile.LOAD, 3000));
+
   private Stream<Assertion> getImportAssertions(Profile profile) {
     return Stream.of(
             Map.entry("MNCH import", MNCH_IMPORT_P95),
             Map.entry("Child Programme import", CHILD_IMPORT_P95),
-            Map.entry("ANC import", ANC_IMPORT_P95))
+            Map.entry("ANC import", ANC_IMPORT_P95),
+            Map.entry("Inpatient import", INPATIENT_IMPORT_P95))
         .filter(e -> e.getValue().containsKey(profile))
         .map(e -> details(e.getKey()).responseTime().percentile(95).lte(e.getValue().get(profile)));
   }
