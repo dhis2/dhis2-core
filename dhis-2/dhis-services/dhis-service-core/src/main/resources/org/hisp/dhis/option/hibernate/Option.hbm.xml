@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.option.Option" table="optionvalue">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="optionvalueid">
       <generator class="native" />

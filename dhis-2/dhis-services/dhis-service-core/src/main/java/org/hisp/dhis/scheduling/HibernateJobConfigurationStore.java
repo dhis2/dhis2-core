@@ -385,7 +385,10 @@ public class HibernateJobConfigurationStore
         and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+            q ->
+                synchronizedNativeQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
         > 0;
   }
 
@@ -413,7 +416,10 @@ public class HibernateJobConfigurationStore
         )
         """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+            q ->
+                synchronizedNativeQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
         > 0;
   }
 
@@ -444,7 +450,10 @@ public class HibernateJobConfigurationStore
           )
         """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+            q ->
+                synchronizedNativeQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
         > 0;
   }
 
@@ -475,7 +484,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
+                synchronizedNativeQuery(q, sql)
                     .setParameter("id", jobId.getValue())
                     .setParameter("status", status.name())
                     .executeUpdate())
@@ -503,7 +512,7 @@ public class HibernateJobConfigurationStore
           or lastexecuted < (select lastexecuted from jobconfiguration where queuename = :queue and queueposition = 0 limit 1))
         """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("queue", queue).executeUpdate())
+            q -> synchronizedNativeQuery(q, sql).setParameter("queue", queue).executeUpdate())
         > 0;
   }
 
@@ -521,7 +530,7 @@ public class HibernateJobConfigurationStore
         """;
     runWriteInStatelessSession(
         q ->
-            q.createNativeQuery(sql)
+            synchronizedNativeQuery(q, sql)
                 .setParameter("id", jobId.getValue())
                 .setParameter("json", progressJson)
                 .setParameter("errors", errorCodes)
@@ -539,7 +548,7 @@ public class HibernateJobConfigurationStore
         where jobstatus = 'SCHEDULED'
         and enabled = false
         """;
-    return runWriteInStatelessSession(q -> q.createNativeQuery(sql).executeUpdate());
+    return runWriteInStatelessSession(q -> synchronizedNativeQuery(q, sql).executeUpdate());
   }
 
   @Override
@@ -557,7 +566,7 @@ public class HibernateJobConfigurationStore
     int deletedCount =
         runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
+                synchronizedNativeQuery(q, sql)
                     .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
                     .setParameter("ttl", max(1, ttlMinutes))
                     .executeUpdate());
@@ -574,7 +583,7 @@ public class HibernateJobConfigurationStore
         """;
     runWriteInStatelessSession(
         q ->
-            q.createNativeQuery(sql2)
+            synchronizedNativeQuery(q, sql2)
                 .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
                 .executeUpdate());
     return deletedCount;
@@ -606,7 +615,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
         q ->
-            q.createNativeQuery(sql)
+            synchronizedNativeQuery(q, sql)
                 .setParameter("timeout", max(1, timeoutMinutes))
                 .executeUpdate());
   }
@@ -637,8 +646,24 @@ public class HibernateJobConfigurationStore
         and now() > jobconfiguration.lastalive + interval '1 minute'
       """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+            q ->
+                synchronizedNativeQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
         > 0;
+  }
+
+  /**
+   * Creates a native query that declares the table it touches. Without a synchronized query space,
+   * Hibernate cannot know which cached entities a native {@code executeUpdate} affects and
+   * conservatively invalidates EVERY second level cache region (a wholesale cache wipe). The
+   * scheduler writes through this store every ~20 seconds, which without this declaration empties
+   * all caches at that cadence (l2-cache-truth Phase 4 finding, 2026-08-07).
+   */
+  private static NativeQuery<?> synchronizedNativeQuery(StatelessSession session, String sql) {
+    NativeQuery<?> query = session.createNativeQuery(sql);
+    query.addSynchronizedQuerySpace("jobconfiguration");
+    return query;
   }
 
   @SuppressWarnings("unchecked")

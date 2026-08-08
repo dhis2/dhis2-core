@@ -90,7 +90,7 @@ import org.hisp.dhis.user.sharing.Sharing;
       @Index(name = "maplegend_endvalue", columnList = "endvalue")
     })
 @JacksonXmlRootElement(localName = "legend", namespace = DxfNamespaces.DXF_2_0)
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Setter
 public class Legend implements IdentifiableObject, EmbeddedObject {
 
