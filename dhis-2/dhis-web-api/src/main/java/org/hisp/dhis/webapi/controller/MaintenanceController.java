@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryService;
@@ -85,6 +86,7 @@ public class MaintenanceController {
   private final AppManager appManager;
   private final CategoryService categoryService;
   private final CategoryOptionComboGenerateService categoryOptionComboGenerateService;
+  private final ETagService eTagVersionService;
 
   @RequestMapping(
       value = "/analyticsTablesClear",
@@ -233,6 +235,15 @@ public class MaintenanceController {
   public WebMessage clearCache() {
     maintenanceService.clearApplicationCaches();
     return WebMessageUtils.ok();
+  }
+
+  @RequestMapping(
+      value = "/etagCacheClear",
+      method = {RequestMethod.PUT, RequestMethod.POST})
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage clearETagCache() {
+    long newVersion = eTagVersionService.incrementAllCacheVersion();
+    return ok("ETag cache invalidated. New all-cache version: " + newVersion);
   }
 
   @RequestMapping(

@@ -1,0 +1,10 @@
+{
+  "jobConfigurations": [
+    {
+      "id": "CchJob00001",
+      "name": "Cache Test Job",
+      "jobType": "DATA_INTEGRITY",
+      "cronExpression": "0 0 3 ? * MON"
+    }
+  ]
+}
