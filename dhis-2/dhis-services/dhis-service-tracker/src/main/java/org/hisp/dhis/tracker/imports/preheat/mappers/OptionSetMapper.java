@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.List;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
+/**
+ * {@code options} is deliberately left unmapped — mapping it would force Hibernate to fully
+ * materialize the {@code OptionSet.options} collection (including JSONB attribute values) on every
+ * preheat, regardless of how many option codes the import actually references. {@link
+ * org.hisp.dhis.tracker.imports.preheat.supplier.OptionValueSupplier} preheats only the specific
+ * {@code (option set, code)} pairs the payload references instead.
+ */
 @Mapper(uses = DebugMapper.class)
 public interface OptionSetMapper extends PreheatMapper<OptionSet> {
   OptionSetMapper INSTANCE = Mappers.getMapper(OptionSetMapper.class);
@@ -45,9 +49,5 @@ public interface OptionSetMapper extends PreheatMapper<OptionSet> {
   @Mapping(target = "uid")
   @Mapping(target = "name")
   @Mapping(target = "code")
-  @Mapping(target = "options", qualifiedByName = "options")
   OptionSet map(OptionSet optionSet);
-
-  @Named("options")
-  List<Option> mapOptionValues(List<Option> options);
 }

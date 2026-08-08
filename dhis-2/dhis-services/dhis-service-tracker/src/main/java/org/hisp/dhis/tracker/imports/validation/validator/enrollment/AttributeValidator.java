@@ -97,7 +97,7 @@ class AttributeValidator
         attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
         validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
         validateValueType(reporter, bundle, enrollment, attribute.getValue(), teAttribute);
-        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
+        validateOptionSet(reporter, preheat, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
             reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);
