@@ -194,6 +194,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                 batch,
                 existingAttributeValues);
             bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
+            bundle.addUpdatedSingleEvents(getUpdatedSingleEvents(convertedDto));
           } else {
             if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
               typeReport.getStats().incIgnored();
@@ -218,6 +219,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
               typeReport.getStats().incUpdated();
               typeReport.addEntity(objectReport);
               bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
+              bundle.addUpdatedSingleEvents(getUpdatedSingleEvents(convertedDto));
             }
           }
 
@@ -333,6 +335,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
    * Get Tracked Entities for enrollments, events or relationships that have been created or updated
    */
   protected abstract Set<UID> getUpdatedTrackedEntities(V entity);
+
+  /**
+   * Get single events that have been created or updated as a side effect of persisting {@code
+   * entity}
+   */
+  protected abstract Set<UID> getUpdatedSingleEvents(V entity);
 
   /** Clones the event properties that may potentially be change logged */
   protected abstract V cloneEntityProperties(TrackerPreheat preheat, T trackerDto);
