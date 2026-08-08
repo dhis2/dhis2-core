@@ -162,7 +162,7 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
         (RowCallbackHandler)
             rs -> confirmed.add(Pair.of(rs.getLong(OPTION_SET_ID), rs.getString(CODE))));
 
-    for (Pair<Long, String> pair : chunk) {
+    for (Pair<Long, String> pair : chunk) { // NOSONAR confirmed comes from the query in between
       if (confirmed.contains(pair)) {
         preheat.addValidOptionCode(pair.getLeft(), pair.getRight());
       }
