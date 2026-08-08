@@ -35,8 +35,8 @@ import org.mapstruct.factory.Mappers;
 
 /**
  * {@code options} is deliberately left unmapped — mapping it would force Hibernate to fully
- * materialize the {@code OptionSet.options} collection (including JSONB attribute values) on
- * every preheat, regardless of how many option codes the import actually references. {@link
+ * materialize the {@code OptionSet.options} collection (including JSONB attribute values) on every
+ * preheat, regardless of how many option codes the import actually references. {@link
  * org.hisp.dhis.tracker.imports.preheat.supplier.OptionValueSupplier} preheats only the specific
  * {@code (option set, code)} pairs the payload references instead.
  */

@@ -97,6 +97,21 @@ class TrackerPreheatTest extends DhisConvenienceTest {
   }
 
   @Test
+  void shouldReturnFalseForOptionSetThatWasNeverResolved() {
+    assertFalse(preheat.isOptionSetResolved(1L));
+  }
+
+  @Test
+  void shouldTrackResolvedOptionSetsIndependentlyOfCodeValidity() {
+    preheat.addResolvedOptionSet(1L);
+
+    assertTrue(preheat.isOptionSetResolved(1L));
+    assertFalse(preheat.isOptionSetResolved(2L));
+    // resolving an option set says nothing about which of its codes are valid
+    assertFalse(preheat.isValidOptionCode(1L, "CODE"));
+  }
+
+  @Test
   void testPreheatCategoryOptionCombo() {
 
     CategoryCombo categoryCombo = categoryCombo();

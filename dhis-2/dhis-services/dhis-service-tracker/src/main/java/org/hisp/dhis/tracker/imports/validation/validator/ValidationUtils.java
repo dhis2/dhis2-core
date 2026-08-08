@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
@@ -75,6 +76,7 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public class ValidationUtils {
   private ValidationUtils() {
     throw new IllegalStateException("Utility class");
@@ -248,6 +250,14 @@ public class ValidationUtils {
         codes.stream().allMatch(code -> preheat.isValidOptionCode(optionSetId, code));
 
     if (!allCodesValid) {
+      if (!preheat.isOptionSetResolved(optionSetId)) {
+        // Diagnostic only, the validation outcome below is unchanged. An unresolved option set
+        // means the supplier never checked it, which is an internal bug rather than user error.
+        log.warn(
+            "Option set {} was never resolved during preheat; treating code {} as invalid",
+            optionalObject.getOptionSet().getUid(),
+            value);
+      }
       reporter.addError(dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid());
     }
   }

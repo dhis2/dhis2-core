@@ -93,7 +93,8 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
         addCandidates(
             preheat.getTrackedEntityAttribute(attribute.getAttribute()),
             attribute.getValue(),
-            candidates);
+            candidates,
+            preheat);
       }
     }
 
@@ -102,14 +103,18 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
         addCandidates(
             preheat.getTrackedEntityAttribute(attribute.getAttribute()),
             attribute.getValue(),
-            candidates);
+            candidates,
+            preheat);
       }
     }
 
     for (Event event : trackerObjects.getEvents()) {
       for (DataValue dataValue : event.getDataValues()) {
         addCandidates(
-            preheat.getDataElement(dataValue.getDataElement()), dataValue.getValue(), candidates);
+            preheat.getDataElement(dataValue.getDataElement()),
+            dataValue.getValue(),
+            candidates,
+            preheat);
       }
     }
 
@@ -119,12 +124,15 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
   private void addCandidates(
       ValueTypedDimensionalItemObject optionalObject,
       String value,
-      Set<Pair<Long, String>> candidates) {
+      Set<Pair<Long, String>> candidates,
+      TrackerPreheat preheat) {
     if (optionalObject == null || value == null || !optionalObject.hasOptionSet()) {
       return;
     }
 
     Long optionSetId = optionalObject.getOptionSet().getId();
+    preheat.addResolvedOptionSet(optionSetId);
+
     List<String> codes =
         optionalObject.getValueType().isMultiText()
             ? ValueType.splitMultiText(value)

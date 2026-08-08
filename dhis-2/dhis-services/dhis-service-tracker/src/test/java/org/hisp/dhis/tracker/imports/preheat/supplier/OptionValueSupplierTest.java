@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -121,6 +123,48 @@ class OptionValueSupplierTest {
     Set<Pair<Long, String>> candidates = supplier.collectCandidates(trackerObjects, preheat);
 
     assertEquals(Set.of(Pair.of(1L, "A00"), Pair.of(1L, "B99")), candidates);
+  }
+
+  @Test
+  void shouldMarkOptionSetAsResolvedEvenWhenNoCodeTurnsOutToBeValid() {
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(dataElement);
+
+    DataValue dataValue =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid("dataElement"))
+            .value("A00")
+            .build();
+    Event event = Event.builder().dataValues(Set.of(dataValue)).build();
+    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
+
+    supplier.collectCandidates(trackerObjects, preheat);
+
+    assertTrue(preheat.isOptionSetResolved(1L));
+    // no code was confirmed against the database, the option set is still "resolved"
+    assertFalse(preheat.isValidOptionCode(1L, "A00"));
+  }
+
+  @Test
+  void shouldNotMarkAnOptionSetAsResolvedWhenNoValueReferencesOne() {
+    DataElement plainDataElement = new DataElement();
+    plainDataElement.setUid("plain");
+    plainDataElement.setValueType(ValueType.TEXT);
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(plainDataElement);
+
+    DataValue dataValue =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid("plain"))
+            .value("anything")
+            .build();
+    Event event = Event.builder().dataValues(Set.of(dataValue)).build();
+    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
+
+    supplier.collectCandidates(trackerObjects, preheat);
+
+    assertFalse(preheat.isOptionSetResolved(1L));
   }
 
   @Test

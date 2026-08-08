@@ -62,6 +62,20 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
 
   private final List<Attribute> attributes;
 
+  /** The tracked entity attribute this action assigns to. */
+  public String getAttributeUid() {
+    return attributeUid;
+  }
+
+  /**
+   * The value this action will assign. It is the rule engine's already evaluated output (the {@code
+   * data} of a {@code RuleEffects} entry), so it is final and known as soon as the rule effects
+   * have been calculated, before {@link #executeRuleAction(TrackerBundle, Enrollment)} runs.
+   */
+  public String getValue() {
+    return value;
+  }
+
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
     Boolean canOverwrite =

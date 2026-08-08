@@ -145,8 +145,21 @@ public class TrackerPreheat {
    * Set of (option set id, option code) pairs confirmed to exist, populated by {@code
    * OptionValueSupplier}. Only pairs actually referenced by the import payload are present here —
    * this is not the full set of options for any given option set.
+   *
+   * <p>Preheated {@link org.hisp.dhis.option.OptionSet} instances deliberately carry no populated
+   * {@code options} collection (see {@code OptionSetMapper} for why). {@link
+   * #isValidOptionCode(Long, String)} and {@link #addValidOptionCode(Long, String)} are the
+   * supported way to check option code validity against preheated data. Do not call {@code
+   * OptionSet#getOptions()} on a preheated option set expecting real data — it is always empty.
    */
   private final Set<Pair<Long, String>> validOptionCodes = new HashSet<>();
+
+  /**
+   * Option sets {@code OptionValueSupplier} attempted to resolve. Lets callers tell "this code was
+   * checked against the database and does not exist" apart from "this option set was never resolved
+   * at all", which would be an internal bug rather than user error.
+   */
+  private final Set<Long> resolvedOptionSets = new HashSet<>();
 
   public void addValidOptionCode(Long optionSetId, String code) {
     this.validOptionCodes.add(Pair.of(optionSetId, code));
@@ -154,6 +167,14 @@ public class TrackerPreheat {
 
   public boolean isValidOptionCode(Long optionSetId, String code) {
     return this.validOptionCodes.contains(Pair.of(optionSetId, code));
+  }
+
+  public void addResolvedOptionSet(Long optionSetId) {
+    this.resolvedOptionSets.add(optionSetId);
+  }
+
+  public boolean isOptionSetResolved(Long optionSetId) {
+    return this.resolvedOptionSets.contains(optionSetId);
   }
 
   /**

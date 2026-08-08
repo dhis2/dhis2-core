@@ -66,6 +66,15 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
     return dataElementUid;
   }
 
+  /**
+   * The value this action will assign. It is the rule engine's already evaluated output (the {@code
+   * data} of a {@code RuleEffects} entry), so it is final and known as soon as the rule effects
+   * have been calculated, before {@link #executeRuleAction(TrackerBundle, Event)} runs.
+   */
+  public String getValue() {
+    return value;
+  }
+
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
     Boolean canOverwrite =
