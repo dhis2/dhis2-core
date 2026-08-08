@@ -98,24 +98,29 @@ public class DefaultProgramNotificationTemplateService
   }
 
   @Override
+  public void invalidateCache(String uid) {
+    templateCache.invalidate(uid);
+  }
+
+  @Override
   @Transactional
   public void save(ProgramNotificationTemplate programNotificationTemplate) {
     store.save(programNotificationTemplate);
-    templateCache.invalidate(programNotificationTemplate.getUid());
+    invalidateCache(programNotificationTemplate.getUid());
   }
 
   @Override
   @Transactional
   public void update(ProgramNotificationTemplate programNotificationTemplate) {
     store.update(programNotificationTemplate);
-    templateCache.invalidate(programNotificationTemplate.getUid());
+    invalidateCache(programNotificationTemplate.getUid());
   }
 
   @Override
   @Transactional
   public void delete(ProgramNotificationTemplate programNotificationTemplate) {
     store.delete(programNotificationTemplate);
-    templateCache.invalidate(programNotificationTemplate.getUid());
+    invalidateCache(programNotificationTemplate.getUid());
   }
 
   @Override
