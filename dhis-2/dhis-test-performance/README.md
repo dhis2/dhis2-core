@@ -184,17 +184,22 @@ Available properties:
 
 ## Tracker Tests
 
-The `tracker` package (`org.hisp.dhis.test.tracker`) tests the Tracker API using three Sierra Leone
+The `tracker` package (`org.hisp.dhis.test.tracker`) tests the Tracker API using four Sierra Leone
 demo DB programs:
 
 * **MNCH / PNC (Adult Woman)** (`uy2gU8kT1jF`) -- tracker program with 4 stages
 * **Child Programme** (`IpHINAT79UW`) -- tracker program with 2 stages
 * **Antenatal care visit** (`lxAQ7Zs9VYR`) -- event program
+* **Inpatient morbidity and mortality** (`eBAyeGv0exc`) -- event program; exercises the ~14,000-option
+  ICD-10 diagnosis option set (`eUZ79clX7y1`, data element `K6uUAvq500H`)
 
-Import data is pre-generated from [Synthea](https://github.com/synthetichealth/synthea) synthetic
-patient data (ndjson.gz, one JSON object per line). Files are stored in S3
-(`s3://databases.dhis2.org/tracker/synthea/import/`) and fetched automatically by TrackerTest
-with ETag-based caching (`~/.cache/dhis2/perf/tracker/`).
+Import data for MNCH, Child and ANC is pre-generated from
+[Synthea](https://github.com/synthetichealth/synthea) synthetic patient data (ndjson.gz, one JSON
+object per line). Files are stored in S3 (`s3://databases.dhis2.org/tracker/synthea/import/`) and
+fetched automatically by TrackerTest with ETag-based caching (`~/.cache/dhis2/perf/tracker/`).
+Inpatient import data is a single event payload embedded directly in `TrackerTest.java` -- the goal
+is exercising the large ICD-10 option set, not per-patient data variety, so no Synthea generation or
+S3 fetch is needed for it.
 
 ### Generating import payloads
 
