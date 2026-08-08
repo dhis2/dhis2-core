@@ -329,6 +329,8 @@ public class DefaultSchemaService implements SchemaService {
 
   private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
 
+  private final List<Schema> nonEmbeddedSchemaMap = new ArrayList<>();
+
   private final Map<String, Schema> singularSchemaMap = new HashMap<>();
 
   private final Map<String, Schema> pluralSchemaMap = new HashMap<>();
@@ -393,6 +395,7 @@ public class DefaultSchemaService implements SchemaService {
             Maps.newHashMap(propertyIntrospectorService.getPropertiesMap(schema.getKlass())));
       }
 
+      if (!schema.isEmbeddedObject()) nonEmbeddedSchemaMap.add(schema);
       classSchemaMap.put(schema.getKlass(), schema);
       singularSchemaMap.put(schema.getSingular(), schema);
       pluralSchemaMap.put(schema.getPlural(), schema);
@@ -484,16 +487,19 @@ public class DefaultSchemaService implements SchemaService {
   }
 
   @Override
-  public List<Schema> getSortedSchemas() {
-    List<Schema> schemas = Lists.newArrayList(classSchemaMap.values());
-    schemas.sort(OrderComparator.INSTANCE);
+  public List<Schema> getNonEmbeddedSchemas() {
+    return nonEmbeddedSchemaMap;
+  }
 
-    return schemas;
+  @Override
+  public List<Schema> getSortedNonEmbeddedSchemas() {
+    nonEmbeddedSchemaMap.sort(OrderComparator.INSTANCE);
+    return nonEmbeddedSchemaMap;
   }
 
   @Override
   public List<Schema> getMetadataSchemas() {
-    List<Schema> schemas = getSchemas();
+    List<Schema> schemas = getNonEmbeddedSchemas();
 
     schemas.removeIf(schema -> !schema.isMetadata());
     schemas.sort(OrderComparator.INSTANCE);

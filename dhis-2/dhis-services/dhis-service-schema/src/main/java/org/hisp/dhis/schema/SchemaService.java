@@ -86,12 +86,14 @@ public interface SchemaService {
    */
   List<Schema> getSchemas();
 
+  List<Schema> getNonEmbeddedSchemas();
+
   /**
    * Get all available schemas (which are generated with a schema descriptor).
    *
    * @return List of all available schemas
    */
-  List<Schema> getSortedSchemas();
+  List<Schema> getSortedNonEmbeddedSchemas();
 
   /**
    * Get all available schemas which have the metadata property set to true.
