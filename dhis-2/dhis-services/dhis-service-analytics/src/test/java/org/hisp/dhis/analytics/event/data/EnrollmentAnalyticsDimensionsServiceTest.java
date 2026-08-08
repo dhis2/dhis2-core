@@ -88,7 +88,6 @@ class EnrollmentAnalyticsDimensionsServiceTest {
         allValueTypeDataElements().stream()
             .map(de -> getSkippedProgramStageDataElement(stage, de))
             .collect(toSet()));
-    when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
     when(program.getTrackedEntityAttributes()).thenReturn(allSkippedValueTypeTEAs());
 
     List<IdentifiableObject> analyticsDimensions =
@@ -122,7 +121,6 @@ class EnrollmentAnalyticsDimensionsServiceTest {
         allValueTypeDataElements().stream()
             .map(de -> new ProgramStageDataElement(stage, de))
             .collect(toSet()));
-    when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
     when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
 
     List<IdentifiableObject> analyticsDimensions =
