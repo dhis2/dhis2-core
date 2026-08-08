@@ -70,6 +70,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
   private final PartitionManager partitionManager;
 
+  private final OrganisationUnitResolver organisationUnitResolver;
+
   // -------------------------------------------------------------------------
   // EventQueryPlanner implementation
   // -------------------------------------------------------------------------
@@ -260,14 +262,22 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
       }
 
       for (ProgramIndicator programIndicator : params.getItemProgramIndicators()) {
+        AnalyticsAggregationType aggregationType =
+            fromAggregationType(programIndicator.getAggregationTypeFallback());
+
+        aggregationType =
+            organisationUnitResolver.getMinOrMaxOrgUnitAggregationIfAny(
+                params.getAllOrganisationUnits(),
+                programIndicator.getAggregationType(),
+                aggregationType);
+
         EventQueryParams query =
             new EventQueryParams.Builder(params)
                 .removeItems()
                 .removeItemProgramIndicators()
                 .withProgramIndicator(programIndicator)
                 .withProgram(programIndicator.getProgram())
-                .withAggregationType(
-                    fromAggregationType(programIndicator.getAggregationTypeFallback()))
+                .withAggregationType(aggregationType)
                 .withOrgUnitField(new OrgUnitField(programIndicator.getOrgUnitField()))
                 .build();
 
