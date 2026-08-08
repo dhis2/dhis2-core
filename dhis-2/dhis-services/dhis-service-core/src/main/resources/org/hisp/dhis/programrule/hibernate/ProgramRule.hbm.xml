@@ -29,7 +29,7 @@
 
     <!-- batch-size: without it, mapping all ProgramRules to rule-engine Rules
          (DefaultProgramRuleEntityMapperService.toMappedProgramRules) lazily inits this
-         collection once per distinct ProgramRule -- live-traced as ~400 single-row
+         collection once per distinct ProgramRule, live-traced as ~400 single-row
          "WHERE programruleid = ?" SELECTs per request. L2 cache doesn't help here since
          each rule is a first-touch within the request, not a repeat lookup. batch-size
          folds pending collection inits within one session into WHERE programruleid IN (...)
