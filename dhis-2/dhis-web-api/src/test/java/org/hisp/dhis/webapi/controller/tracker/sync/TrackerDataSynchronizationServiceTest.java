@@ -273,24 +273,8 @@ class TrackerDataSynchronizationServiceTest {
             .getProgramStageDataElementsWithSkipSynchronizationSetToTrue())
         .thenReturn(Map.of("ProgStageAB", Set.of("SkipDataElAB")));
 
-    mockServer
-        .expect(requestTo(Matchers.containsString("/api/system/ping")))
-        .andExpect(method(HttpMethod.GET))
-        .andRespond(withSuccess(PING_RESPONSE, MediaType.TEXT_PLAIN));
-    mockServer
-        .expect(requestTo(Matchers.containsString("importStrategy=CREATE_AND_UPDATE")))
-        .andExpect(method(HttpMethod.POST))
-        .andRespond(respondWith(successReport()));
-
-    ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
-    service.synchronizeTrackerData(100, JobProgress.noop());
-    verify(renderService, times(1)).toJson(any(), bodyCaptor.capture());
-    mockServer.verify();
-
-    Map<?, ?> payload = (Map<?, ?>) bodyCaptor.getValue();
-    List<?> teList = (List<?>) payload.get("trackedEntities");
     org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity teDto =
-        (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity) teList.get(0);
+        synchronizeAndCaptureCreateAndUpdatePayload();
 
     assertEquals(
         List.of("KeepAttrUAB"),
@@ -305,6 +289,31 @@ class TrackerDataSynchronizationServiceTest {
         dataValues.stream()
             .map(org.hisp.dhis.webapi.controller.tracker.view.DataValue::getDataElement)
             .toList());
+  }
+
+  @Test
+  void shouldStripProgramAttributeSetToSkipSynchronization() throws Exception {
+    TrackedEntity te = buildTeWithEnrollmentContaining("ActEvtUidAB", null);
+
+    TrackedEntityAttribute programSkipAttribute = new TrackedEntityAttribute();
+    programSkipAttribute.setUid("ProgSkipAttAB");
+    programSkipAttribute.setSkipSynchronization(true);
+
+    Enrollment enrollment = te.getEnrollments().iterator().next();
+    TrackedEntity enrollmentTe = new TrackedEntity();
+    enrollmentTe.setUid(te.getUid());
+    enrollmentTe.setTrackedEntityAttributeValues(
+        new LinkedHashSet<>(
+            List.of(
+                new TrackedEntityAttributeValue(programSkipAttribute, enrollmentTe, "skip-me"))));
+    enrollment.setTrackedEntity(enrollmentTe);
+
+    stubTrackedEntityService(te);
+
+    org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity teDto =
+        synchronizeAndCaptureCreateAndUpdatePayload();
+
+    assertEquals(List.of(), teDto.getEnrollments().get(0).getAttributes());
   }
 
   @Test
@@ -527,6 +536,31 @@ class TrackerDataSynchronizationServiceTest {
     ArgumentCaptor<Set<UID>> uidsCaptor = ArgumentCaptor.forClass(Set.class);
     verify(trackedEntityService).updateTrackedEntitiesSyncTimestamp(uidsCaptor.capture(), any());
     assertEquals(Set.of(UID.of("DeletedTeAB")), uidsCaptor.getValue());
+  }
+
+  /**
+   * Runs a create/update-only sync (expecting exactly one tracked entity in the payload) and
+   * returns that entity's mapped view, for tests asserting on stripped/kept fields.
+   */
+  private org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity
+      synchronizeAndCaptureCreateAndUpdatePayload() throws Exception {
+    mockServer
+        .expect(requestTo(Matchers.containsString("/api/system/ping")))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(withSuccess(PING_RESPONSE, MediaType.TEXT_PLAIN));
+    mockServer
+        .expect(requestTo(Matchers.containsString("importStrategy=CREATE_AND_UPDATE")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(respondWith(successReport()));
+
+    ArgumentCaptor<Object> bodyCaptor = ArgumentCaptor.forClass(Object.class);
+    service.synchronizeTrackerData(100, JobProgress.noop());
+    verify(renderService, times(1)).toJson(any(), bodyCaptor.capture());
+    mockServer.verify();
+
+    Map<?, ?> payload = (Map<?, ?>) bodyCaptor.getValue();
+    List<?> teList = (List<?>) payload.get("trackedEntities");
+    return (org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity) teList.get(0);
   }
 
   private void expectDeleteBeforeCreateAndUpdate(
