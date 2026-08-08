@@ -7,9 +7,11 @@
             http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.10.xsd
             http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.10.xsd">
 
-  <!-- Service definition to specify the default template for JSR-107 created caches -->
+  <!-- Service definition to specify the default template for JSR-107 created caches.
+       Statistics are enabled so per-region metrics can be exposed via the
+       monitoring.ehcache.enabled Micrometer binding (see EhCacheMetricsConfig). -->
   <service>
-    <jsr107:defaults default-template="defaultCacheTemplate"/>
+    <jsr107:defaults default-template="defaultCacheTemplate" enable-statistics="true"/>
   </service>
 
   <!-- Cache template definition (referenced by jsr107:defaults and potentially explicit caches) -->
@@ -43,15 +45,143 @@
   </cache>
 
   <!--
-    NOTE: The old configuration did not define specific caches for entities.
-    Entities will use the 'defaultCacheTemplate' settings unless you define
-    specific <cache> elements for them below using their fully qualified class name as the alias.
-    Example:
-    <cache alias="org.hisp.dhis.organisationunit.OrganisationUnit" uses-template="defaultCacheTemplate">
-      <resources>
-        <heap unit="entries">50000</heap> <!- More specific size ->
-      </resources>
-    </cache>
+    l2-cache-truth Phase 4.2 (EXPERIMENT): the hottest Hibernate regions measured in the
+    Phase 3 concurrency baseline are PREDEFINED here as ehcache-native caches. Caches created
+    on demand through the JSR-107 API (hibernate-jcache MissingCacheStrategy.CREATE) get the
+    jsr107 default MutableConfiguration semantics, which force store-BY-VALUE: every get and
+    put serializes the entry (SerializingCopier) INSIDE the READ_WRITE region lock critical
+    section (62k wall samples per Phase 3 read run). Predefined caches keep ehcache-native
+    store-by-reference: no copier, no serialization on the cache path. Hibernate stores
+    disassembled (immutable) cache entries, so by-reference is safe; 2.41 ran Ehcache 2
+    by-reference for years.
+
+    Region list and heap bounds derive from phase3-results.json get counts (top regions by
+    gets across all cells); bounds are sized for large national deployments, not the demo DB.
+    Remaining regions still fall back to the jsr107 template above (bounded, store-by-value).
   -->
+
+  <!-- Entity regions -->
+  <cache alias="org.hisp.dhis.organisationunit.OrganisationUnit">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">200000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryOption">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataelement.DataElement">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataset.DataSet">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataset.DataSetElement">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">200000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.Category">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryCombo">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryOptionCombo">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">500000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.User">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserGroup">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">50000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserRole">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.program.Program">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">10000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.period.PeriodType">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">1000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.period.Period">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <!-- Tracker-import hot regions (Phase 4 tracker workload: Option region alone takes
+       ~98M gets per 25-min run; missing these from the predefined list left the hottest
+       path store-by-value) -->
+  <cache alias="org.hisp.dhis.option.Option">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">200000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.trackedentity.TrackedEntityAttribute">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.trackedentity.TrackedEntityType">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">1000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.option.OptionSet.options">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+
+
+  <!-- Collection regions (element ids only, entries are small) -->
+  <cache alias="org.hisp.dhis.organisationunit.OrganisationUnit.children">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">200000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryCombo.categories">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryCombo.optionCombos">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.Category.categoryOptions">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryOptionCombo.categoryOptions">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">500000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserGroup.managedGroups">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">50000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserRole.restrictions">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserRole.authorities">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataelement.DataElement.dataSetElements">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataelement.DataElement.groups">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataelement.DataElement.legendSets">
+    <expiry><ttl unit="seconds">21600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
 
 </config>
