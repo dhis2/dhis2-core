@@ -142,6 +142,21 @@ public class TrackerPreheat {
   }
 
   /**
+   * Set of (option set id, option code) pairs confirmed to exist, populated by {@code
+   * OptionValueSupplier}. Only pairs actually referenced by the import payload are present here —
+   * this is not the full set of options for any given option set.
+   */
+  private final Set<Pair<Long, String>> validOptionCodes = new HashSet<>();
+
+  public void addValidOptionCode(Long optionSetId, String code) {
+    this.validOptionCodes.add(Pair.of(optionSetId, code));
+  }
+
+  public boolean isValidOptionCode(Long optionSetId, String code) {
+    return this.validOptionCodes.contains(Pair.of(optionSetId, code));
+  }
+
+  /**
    * Check if a category option combo for given category combo and category options has been stored
    * using {@link #putCategoryOptionCombo}. Returns true if null and a non-null category option
    * combo have been stored.

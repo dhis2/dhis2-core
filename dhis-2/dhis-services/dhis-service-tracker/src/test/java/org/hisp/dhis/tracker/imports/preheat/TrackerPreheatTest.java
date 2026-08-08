@@ -83,6 +83,20 @@ class TrackerPreheatTest extends DhisConvenienceTest {
   }
 
   @Test
+  void shouldReturnFalseForUnknownOptionCode() {
+    assertFalse(preheat.isValidOptionCode(1L, "CODE"));
+  }
+
+  @Test
+  void shouldReturnTrueOnlyForTheExactOptionSetAndCodePairAdded() {
+    preheat.addValidOptionCode(1L, "CODE");
+
+    assertTrue(preheat.isValidOptionCode(1L, "CODE"));
+    assertFalse(preheat.isValidOptionCode(1L, "OTHER"));
+    assertFalse(preheat.isValidOptionCode(2L, "CODE"));
+  }
+
+  @Test
   void testPreheatCategoryOptionCombo() {
 
     CategoryCombo categoryCombo = categoryCombo();
