@@ -91,7 +91,7 @@ class AttributeValidatorTest {
   private TrackerIdSchemeParams idSchemes;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     bundle = TrackerBundle.builder().preheat(preheat).build();
     idSchemes = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
