@@ -130,10 +130,23 @@ public class SingleEventTest extends Simulation {
     }
   }
 
-  // Provisional -- not yet calibrated from a real performance-tests-compare.yml run. Replace
-  // with real numbers once this scenario has been dispatched baseline-vs-candidate.
+  // Calibrated from real performance-tests-compare.yml runs against master (baseline,
+  // dhis2/core-dev:latest) vs PR #24815's fix (candidate, dhis2/core-pr:24815), unconfounded by
+  // TrackerTest's tracked-entity programs (this simulation doesn't share any config with them):
+  //
+  // SMOKE (run 31307558297, 1 user): baseline p95 1,204ms; candidate p95 105ms -- SMOKE threshold
+  // is candidate's measured value with ~2.5x margin, matching ANC_IMPORT_P95's margin convention
+  // at a similar absolute magnitude elsewhere in TrackerTest.java.
+  //
+  // LOAD (run 31305382629, 20 concurrent users): baseline p95 32,183ms with a persistent trickle
+  // of hard 60s client-timeout failures (0.3% of requests never completed at all -- not just
+  // slow, genuinely stuck); candidate p95 666ms, 100% success, zero timeouts. That's a ~48x
+  // improvement, and the fix eliminates the timeout failures entirely, not just the latency --
+  // strong independent confirmation of the L2 lock-storm theory under real concurrent
+  // single-event import traffic. LOAD threshold sits above candidate's own run-to-run variance
+  // (666ms measured, 1,287ms warmup) rather than tightly around either single value.
   private static final EnumMap<Profile, Integer> SINGLE_EVENT_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 500, Profile.LOAD, 1000));
+      new EnumMap<>(Map.of(Profile.SMOKE, 250, Profile.LOAD, 1500));
 
   public SingleEventTest() {
     record ProfileDefaults(int users, int requestsPerUser) {}
