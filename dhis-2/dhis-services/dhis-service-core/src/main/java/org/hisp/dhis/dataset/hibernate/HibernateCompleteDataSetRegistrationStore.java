@@ -135,9 +135,7 @@ public class HibernateCompleteDataSetRegistrationStore
           AND c.sourceid = (SELECT organisationunitid FROM organisationunit ou WHERE ou.uid = :ou)
           AND c.attributeoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo aoc WHERE aoc.uid = :aoc)
         """;
-    getSession()
-        .createNativeQuery(sql)
-        .addSynchronizedQuerySpace("completedatasetregistration")
+    nativeSynchronizedQuery(sql)
         .setParameter("ds", dataSet.getValue())
         .setParameter("pe", period.getIsoDate())
         .setParameter("ou", orgUnit.getValue())
