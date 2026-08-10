@@ -45,10 +45,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
 import org.ehcache.config.CacheRuntimeConfiguration;
@@ -65,6 +68,8 @@ import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.resource.jdbc.spi.StatementInspector;
+import org.hibernate.stat.CacheRegionStatistics;
 import org.hibernate.stat.Statistics;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.dialect.DhisH2Dialect;
@@ -86,6 +91,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  *   <li>the actual cache region names created at boot,
  *   <li>second level cache and query cache behavior via {@code hibernate.generate_statistics}
  *       counters,
+ *   <li>the exact SQL statement count per representative flow (entity load by id, cached collection
+ *       access, cacheable query) via a {@link StatementInspector}, proving with numbers that
+ *       collection and query cache hits rehydrate element ids one SELECT at a time (N+1 on hit)
+ *       while the element region is cold,
  *   <li>that the {@code cache.ehcache.config.file} location resolves and the settings from
  *       ehcache.xml (bounded heap sizes) are in effect on regions, so a silent fallback to
  *       unbounded provider default caches becomes a test failure.
@@ -96,6 +105,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 class HibernateCacheEffectTest {
 
   private static final String ENTITY_REGION = CachedTestEntity.class.getName();
+
+  private static final String COLLECTION_REGION =
+      CachedParentTestEntity.class.getName() + ".children";
+
+  /** Number of collection elements / query result rows used by the statement count tests. */
+  private static final int CHILD_COUNT = 5;
 
   private static final String QUERY_RESULTS_REGION = "default-query-results-region";
 
@@ -108,6 +123,8 @@ class HibernateCacheEffectTest {
   private static final long EHCACHE_XML_TEMPLATE_HEAP_ENTRIES = 1_000_000;
 
   private SessionFactory sessionFactory;
+
+  private final RecordingStatementInspector statementInspector = new RecordingStatementInspector();
 
   @AfterEach
   void tearDown() {
@@ -209,6 +226,144 @@ class HibernateCacheEffectTest {
     assertEquals(2, statistics.getQueryExecutionCount(), "both queries must hit the database");
   }
 
+  // -------------------------------------------------------------------------
+  // Deterministic per-flow statement counts (Phase 2)
+  // -------------------------------------------------------------------------
+
+  @Test
+  void secondLevelCacheOnSecondEntityLoadIssuesNoSql() {
+    sessionFactory = buildSessionFactory(dhisConfig("true", "false", ""));
+    persistEntity();
+    sessionFactory.getCache().evictAllRegions();
+
+    statementInspector.clear();
+    loadEntityInNewSession();
+    assertEquals(1, statementInspector.selectCount(), "first load must query the database once");
+
+    statementInspector.clear();
+    loadEntityInNewSession();
+    assertEquals(0, statementInspector.selectCount(), "second load must be served from the cache");
+  }
+
+  @Test
+  void secondLevelCacheOffEveryEntityLoadQueriesTheDatabase() {
+    sessionFactory = buildSessionFactory(dhisConfig("false", "true", ""));
+    persistEntity();
+
+    statementInspector.clear();
+    loadEntityInNewSession();
+    loadEntityInNewSession();
+    assertEquals(2, statementInspector.selectCount(), "every load must query the database");
+  }
+
+  /**
+   * Encodes F5, the worst case of the collection cache: collection regions store element ids only,
+   * so a collection region HIT with a cold element region rehydrates every element with its own
+   * SELECT by id, N statements for N elements. The uncached baseline for the same access is a
+   * single SELECT for all elements (see {@link
+   * #collectionAccessWithCacheOffLoadsAllElementsInOneSelect()}), so a collection cache "hit" can
+   * cost N times the SQL of no cache at all.
+   */
+  @Test
+  void collectionCacheHitWithColdElementRegionRehydratesEachElementById() {
+    sessionFactory = buildSessionFactory(dhisConfig("true", "false", ""));
+    persistParentWithChildren(CHILD_COUNT);
+    sessionFactory.getCache().evictAllRegions();
+    // warm the parent, collection and element regions
+    readParentAndChildrenInNewSession();
+    // cold element region, warm collection region: the production steady state after any
+    // element region eviction (bounded heap, TTL) while the collection entry survives
+    sessionFactory.getCache().evictEntityData(CachedTestEntity.class);
+
+    Statistics statistics = sessionFactory.getStatistics();
+    statistics.clear();
+    statementInspector.clear();
+    readParentAndChildrenInNewSession();
+
+    CacheRegionStatistics collectionStatistics =
+        statistics.getDomainDataRegionStatistics(COLLECTION_REGION);
+    assertNotNull(collectionStatistics);
+    assertEquals(1, collectionStatistics.getHitCount(), "collection region must hit");
+    assertEquals(
+        CHILD_COUNT,
+        statementInspector.selectCount(),
+        "a collection cache hit must issue one SELECT per element when the element region is"
+            + " cold");
+  }
+
+  @Test
+  void collectionAccessWithCacheOffLoadsAllElementsInOneSelect() {
+    sessionFactory = buildSessionFactory(dhisConfig("false", "true", ""));
+    persistParentWithChildren(CHILD_COUNT);
+
+    statementInspector.clear();
+    readParentAndChildrenInNewSession();
+
+    assertEquals(
+        2,
+        statementInspector.selectCount(),
+        "without the cache the same access is one SELECT for the parent and one SELECT for all"
+            + " elements");
+  }
+
+  @Test
+  void collectionCacheHitWithWarmElementRegionIssuesNoSql() {
+    sessionFactory = buildSessionFactory(dhisConfig("true", "false", ""));
+    persistParentWithChildren(CHILD_COUNT);
+    sessionFactory.getCache().evictAllRegions();
+    // warm the parent, collection and element regions
+    readParentAndChildrenInNewSession();
+
+    statementInspector.clear();
+    readParentAndChildrenInNewSession();
+
+    assertEquals(
+        0, statementInspector.selectCount(), "fully warm regions must serve without any SQL");
+  }
+
+  /**
+   * Encodes the query cache flavor of the same mechanism (see PR #22711): cached query results
+   * store entity ids only, so a query cache HIT with a cold entity region issues one SELECT per
+   * result row, N statements where the original query was one.
+   */
+  @Test
+  void queryCacheHitWithColdEntityRegionRehydratesEachRowById() {
+    sessionFactory = buildSessionFactory(dhisConfig("true", "true", ""));
+    persistEntities(CHILD_COUNT);
+
+    Statistics statistics = sessionFactory.getStatistics();
+    statistics.clear();
+    statementInspector.clear();
+    queryEntitiesInNewSession(CHILD_COUNT);
+    assertEquals(1, statementInspector.selectCount(), "first query must be a single SELECT");
+
+    sessionFactory.getCache().evictEntityData(CachedTestEntity.class);
+    statementInspector.clear();
+    queryEntitiesInNewSession(CHILD_COUNT);
+
+    assertEquals(1, statistics.getQueryCacheHitCount(), "second query must hit the query cache");
+    assertEquals(1, statistics.getQueryExecutionCount(), "the query itself must not run again");
+    assertEquals(
+        CHILD_COUNT,
+        statementInspector.selectCount(),
+        "a query cache hit must issue one SELECT per result row when the entity region is cold");
+  }
+
+  @Test
+  void queryCacheHitWithWarmEntityRegionIssuesNoSql() {
+    sessionFactory = buildSessionFactory(dhisConfig("true", "true", ""));
+    persistEntities(CHILD_COUNT);
+
+    queryEntitiesInNewSession(CHILD_COUNT);
+    statementInspector.clear();
+    queryEntitiesInNewSession(CHILD_COUNT);
+
+    assertEquals(
+        0,
+        statementInspector.selectCount(),
+        "a query cache hit with a warm entity region must not issue any SQL");
+  }
+
   @Test
   void noEhcacheConfigFileFallsBackToUnboundedProviderDefaultCaches() {
     sessionFactory = buildSessionFactory(dhisConfig("true", "true", ""));
@@ -291,7 +446,7 @@ class HibernateCacheEffectTest {
     return dhisConfig;
   }
 
-  private static SessionFactory buildSessionFactory(DhisConfigurationProvider dhisConfig) {
+  private SessionFactory buildSessionFactory(DhisConfigurationProvider dhisConfig) {
     Properties properties = HibernateConfig.getAdditionalProperties(dhisConfig);
 
     StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder();
@@ -306,9 +461,11 @@ class HibernateCacheEffectTest {
     // The DHIS2 schema is owned by Flyway, but this test schema only exists in memory
     registryBuilder.applySetting(AvailableSettings.HBM2DDL_AUTO, "create-drop");
     registryBuilder.applySetting(AvailableSettings.GENERATE_STATISTICS, "true");
+    registryBuilder.applySetting(AvailableSettings.STATEMENT_INSPECTOR, statementInspector);
 
     return new MetadataSources(registryBuilder.build())
         .addAnnotatedClass(CachedTestEntity.class)
+        .addAnnotatedClass(CachedParentTestEntity.class)
         .buildMetadata()
         .buildSessionFactory();
   }
@@ -349,6 +506,41 @@ class HibernateCacheEffectTest {
     }
   }
 
+  private void persistEntities(int count) {
+    try (Session session = sessionFactory.openSession()) {
+      Transaction transaction = session.beginTransaction();
+      for (long id = 1; id <= count; id++) {
+        session.persist(new CachedTestEntity(id, "cached" + id));
+      }
+      transaction.commit();
+    }
+  }
+
+  private void persistParentWithChildren(int count) {
+    try (Session session = sessionFactory.openSession()) {
+      Transaction transaction = session.beginTransaction();
+      CachedParentTestEntity parent = new CachedParentTestEntity(1L, "parent");
+      for (long id = 1; id <= count; id++) {
+        parent.getChildren().add(new CachedTestEntity(id, "child" + id));
+      }
+      session.persist(parent);
+      transaction.commit();
+    }
+  }
+
+  private void readParentAndChildrenInNewSession() {
+    try (Session session = sessionFactory.openSession()) {
+      CachedParentTestEntity parent = session.get(CachedParentTestEntity.class, 1L);
+      assertNotNull(parent);
+      int read = 0;
+      for (CachedTestEntity child : parent.getChildren()) {
+        assertNotNull(child.getName());
+        read++;
+      }
+      assertEquals(CHILD_COUNT, read, "all collection elements must be readable");
+    }
+  }
+
   private void loadEntityInNewSession() {
     try (Session session = sessionFactory.openSession()) {
       assertNotNull(session.get(CachedTestEntity.class, 1L));
@@ -356,14 +548,40 @@ class HibernateCacheEffectTest {
   }
 
   private void queryEntitiesInNewSession() {
+    queryEntitiesInNewSession(1);
+  }
+
+  private void queryEntitiesInNewSession(int expectedCount) {
     try (Session session = sessionFactory.openSession()) {
       assertEquals(
-          1,
+          expectedCount,
           session
               .createQuery("from CachedTestEntity", CachedTestEntity.class)
               .setCacheable(true)
               .getResultList()
               .size());
+    }
+  }
+
+  /** Records every SQL statement Hibernate issues so tests can assert exact statement counts. */
+  private static final class RecordingStatementInspector implements StatementInspector {
+
+    private final List<String> statements = new CopyOnWriteArrayList<>();
+
+    @Override
+    public String inspect(String sql) {
+      statements.add(sql);
+      return sql;
+    }
+
+    long selectCount() {
+      return statements.stream()
+          .filter(sql -> sql.toLowerCase(Locale.ROOT).startsWith("select"))
+          .count();
+    }
+
+    void clear() {
+      statements.clear();
     }
   }
 }
