@@ -50,6 +50,7 @@ import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.hibernate.jsonb.type.JsonJobParametersType;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -385,7 +386,10 @@ public class HibernateJobConfigurationStore
         and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+            q ->
+                nativeSynchronizedQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
         > 0;
   }
 
@@ -413,7 +417,10 @@ public class HibernateJobConfigurationStore
         )
         """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+            q ->
+                nativeSynchronizedQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
         > 0;
   }
 
@@ -444,7 +451,10 @@ public class HibernateJobConfigurationStore
           )
         """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+            q ->
+                nativeSynchronizedQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
         > 0;
   }
 
@@ -475,7 +485,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
+                nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
                     .setParameter("status", status.name())
                     .executeUpdate())
@@ -503,7 +513,7 @@ public class HibernateJobConfigurationStore
           or lastexecuted < (select lastexecuted from jobconfiguration where queuename = :queue and queueposition = 0 limit 1))
         """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("queue", queue).executeUpdate())
+            q -> nativeSynchronizedQuery(q, sql).setParameter("queue", queue).executeUpdate())
         > 0;
   }
 
@@ -521,7 +531,7 @@ public class HibernateJobConfigurationStore
         """;
     runWriteInStatelessSession(
         q ->
-            q.createNativeQuery(sql)
+            nativeSynchronizedQuery(q, sql)
                 .setParameter("id", jobId.getValue())
                 .setParameter("json", progressJson)
                 .setParameter("errors", errorCodes)
@@ -539,7 +549,7 @@ public class HibernateJobConfigurationStore
         where jobstatus = 'SCHEDULED'
         and enabled = false
         """;
-    return runWriteInStatelessSession(q -> q.createNativeQuery(sql).executeUpdate());
+    return runWriteInStatelessSession(q -> nativeSynchronizedQuery(q, sql).executeUpdate());
   }
 
   @Override
@@ -557,7 +567,7 @@ public class HibernateJobConfigurationStore
     int deletedCount =
         runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
+                nativeSynchronizedQuery(q, sql)
                     .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
                     .setParameter("ttl", max(1, ttlMinutes))
                     .executeUpdate());
@@ -575,6 +585,7 @@ public class HibernateJobConfigurationStore
     runWriteInStatelessSession(
         q ->
             q.createNativeQuery(sql2)
+                .addSynchronizedEntityClass(FileResource.class)
                 .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
                 .executeUpdate());
     return deletedCount;
@@ -606,7 +617,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
         q ->
-            q.createNativeQuery(sql)
+            nativeSynchronizedQuery(q, sql)
                 .setParameter("timeout", max(1, timeoutMinutes))
                 .executeUpdate());
   }
@@ -637,7 +648,10 @@ public class HibernateJobConfigurationStore
         and now() > jobconfiguration.lastalive + interval '1 minute'
       """;
     return runWriteInStatelessSession(
-            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+            q ->
+                nativeSynchronizedQuery(q, sql)
+                    .setParameter("id", jobId.getValue())
+                    .executeUpdate())
         > 0;
   }
 
