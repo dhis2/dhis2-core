@@ -257,8 +257,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
           END IF;
       END;
       $$""";
-    // DDL on the datavalue table. An empty space set is not expressible: Hibernate reads that as
-    // "unknown", which invalidates every region, so declare the one table the trigger sits on.
+    // DDL only, but an empty space set would evict every region
     getSession().createNativeQuery(sql).addSynchronizedQuerySpace("datavalue").executeUpdate();
   }
 
@@ -267,8 +266,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     String sql =
         """
       DROP TRIGGER IF EXISTS trg_datavalue_audit ON datavalue""";
-    // DDL on the datavalue table. An empty space set is not expressible: Hibernate reads that as
-    // "unknown", which invalidates every region, so declare the one table the trigger sits on.
+    // DDL only, but an empty space set would evict every region
     getSession().createNativeQuery(sql).addSynchronizedQuerySpace("datavalue").executeUpdate();
   }
 }

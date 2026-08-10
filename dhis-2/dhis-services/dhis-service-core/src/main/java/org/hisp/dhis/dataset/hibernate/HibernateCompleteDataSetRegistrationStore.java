@@ -137,7 +137,6 @@ public class HibernateCompleteDataSetRegistrationStore
         """;
     getSession()
         .createNativeQuery(sql)
-        // the other tables are only read by the lookup subqueries
         .addSynchronizedQuerySpace("completedatasetregistration")
         .setParameter("ds", dataSet.getValue())
         .setParameter("pe", period.getIsoDate())

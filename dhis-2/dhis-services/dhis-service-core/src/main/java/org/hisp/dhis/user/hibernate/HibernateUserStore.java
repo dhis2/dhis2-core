@@ -744,8 +744,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         """;
     return getSession()
         .createNativeQuery(sql)
-        // User owns the cached catDimensionConstraints collection on this table. Naming the
-        // entity, not the raw table, is what evicts that collection region.
+        // join table behind the cached User.catDimensionConstraints collection
         .addSynchronizedEntityClass(User.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)

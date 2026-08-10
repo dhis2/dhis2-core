@@ -99,11 +99,8 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         """;
     return getSession()
         .createNativeQuery(sql)
-        // This writes the join table behind both CategoryCombo.categories and the inverse
-        // Category.categoryCombos, and both of those collections are cached. Declaring the raw
-        // table name is not enough: BulkOperationCleanupAction only evicts collection roles for
-        // entities whose own query spaces match, so a bare join table matches nothing. Naming
-        // both entities pulls in their collection regions.
+        // join table behind CategoryCombo.categories and the inverse Category.categoryCombos,
+        // both cached, so both entities need naming
         .addSynchronizedEntityClass(CategoryCombo.class)
         .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)

@@ -173,8 +173,7 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
         """;
     return getSession()
         .createNativeQuery(sql)
-        // DataSet owns the cached dataSetElements collection on this table, and DataSetElement
-        // is its own entity, so both need naming for their regions to be evicted.
+        // datasetelement is both DataSetElement's table and the cached DataSet.dataSetElements
         .addSynchronizedEntityClass(DataSet.class)
         .addSynchronizedEntityClass(DataSetElement.class)
         .setParameter("targetCategoryComboId", targetCategoryComboId)

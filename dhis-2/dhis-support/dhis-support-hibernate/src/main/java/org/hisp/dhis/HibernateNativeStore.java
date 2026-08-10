@@ -101,8 +101,16 @@ public abstract class HibernateNativeStore<T> {
    * current class of the store. Use this to avoid all Hibernate second level caches from being
    * invalidated.
    *
-   * <p>Be aware that it is only correct to use this if and only if the only table touched by the
-   * native query is the one table belonging to the store.
+   * <p>Every native write triggers a cache cleanup driven only by its declared query spaces (the
+   * tables it affects). Declare none and Hibernate reads that as "unknown" and evicts
+   * <em>every</em> entity and collection region, so always declare, even when this entity is not
+   * cached.
+   *
+   * <p>Correct only when the sole table this statement <em>writes</em> is the store's own; tables
+   * merely read by a join or subquery need no declaration. Otherwise call {@code
+   * addSynchronizedEntityClass} directly, once per entity written. For a join or child table name
+   * the participating <em>entities</em>, not the table: spaces map to regions via entity
+   * persisters, so a bare join table matches none and evicts nothing.
    *
    * @param sql the SQL query to execute
    * @return the {@link NativeQuery} instance

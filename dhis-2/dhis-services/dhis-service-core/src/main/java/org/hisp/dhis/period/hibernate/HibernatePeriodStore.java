@@ -126,8 +126,6 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
               }
               session
                   .createNativeQuery(sql2)
-                  // Without synchronized spaces Hibernate cannot tell which tables this
-                  // touches and conservatively evicts EVERY L2 entity region, not just Period.
                   .addSynchronizedEntityClass(Period.class)
                   .setParameter("type", period.getPeriodType().getName())
                   .setParameter("start", period.getStartDate())
