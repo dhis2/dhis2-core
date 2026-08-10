@@ -31,8 +31,15 @@
 
     <property name="version" />
 
+    <!-- Collection L2 cache intentionally omitted: a cache hit here (a cached list of Option
+         ids) combined with an entity-cache miss on one of those ids makes Hibernate resolve each
+         id one at a time instead of just re-running this bag's own query, which is what produced
+         an observed N+1 (thousands of individual `SELECT ... FROM optionvalue WHERE
+         optionvalueid = ?`) during tracker import. Without a cached id list to reconcile against
+         the entity cache, this collection always loads via its own single
+         `WHERE optionsetid = ?` query instead, which is fast (single query, indexed FK). Entity-
+         level caching for Option/OptionSet themselves is unaffected and still applies. -->
     <bag name="options" cascade="all" order-by="sort_order">
-      <cache usage="nonstrict-read-write" />
       <key column="optionsetid" foreign-key="fk_optionsetmembers_optionsetid" />
       <one-to-many class="org.hisp.dhis.option.Option" />
     </bag>
