@@ -126,6 +126,29 @@ class HibernateConfigTest {
     assertEquals("file:/opt/dhis2/ehcache.xml", properties.get(ConfigSettings.CONFIG_URI));
   }
 
+  /**
+   * Hibernate's ClassLoaderService only strips the nonstandard 'classpath://' scheme, so both
+   * classpath spellings must be normalized to a bare resource name before they are handed over,
+   * otherwise the SessionFactory fails to boot with "Couldn't load URI".
+   */
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "classpath:ehcache.xml",
+        "classpath://ehcache.xml",
+        "CLASSPATH:ehcache.xml",
+        " classpath:ehcache.xml "
+      })
+  void ehcacheConfigFileClasspathSpellingsAreNormalized(String configValue) {
+    when(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE)).thenReturn("true");
+    when(dhisConfig.getProperty(USE_QUERY_CACHE)).thenReturn("true");
+    when(dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE)).thenReturn(configValue);
+
+    Properties properties = HibernateConfig.getAdditionalProperties(dhisConfig);
+
+    assertEquals("ehcache.xml", properties.get(ConfigSettings.CONFIG_URI));
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"false", "FALSE", "off", "OFF", ""})
   void secondLevelCacheDisabledDisablesBothCachesExplicitly(String configValue) {
