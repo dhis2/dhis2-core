@@ -257,8 +257,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
           END IF;
       END;
       $$""";
-    // DDL only, but an empty space set would evict every region
-    getSession().createNativeQuery(sql).addSynchronizedQuerySpace("datavalue").executeUpdate();
+    // DDL, not entity persistence, so it skips Hibernate and its cache invalidation
+    jdbcTemplate.execute(sql);
   }
 
   @Override
@@ -266,7 +266,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     String sql =
         """
       DROP TRIGGER IF EXISTS trg_datavalue_audit ON datavalue""";
-    // DDL only, but an empty space set would evict every region
-    getSession().createNativeQuery(sql).addSynchronizedQuerySpace("datavalue").executeUpdate();
+    // DDL, not entity persistence, so it skips Hibernate and its cache invalidation
+    jdbcTemplate.execute(sql);
   }
 }
