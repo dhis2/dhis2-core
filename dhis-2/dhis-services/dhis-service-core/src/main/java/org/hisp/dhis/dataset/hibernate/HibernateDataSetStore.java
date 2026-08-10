@@ -172,7 +172,9 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
         where categorycomboid in :sourceCategoryComboIds
         """;
     return nativeSynchronizedQuery(sql)
-        // datasetelement is DataSetElement's own table as well as the cached DataSet collection
+        // datasetelement is DataSetElement's own table. It is also the DataSet.dataSetElements
+        // collection table, and since collection regions are keyed by the collection's element
+        // entity, naming DataSetElement reaches that cached collection too.
         .addSynchronizedEntityClass(DataSetElement.class)
         .setParameter("targetCategoryComboId", targetCategoryComboId)
         .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)

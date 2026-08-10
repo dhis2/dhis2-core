@@ -109,9 +109,15 @@ public abstract class HibernateNativeStore<T> {
    *
    * <p>Correct only when the sole table this statement <em>writes</em> is the store's own; tables
    * merely read by a join or subquery need no declaration. Otherwise call {@code
-   * addSynchronizedEntityClass} directly, once per entity written. For a join or child table name
-   * the participating <em>entities</em>, not the table: spaces map to regions via entity
-   * persisters, so a bare join table matches none and evicts nothing.
+   * addSynchronizedEntityClass} directly, once per entity written.
+   *
+   * <p>Beware collection tables. An entity's query spaces are its own table(s) only, never the
+   * tables of the collections it owns, so declaring the owner does <em>not</em> evict its cached
+   * collections. Hibernate resolves collection regions through {@code
+   * getCollectionRolesByEntityParticipant}, which is keyed by the collection's <em>element</em>
+   * entity. So for a write against a join or child table, declare the entity on the far side of the
+   * association: {@code categories_categoryoptions} needs {@code CategoryOption}, not {@code
+   * Category}.
    *
    * @param sql the SQL query to execute
    * @return the {@link NativeQuery} instance

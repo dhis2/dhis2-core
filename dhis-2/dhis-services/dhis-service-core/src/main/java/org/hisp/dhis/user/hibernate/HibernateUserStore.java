@@ -63,6 +63,7 @@ import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
@@ -743,6 +744,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         )
         """;
     return nativeSynchronizedQuery(sql)
+        // users_catdimensionconstraints is the User.catDimensionConstraints collection table.
+        // Collection regions are keyed by the collection's element entity, so Category is what
+        // reaches that region, not the owning User.
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -759,6 +764,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         WHERE dataelementcategoryid IN (:sourceCategoryIds)
         """;
     return nativeSynchronizedQuery(sql)
+        // see updateCatDimensionConstraintsCategoryRefs
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
@@ -779,6 +786,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         )
         """;
     return nativeSynchronizedQuery(sql)
+        // see updateCatDimensionConstraintsCategoryRefs
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))

@@ -98,7 +98,9 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         where cc_c.categoryid in :sourceCategoryIds
         """;
     return nativeSynchronizedQuery(sql)
-        // the inverse Category.categoryCombos collection is cached too
+        // categorycombos_categories backs both the cached CategoryCombo.categories and
+        // Category.categoryCombos collections. Collection regions are keyed by the collection's
+        // element entity, so naming both entities is what reaches both regions.
         .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
