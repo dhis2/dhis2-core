@@ -32,7 +32,7 @@
     <property name="version" />
 
     <bag name="options" cascade="all" order-by="sort_order">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="optionsetid" foreign-key="fk_optionsetmembers_optionsetid" />
       <one-to-many class="org.hisp.dhis.option.Option" />
     </bag>
