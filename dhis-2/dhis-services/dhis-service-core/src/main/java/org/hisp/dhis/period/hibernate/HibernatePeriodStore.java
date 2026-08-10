@@ -124,9 +124,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
               if (pk != null) {
                 return pk;
               }
-              session
-                  .createNativeQuery(sql2)
-                  .addSynchronizedEntityClass(Period.class)
+              nativeSynchronizedQuery(session, sql2)
                   .setParameter("type", period.getPeriodType().getName())
                   .setParameter("start", period.getStartDate())
                   .setParameter("end", period.getEndDate())
@@ -263,6 +261,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
               }
               session
                   .createNativeQuery(sql2)
+                  // PeriodType, not the store's own Period
                   .addSynchronizedEntityClass(PeriodType.class)
                   .setParameter("name", name)
                   .executeUpdate();

@@ -742,10 +742,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             ORDER BY userid, dataelementcategoryid
         )
         """;
-    return getSession()
-        .createNativeQuery(sql)
-        // join table behind the cached User.catDimensionConstraints collection
-        .addSynchronizedEntityClass(User.class)
+    return nativeSynchronizedQuery(sql)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -761,9 +758,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         DELETE FROM users_catdimensionconstraints
         WHERE dataelementcategoryid IN (:sourceCategoryIds)
         """;
-    return getSession()
-        .createNativeQuery(sql)
-        .addSynchronizedEntityClass(User.class)
+    return nativeSynchronizedQuery(sql)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
@@ -783,9 +778,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             WHERE dataelementcategoryid = :targetCategoryId
         )
         """;
-    return getSession()
-        .createNativeQuery(sql)
-        .addSynchronizedEntityClass(User.class)
+    return nativeSynchronizedQuery(sql)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))

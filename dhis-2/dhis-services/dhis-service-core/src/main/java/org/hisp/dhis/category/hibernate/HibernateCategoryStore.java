@@ -118,10 +118,7 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
               delete from categories_categoryoptions c_co
               where c_co.categoryid in :sourceCategoryIds
               """;
-    return getSession()
-        .createNativeQuery(sql)
-        // join table behind the cached Category.categoryOptions collection
-        .addSynchronizedEntityClass(Category.class)
+    return nativeSynchronizedQuery(sql)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();

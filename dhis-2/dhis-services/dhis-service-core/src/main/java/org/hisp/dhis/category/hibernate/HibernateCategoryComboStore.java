@@ -97,11 +97,8 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         set categoryid = :targetCategoryId
         where cc_c.categoryid in :sourceCategoryIds
         """;
-    return getSession()
-        .createNativeQuery(sql)
-        // join table behind CategoryCombo.categories and the inverse Category.categoryCombos,
-        // both cached, so both entities need naming
-        .addSynchronizedEntityClass(CategoryCombo.class)
+    return nativeSynchronizedQuery(sql)
+        // the inverse Category.categoryCombos collection is cached too
         .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)

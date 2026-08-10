@@ -171,10 +171,8 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
         set categorycomboid = :targetCategoryComboId
         where categorycomboid in :sourceCategoryComboIds
         """;
-    return getSession()
-        .createNativeQuery(sql)
-        // datasetelement is both DataSetElement's table and the cached DataSet.dataSetElements
-        .addSynchronizedEntityClass(DataSet.class)
+    return nativeSynchronizedQuery(sql)
+        // datasetelement is DataSetElement's own table as well as the cached DataSet collection
         .addSynchronizedEntityClass(DataSetElement.class)
         .setParameter("targetCategoryComboId", targetCategoryComboId)
         .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)

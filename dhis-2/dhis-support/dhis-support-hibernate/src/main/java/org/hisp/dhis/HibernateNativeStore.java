@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.hibernate.StatelessSession;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
@@ -118,6 +119,17 @@ public abstract class HibernateNativeStore<T> {
   @SuppressWarnings("rawtypes")
   protected NativeQuery nativeSynchronizedQuery(@Language("SQL") String sql) {
     return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
+  }
+
+  /**
+   * Same as {@link #nativeSynchronizedQuery(String)} but on a {@link StatelessSession}, which is a
+   * different session from the store's own. Pass the session that opened the surrounding
+   * transaction, otherwise the query runs outside it.
+   */
+  @SuppressWarnings("rawtypes")
+  protected NativeQuery nativeSynchronizedQuery(
+      StatelessSession session, @Language("SQL") String sql) {
+    return session.createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
   }
 
   /**

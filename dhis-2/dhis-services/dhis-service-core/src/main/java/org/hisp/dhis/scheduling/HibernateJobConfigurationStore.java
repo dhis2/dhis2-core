@@ -387,8 +387,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
-                    .addSynchronizedEntityClass(JobConfiguration.class)
+                nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
                     .executeUpdate())
         > 0;
@@ -419,8 +418,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
-                    .addSynchronizedEntityClass(JobConfiguration.class)
+                nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
                     .executeUpdate())
         > 0;
@@ -454,8 +452,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
-                    .addSynchronizedEntityClass(JobConfiguration.class)
+                nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
                     .executeUpdate())
         > 0;
@@ -488,8 +485,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
-                    .addSynchronizedEntityClass(JobConfiguration.class)
+                nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
                     .setParameter("status", status.name())
                     .executeUpdate())
@@ -517,11 +513,7 @@ public class HibernateJobConfigurationStore
           or lastexecuted < (select lastexecuted from jobconfiguration where queuename = :queue and queueposition = 0 limit 1))
         """;
     return runWriteInStatelessSession(
-            q ->
-                q.createNativeQuery(sql)
-                    .addSynchronizedEntityClass(JobConfiguration.class)
-                    .setParameter("queue", queue)
-                    .executeUpdate())
+            q -> nativeSynchronizedQuery(q, sql).setParameter("queue", queue).executeUpdate())
         > 0;
   }
 
@@ -539,8 +531,7 @@ public class HibernateJobConfigurationStore
         """;
     runWriteInStatelessSession(
         q ->
-            q.createNativeQuery(sql)
-                .addSynchronizedEntityClass(JobConfiguration.class)
+            nativeSynchronizedQuery(q, sql)
                 .setParameter("id", jobId.getValue())
                 .setParameter("json", progressJson)
                 .setParameter("errors", errorCodes)
@@ -558,11 +549,7 @@ public class HibernateJobConfigurationStore
         where jobstatus = 'SCHEDULED'
         and enabled = false
         """;
-    return runWriteInStatelessSession(
-        q ->
-            q.createNativeQuery(sql)
-                .addSynchronizedEntityClass(JobConfiguration.class)
-                .executeUpdate());
+    return runWriteInStatelessSession(q -> nativeSynchronizedQuery(q, sql).executeUpdate());
   }
 
   @Override
@@ -580,8 +567,7 @@ public class HibernateJobConfigurationStore
     int deletedCount =
         runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
-                    .addSynchronizedEntityClass(JobConfiguration.class)
+                nativeSynchronizedQuery(q, sql)
                     .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
                     .setParameter("ttl", max(1, ttlMinutes))
                     .executeUpdate());
@@ -631,8 +617,7 @@ public class HibernateJobConfigurationStore
         """;
     return runWriteInStatelessSession(
         q ->
-            q.createNativeQuery(sql)
-                .addSynchronizedEntityClass(JobConfiguration.class)
+            nativeSynchronizedQuery(q, sql)
                 .setParameter("timeout", max(1, timeoutMinutes))
                 .executeUpdate());
   }
@@ -664,8 +649,7 @@ public class HibernateJobConfigurationStore
       """;
     return runWriteInStatelessSession(
             q ->
-                q.createNativeQuery(sql)
-                    .addSynchronizedEntityClass(JobConfiguration.class)
+                nativeSynchronizedQuery(q, sql)
                     .setParameter("id", jobId.getValue())
                     .executeUpdate())
         > 0;
