@@ -161,8 +161,7 @@ class JdbcEventAnalyticsManagerTest {
 
   private JdbcEventAnalyticsManager getJdbcEventAnalyticsManager() {
     return new JdbcEventAnalyticsManager(
-        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-        null);
+        null, null, null, null, null, null, null, null, null, null, null);
   }
 
   private DataIntegrityViolationException mockDataIntegrityExceptionDivisionByZero() {
