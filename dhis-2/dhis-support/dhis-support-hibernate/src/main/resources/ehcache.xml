@@ -26,6 +26,118 @@
     overflowToDisk="false" 
     diskPersistent="false" />
 
-  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" 
+  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
     maxElementsInMemory="5000" />
+
+  <!--
+    Predefined hot L2 regions (port of #24810's ehcache.xml change for Ehcache 2).
+
+    On master (Ehcache 3 / JSR-107) regions created on demand via hibernate-jcache's
+    MissingCacheStrategy.CREATE force store-BY-VALUE, so #24810 predefines the hottest
+    regions as ehcache-native caches to get store-by-reference back. That specific problem
+    does not exist here: Ehcache 2's native API is store-by-reference regardless of whether
+    a cache is predefined or created on demand via CacheManager#addCacheIfAbsent, so 2.41
+    never paid the SerializingCopier cost #24810 fixes.
+
+    What DOES carry over: without an explicit entry here, every one of these regions falls
+    back to defaultCache above and shares its single 1,000,000-entry cap with everything
+    else that isn't StandardQueryCache/UpdateTimestampsCache. Region list and heap bounds are
+    taken directly from #24810's measured hot set so the busiest regions get their own sized,
+    bounded cache instead of competing for headroom in the shared default.
+
+    Deliberately excluded: org.hisp.dhis.option.OptionSet.options. On this branch that
+    collection is intentionally left uncached (see the comment in OptionSet.hbm.xml) to avoid
+    an N+1 where a cached id list combined with an entity-cache miss makes Hibernate resolve
+    ids one at a time. Predefining the region here would just be dead configuration at best,
+    and reintroduces the failure mode if that collection ever gets a <cache> mapping again.
+  -->
+
+  <!-- Entity regions -->
+  <cache name="org.hisp.dhis.organisationunit.OrganisationUnit"
+    maxElementsInMemory="200000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryOption"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataelement.DataElement"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataset.DataSet"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataset.DataSetElement"
+    maxElementsInMemory="200000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.Category"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryOptionCombo"
+    maxElementsInMemory="500000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.User"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserGroup"
+    maxElementsInMemory="50000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserRole"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.program.Program"
+    maxElementsInMemory="10000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.period.PeriodType"
+    maxElementsInMemory="1000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.period.Period"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+
+  <!-- Tracker-import hot regions (Phase 4 tracker workload: Option region alone takes
+       ~98M gets per 25-min run) -->
+  <cache name="org.hisp.dhis.option.Option"
+    maxElementsInMemory="200000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.trackedentity.TrackedEntityType"
+    maxElementsInMemory="1000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+
+  <!-- Collection regions (element ids only, entries are small) -->
+  <cache name="org.hisp.dhis.organisationunit.OrganisationUnit.children"
+    maxElementsInMemory="200000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryCombo.categories"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryCombo.optionCombos"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.Category.categoryOptions"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryOptionCombo.categoryOptions"
+    maxElementsInMemory="500000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserGroup.managedGroups"
+    maxElementsInMemory="50000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserRole.restrictions"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserRole.authorities"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataelement.DataElement.dataSetElements"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataelement.DataElement.groups"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataelement.DataElement.legendSets"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="21600"
+    timeToLiveSeconds="21600" overflowToDisk="false" diskPersistent="false" />
+
 </ehcache>
