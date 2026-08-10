@@ -103,6 +103,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -415,6 +416,41 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString("\"n1rtSHYf6O6\" in ('ImspTQPwCqd')"));
     assertThat(baseCteSql, containsString("inner join latest_events_" + programStage.getUid()));
     assertThat(baseCteSql, not(containsString("and \"n1rtSHYf6O6\" in ('ImspTQPwCqd')")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentAttributeFilterProjectsQuotedColumnInBaseCte() {
+    String attributeUid = "lZGmxYbs97q";
+    TrackedEntityAttribute attribute =
+        org.hisp.dhis.test.TestBase.createTrackedEntityAttribute('A', ValueType.TEXT);
+    attribute.setUid(attributeUid);
+
+    QueryItem queryItem =
+        new QueryItem(attribute, programA, null, ValueType.TEXT, AggregationType.NONE, null);
+    queryItem.setProgram(programA);
+    queryItem.addFilter(new QueryFilter(IN, "ABC"));
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.addItemFilter(queryItem);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
+
+    assertThat(baseCteSql, containsString("ax.\"" + attributeUid + "\" in ('ABC')"));
+    // The filtered column is projected so the propagated where clause can resolve it. Postgres
+    // folds unquoted identifiers to lower case, so the mixed-case UID must be quoted.
+    assertThat(baseCteSql, containsString("\"" + attributeUid + "\" from analytics_enrollment"));
+    assertThat(baseCteSql, not(containsString(", " + attributeUid + " from")));
   }
 
   @Test
