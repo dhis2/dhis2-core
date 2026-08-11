@@ -108,7 +108,7 @@ public class PeriodTypeController {
   @GetMapping
   public PeriodTypes getPeriodTypes(
       @RequestParam(required = false) Locale locale,
-      @RequestParam(defaultValue = "name") String fields) {
+      @RequestParam(defaultValue = "*") String fields) {
     return periodService.getAllPeriodTypes(locale, Fields.of(fields));
   }
 

@@ -405,14 +405,17 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   public List<PeriodTypeLabels> getAllPeriodTypeLabels() {
     String sql = "SELECT name, label, translations #>> '{}' FROM periodtype";
     return runAutoJoinTransaction(
-            session -> session.createNativeQuery(sql, Object[].class).stream())
-        .map(
-            row ->
-                new PeriodTypeLabels(
-                    (String) row[0],
-                    (String) row[1],
-                    JsonMixed.of((String) row[2]).as(JsonTranslations.class)))
-        .toList();
+        session ->
+            session.createNativeQuery(sql).stream().map(HibernatePeriodStore::toLabels).toList());
+  }
+
+  private static PeriodTypeLabels toLabels(Object row) {
+    if (!(row instanceof Object[] columns))
+      throw new IllegalArgumentException("Period type labels must be an Object[]");
+    return new PeriodTypeLabels(
+        (String) columns[0],
+        (String) columns[1],
+        JsonMixed.of((String) columns[2]).as(JsonTranslations.class));
   }
 
   @Override
