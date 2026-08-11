@@ -180,7 +180,7 @@ public class HibernateConfig {
       // Specify the location of the Ehcache 3 configuration file
       String configFile = dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE);
       if (!configFile.isBlank()) {
-        properties.put(ConfigSettings.CONFIG_URI, configFile);
+        properties.put(ConfigSettings.CONFIG_URI, normalizeEhcacheConfigLocation(configFile));
       }
     } else {
       // Explicitly disable both caches. Without this, Hibernate auto-enables the second level
@@ -196,5 +196,26 @@ public class HibernateConfig {
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
 
     return properties;
+  }
+
+  /**
+   * Normalizes the {@code cache.ehcache.config.file} value so Hibernate can resolve it.
+   *
+   * <p>Hibernate's ClassLoaderService only understands the nonstandard {@code classpath://} scheme:
+   * it strips that exact prefix and resolves the rest against the classpath, while the common
+   * {@code classpath:} spelling (also the ConfigurationKey default) is passed to the classloader
+   * verbatim, never resolves, and fails the SessionFactory boot with "Couldn't load URI". Both
+   * spellings are therefore stripped here; a bare resource name resolves fine. Other values ({@code
+   * file:} URLs, absolute paths) are passed through untouched.
+   */
+  static String normalizeEhcacheConfigLocation(String location) {
+    String value = location.strip();
+    if (value.regionMatches(true, 0, "classpath://", 0, 12)) {
+      return value.substring(12);
+    }
+    if (value.regionMatches(true, 0, "classpath:", 0, 10)) {
+      return value.substring(10);
+    }
+    return value;
   }
 }

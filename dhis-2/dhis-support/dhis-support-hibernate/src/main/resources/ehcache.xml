@@ -7,9 +7,11 @@
             http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.10.xsd
             http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.10.xsd">
 
-  <!-- Service definition to specify the default template for JSR-107 created caches -->
+  <!-- Service definition to specify the default template for JSR-107 created caches.
+       Statistics are enabled so per-region metrics can be exposed via the
+       monitoring.ehcache.enabled Micrometer binding (see EhCacheMetricsConfig). -->
   <service>
-    <jsr107:defaults default-template="defaultCacheTemplate"/>
+    <jsr107:defaults default-template="defaultCacheTemplate" enable-statistics="true"/>
   </service>
 
   <!-- Cache template definition (referenced by jsr107:defaults and potentially explicit caches) -->
