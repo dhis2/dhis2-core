@@ -60,7 +60,11 @@ public class OptionCacheInvalidationListener
         PostCommitUpdateEventListener,
         PostCommitDeleteEventListener {
 
-  private final DefaultProgramRuleEntityMapperService mapperService;
+  // Hibernate's PostInsert/PostUpdate/PostDeleteEventListener all extend Serializable, making this
+  // class transitively Serializable even though it's just a Spring singleton registered with the
+  // EventListenerRegistry and never actually serialized. transient satisfies that contract without
+  // changing runtime behaviour.
+  private final transient DefaultProgramRuleEntityMapperService mapperService;
 
   @Override
   public void onPostInsert(PostInsertEvent event) {
