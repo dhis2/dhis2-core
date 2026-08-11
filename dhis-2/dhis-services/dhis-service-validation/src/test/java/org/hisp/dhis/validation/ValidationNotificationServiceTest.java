@@ -49,6 +49,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -99,6 +100,8 @@ class ValidationNotificationServiceTest extends TestBase {
 
   @Mock private PeriodStore periodStore;
 
+  @Mock private I18nManager i18nManager;
+
   private DefaultPeriodService periodService;
 
   private DefaultValidationNotificationService subject;
@@ -128,7 +131,7 @@ class ValidationNotificationServiceTest extends TestBase {
   void initTest() {
     subject =
         new DefaultValidationNotificationService(renderer, messageService, validationResultService);
-    this.periodService = new DefaultPeriodService(periodStore);
+    this.periodService = new DefaultPeriodService(periodStore, i18nManager);
     sentMessages = new ArrayList<>();
     when(messageService.sendValidationMessage(
             anySet(), anyString(), anyString(), any(MessageConversationPriority.class)))

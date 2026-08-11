@@ -235,16 +235,22 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
+  public PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale) {
+    return getAllPeriodTypes(locale, Fields.of(":all"));
+  }
+
+  @Override
   @IndirectTransactional
   public PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, Fields fields) {
-    if (locale == null) locale = UserSettings.getCurrentSettings().getUserUiLocale();
-    boolean hasDuration = fields.contains("isoDuration");
-    boolean hasFormat = fields.contains("isoFormat");
-    boolean hasOrder = fields.contains("frequencyOrder");
-    boolean hasLabel = fields.contains("label");
-    boolean hasTranslations = fields.contains("translations");
-    boolean hasDisplayName = fields.contains("displayName");
-    boolean hasDisplayLabel = fields.contains("displayLabel");
+    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    boolean hasAll = fields.contains(":all");
+    boolean hasDuration = hasAll || fields.contains("isoDuration");
+    boolean hasFormat = hasAll || fields.contains("isoFormat");
+    boolean hasOrder = hasAll || fields.contains("frequencyOrder");
+    boolean hasLabel = hasAll || fields.contains("label");
+    boolean hasTranslations = hasAll || fields.contains("translations");
+    boolean hasDisplayName = hasAll || fields.contains("displayName");
+    boolean hasDisplayLabel = hasAll || fields.contains("displayLabel");
     boolean hasPersistedLabels = hasTranslations || hasLabel || hasDisplayName || hasDisplayLabel;
     Map<String, PeriodStore.PeriodTypeLabels> labels =
         hasPersistedLabels ? new HashMap<>() : Map.of();

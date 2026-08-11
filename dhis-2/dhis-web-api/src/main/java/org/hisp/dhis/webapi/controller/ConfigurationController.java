@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E1101;
@@ -43,6 +43,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.lang3.Strings;
@@ -58,14 +59,13 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypes;
 import org.hisp.dhis.period.PeriodTypes.Entry;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -105,8 +105,6 @@ public class ConfigurationController {
   @Autowired private RenderService renderService;
 
   @Autowired private AppManager appManager;
-
-  @Autowired private I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -478,16 +476,15 @@ public class ConfigurationController {
   @GetMapping(
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Set<Entry> getDataOutputPeriodTypes() {
-    Set<PeriodType> periodTypes =
-        configurationService.getConfiguration().getDataOutputPeriodTypes();
+  public @ResponseBody List<Entry> getDataOutputPeriodTypes() {
+    Set<String> names =
+        configurationService.getConfiguration().getDataOutputPeriodTypes().stream()
+            .map(PeriodType::getName)
+            .collect(toSet());
 
-    I18n i18n = i18nManager.getI18n();
-    // FIXME elevate to entries with labels, use service
-
-    return periodTypes.stream()
-        .map(periodType -> new Entry(periodType, null))
-        .collect(toCollection(LinkedHashSet::new));
+    return periodService.getAllPeriodTypes(null).periodTypes().stream()
+        .filter(pt -> names.contains(pt.name()))
+        .toList();
   }
 
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
@@ -495,19 +492,19 @@ public class ConfigurationController {
       value = {"/dataOutputPeriodTypes"},
       consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void setDataOutputPeriodTypes(@RequestBody Set<Entry> periodTypes) {
+  public void setDataOutputPeriodTypes(@RequestBody Set<PeriodTypes.Entry> periodTypes) {
 
     // Disallow deprecated types
-    for (Entry p : periodTypes) {
-      if (trimToEmpty(p.getName()).equalsIgnoreCase(TWO_YEARLY.getName())) {
-        throw new IllegalQueryException(new ErrorMessage(E1101, p.getName()));
+    for (PeriodTypes.Entry p : periodTypes) {
+      if (trimToEmpty(p.name()).equalsIgnoreCase(TWO_YEARLY.getName())) {
+        throw new IllegalQueryException(new ErrorMessage(E1101, p.name()));
       }
     }
 
     Set<PeriodType> periodTypesParsed = new LinkedHashSet<>();
 
     periodTypes.forEach(
-        p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.getName())));
+        p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.name())));
 
     // Always add yearly, as it is mandatory for partition checks
     periodTypesParsed.add(periodService.getPeriodTypeByName(YEARLY.getName()));

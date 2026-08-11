@@ -357,9 +357,12 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         WHERE name = :name
         """;
       return runAutoJoinTransaction(
-              session -> session.createNativeQuery(sql)
-                  .addSynchronizedEntityClass(PeriodType.class)
-                  .setParameter("name", name).executeUpdate())
+              session ->
+                  session
+                      .createNativeQuery(sql)
+                      .addSynchronizedEntityClass(PeriodType.class)
+                      .setParameter("name", name)
+                      .executeUpdate())
           > 0;
     }
     @Language("sql")
@@ -382,10 +385,11 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
             "jsonb_build_object('locale',:locale,'property','NAME','value',:value )", json);
     return runAutoJoinTransaction(
             session -> {
-              NativeQuery<?> query = session
-                  .createNativeQuery(sql)
-                  .addSynchronizedEntityClass(PeriodType.class)
-                  .setParameter("name", name);
+              NativeQuery<?> query =
+                  session
+                      .createNativeQuery(sql)
+                      .addSynchronizedEntityClass(PeriodType.class)
+                      .setParameter("name", name);
               int i = 0;
               for (Translation t : keep) {
                 query.setParameter("locale" + i, t.getLocale().toString());
