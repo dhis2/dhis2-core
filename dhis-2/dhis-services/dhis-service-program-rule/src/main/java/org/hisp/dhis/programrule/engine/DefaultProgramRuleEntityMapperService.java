@@ -114,8 +114,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
    * tracker import that touched the owning program: that collection has no L2 cache (see {@code
    * OptionSet.hbm.xml}, deliberately, to avoid a different N+1), so every call re-queried the
    * database and re-populated the {@code Option} entity cache without ever reading from it.
-   * TTL-bounded rather than event-invalidated on Option/OptionSet writes, matching {@code
-   * programRuleVariablesCache}'s existing precedent in this module.
+   *
+   * <p>Invalidated per option set by {@link OptionCacheInvalidationListener} on every local
+   * insert/update/delete of an {@code Option}, since writes can arrive via {@code
+   * DefaultOptionService}, the generic metadata CRUD controller, or a metadata import - none of
+   * which funnel through one service method this class could hook into directly. The 1 hour TTL
+   * (matching {@code programRuleVariablesCache}'s existing precedent in this module) remains as a
+   * backstop for writes on another node in a cluster, which this same-node listener cannot see.
    */
   private final Cache<List<Option>> optionsByOptionSetId;
 
@@ -130,6 +135,15 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     this.constantService = constantService;
     this.i18nManager = i18nManager;
     this.optionsByOptionSetId = cacheProvider.createProgramRuleVariableOptionsCache();
+  }
+
+  /**
+   * Evicts the cached options of the given option set, so the next {@link
+   * #getOptions(ProgramRuleVariable)} call recomputes them instead of serving a stale list. Called
+   * by {@link OptionCacheInvalidationListener}.
+   */
+  void invalidateOptionsCache(long optionSetId) {
+    optionsByOptionSetId.invalidate(String.valueOf(optionSetId));
   }
 
   @Override
