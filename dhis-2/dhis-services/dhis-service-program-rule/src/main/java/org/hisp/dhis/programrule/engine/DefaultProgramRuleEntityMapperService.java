@@ -108,12 +108,12 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   private final I18nManager i18nManager;
 
   /**
-   * OptionSet id (as string) -> mapped {@code (name, code)} pairs for its options. A program
-   * rule variable's option set almost never changes at the timescale of data entry, but {@link
-   * #getOptions(ProgramRuleVariable)} previously ran {@code optionSet.getOptions()} fresh on
-   * every tracker import that touched the owning program: that collection has no L2 cache (see
-   * {@code OptionSet.hbm.xml}, deliberately, to avoid a different N+1), so every call re-queried
-   * the database and re-populated the {@code Option} entity cache without ever reading from it.
+   * OptionSet id (as string) -> mapped {@code (name, code)} pairs for its options. A program rule
+   * variable's option set almost never changes at the timescale of data entry, but {@link
+   * #getOptions(ProgramRuleVariable)} previously ran {@code optionSet.getOptions()} fresh on every
+   * tracker import that touched the owning program: that collection has no L2 cache (see {@code
+   * OptionSet.hbm.xml}, deliberately, to avoid a different N+1), so every call re-queried the
+   * database and re-populated the {@code Option} entity cache without ever reading from it.
    * TTL-bounded rather than event-invalidated on Option/OptionSet writes, matching {@code
    * programRuleVariablesCache}'s existing precedent in this module.
    */
