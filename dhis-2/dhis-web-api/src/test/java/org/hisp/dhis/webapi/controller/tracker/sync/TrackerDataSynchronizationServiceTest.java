@@ -66,6 +66,7 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
@@ -105,6 +106,7 @@ class TrackerDataSynchronizationServiceTest {
               false);
 
   @Mock private TrackedEntityService trackedEntityService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
   @Mock private ProgramStageDataElementService programStageDataElementService;
   @Mock private SystemSettingsService systemSettingsService;
   @Mock private RenderService renderService;
@@ -119,6 +121,7 @@ class TrackerDataSynchronizationServiceTest {
     service =
         new TrackerDataSynchronizationService(
             trackedEntityService,
+            trackedEntityAttributeService,
             programStageDataElementService,
             systemSettingsService,
             restTemplate,
@@ -272,6 +275,9 @@ class TrackerDataSynchronizationServiceTest {
     when(programStageDataElementService
             .getProgramStageDataElementsWithSkipSynchronizationSetToTrue())
         .thenReturn(Map.of("ProgStageAB", Set.of("SkipDataElAB")));
+    when(trackedEntityAttributeService
+            .getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue())
+        .thenReturn(Set.of("SkipAttrUAB"));
 
     org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity teDto =
         synchronizeAndCaptureCreateAndUpdatePayload();
@@ -309,6 +315,9 @@ class TrackerDataSynchronizationServiceTest {
     enrollment.setTrackedEntity(enrollmentTe);
 
     stubTrackedEntityService(te);
+    when(trackedEntityAttributeService
+            .getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue())
+        .thenReturn(Set.of("ProgSkipAttAB"));
 
     org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity teDto =
         synchronizeAndCaptureCreateAndUpdatePayload();
@@ -605,6 +614,9 @@ class TrackerDataSynchronizationServiceTest {
     when(programStageDataElementService
             .getProgramStageDataElementsWithSkipSynchronizationSetToTrue())
         .thenReturn(Map.of());
+    when(trackedEntityAttributeService
+            .getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue())
+        .thenReturn(Set.of());
   }
 
   private static String toJson(ImportReport report) {
