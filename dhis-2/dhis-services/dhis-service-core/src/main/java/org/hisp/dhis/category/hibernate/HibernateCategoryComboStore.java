@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.hibernate.LockOptions;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -97,8 +98,11 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         set categoryid = :targetCategoryId
         where cc_c.categoryid in :sourceCategoryIds
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // categorycombos_categories backs both the cached CategoryCombo.categories and
+        // Category.categoryCombos collections. Collection regions are keyed by the collection's
+        // element entity, so naming both entities is what reaches both regions.
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
