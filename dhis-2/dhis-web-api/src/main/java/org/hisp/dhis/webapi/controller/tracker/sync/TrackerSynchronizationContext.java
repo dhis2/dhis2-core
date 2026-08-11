@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.sync.SystemInstance;
 public final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
 
   private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
+  private final Set<UID> skipSyncAttributeUids;
 
   // Every entity UID fetched so far this run, across all pages. At the end of the run we compare
   // this against the total count to report how many entities never got a turn at all — this can
@@ -52,14 +53,17 @@ public final class TrackerSynchronizationContext extends PagedDataSynchronisatio
       long objectsToSynchronize,
       SystemInstance instance,
       int pageSize,
-      Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+      Map<String, Set<String>> skipSyncDataElementsByProgramStage,
+      Set<UID> skipSyncAttributeUids) {
 
     super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
     this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
+    this.skipSyncAttributeUids = skipSyncAttributeUids;
   }
 
   static TrackerSynchronizationContext emptyContext(Date skipChangedBefore, int pageSize) {
-    return new TrackerSynchronizationContext(skipChangedBefore, 0, null, pageSize, Map.of());
+    return new TrackerSynchronizationContext(
+        skipChangedBefore, 0, null, pageSize, Map.of(), Set.of());
   }
 
   static TrackerSynchronizationContext forEntities(
@@ -67,14 +71,16 @@ public final class TrackerSynchronizationContext extends PagedDataSynchronisatio
       long objectsToSynchronize,
       SystemInstance instance,
       int pageSize,
-      Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+      Map<String, Set<String>> skipSyncDataElementsByProgramStage,
+      Set<UID> skipSyncAttributeUids) {
 
     return new TrackerSynchronizationContext(
         skipChangedBefore,
         objectsToSynchronize,
         instance,
         pageSize,
-        skipSyncDataElementsByProgramStage);
+        skipSyncDataElementsByProgramStage,
+        skipSyncAttributeUids);
   }
 
   boolean hasNoObjectsToSynchronize() {
@@ -83,6 +89,10 @@ public final class TrackerSynchronizationContext extends PagedDataSynchronisatio
 
   Map<String, Set<String>> getSkipSyncDataElementsByProgramStage() {
     return skipSyncDataElementsByProgramStage;
+  }
+
+  Set<UID> getSkipSyncAttributeUids() {
+    return skipSyncAttributeUids;
   }
 
   Set<UID> getAttemptedUids() {

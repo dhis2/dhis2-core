@@ -162,7 +162,12 @@ public class SingleEventDataSynchronizationService
         getSkipSyncProgramStageDataElements();
 
     return TrackerSynchronizationContext.forEntities(
-        skipChangedBefore, eventCount, instance, pageSize, skipSyncProgramStageDataElements);
+        skipChangedBefore,
+        eventCount,
+        instance,
+        pageSize,
+        skipSyncProgramStageDataElements,
+        Set.of());
   }
 
   private Map<String, Set<String>> getSkipSyncProgramStageDataElements() {
