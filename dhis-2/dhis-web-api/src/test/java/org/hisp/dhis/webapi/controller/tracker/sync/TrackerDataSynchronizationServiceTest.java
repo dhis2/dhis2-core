@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSynchronizationContext.forEntities;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,7 +54,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -65,7 +66,6 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
@@ -86,6 +86,7 @@ class TrackerDataSynchronizationServiceTest {
 
   @Mock private TrackedEntityService trackedEntityService;
   @Mock private ProgramStageDataElementService programStageDataElementService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
   @Mock private SystemSettingsService systemSettingsService;
   @Mock private RestTemplate restTemplate;
   @Mock private RenderService renderService;
@@ -99,6 +100,7 @@ class TrackerDataSynchronizationServiceTest {
         new TrackerDataSynchronizationService(
             trackedEntityService,
             programStageDataElementService,
+            trackedEntityAttributeService,
             systemSettingsService,
             restTemplate,
             renderService);
@@ -191,35 +193,6 @@ class TrackerDataSynchronizationServiceTest {
 
   @Test
   void shouldStripAttributesAndDataValuesFlaggedSkipSynchronization() {
-    TrackedEntityAttribute skipAttribute = new TrackedEntityAttribute();
-    skipAttribute.setUid("SkipAttr001");
-    skipAttribute.setSkipSynchronization(true);
-    TrackedEntityAttribute regularAttribute = new TrackedEntityAttribute();
-    regularAttribute.setUid("KeepAttr001");
-    regularAttribute.setSkipSynchronization(false);
-    TrackedEntityAttribute programSkipAttribute = new TrackedEntityAttribute();
-    programSkipAttribute.setUid("SkipAttr002");
-    programSkipAttribute.setSkipSynchronization(true);
-
-    org.hisp.dhis.tracker.model.TrackedEntity domainTe =
-        new org.hisp.dhis.tracker.model.TrackedEntity();
-    domainTe.setUid("TrackedEnt1");
-    domainTe.setTrackedEntityAttributeValues(
-        Set.of(
-            new TrackedEntityAttributeValue(skipAttribute, domainTe),
-            new TrackedEntityAttributeValue(regularAttribute, domainTe)));
-
-    org.hisp.dhis.tracker.model.TrackedEntity enrollmentTrackedEntity =
-        new org.hisp.dhis.tracker.model.TrackedEntity();
-    enrollmentTrackedEntity.setUid("TrackedEnt1");
-    enrollmentTrackedEntity.setTrackedEntityAttributeValues(
-        Set.of(new TrackedEntityAttributeValue(programSkipAttribute, enrollmentTrackedEntity)));
-    org.hisp.dhis.tracker.model.Enrollment domainEnrollment =
-        new org.hisp.dhis.tracker.model.Enrollment();
-    domainEnrollment.setUid("Enrol000001");
-    domainEnrollment.setTrackedEntity(enrollmentTrackedEntity);
-    domainTe.setEnrollments(Set.of(domainEnrollment));
-
     Event event =
         Event.builder()
             .event(UID.of("Event000001"))
@@ -250,10 +223,15 @@ class TrackerDataSynchronizationServiceTest {
             .build();
 
     TrackerSynchronizationContext context =
-        TrackerSynchronizationContext.forEntities(
-            null, 1, null, 50, Map.of("ProgStage01", Set.of("SkipDe00001")));
+        forEntities(
+            null,
+            1,
+            null,
+            50,
+            Map.of("ProgStage01", Set.of("SkipDe00001")),
+            Set.of(UID.of("SkipAttr001"), UID.of("SkipAttr002")));
 
-    service.stripSkipSyncFields(List.of(domainTe), List.of(teDto), context);
+    service.stripSkipSyncFields(List.of(), List.of(teDto), context);
 
     assertEquals(
         List.of("KeepAttr001"),

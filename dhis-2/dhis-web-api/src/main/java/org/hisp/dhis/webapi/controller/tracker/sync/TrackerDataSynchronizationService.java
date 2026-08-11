@@ -38,9 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
@@ -52,13 +50,13 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
@@ -83,16 +81,19 @@ public class TrackerDataSynchronizationService
 
   private final TrackedEntityService trackedEntityService;
   private final ProgramStageDataElementService programStageDataElementService;
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   public TrackerDataSynchronizationService(
       TrackedEntityService trackedEntityService,
       ProgramStageDataElementService programStageDataElementService,
+      TrackedEntityAttributeService trackedEntityAttributeService,
       SystemSettingsService systemSettingsService,
       RestTemplate restTemplate,
       RenderService renderService) {
     super(renderService, restTemplate, systemSettingsService);
     this.trackedEntityService = trackedEntityService;
     this.programStageDataElementService = programStageDataElementService;
+    this.trackedEntityAttributeService = trackedEntityAttributeService;
   }
 
   @Override
@@ -186,7 +187,8 @@ public class TrackerDataSynchronizationService
         trackedEntityCount,
         instance,
         pageSize,
-        getSkipSyncDataElementsByProgramStage());
+        getSkipSyncDataElementsByProgramStage(),
+        getSkipSyncAttributeUids());
   }
 
   private Map<String, Set<String>> getSkipSyncDataElementsByProgramStage() {
@@ -194,12 +196,17 @@ public class TrackerDataSynchronizationService
         .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
   }
 
+  private Set<UID> getSkipSyncAttributeUids() {
+    return trackedEntityAttributeService
+        .getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
+  }
+
   @Override
   protected void stripSkipSyncFields(
       List<TrackedEntity> activeDomainEntities,
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeDtos,
       TrackerSynchronizationContext context) {
-    Set<String> skipSyncAttributeUids = skipSyncAttributeUids(activeDomainEntities);
+    Set<UID> skipSyncAttributeUids = context.getSkipSyncAttributeUids();
     Map<String, Set<String>> skipSyncDataElementsByProgramStage =
         context.getSkipSyncDataElementsByProgramStage();
 
@@ -224,32 +231,13 @@ public class TrackerDataSynchronizationService
     }
   }
 
-  private Set<String> skipSyncAttributeUids(List<TrackedEntity> trackedEntities) {
-    return trackedEntities.stream()
-        .flatMap(
-            te ->
-                Stream.concat(
-                    te.getTrackedEntityAttributeValues().stream(),
-                    getEnrollmentAttributeValues(te)))
-        .map(TrackedEntityAttributeValue::getAttribute)
-        .filter(a -> Boolean.TRUE.equals(a.getSkipSynchronization()))
-        .map(BaseIdentifiableObject::getUid)
-        .collect(Collectors.toSet());
-  }
-
-  private Stream<TrackedEntityAttributeValue> getEnrollmentAttributeValues(TrackedEntity te) {
-    return te.getEnrollments().stream()
-        .map(org.hisp.dhis.tracker.model.Enrollment::getTrackedEntity)
-        .flatMap(t -> t.getTrackedEntityAttributeValues().stream());
-  }
-
   private List<Attribute> stripSkipSyncAttributes(
-      List<Attribute> attributes, Set<String> skipSyncAttributeUids) {
+      List<Attribute> attributes, Set<UID> skipSyncAttributeUids) {
     if (skipSyncAttributeUids.isEmpty()) {
       return attributes;
     }
     return attributes.stream()
-        .filter(a -> !skipSyncAttributeUids.contains(a.getAttribute()))
+        .filter(a -> !skipSyncAttributeUids.contains(UID.of(a.getAttribute())))
         .toList();
   }
 
