@@ -396,7 +396,7 @@ public enum ConfigurationKey {
    */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
-  /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
+  /** Sets up Spring Framework core {@code RetryTemplate} backoff delay. (default: 30000) */
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
@@ -583,6 +583,13 @@ public enum ConfigurationKey {
 
   /** CPU monitoring. (default: off) */
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
+
+  /**
+   * JMX monitoring: expose selected statistics (user statistics) and HikariCP connection pool
+   * MBeans, for monitoring tools that consume JMX rather than Prometheus, such as Glowroot.
+   * (default: off)
+   */
+  MONITORING_JMX_ENABLED("monitoring.jmx.enabled", Constants.OFF, false),
 
   /** AppHub base URL. (default: https://apps.dhis2.org). */
   APPHUB_BASE_URL("apphub.base.url", "https://apps.dhis2.org", false),

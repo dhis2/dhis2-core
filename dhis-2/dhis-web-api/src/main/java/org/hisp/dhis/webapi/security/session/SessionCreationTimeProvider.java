@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.security.session;
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.hibernate.EnumUserType;
+import java.util.Date;
+import javax.annotation.CheckForNull;
 
 /**
- * @author Chau Thu Tran
+ * Provides the creation time of an HTTP session by id.
+ *
+ * <p>Two implementations exist, one per session backend:
+ *
+ * <ul>
+ *   <li>In-memory (non-Redis): records creation times from {@code HttpSessionCreatedEvent} into a
+ *       map and clears them on {@code HttpSessionDestroyedEvent}.
+ *   <li>Redis-backed Spring Session: looks up the session via {@code
+ *       RedisIndexedSessionRepository#findById(String)} and returns its creation time.
+ * </ul>
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class EventStatusUserType extends EnumUserType<EventStatus> {
-  public EventStatusUserType() {
-    super(EventStatus.class);
-  }
+public interface SessionCreationTimeProvider {
+
+  /**
+   * Returns the creation time of the session with the given id, or {@code null} when the session is
+   * unknown or creation time is unavailable.
+   *
+   * @param sessionId the raw session id (not the hashed value exposed by the API)
+   * @return creation time, or null
+   */
+  @CheckForNull
+  Date getCreationTime(String sessionId);
 }

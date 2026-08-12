@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -173,6 +174,7 @@ public record Locale(
   }
 
   @Override
+  @JsonValue
   public String toString() {
     if (region == null && script == null) return language;
     if (script == null) return language + "_" + region;

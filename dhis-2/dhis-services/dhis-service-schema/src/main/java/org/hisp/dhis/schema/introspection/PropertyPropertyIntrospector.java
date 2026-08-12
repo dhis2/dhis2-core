@@ -88,15 +88,29 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector {
       property.setItemPropertyType(getPropertyType(property.getItemKlass()));
     }
 
-    if (property.isWritable()) {
-      initFromPropertyAnnotation(property);
-      initFromPropertyTransformerAnnotation(property);
+    // Snapshot before initFromPropertyAnnotation, which may itself flip writability (via
+    // access = READ_ONLY/WRITE_ONLY) — range/min-max only make sense relative to whether the
+    // property was actually settable prior to that annotation-driven override.
+    boolean writable = property.isWritable();
+
+    // Independent of writability: most of @Property's attributes (type override, required/
+    // persisted/owner flags, persistedAs aliasing) describe the property itself, not whether it
+    // can be written to, so they apply equally to read-only properties and aliases (DHIS2-21872).
+    initFromPropertyAnnotation(property);
+
+    if (writable) {
       initFromPropertyRangeAnnotation(property);
       ensureMinMaxDefaults(property);
     } else {
       property.setMin(null);
       property.setMax(null);
     }
+
+    // Independent of writability: a read-only, computed getter (e.g. UserRole.getUsers(), derived
+    // from a differently-named backing field with its own setter) can still carry
+    // @PropertyTransformer, since it describes the serialized shape, not whether the property can
+    // be written to (DHIS2-21872).
+    initFromPropertyTransformerAnnotation(property);
   }
 
   private static void ensureMinMaxDefaults(Property property) {
