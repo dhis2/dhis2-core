@@ -43,6 +43,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -63,7 +64,6 @@ import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -106,28 +106,28 @@ class ProgramStageWorkingListObjectBundleHookTest {
         ProgramStageQueryCriteria.builder()
             .enrolledAt(
                 createDatePeriod(
-                    DateTime.now().minusDays(1).toDate(),
-                    DateTime.now().plusDays(1).toDate(),
+                    Date.from(ZonedDateTime.now().minusDays(1).toInstant()),
+                    Date.from(ZonedDateTime.now().plusDays(1).toInstant()),
                     DatePeriodType.ABSOLUTE))
             .enrollmentOccurredAt(
                 createDatePeriod(
-                    DateTime.now().minusDays(1).toDate(),
-                    DateTime.now().plusDays(1).toDate(),
+                    Date.from(ZonedDateTime.now().minusDays(1).toInstant()),
+                    Date.from(ZonedDateTime.now().plusDays(1).toInstant()),
                     DatePeriodType.RELATIVE))
             .eventCreatedAt(
                 createDatePeriod(
-                    DateTime.now().minusDays(1).toDate(),
-                    DateTime.now().plusDays(1).toDate(),
+                    Date.from(ZonedDateTime.now().minusDays(1).toInstant()),
+                    Date.from(ZonedDateTime.now().plusDays(1).toInstant()),
                     DatePeriodType.ABSOLUTE))
             .eventOccurredAt(
                 createDatePeriod(
-                    DateTime.now().minusDays(1).toDate(),
-                    DateTime.now().plusDays(1).toDate(),
+                    Date.from(ZonedDateTime.now().minusDays(1).toInstant()),
+                    Date.from(ZonedDateTime.now().plusDays(1).toInstant()),
                     DatePeriodType.ABSOLUTE))
             .eventScheduledAt(
                 createDatePeriod(
-                    DateTime.now().minusDays(1).toDate(),
-                    DateTime.now().plusDays(1).toDate(),
+                    Date.from(ZonedDateTime.now().minusDays(1).toInstant()),
+                    Date.from(ZonedDateTime.now().plusDays(1).toInstant()),
                     DatePeriodType.RELATIVE))
             .assignedUsers(Collections.singleton("User"))
             .assignedUserMode(AssignedUserSelectionMode.PROVIDED)
