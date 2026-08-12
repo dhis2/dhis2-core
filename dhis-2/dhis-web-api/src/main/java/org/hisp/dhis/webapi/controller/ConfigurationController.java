@@ -52,6 +52,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -82,6 +83,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -476,13 +478,14 @@ public class ConfigurationController {
   @GetMapping(
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody List<Entry> getDataOutputPeriodTypes() {
+  public @ResponseBody List<Entry> getDataOutputPeriodTypes(
+      @RequestParam(defaultValue = "*") String fields) {
     Set<String> names =
         configurationService.getConfiguration().getDataOutputPeriodTypes().stream()
             .map(PeriodType::getName)
             .collect(toSet());
 
-    return periodService.getAllPeriodTypes(null).periodTypes().stream()
+    return periodService.getAllPeriodTypes(null, Fields.of(fields)).periodTypes().stream()
         .filter(pt -> names.contains(pt.name()))
         .toList();
   }

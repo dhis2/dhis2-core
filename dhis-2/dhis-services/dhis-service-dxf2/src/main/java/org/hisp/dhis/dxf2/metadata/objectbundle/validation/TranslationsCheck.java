@@ -136,7 +136,11 @@ public class TranslationsCheck implements ObjectValidationCheck {
 
   private static ErrorReport checkUniqueness(Collection<Translation> translations) {
     long uniqueCount =
-        translations.stream().map(Translation::getCacheKey).filter(Objects::nonNull).count();
+        translations.stream()
+            .map(Translation::getCacheKey)
+            .filter(Objects::nonNull)
+            .distinct()
+            .count();
     if (uniqueCount < translations.size()) {
       Set<String> keys = new HashSet<>(translations.size());
       for (Translation t : translations) {

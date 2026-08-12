@@ -220,7 +220,5 @@ public interface PeriodService {
     return getPeriodTypeByName(periodType.getName());
   }
 
-  PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale);
-
   PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, Fields fields);
 }
