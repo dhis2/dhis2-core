@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 
 import java.util.List;
@@ -42,6 +43,7 @@ import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
@@ -165,7 +167,7 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
     Set<String> requestedKeys =
         contextParams.getCommonRaw().getDimension().stream()
-            .map(param -> getDimensionFromParam(param))
+            .map(AggregateQueryBuilder::canonicalDimensionKey)
             .collect(toSet());
 
     return contextParams.getCommonParsed().getDimensionIdentifiers().stream()
@@ -176,6 +178,23 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
         .map(DimensionIdentifier::getKey)
         .filter(requestedKeys::contains)
         .collect(toSet());
+  }
+
+  /**
+   * Returns the key a raw {@code dimension} parameter is parsed into, so a request can be matched
+   * against the parsed dimensions. A static dimension is parsed to its canonical header name, so an
+   * aliased spelling such as {@code LAST_UPDATED} or {@code ENROLLMENT_DATE} has to be resolved to
+   * {@code lastupdated} / {@code enrollmentdate} first; comparing the raw spelling would never
+   * match. Any program and stage prefix is preserved.
+   */
+  public static String canonicalDimensionKey(String rawDimension) {
+    String key = getDimensionFromParam(rawDimension);
+    int separator = key.lastIndexOf(DIMENSION_IDENTIFIER_SEP);
+    String prefix = separator < 0 ? "" : key.substring(0, separator + 1);
+    String dimension = key.substring(separator + 1);
+
+    return prefix
+        + StaticDimension.of(dimension).map(StaticDimension::getHeaderName).orElse(dimension);
   }
 
   @Override
