@@ -235,11 +235,6 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
-  public PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale) {
-    return getAllPeriodTypes(locale, Fields.of(":all"));
-  }
-
-  @Override
   @IndirectTransactional
   public PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, Fields fields) {
     if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
