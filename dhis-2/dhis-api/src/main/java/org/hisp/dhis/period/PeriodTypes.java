@@ -62,7 +62,7 @@ public record PeriodTypes(
       @OpenApi.Description("The i18n translation of `name` or the custom override for it")
           @JsonProperty
           String label,
-      List<Translation> translations,
+      @JsonProperty List<Translation> translations,
       @OpenApi.Description("An optional translation for `label` resolved for a specific `locale`")
           @JsonProperty
           String displayLabel,
