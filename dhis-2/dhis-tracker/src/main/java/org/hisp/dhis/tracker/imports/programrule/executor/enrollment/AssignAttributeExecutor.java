@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,20 +63,6 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
   private final UID attributeUid;
 
   private final List<Attribute> attributes;
-
-  /** The tracked entity attribute this action assigns to. */
-  public UID getAttributeUid() {
-    return attributeUid;
-  }
-
-  /**
-   * The value this action will assign. It is the rule engine's already evaluated output, so it is
-   * final and known as soon as the rule effects have been calculated, before {@link
-   * #executeRuleAction(TrackerBundle, Enrollment)} runs.
-   */
-  public String getValue() {
-    return value;
-  }
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {

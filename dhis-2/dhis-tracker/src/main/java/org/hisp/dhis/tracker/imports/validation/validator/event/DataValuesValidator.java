@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,7 +112,7 @@ class DataValuesValidator implements Validator<Event> {
     }
 
     if (dataElement.hasOptionSet()) {
-      validateOptionSet(reporter, bundle.getPreheat(), event, dataElement, dataValue.getValue());
+      validateOptionSet(reporter, event, dataElement, dataValue.getValue());
     }
     validateValueType(reporter, bundle, event, dataValue.getValue(), dataElement);
   }
