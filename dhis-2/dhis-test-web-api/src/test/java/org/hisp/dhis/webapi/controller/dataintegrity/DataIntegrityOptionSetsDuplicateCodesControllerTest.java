@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
+import java.util.Set;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.http.HttpStatus;
@@ -60,21 +61,11 @@ class DataIntegrityOptionSetsDuplicateCodesControllerTest
 
   @Test
   void testOptionSetWithDuplicateCodesDetected() throws ConflictException {
-    // Reproduce the real-world precondition: a database that reached a state
-    // without the unique constraint (e.g. it had duplicates when V2_41_6 ran).
-    //
-    // No manual cleanup/restoration of this constraint is needed: this class is
-    // @Transactional (see AbstractDataIntegrityIntegrationTest), so this whole test method
-    // runs in one DB transaction that Spring rolls back afterwards. Postgres DDL is fully
-    // transactional, so that rollback undoes this ALTER TABLE (and the option/optionSet rows
-    // created below) exactly as it undoes any other statement, leaving the constraint intact
-    // for the next test. An explicit @AfterEach that re-ran ALTER TABLE on this same
-    // connection was tried previously and reliably failed with Postgres error 55006 ("cannot
-    // ALTER TABLE ... because it is being used by active queries in this session"), because
-    // the check's own SQL (run via assertHasDataIntegrityIssues below) shares this session;
-    // running the ALTER on a genuinely separate connection instead (Spring's REQUIRES_NEW)
-    // was also tried and empirically just hangs, since that separate connection then blocks
-    // waiting to acquire the ACCESS EXCLUSIVE lock this still-open outer transaction holds.
+    // Reproduce the real-world precondition: a database that reached a state without the
+    // unique constraint (e.g. it had duplicates when V2_41_6 ran). No manual restoration is
+    // needed afterwards: this class is @Transactional (see AbstractDataIntegrityIntegrationTest),
+    // and Postgres DDL is fully transactional, so Spring's rollback undoes this ALTER TABLE
+    // along with everything else the test method does.
     jdbcTemplate.execute(
         "ALTER TABLE optionvalue DROP CONSTRAINT IF EXISTS " + UNIQUE_CODE_CONSTRAINT);
 
@@ -92,6 +83,36 @@ class DataIntegrityOptionSetsDuplicateCodesControllerTest
 
     assertHasDataIntegrityIssues(
         detailsIdType, check, 100, optionSetId, "Taste", "Code 'SWEET' used by 2 options", true);
+  }
+
+  @Test
+  void testMultipleOptionSetsWithDuplicateCodesDetected() throws ConflictException {
+    // See testOptionSetWithDuplicateCodesDetected for why no manual restoration is needed.
+    jdbcTemplate.execute(
+        "ALTER TABLE optionvalue DROP CONSTRAINT IF EXISTS " + UNIQUE_CODE_CONSTRAINT);
+
+    Option optionA = new Option("Sweet A", "SWEET", 1);
+    Option optionB = new Option("Sweet B", "SWEET", 2);
+    OptionSet optionSetA = new OptionSet("Taste", ValueType.TEXT);
+    optionSetA.addOption(optionA);
+    optionSetA.addOption(optionB);
+    myOptionService.saveOptionSet(optionSetA);
+
+    Option optionC = new Option("Red C", "RED", 1);
+    Option optionD = new Option("Red D", "RED", 2);
+    OptionSet optionSetB = new OptionSet("Color", ValueType.TEXT);
+    optionSetB.addOption(optionC);
+    optionSetB.addOption(optionD);
+    myOptionService.saveOptionSet(optionSetB);
+
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        check,
+        100,
+        Set.of(optionSetA.getUid(), optionSetB.getUid()),
+        Set.of("Taste", "Color"),
+        Set.of("Code 'SWEET' used by 2 options", "Code 'RED' used by 2 options"),
+        true);
   }
 
   @Test
