@@ -31,6 +31,7 @@ package org.hisp.dhis.test.platform;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.exec;
+import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.listFeeder;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
@@ -111,14 +112,21 @@ public class L2CacheTrackerImportRampTest extends L2CacheRampSimulation {
   private static ChainBuilder workflow(String p) {
     // Capture-style reads: the metadata the Capture app hits while users enter events. The
     // option-set read hammers the Option/OptionSet regions the import path also touches.
+    //
+    // Every check asserts on the JSON body, not just the HTTP status: a collapsed server can
+    // fail logins with 500s, after which sessionless virtual users are redirected to the login
+    // page, which answers 200 text/html in milliseconds. Status-only checks count those bounces
+    // as fast successes and corrupt the late ramp steps of a baseline run.
     ChainBuilder reads =
-        exec(http(p + " me").get("/api/me").check(status().is(200)))
+        exec(http(p + " me")
+                .get("/api/me")
+                .check(status().is(200), jsonPath("$.id").find().exists()))
             .feed(OPTION_SET_FEEDER)
             .exec(
                 http(p + " optionSet byId")
                     .get("/api/optionSets/#{osUid}")
                     .queryParam("fields", "id,name,valueType,options[id,name,code]")
-                    .check(status().is(200)))
+                    .check(status().is(200), jsonPath("$.id").find().exists()))
             .exec(
                 http(p + " events workingList")
                     .get("/api/tracker/events")
@@ -127,7 +135,9 @@ public class L2CacheTrackerImportRampTest extends L2CacheRampSimulation {
                     .queryParam("orgUnitMode", "DESCENDANTS")
                     .queryParam("order", "occurredAt:desc")
                     .queryParam("pageSize", "25")
-                    .check(status().is(200)));
+                    // response shape differs across versions; any parseable JSON root proves
+                    // this is a real API response and not a login bounce
+                    .check(status().is(200), jsonPath("$").find().exists()));
 
     int eventsPerPost = "batch".equalsIgnoreCase(IMPORT_MODE) ? EVENTS_PER_REQUEST : 1;
     String importName =
@@ -139,7 +149,8 @@ public class L2CacheTrackerImportRampTest extends L2CacheRampSimulation {
                 .queryParam("async", "false")
                 .header("Content-Type", "application/json")
                 .body(StringBody(session -> eventsPayload(eventsPerPost)))
-                .check(status().is(200)));
+                // a synchronous import that worked reports status OK in the body
+                .check(status().is(200), jsonPath("$.status").is("OK")));
 
     return reads.exec(importEvents);
   }
