@@ -46,9 +46,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Web test for CORS on the security-ignored {@code /api/**&#47;loginConfig} endpoint
- * (DHIS2-21909): a whitelisted browser origin must receive CORS headers even though the Spring
- * Security filter chain (and its CorsFilter) is skipped for this path.
+ * Web test for CORS on the security-ignored {@code /api/**&#47;loginConfig} endpoint (DHIS2-21909):
+ * a whitelisted browser origin must receive CORS headers even though the Spring Security filter
+ * chain (and its CorsFilter) is skipped for this path.
  *
  * <p>The production servlet registration in {@code DhisWebApiWebAppInitializer#setupServlets} is
  * not active in MockMvc, so the filter is added explicitly with its production {@code /api/*}
