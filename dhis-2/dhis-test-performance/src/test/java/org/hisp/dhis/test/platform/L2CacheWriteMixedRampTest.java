@@ -38,15 +38,14 @@ import static io.gatling.javaapi.http.HttpDsl.status;
 import io.gatling.javaapi.core.ChainBuilder;
 
 /**
- * Write-mixed concurrency ramp for the L2 cache baseline (l2-cache-truth Phase 3).
+ * Write-mixed concurrency ramp for the L2 cache baseline.
  *
  * <p>Same hot-metadata read chain as {@link L2CacheReadHeavyRampTest}, but a configurable share of
  * workflow iterations (default {@code writePercent=5}) additionally issues a metadata write: a JSON
  * Patch on a random data element's description. Each write invalidates the DataElement entry under
  * the region write lock AND puts into {@code default-update-timestamps-region} (the query-cache
- * write tax, 26.9k puts per Phase 2 suite), invalidating every cached query on the dataelement
- * table while readers hammer the same regions. This is the READ_WRITE lock-convoy pressure
- * scenario.
+ * write tax), invalidating every cached query on the dataelement table while readers hammer the
+ * same regions. This is the READ_WRITE lock-convoy pressure scenario.
  *
  * <p>Concurrent patches of the same UID can race in the metadata import; HTTP 409 is accepted on
  * the write so the run keeps measuring instead of failing (the write rate is what matters, not
@@ -78,7 +77,7 @@ public class L2CacheWriteMixedRampTest extends L2CacheRampSimulation {
                 .body(
                     StringBody(
                         "[{\"op\":\"replace\",\"path\":\"/description\","
-                            + "\"value\":\"l2-cache-truth perf #{randomUuid()}\"}]"))
+                            + "\"value\":\"perf test #{randomUuid()}\"}]"))
                 .check(status().in(200, 409)));
 
     return exec(reads(p)).randomSwitch().on(percent(WRITE_PERCENT).then(write));

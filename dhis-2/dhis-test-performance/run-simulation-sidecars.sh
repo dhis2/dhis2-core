@@ -4,7 +4,7 @@
 #   1. pg_stat_activity sampler: one CSV row per SIDECAR_INTERVAL seconds with connection
 #      state counts (active / idle / idle in transaction), wait-event class counts and the
 #      max idle-in-transaction / transaction age. This is the idle-in-transaction pileup
-#      signal of the L2 region-lock convoy (l2-cache-truth Phase 3).
+#      signal of the L2 region-lock convoy.
 #   2. /api/metrics sampler: HikariCP pool + JVM thread-state series per tick, plus a full
 #      Prometheus-format snapshot every SIDECAR_SNAPSHOT_INTERVAL seconds so per-region
 #      ehcache stats deltas can be computed over any time window after the fact.

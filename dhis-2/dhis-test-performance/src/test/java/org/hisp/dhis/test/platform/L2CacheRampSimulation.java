@@ -64,7 +64,7 @@ import java.util.Properties;
 import java.util.function.Function;
 
 /**
- * Base class for the L2-cache concurrency-baseline ramp simulations (l2-cache-truth Phase 3).
+ * Base class for the L2-cache concurrency-baseline ramp simulations.
  *
  * <p>Runs the same workflow at a sequence of fixed concurrency plateaus (default 10, 50, 100, 200,
  * 400 concurrent users), one closed-model population per step, chained with {@code andThen} so the
@@ -78,8 +78,8 @@ import java.util.function.Function;
  * region locks ({@code AbstractReadWriteAccess}), not a realistic user model.
  *
  * <p>No Gatling assertions on purpose: these simulations produce a measurement baseline (cache ON
- * vs OFF matrix); a failed run must still yield its artifact bundle. Regression gates belong to the
- * Phase 4 before/after comparisons.
+ * vs OFF, baseline vs candidate); a failed run must still yield its artifact bundle. Regression
+ * gates belong to the before/after comparison consuming the bundles, not to the simulation.
  *
  * <p>Available properties (system property first, then optional {@code -DconfigFile=} properties
  * file, then default):

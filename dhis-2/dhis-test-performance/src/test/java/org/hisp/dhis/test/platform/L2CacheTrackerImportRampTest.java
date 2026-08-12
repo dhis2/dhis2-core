@@ -54,7 +54,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Tracker-import ramp simulation for the L2-cache truth mission (Phase 4 primary workload).
+ * Tracker-import ramp simulation: the second level cache under concurrent event imports.
  *
  * <p>Concurrent {@code POST /api/tracker?async=false} of synthetic events against an option-heavy
  * event program (default: Inpatient morbidity and mortality {@code eBAyeGv0exc}, Sierra Leone demo
@@ -69,7 +69,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * attributes the full import transaction cost (validation, preheat, persistence) to the request.
  * Uganda's pipeline uses the async default, but async would only measure job-enqueue latency, which
  * is useless for region-lock attribution. The DB starts fresh per harness run (seeded volume), so
- * within-run growth is part of the workload and identical across matrix cells.
+ * within-run growth is part of the workload and identical across compared runs.
  *
  * <p>Additional properties on top of {@link L2CacheRampSimulation}:
  *
@@ -205,7 +205,7 @@ public class L2CacheTrackerImportRampTest extends L2CacheRampSimulation {
       case "DATETIME" -> LocalDate.now().minusDays(random.nextInt(365)) + "T10:00:00.000";
       case "TIME" -> "10:30";
       case "PHONE_NUMBER" -> "+4712345678";
-      case "EMAIL" -> "l2-cache-truth@example.com";
+      case "EMAIL" -> "perf-test@example.com";
       case "TEXT", "LONG_TEXT" -> "l2 perf " + random.nextInt(1_000_000);
       // FILE_RESOURCE, IMAGE, COORDINATE, ORGANISATION_UNIT, USERNAME... are skipped
       default -> null;

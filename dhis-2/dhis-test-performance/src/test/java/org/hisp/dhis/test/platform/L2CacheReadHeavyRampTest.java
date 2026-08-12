@@ -30,14 +30,13 @@
 package org.hisp.dhis.test.platform;
 
 /**
- * Read-heavy concurrency ramp for the L2 cache baseline (l2-cache-truth Phase 3).
+ * Read-heavy concurrency ramp for the L2 cache baseline.
  *
- * <p>Hot-metadata reads only: {@code /api/me} (exercises User's 8 cached collections, the Phase 2
- * top cache winner), data elements (list, field-filtered and by-id), category combos with the
- * Category* regions (7-14% hit ratios in Phase 2), and organisation units (paged list + subtree
- * with cached children collections). Under cache ON every request funnels through {@code
- * AbstractReadWriteAccess} region read locks; putFromLoad (miss path) and query-cache puts take the
- * region write lock.
+ * <p>Hot-metadata reads only: {@code /api/me} (exercises User's 8 cached collections, among the
+ * hottest regions measured), data elements (list, field-filtered and by-id), category combos with
+ * the Category* regions, and organisation units (paged list + subtree with cached children
+ * collections). Under cache ON every request funnels through {@code AbstractReadWriteAccess} region
+ * read locks; putFromLoad (miss path) and query-cache puts take the region write lock.
  *
  * <pre>{@code
  * DHIS2_IMAGE=dhis2/core-l2truth:local \
