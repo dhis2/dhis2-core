@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.Locale;
@@ -236,7 +237,7 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @IndirectTransactional
-  public PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, Fields fields) {
+  public PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, @Nonnull Fields fields) {
     if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
     boolean hasAll = fields.contains(":all");
     boolean hasDuration = hasAll || fields.contains("isoDuration");

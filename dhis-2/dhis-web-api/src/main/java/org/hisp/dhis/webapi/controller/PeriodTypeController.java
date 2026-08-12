@@ -80,13 +80,24 @@ public class PeriodTypeController {
   @RequiresAuthority(anyOf = ALL)
   @PutMapping
   public WebMessage putLabel(@RequestBody PeriodTypeParams params) throws NotFoundException {
-    if (periodStore.updatePeriodTypeLabel(params.name(), params.label(), params.locale()))
-      return ok(params.name() + " updated successfully.");
-    throw new NotFoundException(PeriodType.class, params.name());
+    // kept for API backwards compatibility with 43
+    return putLabel(params.name(), params.locale(), params.label());
   }
 
   @RequiresAuthority(anyOf = ALL)
-  @PutMapping(value = "/{name}/translations")
+  @PutMapping("/{name}")
+  public WebMessage putLabel(
+      @PathVariable("name") String name,
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(required = false) String value)
+      throws NotFoundException {
+    if (periodStore.updatePeriodTypeLabel(name, value, locale))
+      return ok(name + " updated successfully.");
+    throw new NotFoundException(PeriodType.class, name);
+  }
+
+  @RequiresAuthority(anyOf = ALL)
+  @PutMapping("/{name}/translations")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
   public WebMessage replaceTranslations(
@@ -110,6 +121,21 @@ public class PeriodTypeController {
       @RequestParam(required = false) Locale locale,
       @RequestParam(defaultValue = "*") String fields) {
     return periodService.getAllPeriodTypes(locale, Fields.of(fields));
+  }
+
+  @GetMapping("/{name}")
+  public PeriodTypes.Entry getPeriodType(
+      @PathVariable("name") String name,
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(defaultValue = "*") String fields)
+      throws NotFoundException {
+    PeriodTypes.Entry entry =
+        periodService.getAllPeriodTypes(locale, Fields.of(fields)).periodTypes().stream()
+            .filter(pt -> name.equalsIgnoreCase(pt.name()))
+            .findFirst()
+            .orElse(null);
+    if (entry == null) throw new NotFoundException(PeriodType.class, name);
+    return entry;
   }
 
   @GetMapping(

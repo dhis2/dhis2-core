@@ -51,6 +51,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.configuration.Configuration;
@@ -66,7 +67,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypes;
 import org.hisp.dhis.period.PeriodTypes.Entry;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -479,34 +479,38 @@ public class ConfigurationController {
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
   public @ResponseBody List<Entry> getDataOutputPeriodTypes(
+      @RequestParam(required = false) Locale locale,
       @RequestParam(defaultValue = "*") String fields) {
     Set<String> names =
         configurationService.getConfiguration().getDataOutputPeriodTypes().stream()
             .map(PeriodType::getName)
             .collect(toSet());
 
-    return periodService.getAllPeriodTypes(null, Fields.of(fields)).periodTypes().stream()
+    return periodService.getAllPeriodTypes(locale, Fields.of(fields)).periodTypes().stream()
         .filter(pt -> names.contains(pt.name()))
         .toList();
   }
+
+  @OpenApi.Shared(false)
+  public record PeriodTypeName(String name) {}
 
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping(
       value = {"/dataOutputPeriodTypes"},
       consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void setDataOutputPeriodTypes(@RequestBody Set<PeriodTypes.Entry> periodTypes) {
+  public void setDataOutputPeriodTypes(@RequestBody Set<PeriodTypeName> names) {
 
     // Disallow deprecated types
-    for (PeriodTypes.Entry p : periodTypes) {
-      if (trimToEmpty(p.name()).equalsIgnoreCase(TWO_YEARLY.getName())) {
-        throw new IllegalQueryException(new ErrorMessage(E1101, p.name()));
+    for (PeriodTypeName obj : names) {
+      if (trimToEmpty(obj.name()).equalsIgnoreCase(TWO_YEARLY.getName())) {
+        throw new IllegalQueryException(new ErrorMessage(E1101, obj.name()));
       }
     }
 
     Set<PeriodType> periodTypesParsed = new LinkedHashSet<>();
 
-    periodTypes.forEach(
+    names.forEach(
         p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.name())));
 
     // Always add yearly, as it is mandatory for partition checks
