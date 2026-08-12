@@ -32,6 +32,7 @@ package org.hisp.dhis.test.platform;
 import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.feed;
+import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.listFeeder;
 import static io.gatling.javaapi.core.CoreDsl.rampConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
@@ -185,17 +186,27 @@ abstract class L2CacheRampSimulation extends Simulation {
     }
   }
 
-  /** Hot-metadata read chain shared by both simulations; {@code p} is the step name prefix. */
+  /**
+   * Hot-metadata read chain shared by both simulations; {@code p} is the step name prefix.
+   *
+   * <p>Checks assert the JSON body, not just HTTP 200: a collapsed server can fail logins and
+   * bounce sessionless users to the login page, which answers 200 text/html in milliseconds (see
+   * the comment in {@code L2CacheTrackerImportRampTest#workflow}).
+   */
   protected static ChainBuilder reads(String p) {
-    return exec(http(p + " me").get("/api/me").check(status().is(200)))
+    return exec(http(p + " me")
+            .get("/api/me")
+            .check(status().is(200), jsonPath("$.id").find().exists()))
         .exec(
-            http(p + " dataElement byId").get("/api/dataElements/#{deUid}").check(status().is(200)))
+            http(p + " dataElement byId")
+                .get("/api/dataElements/#{deUid}")
+                .check(status().is(200), jsonPath("$.id").find().exists()))
         .exec(
             http(p + " dataElements list")
                 .get("/api/dataElements")
                 .queryParam("pageSize", "50")
                 .queryParam("page", "#{randomInt(1,5)}")
-                .check(status().is(200)))
+                .check(status().is(200), jsonPath("$").find().exists()))
         .exec(
             http(p + " dataElements filtered")
                 .get("/api/dataElements")
@@ -203,24 +214,24 @@ abstract class L2CacheRampSimulation extends Simulation {
                     "fields", "id,name,categoryCombo[id,name,categoryOptionCombos[id,name]]")
                 .queryParam("pageSize", "50")
                 .queryParam("page", "#{randomInt(1,5)}")
-                .check(status().is(200)))
+                .check(status().is(200), jsonPath("$").find().exists()))
         .exec(
             http(p + " categoryCombos filtered")
                 .get("/api/categoryCombos")
                 .queryParam("fields", "id,name,categories[id,name,categoryOptions[id,name]]")
-                .check(status().is(200)))
+                .check(status().is(200), jsonPath("$").find().exists()))
         .exec(
             http(p + " orgUnits filtered")
                 .get("/api/organisationUnits")
                 .queryParam("fields", "id,name,level,parent[id,name]")
                 .queryParam("pageSize", "100")
                 .queryParam("page", "#{randomInt(1,10)}")
-                .check(status().is(200)))
+                .check(status().is(200), jsonPath("$").find().exists()))
         .exec(
             http(p + " orgUnit subtree")
                 .get("/api/organisationUnits/" + ORG_UNIT_UID)
                 .queryParam("fields", "id,name,children[id,name,children[id,name]]")
-                .check(status().is(200)));
+                .check(status().is(200), jsonPath("$").find().exists()));
   }
 
   /**
@@ -246,7 +257,7 @@ abstract class L2CacheRampSimulation extends Simulation {
                   http(p + " login")
                       .get("/api/me")
                       .header("Authorization", "Basic " + BASIC_AUTH)
-                      .check(status().is(200)));
+                      .check(status().is(200), jsonPath("$.id").find().exists()));
 
       ScenarioBuilder scn =
           scenario(getClass().getSimpleName() + " " + p)

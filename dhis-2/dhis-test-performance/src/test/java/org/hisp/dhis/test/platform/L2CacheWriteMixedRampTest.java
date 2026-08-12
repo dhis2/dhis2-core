@@ -31,6 +31,7 @@ package org.hisp.dhis.test.platform;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.exec;
+import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.percent;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
@@ -78,7 +79,7 @@ public class L2CacheWriteMixedRampTest extends L2CacheRampSimulation {
                     StringBody(
                         "[{\"op\":\"replace\",\"path\":\"/description\","
                             + "\"value\":\"perf test #{randomUuid()}\"}]"))
-                .check(status().in(200, 409)));
+                .check(status().in(200, 409), jsonPath("$").find().exists()));
 
     return exec(reads(p)).randomSwitch().on(percent(WRITE_PERCENT).then(write));
   }
