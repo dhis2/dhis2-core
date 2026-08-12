@@ -37,7 +37,6 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -59,44 +58,23 @@ class DataIntegrityOptionSetsDuplicateCodesControllerTest
 
   private static final String UNIQUE_CODE_CONSTRAINT = "optionvalue_unique_optionsetid_and_code";
 
-  @AfterEach
-  void restoreUniqueCodeConstraint() {
-    // DDL statements are not rolled back by the test transaction, so every test
-    // must leave the constraint exactly as a real migrated database would have it.
-    // The row-level rollback that undoes each test's inserted duplicate options
-    // only happens *after* @AfterEach runs, so the duplicate rows from
-    // testOptionSetWithDuplicateCodesDetected are still present at this point --
-    // re-adding the constraint would fail against them without this cleanup.
-    try {
-      jdbcTemplate.execute(
-          "DELETE FROM optionvalue a USING optionvalue b "
-              + "WHERE a.optionvalueid > b.optionvalueid "
-              + "AND a.optionsetid = b.optionsetid AND a.code = b.code");
-    } catch (Exception e) {
-      // Log but don't fail if delete fails
-      System.err.println(
-          "Warning: Failed to clean up duplicate optionvalue rows: " + e.getMessage());
-    }
-
-    try {
-      jdbcTemplate.execute(
-          "ALTER TABLE optionvalue DROP CONSTRAINT IF EXISTS " + UNIQUE_CODE_CONSTRAINT);
-      jdbcTemplate.execute(
-          "ALTER TABLE optionvalue ADD CONSTRAINT "
-              + UNIQUE_CODE_CONSTRAINT
-              + " UNIQUE (optionsetid, code)");
-    } catch (Exception e) {
-      // Transaction isolation issues might prevent DDL from working in same transaction.
-      // Log the warning but don't fail the test since the constraint will be present
-      // in the next clean test run.
-      System.err.println("Warning: Failed to restore constraint: " + e.getMessage());
-    }
-  }
-
   @Test
   void testOptionSetWithDuplicateCodesDetected() throws ConflictException {
     // Reproduce the real-world precondition: a database that reached a state
     // without the unique constraint (e.g. it had duplicates when V2_41_6 ran).
+    //
+    // No manual cleanup/restoration of this constraint is needed: this class is
+    // @Transactional (see AbstractDataIntegrityIntegrationTest), so this whole test method
+    // runs in one DB transaction that Spring rolls back afterwards. Postgres DDL is fully
+    // transactional, so that rollback undoes this ALTER TABLE (and the option/optionSet rows
+    // created below) exactly as it undoes any other statement, leaving the constraint intact
+    // for the next test. An explicit @AfterEach that re-ran ALTER TABLE on this same
+    // connection was tried previously and reliably failed with Postgres error 55006 ("cannot
+    // ALTER TABLE ... because it is being used by active queries in this session"), because
+    // the check's own SQL (run via assertHasDataIntegrityIssues below) shares this session;
+    // running the ALTER on a genuinely separate connection instead (Spring's REQUIRES_NEW)
+    // was also tried and empirically just hangs, since that separate connection then blocks
+    // waiting to acquire the ACCESS EXCLUSIVE lock this still-open outer transaction holds.
     jdbcTemplate.execute(
         "ALTER TABLE optionvalue DROP CONSTRAINT IF EXISTS " + UNIQUE_CODE_CONSTRAINT);
 
