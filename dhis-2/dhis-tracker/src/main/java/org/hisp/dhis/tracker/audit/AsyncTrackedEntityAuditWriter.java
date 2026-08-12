@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -50,6 +51,14 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>Split into its own bean rather than an {@code @Async} method on the service because Spring
  * applies {@code @Async} through a proxy, so a self-invocation would not be asynchronous.
  *
+ * <p>The insert uses {@code REQUIRES_NEW}: on a fresh async thread there is no transaction to join,
+ * so this is identical to the default today, but it pins the intended contract. If this task ever
+ * runs on the submitting thread instead (for example a future bounded executor whose rejection
+ * policy runs tasks inline), the default {@code REQUIRED} would join the caller's read-only
+ * transaction, the insert would fail, and the failure would mark the caller's transaction
+ * rollback-only, breaking the user's request. The audit insert must always run in its own write
+ * transaction, wherever it executes.
+ *
  * @author Morten Svanæs
  */
 @Component
@@ -59,7 +68,7 @@ public class AsyncTrackedEntityAuditWriter {
   private final TrackedEntityAuditStore trackedEntityAuditStore;
 
   @Async
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void addTrackedEntityAudits(@Nonnull List<TrackedEntityAudit> audits) {
     if (audits.isEmpty()) {
       return;
