@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -117,7 +117,8 @@ public class CategoryOptionGroup extends BaseMetadataObject
       joinColumns =
           @JoinColumn(
               name = "categoryoptiongroupid",
-              foreignKey = @ForeignKey(name = "fk_categoryoptiongroupmembers_categoryoptiongroupid")),
+              foreignKey =
+                  @ForeignKey(name = "fk_categoryoptiongroupmembers_categoryoptiongroupid")),
       inverseJoinColumns =
           @JoinColumn(
               name = "categoryoptionid",
@@ -194,8 +195,8 @@ public class CategoryOptionGroup extends BaseMetadataObject
   }
 
   /**
-   * Equality check against typed identifiable object. This method is not vulnerable to proxy issues,
-   * where an uninitialized object class type fails comparison to a real class.
+   * Equality check against typed identifiable object. This method is not vulnerable to proxy
+   * issues, where an uninitialized object class type fails comparison to a real class.
    */
   public final boolean typedEquals(IdentifiableObject other) {
     if (other == null) {
