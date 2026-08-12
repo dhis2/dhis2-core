@@ -60,6 +60,7 @@ import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
@@ -76,6 +77,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -321,6 +323,111 @@ class TrackedEntityAggregateServiceTest {
     assertDoesNotThrow(() -> service.getGrid(ctx));
   }
 
+  @Test
+  void getGridRejectsDimensionTheQueryCannotGroupBy() {
+    String dataElement = "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU";
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("ou", dataElement),
+            List.of(stubOuDimension("ou1"), stubDataElementDimension("UXz7xuGCEhU")));
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
+    assertEquals(ErrorCode.E7258, ex.getErrorCode());
+  }
+
+  @Test
+  void getGridRejectsStageScopedOrgUnitDimension() {
+    DimensionIdentifier<DimensionParam> stageOu = stubStageScopedOuDimension();
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(Set.of(stageOu.getKey()), List.of(stageOu));
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
+    assertEquals(ErrorCode.E7258, ex.getErrorCode());
+  }
+
+  @Test
+  void getGridExplainRejectsDimensionTheQueryCannotGroupBy() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("ou", "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU"),
+            List.of(stubOuDimension("ou1"), stubDataElementDimension("UXz7xuGCEhU")));
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getGridExplain(ctx));
+    assertEquals(ErrorCode.E7258, ex.getErrorCode());
+  }
+
+  @Test
+  void getGridAllowsGroupedOrgUnitAndAttributeDimensions() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParamsWithOuAndAttribute("w75KJ2mc4zz");
+    SqlRowSet rowSet =
+        fakeRowSet(
+            new String[] {"ou", "w75KJ2mc4zz", "value"},
+            List.<Object[]>of(new Object[] {"OU1", "James", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    assertDoesNotThrow(() -> service.getGrid(ctx));
+  }
+
+  /**
+   * A static dimension is parsed to its canonical header name, so an aliased spelling has to be
+   * resolved before a request is matched against the parsed dimensions. Comparing the raw spelling
+   * left {@code LAST_UPDATED} outside the grouped set, which dropped its column silently.
+   */
+  @Test
+  void getGridGroupsByAnAliasedStaticDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("LAST_UPDATED"), List.of(stubStaticDimension(StaticDimension.LASTUPDATED)));
+    SqlRowSet rowSet =
+        fakeRowSet(
+            new String[] {"lastupdated", "value"},
+            List.<Object[]>of(new Object[] {"2019-08-21 13:29:58.318", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(
+        List.of("lastupdated", "value"),
+        grid.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(1, grid.getHeight());
+  }
+
+  /** A filtered item produces no column by design, so it must not be validated as a group by. */
+  @Test
+  void getGridAllowsFilterOnANonGroupedItem() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("ou"), List.of(stubOuDimension("ou1"), stubAttributeDimension("cejWyOfXge6")));
+    SqlRowSet rowSet =
+        fakeRowSet(new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    assertDoesNotThrow(() -> service.getGrid(ctx));
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      aggregateContextParams(
+          Set<String> rawDimensions, List<DimensionIdentifier<DimensionParam>> parsedDimensions) {
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(TrackedEntityQueryParams.builder().aggregate(true).build())
+        .commonRaw(new CommonRequestParams().withDimension(rawDimensions))
+        .commonParsed(CommonParsedParams.builder().dimensionIdentifiers(parsedDimensions).build())
+        .build();
+  }
+
   private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
       aggregateContextParamsWithInjectedAttribute(String attribute) {
     TrackedEntityQueryParams trackedEntityQueryParams =
@@ -439,6 +546,59 @@ class TrackedEntityAggregateServiceTest {
             ElementWithOffset.emptyElementWithOffset(),
             dimensionParam)
         .withDefaultGroupId();
+  }
+
+  private DimensionIdentifier<DimensionParam> stubStaticDimension(StaticDimension staticDimension) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            staticDimension.name(), DimensionParamType.DIMENSIONS, UID, List.of());
+    return DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  private DimensionIdentifier<DimensionParam> stubDataElementDimension(String dataElement) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject(dataElement, DimensionType.PROGRAM_DATA_ELEMENT, List.of()),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of());
+    return DimensionIdentifier.of(
+            ElementWithOffset.of(stubProgram()),
+            ElementWithOffset.of(stubProgramStage()),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  private DimensionIdentifier<DimensionParam> stubStageScopedOuDimension() {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("ou1");
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(orgUnit)),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of("ou1"));
+    return DimensionIdentifier.of(
+            ElementWithOffset.of(stubProgram()),
+            ElementWithOffset.of(stubProgramStage()),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  private Program stubProgram() {
+    Program program = new Program();
+    program.setUid("IpHINAT79UW");
+    return program;
+  }
+
+  private ProgramStage stubProgramStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("A03MvHHogjR");
+    return programStage;
   }
 
   private SqlRowSet fakeRowSet(String[] columns, List<Object[]> rows) {

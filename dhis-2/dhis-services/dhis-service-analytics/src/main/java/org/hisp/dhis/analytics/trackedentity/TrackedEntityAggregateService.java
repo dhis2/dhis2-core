@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.ge
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -57,8 +58,11 @@ import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OrgUnitQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.DisplayProperty;
@@ -127,6 +131,7 @@ public class TrackedEntityAggregateService {
     securityManager.applyOrganisationUnitConstraint(commonParams);
     securityManager.applyDimensionConstraints(commonParams);
 
+    validateDimensions(contextParams);
     validateSorting(contextParams);
 
     SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator(contextParams);
@@ -153,7 +158,34 @@ public class TrackedEntityAggregateService {
     metadataParamsHandler.handle(
         grid, withGroupedDimensionsOnly(contextParams), currentUser, rowsCount);
     addGroupedOrgUnitMetadata(grid, contextParams);
+    addHeaderMetadata(grid);
     return grid;
+  }
+
+  /**
+   * Adds the {@code metaData} entries for headers the shared {@link MetadataParamsHandler} does not
+   * describe. The label is extracted from the header, and the item list is empty because a static
+   * dimension has no fixed set of items. Entries that already exist are not touched.
+   */
+  private void addHeaderMetadata(Grid grid) {
+    GridMetadata metadata = getGridMetadata(grid);
+    if (metadata == null || metadata.isEmpty()) {
+      return;
+    }
+
+    for (GridHeader header : grid.getHeaders()) {
+      if (VALUE_HEADER.getName().equals(header.getName())) {
+        continue;
+      }
+
+      if (metadata.items() != null) {
+        metadata.items().putIfAbsent(header.getName(), new MetadataItem(header.getColumn()));
+      }
+
+      if (metadata.dimensions() != null) {
+        metadata.dimensions().putIfAbsent(header.getName(), List.of());
+      }
+    }
   }
 
   /**
@@ -205,6 +237,37 @@ public class TrackedEntityAggregateService {
             .build();
 
     return contextParams.toBuilder().commonParsed(scoped).build();
+  }
+
+  /**
+   * Rejects dimensions the aggregate query cannot group by. Such a dimension would otherwise be
+   * dropped from the headers and the {@code GROUP BY} while its restriction still applies, giving
+   * back an ungrouped total that looks like a valid answer. {@link
+   * AggregateQueryBuilder#getGroupedDimensionKeys} decides what is grouped.
+   *
+   * <p>A grouped org unit must also be the registration org unit. {@link OrgUnitQueryBuilder#isOu}
+   * matches an org unit at any scope, so a program or stage scoped {@code ou} looks groupable here
+   * but has no column on the tracked entity table and would only fail in the database.
+   */
+  private void validateDimensions(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
+
+    for (String dimension : contextParams.getCommonRaw().getDimension()) {
+      if (!groupedKeys.contains(AggregateQueryBuilder.canonicalDimensionKey(dimension))) {
+        throw new IllegalQueryException(
+            new ErrorMessage(ErrorCode.E7258, getDimensionFromParam(dimension)));
+      }
+    }
+
+    for (DimensionIdentifier<DimensionParam> dimension :
+        contextParams.getCommonParsed().getDimensionIdentifiers()) {
+      if (groupedKeys.contains(dimension.getKey())
+          && OrgUnitQueryBuilder.isOu(dimension)
+          && !dimension.isTeDimension()) {
+        throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7258, dimension.getKey()));
+      }
+    }
   }
 
   /**
@@ -358,6 +421,7 @@ public class TrackedEntityAggregateService {
 
   public Grid getGridExplain(
       @Nonnull ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    validateDimensions(contextParams);
     validateSorting(contextParams);
 
     Grid grid = new ListGrid();
