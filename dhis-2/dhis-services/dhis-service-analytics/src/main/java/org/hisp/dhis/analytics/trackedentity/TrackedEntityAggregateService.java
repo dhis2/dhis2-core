@@ -163,15 +163,9 @@ public class TrackedEntityAggregateService {
   }
 
   /**
-   * Backfills the {@code metaData} entries every non-value header must resolve against, so the grid
-   * is self-describing. A dimension parsed as a static one — a bare {@code ou}, {@code ouname},
-   * {@code created} — carries neither a {@link org.hisp.dhis.common.DimensionalObject} nor a {@link
-   * org.hisp.dhis.common.QueryItem}, so the shared {@link MetadataParamsHandler} never emits it and
-   * the header is left unresolvable. The header column already holds the resolved display label
-   * (custom labels included), which makes it the label source. The item list is empty because a
-   * static dimension has no enumerable item set, matching what the shared handler records for a
-   * query item without an option or legend set. Entries already emitted upstream, and the org unit
-   * uids resolved in {@link #addGroupedOrgUnitMetadata}, are never overwritten.
+   * Adds the {@code metaData} entries for headers the shared {@link MetadataParamsHandler} does not
+   * describe.The label is extracted from the header, and the item list is empty because a static
+   * dimension has no fixed set of items. Entries that already exist are not toyched.
    */
   private void addHeaderMetadata(Grid grid) {
     GridMetadata metadata = getGridMetadata(grid);
@@ -246,16 +240,14 @@ public class TrackedEntityAggregateService {
   }
 
   /**
-   * Rejects requested dimensions the aggregate query cannot group by. Such a dimension is otherwise
-   * dropped from both the headers and the {@code GROUP BY} while its restriction still applies, so
-   * the response is an ungrouped total that is indistinguishable from a correctly grouped one. The
-   * grouped dimensions are the single source of truth in {@link
-   * AggregateQueryBuilder#getGroupedDimensionKeys}.
+   * Rejects dimensions the aggregate query cannot group by. Such a dimension would otherwise be
+   * dropped from the headers and the {@code GROUP BY} while its restriction still applies, giving
+   * back an ungrouped total that looks like a valid answer. {@link
+   * AggregateQueryBuilder#getGroupedDimensionKeys} decides what is grouped.
    *
-   * <p>A grouped org unit must additionally be the registration org unit. {@link
-   * OrgUnitQueryBuilder#isOu} matches an org unit dimension at any scope, so a program- or
-   * stage-scoped {@code ou} counts as grouped here but has no column on the tracked entity table
-   * and fails in the database instead.
+   * <p>A grouped org unit must also be the registration org unit. {@link OrgUnitQueryBuilder#isOu}
+   * matches an org unit at any scope, so a program or stage scoped {@code ou} looks groupable here
+   * but has no column on the tracked entity table and would only fail in the database.
    */
   private void validateDimensions(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {

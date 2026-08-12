@@ -156,12 +156,11 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
   }
 
   /**
-   * Returns the keys of the dimensions an aggregate query groups by: the dimensions the user
-   * explicitly requested (present in the raw {@code dimension} param) that are also groupable in
-   * aggregate mode (registration org unit or a tracked entity / program attribute). Only {@code
-   * commonRaw} distinguishes explicitly-requested dimensions from those injected upstream for
-   * row-level display; the parsed dimensions merge both. This is the single source of truth for
-   * what the aggregate query groups by, and therefore what may be sorted on.
+   * Returns the keys of the dimensions the query groups by: the ones asked for in the {@code
+   * dimension} param that can also be grouped on, which are the registration org unit, the tracked
+   * entity static fields and the attributes. The raw request is needed because the parsed
+   * dimensions also contain the attributes the mapper adds for row level display, and those must
+   * stay out of the GROUP BY. What is grouped here is also what can be sorted on.
    */
   public static Set<String> getGroupedDimensionKeys(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
@@ -181,11 +180,10 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
   }
 
   /**
-   * Returns the key a raw {@code dimension} parameter is parsed into, so a request can be matched
-   * against the parsed dimensions. A static dimension is parsed to its canonical header name, so an
-   * aliased spelling such as {@code LAST_UPDATED} or {@code ENROLLMENT_DATE} has to be resolved to
-   * {@code lastupdated} / {@code enrollmentdate} first; comparing the raw spelling would never
-   * match. Any program and stage prefix is preserved.
+   * Returns the key a raw {@code dimension} parameter is parsed into, so that a request can be
+   * matched against the parsed dimensions. A static dimension is parsed to its canonical header
+   * name. e.g. {@code LAST_UPDATED} is resolved to {@code lastupdated}. Any program and stage
+   * prefix is kept.
    */
   public static String canonicalDimensionKey(String rawDimension) {
     String key = getDimensionFromParam(rawDimension);
