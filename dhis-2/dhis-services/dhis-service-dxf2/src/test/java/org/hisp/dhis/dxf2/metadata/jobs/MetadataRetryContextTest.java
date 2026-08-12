@@ -30,6 +30,7 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -40,60 +41,60 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.retry.RetryContext;
 
 /**
  * @author aamerm
  */
-@ExtendWith(MockitoExtension.class)
 class MetadataRetryContextTest {
-  @Mock RetryContext retryContext;
-
-  @InjectMocks MetadataRetryContext metadataRetryContext;
+  private MetadataRetryContext metadataRetryContext;
 
   private MetadataVersion mockVersion;
 
-  private String testKey = "testKey";
+  private final String testKey = "testKey";
 
-  private String testMessage = "testMessage";
+  private final String testMessage = "testMessage";
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
+    metadataRetryContext = new MetadataRetryContext();
     mockVersion = mock(MetadataVersion.class);
   }
 
   @Test
-  void testShouldGetRetryContextCorrectly() {
-    assertEquals(retryContext, metadataRetryContext.getRetryContext());
+  void testBeginAttemptIncrementsCount() {
+    metadataRetryContext.beginAttempt();
+    metadataRetryContext.beginAttempt();
+
+    assertEquals(2, metadataRetryContext.getAttempt());
   }
 
   @Test
-  void testShouldSetRetryContextCorrectly() {
-    RetryContext newMock = mock(RetryContext.class);
+  void testResetClearsState() {
+    metadataRetryContext.beginAttempt();
+    metadataRetryContext.updateRetryContext(testKey, testMessage, mockVersion);
+    metadataRetryContext.setLastThrowable(new RuntimeException("boom"));
 
-    metadataRetryContext.setRetryContext(newMock);
+    metadataRetryContext.reset();
 
-    assertEquals(newMock, metadataRetryContext.getRetryContext());
+    assertEquals(0, metadataRetryContext.getAttempt());
+    assertNull(metadataRetryContext.getAttribute(testKey));
+    assertNull(metadataRetryContext.getLastThrowable());
   }
 
   @Test
   void testIfVersionIsNull() {
     metadataRetryContext.updateRetryContext(testKey, testMessage, null);
 
-    verify(retryContext).setAttribute(testKey, testMessage);
-    verify(retryContext, never()).setAttribute(MetadataSyncJob.VERSION_KEY, null);
+    assertEquals(testMessage, metadataRetryContext.getAttribute(testKey));
+    assertNull(metadataRetryContext.getAttribute(MetadataSyncJob.VERSION_KEY));
   }
 
   @Test
   void testIfVersionIsNotNull() {
     metadataRetryContext.updateRetryContext(testKey, testMessage, mockVersion);
 
-    verify(retryContext).setAttribute(testKey, testMessage);
-    verify(retryContext).setAttribute(MetadataSyncJob.VERSION_KEY, mockVersion);
+    assertEquals(testMessage, metadataRetryContext.getAttribute(testKey));
+    assertEquals(mockVersion, metadataRetryContext.getAttribute(MetadataSyncJob.VERSION_KEY));
   }
 
   @Test
@@ -102,7 +103,7 @@ class MetadataRetryContextTest {
 
     metadataRetryContext.updateRetryContext(testKey, testMessage, mockVersion, null);
 
-    verify(retryContext).setAttribute(testKey, testMessage);
+    assertEquals(testMessage, metadataRetryContext.getAttribute(testKey));
     verify(metadataSyncSummary, never()).getImportReport();
   }
 
@@ -115,6 +116,6 @@ class MetadataRetryContextTest {
 
     metadataRetryContext.updateRetryContext(testKey, testMessage, mockVersion, testSummary);
 
-    verify(retryContext).setAttribute(testKey, testMessage);
+    assertEquals(testMessage, metadataRetryContext.getAttribute(testKey));
   }
 }

@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
@@ -67,6 +68,8 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -334,7 +337,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
         TrackedEntityQueryParams.builder()
             .trackedEntityType(createTrackedEntityType('A'))
             .aggregate(true)
-            .value(valueAttribute)
+            .attributeValue(valueAttribute)
             .aggregationType(AggregationType.AVERAGE)
             .build();
 
@@ -370,7 +373,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
         TrackedEntityQueryParams.builder()
             .trackedEntityType(createTrackedEntityType('A'))
             .aggregate(true)
-            .value(valueAttribute)
+            .attributeValue(valueAttribute)
             .aggregationType(AggregationType.COUNT)
             .build();
 
@@ -391,6 +394,115 @@ class SqlQueryCreatorServiceTest extends TestBase {
 
     assertContains("count(t_1.\"" + valueAttribute.getUid() + "\") as \"value\"", sql);
     assertFalse(sql.contains("count(1)"), "explicit COUNT over a value counts non-null values");
+  }
+
+  @Test
+  void testAggregateAverageOverDataElementValue() {
+    SqlQueryCreatorService service = aggregateService();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        eventValueContextParams(
+            stubEventValue("PsUid000001", "DeUid000001", ValueType.NUMBER, 0),
+            AggregationType.AVERAGE);
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    // collapse-per-TE derived table joined at TE grain
+    assertContains("left join (select trackedentity, eventdatavalues", sql);
+    assertContains(
+        "row_number() over (partition by trackedentity order by occurreddate desc) as rn", sql);
+    assertContains("from analytics_te_event_tetuid00001", sql);
+    assertContains("programstage = 'PsUid000001'", sql);
+    assertContains("jsonb_exists(eventdatavalues, 'DeUid000001')", sql);
+    assertContains("status != 'SCHEDULE'", sql);
+    assertContains("where rn = 1) ev on ev.trackedentity = t_1.trackedentity", sql);
+    // value extraction from the collapsed event row
+    assertContains(
+        "avg((ev.\"eventdatavalues\" -> 'DeUid000001' ->> 'value')::DECIMAL) as \"value\"", sql);
+    assertContains("group by t_1.\"ou\"", sql);
+    assertFalse(sql.contains("count(1)"), "value aggregation must replace the count(1) column");
+  }
+
+  @Test
+  void testAggregateCountOverDataElementValueCountsNonNullValues() {
+    SqlQueryCreatorService service = aggregateService();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        eventValueContextParams(
+            stubEventValue("PsUid000001", "DeUid000001", ValueType.NUMBER, 0),
+            AggregationType.COUNT);
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains(
+        "count((ev.\"eventdatavalues\" -> 'DeUid000001' ->> 'value')::DECIMAL) as \"value\"", sql);
+    assertFalse(sql.contains("count(1)"), "explicit COUNT over a value counts non-null values");
+  }
+
+  @Test
+  void testAggregateDataElementValueWithStageOffset() {
+    SqlQueryCreatorService service = aggregateService();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        eventValueContextParams(
+            stubEventValue("PsUid000001", "DeUid000001", ValueType.NUMBER, -1),
+            AggregationType.AVERAGE);
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    // offset -1 selects the second-latest event: row_number() is 1-based, so rn = 2, desc
+    assertContains("order by occurreddate desc", sql);
+    assertContains("where rn = 2) ev on ev.trackedentity = t_1.trackedentity", sql);
+  }
+
+  @Test
+  void testAggregateDataElementValueCountQueryIncludesCollapseJoin() {
+    SqlQueryCreatorService service = aggregateService();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        eventValueContextParams(
+            stubEventValue("PsUid000001", "DeUid000001", ValueType.NUMBER, 0),
+            AggregationType.AVERAGE);
+
+    String countSql = service.getSqlQueryCreator(contextParams).createForCount().getStatement();
+
+    assertContains("select count(*) from (", countSql);
+    assertContains("left join (select trackedentity, eventdatavalues", countSql);
+  }
+
+  @Test
+  void testAggregateAttributeValueAddsNoCollapseJoin() {
+    SqlQueryCreatorService service = aggregateService();
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setUid("TetUid00001");
+    TrackedEntityAttribute valueAttribute = createTrackedEntityAttribute('V');
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .aggregate(true)
+            .attributeValue(valueAttribute)
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertFalse(
+        sql.contains("analytics_te_event_"),
+        "aggregating over an attribute must not join the event table");
   }
 
   @Test
@@ -425,6 +537,51 @@ class SqlQueryCreatorServiceTest extends TestBase {
     assertContains("count(1) as \"value\"", sql);
     assertContains("group by t_1.\"ou\"", sql);
     assertFalse(sql.contains("attr1"), "auto-injected attribute must not leak into the SQL");
+  }
+
+  private SqlQueryCreatorService aggregateService() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    return new SqlQueryCreatorService(aggregateBuilders);
+  }
+
+  private EventValue stubEventValue(
+      String stageUid, String dataElementUid, ValueType valueType, int offset) {
+    DataElement dataElement = createDataElement('D');
+    dataElement.setUid(dataElementUid);
+    dataElement.setValueType(valueType);
+
+    ProgramStage programStage = createProgramStage('S', createProgram('P'));
+    programStage.setUid(stageUid);
+
+    return new EventValue(programStage, dataElement, offset);
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      eventValueContextParams(EventValue eventValue, AggregationType aggregationType) {
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setUid("TetUid00001");
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .aggregate(true)
+            .eventValue(eventValue)
+            .aggregationType(aggregationType)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(trackedEntityQueryParams)
+        .commonRaw(requestParams)
+        .commonParsed(
+            CommonParsedParams.builder()
+                .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                .build())
+        .build();
   }
 
   private DimensionIdentifier<DimensionParam> stubAttributeDimension(String attribute) {

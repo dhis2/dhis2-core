@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.trackerevent;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -54,6 +55,8 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -677,6 +680,30 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
     assertIsEmpty(getEvents(operationParamsBuilder.build()));
   }
 
+  @Test
+  void shouldNotReturnDataElementValueWhenUserCannotReadDataElement()
+      throws ForbiddenException, BadRequestException {
+    // Remove metadata read access to DATAEL00001 for the basic user. The event stays accessible,
+    // but the value of the restricted data element must not be returned while the other data
+    // elements of the event still are.
+    DataElement dataElement = get(DataElement.class, "DATAEL00001");
+    dataElement.getSharing().setPublicAccess(DEFAULT);
+    manager.updateNoAcl(dataElement);
+    manager.flush();
+    manager.clear();
+
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builderForEvent(UID.of("D9PbzJY8bJM")).build();
+
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
+
+    assertContainsOnly(
+        Set.of("DATAEL00002", "DATAEL00005", "DATAEL00006", "DATAEL00007", "GieVkTxp4HH"),
+        dataElements(events.get(0)));
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -694,6 +721,12 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
 
   private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
+  }
+
+  private static Set<String> dataElements(TrackerEvent event) {
+    return event.getEventDataValues().stream()
+        .map(EventDataValue::getDataElement)
+        .collect(Collectors.toSet());
   }
 
   private void updatePublicAccessSharing(

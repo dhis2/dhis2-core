@@ -31,6 +31,20 @@ package org.hisp.dhis.tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.UniqueConstraint;
 import java.io.Serializable;
 import java.util.Date;
 import lombok.EqualsAndHashCode;
@@ -45,18 +59,64 @@ import org.hisp.dhis.program.Program;
 /**
  * @author Ameen Mohamed
  */
+@Entity
+@Table(
+    name = "trackedentityprogramowner",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "trackedentityprogramowner_trackedentityid_programid_key",
+            columnNames = {"trackedentityid", "programid"}))
 @Setter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class TrackedEntityProgramOwner implements Serializable {
 
-  @Getter private int id;
-  @EqualsAndHashCode.Include private TrackedEntity trackedEntity;
-  @EqualsAndHashCode.Include private Program program;
+  @Id
+  @Column(name = "trackedentityprogramownerid")
+  @GeneratedValue(
+      strategy = GenerationType.SEQUENCE,
+      generator = "trackedentityprogramowner_sequence")
+  @SequenceGenerator(
+      name = "trackedentityprogramowner_sequence",
+      sequenceName = "trackedentityprogramowner_sequence",
+      allocationSize = 1)
+  @Getter
+  private int id;
+
+  @EqualsAndHashCode.Include
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "trackedentityid",
+      foreignKey = @ForeignKey(name = "fk_trackedentityprogramowner_trackedentityinstanceid"))
+  private TrackedEntity trackedEntity;
+
+  @EqualsAndHashCode.Include
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "programid",
+      foreignKey = @ForeignKey(name = "fk_trackedentityprogramowner_programid"),
+      nullable = false)
+  private Program program;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "organisationunitid",
+      foreignKey = @ForeignKey(name = "fk_trackedentityprogramowner_organisationunitid"))
   private OrganisationUnit organisationUnit;
-  @Getter private Date created;
-  @Getter private Date lastUpdated;
-  @Getter private String createdBy;
+
+  @Column(name = "created", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @Getter
+  private Date created;
+
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @Getter
+  private Date lastUpdated;
+
+  @Column(name = "createdBy", nullable = false)
+  @Getter
+  private String createdBy;
 
   public TrackedEntityProgramOwner() {
     this.createdBy = "internal";

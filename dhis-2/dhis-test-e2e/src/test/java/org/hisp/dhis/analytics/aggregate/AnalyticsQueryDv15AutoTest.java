@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
+import org.hisp.dhis.test.e2e.dependsOn.Resource;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
@@ -132,6 +134,44 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
         .body(
             "message",
             equalTo("Periods as filter not supported with Indicator with period offset"));
+  }
+
+  @Test
+  @EnabledIf(value = "isPostgres", disabledReason = "subExpressions are only supported in Postgres")
+  @DependsOn(
+      files = {"ind-subexpression-no-offset.json"},
+      delete = true)
+  public void subExpressionIndicatorWithPeriodAndOrgUnitAsFilter(List<Resource> dependencies) {
+    String indicatorUid = dependencies.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:Rp268JB6Ne4;cDw53Ej8rju;iPcreOldeV9;jjtzkzrmG7s,pe:2021")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:" + indicatorUid);
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(2));
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
+    validateRow(response, List.of(indicatorUid, "3.0"));
   }
 
   @Test

@@ -63,6 +63,7 @@ import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
@@ -640,6 +641,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public List<String> getAllUsernames() {
+    return getSession().createQuery("select u.username from User u", String.class).list();
+  }
+
+  @Override
   public void setActiveLinkedAccounts(
       @Nonnull String actingUsername, @Nonnull String activeUsername) {
 
@@ -737,8 +743,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             ORDER BY userid, dataelementcategoryid
         )
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // users_catdimensionconstraints is the User.catDimensionConstraints collection table.
+        // Collection regions are keyed by the collection's element entity, so Category is what
+        // reaches that region, not the owning User.
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -754,8 +763,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         DELETE FROM users_catdimensionconstraints
         WHERE dataelementcategoryid IN (:sourceCategoryIds)
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // see updateCatDimensionConstraintsCategoryRefs
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
@@ -775,8 +785,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             WHERE dataelementcategoryid = :targetCategoryId
         )
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // see updateCatDimensionConstraintsCategoryRefs
+        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
@@ -950,6 +961,36 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           attrUid.getValue(),
           userUid.getValue());
     }
+  }
+
+  @Override
+  public List<Integer> getActiveUserCounts(List<Date> sinceDates) {
+    if (sinceDates.isEmpty()) {
+      return List.of();
+    }
+    StringBuilder sql = new StringBuilder("select ");
+    for (int i = 0; i < sinceDates.size(); i++) {
+      if (i > 0) {
+        sql.append(", ");
+      }
+      sql.append("count(*) filter (where lastlogin >= ?) as c").append(i);
+    }
+    sql.append(" from userinfo");
+    return jdbcTemplate.query(
+        sql.toString(),
+        ps -> {
+          for (int i = 0; i < sinceDates.size(); i++) {
+            ps.setTimestamp(i + 1, new java.sql.Timestamp(sinceDates.get(i).getTime()));
+          }
+        },
+        rs -> {
+          rs.next();
+          List<Integer> counts = new ArrayList<>(sinceDates.size());
+          for (int i = 0; i < sinceDates.size(); i++) {
+            counts.add(rs.getInt(i + 1));
+          }
+          return counts;
+        });
   }
 
   @Override

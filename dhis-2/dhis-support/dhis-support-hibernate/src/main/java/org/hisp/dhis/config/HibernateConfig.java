@@ -167,22 +167,55 @@ public class HibernateConfig {
         // import).
         "org.springframework.orm.jpa.hibernate.SpringSessionContext");
 
-    if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
+    if (dhisConfig.isEnabled(USE_SECOND_LEVEL_CACHE)) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
-      properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
+      // Normalize to true/false: Hibernate parses this value itself and does not understand
+      // the on/off variants allowed in dhis.conf.
+      properties.put(
+          AvailableSettings.USE_QUERY_CACHE, String.valueOf(dhisConfig.isEnabled(USE_QUERY_CACHE)));
       properties.put(
           ConfigSettings.MISSING_CACHE_STRATEGY,
           MissingCacheStrategy.CREATE.getExternalRepresentation());
       // Specify the location of the Ehcache 3 configuration file
       String configFile = dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE);
       if (!configFile.isBlank()) {
-        properties.put(ConfigSettings.CONFIG_URI, configFile);
+        properties.put(ConfigSettings.CONFIG_URI, normalizeEhcacheConfigLocation(configFile));
       }
+    } else {
+      // Explicitly disable both caches. Without this, Hibernate auto-enables the second level
+      // cache when a RegionFactory (hibernate-jcache) is present on the classpath, but with
+      // default JCache settings instead of our ehcache.xml configuration. The query cache is
+      // deliberately forced off as well, ignoring use_query_cache: it depends on the second
+      // level cache infrastructure, and without it cached query results only store entity ids
+      // which are then hydrated row by row (N+1 queries).
+      properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "false");
+      properties.put(AvailableSettings.USE_QUERY_CACHE, "false");
     }
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
 
     return properties;
+  }
+
+  /**
+   * Normalizes the {@code cache.ehcache.config.file} value so Hibernate can resolve it.
+   *
+   * <p>Hibernate's ClassLoaderService only understands the nonstandard {@code classpath://} scheme:
+   * it strips that exact prefix and resolves the rest against the classpath, while the common
+   * {@code classpath:} spelling (also the ConfigurationKey default) is passed to the classloader
+   * verbatim, never resolves, and fails the SessionFactory boot with "Couldn't load URI". Both
+   * spellings are therefore stripped here; a bare resource name resolves fine. Other values ({@code
+   * file:} URLs, absolute paths) are passed through untouched.
+   */
+  static String normalizeEhcacheConfigLocation(String location) {
+    String value = location.strip();
+    if (value.regionMatches(true, 0, "classpath://", 0, 12)) {
+      return value.substring(12);
+    }
+    if (value.regionMatches(true, 0, "classpath:", 0, 10)) {
+      return value.substring(10);
+    }
+    return value;
   }
 }
