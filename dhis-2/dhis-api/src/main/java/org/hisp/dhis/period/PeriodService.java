@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.input.Fields;
 
@@ -220,5 +221,11 @@ public interface PeriodService {
     return getPeriodTypeByName(periodType.getName());
   }
 
-  PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, Fields fields);
+  /**
+   * @param locale for display labels (falls back to user's DB locale when null)
+   * @param fields fields to include for each {@link PeriodTypes.Entry}
+   * @return all period types with they display properties resolved for the current user
+   * @since 2.44
+   */
+  PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, @Nonnull Fields fields);
 }

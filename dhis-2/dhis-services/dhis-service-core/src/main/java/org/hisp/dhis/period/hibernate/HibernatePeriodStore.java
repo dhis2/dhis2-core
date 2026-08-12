@@ -369,9 +369,9 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
     String sql1 =
         """
     UPDATE periodtype
-    SET translations = to_jsonb(array_agg(
+    SET translations = jsonb_build_array(
       jsonb_build_object('locale',:locale,'property','NAME','value',:value )
-    ))
+    )
     where name = :name""";
     StringBuilder json = new StringBuilder();
     for (int k = 0; k < keep.size(); k++) {
