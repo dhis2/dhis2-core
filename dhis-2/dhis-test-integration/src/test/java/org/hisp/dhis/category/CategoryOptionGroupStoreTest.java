@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import org.hibernate.PropertyValueException;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
