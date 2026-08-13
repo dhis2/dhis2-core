@@ -89,7 +89,7 @@ class ProgramStageWorkingListObjectBundleHookTest {
   private ProgramStageWorkingList programStageWorkingList;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     workingListHook =
         new ProgramStageWorkingListObjectBundleHook(
             dataElementService, organisationUnitService, attributeService);
