@@ -31,8 +31,8 @@ package org.hisp.dhis.webapi.controller.dataentry;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValue;
@@ -40,10 +40,13 @@ import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /**
  * @author Lars Helge Overland
@@ -58,10 +61,25 @@ public class DataSetMetadataController {
   private final DataSetMetadataExportService exportService;
 
   @GetMapping("/metadata")
-  public ResponseEntity<JsonNode> getMetadata(
+  public ResponseEntity<StreamingResponseBody> getMetadata(
       @CurrentUser UserDetails currentUser, HttpServletRequest request) {
     String etag = getEtag(exportService.getDataSetMetadataLastModified(), currentUser);
 
-    return ResponseEntityUtils.withEtagCaching(etag, request, exportService::getDataSetMetadata);
+    if (ResponseEntityUtils.checkNotModified(etag, request)) {
+      return ResponseEntity.status(org.springframework.http.HttpStatus.NOT_MODIFIED)
+          .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
+          .eTag(etag)
+          .build();
+    }
+
+    // stream the document straight to the response, assembled from flat projection queries, so
+    // neither the entity graph nor the full JSON node tree is held in memory
+    StreamingResponseBody body = exportService::writeDataSetMetadata;
+
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.empty().cachePrivate().mustRevalidate())
+        .eTag(etag)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(body);
   }
 }

@@ -30,6 +30,8 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Date;
 
 /**
@@ -48,6 +50,18 @@ public interface DataSetMetadataExportService {
    * @return an {@link ObjectNode}.
    */
   ObjectNode getDataSetMetadata();
+
+  /**
+   * Writes the same data set metadata document as {@link #getDataSetMetadata()} directly to the
+   * given output stream, assembled from flat projection queries rather than a hydrated entity
+   * graph, so that neither the managed-entity graph nor the full JSON node tree is held in memory.
+   * The document is semantically identical to {@link #getDataSetMetadata()}; set-valued id arrays
+   * (e.g. {@code categoryOptions}, {@code organisationUnits}) are emitted in a deterministic order.
+   *
+   * @param out the stream to write the JSON document to; not closed by this method.
+   * @throws IOException if writing to the stream fails.
+   */
+  void writeDataSetMetadata(OutputStream out) throws IOException;
 
   /**
    * Returns the time of last modification for the data set metadata.

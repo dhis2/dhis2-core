@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -262,6 +263,35 @@ class DataSetMetadataExportServiceQueryCountTest extends PostgresIntegrationTest
     }
   }
 
+  @Test
+  @DisplayName(
+      "Streaming projection export issues a fixed number of selects regardless of graph size")
+  void streamingExportQueryCountDoesNotScale() throws Exception {
+    // baseline: stream with the set-up graph
+    long baseline = countSelectsForStreamingExport();
+    assertTrue(baseline > 0, "expected the streaming export to trigger some select queries");
+
+    // add a data element to the SAME data set whose category combo fans out into several option
+    // combos: with an entity-graph traversal this would add a per-combo / per-option N+1 (once per
+    // option combo and once per category). The projection store issues the same flat queries.
+    DataSet managedDataSet = manager.get(DataSet.class, dataSet.getUid());
+    CategoryCombo multiCombo = createCategoryComboWithOptions(5);
+    DataElement dataElement = createDataElement((char) ('A' + uniqueCounter++));
+    dataElement.setCategoryCombo(multiCombo);
+    manager.save(dataElement);
+    managedDataSet.addDataSetElement(dataElement);
+    manager.update(managedDataSet);
+
+    long withLargerGraph = countSelectsForStreamingExport();
+
+    // the projection store issues a fixed set of flat queries; growing the category graph adds rows
+    // to those queries, not more queries. If this grows, an N+1 has crept back in.
+    assertEquals(
+        baseline,
+        withLargerGraph,
+        "streaming projection select count must not grow with the size of the category graph");
+  }
+
   /**
    * Runs the metadata export from a freshly cleared Hibernate session (to mimic a new request and
    * force queries to hit the database) and returns the number of select statements issued.
@@ -270,6 +300,14 @@ class DataSetMetadataExportServiceQueryCountTest extends PostgresIntegrationTest
     clearSession();
     reset();
     exportService.getDataSetMetadata();
+    return QueryCountHolder.getGrandTotal().getSelect();
+  }
+
+  /** As {@link #countSelectsForMetadataExport()} but for the streaming projection path. */
+  private long countSelectsForStreamingExport() throws Exception {
+    clearSession();
+    reset();
+    exportService.writeDataSetMetadata(new ByteArrayOutputStream());
     return QueryCountHolder.getGrandTotal().getSelect();
   }
 
