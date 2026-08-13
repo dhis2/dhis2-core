@@ -874,7 +874,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       QueryItem queryItem = queryItemsByUid.get(column);
 
       if (queryItem != null) {
-        sb.addColumnIfNotExist(column);
+        sb.addColumnIfNotExist(quote(column));
       }
     }
 
