@@ -261,4 +261,82 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
             Map.entry("multiplier", ""),
             Map.entry("divisor", "")));
   }
+
+  @Test
+  @DependsOn(
+      files = {"pi-max-sum-org-unit.json"},
+      delete = true)
+  public void programIndicatorMaxSumOrgUnitWithChildOu(List<Resource> dependencies) {
+    String indicatorUid = dependencies.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:AXZq6q7Dr6E;BGGmAwx33dj")
+            .add("skipData=false")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:" + indicatorUid + ",pe:2021;2022;2020");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(8)))
+        .body("rows", hasSize(equalTo(2)))
+        .body("height", equalTo(2))
+        .body("width", equalTo(8));
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
+    validateRow(response, List.of(indicatorUid, "2022", "64657.0", "", "", "", "", ""));
+    validateRow(response, List.of(indicatorUid, "2021", "67138.0", "", "", "", "", ""));
+  }
+
+  @Test
+  @DependsOn(
+      files = {"pi-max-sum-org-unit.json"},
+      delete = true)
+  public void programIndicatorMaxSumOrgUnitWithoutChildOu(List<Resource> dependencies) {
+    String indicatorUid = dependencies.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:AXZq6q7Dr6E")
+            .add("skipData=false")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:" + indicatorUid + ",pe:2021;2022;2020");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(8)))
+        .body("rows", hasSize(equalTo(2)))
+        .body("height", equalTo(2))
+        .body("width", equalTo(8));
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
+    validateRow(response, List.of(indicatorUid, "2022", "187.0", "", "", "", "", ""));
+    validateRow(response, List.of(indicatorUid, "2021", "188.0", "", "", "", "", ""));
+  }
 }
