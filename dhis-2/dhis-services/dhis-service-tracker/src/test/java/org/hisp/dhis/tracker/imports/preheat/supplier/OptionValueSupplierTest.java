@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,21 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.OptionSet;
@@ -51,6 +60,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 class OptionValueSupplierTest {
@@ -94,7 +104,8 @@ class OptionValueSupplierTest {
             .dataElement(MetadataIdentifier.ofUid("dataElement"))
             .value("A00")
             .build();
-    Event event = Event.builder().dataValues(Set.of(dataValue)).build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).dataValues(Set.of(dataValue)).build();
     TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
 
     Set<Pair<Long, String>> candidates = supplier.collectCandidates(trackerObjects, preheat);
@@ -112,8 +123,16 @@ class OptionValueSupplierTest {
             .attribute(MetadataIdentifier.ofUid("attribute"))
             .value("A00,B99")
             .build();
-    TrackedEntity trackedEntity = TrackedEntity.builder().attributes(List.of(attribute)).build();
-    Enrollment enrollment = Enrollment.builder().attributes(List.of(attribute)).build();
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .attributes(List.of(attribute))
+            .build();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .attributes(List.of(attribute))
+            .build();
     TrackerObjects trackerObjects =
         TrackerObjects.builder()
             .trackedEntities(List.of(trackedEntity))
@@ -126,6 +145,67 @@ class OptionValueSupplierTest {
   }
 
   @Test
+  void shouldSkipValuesWithoutAnOptionSet() {
+    DataElement plainDataElement = new DataElement();
+    plainDataElement.setUid("plain");
+    plainDataElement.setValueType(ValueType.TEXT);
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(plainDataElement);
+
+    DataValue dataValue =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid("plain"))
+            .value("anything")
+            .build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).dataValues(Set.of(dataValue)).build();
+    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
+
+    Set<Pair<Long, String>> candidates = supplier.collectCandidates(trackerObjects, preheat);
+
+    assertEquals(Set.of(), candidates);
+  }
+
+  @Test
+  void shouldSkipValuesWhoseDataElementIsNotPreheated() {
+    TrackerPreheat preheat = new TrackerPreheat();
+
+    DataValue dataValue =
+        DataValue.builder().dataElement(MetadataIdentifier.ofUid("unknown")).value("A00").build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).dataValues(Set.of(dataValue)).build();
+    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
+
+    Set<Pair<Long, String>> candidates = supplier.collectCandidates(trackerObjects, preheat);
+
+    assertEquals(Set.of(), candidates);
+  }
+
+  @Test
+  void shouldNotQueryTheDatabaseWhenNoValueReferencesAnOptionSet() {
+    DataElement plainDataElement = new DataElement();
+    plainDataElement.setUid("plain");
+    plainDataElement.setValueType(ValueType.TEXT);
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(plainDataElement);
+
+    DataValue dataValue =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid("plain"))
+            .value("anything")
+            .build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).dataValues(Set.of(dataValue)).build();
+    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
+
+    supplier.preheatAdd(trackerObjects, preheat);
+
+    verifyNoInteractions(jdbcTemplate);
+  }
+
+  @Test
   void shouldMarkOptionSetAsResolvedEvenWhenNoCodeTurnsOutToBeValid() {
     TrackerPreheat preheat = new TrackerPreheat();
     preheat.put(dataElement);
@@ -135,7 +215,8 @@ class OptionValueSupplierTest {
             .dataElement(MetadataIdentifier.ofUid("dataElement"))
             .value("A00")
             .build();
-    Event event = Event.builder().dataValues(Set.of(dataValue)).build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).dataValues(Set.of(dataValue)).build();
     TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
 
     supplier.collectCandidates(trackerObjects, preheat);
@@ -159,7 +240,8 @@ class OptionValueSupplierTest {
             .dataElement(MetadataIdentifier.ofUid("plain"))
             .value("anything")
             .build();
-    Event event = Event.builder().dataValues(Set.of(dataValue)).build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).dataValues(Set.of(dataValue)).build();
     TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
 
     supplier.collectCandidates(trackerObjects, preheat);
@@ -168,60 +250,93 @@ class OptionValueSupplierTest {
   }
 
   @Test
-  void shouldSkipValuesWithoutAnOptionSet() {
-    DataElement plainDataElement = new DataElement();
-    plainDataElement.setUid("plain");
-    plainDataElement.setValueType(ValueType.TEXT);
+  void shouldNotValidateAFabricatedCrossOptionSetPairEvenWhenBothHalvesExistSeparately()
+      throws SQLException {
+    OptionSet optionSetA = new OptionSet();
+    optionSetA.setId(1L);
+    OptionSet optionSetB = new OptionSet();
+    optionSetB.setId(2L);
+    OptionSet optionSetC = new OptionSet();
+    optionSetC.setId(3L);
+
+    DataElement dataElementA = new DataElement();
+    dataElementA.setUid("dataElementA");
+    dataElementA.setValueType(ValueType.TEXT);
+    dataElementA.setOptionSet(optionSetA);
+
+    DataElement dataElementB = new DataElement();
+    dataElementB.setUid("dataElementB");
+    dataElementB.setValueType(ValueType.TEXT);
+    dataElementB.setOptionSet(optionSetB);
+
+    DataElement dataElementC = new DataElement();
+    dataElementC.setUid("dataElementC");
+    dataElementC.setValueType(ValueType.TEXT);
+    dataElementC.setOptionSet(optionSetC);
 
     TrackerPreheat preheat = new TrackerPreheat();
-    preheat.put(plainDataElement);
+    preheat.put(dataElementA);
+    preheat.put(dataElementB);
+    preheat.put(dataElementC);
 
-    DataValue dataValue =
+    // The payload asks about (1,"A00") and (2,"B00") - neither actually exists - and (3,"C00"),
+    // which does.
+    DataValue dataValueA =
         DataValue.builder()
-            .dataElement(MetadataIdentifier.ofUid("plain"))
-            .value("anything")
+            .dataElement(MetadataIdentifier.ofUid("dataElementA"))
+            .value("A00")
             .build();
-    Event event = Event.builder().dataValues(Set.of(dataValue)).build();
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
-
-    Set<Pair<Long, String>> candidates = supplier.collectCandidates(trackerObjects, preheat);
-
-    assertEquals(Set.of(), candidates);
-  }
-
-  @Test
-  void shouldSkipValuesWhoseDataElementIsNotPreheated() {
-    TrackerPreheat preheat = new TrackerPreheat();
-
-    DataValue dataValue =
-        DataValue.builder().dataElement(MetadataIdentifier.ofUid("unknown")).value("A00").build();
-    Event event = Event.builder().dataValues(Set.of(dataValue)).build();
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
-
-    Set<Pair<Long, String>> candidates = supplier.collectCandidates(trackerObjects, preheat);
-
-    assertEquals(Set.of(), candidates);
-  }
-
-  @Test
-  void shouldNotQueryTheDatabaseWhenNoValueReferencesAnOptionSet() {
-    DataElement plainDataElement = new DataElement();
-    plainDataElement.setUid("plain");
-    plainDataElement.setValueType(ValueType.TEXT);
-
-    TrackerPreheat preheat = new TrackerPreheat();
-    preheat.put(plainDataElement);
-
-    DataValue dataValue =
+    DataValue dataValueB =
         DataValue.builder()
-            .dataElement(MetadataIdentifier.ofUid("plain"))
-            .value("anything")
+            .dataElement(MetadataIdentifier.ofUid("dataElementB"))
+            .value("B00")
             .build();
-    Event event = Event.builder().dataValues(Set.of(dataValue)).build();
+    DataValue dataValueC =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid("dataElementC"))
+            .value("C00")
+            .build();
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .dataValues(Set.of(dataValueA, dataValueB, dataValueC))
+            .build();
     TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
+
+    // The database actually contains (1,"B00"), (2,"A00") and (3,"C00"): every optionSetId and
+    // every code the query's two IN-lists ask for is present in some row, but the fabricated
+    // pairs (1,"A00") and (2,"B00") never co-occur on the same row.
+    mockQueryResult(Pair.of(1L, "B00"), Pair.of(2L, "A00"), Pair.of(3L, "C00"));
 
     supplier.preheatAdd(trackerObjects, preheat);
 
-    verifyNoInteractions(jdbcTemplate);
+    assertFalse(
+        preheat.isValidOptionCode(1L, "A00"),
+        "fabricated cross-option-set pair must not be validated");
+    assertFalse(
+        preheat.isValidOptionCode(2L, "B00"),
+        "fabricated cross-option-set pair must not be validated");
+    assertTrue(preheat.isValidOptionCode(3L, "C00"), "a genuine pair must still be validated");
+  }
+
+  @SafeVarargs
+  @SuppressWarnings("unchecked")
+  private void mockQueryResult(Pair<Long, String>... rows) throws SQLException {
+    Connection connection = mock(Connection.class);
+    PreparedStatement ps = mock(PreparedStatement.class);
+    ResultSet rs = mock(ResultSet.class);
+    when(connection.prepareStatement(anyString())).thenReturn(ps);
+    when(connection.createArrayOf(anyString(), any())).thenReturn(mock(Array.class));
+    when(ps.executeQuery()).thenReturn(rs);
+
+    int[] index = {0};
+    when(rs.next()).thenAnswer(invocation -> index[0]++ < rows.length);
+    when(rs.getLong("optionsetid")).thenAnswer(invocation -> rows[index[0] - 1].getLeft());
+    when(rs.getString("code")).thenAnswer(invocation -> rows[index[0] - 1].getRight());
+
+    when(jdbcTemplate.execute(any(ConnectionCallback.class)))
+        .thenAnswer(
+            invocation ->
+                invocation.<ConnectionCallback<?>>getArgument(0).doInConnection(connection));
   }
 }
