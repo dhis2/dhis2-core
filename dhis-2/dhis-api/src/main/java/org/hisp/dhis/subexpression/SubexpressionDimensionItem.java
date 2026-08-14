@@ -80,9 +80,10 @@ public class SubexpressionDimensionItem extends BaseDimensionalItemObject {
   }
 
   /**
-   * Gets a quoted SQL column name for a data element uid and optionally a category option combo
+   * Gets an unquoted SQL column name for a data element uid and optionally a category option combo
    * uid. These column names are generated in the SQL fragment for each item and referenced in the
-   * SQL fragment for the subexpression as a whole.
+   * SQL fragment for the subexpression as a whole. The caller quotes the name using the active SQL
+   * dialect.
    *
    * <p>If there is an aggregation type override in the query modifiers, its name is appended to the
    * end of the column name. This is needed in case the same item appears in the same subexpression
@@ -90,6 +91,9 @@ public class SubexpressionDimensionItem extends BaseDimensionalItemObject {
    */
   public static String getItemColumnName(
       String deUid, String cocUid, String aocUid, QueryModifiers mods) {
+    // Both combos contribute an underscore when either is present, so a data element with only an
+    // attribute option combo is "de__aoc", keeping it distinct from one with only a category
+    // option combo ("de_coc").
     String separator = (isEmpty(cocUid) && isEmpty(aocUid)) ? "" : "_";
 
     String coc = isEmpty(cocUid) ? "" : cocUid;
@@ -106,7 +110,7 @@ public class SubexpressionDimensionItem extends BaseDimensionalItemObject {
             ? "_agg_" + mods.getAggregationType().name()
             : "";
 
-    return "\"" + deUid + separator + coc + aoc + periodOffsetMod + aggregationMod + "\"";
+    return deUid + separator + coc + aoc + periodOffsetMod + aggregationMod;
   }
 
   // -------------------------------------------------------------------------
