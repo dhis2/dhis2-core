@@ -33,12 +33,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,9 +62,8 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.RowCallbackHandler;
 
 class OptionValueSupplierTest {
 
@@ -246,7 +249,8 @@ class OptionValueSupplierTest {
   }
 
   @Test
-  void shouldNotValidateAFabricatedCrossOptionSetPairEvenWhenBothHalvesExistSeparately() {
+  void shouldNotValidateAFabricatedCrossOptionSetPairEvenWhenBothHalvesExistSeparately()
+      throws SQLException {
     OptionSet optionSetA = new OptionSet();
     optionSetA.setId(1L);
     OptionSet optionSetB = new OptionSet();
@@ -316,19 +320,22 @@ class OptionValueSupplierTest {
 
   @SafeVarargs
   @SuppressWarnings("unchecked")
-  private void mockQueryResult(Pair<Long, String>... rows) {
-    doAnswer(
-            invocation -> {
-              RowCallbackHandler rch = invocation.getArgument(1);
-              for (Pair<Long, String> row : rows) {
-                ResultSet rs = mock(ResultSet.class);
-                when(rs.getLong("optionsetid")).thenReturn(row.getLeft());
-                when(rs.getString("code")).thenReturn(row.getRight());
-                rch.processRow(rs);
-              }
-              return null;
-            })
-        .when(jdbcTemplate)
-        .query(any(PreparedStatementCreator.class), any(RowCallbackHandler.class));
+  private void mockQueryResult(Pair<Long, String>... rows) throws SQLException {
+    Connection connection = mock(Connection.class);
+    PreparedStatement ps = mock(PreparedStatement.class);
+    ResultSet rs = mock(ResultSet.class);
+    when(connection.prepareStatement(anyString())).thenReturn(ps);
+    when(connection.createArrayOf(anyString(), any())).thenReturn(mock(Array.class));
+    when(ps.executeQuery()).thenReturn(rs);
+
+    int[] index = {0};
+    when(rs.next()).thenAnswer(invocation -> index[0]++ < rows.length);
+    when(rs.getLong("optionsetid")).thenAnswer(invocation -> rows[index[0] - 1].getLeft());
+    when(rs.getString("code")).thenAnswer(invocation -> rows[index[0] - 1].getRight());
+
+    when(jdbcTemplate.execute(any(ConnectionCallback.class)))
+        .thenAnswer(
+            invocation ->
+                invocation.<ConnectionCallback<?>>getArgument(0).doInConnection(connection));
   }
 }

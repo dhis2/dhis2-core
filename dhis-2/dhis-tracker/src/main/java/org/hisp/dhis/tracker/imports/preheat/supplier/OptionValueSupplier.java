@@ -30,6 +30,8 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import com.google.common.collect.Lists;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,9 +47,8 @@ import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,10 +65,16 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
 
   private static final String CODE = "code";
 
+  // Parallel-array unnest join: each optionsetid/code pair is matched positionally, so the two
+  // arrays are built directly from the (deduplicated) candidate list, not from independently
+  // deduplicated per-column sets. This gives an exact pair match sargable via
+  // optionvalue_unique_optionsetid_and_code, instead of the IN (...) AND IN (...) cross-product
+  // that the query planner can fall back to filtering in memory once cardinality grows.
   private static final String SQL =
-      "select optionsetid, code from optionvalue"
-          + " where optionsetid in (:optionSetIds)"
-          + " and code in (:codes)";
+      "select o.optionsetid, o.code"
+          + " from optionvalue o"
+          + " join unnest(?::bigint[], ?::text[]) as t(optionsetid, code)"
+          + "   on o.optionsetid = t.optionsetid and o.code = t.code";
 
   protected OptionValueSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
@@ -146,23 +153,30 @@ public class OptionValueSupplier extends JdbcAbstractPreheatSupplier {
   }
 
   private void queryChunk(List<Pair<Long, String>> chunk, TrackerPreheat preheat) {
-    Set<Long> optionSetIds = new HashSet<>();
-    Set<String> codes = new HashSet<>();
-    for (Pair<Long, String> pair : chunk) {
-      optionSetIds.add(pair.getLeft());
-      codes.add(pair.getRight());
+    Long[] optionSetIds = new Long[chunk.size()];
+    String[] codes = new String[chunk.size()];
+    for (int i = 0; i < chunk.size(); i++) {
+      optionSetIds[i] = chunk.get(i).getLeft();
+      codes[i] = chunk.get(i).getRight();
     }
 
-    MapSqlParameterSource parameters = new MapSqlParameterSource();
-    parameters.addValue("optionSetIds", optionSetIds);
-    parameters.addValue("codes", codes);
-
     Set<Pair<Long, String>> confirmed = new HashSet<>();
-    jdbcTemplate.query(
-        SQL,
-        parameters,
-        (RowCallbackHandler)
-            rs -> confirmed.add(Pair.of(rs.getLong(OPTION_SET_ID), rs.getString(CODE))));
+    jdbcTemplate
+        .getJdbcOperations()
+        .execute(
+            (ConnectionCallback<Void>)
+                connection -> {
+                  try (PreparedStatement ps = connection.prepareStatement(SQL)) {
+                    ps.setArray(1, connection.createArrayOf("bigint", optionSetIds));
+                    ps.setArray(2, connection.createArrayOf("text", codes));
+                    try (ResultSet rs = ps.executeQuery()) {
+                      while (rs.next()) {
+                        confirmed.add(Pair.of(rs.getLong(OPTION_SET_ID), rs.getString(CODE)));
+                      }
+                    }
+                  }
+                  return null;
+                });
 
     for (Pair<Long, String> pair : chunk) { // NOSONAR confirmed comes from the query in between
       if (confirmed.contains(pair)) {
