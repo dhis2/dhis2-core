@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -258,6 +259,62 @@ class AttributeValidatorTest {
                 .trackedEntity(enrollment.getTrackedEntity())
                 .attributes(List.of(attribute, attribute1))
                 .build()));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertNoErrors(reporter);
+  }
+
+  @Test
+  void shouldFailValidationWhenAttributeValueIsNotValidOptionCode() {
+    OptionSet optionSet = new OptionSet();
+    optionSet.setId(1L);
+    trackedEntityAttribute.setOptionSet(optionSet);
+
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("wrongCode")
+            .build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            List.of(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, false)));
+    when(enrollment.getAttributes()).thenReturn(singletonList(attribute));
+    when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(preheat.isValidOptionCode(1L, "wrongCode")).thenReturn(false);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, ValidationCode.E1125);
+  }
+
+  @Test
+  void shouldPassValidationWhenAttributeValueIsValidOptionCode() {
+    OptionSet optionSet = new OptionSet();
+    optionSet.setId(1L);
+    trackedEntityAttribute.setOptionSet(optionSet);
+
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("CODE")
+            .build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            List.of(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, false)));
+    when(enrollment.getAttributes()).thenReturn(singletonList(attribute));
+    when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(preheat.isValidOptionCode(1L, "CODE")).thenReturn(true);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, enrollment);
 

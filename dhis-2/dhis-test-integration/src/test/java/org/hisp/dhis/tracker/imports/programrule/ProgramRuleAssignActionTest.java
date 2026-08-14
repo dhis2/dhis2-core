@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.programrule;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ASSIGN;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1125;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1307;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1308;
@@ -319,6 +320,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assertHasOnlyWarnings(importReport, E1308);
     if (!hasValidValue) {
       assertHasOnlyErrors(importReport, E1125);
+    } else {
+      assertNoErrors(importReport);
     }
   }
 
