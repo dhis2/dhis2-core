@@ -29,28 +29,32 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import java.sql.Array;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import jakarta.persistence.EntityManagerFactory;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Component;
 
 /**
- * Read-only projection store backing {@link DataSetMetadataExportService#writeDataSetMetadata}. It
- * loads the data-entry category graph (category combos, category option combos, categories,
- * category options and their id associations) with a fixed, small number of flat SQL queries,
- * returning plain row/association records rather than managed Hibernate entities. This avoids both
- * the per-parent N+1 selects and the memory cost of hydrating the (potentially hundreds of
- * thousands of) entities in that graph.
+ * Read-only flat-projection store backing {@link MetadataProjection}. It exposes three generic,
+ * type-agnostic loaders — a scalar row loader and two association loaders — each issuing a single
+ * flat SQL query keyed on a bounded id set bound as one {@code bigint[]} array parameter. It never
+ * hydrates managed entities, so neither the per-parent N+1 selects nor the memory cost of the
+ * entity graph applies, and the query/parameter count does not grow with the size of the graph.
  *
- * <p>Every query is keyed on a bounded set of category-combo (or option) ids and never on the large
- * option-combo id set, and each id set is bound as a single SQL array parameter, so the number of
- * statements and bind parameters does not grow with the size of the exported graph.
+ * <p>The scalar loader is driven by <em>ORM property names</em>, not physical columns: it resolves
+ * the table and each property's column from the Hibernate mapping (via the entity persister), so a
+ * projection never hard-codes a column name and a mapping change is picked up automatically.
  *
  * @author david mackessy
  */
@@ -60,236 +64,133 @@ class DataSetMetadataStore {
 
   private final JdbcTemplate jdbcTemplate;
 
-  /** A category combo row. {@code translations} is the raw jsonb text (never null; may be "[]"). */
-  record ComboRow(
-      long id,
-      String uid,
-      String code,
-      String name,
-      Date created,
-      Date lastUpdated,
-      String dataDimensionType,
-      boolean skipTotal,
-      String translations) {}
+  private final EntityManagerFactory entityManagerFactory;
 
-  /** A category option combo row, linked to its owning combo. */
-  record CocRow(long comboId, long id, String uid, String code, String name, String translations) {}
-
-  /** A category row. */
-  record CategoryRow(
-      long id,
-      String uid,
-      String code,
-      String name,
-      String shortName,
-      Date created,
-      Date lastUpdated,
-      boolean dataDimension,
-      String dataDimensionType,
-      String translations) {}
-
-  /** A category option row. */
-  record OptionRow(
-      long id,
-      String uid,
-      String code,
-      String name,
-      String shortName,
-      String formName,
-      Date created,
-      Date lastUpdated,
-      String translations) {}
+  private final Map<Class<?>, AbstractEntityPersister> persisters = new ConcurrentHashMap<>();
 
   /**
-   * A parent-to-child association row carrying the child's uid, returned in the exact iteration
-   * order the JSON document requires (SQL {@code ORDER BY}).
+   * Loads the given ORM properties of {@code entityType} for the given primary-key ids, as {@link
+   * MetadataProjection.Row}s keyed by id. The table and each property's physical column are
+   * resolved from the Hibernate mapping; each value lands in the row under its property name.
+   * {@code jsonb} columns (e.g. {@code translations}) are read as-is; everything via {@code
+   * getObject}. Each {@link MetadataProjection.DerivedColumn} is additionally selected under its
+   * alias, for the rare value that lives in another table or is computed in SQL.
    */
-  record Assoc(long parentId, long childId, String childUid) {}
+  Map<Long, MetadataProjection.Row> loadRows(
+      Class<?> entityType,
+      List<String> properties,
+      List<MetadataProjection.DerivedColumn> derived,
+      long[] ids) {
+    if (ids.length == 0) {
+      return Map.of();
+    }
+    AbstractEntityPersister persister = persister(entityType);
+    String table = persister.getTableName();
+    String idColumn = persister.getIdentifierColumnNames()[0];
 
-  private static final RowMapper<Assoc> ASSOC =
-      (rs, i) -> new Assoc(rs.getLong(1), rs.getLong(2), rs.getString(3));
-
-  // --- category combos --------------------------------------------------------------------------
-
-  List<ComboRow> getCombos(long[] comboIds) {
-    if (comboIds.length == 0) return List.of();
-    return query(
-        """
-        select categorycomboid, uid, code, name, created, lastupdated,
-               datadimensiontype, skiptotal, translations
-        from categorycombo
-        where categorycomboid = any(?)
-        order by categorycomboid
-        """,
-        comboIds,
-        (rs, i) ->
-            new ComboRow(
-                rs.getLong("categorycomboid"),
-                rs.getString("uid"),
-                rs.getString("code"),
-                rs.getString("name"),
-                rs.getTimestamp("created"),
-                rs.getTimestamp("lastupdated"),
-                rs.getString("datadimensiontype"),
-                rs.getBoolean("skiptotal"),
-                translations(rs, "translations")));
-  }
-
-  /** Combo -> category uids, ordered by the combo's category {@code sort_order} (a list). */
-  List<Assoc> getComboCategories(long[] comboIds) {
-    if (comboIds.length == 0) return List.of();
-    return query(
-        """
-        select cc.categorycomboid, c.categoryid, c.uid
-        from categorycombos_categories cc
-        join category c on c.categoryid = cc.categoryid
-        where cc.categorycomboid = any(?)
-        order by cc.categorycomboid, cc.sort_order
-        """,
-        comboIds,
-        ASSOC);
-  }
-
-  // --- category option combos (only for the data-element combos, which expose their COCs) --------
-
-  List<CocRow> getOptionCombos(long[] comboIds) {
-    if (comboIds.length == 0) return List.of();
-    return query(
-        """
-        select link.categorycomboid, coc.categoryoptioncomboid, coc.uid, coc.code,
-               coc.name, coc.translations
-        from categorycombos_optioncombos link
-        join categoryoptioncombo coc on coc.categoryoptioncomboid = link.categoryoptioncomboid
-        where link.categorycomboid = any(?)
-        order by link.categorycomboid, coc.categoryoptioncomboid
-        """,
-        comboIds,
-        (rs, i) ->
-            new CocRow(
-                rs.getLong("categorycomboid"),
-                rs.getLong("categoryoptioncomboid"),
-                rs.getString("uid"),
-                rs.getString("code"),
-                rs.getString("name"),
-                translations(rs, "translations")));
-  }
-
-  /**
-   * Option-combo -> category-option uids for the given combos. Set-valued in the domain model, so
-   * emitted in a deterministic option-id order.
-   */
-  List<Assoc> getOptionComboOptions(long[] comboIds) {
-    if (comboIds.length == 0) return List.of();
-    return query(
-        """
-        select coc.categoryoptioncomboid, o.categoryoptionid, o.uid
-        from categorycombos_optioncombos link
-        join categoryoptioncombo coc on coc.categoryoptioncomboid = link.categoryoptioncomboid
-        join categoryoptioncombos_categoryoptions cocco
-          on cocco.categoryoptioncomboid = coc.categoryoptioncomboid
-        join categoryoption o on o.categoryoptionid = cocco.categoryoptionid
-        where link.categorycomboid = any(?)
-        order by coc.categoryoptioncomboid, o.categoryoptionid
-        """,
-        comboIds,
-        ASSOC);
-  }
-
-  // --- categories -------------------------------------------------------------------------------
-
-  List<CategoryRow> getCategories(long[] categoryIds) {
-    if (categoryIds.length == 0) return List.of();
-    return query(
-        """
-        select categoryid, uid, code, name, shortname, created, lastupdated,
-               datadimension, datadimensiontype, translations
-        from category
-        where categoryid = any(?)
-        order by categoryid
-        """,
-        categoryIds,
-        (rs, i) ->
-            new CategoryRow(
-                rs.getLong("categoryid"),
-                rs.getString("uid"),
-                rs.getString("code"),
-                rs.getString("name"),
-                rs.getString("shortname"),
-                rs.getTimestamp("created"),
-                rs.getTimestamp("lastupdated"),
-                rs.getBoolean("datadimension"),
-                rs.getString("datadimensiontype"),
-                translations(rs, "translations")));
-  }
-
-  /**
-   * Category -> category-option (id + uid), ordered by the category's option {@code sort_order}.
-   */
-  List<Assoc> getCategoryOptions(long[] categoryIds) {
-    if (categoryIds.length == 0) return List.of();
-    return query(
-        """
-        select cco.categoryid, o.categoryoptionid, o.uid
-        from categories_categoryoptions cco
-        join categoryoption o on o.categoryoptionid = cco.categoryoptionid
-        where cco.categoryid = any(?)
-        order by cco.categoryid, cco.sort_order
-        """,
-        categoryIds,
-        ASSOC);
-  }
-
-  // --- category options -------------------------------------------------------------------------
-
-  List<OptionRow> getOptions(long[] optionIds) {
-    if (optionIds.length == 0) return List.of();
-    return query(
-        """
-        select categoryoptionid, uid, code, name, shortname, formname,
-               created, lastupdated, translations
-        from categoryoption
-        where categoryoptionid = any(?)
-        order by categoryoptionid
-        """,
-        optionIds,
-        (rs, i) ->
-            new OptionRow(
-                rs.getLong("categoryoptionid"),
-                rs.getString("uid"),
-                rs.getString("code"),
-                rs.getString("name"),
-                rs.getString("shortname"),
-                rs.getString("formname"),
-                rs.getTimestamp("created"),
-                rs.getTimestamp("lastupdated"),
-                translations(rs, "translations")));
-  }
-
-  /** Option -> organisation-unit uids. Set-valued, emitted in deterministic org-unit-id order. */
-  List<Assoc> getOptionOrgUnits(long[] optionIds) {
-    if (optionIds.length == 0) return List.of();
-    return query(
-        """
-        select coou.categoryoptionid, ou.organisationunitid, ou.uid
-        from categoryoption_organisationunits coou
-        join organisationunit ou on ou.organisationunitid = coou.organisationunitid
-        where coou.categoryoptionid = any(?)
-        order by coou.categoryoptionid, ou.organisationunitid
-        """,
-        optionIds,
-        ASSOC);
-  }
-
-  // --- helpers ----------------------------------------------------------------------------------
-
-  private <T> List<T> query(String sql, long[] ids, RowMapper<T> mapper) {
+    // the projected table is aliased t so derived sub-selects can correlate on t.<column>
+    // independently of the physical table name resolved from the mapping
+    List<String> selections = new ArrayList<>();
+    for (String property : properties) {
+      selections.add("t.%s as \"%s\"".formatted(column(persister, property), property));
+    }
+    for (MetadataProjection.DerivedColumn column : derived) {
+      selections.add("(%s) as \"%s\"".formatted(column.sql(), column.alias()));
+    }
+    String sql =
+        "select t.%s%s from %s t where t.%s = any(?) order by t.%s"
+            .formatted(
+                idColumn,
+                selections.isEmpty() ? "" : ", " + String.join(", ", selections),
+                table,
+                idColumn,
+                idColumn);
     return jdbcTemplate.query(
         sql,
-        ps -> {
-          Array array = ps.getConnection().createArrayOf("bigint", box(ids));
-          ps.setArray(1, array);
-        },
-        mapper);
+        bind(ids),
+        rs -> {
+          Map<Long, MetadataProjection.Row> rows = new LinkedHashMap<>();
+          while (rs.next()) {
+            long id = rs.getLong(idColumn);
+            Map<String, Object> values = new HashMap<>();
+            for (String property : properties) {
+              values.put(property, rs.getObject(property));
+            }
+            for (MetadataProjection.DerivedColumn column : derived) {
+              values.put(column.alias(), rs.getObject(column.alias()));
+            }
+            rows.put(id, new MetadataProjection.Row(id, values));
+          }
+          return rows;
+        });
+  }
+
+  /** The Hibernate persister for an entity type, cached; the mapping's single source of columns. */
+  private AbstractEntityPersister persister(Class<?> entityType) {
+    return persisters.computeIfAbsent(
+        entityType,
+        type -> {
+          MetamodelImplementor metamodel =
+              (MetamodelImplementor) entityManagerFactory.getMetamodel();
+          return (AbstractEntityPersister) metamodel.entityPersister(type);
+        });
+  }
+
+  /**
+   * The single physical column mapped to {@code property}, failing fast if it is not one column.
+   */
+  private static String column(AbstractEntityPersister persister, String property) {
+    String[] columns = persister.getPropertyColumnNames(property);
+    if (columns.length != 1) {
+      throw new IllegalStateException(
+          "expected exactly one column for property '%s' of %s, got %s"
+              .formatted(property, persister.getEntityName(), Arrays.toString(columns)));
+    }
+    return columns[0];
+  }
+
+  /**
+   * Runs a query selecting {@code (parentId, childUid)} and returns child uids grouped by parent
+   * id, preserving the query's {@code ORDER BY}. Used for id-plucked association arrays.
+   */
+  Map<Long, List<String>> uidLists(String sql, long[] ids) {
+    if (ids.length == 0) {
+      return Map.of();
+    }
+    return jdbcTemplate.query(
+        sql,
+        bind(ids),
+        rs -> {
+          Map<Long, List<String>> byParent = new LinkedHashMap<>();
+          while (rs.next()) {
+            byParent.computeIfAbsent(rs.getLong(1), k -> new ArrayList<>()).add(rs.getString(2));
+          }
+          return byParent;
+        });
+  }
+
+  /**
+   * Runs a query selecting {@code (parentId, childId)} and returns child ids grouped by parent id,
+   * preserving the query's {@code ORDER BY}. Used to link a parent to its nested child objects.
+   */
+  Map<Long, List<Long>> idLists(String sql, long[] ids) {
+    if (ids.length == 0) {
+      return Map.of();
+    }
+    return jdbcTemplate.query(
+        sql,
+        bind(ids),
+        rs -> {
+          Map<Long, List<Long>> byParent = new LinkedHashMap<>();
+          while (rs.next()) {
+            byParent.computeIfAbsent(rs.getLong(1), k -> new ArrayList<>()).add(rs.getLong(2));
+          }
+          return byParent;
+        });
+  }
+
+  private static PreparedStatementSetter bind(long[] ids) {
+    return ps -> ps.setArray(1, ps.getConnection().createArrayOf("bigint", box(ids)));
   }
 
   private static Long[] box(long[] ids) {
@@ -298,11 +199,6 @@ class DataSetMetadataStore {
       boxed[i] = ids[i];
     }
     return boxed;
-  }
-
-  private static String translations(ResultSet rs, String column) throws SQLException {
-    String value = rs.getString(column);
-    return value == null ? "[]" : value;
   }
 
   static long[] toArray(Collection<Long> ids) {

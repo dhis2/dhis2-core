@@ -36,7 +36,6 @@ import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 import static org.hisp.dhis.commons.collection.ListUtils.distinctUnion;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -47,8 +46,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,26 +59,39 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataStore.Assoc;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataStore.CategoryRow;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataStore.CocRow;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataStore.ComboRow;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataStore.OptionRow;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Bulk;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Col;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Computed;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Constant;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Def;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.DerivedColumn;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Field;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Nested;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Pluck;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Ref;
+import org.hisp.dhis.dxf2.metadata.MetadataProjection.Translated;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
@@ -88,8 +100,8 @@ import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.setting.UserSettings;
-import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -158,10 +170,6 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
 
   /** The DHIS2 JSON mapper, so streamed dates/numbers match the controller's serialization. */
   private static final ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.jsonMapper;
-
-  private static final String CATEGORY_OPTION_DIMENSION_ITEM_TYPE = "CATEGORY_OPTION";
-
-  private static final String CATEGORY_DIMENSION_TYPE = "CATEGORY";
 
   private static final String DEFAULT_NAME = "default";
 
@@ -233,14 +241,23 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
-    SetValuedMap<String, String> dataSetOrgUnits =
-        dataSetService.getDataSetOrganisationUnitsAssociations();
-
     List<DataSet> dataSets = idObjectManager.getDataWriteAll(DataSet.class);
     List<DataElement> dataElements =
         sortById(new HashSet<>(dataSetService.getDataElementsByDataSet(dataSets)));
     List<Indicator> indicators = sortById(flatMapToSet(dataSets, DataSet::getIndicators));
-    List<OptionSet> optionSets = sortById(getOptionSets(dataElements));
+
+    // Option sets referenced by the data elements (own option set + comment option set), read as
+    // ids only and loaded flat by the projection store.
+    LinkedHashSet<Long> optionSetIds = new LinkedHashSet<>();
+    for (DataElement dataElement : dataElements) {
+      if (dataElement.getOptionSet() != null) {
+        optionSetIds.add(dataElement.getOptionSet().getId());
+      }
+      if (dataElement.getCommentOptionSet() != null) {
+        optionSetIds.add(dataElement.getCommentOptionSet().getId());
+      }
+    }
+    List<Long> optionSetIdList = sortedLongs(optionSetIds);
 
     // Category-combo scope, derived exactly as the legacy path does (data element combos expose
     // their option combos, data set combos do not). Only their ids are read here; the category
@@ -255,30 +272,27 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
     List<Long> dsOnlyComboIds = new ArrayList<>(dsComboIds);
     dsOnlyComboIds.removeAll(deComboIds);
 
+    // combo -> category ids, split into data element and data set categories to mirror the legacy
+    // distinctUnion(dataElementCategories, dataSetCategories).
     Set<Long> deComboIdSet = new HashSet<>(deComboIds);
     Set<Long> dsComboIdSet = new HashSet<>(dsComboIds);
-
-    // combo -> ordered categories (id + uid), split into data element and data set categories to
-    // mirror the legacy distinctUnion(dataElementCategories, dataSetCategories).
-    Map<Long, List<String>> comboCategoryUids = new LinkedHashMap<>();
     LinkedHashSet<Long> deCategoryIds = new LinkedHashSet<>();
     LinkedHashSet<Long> dsCategoryIds = new LinkedHashSet<>();
-    Map<Long, String> categoryUidById = new LinkedHashMap<>();
-    for (Assoc a :
-        dataSetMetadataStore.getComboCategories(toArray(union(deComboIds, dsComboIds)))) {
-      comboCategoryUids.computeIfAbsent(a.parentId(), k -> new ArrayList<>()).add(a.childUid());
-      categoryUidById.put(a.childId(), a.childUid());
-      if (deComboIdSet.contains(a.parentId())) {
-        deCategoryIds.add(a.childId());
-      }
-      if (dsComboIdSet.contains(a.parentId())) {
-        dsCategoryIds.add(a.childId());
-      }
-    }
+    dataSetMetadataStore
+        .idLists(COMBO_CATEGORY_IDS_SQL, toArray(union(deComboIds, dsComboIds)))
+        .forEach(
+            (comboId, categoryIds) -> {
+              if (deComboIdSet.contains(comboId)) {
+                deCategoryIds.addAll(categoryIds);
+              }
+              if (dsComboIdSet.contains(comboId)) {
+                dsCategoryIds.addAll(categoryIds);
+              }
+            });
     List<Long> deCategoryIdList = sortedLongs(deCategoryIds);
     List<Long> dsCategoryIdList = sortedLongs(dsCategoryIds);
 
-    // categories array order: data element categories (by id), then data set categories not already
+    // categories array = data element categories (by id), then data set categories not already
     // present (by id) -- distinctUnion semantics.
     List<Long> categoryArrayIds = new ArrayList<>(deCategoryIdList);
     Set<Long> seenCategoryIds = new HashSet<>(deCategoryIdList);
@@ -288,25 +302,21 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
       }
     }
 
-    // category -> ordered options (id + uid), for the categoryOptions~pluck and to gather the
-    // option
-    // ids of data element categories (which are included unconditionally).
-    Map<Long, List<String>> categoryOptionUids = new LinkedHashMap<>();
-    Map<Long, List<Long>> categoryOptionIds = new LinkedHashMap<>();
-    for (Assoc a : dataSetMetadataStore.getCategoryOptions(toArray(categoryArrayIds))) {
-      categoryOptionUids.computeIfAbsent(a.parentId(), k -> new ArrayList<>()).add(a.childUid());
-      categoryOptionIds.computeIfAbsent(a.parentId(), k -> new ArrayList<>()).add(a.childId());
-    }
-
     // category options array = all options of data element categories (unconditional) UNION the
     // data-write-accessible options of data set categories.
     LinkedHashSet<Long> optionArrayIds = new LinkedHashSet<>();
-    for (Long catId : deCategoryIdList) {
-      optionArrayIds.addAll(categoryOptionIds.getOrDefault(catId, List.of()));
-    }
+    dataSetMetadataStore
+        .idLists(CATEGORY_OPTION_IDS_SQL, toArray(deCategoryIdList))
+        .values()
+        .forEach(optionArrayIds::addAll);
     if (!dsCategoryIdList.isEmpty()) {
       List<String> dsCategoryUids =
-          dsCategoryIdList.stream().map(categoryUidById::get).collect(Collectors.toList());
+          dataSetMetadataStore
+              .loadRows(Category.class, List.of("uid"), List.of(), toArray(dsCategoryIdList))
+              .values()
+              .stream()
+              .map(MetadataProjection.Row::uid)
+              .collect(Collectors.toList());
       for (Category category : idObjectManager.getByUid(Category.class, dsCategoryUids)) {
         for (CategoryOption option :
             categoryService.getDataWriteCategoryOptions(category, currentUserDetails)) {
@@ -316,259 +326,540 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
     }
     List<Long> optionArrayIdList = sortedLongs(optionArrayIds);
 
-    // option combos of the data element combos: the COC list per combo, and each COC's option uids.
-    Map<Long, List<CocRow>> cocsByCombo = new LinkedHashMap<>();
-    for (CocRow coc : dataSetMetadataStore.getOptionCombos(toArray(deComboIds))) {
-      cocsByCombo.computeIfAbsent(coc.comboId(), k -> new ArrayList<>()).add(coc);
-    }
-    Map<Long, List<String>> cocOptionUids = new LinkedHashMap<>();
-    for (Assoc a : dataSetMetadataStore.getOptionComboOptions(toArray(deComboIds))) {
-      cocOptionUids.computeIfAbsent(a.parentId(), k -> new ArrayList<>()).add(a.childUid());
-    }
-
-    // scalar rows keyed by id
-    Map<Long, ComboRow> comboRows = new LinkedHashMap<>();
-    for (ComboRow r : dataSetMetadataStore.getCombos(toArray(union(deComboIds, dsOnlyComboIds)))) {
-      comboRows.put(r.id(), r);
-    }
-    Map<Long, CategoryRow> categoryRows = new LinkedHashMap<>();
-    for (CategoryRow r : dataSetMetadataStore.getCategories(toArray(categoryArrayIds))) {
-      categoryRows.put(r.id(), r);
-    }
-    Map<Long, OptionRow> optionRows = new LinkedHashMap<>();
-    for (OptionRow r : dataSetMetadataStore.getOptions(toArray(optionArrayIdList))) {
-      optionRows.put(r.id(), r);
-    }
-    Map<Long, List<String>> optionOrgUnitUids = new LinkedHashMap<>();
-    for (Assoc a : dataSetMetadataStore.getOptionOrgUnits(toArray(optionArrayIdList))) {
-      optionOrgUnitUids.computeIfAbsent(a.parentId(), k -> new ArrayList<>()).add(a.childUid());
-    }
-
     expressionService.substituteIndicatorExpressions(indicators);
+
+    // Exploded numerator/denominator are derived by the expression engine from the (bounded) set of
+    // indicators referenced by the data sets; the projection then streams them as bulk-resolved
+    // scalars rather than reading a column. Everything else is read flat from SQL.
+    Map<Long, Object> explodedNumerators = new HashMap<>();
+    Map<Long, Object> explodedDenominators = new HashMap<>();
+    for (Indicator indicator : indicators) {
+      explodedNumerators.put(indicator.getId(), indicator.getExplodedNumerator());
+      explodedDenominators.put(indicator.getId(), indicator.getExplodedDenominator());
+    }
+
+    List<Long> dataSetIds = ids(dataSets);
+    List<Long> dataElementIds = ids(dataElements);
+    List<Long> indicatorIds = ids(indicators);
+
+    // resolves each def's table and columns from the Hibernate mapping (no physical column names)
+    MetadataProjection.RowLoader rowLoader = dataSetMetadataStore::loadRows;
 
     try (JsonGenerator gen = JSON_MAPPER.getFactory().createGenerator(out)) {
       gen.writeStartObject();
 
       gen.writeArrayFieldStart(DataSetSchemaDescriptor.PLURAL);
-      for (ObjectNode node : toDataSetObjectNodes(dataSets, dataSetOrgUnits)) {
-        gen.writeTree(node);
-      }
+      MetadataProjection.writeObjects(gen, dataSetDef(), toArray(dataSetIds), locale, rowLoader);
       gen.writeEndArray();
 
-      writeNodeArray(
-          gen,
-          DataElementSchemaDescriptor.PLURAL,
-          toObjectNodes(dataElements, FIELDS_DATA_ELEMENTS, DataElement.class));
+      gen.writeArrayFieldStart(DataElementSchemaDescriptor.PLURAL);
+      MetadataProjection.writeObjects(
+          gen, dataElementDef(), toArray(dataElementIds), locale, rowLoader);
+      gen.writeEndArray();
 
-      writeNodeArray(
+      gen.writeArrayFieldStart(IndicatorSchemaDescriptor.PLURAL);
+      MetadataProjection.writeObjects(
           gen,
-          IndicatorSchemaDescriptor.PLURAL,
-          toObjectNodes(indicators, FIELDS_INDICATORS, Indicator.class));
+          indicatorDef(explodedNumerators, explodedDenominators),
+          toArray(indicatorIds),
+          locale,
+          rowLoader);
+      gen.writeEndArray();
 
       gen.writeArrayFieldStart(CategoryComboSchemaDescriptor.PLURAL);
-      for (Long comboId : deComboIds) {
-        writeCombo(
-            gen,
-            comboRows.get(comboId),
-            comboCategoryUids.get(comboId),
-            cocsByCombo.get(comboId),
-            cocOptionUids,
-            locale,
-            true);
-      }
-      for (Long comboId : dsOnlyComboIds) {
-        writeCombo(
-            gen,
-            comboRows.get(comboId),
-            comboCategoryUids.get(comboId),
-            null,
-            cocOptionUids,
-            locale,
-            false);
-      }
+      MetadataProjection.writeObjects(
+          gen, categoryComboDef(true), toArray(deComboIds), locale, rowLoader);
+      MetadataProjection.writeObjects(
+          gen, categoryComboDef(false), toArray(dsOnlyComboIds), locale, rowLoader);
       gen.writeEndArray();
 
       gen.writeArrayFieldStart(CategorySchemaDescriptor.PLURAL);
-      for (Long categoryId : categoryArrayIds) {
-        writeCategory(
-            gen, categoryRows.get(categoryId), categoryOptionUids.get(categoryId), locale);
-      }
+      MetadataProjection.writeObjects(
+          gen, categoryDef(), toArray(categoryArrayIds), locale, rowLoader);
       gen.writeEndArray();
 
       gen.writeArrayFieldStart(CategoryOptionSchemaDescriptor.PLURAL);
-      for (Long optionId : optionArrayIdList) {
-        writeOption(gen, optionRows.get(optionId), optionOrgUnitUids.get(optionId), locale);
-      }
+      MetadataProjection.writeObjects(
+          gen, categoryOptionDef(), toArray(optionArrayIdList), locale, rowLoader);
       gen.writeEndArray();
 
-      writeNodeArray(
-          gen,
-          OptionSetSchemaDescriptor.PLURAL,
-          toObjectNodes(optionSets, FIELDS_OPTION_SETS, OptionSet.class));
+      gen.writeArrayFieldStart(OptionSetSchemaDescriptor.PLURAL);
+      MetadataProjection.writeObjects(
+          gen, optionSetDef(), toArray(optionSetIdList), locale, rowLoader);
+      gen.writeEndArray();
 
       gen.writeEndObject();
       gen.flush();
     }
   }
 
-  private void writeNodeArray(JsonGenerator gen, String field, List<ObjectNode> nodes)
-      throws IOException {
-    gen.writeArrayFieldStart(field);
-    for (ObjectNode node : nodes) {
-      gen.writeTree(node);
-    }
-    gen.writeEndArray();
-  }
+  // --- projection definitions: one declarative field map per type for the generic engine --------
 
-  private void writeCombo(
-      JsonGenerator gen,
-      ComboRow combo,
-      List<String> categoryUids,
-      List<CocRow> optionCombos,
-      Map<Long, List<String>> cocOptionUids,
-      Locale locale,
-      boolean withOptionCombos)
-      throws IOException {
-    Set<Translation> translations = parseTranslations(combo.translations());
-    gen.writeStartObject();
-    gen.writeStringField("id", combo.uid());
-    writeIfPresent(gen, "code", combo.code());
-    gen.writeStringField("name", combo.name());
-    gen.writeObjectField("created", combo.created());
-    gen.writeObjectField("lastUpdated", combo.lastUpdated());
-    gen.writeStringField("dataDimensionType", combo.dataDimensionType());
-    gen.writeBooleanField("skipTotal", combo.skipTotal());
-    gen.writeBooleanField("favorite", false);
-    gen.writeStringField("displayName", translate(translations, "NAME", combo.name(), locale));
-    gen.writeBooleanField("isDefault", DEFAULT_NAME.equals(combo.name()));
-    writeUidArray(gen, "categories", categoryUids);
+  private static final String COMBO_CATEGORY_IDS_SQL =
+      """
+      select cc.categorycomboid, c.categoryid from categorycombos_categories cc
+      join category c on c.categoryid = cc.categoryid
+      where cc.categorycomboid = any(?) order by cc.categorycomboid, cc.sort_order
+      """;
+  private static final String CATEGORY_OPTION_IDS_SQL =
+      """
+      select cco.categoryid, cco.categoryoptionid from categories_categoryoptions cco
+      where cco.categoryid = any(?) order by cco.categoryid, cco.sort_order
+      """;
+  private static final String COMBO_CATEGORY_UIDS_SQL =
+      """
+      select cc.categorycomboid, c.uid from categorycombos_categories cc
+      join category c on c.categoryid = cc.categoryid
+      where cc.categorycomboid = any(?) order by cc.categorycomboid, cc.sort_order
+      """;
+  private static final String CATEGORY_OPTION_UIDS_SQL =
+      """
+      select cco.categoryid, o.uid from categories_categoryoptions cco
+      join categoryoption o on o.categoryoptionid = cco.categoryoptionid
+      where cco.categoryid = any(?) order by cco.categoryid, cco.sort_order
+      """;
+  private static final String COC_OPTION_UIDS_SQL =
+      """
+      select cocco.categoryoptioncomboid, o.uid from categoryoptioncombos_categoryoptions cocco
+      join categoryoption o on o.categoryoptionid = cocco.categoryoptionid
+      where cocco.categoryoptioncomboid = any(?)
+      order by cocco.categoryoptioncomboid, o.categoryoptionid
+      """;
+  private static final String COMBO_COC_IDS_SQL =
+      """
+      select link.categorycomboid, coc.categoryoptioncomboid from categorycombos_optioncombos link
+      join categoryoptioncombo coc on coc.categoryoptioncomboid = link.categoryoptioncomboid
+      where link.categorycomboid = any(?) order by link.categorycomboid, coc.categoryoptioncomboid
+      """;
+  private static final String OPTION_ORG_UNIT_UIDS_SQL =
+      """
+      select coou.categoryoptionid, ou.uid from categoryoption_organisationunits coou
+      join organisationunit ou on ou.organisationunitid = coou.organisationunitid
+      where coou.categoryoptionid = any(?) order by coou.categoryoptionid, ou.organisationunitid
+      """;
+  private static final String OPTION_SET_OPTION_IDS_SQL =
+      """
+      select optionsetid, optionvalueid from optionvalue
+      where optionsetid = any(?) order by optionsetid, sort_order
+      """;
+  private static final String DATA_SET_SECTION_IDS_SQL =
+      """
+      select datasetid, sectionid from section
+      where datasetid = any(?) order by datasetid, sortorder
+      """;
+  private static final String DATA_SET_INPUT_PERIOD_IDS_SQL =
+      """
+      select datasetid, datainputperiodid from datainputperiod
+      where datasetid = any(?) order by datasetid, datainputperiodid
+      """;
+  private static final String DATA_SET_COMPULSORY_OPERAND_IDS_SQL =
+      """
+      select datasetid, dataelementoperandid from datasetoperands
+      where datasetid = any(?) order by datasetid, dataelementoperandid
+      """;
+  private static final String DATA_SET_ELEMENT_IDS_SQL =
+      """
+      select datasetid, datasetelementid from datasetelement
+      where datasetid = any(?) order by datasetid, datasetelementid
+      """;
+  private static final String DATA_SET_INDICATOR_UIDS_SQL =
+      """
+      select dsi.datasetid, i.uid from datasetindicators dsi
+      join indicator i on i.indicatorid = dsi.indicatorid
+      where dsi.datasetid = any(?) order by dsi.datasetid, i.indicatorid
+      """;
+  private static final String DATA_SET_ORG_UNIT_UIDS_SQL =
+      """
+      select dss.datasetid, ou.uid from datasetsource dss
+      join organisationunit ou on ou.organisationunitid = dss.sourceid
+      where dss.datasetid = any(?) order by dss.datasetid, ou.organisationunitid
+      """;
+  private static final String SECTION_DATA_ELEMENT_UIDS_SQL =
+      """
+      select sde.sectionid, de.uid from sectiondataelements sde
+      join dataelement de on de.dataelementid = sde.dataelementid
+      where sde.sectionid = any(?) order by sde.sectionid, sde.sort_order
+      """;
+  private static final String SECTION_INDICATOR_UIDS_SQL =
+      """
+      select si.sectionid, i.uid from sectionindicators si
+      join indicator i on i.indicatorid = si.indicatorid
+      where si.sectionid = any(?) order by si.sectionid, si.sort_order
+      """;
+  private static final String SECTION_GREYED_FIELD_IDS_SQL =
+      """
+      select sectionid, dataelementoperandid from sectiongreyedfields
+      where sectionid = any(?) order by sectionid, dataelementoperandid
+      """;
+
+  private Def categoryComboDef(boolean withOptionCombos) {
+    List<Field> fields =
+        new ArrayList<>(
+            List.of(
+                new Col("id", "uid"),
+                new Col("code", "code"),
+                new Col("name", "name"),
+                new Col("created", "created"),
+                new Col("lastUpdated", "lastUpdated"),
+                new Col("dataDimensionType", "dataDimensionType"),
+                new Col("skipTotal", "skipTotal"),
+                new Translated("displayName", "name", "NAME"),
+                isDefault(),
+                new Pluck(
+                    "categories",
+                    ids -> dataSetMetadataStore.uidLists(COMBO_CATEGORY_UIDS_SQL, ids))));
     if (withOptionCombos) {
-      gen.writeArrayFieldStart("categoryOptionCombos");
-      if (optionCombos != null) {
-        for (CocRow coc : optionCombos) {
-          writeCoc(gen, coc, cocOptionUids.get(coc.id()), locale);
-        }
-      }
-      gen.writeEndArray();
+      fields.add(
+          new Nested(
+              "categoryOptionCombos",
+              categoryOptionComboDef(),
+              ids -> dataSetMetadataStore.idLists(COMBO_COC_IDS_SQL, ids)));
     }
-    gen.writeEndObject();
+    return new Def(CategoryCombo.class, fields);
   }
 
-  private void writeCoc(JsonGenerator gen, CocRow coc, List<String> optionUids, Locale locale)
-      throws IOException {
-    Set<Translation> translations = parseTranslations(coc.translations());
-    gen.writeStartObject();
-    gen.writeStringField("id", coc.uid());
-    writeIfPresent(gen, "code", coc.code());
-    writeIfPresent(gen, "name", coc.name());
-    writeIfPresent(gen, "displayName", translate(translations, "NAME", coc.name(), locale));
-    writeUidArray(gen, "categoryOptions", optionUids);
-    gen.writeEndObject();
+  private Def categoryOptionComboDef() {
+    return new Def(
+        CategoryOptionCombo.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Col("name", "name"),
+            new Translated("displayName", "name", "NAME"),
+            new Pluck(
+                "categoryOptions",
+                ids -> dataSetMetadataStore.uidLists(COC_OPTION_UIDS_SQL, ids))));
   }
 
-  private void writeCategory(
-      JsonGenerator gen, CategoryRow category, List<String> optionUids, Locale locale)
-      throws IOException {
-    Set<Translation> translations = parseTranslations(category.translations());
-    String displayName = translate(translations, "NAME", category.name(), locale);
-    gen.writeStartObject();
-    gen.writeStringField("id", category.uid());
-    writeIfPresent(gen, "code", category.code());
-    gen.writeStringField("name", category.name());
-    gen.writeStringField("shortName", category.shortName());
-    gen.writeObjectField("created", category.created());
-    gen.writeObjectField("lastUpdated", category.lastUpdated());
-    gen.writeBooleanField("dataDimension", category.dataDimension());
-    gen.writeStringField("dataDimensionType", category.dataDimensionType());
-    gen.writeBooleanField("allItems", false);
-    gen.writeStringField("dimension", category.uid());
-    gen.writeStringField("dimensionType", CATEGORY_DIMENSION_TYPE);
-    gen.writeStringField("displayName", displayName);
-    gen.writeStringField(
-        "displayShortName", translate(translations, "SHORT_NAME", category.shortName(), locale));
-    gen.writeStringField(
-        "displayFormName", translate(translations, "FORM_NAME", displayName, locale));
-    gen.writeBooleanField("favorite", false);
-    writeUidArray(gen, "categoryOptions", optionUids);
-    gen.writeEndObject();
+  private Def categoryDef() {
+    return new Def(
+        Category.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Col("name", "name"),
+            new Col("shortName", "shortName"),
+            new Col("description", "description"),
+            new Col("created", "created"),
+            new Col("lastUpdated", "lastUpdated"),
+            new Col("dataDimension", "dataDimension"),
+            new Col("dataDimensionType", "dataDimensionType"),
+            new Constant("allItems", false),
+            new Computed("dimension", List.of("uid"), (r, l) -> r.uid()),
+            new Translated("displayName", "name", "NAME"),
+            new Translated("displayShortName", "shortName", "SHORT_NAME"),
+            new Translated("displayDescription", "description", "DESCRIPTION"),
+            isDefault(),
+            new Pluck(
+                "categoryOptions",
+                ids -> dataSetMetadataStore.uidLists(CATEGORY_OPTION_UIDS_SQL, ids))));
   }
 
-  private void writeOption(
-      JsonGenerator gen, OptionRow option, List<String> orgUnitUids, Locale locale)
-      throws IOException {
-    Set<Translation> translations = parseTranslations(option.translations());
-    String displayName = translate(translations, "NAME", option.name(), locale);
-    String formNameFallback =
-        (option.formName() != null && !option.formName().isEmpty())
-            ? option.formName()
-            : displayName;
-    gen.writeStartObject();
-    gen.writeStringField("id", option.uid());
-    writeIfPresent(gen, "code", option.code());
-    gen.writeStringField("name", option.name());
-    gen.writeStringField("shortName", option.shortName());
-    gen.writeObjectField("created", option.created());
-    gen.writeObjectField("lastUpdated", option.lastUpdated());
-    gen.writeStringField("dimensionItemType", CATEGORY_OPTION_DIMENSION_ITEM_TYPE);
-    gen.writeStringField("dimensionItem", option.uid());
-    gen.writeBooleanField("isDefault", DEFAULT_NAME.equals(option.name()));
-    gen.writeStringField("displayName", displayName);
-    gen.writeStringField(
-        "displayShortName", translate(translations, "SHORT_NAME", option.shortName(), locale));
-    gen.writeStringField(
-        "displayFormName", translate(translations, "FORM_NAME", formNameFallback, locale));
-    gen.writeBooleanField("favorite", false);
-    writeUidArray(gen, "organisationUnits", orgUnitUids);
-    gen.writeEndObject();
+  private Def categoryOptionDef() {
+    return new Def(
+        CategoryOption.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Col("name", "name"),
+            new Col("shortName", "shortName"),
+            new Col("formName", "formName"),
+            new Col("description", "description"),
+            new Col("startDate", "startDate"),
+            new Col("endDate", "endDate"),
+            new Col("created", "created"),
+            new Col("lastUpdated", "lastUpdated"),
+            new Constant("dimensionItemType", "CATEGORY_OPTION"),
+            new Computed("dimensionItem", List.of("uid"), (r, l) -> r.uid()),
+            isDefault(),
+            new Translated("displayName", "name", "NAME"),
+            new Translated("displayShortName", "shortName", "SHORT_NAME"),
+            new Translated("displayDescription", "description", "DESCRIPTION"),
+            displayFormName("formName", "name"),
+            new Pluck(
+                "organisationUnits",
+                ids -> dataSetMetadataStore.uidLists(OPTION_ORG_UNIT_UIDS_SQL, ids))));
   }
 
-  private static void writeIfPresent(JsonGenerator gen, String field, String value)
-      throws IOException {
-    if (value != null) {
-      gen.writeStringField(field, value);
-    }
+  private Def optionSetDef() {
+    return new Def(
+        OptionSet.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Col("name", "name"),
+            new Col("description", "description"),
+            new Col("created", "created"),
+            new Col("lastUpdated", "lastUpdated"),
+            new Col("valueType", "valueType"),
+            new Col("version", "version"),
+            new Translated("displayName", "name", "NAME"),
+            new Nested(
+                "options",
+                optionValueDef(),
+                ids -> dataSetMetadataStore.idLists(OPTION_SET_OPTION_IDS_SQL, ids))));
   }
 
-  private static void writeUidArray(JsonGenerator gen, String field, List<String> uids)
-      throws IOException {
-    gen.writeArrayFieldStart(field);
-    if (uids != null) {
-      for (String uid : uids) {
-        gen.writeString(uid);
-      }
-    }
-    gen.writeEndArray();
+  private Def optionValueDef() {
+    return new Def(
+        Option.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Translated("displayName", "name", "NAME")));
   }
 
-  private static Set<Translation> parseTranslations(String json) {
-    if (json == null || json.isEmpty() || "[]".equals(json) || "{}".equals(json)) {
-      return Set.of();
-    }
-    try {
-      return JSON_MAPPER.readValue(json, new TypeReference<Set<Translation>>() {});
-    } catch (IOException e) {
-      return Set.of();
-    }
+  private Def dataElementDef() {
+    return new Def(
+        DataElement.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Col("name", "name"),
+            new Col("created", "created"),
+            new Col("lastUpdated", "lastUpdated"),
+            new Col("description", "description"),
+            new Col("valueType", "valueType"),
+            new Col("aggregationType", "aggregationType"),
+            new Col("zeroIsSignificant", "zeroIsSignificant"),
+            new Translated("displayName", "name", "NAME"),
+            new Translated("displayShortName", "shortName", "SHORT_NAME"),
+            displayFormName("formName", "name"),
+            new Ref("categoryCombo", "categoryCombo", idOnlyDef(CategoryCombo.class)),
+            new Ref("optionSet", "optionSet", idOnlyDef(OptionSet.class)),
+            new Ref("commentOptionSet", "commentOptionSet", idOnlyDef(OptionSet.class)),
+            new Ref("lastUpdatedBy", "lastUpdatedBy", userDef())));
+  }
+
+  private Def indicatorDef(
+      Map<Long, Object> explodedNumerators, Map<Long, Object> explodedDenominators) {
+    return new Def(
+        Indicator.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Col("name", "name"),
+            new Col("shortName", "shortName"),
+            new Col("created", "created"),
+            new Col("lastUpdated", "lastUpdated"),
+            new Col("description", "description"),
+            new Col("annualized", "annualized"),
+            new Col("numerator", "numerator"),
+            new Col("numeratorDescription", "numeratorDescription"),
+            new Col("denominator", "denominator"),
+            new Col("denominatorDescription", "denominatorDescription"),
+            new Constant("dimensionItemType", "INDICATOR"),
+            new Computed("dimensionItem", List.of("uid"), (r, l) -> r.uid()),
+            new Translated("displayName", "name", "NAME"),
+            new Translated("displayShortName", "shortName", "SHORT_NAME"),
+            new Translated("displayDescription", "description", "DESCRIPTION"),
+            displayFormName("formName", "name"),
+            new Translated(
+                "displayNumeratorDescription", "numeratorDescription", "NUMERATOR_DESCRIPTION"),
+            new Translated(
+                "displayDenominatorDescription",
+                "denominatorDescription",
+                "DENOMINATOR_DESCRIPTION"),
+            new Bulk("explodedNumerator", ids -> explodedNumerators),
+            new Bulk("explodedDenominator", ids -> explodedDenominators),
+            new Ref("indicatorType", "indicatorType", indicatorTypeDef())));
+  }
+
+  private Def dataSetDef() {
+    return new Def(
+        DataSet.class,
+        List.of(
+            // periodType serialises as its name, and formType depends on whether sections exist;
+            // both live outside the dataset row, so they are the rare genuinely-derived columns.
+            new DerivedColumn(
+                "periodType",
+                "select pt.name from periodtype pt where pt.periodtypeid = t.periodtypeid"),
+            new DerivedColumn(
+                "hasSections", "exists (select 1 from section s where s.datasetid = t.datasetid)")),
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Col("name", "name"),
+            new Col("shortName", "shortName"),
+            new Col("description", "description"),
+            new Col("formName", "formName"),
+            // reads the derived periodType-name column (empty deps: not a scalar property, so the
+            // periodType FK column is not selected and cannot collide with this alias)
+            new Computed("periodType", List.of(), (r, l) -> r.get("periodType")),
+            new Col("mobile", "mobile"),
+            new Col("version", "version"),
+            new Computed(
+                "expiryDays", List.of("expiryDays"), (r, l) -> toDouble(r.get("expiryDays"))),
+            new Computed(
+                "timelyDays", List.of("timelyDays"), (r, l) -> toDouble(r.get("timelyDays"))),
+            new Col("notifyCompletingUser", "notifyCompletingUser"),
+            new Col("openFuturePeriods", "openFuturePeriods"),
+            new Col("openPeriodsAfterCoEndDate", "openPeriodsAfterCoEndDate"),
+            new Col("fieldCombinationRequired", "fieldCombinationRequired"),
+            new Col("validCompleteOnly", "validCompleteOnly"),
+            new Col("noValueRequiresComment", "noValueRequiresComment"),
+            new Col("skipOffline", "skipOffline"),
+            new Col("dataElementDecoration", "dataElementDecoration"),
+            new Col("renderAsTabs", "renderAsTabs"),
+            new Col("renderHorizontally", "renderHorizontally"),
+            new Col("compulsoryFieldsCompleteOnly", "compulsoryFieldsCompleteOnly"),
+            new Col("created", "created"),
+            new Col("lastUpdated", "lastUpdated"),
+            new Constant("dimensionItemType", "REPORTING_RATE"),
+            new Computed("dimensionItem", List.of("uid"), (r, l) -> r.uid()),
+            new Translated("displayName", "name", "NAME"),
+            new Translated("displayShortName", "shortName", "SHORT_NAME"),
+            new Translated("displayDescription", "description", "DESCRIPTION"),
+            // DataSet shadows the base formName field, so its displayFormName always falls back to
+            // the (translated) name rather than the form name -- mirror that exactly.
+            new Computed(
+                "displayFormName",
+                List.of("name", MetadataProjection.TRANSLATIONS),
+                (r, l) ->
+                    MetadataProjection.translate(
+                        r.translations(),
+                        "FORM_NAME",
+                        MetadataProjection.translate(r.translations(), "NAME", r.str("name"), l),
+                        l)),
+            new Computed("formType", List.of("dataEntryForm"), (r, l) -> formType(r)),
+            new Ref("categoryCombo", "categoryCombo", idOnlyDef(CategoryCombo.class)),
+            new Ref("dataEntryForm", "dataEntryForm", idOnlyDef(DataEntryForm.class)),
+            new Pluck(
+                "indicators",
+                ids -> dataSetMetadataStore.uidLists(DATA_SET_INDICATOR_UIDS_SQL, ids)),
+            new Pluck(
+                "organisationUnits",
+                ids -> dataSetMetadataStore.uidLists(DATA_SET_ORG_UNIT_UIDS_SQL, ids)),
+            new Nested(
+                "dataInputPeriods",
+                dataInputPeriodDef(),
+                ids -> dataSetMetadataStore.idLists(DATA_SET_INPUT_PERIOD_IDS_SQL, ids)),
+            new Nested(
+                "compulsoryDataElementOperands",
+                operandDef(),
+                ids -> dataSetMetadataStore.idLists(DATA_SET_COMPULSORY_OPERAND_IDS_SQL, ids)),
+            new Nested(
+                "dataSetElements",
+                dataSetElementDef(),
+                ids -> dataSetMetadataStore.idLists(DATA_SET_ELEMENT_IDS_SQL, ids)),
+            new Nested(
+                "sections",
+                sectionDef(),
+                ids -> dataSetMetadataStore.idLists(DATA_SET_SECTION_IDS_SQL, ids))));
+  }
+
+  private Def sectionDef() {
+    return new Def(
+        Section.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("name", "name"),
+            new Col("created", "created"),
+            new Col("lastUpdated", "lastUpdated"),
+            new Col("sortOrder", "sortOrder"),
+            new Col("showRowTotals", "showRowTotals"),
+            new Col("showColumnTotals", "showColumnTotals"),
+            new Col("disableDataElementAutoGroup", "disableDataElementAutoGroup"),
+            new Translated("displayName", "name", "NAME"),
+            new Pluck(
+                "dataElements",
+                ids -> dataSetMetadataStore.uidLists(SECTION_DATA_ELEMENT_UIDS_SQL, ids)),
+            new Pluck(
+                "indicators",
+                ids -> dataSetMetadataStore.uidLists(SECTION_INDICATOR_UIDS_SQL, ids)),
+            new Nested(
+                "greyedFields",
+                operandDef(),
+                ids -> dataSetMetadataStore.idLists(SECTION_GREYED_FIELD_IDS_SQL, ids))));
+  }
+
+  private Def dataInputPeriodDef() {
+    return new Def(
+        DataInputPeriod.class,
+        List.of(
+            new Ref("period", "period", periodDef()),
+            new Col("openingDate", "openingDate"),
+            new Col("closingDate", "closingDate")));
+  }
+
+  private Def operandDef() {
+    return new Def(
+        DataElementOperand.class,
+        List.of(
+            new Ref("dataElement", "dataElement", idOnlyDef(DataElement.class)),
+            new Ref(
+                "categoryOptionCombo",
+                "categoryOptionCombo",
+                idOnlyDef(CategoryOptionCombo.class))));
+  }
+
+  private Def dataSetElementDef() {
+    return new Def(
+        DataSetElement.class,
+        List.of(
+            new Ref("dataElement", "dataElement", idOnlyDef(DataElement.class)),
+            new Ref("categoryCombo", "categoryCombo", idOnlyDef(CategoryCombo.class))));
+  }
+
+  private Def periodDef() {
+    // Period's serialised id is its ISO string, mapped by the isoDate property.
+    return new Def(Period.class, List.of(new Col("id", "isoDate")));
+  }
+
+  private Def indicatorTypeDef() {
+    return new Def(IndicatorType.class, List.of(new Col("factor", "factor")));
+  }
+
+  private Def userDef() {
+    // The user-property-transformer shape ({id,code,name,displayName,username}); users have no
+    // translations, so displayName is just the name.
+    return new Def(
+        User.class,
+        List.of(
+            new Col("id", "uid"),
+            new Col("code", "code"),
+            new Col("name", "name"),
+            new Computed("displayName", List.of("name"), (r, l) -> r.str("name")),
+            new Col("username", "username")));
+  }
+
+  /** A {@code {id}}-only reference object over an entity type (its uid under the JSON key id). */
+  private Def idOnlyDef(Class<?> entityType) {
+    return new Def(entityType, List.of(new Col("id", "uid")));
+  }
+
+  /** {@code isDefault}: true iff the object's name is the reserved default name. */
+  private static Field isDefault() {
+    return new Computed("isDefault", List.of("name"), (r, l) -> DEFAULT_NAME.equals(r.str("name")));
   }
 
   /**
-   * Resolves a translated value for the given property from a raw translations set, replicating
-   * {@link org.hisp.dhis.common.BaseIdentifiableObject#getTranslation}.
+   * The nameable {@code displayFormName} rule: the translated form name, falling back to the form
+   * name property, then to the (translated) name.
    */
-  private static String translate(
-      Set<Translation> translations, String key, String defaultValue, Locale locale) {
-    if (locale == null || translations.isEmpty()) {
-      return defaultValue;
+  private static Field displayFormName(String formNameProperty, String nameProperty) {
+    return new Computed(
+        "displayFormName",
+        List.of(formNameProperty, nameProperty, MetadataProjection.TRANSLATIONS),
+        (r, l) -> {
+          String formName = r.str(formNameProperty);
+          String base =
+              (formName != null && !formName.isEmpty())
+                  ? formName
+                  : MetadataProjection.translate(r.translations(), "NAME", r.str(nameProperty), l);
+          return MetadataProjection.translate(r.translations(), "FORM_NAME", base, l);
+        });
+  }
+
+  private static String formType(MetadataProjection.Row row) {
+    if (row.get("dataEntryForm") != null) {
+      return "CUSTOM";
     }
-    for (Translation t : translations) {
-      if (locale.equals(t.getLocale())
-          && key.equalsIgnoreCase(t.getProperty())
-          && t.getValue() != null
-          && !t.getValue().isEmpty()) {
-        return t.getValue();
-      }
-    }
-    return defaultValue;
+    return Boolean.TRUE.equals(row.get("hasSections")) ? "SECTION" : "DEFAULT";
+  }
+
+  private static Double toDouble(Object value) {
+    return value == null ? 0.0 : ((Number) value).doubleValue();
   }
 
   private static List<Long> ids(Collection<? extends IdentifiableObject> objects) {
