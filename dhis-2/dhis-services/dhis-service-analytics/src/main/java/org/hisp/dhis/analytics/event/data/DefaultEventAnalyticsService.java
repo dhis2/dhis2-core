@@ -175,13 +175,15 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       EnrollmentAnalyticsManager enrollmentAnalyticsManager,
       SchemeIdResponseMapper schemeIdResponseMapper,
       UserService userService,
-      OrganisationUnitResolver organisationUnitResolver) {
+      OrganisationUnitResolver organisationUnitResolver,
+      org.hisp.dhis.option.OptionService optionService) {
     super(
         securityManager,
         queryValidator,
         schemeIdResponseMapper,
         userService,
-        organisationUnitResolver);
+        organisationUnitResolver,
+        optionService);
 
     checkNotNull(dataElementService);
     checkNotNull(trackedEntityAttributeService);

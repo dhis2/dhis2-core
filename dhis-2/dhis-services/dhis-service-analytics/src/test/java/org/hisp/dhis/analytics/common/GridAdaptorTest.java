@@ -95,10 +95,12 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
   @Mock private I18nManager i18nManager;
 
+  @Mock private org.hisp.dhis.option.OptionService optionService;
+
   @BeforeEach
   void setUp() {
     headerParamsHandler = new HeaderParamsHandler();
-    metadataDetailsHandler = new MetadataParamsHandler();
+    metadataDetailsHandler = new MetadataParamsHandler(optionService);
     schemeIdResponseMapper = new SchemeIdResponseMapper(i18nManager);
     gridAdaptor =
         new GridAdaptor(headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper);
