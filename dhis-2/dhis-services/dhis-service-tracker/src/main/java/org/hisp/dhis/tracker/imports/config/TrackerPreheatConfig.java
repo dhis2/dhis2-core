@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import org.hisp.dhis.tracker.imports.preheat.supplier.EnrollmentsWithAtLeastOneE
 import org.hisp.dhis.tracker.imports.preheat.supplier.EventCategoryOptionComboSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.EventProgramStageMapSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.FileResourceSupplier;
+import org.hisp.dhis.tracker.imports.preheat.supplier.OptionValueSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.OrgUnitValueTypeSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatStrategyScanner;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
@@ -55,6 +56,7 @@ public class TrackerPreheatConfig {
   private final List<Class<? extends PreheatSupplier>> preheatOrder =
       List.of(
           ClassBasedSupplier.class,
+          OptionValueSupplier.class,
           DefaultsSupplier.class,
           TrackedEntityEnrollmentSupplier.class,
           EnrollmentSupplier.class,
