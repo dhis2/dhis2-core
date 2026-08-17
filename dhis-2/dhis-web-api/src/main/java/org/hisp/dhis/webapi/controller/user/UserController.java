@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -447,6 +448,13 @@ public class UserController extends AbstractCrudController<User> {
     if (existingUser == null) {
       return conflict("User not found: " + uid);
     }
+
+    // MetadataMergeService.merge() silently skips any collection that is still an
+    // uninitialized Hibernate proxy at merge time (to avoid triggering large lazy loads
+    // elsewhere), so force-initialize the org-unit collections here or they get dropped.
+    Hibernate.initialize(existingUser.getOrganisationUnits());
+    Hibernate.initialize(existingUser.getDataViewOrganisationUnits());
+    Hibernate.initialize(existingUser.getTeiSearchOrganisationUnits());
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     validateCreateUser(existingUser, currentUser);
