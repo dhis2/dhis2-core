@@ -41,6 +41,8 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Zubair Asghar
@@ -99,7 +101,22 @@ public class DefaultProgramNotificationTemplateService
 
   @Override
   public void invalidateCache(String uid) {
-    templateCache.invalidate(uid);
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      // Defer eviction until the surrounding transaction commits. Evicting mid-transaction, before
+      // the write is visible to other connections (PostgreSQL defaults to READ COMMITTED), lets a
+      // concurrent reader miss, re-read the still-committed pre-edit row, and re-cache the stale
+      // template until TTL. Evicting only after commit means a reader has to arrive already-missing
+      // to re-cache a stale value, a much narrower race.
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+              templateCache.invalidate(uid);
+            }
+          });
+    } else {
+      templateCache.invalidate(uid);
+    }
   }
 
   @Override
