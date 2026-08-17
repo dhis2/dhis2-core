@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -643,6 +643,34 @@ class UserControllerTest extends DhisControllerConvenienceTest {
                 "/users/" + peter.getUid() + "/replica",
                 "{'username':'peter2','password':'Saf€sEcre1'}")
             .content());
+  }
+
+  @Test
+  @DisplayName("Replica should retain the source user's organisation units")
+  void testReplicateUserCopiesOrganisationUnits() {
+    OrganisationUnit orgUnit = createOrganisationUnit('R');
+    organisationUnitService.addOrganisationUnit(orgUnit);
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/organisationUnits','value':[{'id':'%s'}]}]"
+                .formatted(orgUnit.getUid())));
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peterreplica','password':'Saf€sEcre1'}")
+            .content());
+
+    User replica = userService.getUserByUsername("peterreplica");
+    assertEquals(1, replica.getOrganisationUnits().size());
+    assertTrue(replica.getOrganisationUnits().contains(orgUnit));
   }
 
   @Test
