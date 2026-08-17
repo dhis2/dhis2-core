@@ -451,10 +451,16 @@ public class UserController extends AbstractCrudController<User> {
 
     // MetadataMergeService.merge() silently skips any collection that is still an
     // uninitialized Hibernate proxy at merge time (to avoid triggering large lazy loads
-    // elsewhere), so force-initialize the org-unit collections here or they get dropped.
+    // elsewhere), so force-initialize every collection it needs to copy here, or they get
+    // dropped from the replica with no error. "groups" is not in this list because it is
+    // re-established explicitly via userGroupService.addUserToGroups() below, independent of
+    // whatever merge() does with it.
     Hibernate.initialize(existingUser.getOrganisationUnits());
     Hibernate.initialize(existingUser.getDataViewOrganisationUnits());
     Hibernate.initialize(existingUser.getTeiSearchOrganisationUnits());
+    Hibernate.initialize(existingUser.getUserRoles());
+    Hibernate.initialize(existingUser.getCogsDimensionConstraints());
+    Hibernate.initialize(existingUser.getCatDimensionConstraints());
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     validateCreateUser(existingUser, currentUser);

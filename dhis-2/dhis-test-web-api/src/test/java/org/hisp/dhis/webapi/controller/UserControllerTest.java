@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
 import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.web.WebClient.Accept;
@@ -702,6 +703,79 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     User replica = userService.getUserByUsername("peterreplica");
     assertEquals(1, replica.getOrganisationUnits().size());
     assertTrue(replica.getOrganisationUnits().contains(orgUnit));
+  }
+
+  @Test
+  @DisplayName("Replica should retain the source user's user roles")
+  void testReplicateUserCopiesUserRoles() {
+    UserRole extraRole = createUserRole("ROLE_REPLICATE_TARGET", "F_USER_ADD");
+    userService.addUserRole(extraRole);
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'%s'}]}]"
+                .formatted(extraRole.getUid())));
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peterreplica2','password':'Saf€sEcre1'}")
+            .content());
+
+    User replica = userService.getUserByUsername("peterreplica2");
+    Set<String> replicaRoleUids =
+        replica.getUserRoles().stream().map(BaseIdentifiableObject::getUid).collect(toSet());
+    assertTrue(
+        replicaRoleUids.contains(extraRole.getUid()),
+        "Replica should have inherited the role added to the source user");
+  }
+
+  @Test
+  @DisplayName("Replica should retain the source user's dimension constraints")
+  void testReplicateUserCopiesDimensionConstraints() {
+    CategoryOption categoryOption = createCategoryOption('D');
+    categoryService.addCategoryOption(categoryOption);
+    Category category = createCategory('D', categoryOption);
+    categoryService.addCategory(category);
+
+    CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
+    categoryOptionGroupSet.setAutoFields();
+    categoryOptionGroupSet.setDataDimensionType(DataDimensionType.DISAGGREGATION);
+    categoryOptionGroupSet.setName("cogsD");
+    categoryOptionGroupSet.setShortName("cogsD");
+    manager.save(categoryOptionGroupSet);
+
+    // Assigned via a real PATCH request (not a direct service call) so the source user is
+    // reloaded fresh, rather than reusing this test method's own Hibernate session/persistence
+    // context - a direct service call here would mask the very bug this test exists to catch.
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/" + peter.getUid(),
+            """
+            [{'op':'add','path':'/catDimensionConstraints','value':[{'id':'%s'}]},
+             {'op':'add','path':'/cogsDimensionConstraints','value':[{'id':'%s'}]}]"""
+                .formatted(category.getUid(), categoryOptionGroupSet.getUid())));
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peterreplica3','password':'Saf€sEcre1'}")
+            .content());
+
+    User replica = userService.getUserByUsername("peterreplica3");
+    assertEquals(Set.of(category), replica.getCatDimensionConstraints());
+    assertEquals(Set.of(categoryOptionGroupSet), replica.getCogsDimensionConstraints());
   }
 
   @Test
