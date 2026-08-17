@@ -901,7 +901,7 @@ final class GistBuilder {
     str.append(String.format(fieldTemplate, field));
     str.append(" ").append(createOperatorLeftSideHQL(operator));
     if (!operator.isUnary()) {
-      if (operator.isCaseInsensitive()) str.append("lower(");
+      if (operator.isCaseInsensitive()) str.append(" lower(");
       str.append(" :f_").append(index);
       if (operator.isCaseInsensitive()) str.append(")");
       str.append(createOperatorRightSideHQL(operator));
