@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.dataentryform;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -61,6 +66,8 @@ class DataEntryFormServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataEntryFormService dataEntryFormService;
 
   @Autowired private DataElementService dataElementService;
+
+  @Autowired private CategoryService categoryService;
 
   private PeriodType periodType;
 
@@ -148,5 +155,29 @@ class DataEntryFormServiceTest extends PostgresIntegrationTestBase {
         "<table><tr><td><input id=\"1434-11-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
     String actual = dataEntryFormService.prepareDataEntryFormForSave(html);
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void testPrepareDataEntryFormForEntryWithBooleanFieldAndBracketedStoredValue() {
+    DataElement booleanDataElement = createDataElement('Z', ValueType.BOOLEAN, AggregationType.NONE);
+    dataElementService.addDataElement(booleanDataElement);
+
+    DataSet dataSet = createDataSet('Z', periodType);
+    dataSet.addDataSetElement(booleanDataElement);
+
+    CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+    String inputFieldId = booleanDataElement.getUid() + "-" + defaultOptionCombo.getUid();
+
+    String html =
+        "<table><tr><td><input id=\""
+            + inputFieldId
+            + "-val\" name=\"entryfield\" title=\"Multi-grade teaching\" "
+            + "value=\"[ Multi-grade teaching ]\" /></td></tr></table>";
+    DataEntryForm dataEntryForm = createDataEntryForm('Z', html);
+    dataEntryFormService.addDataEntryForm(dataEntryForm);
+    dataSet.setDataEntryForm(dataEntryForm);
+    dataSetService.addDataSet(dataSet);
+
+    assertDoesNotThrow(() -> dataEntryFormService.prepareDataEntryFormForEntry(dataSet));
   }
 }
