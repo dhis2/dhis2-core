@@ -58,7 +58,8 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "program", qualifiedByName = "program")
   @Mapping(target = "repeatable")
   @Mapping(target = "referral")
-  @Mapping(target = "programStageDataElements")
+  // programStageDataElements is deliberately not mapped, as it initialized one DataElement entity
+  // per element. Read TrackerPreheat#getProgramStageDataElements instead.
   @Mapping(target = "enableUserAssignment")
   @Mapping(target = "validationStrategy")
   @Mapping(target = "featureType")
