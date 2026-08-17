@@ -54,7 +54,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -106,8 +105,6 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
   @Autowired private AnalyticsService analyticsService;
 
   @Autowired private IndicatorService indicatorService;
-
-  @Autowired private ConfigurationService configurationService;
 
   private Period jan;
 
