@@ -164,8 +164,9 @@ public class TrackedEntityAggregateService {
 
   /**
    * Adds the {@code metaData} entries for headers the shared {@link MetadataParamsHandler} does not
-   * describe.The label is extracted from the header, and the item list is empty because a static
-   * dimension has no fixed set of items. Entries that already exist are not toyched.
+   * describe.
+   * The label is extracted from the header, and the item list is empty because a static
+   * dimension has no fixed set of items. Entries that already exist are not touched.
    */
   private void addHeaderMetadata(Grid grid) {
     GridMetadata metadata = getGridMetadata(grid);
