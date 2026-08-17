@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.params.CommonParamsDelegator;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
@@ -99,12 +100,16 @@ public class MetadataItemsHandler {
         delegator.getAllItems().stream()
             .filter(it -> isInOriginalRequest(it.getItem().getUid(), commonRequestParams))
             .toList();
-    Set<Option> itemOptions =
-        delegator.getItemsOptions().stream()
-            .filter(o -> isInOriginalRequest(o.getUid(), commonRequestParams))
-            .collect(toSet());
     Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, items);
-    Set<Option> optionItems = getOptionItems(grid, itemOptions, items, optionsPresentInGrid);
+    Set<Option> optionItems =
+        getOptionItems(
+            grid,
+            () ->
+                delegator.getItemsOptions().stream()
+                    .filter(o -> isInOriginalRequest(o.getUid(), commonRequestParams))
+                    .collect(toSet()),
+            items,
+            optionsPresentInGrid);
     List<DimensionalObject> allDimensionalObjects = delegator.getAllDimensionalObjects();
     List<DimensionItemKeywords.Keyword> periodKeywords = delegator.getPeriodKeywords();
     Set<Legend> itemLegends = delegator.getItemsLegends();
@@ -184,14 +189,16 @@ public class MetadataItemsHandler {
    * Gets the set of {@link Option} based on the given items and options.
    *
    * @param grid the {@link Grid}.
-   * @param itemOptions the set of {@link Option}.
+   * @param itemOptions supplies the set of {@link Option}, only invoked when the grid has no
+   *     results. This avoids paying for a full {@link OptionSet#getOptions()} collection reload
+   *     when the grid-scoped {@code optionsPresentInGrid} is what actually gets used.
    * @param items the list of {@link QueryItem}.
    * @param optionsPresentInGrid the map of {@link Option} present in the grid.
    * @return the set of relevant {@link Option}.
    */
   private Set<Option> getOptionItems(
       Grid grid,
-      Set<Option> itemOptions,
+      Supplier<Set<Option>> itemOptions,
       List<QueryItem> items,
       Map<String, List<Option>> optionsPresentInGrid) {
     Set<Option> optionItems = new LinkedHashSet<>();
@@ -205,7 +212,7 @@ public class MetadataItemsHandler {
               .distinct()
               .collect(toList()));
     } else {
-      optionItems.addAll(getItemOptionsAsFilter(itemOptions, items));
+      optionItems.addAll(getItemOptionsAsFilter(itemOptions.get(), items));
     }
 
     return optionItems;
