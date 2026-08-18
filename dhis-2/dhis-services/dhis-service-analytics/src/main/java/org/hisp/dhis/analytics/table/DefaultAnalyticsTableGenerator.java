@@ -37,8 +37,8 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -126,7 +126,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       }
     }
 
-    Set<AnalyticsTableType> processedTypes = new LinkedHashSet<>();
+    Set<AnalyticsTableType> processedTypes = EnumSet.noneOf(AnalyticsTableType.class);
 
     for (AnalyticsTableService service : analyticsTableServices) {
       AnalyticsTableType tableType = service.getAnalyticsTableType();
