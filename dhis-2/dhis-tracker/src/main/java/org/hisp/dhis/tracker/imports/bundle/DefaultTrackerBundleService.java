@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,21 +39,30 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerPersister.PersistResult;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.DataValue;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
+import org.hisp.dhis.tracker.imports.preheat.supplier.OptionValueSupplier;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
+import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.AssignAttributeExecutor;
+import org.hisp.dhis.tracker.imports.programrule.executor.event.AssignDataValueExecutor;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.UserDetails;
@@ -78,6 +87,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   private final TrackerObjectDeletionService deletionService;
 
+  private final OptionValueSupplier optionValueSupplier;
+
   private final ObjectMapper mapper;
 
   @Nonnull
@@ -98,7 +109,94 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   public TrackerBundle runRuleEngine(@Nonnull TrackerBundle trackerBundle) {
     programRuleService.calculateRuleEffects(trackerBundle, trackerBundle.getPreheat());
 
+    optionValueSupplier.preheatAdd(
+        collectRuleAssignedValues(trackerBundle), trackerBundle.getPreheat());
+
     return trackerBundle;
+  }
+
+  /**
+   * Collects the values {@code ASSIGN} rule actions are going to apply, shaped as a synthetic
+   * {@link TrackerObjects} payload the {@link OptionValueSupplier} can resolve option codes from.
+   *
+   * <p>Rule engine validation rejects unknown option codes based on {@link
+   * TrackerPreheat#isValidOptionCode(Long, String)}, but {@code ASSIGN} actions can add or
+   * overwrite data values and attributes that were not in the original payload, so the codes they
+   * introduce were never resolved during preheat and valid data would be rejected with E1125.
+   *
+   * <p>The values are already final here: they are the rule engine's evaluated output, captured in
+   * the executors {@code calculateRuleEffects} just built, so nothing evaluated later can change
+   * them.
+   *
+   * <p>All assigned values are gathered onto a single synthetic event and enrollment. The supplier
+   * only looks at (data element, value) and (attribute, value) pairs, so which or how many real
+   * entities the values belong to does not matter.
+   */
+  private TrackerObjects collectRuleAssignedValues(TrackerBundle bundle) {
+    TrackerPreheat preheat = bundle.getPreheat();
+
+    Set<DataValue> assignedDataValues =
+        bundle.getEventRuleActionExecutors().values().stream()
+            .flatMap(List::stream)
+            .filter(AssignDataValueExecutor.class::isInstance)
+            .map(AssignDataValueExecutor.class::cast)
+            .map(executor -> toDataValue(preheat, executor))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+    List<Attribute> assignedAttributes =
+        bundle.getEnrollmentRuleActionExecutors().values().stream()
+            .flatMap(List::stream)
+            .filter(AssignAttributeExecutor.class::isInstance)
+            .map(AssignAttributeExecutor.class::cast)
+            .map(executor -> toAttribute(preheat, executor))
+            .filter(Objects::nonNull)
+            .toList();
+
+    return TrackerObjects.builder()
+        .events(
+            List.of(
+                TrackerEvent.builder()
+                    .event(UID.generate())
+                    .dataValues(assignedDataValues)
+                    .build()))
+        .enrollments(
+            List.of(
+                Enrollment.builder()
+                    .enrollment(UID.generate())
+                    .attributes(assignedAttributes)
+                    .build()))
+        .build();
+  }
+
+  /**
+   * Executors only know the target's UID, while the supplier looks metadata up by the payload's id
+   * scheme, so the identifier has to be converted the same way the executors themselves do when
+   * they apply the value.
+   */
+  private DataValue toDataValue(TrackerPreheat preheat, AssignDataValueExecutor executor) {
+    DataElement dataElement = preheat.getDataElement(executor.getDataElementUid().getValue());
+    if (dataElement == null) {
+      return null;
+    }
+
+    return DataValue.builder()
+        .dataElement(preheat.getIdSchemes().toMetadataIdentifier(dataElement))
+        .value(executor.getValue())
+        .build();
+  }
+
+  private Attribute toAttribute(TrackerPreheat preheat, AssignAttributeExecutor executor) {
+    TrackedEntityAttribute attribute =
+        preheat.getTrackedEntityAttribute(executor.getAttributeUid().getValue());
+    if (attribute == null) {
+      return null;
+    }
+
+    return Attribute.builder()
+        .attribute(preheat.getIdSchemes().toMetadataIdentifier(attribute))
+        .value(executor.getValue())
+        .build();
   }
 
   @Nonnull
