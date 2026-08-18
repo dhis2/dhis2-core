@@ -34,15 +34,21 @@ import static org.hisp.dhis.util.DateUtils.getPrettyInterval;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -151,6 +157,11 @@ public class DefaultSystemService implements SystemService, InitializingBean {
             getPrettyInterval(lastAnalyticsTablePartitionSuccess, now))
         .lastAnalyticsTablePartitionRuntime(
             settings.getLastSuccessfulLatestAnalyticsPartitionRuntime())
+        .lastAnalyticsTableSuccessByType(
+            getLastSuccessfulUpdateByType(settings::getLastSuccessfulAnalyticsTablesUpdate))
+        .lastAnalyticsTablePartitionSuccessByType(
+            getLastSuccessfulUpdateByType(
+                settings::getLastSuccessfulLatestAnalyticsPartitionUpdate))
         .lastSystemMonitoringSuccess(settings.getLastSuccessfulSystemMonitoringPush())
         .systemName(settings.getApplicationTitle())
         .instanceBaseUrl(dhisConfig.getServerBaseUrl())
@@ -161,6 +172,18 @@ public class DefaultSystemService implements SystemService, InitializingBean {
             getLastMetadataVersionSyncAttempt(
                 settings.getLastMetaDataSyncSuccess(), settings.getMetadataLastFailedTime()))
         .build();
+  }
+
+  /**
+   * Maps {@code getter} over every {@link AnalyticsTableType} that supports a latest partition (see
+   * {@link AnalyticsTableType#isLatestPartition()}) &mdash; the only types that have a per-type
+   * update-timestamp setting registered (DHIS2-21992).
+   */
+  static Map<AnalyticsTableType, Date> getLastSuccessfulUpdateByType(
+      Function<AnalyticsTableType, Date> getter) {
+    return Arrays.stream(AnalyticsTableType.values())
+        .filter(AnalyticsTableType::isLatestPartition)
+        .collect(Collectors.toMap(Function.identity(), getter, (a, b) -> a, LinkedHashMap::new));
   }
 
   @Override
