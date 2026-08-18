@@ -197,19 +197,49 @@ class SystemSettingsTest {
 
   @Test
   void testKeyLastSuccessfulAnalyticsTablesUpdate_PerType() {
-    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
-      assertEquals(
-          "keyLastSuccessfulAnalyticsTablesUpdate." + type.name(),
-          SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(type));
-    }
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateDataValue",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateCompleteness",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.COMPLETENESS));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateEvent",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateTrackedEntityInstanceEvents",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS));
   }
 
   @Test
   void testKeyLastSuccessfulLatestAnalyticsPartitionUpdate_PerType() {
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateDataValue",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.DATA_VALUE));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateCompleteness",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.COMPLETENESS));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateEvent",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateTrackedEntityInstanceEvents",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS));
+  }
+
+  @Test
+  void testKeyLastSuccessfulUpdate_PerType_NoDotSeparator() {
+    // regression guard: a literal "." in a flat settings key breaks JsonObject.get(path)-style
+    // dot-as-path-separator accessors (e.g. SystemSettingsControllerTest), which read a flat
+    // "keyXxx.EVENT" key as a nested lookup and silently report it missing
     for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
-      assertEquals(
-          "keyLastSuccessfulLatestAnalyticsPartitionUpdate." + type.name(),
-          SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(type));
+      assertFalse(SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(type).contains("."));
+      assertFalse(
+          SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(type).contains("."));
     }
   }
 

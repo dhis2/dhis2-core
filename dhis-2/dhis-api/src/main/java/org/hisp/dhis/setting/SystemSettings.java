@@ -387,9 +387,14 @@ public non-sealed interface SystemSettings extends Settings {
    * #getLastSuccessfulAnalyticsTablesUpdate()}. Only registered for the table types that support a
    * latest partition (see {@link AnalyticsTableType#isLatestPartition()}) since those are the only
    * ones a latest-partition update ever needs to read a per-type clock for.
+   *
+   * <p>No separator character between the base key and the type suffix (deliberately not a "."): a
+   * flat settings key containing a literal "." is misread as a nested path by {@code
+   * JsonObject.get(path)}-style dot-path accessors, which would silently report an existing flat
+   * key as missing.
    */
   static String keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType type) {
-    return "keyLastSuccessfulAnalyticsTablesUpdate." + type.name();
+    return "keyLastSuccessfulAnalyticsTablesUpdate" + perTypeKeySuffix(type);
   }
 
   /**
@@ -397,7 +402,18 @@ public non-sealed interface SystemSettings extends Settings {
    * #getLastSuccessfulLatestAnalyticsPartitionUpdate()}.
    */
   static String keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType type) {
-    return "keyLastSuccessfulLatestAnalyticsPartitionUpdate." + type.name();
+    return "keyLastSuccessfulLatestAnalyticsPartitionUpdate" + perTypeKeySuffix(type);
+  }
+
+  /** Matches the corresponding per-type getter method name suffix below, e.g. {@code DataValue}. */
+  private static String perTypeKeySuffix(AnalyticsTableType type) {
+    return switch (type) {
+      case DATA_VALUE -> "DataValue";
+      case COMPLETENESS -> "Completeness";
+      case EVENT -> "Event";
+      case TRACKED_ENTITY_INSTANCE_EVENTS -> "TrackedEntityInstanceEvents";
+      default -> type.name();
+    };
   }
 
   default Date getLastSuccessfulAnalyticsTablesUpdateDataValue() {
