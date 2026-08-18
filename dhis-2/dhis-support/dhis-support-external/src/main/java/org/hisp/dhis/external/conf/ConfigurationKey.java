@@ -742,6 +742,14 @@ public enum ConfigurationKey {
   OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
       "oauth2.server.jwt.keystore.generate-if-missing", "true", false),
 
+  /**
+   * Refresh token time-to-live in seconds for clients registered through OIDC Dynamic Client
+   * Registration (e.g. Android devices). Refresh tokens are rotated on every use, so this is a
+   * sliding window: each refresh issues a new refresh token valid for this duration. (default: 30
+   * days)
+   */
+  OAUTH2_SERVER_DCR_REFRESH_TOKEN_TTL("oauth2.server.dcr.refresh-token-ttl", "2592000", false),
+
   /** Ehcache monitoring. (default: off) */
   MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
 
