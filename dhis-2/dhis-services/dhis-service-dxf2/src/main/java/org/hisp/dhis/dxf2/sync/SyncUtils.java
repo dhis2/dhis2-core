@@ -188,7 +188,7 @@ public class SyncUtils {
           throw ex;
         }
       } catch (ResourceAccessException ex) {
-        log.error("Exception during tracker sync push: " + ex.getMessage(), ex);
+        log.error("Exception during tracker sync push: {}", ex.getMessage(), ex);
         throw ex;
       }
     }

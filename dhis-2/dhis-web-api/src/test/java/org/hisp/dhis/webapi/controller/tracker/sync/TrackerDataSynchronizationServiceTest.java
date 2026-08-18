@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +51,7 @@ import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
@@ -64,6 +66,7 @@ import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.Error;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
+import org.hisp.dhis.tracker.imports.report.Stats;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
@@ -307,6 +310,62 @@ class TrackerDataSynchronizationServiceTest {
         .updateTrackedEntitiesSyncTimestamp(eq(Set.of(teUid)), any(Date.class));
   }
 
+  @Test
+  void shouldNotStampSyncTimestampWhenActiveChildRelationshipFailedRemotely() throws Exception {
+    UID teUid = UID.of("TrackedEnt1");
+    UID relationshipUid = UID.of("Rel00000001");
+    org.hisp.dhis.tracker.model.TrackedEntity te = activeTrackedEntity(teUid);
+    attachRelationship(te, relationshipUid, false);
+    stubHappyPathSyncInfrastructure(List.of(te));
+    when(restTemplate.<ImportReport>execute(anyString(), eq(HttpMethod.POST), any(), any()))
+        .thenReturn(
+            reportWith(
+                successEntity(TrackerType.TRACKED_ENTITY, teUid),
+                failedEntity(
+                    TrackerType.RELATIONSHIP, relationshipUid, "E4009", "validation failed")));
+
+    service.synchronizeData(50, JobProgress.noop());
+
+    verify(trackedEntityService, never()).updateTrackedEntitiesSyncTimestamp(any(), any());
+  }
+
+  @Test
+  void shouldNotStampSyncTimestampWhenDeletedRelationshipFailedForRealReason() throws Exception {
+    UID teUid = UID.of("TrackedEnt1");
+    UID relationshipUid = UID.of("Rel00000001");
+    org.hisp.dhis.tracker.model.TrackedEntity te = activeTrackedEntity(teUid);
+    attachRelationship(te, relationshipUid, true);
+    stubHappyPathSyncInfrastructure(List.of(te));
+    when(restTemplate.<ImportReport>execute(anyString(), eq(HttpMethod.POST), any(), any()))
+        .thenReturn(
+            reportWith(
+                failedEntity(TrackerType.RELATIONSHIP, relationshipUid, "E0000", "failed"),
+                successEntity(TrackerType.TRACKED_ENTITY, teUid)));
+
+    service.synchronizeData(50, JobProgress.noop());
+
+    verify(trackedEntityService, never()).updateTrackedEntitiesSyncTimestamp(any(), any());
+  }
+
+  @Test
+  void shouldStampSyncTimestampWhenDeletedRelationshipAlreadyDeletedRemotely() throws Exception {
+    UID teUid = UID.of("TrackedEnt1");
+    UID relationshipUid = UID.of("Rel00000001");
+    org.hisp.dhis.tracker.model.TrackedEntity te = activeTrackedEntity(teUid);
+    attachRelationship(te, relationshipUid, true);
+    stubHappyPathSyncInfrastructure(List.of(te));
+    when(restTemplate.<ImportReport>execute(anyString(), eq(HttpMethod.POST), any(), any()))
+        .thenReturn(
+            reportWith(
+                failedEntity(TrackerType.RELATIONSHIP, relationshipUid, "E4017", "already deleted"),
+                successEntity(TrackerType.TRACKED_ENTITY, teUid)));
+
+    service.synchronizeData(50, JobProgress.noop());
+
+    verify(trackedEntityService)
+        .updateTrackedEntitiesSyncTimestamp(eq(Set.of(teUid)), any(Date.class));
+  }
+
   /** Stubs the availability check, {@code createContext}, and page fetch for a happy-path run. */
   private void stubHappyPathSyncInfrastructure(List<org.hisp.dhis.tracker.model.TrackedEntity> page)
       throws Exception {
@@ -337,6 +396,79 @@ class TrackerDataSynchronizationServiceTest {
     te.setCreated(new Date());
     te.setLastUpdated(new Date());
     return te;
+  }
+
+  private void attachRelationship(
+      org.hisp.dhis.tracker.model.TrackedEntity te, UID relationshipUid, boolean deleted) {
+    RelationshipType relationshipType = new RelationshipType();
+    relationshipType.setUid("RelTypeUiAB");
+    relationshipType.setName("Relationship type");
+
+    org.hisp.dhis.tracker.model.Relationship relationship =
+        new org.hisp.dhis.tracker.model.Relationship();
+    relationship.setUid(relationshipUid.getValue());
+    relationship.setDeleted(deleted);
+    relationship.setRelationshipType(relationshipType);
+    relationship.setCreated(new Date());
+    relationship.setLastUpdated(new Date());
+
+    org.hisp.dhis.tracker.model.RelationshipItem item =
+        new org.hisp.dhis.tracker.model.RelationshipItem();
+    item.setRelationship(relationship);
+    item.setTrackedEntity(te);
+    relationship.setFrom(item);
+    relationship.setTo(item);
+
+    te.getRelationshipItems().add(item);
+  }
+
+  /**
+   * An {@link ImportReport} combining every given {@link Entity}, grouped by {@link
+   * Entity#getTrackerType()}. {@code status} is {@code ERROR} if any entity carries an error.
+   */
+  private ImportReport reportWith(Entity... entities) {
+    Map<TrackerType, TrackerTypeReport> typeReportMap = new EnumMap<>(TrackerType.class);
+    boolean hasErrors = false;
+    for (Entity entity : entities) {
+      TrackerTypeReport typeReport =
+          typeReportMap.computeIfAbsent(entity.getTrackerType(), TrackerTypeReport::new);
+      typeReport.addEntity(entity);
+      hasErrors = hasErrors || !entity.getErrorReports().isEmpty();
+    }
+    TrackerTypeReport empty = new TrackerTypeReport(TrackerType.EVENT);
+    PersistenceReport persistenceReport =
+        new PersistenceReport(
+            typeReportMap.getOrDefault(
+                TrackerType.TRACKED_ENTITY, new TrackerTypeReport(TrackerType.TRACKED_ENTITY)),
+            typeReportMap.getOrDefault(
+                TrackerType.ENROLLMENT, new TrackerTypeReport(TrackerType.ENROLLMENT)),
+            typeReportMap.getOrDefault(TrackerType.EVENT, new TrackerTypeReport(TrackerType.EVENT)),
+            empty,
+            typeReportMap.getOrDefault(
+                TrackerType.RELATIONSHIP, new TrackerTypeReport(TrackerType.RELATIONSHIP)));
+    return ImportReport.builder()
+        .status(hasErrors ? Status.ERROR : Status.OK)
+        .persistenceReport(persistenceReport)
+        .stats(new Stats())
+        .build();
+  }
+
+  private Entity successEntity(TrackerType type, UID uid) {
+    return new Entity(type, uid, List.of());
+  }
+
+  private Entity failedEntity(TrackerType type, UID uid, String errorCode, String message) {
+    return new Entity(
+        type,
+        uid,
+        List.of(
+            Error.builder()
+                .message(message)
+                .errorCode(errorCode)
+                .trackerType(type.name())
+                .uid(uid)
+                .args(List.of())
+                .build()));
   }
 
   /**
