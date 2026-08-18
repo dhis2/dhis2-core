@@ -56,11 +56,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.TimeField;
@@ -99,6 +103,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -411,6 +416,41 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString("\"n1rtSHYf6O6\" in ('ImspTQPwCqd')"));
     assertThat(baseCteSql, containsString("inner join latest_events_" + programStage.getUid()));
     assertThat(baseCteSql, not(containsString("and \"n1rtSHYf6O6\" in ('ImspTQPwCqd')")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentAttributeFilterProjectsQuotedColumnInBaseCte() {
+    String attributeUid = "lZGmxYbs97q";
+    TrackedEntityAttribute attribute =
+        org.hisp.dhis.test.TestBase.createTrackedEntityAttribute('A', ValueType.TEXT);
+    attribute.setUid(attributeUid);
+
+    QueryItem queryItem =
+        new QueryItem(attribute, programA, null, ValueType.TEXT, AggregationType.NONE, null);
+    queryItem.setProgram(programA);
+    queryItem.addFilter(new QueryFilter(IN, "ABC"));
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.addItemFilter(queryItem);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
+
+    assertThat(baseCteSql, containsString("ax.\"" + attributeUid + "\" in ('ABC')"));
+    // The filtered column is projected so the propagated where clause can resolve it. Postgres
+    // folds unquoted identifiers to lower case, so the mixed-case UID must be quoted.
+    assertThat(baseCteSql, containsString("\"" + attributeUid + "\" from analytics_enrollment"));
+    assertThat(baseCteSql, not(containsString(", " + attributeUid + " from")));
   }
 
   @Test
@@ -920,6 +960,28 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyRepeatableStagesFromDifferentStagesProduceUniqueJoinAliases() {
+    ProgramStage otherRepeatableStage =
+        org.hisp.dhis.test.TestBase.createProgramStage('C', programA);
+    otherRepeatableStage.setRepeatable(true);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(repeatableProgramStage, ValueType.NUMBER))
+            .addItem(createRepeatableDataElementItem(otherRepeatableStage))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 100);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    List<String> aliases = joinAliases(noEof(sql.getValue()));
+
+    assertThat(
+        "join aliases must be unique: " + aliases,
+        aliases.size(),
+        is(new HashSet<>(aliases).size()));
+  }
+
+  @Test
   void verifyWithProgramStageOptionSetDataElementAndFilterProjectsValueFromCte() {
     String optionCode = "OI0BQUurVFS";
     OptionSet optionSet = new OptionSet("Option set A", ValueType.TEXT);
@@ -1080,6 +1142,27 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     item.setRepeatableStageParams(
         RepeatableStageParams.of(offset, stageUid + "[" + offset + "]." + dataElementA.getUid()));
     return item;
+  }
+
+  private QueryItem createRepeatableDataElementItem(ProgramStage stage) {
+    QueryItem item = new QueryItem(new BaseDimensionalItemObject(dataElementA.getUid()));
+    item.setProgram(programA);
+    item.setProgramStage(stage);
+    item.setValueType(ValueType.NUMBER);
+    item.setRepeatableStageParams(
+        RepeatableStageParams.of(-1, stage.getUid() + "[-1]." + dataElementA.getUid()));
+    return item;
+  }
+
+  /** Extracts the table alias of every join in the given SQL statement. */
+  private List<String> joinAliases(String sql) {
+    Matcher matcher =
+        Pattern.compile("(?:left|inner|cross)\\s+join\\s+\\S+\\s+(\\S+)\\s+on\\s").matcher(sql);
+    List<String> aliases = new ArrayList<>();
+    while (matcher.find()) {
+      aliases.add(matcher.group(1));
+    }
+    return aliases;
   }
 
   private EventQueryParams createAggregateEnrollmentWithEventDateParams() {

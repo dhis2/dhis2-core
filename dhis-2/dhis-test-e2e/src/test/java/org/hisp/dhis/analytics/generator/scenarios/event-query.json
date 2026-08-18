@@ -331,7 +331,21 @@
     },
     {
       "name": "ouMultipleLevels",
-      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=GxdhnY5wmHq,ou:USER_ORGUNIT;LEVEL-wjP19dkFeIk;LEVEL-tTUf91fCytl;LEVEL-m9lBJogzE95,p2Zxg0wcPQ3&headers=ouname,lastupdated,GxdhnY5wmHq,p2Zxg0wcPQ3&totalPages=false&lastUpdated=201707&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=ZzYYXq4fJie",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=GxdhnY5wmHq,ou:USER_ORGUNIT;LEVEL-wjP19dkFeIk;LEVEL-tTUf91fCytl;LEVEL-m9lBJogzE95,p2Zxg0wcPQ3&headers=ouname,lastupdated,GxdhnY5wmHq,p2Zxg0wcPQ3&totalPages=false&lastUpdated=201707&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=ZzYYXq4fJie&desc=lastupdated",
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "name": "eventsWithFallbackCoordinateFieldReturnsGeometrySource",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?filter=pe:2022&coordinatesOnly=true&stage=Zj7UnCAulEk&coordinateField=EVENT&fallbackCoordinateField=F3ogKBuviRA&headers=geometry,geometrySource&dimension=ou:ImspTQPwCqd&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "eventsWithOrgUnitGroups",
+      "query": "/api/analytics/events/query/lxAQ7Zs9VYR.json?dimension=ou:USER_ORGUNIT;OU_GROUP-uYxK4wmcPqA;OU_GROUP-RpbiCJpIYEj;OU_GROUP-CXw2yu5fodb;OU_GROUP-f25dqv3Y7Z0;OU_GROUP-tDZVQ1WtwpA&skipMeta=true&headers=ouname,lastupdated&totalPages=false&lastUpdated=LAST_5_FINANCIAL_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=false&outputType=EVENT&stage=dBwrot7S420&relativePeriodDate=2026-08-06&desc=lastupdated",
       "version": {
         "min": 41
       }
