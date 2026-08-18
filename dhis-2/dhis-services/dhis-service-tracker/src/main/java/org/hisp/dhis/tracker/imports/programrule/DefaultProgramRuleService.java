@@ -411,7 +411,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
+    TrackedEntity trackedEntity = getTrackedEntity(enrollmentUid, teUid, preheat);
     if (trackedEntity == null) {
       return Stream.concat(
               payloadTrackedEntityAttributes.stream(), payloadProgramAttributes.stream())
@@ -435,6 +435,22 @@ class DefaultProgramRuleService implements ProgramRuleService {
                 payloadTrackedEntityAttributes.stream(), payloadProgramAttributes.stream()),
             dbAttributesNotPresentInPayload)
         .toList();
+  }
+
+  // Resolve the tracked entity holding the attribute values saved in the DB.
+  // Tracked entities are only preheated when they are referenced by the payload. Payloads
+  // containing just events (like the one the Capture app sends when completing an event) do not
+  // reference any tracked entity, so fall back to the tracked entity of the saved enrollment, which
+  // is preheated for every payload event and already carries its attribute values.
+  private static TrackedEntity getTrackedEntity(
+      UID enrollmentUid, UID teUid, TrackerPreheat preheat) {
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
+    if (trackedEntity != null) {
+      return trackedEntity;
+    }
+
+    Enrollment enrollment = preheat.getEnrollment(enrollmentUid);
+    return enrollment == null ? null : enrollment.getTrackedEntity();
   }
 
   // Fetch all saved events for the given enrollments in a single DB query and group by enrollment.

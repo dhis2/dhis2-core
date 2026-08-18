@@ -41,6 +41,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -129,11 +131,15 @@ class DataValueSetServiceImportTest {
 
   @Mock private UserService userService;
 
+  @Mock private EntityManager entityManager;
+
   @InjectMocks private DefaultDataValueSetService dataValueSetService;
 
   @Test
   void testImportDataValuesUpdatedSkipNoChange() {
     when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+    // the import suppresses auto-flush over its read-only span and restores the previous mode
+    when(entityManager.getFlushMode()).thenReturn(FlushModeType.AUTO);
     SystemUser user = new SystemUser();
     injectSecurityContextNoSettings(user);
 

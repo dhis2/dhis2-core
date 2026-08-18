@@ -32,16 +32,22 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.ExceptionHandler.handle;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.postgresql.util.PSQLState.BAD_DATETIME_FORMAT;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.Test;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
 
 class JdbcEventAnalyticsManagerTest {
+
   @Test
   void testHandlingDataIntegrityExceptionWhenDivisionByZero() {
     DataIntegrityViolationException aDivisionByZeroException =
@@ -84,6 +90,78 @@ class JdbcEventAnalyticsManagerTest {
 
     assertThrows(
         QueryRuntimeException.class, () -> handle(aNonPSQLExceptionCause), E7133.getMessage());
+  }
+
+  @Test
+  void getOuInConditionEmptyMapReturnsEmptyString() {
+    JdbcEventAnalyticsManager jdbcEventAnalyticsManager = getJdbcEventAnalyticsManager();
+
+    assertEquals("", jdbcEventAnalyticsManager.getOuInCondition(Map.of()));
+  }
+
+  @Test
+  void getOuInConditionSingleLevelSingleUnitReturnsInCondition() {
+    JdbcEventAnalyticsManager jdbcEventAnalyticsManager = getJdbcEventAnalyticsManager();
+
+    OrganisationUnit unit = ouWithUid("uid000001A");
+
+    String result =
+        jdbcEventAnalyticsManager.getOuInCondition(Map.of("ax.\"uidlevel2\"", List.of(unit)));
+
+    assertEquals("ax.\"uidlevel2\" in ('uid000001A') ", result);
+  }
+
+  @Test
+  void getOuInConditionSingleLevelMultipleUnitsCombinesUidsInSingleInClause() {
+    JdbcEventAnalyticsManager jdbcEventAnalyticsManager = getJdbcEventAnalyticsManager();
+
+    OrganisationUnit unitA = ouWithUid("uid000001A");
+    OrganisationUnit unitB = ouWithUid("uid000001B");
+
+    String result =
+        jdbcEventAnalyticsManager.getOuInCondition(
+            Map.of("ax.\"uidlevel3\"", List.of(unitA, unitB)));
+
+    assertEquals("ax.\"uidlevel3\" in ('uid000001A','uid000001B') ", result);
+  }
+
+  @Test
+  void getOuInConditionMultipleLevelsJoinsConditionsWithOr() {
+    JdbcEventAnalyticsManager jdbcEventAnalyticsManager = getJdbcEventAnalyticsManager();
+
+    Map<String, List<OrganisationUnit>> orgUnitsMap = new LinkedHashMap<>();
+    orgUnitsMap.put("ax.\"uidlevel2\"", List.of(ouWithUid("uid000001A")));
+    orgUnitsMap.put("ax.\"uidlevel3\"", List.of(ouWithUid("uid000001B")));
+
+    String result = jdbcEventAnalyticsManager.getOuInCondition(orgUnitsMap);
+
+    assertEquals(
+        "ax.\"uidlevel2\" in ('uid000001A')  or ax.\"uidlevel3\" in ('uid000001B') ", result);
+  }
+
+  @Test
+  void getOuInConditionUnitWithNullUidIsExcluded() {
+    JdbcEventAnalyticsManager jdbcEventAnalyticsManager = getJdbcEventAnalyticsManager();
+    OrganisationUnit organisationUnit = new OrganisationUnit();
+    organisationUnit.setUid(null);
+
+    Map<String, List<OrganisationUnit>> orgUnitsMap =
+        Map.of("ax.\"uidlevel2\"", List.of(ouWithUid("uid000001A"), organisationUnit));
+
+    String result = jdbcEventAnalyticsManager.getOuInCondition(orgUnitsMap);
+
+    assertEquals("ax.\"uidlevel2\" in ('uid000001A') ", result);
+  }
+
+  private OrganisationUnit ouWithUid(String uid) {
+    OrganisationUnit unit = new OrganisationUnit();
+    unit.setUid(uid);
+    return unit;
+  }
+
+  private JdbcEventAnalyticsManager getJdbcEventAnalyticsManager() {
+    return new JdbcEventAnalyticsManager(
+        null, null, null, null, null, null, null, null, null, null, null);
   }
 
   private DataIntegrityViolationException mockDataIntegrityExceptionDivisionByZero() {

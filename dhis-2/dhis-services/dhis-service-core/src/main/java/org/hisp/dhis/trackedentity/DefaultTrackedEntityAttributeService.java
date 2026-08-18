@@ -310,6 +310,13 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
     return this.trackedEntityAttributeStore.getTrackedEntityAttributesInProgram(program);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public Set<String> getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue() {
+    return this.trackedEntityAttributeStore
+        .getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
+  }
+
   private String validateImage(String uid) {
     FileResource fileResource = fileResourceService.getFileResource(uid);
 

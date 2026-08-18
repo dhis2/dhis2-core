@@ -88,9 +88,40 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     OBJECT_MAPPER.findAndRegisterModules();
   }
 
+  /** Package-private so that a test can count how often the document is actually parsed. */
   @SneakyThrows
-  private List<JsonEnrollment> parseEnrollmentsFromJson(String json) {
+  List<JsonEnrollment> parseEnrollmentsFromJson(String json) {
     return OBJECT_MAPPER.readValue(json, new TypeReference<>() {});
+  }
+
+  /**
+   * Returns the parsed {@code enrollments} document for the row the cursor is on, parsing it at
+   * most once per row.
+   *
+   * <p>Every requested column used to trigger its own {@code readValue} of the whole document, from
+   * two independent call sites ({@link #getObject(String)} and {@link #getRowContextItem(String,
+   * int)}), so a line list with ten data-element dimensions parsed the same string around twenty
+   * times per row.
+   *
+   * <p>The memo is keyed on the document itself rather than on the cursor position, which is what
+   * makes a stale hit impossible rather than merely unlikely: a hit requires the current row's
+   * document to be equal to the memoised one, and equal input cannot produce a different parse
+   * result. {@link String#equals} short-circuits on identity, which is the case a forward cursor
+   * hits on every column after the first.
+   *
+   * <p>The returned list is shared between the callers within a row. Nothing downstream mutates it
+   * - the extractors only stream over it, and {@code getItemBasedOnOffset} sorts the stream, not
+   * the source.
+   */
+  private List<JsonEnrollment> getEnrollments() {
+    String json = super.getString("enrollments");
+
+    if (memoisedEnrollments == null || !Objects.equals(memoisedJson, json)) {
+      memoisedEnrollments = parseEnrollmentsFromJson(json);
+      memoisedJson = json;
+    }
+
+    return memoisedEnrollments;
   }
 
   private static final Comparator<JsonEnrollment> ENR_ENROLLMENT_DATE_COMPARATOR =
@@ -102,6 +133,14 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
   private final transient Map<String, DimensionIdentifier<DimensionParam>> dimIdByKey;
 
   private final List<String> existingColumnsInRowSet;
+
+  /**
+   * The {@code enrollments} document of the row the cursor is on, and its parse. Per-instance state
+   * on a per-request object; this class is not shared between threads and must not become so.
+   */
+  private String memoisedJson;
+
+  private List<JsonEnrollment> memoisedEnrollments;
 
   public SqlRowSetJsonExtractorDelegator(
       SqlRowSet sqlRowSet, List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers) {
@@ -125,7 +164,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
       return super.getObject(columnLabel);
     }
     // if the column is not present in the rowset, we check if it is present in the json string
-    List<JsonEnrollment> enrollments = parseEnrollmentsFromJson(super.getString("enrollments"));
+    List<JsonEnrollment> enrollments = getEnrollments();
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(columnLabel);
 
@@ -293,8 +332,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     }
 
     JsonEvent event =
-        getJsonEnrollment(
-                parseEnrollmentsFromJson(super.getString("enrollments")), dimensionIdentifier)
+        getJsonEnrollment(getEnrollments(), dimensionIdentifier)
             .map(jEnr -> getJsonEvent(dimensionIdentifier, jEnr))
             .orElse(null);
 
