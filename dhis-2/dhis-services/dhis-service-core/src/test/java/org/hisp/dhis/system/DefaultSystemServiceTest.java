@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Date;
 import java.util.Map;
@@ -64,7 +65,7 @@ class DefaultSystemServiceTest {
     Map<AnalyticsTableType, Date> result =
         DefaultSystemService.getLastSuccessfulUpdateByType(type -> new Date(type.ordinal()));
 
-    assertEquals(false, result.containsKey(ENROLLMENT));
+    assertFalse(result.containsKey(ENROLLMENT));
   }
 
   @Test

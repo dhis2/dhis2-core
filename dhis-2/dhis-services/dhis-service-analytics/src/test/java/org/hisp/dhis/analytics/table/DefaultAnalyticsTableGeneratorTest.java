@@ -113,9 +113,7 @@ class DefaultAnalyticsTableGeneratorTest {
     verify(settingsService, never())
         .put(eq(SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(EVENT)), any());
     verify(settingsService)
-        .put(
-            eq(SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(DATA_VALUE)),
-            eq(startTime));
+        .put(SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(DATA_VALUE), startTime);
   }
 
   @Test
@@ -134,7 +132,7 @@ class DefaultAnalyticsTableGeneratorTest {
     verify(settingsService, never())
         .put(eq(SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(EVENT)), any());
     verify(settingsService)
-        .put(eq(SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(DATA_VALUE)), eq(startTime));
+        .put(SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(DATA_VALUE), startTime);
   }
 
   @Test
@@ -177,8 +175,7 @@ class DefaultAnalyticsTableGeneratorTest {
 
     generator.generateAnalyticsTables(params, JobProgress.noop());
 
-    verify(settingsService)
-        .put(eq("keyLastSuccessfulLatestAnalyticsPartitionUpdate"), eq(startTime));
+    verify(settingsService).put("keyLastSuccessfulLatestAnalyticsPartitionUpdate", startTime);
     verify(settingsService).put(eq("keyLastSuccessfulLatestAnalyticsPartitionRuntime"), any());
   }
 
@@ -195,7 +192,7 @@ class DefaultAnalyticsTableGeneratorTest {
 
     generator.generateAnalyticsTables(params, JobProgress.noop());
 
-    verify(settingsService).put(eq("keyLastSuccessfulAnalyticsTablesUpdate"), eq(startTime));
+    verify(settingsService).put("keyLastSuccessfulAnalyticsTablesUpdate", startTime);
     verify(settingsService).put(eq("keyLastSuccessfulAnalyticsTablesRuntime"), any());
   }
 }
