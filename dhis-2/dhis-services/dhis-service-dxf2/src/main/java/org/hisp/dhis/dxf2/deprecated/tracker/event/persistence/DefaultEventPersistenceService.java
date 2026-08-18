@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventCommentStore;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventStore;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
@@ -143,6 +144,8 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
 
       entityManager
           .createNativeQuery(query)
+          .unwrap(NativeQuery.class)
+          .addSynchronizedEntityClass(Event.class)
           .setParameter("event", event.getEvent())
           .setParameter(
               "lastupdatedbyuserinfo",
@@ -173,6 +176,8 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
 
       entityManager
           .createNativeQuery(query)
+          .unwrap(NativeQuery.class)
+          .addSynchronizedEntityClass(Event.class)
           .setParameter("event", event.getEvent())
           .setParameter("de", deUid)
           .setParameter(
