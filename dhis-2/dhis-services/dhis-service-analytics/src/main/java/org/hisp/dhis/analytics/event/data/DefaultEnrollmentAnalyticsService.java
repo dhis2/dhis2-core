@@ -89,13 +89,15 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
       EventQueryValidator queryValidator,
       SchemeIdResponseMapper schemeIdResponseMapper,
       UserService userService,
-      OrganisationUnitResolver organisationUnitResolver) {
+      OrganisationUnitResolver organisationUnitResolver,
+      org.hisp.dhis.option.OptionService optionService) {
     super(
         securityManager,
         queryValidator,
         schemeIdResponseMapper,
         userService,
-        organisationUnitResolver);
+        organisationUnitResolver,
+        optionService);
 
     checkNotNull(enrollmentAnalyticsManager);
     checkNotNull(queryPlanner);

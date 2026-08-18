@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.QueryItemHelper;
@@ -260,7 +262,8 @@ class QueryItemHelperTest extends DhisConvenienceTest {
     EventQueryParams params = new EventQueryParams.Builder().addItem(queryItem).build();
     params.getItems().add(queryItem);
 
-    Map<String, List<Option>> options = QueryItemHelper.getItemOptions(grid, params.getItems());
+    Map<String, List<Option>> options =
+        QueryItemHelper.getItemOptions(grid, params.getItems(), OptionSet::getOptions);
 
     assertTrue(options.values().stream().flatMap(Collection::stream).toList().contains(option));
   }
@@ -277,9 +280,38 @@ class QueryItemHelperTest extends DhisConvenienceTest {
     EventQueryParams params = new EventQueryParams.Builder().addItem(queryItem).build();
     params.getItems().add(queryItem);
 
-    Map<String, List<Option>> options = QueryItemHelper.getItemOptions(grid, params.getItems());
+    Map<String, List<Option>> options =
+        QueryItemHelper.getItemOptions(grid, params.getItems(), OptionSet::getOptions);
 
     assertTrue(options.values().stream().flatMap(Collection::stream).toList().contains(option));
+  }
+
+  @Test
+  void testGetItemOptionsThatMatchesRowsUsesInjectedOptionsResolverNotOptionSetDirectly() {
+    Option optionOnOptionSet = new Option("Opt-A", "Code-A");
+    OptionSet optionSet = createOptionSet('A', optionOnOptionSet);
+
+    Option optionFromResolver = new Option("Opt-A-Resolved", "Code-A");
+    AtomicBoolean resolverInvoked = new AtomicBoolean(false);
+
+    Grid grid = stubGridWithRowsAndOptionSet(optionSet);
+    QueryItem queryItem = new QueryItem(null, null, null, null, optionSet);
+    EventQueryParams params = new EventQueryParams.Builder().addItem(queryItem).build();
+    params.getItems().add(queryItem);
+
+    Map<String, List<Option>> options =
+        QueryItemHelper.getItemOptions(
+            grid,
+            params.getItems(),
+            os -> {
+              resolverInvoked.set(true);
+              return List.of(optionFromResolver);
+            });
+
+    assertTrue(resolverInvoked.get(), "the injected options resolver should have been invoked");
+    List<Option> matchedOptions = options.values().stream().flatMap(Collection::stream).toList();
+    assertTrue(matchedOptions.contains(optionFromResolver));
+    assertFalse(matchedOptions.contains(optionOnOptionSet));
   }
 
   @Test

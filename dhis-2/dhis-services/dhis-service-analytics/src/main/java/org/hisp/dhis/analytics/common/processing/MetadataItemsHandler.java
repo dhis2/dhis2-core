@@ -61,6 +61,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -80,6 +81,12 @@ import org.hisp.dhis.program.ProgramStage;
  * the risk of bugs.
  */
 public class MetadataItemsHandler {
+  private final OptionService optionService;
+
+  public MetadataItemsHandler(OptionService optionService) {
+    this.optionService = optionService;
+  }
+
   /**
    * Handles all required logic/rules in order to return a map of metadata item identifiers and its
    * respective {@link MetadataItem}.
@@ -98,7 +105,11 @@ public class MetadataItemsHandler {
         commonParams.delegate().getItemsOptions().stream()
             .filter(o -> isInOriginalRequest(o.getUid(), commonParams.getOriginalRequest()))
             .collect(toSet());
-    Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, items);
+    Map<String, List<Option>> optionsPresentInGrid =
+        getItemOptions(
+            grid,
+            items,
+            optionSet -> optionService.findOptionsByNamePattern(optionSet.getUid(), null, null));
     Set<Option> optionItems = getOptionItems(grid, itemOptions, items, optionsPresentInGrid);
     List<DimensionalObject> allDimensionalObjects =
         commonParams.delegate().getAllDimensionalObjects();

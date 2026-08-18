@@ -90,6 +90,7 @@ import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -110,6 +111,8 @@ public abstract class AbstractAnalyticsService {
   protected final UserService userService;
 
   protected final OrganisationUnitResolver organisationUnitResolver;
+
+  protected final OptionService optionService;
 
   /**
    * Returns a grid based on the given query.
@@ -401,7 +404,11 @@ public abstract class AbstractAnalyticsService {
       EventQueryParams params, List<DimensionItemKeywords.Keyword> periodKeywords, Grid grid) {
     if (!params.isSkipMeta()) {
       Map<String, Object> metadata = new HashMap<>();
-      Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, params.getItems());
+      Map<String, List<Option>> optionsPresentInGrid =
+          getItemOptions(
+              grid,
+              params.getItems(),
+              optionSet -> optionService.findOptionsByNamePattern(optionSet.getUid(), null, null));
       Set<Option> optionItems = new LinkedHashSet<>();
       boolean hasResults = isNotEmpty(grid.getRows());
 
@@ -657,7 +664,7 @@ public abstract class AbstractAnalyticsService {
                     includeDetails ? option.getUid() : null,
                     option.getCode())));
 
-    new MetadataItemsHandler().addOptionsSetIntoMap(metadataItemMap, itemOptions);
+    new MetadataItemsHandler(optionService).addOptionsSetIntoMap(metadataItemMap, itemOptions);
   }
 
   /**

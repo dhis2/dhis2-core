@@ -95,6 +95,8 @@ class AbstractAnalyticsServiceTest {
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
+  @Mock private org.hisp.dhis.option.OptionService optionService;
+
   @BeforeEach
   public void setUp() {
     dummyAnalyticsService =
@@ -103,7 +105,8 @@ class AbstractAnalyticsServiceTest {
             eventQueryValidator,
             schemeIdResponseMapper,
             userService,
-            organisationUnitResolver);
+            organisationUnitResolver,
+            optionService);
 
     peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
     ouA = createOrganisationUnit('A');
@@ -261,13 +264,15 @@ class DummyAnalyticsService extends AbstractAnalyticsService {
       EventQueryValidator queryValidator,
       SchemeIdResponseMapper schemeIdResponseMapper,
       UserService userService,
-      OrganisationUnitResolver organisationUnitResolver) {
+      OrganisationUnitResolver organisationUnitResolver,
+      org.hisp.dhis.option.OptionService optionService) {
     super(
         securityManager,
         queryValidator,
         schemeIdResponseMapper,
         userService,
-        organisationUnitResolver);
+        organisationUnitResolver,
+        optionService);
   }
 
   @Override

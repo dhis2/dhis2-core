@@ -112,6 +112,8 @@ class DefaultEventAnalyticsServiceTableLayoutTest {
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
+  @Mock private org.hisp.dhis.option.OptionService optionService;
+
   @BeforeEach
   void setUp() {
     when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
@@ -129,7 +131,8 @@ class DefaultEventAnalyticsServiceTableLayoutTest {
             enrollmentAnalyticsManager,
             schemeIdResponseMapper,
             userService,
-            organisationUnitResolver);
+            organisationUnitResolver,
+            optionService);
   }
 
   /**
