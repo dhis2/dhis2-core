@@ -83,9 +83,10 @@ import org.springframework.stereotype.Component;
 public class ProgramStageDataElementsSupplier extends JdbcAbstractPreheatSupplier {
 
   /**
-   * Unioned rather than {@code or}ed: an {@code or} spanning both tables cannot be served by an
-   * index, so Postgres reads every row of the stage and filters afterwards. Split, the second
-   * branch uses {@code dataelement_uid_key}.
+   * Unioned rather than {@code or}ed, which measured faster on a program with thousands of data
+   * elements: an {@code or} spanning both tables leaves Postgres pairing the stage's rows with the
+   * payload's data elements and discarding the non-matches with a join filter, then sorting to
+   * deduplicate.
    *
    * <p>{@code = any(array)} rather than {@code in (...)} so that an empty data element array stays
    * valid SQL matching nothing, instead of the syntax error {@code in ()} would be.
