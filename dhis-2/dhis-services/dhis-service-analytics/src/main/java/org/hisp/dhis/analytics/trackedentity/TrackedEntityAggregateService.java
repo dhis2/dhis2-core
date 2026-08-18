@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getAggregateGridHeaders;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 
@@ -58,11 +59,8 @@ import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
-import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OrgUnitQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.DisplayProperty;
@@ -240,34 +238,37 @@ public class TrackedEntityAggregateService {
   }
 
   /**
-   * Rejects dimensions the aggregate query cannot group by. Such a dimension would otherwise be
-   * dropped from the headers and the {@code GROUP BY} while its restriction still applies, giving
-   * back an ungrouped total that looks like a valid answer. {@link
+   * Rejects a dimension the query is asked to group by but cannot group by. Dropping it silently
+   * would answer with an ungrouped total that looks like a valid grouped answer. {@link
    * AggregateQueryBuilder#getGroupedDimensionKeys} decides what is grouped.
    *
-   * <p>A grouped org unit must also be the registration org unit. {@link OrgUnitQueryBuilder#isOu}
-   * matches an org unit at any scope, so a program or stage scoped {@code ou} looks groupable here
-   * but has no column on the tracked entity table and would only fail in the database.
+   * <p>A dimension carrying items, such as {@code ou:USER_ORGUNIT} or {@code
+   * programUid.PROGRAM_STATUS:ACTIVE}, is a restriction: it is applied to the query and is grouped
+   * only when it can be, which is the same contract as the {@code filter} parameter. A dimension
+   * without items can only be a request to group by, so it must be groupable.
    */
   private void validateDimensions(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
     Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
 
     for (String dimension : contextParams.getCommonRaw().getDimension()) {
+      if (hasItems(dimension)) {
+        continue;
+      }
+
       if (!groupedKeys.contains(AggregateQueryBuilder.canonicalDimensionKey(dimension))) {
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7258, getDimensionFromParam(dimension)));
       }
     }
+  }
 
-    for (DimensionIdentifier<DimensionParam> dimension :
-        contextParams.getCommonParsed().getDimensionIdentifiers()) {
-      if (groupedKeys.contains(dimension.getKey())
-          && OrgUnitQueryBuilder.isOu(dimension)
-          && !dimension.isTeDimension()) {
-        throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7258, dimension.getKey()));
-      }
-    }
+  /**
+   * Whether a raw {@code dimension} parameter carries items, that is whether it has the {@code
+   * dimension:items} form of {@code ou:USER_ORGUNIT}.
+   */
+  private static boolean hasItems(String dimension) {
+    return dimension.contains(DIMENSION_NAME_SEP);
   }
 
   /**

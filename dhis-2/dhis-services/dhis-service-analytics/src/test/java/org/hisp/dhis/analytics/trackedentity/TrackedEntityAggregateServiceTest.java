@@ -87,6 +87,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -347,6 +349,111 @@ class TrackedEntityAggregateServiceTest {
     assertEquals(ErrorCode.E7258, ex.getErrorCode());
   }
 
+  /**
+   * A dimension carrying items is a restriction: it is applied to the query and produces no column,
+   * so it is not a request to group by and must be accepted even when it could not be grouped.
+   */
+  @Test
+  void getGridAppliesARestrictionOnAStageScopedOrgUnitWithoutGroupingByIt() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("A03MvHHogjR.ou:USER_ORGUNIT"), List.of(stubStageScopedOuDimension()));
+    SqlRowSet rowSet = fakeRowSet(new String[] {"value"}, List.<Object[]>of(new Object[] {19018}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(List.of("value"), grid.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(1, grid.getHeight());
+  }
+
+  /** A restriction on an event data element is applied alongside the grouped dimensions. */
+  @Test
+  void getGridAppliesARestrictionOnAnEventDataElementWithoutGroupingByIt() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("ou", "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU:GT:10"),
+            List.of(stubOuDimension("ou1"), stubDataElementDimension("UXz7xuGCEhU")));
+    SqlRowSet rowSet =
+        fakeRowSet(new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(
+        List.of("ou", "value"), grid.getHeaders().stream().map(GridHeader::getName).toList());
+  }
+
+  /**
+   * An enrollment or event level static dimension has no column on the tracked entity table, so it
+   * cannot be grouped even though it carries no program or stage prefix.
+   */
+  @Test
+  void getGridRejectsAnEnrollmentLevelStaticDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("enrollmentdate"), List.of(stubStaticDimension(StaticDimension.ENROLLMENTDATE)));
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
+    assertEquals(ErrorCode.E7258, ex.getErrorCode());
+  }
+
+  /** The tracked entity table has no period column, so a period dimension cannot be grouped. */
+  @Test
+  void getGridRejectsAPeriodDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(Set.of("pe"), List.of(stubPeriodDimension()));
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
+    assertEquals(ErrorCode.E7258, ex.getErrorCode());
+  }
+
+  /**
+   * Every static dimension backed by a tracked entity table column stays groupable. {@code created}
+   * and the display name fields have no {@code TrackedEntityStaticField} on their {@link
+   * StaticDimension}, so a check based on that field alone would reject them.
+   */
+  @ParameterizedTest
+  @EnumSource(
+      value = StaticDimension.class,
+      names = {
+        "TRACKEDENTITY",
+        "GEOMETRY",
+        "LONGITUDE",
+        "LATITUDE",
+        "OUNAME",
+        "OUCODE",
+        "OUNAMEHIERARCHY",
+        "CREATED",
+        "LASTUPDATED",
+        "CREATEDBYDISPLAYNAME",
+        "LASTUPDATEDBYDISPLAYNAME"
+      })
+  void getGridGroupsByEveryTrackedEntityStaticField(StaticDimension staticDimension) {
+    String column = staticDimension.getHeaderName();
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(Set.of(column), List.of(stubStaticDimension(staticDimension)));
+    SqlRowSet rowSet =
+        fakeRowSet(new String[] {column, "value"}, List.<Object[]>of(new Object[] {"x", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(
+        List.of(column, "value"), grid.getHeaders().stream().map(GridHeader::getName).toList());
+  }
+
   @Test
   void getGridExplainRejectsDimensionTheQueryCannotGroupBy() {
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
@@ -399,6 +506,50 @@ class TrackedEntityAggregateServiceTest {
     assertEquals(
         List.of("lastupdated", "value"),
         grid.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(1, grid.getHeight());
+  }
+
+  /**
+   * {@code ENROLLMENT_OU} is an exact keyword alias of the registration org unit, resolved to
+   * {@code ou} while the request is parsed. The grouped set has to see the resolved dimension, or
+   * the two spellings of the same dimension behave differently.
+   */
+  @Test
+  void getGridGroupsByOuRequestedWithTheEnrollmentOuKeyword() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(Set.of("ENROLLMENT_OU"), List.of(stubOuDimension("ou1")));
+    SqlRowSet rowSet =
+        fakeRowSet(new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(
+        List.of("ou", "value"), grid.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(1, grid.getHeight());
+  }
+
+  /** {@code enrollmentouname} is an exact keyword alias of {@code ouname}. */
+  @Test
+  void getGridGroupsByOunameRequestedWithTheEnrollmentOunameKeyword() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("enrollmentouname"), List.of(stubStaticDimension(StaticDimension.OUNAME)));
+    SqlRowSet rowSet =
+        fakeRowSet(
+            new String[] {"ouname", "value"}, List.<Object[]>of(new Object[] {"Ngelehun CHC", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(
+        List.of("ouname", "value"), grid.getHeaders().stream().map(GridHeader::getName).toList());
     assertEquals(1, grid.getHeight());
   }
 
@@ -552,6 +703,20 @@ class TrackedEntityAggregateServiceTest {
     DimensionParam dimensionParam =
         DimensionParam.ofObject(
             staticDimension.name(), DimensionParamType.DIMENSIONS, UID, List.of());
+    return DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  private DimensionIdentifier<DimensionParam> stubPeriodDimension() {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of()),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of());
     return DimensionIdentifier.of(
             ElementWithOffset.emptyElementWithOffset(),
             ElementWithOffset.emptyElementWithOffset(),
