@@ -40,6 +40,7 @@ import java.util.function.BinaryOperator;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
@@ -379,6 +380,102 @@ public non-sealed interface SystemSettings extends Settings {
 
   default Date getLastSuccessfulLatestAnalyticsPartitionUpdate() {
     return asDate("keyLastSuccessfulLatestAnalyticsPartitionUpdate", new Date(0L));
+  }
+
+  /**
+   * Per-{@link AnalyticsTableType} counterpart of {@link
+   * #getLastSuccessfulAnalyticsTablesUpdate()}. Only registered for the table types that support a
+   * latest partition (see {@link AnalyticsTableType#isLatestPartition()}) since those are the only
+   * ones a latest-partition update ever needs to read a per-type clock for.
+   */
+  static String keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType type) {
+    return "keyLastSuccessfulAnalyticsTablesUpdate." + type.name();
+  }
+
+  /**
+   * Per-{@link AnalyticsTableType} counterpart of {@link
+   * #getLastSuccessfulLatestAnalyticsPartitionUpdate()}.
+   */
+  static String keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType type) {
+    return "keyLastSuccessfulLatestAnalyticsPartitionUpdate." + type.name();
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdateDataValue() {
+    return asDate(
+        keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE), new Date(0L));
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdateCompleteness() {
+    return asDate(
+        keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.COMPLETENESS), new Date(0L));
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdateEvent() {
+    return asDate(keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT), new Date(0L));
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdateTrackedEntityInstanceEvents() {
+    return asDate(
+        keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS),
+        new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdateDataValue() {
+    return asDate(
+        keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE),
+        new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdateCompleteness() {
+    return asDate(
+        keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.COMPLETENESS),
+        new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdateEvent() {
+    return asDate(
+        keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT), new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdateTrackedEntityInstanceEvents() {
+    return asDate(
+        keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS),
+        new Date(0L));
+  }
+
+  /**
+   * Typed, per-type read access to {@link #getLastSuccessfulAnalyticsTablesUpdateDataValue()} and
+   * its siblings, dispatching on {@code type}. Not itself a registered setting (it takes an
+   * argument, so it is invisible to the reflective default-value/key discovery that {@link
+   * #keysWithDefaults()} relies on) &mdash; it only reads the already-registered per-type getters
+   * above. A type with no registered per-type key (i.e. {@link
+   * AnalyticsTableType#isLatestPartition()} is {@code false}) defaults to the epoch, same as an
+   * unset registered key would.
+   */
+  default Date getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType type) {
+    return switch (type) {
+      case DATA_VALUE -> getLastSuccessfulAnalyticsTablesUpdateDataValue();
+      case COMPLETENESS -> getLastSuccessfulAnalyticsTablesUpdateCompleteness();
+      case EVENT -> getLastSuccessfulAnalyticsTablesUpdateEvent();
+      case TRACKED_ENTITY_INSTANCE_EVENTS ->
+          getLastSuccessfulAnalyticsTablesUpdateTrackedEntityInstanceEvents();
+      default -> new Date(0L);
+    };
+  }
+
+  /**
+   * Per-type counterpart of {@link #getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType)}.
+   */
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType type) {
+    return switch (type) {
+      case DATA_VALUE -> getLastSuccessfulLatestAnalyticsPartitionUpdateDataValue();
+      case COMPLETENESS -> getLastSuccessfulLatestAnalyticsPartitionUpdateCompleteness();
+      case EVENT -> getLastSuccessfulLatestAnalyticsPartitionUpdateEvent();
+      case TRACKED_ENTITY_INSTANCE_EVENTS ->
+          getLastSuccessfulLatestAnalyticsPartitionUpdateTrackedEntityInstanceEvents();
+      default -> new Date(0L);
+    };
   }
 
   default Date getLastSuccessfulResourceTablesUpdate() {
