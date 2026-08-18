@@ -160,7 +160,7 @@ class DefaultAnalyticsTableGeneratorTest {
     // - writing it would be silently dropped by SystemSettingsService.put(), so it must not be
     // attempted at all.
     verify(settingsService, never())
-        .put(eq("keyLastSuccessfulAnalyticsTablesUpdate.ENROLLMENT"), any());
+        .put(eq("keyLastSuccessfulAnalyticsTablesUpdateEnrollment"), any());
   }
 
   @Test
