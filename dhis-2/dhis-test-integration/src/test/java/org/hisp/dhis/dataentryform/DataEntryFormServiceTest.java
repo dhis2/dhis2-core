@@ -159,7 +159,8 @@ class DataEntryFormServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testPrepareDataEntryFormForEntryWithBooleanFieldAndBracketedStoredValue() {
-    DataElement booleanDataElement = createDataElement('Z', ValueType.BOOLEAN, AggregationType.NONE);
+    DataElement booleanDataElement =
+        createDataElement('Z', ValueType.BOOLEAN, AggregationType.NONE);
     dataElementService.addDataElement(booleanDataElement);
 
     DataSet dataSet = createDataSet('Z', periodType);
