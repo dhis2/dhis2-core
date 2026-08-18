@@ -48,6 +48,19 @@ public interface ProgramNotificationTemplateService {
    */
   ProgramNotificationTemplate getByUidCached(String uid);
 
+  /**
+   * Evicts the given template from the {@link #getByUidCached(String)} cache. Must be called
+   * whenever a template is modified outside of {@link #save}/{@link #update}/{@link #delete} (e.g.
+   * through the metadata import pipeline), otherwise stale templates keep being used when sending
+   * notifications.
+   *
+   * <p>When called within an active transaction the eviction is deferred until after that
+   * transaction commits, so it never runs before the write is visible to other connections. This
+   * avoids re-caching a stale template that a concurrent reader could otherwise fetch during the
+   * eviction-inside-transaction window. Outside a transaction the eviction happens immediately.
+   */
+  void invalidateCache(String uid);
+
   void save(ProgramNotificationTemplate programNotificationTemplate);
 
   void update(ProgramNotificationTemplate programNotificationTemplate);

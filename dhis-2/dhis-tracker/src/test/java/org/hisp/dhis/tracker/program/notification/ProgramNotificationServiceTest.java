@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.program.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -515,6 +516,82 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     when(programNotificationInstanceService.getProgramNotificationInstances(any()))
         .thenReturn(Collections.singletonList(programNotificationInstaceForToday));
 
+    when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+
+    programNotificationService.sendScheduledNotifications(JobProgress.noop());
+
+    assertEquals(1, sentProgramMessages.size());
+  }
+
+  @Test
+  void shouldUseLiveTemplateInsteadOfStaleSnapshotWhenTemplateStillExists() {
+    sentProgramMessages.clear();
+
+    // Snapshot was frozen when the template still delivered on EMAIL...
+    ProgramNotificationTemplate staleTemplate =
+        createProgramNotificationTemplate(
+            TEMPLATE_NAME,
+            0,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.PROGRAM_ATTRIBUTE);
+    staleTemplate.setUid(notificationTemplate);
+    staleTemplate.setRecipientProgramAttribute(trackedEntityAttribute);
+    staleTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
+    programNotificationInstaceForToday.setProgramNotificationTemplateSnapshot(
+        NotificationTemplateMapper.toProgramNotificationTemplateSnapshot(staleTemplate));
+
+    // ...but the template was later edited to deliver on SMS only.
+    long templateId = 999L;
+    programNotificationInstaceForToday.setProgramNotificationTemplateId(templateId);
+    ProgramNotificationTemplate liveTemplate =
+        createProgramNotificationTemplate(
+            TEMPLATE_NAME,
+            0,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.PROGRAM_ATTRIBUTE);
+    liveTemplate.setUid(notificationTemplate);
+    liveTemplate.setRecipientProgramAttribute(trackedEntityAttribute);
+    liveTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.SMS));
+    when(notificationTemplateService.get(templateId)).thenReturn(liveTemplate);
+
+    when(programNotificationInstanceService.getProgramNotificationInstances(any()))
+        .thenReturn(Collections.singletonList(programNotificationInstaceForToday));
+    when(programMessageService.sendMessages(anyList()))
+        .thenAnswer(
+            invocation -> {
+              sentProgramMessages.addAll((List<ProgramMessage>) invocation.getArguments()[0]);
+              return new BatchResponseStatus(Collections.emptyList());
+            });
+    when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+
+    programNotificationService.sendScheduledNotifications(JobProgress.noop());
+
+    assertEquals(1, sentProgramMessages.size());
+    ProgramMessage programMessage = sentProgramMessages.iterator().next();
+    // The edited (live) template wins: SMS is used and EMAIL is no longer delivered.
+    assertTrue(programMessage.getDeliveryChannels().contains(DeliveryChannel.SMS));
+    assertFalse(programMessage.getDeliveryChannels().contains(DeliveryChannel.EMAIL));
+    assertTrue(programMessage.getRecipients().getPhoneNumbers().contains(ATT_PHONE_NUMBER));
+    assertTrue(programMessage.getRecipients().getEmailAddresses().isEmpty());
+  }
+
+  @Test
+  void shouldFallBackToSnapshotWhenTemplateWasDeleted() {
+    sentProgramMessages.clear();
+
+    // No live template id -> template deleted; the snapshot must still be usable.
+    programNotificationInstaceForToday.setProgramNotificationTemplateId(null);
+
+    when(programNotificationInstanceService.getProgramNotificationInstances(any()))
+        .thenReturn(Collections.singletonList(programNotificationInstaceForToday));
+    when(programMessageService.sendMessages(anyList()))
+        .thenAnswer(
+            invocation -> {
+              sentProgramMessages.addAll((List<ProgramMessage>) invocation.getArguments()[0]);
+              return new BatchResponseStatus(Collections.emptyList());
+            });
     when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
 
