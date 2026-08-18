@@ -30,12 +30,16 @@
 package org.hisp.dhis.analytics.trackedentity.aggregate;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsTrackedEntityActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Groups e2e tests for the validation rules of the "/trackedEntities/aggregate" endpoint. Error
@@ -68,7 +72,7 @@ public class TrackedEntityAggregateValidationTest extends AnalyticsApiTest {
   public void aggregateByEnrollmentDateDimensionShouldFail() {
     // Given
     QueryParamsBuilder params =
-        new QueryParamsBuilder().add("dimension=IpHINAT79UW.ENROLLMENT_DATE:2021");
+        new QueryParamsBuilder().add("dimension=IpHINAT79UW.ENROLLMENT_DATE");
 
     // When
     ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
@@ -82,13 +86,154 @@ public class TrackedEntityAggregateValidationTest extends AnalyticsApiTest {
   public void aggregateByStageScopedOrgUnitDimensionShouldFail() {
     // Given
     QueryParamsBuilder params =
-        new QueryParamsBuilder().add("dimension=IpHINAT79UW.A03MvHHogjR.ou:USER_ORGUNIT");
+        new QueryParamsBuilder().add("dimension=IpHINAT79UW.A03MvHHogjR.ou");
 
     // When
     ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
     assertGroupByNotSupported(response, "IpHINAT79UW.A03MvHHogjR.ou");
+  }
+
+  /**
+   * {@code ENROLLMENT_OU} is a keyword alias of the registration org unit, so it must group exactly
+   * like {@code ou}. It is resolved to {@code ou} while the request is parsed, and the grouped set
+   * has to see the resolved dimension.
+   */
+  @Test
+  public void aggregateByEnrollmentOuKeywordShouldGroupByRegistrationOrgUnit() {
+    // Given
+    QueryParamsBuilder alias = new QueryParamsBuilder().add("dimension=ENROLLMENT_OU:USER_ORGUNIT");
+    QueryParamsBuilder canonical = new QueryParamsBuilder().add("dimension=ou:USER_ORGUNIT");
+
+    // When
+    ApiResponse aliasResponse = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, alias);
+    ApiResponse canonicalResponse = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, canonical);
+
+    // Then
+    aliasResponse
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("ou"))
+        .body("headers[1].name", equalTo("value"));
+
+    assertEquals(
+        canonicalResponse.extractList("rows"),
+        aliasResponse.extractList("rows"),
+        "the alias and the canonical dimension must return the same grouped rows");
+  }
+
+  /** {@code enrollmentouname} is a keyword alias of {@code ouname}. */
+  @Test
+  public void aggregateByEnrollmentOunameKeywordShouldGroupByOrgUnitName() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder().add("dimension=enrollmentouname").add("pageSize=5");
+
+    // When
+    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("ouname"))
+        .body("headers[1].name", equalTo("value"));
+  }
+
+  /**
+   * A dimension carrying items restricts the query. Enrollment and event scoped dimensions have no
+   * column on the tracked entity table, so they restrict without adding a column, exactly as the
+   * {@code filter} parameter does.
+   */
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "A03MvHHogjR.ou:USER_ORGUNIT",
+        "A03MvHHogjR.EVENT_DATE:THIS_YEAR",
+        "A03MvHHogjR.SCHEDULED_DATE:THIS_YEAR",
+        "A03MvHHogjR.EVENT_STATUS:ACTIVE",
+        "A03MvHHogjR.a3kGcGDCuk6:GT:10",
+        "IpHINAT79UW.ENROLLMENT_OU:USER_ORGUNIT",
+        "IpHINAT79UW.ENROLLMENT_DATE:THIS_YEAR",
+        "IpHINAT79UW.INCIDENT_DATE:THIS_YEAR",
+        "IpHINAT79UW.PROGRAM_STATUS:ACTIVE"
+      })
+  public void aggregateByScopedDimensionWithItemsShouldRestrictWithoutAddingAColumn(
+      String dimension) {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("dimension=" + dimension);
+
+    // When
+    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(1))
+        .body("headers[0].name", equalTo("value"))
+        .body("rows", hasSize(1));
+  }
+
+  /** A groupable dimension with items is both grouped and restricted. */
+  @Test
+  public void aggregateByStaticDimensionWithItemsShouldGroupAndRestrict() {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("dimension=LAST_UPDATED:LAST_5_YEARS");
+
+    // When
+    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(2))
+        .body("headers[0].name", equalTo("lastupdated"))
+        .body("headers[1].name", equalTo("value"));
+  }
+
+  /**
+   * An enrollment or event level dimension has no column on the tracked entity table even when it
+   * is requested without a program or stage prefix, so it cannot be grouped. These used to reach
+   * the database and fail there on the missing column.
+   */
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "enrollmentdate",
+        "enddate",
+        "incidentdate",
+        "occurreddate",
+        "eventdate",
+        "scheduleddate",
+        "enrollmentstatus",
+        "programstatus",
+        "eventstatus"
+      })
+  public void aggregateByUnprefixedEnrollmentLevelDimensionShouldFail(String dimension) {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("dimension=" + dimension);
+
+    // When
+    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    assertGroupByNotSupported(response, dimension);
+  }
+
+  /** The tracked entity table has no period column, so a period dimension cannot be grouped. */
+  @Test
+  public void aggregateByPeriodDimensionShouldFail() {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("dimension=pe");
+
+    // When
+    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    assertGroupByNotSupported(response, "pe");
   }
 
   private void assertGroupByNotSupported(ApiResponse response, String dimension) {
