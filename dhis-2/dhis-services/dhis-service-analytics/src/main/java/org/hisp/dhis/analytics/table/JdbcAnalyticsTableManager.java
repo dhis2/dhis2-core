@@ -847,7 +847,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    *
    * @return sql statement fraction of statistic basic values for the outlier identification.
    */
-  private String getOutliersJoinStatement() {
+  String getOutliersJoinStatement() {
+    // Outlier stats are only meaningful for numeric data elements; text/date/boolean values
+    // (e.g. LONG_TEXT) must never be fed into the double precision stats below.
+    String numericValueTypes =
+        quotedCommaDelimitedString(ObjectUtils.asStringList(ValueType.NUMERIC_TYPES));
     // spotless:off
     return "left join (select t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, t3.attributeoptioncomboid, " +
         // median of absolute deviations "mad" (median(xi - median(xi)))
@@ -879,8 +883,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         "percentile_cont(0.5) " +
         "within group (order by dv1.value::double precision) as percentile_middle_value " +
         "from datavalue dv1 " +
-        // Only numeric values (value is varchar or string) can be used for stats calculation.
-        "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' " +
+        "inner join dataelement de1 on dv1.dataelementid = de1.dataelementid " +
+        // Only numeric data elements with a parseable numeric value can be used for stats
+        // calculation; text-typed values (e.g. LONG_TEXT) must be excluded regardless of
+        // whether their content happens to look numeric.
+        "where de1.valuetype in (" + numericValueTypes + ") " +
+        "and dv1.value ~ " + NUMERIC_REGEXP + " " +
         "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, " +
         "dv1.attributeoptioncomboid) t1 " +
         "join " +
@@ -893,8 +901,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         "dv1.attributeoptioncomboid as attributeoptioncomboid, " +
         "dv1.value, dv1.periodid " +
         "from datavalue dv1 " +
-        // Only numeric values (varchars) can be used for stats calculation.
-        "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' " +
+        "inner join dataelement de1 on dv1.dataelementid = de1.dataelementid " +
+        // Only numeric data elements with a parseable numeric value can be used for stats
+        // calculation; text-typed values (e.g. LONG_TEXT) must be excluded regardless of
+        // whether their content happens to look numeric.
+        "where de1.valuetype in (" + numericValueTypes + ") " +
+        "and dv1.value ~ " + NUMERIC_REGEXP + " " +
         "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, " +
         "dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 " +
         "on t1.sourceid = t2.sourceid " +
