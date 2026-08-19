@@ -91,6 +91,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "categoryoptiongroup")
 @Setter
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0)
 public class CategoryOptionGroup extends BaseMetadataObject
     implements DimensionalItemObject, IdentifiableObject {
@@ -108,6 +109,7 @@ public class CategoryOptionGroup extends BaseMetadataObject
   @Column(name = "shortname", nullable = false, unique = true, length = 50)
   private String shortName;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
