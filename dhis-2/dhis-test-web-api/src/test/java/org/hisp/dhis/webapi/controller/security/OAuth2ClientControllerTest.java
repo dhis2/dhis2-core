@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -561,8 +560,7 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testExplicitProofKeyOptOutStillAccepted() {
-    // require-proof-key:false remains a supported, logged opt-out for legacy integrations.
+  void testExplicitProofKeyOptOutRejected() {
     String body =
         """
         {
@@ -575,12 +573,7 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
           "clientSettings":"{\\"@class\\":\\"java.util.Collections$UnmodifiableMap\\",\\"settings.client.require-proof-key\\":false,\\"settings.client.require-authorization-consent\\":true}"
         }
         """;
-    assertStatus(HttpStatus.CREATED, POST("/oAuth2Clients", body));
-
-    RegisteredClient registeredClient = clientService.findByClientId("client-proof-key-optout");
-    assertNotNull(registeredClient);
-    assertFalse(registeredClient.getClientSettings().isRequireProofKey());
-    assertTrue(registeredClient.getClientSettings().isRequireAuthorizationConsent());
+    assertStatus(HttpStatus.CONFLICT, POST("/oAuth2Clients", body));
   }
 
   private String createClient(String clientId, String name) {
