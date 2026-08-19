@@ -514,7 +514,9 @@ public class Dhis2OAuth2ClientServiceImpl
    * uses, and must carry both {@code settings.client.require-proof-key} and {@code
    * settings.client.require-authorization-consent} as booleans — Spring AS unboxes these on every
    * authorize call, so a partial map would NPE at runtime. {@code
-   * settings.client.require-proof-key} must be {@code true}; disabling PKCE is rejected.
+   * settings.client.require-proof-key} must be {@code true} for {@code authorization_code}
+   * clients; disabling PKCE is rejected. {@code client_credentials} clients (the DCR system
+   * registrar) are not subject to this check.
    */
   private void validateSettings(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
     String clientSettings = entity.getClientSettings();
@@ -526,7 +528,12 @@ public class Dhis2OAuth2ClientServiceImpl
                 settings, ConfigurationSettingNames.Client.REQUIRE_PROOF_KEY, errors);
         checkRequiredBooleanSetting(
             settings, ConfigurationSettingNames.Client.REQUIRE_AUTHORIZATION_CONSENT, errors);
-        if (Boolean.FALSE.equals(proofKey)) {
+        // PKCE applies to the authorization_code grant only. The DCR system registrar is
+        // client_credentials and is created with the SAS builder default (false on SAS 1.x);
+        // a full metadata export/import must be able to re-import it.
+        if (Boolean.FALSE.equals(proofKey)
+            && getAuthorizationGrantTypesSet(entity)
+                .contains(AuthorizationGrantType.AUTHORIZATION_CODE)) {
           errors.accept(
               new ErrorReport(
                   Dhis2OAuth2Client.class,
