@@ -2895,8 +2895,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       if (cteDef.isProgramStage()) {
         addProgramStageJoins(builder, itemUid, cteDef);
-      } else if (cteDef.isExists()) {
-        addExistsJoin(builder, cteDef);
       } else if (cteDef.isProgramIndicator()) {
         addProgramIndicatorJoin(builder, itemUid, cteDef, cteContext);
       } else if (cteDef.isFilter()) {
@@ -2919,11 +2917,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         builder.leftJoin(itemUid, alias, tableAlias -> joinCondition);
       }
     }
-  }
-
-  private void addExistsJoin(SelectBuilder builder, CteDefinition cteDef) {
-    builder.leftJoin(
-        cteDef.getAlias(), "ee", tableAlias -> tableAlias + ".enrollment = ax.enrollment");
   }
 
   private void addProgramIndicatorJoin(
@@ -3017,11 +3010,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         hasRowContext,
         filterBuilder.hasNonNvFilter(item),
         shouldProjectValueName(item));
-
-    // If row context is needed, we add an extra "exists" CTE for event checks.
-    if (hasRowContext) {
-      addExistsCte(cteContext, item, eventTableName);
-    }
   }
 
   /**
@@ -3583,30 +3571,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("outerAdditionalCols", outerAdditionalCols);
 
     return new StringSubstitutor(values).replace(template);
-  }
-
-  /**
-   * Adds an "exists" CTE for event checks.
-   *
-   * @param cteContext the {@link CteContext} to which the new CTE definition(s) will be added
-   * @param item the {@link QueryItem} containing program-stage details
-   * @param eventTableName the event table name
-   */
-  private void addExistsCte(CteContext cteContext, QueryItem item, String eventTableName) {
-    String template =
-        """
-        select distinct enrollment
-        from ${eventTableName}
-        where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'
-        """;
-
-    Map<String, String> values = new HashMap<>();
-    values.put("eventTableName", eventTableName);
-    values.put("programStageUid", item.getProgramStage().getUid());
-
-    String existCte = new StringSubstitutor(values).replace(template);
-
-    cteContext.addExistsCte(item.getProgramStage(), item, existCte);
   }
 
   /**

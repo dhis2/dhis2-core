@@ -75,6 +75,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_JMX_ENABLED;
 
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -308,6 +309,11 @@ public final class DatabasePoolUtils {
     // Configure HikariCP metrics if enabled
     if (dhisConfig.isEnabled(MONITORING_DBPOOL_ENABLED)) {
       hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
+    }
+
+    // Register HikariCP pool MBeans (HikariConfig/HikariPool) if JMX monitoring is enabled
+    if (dhisConfig.isEnabled(MONITORING_JMX_ENABLED)) {
+      hc.setRegisterMbeans(true);
     }
 
     return new HikariDataSource(hc);

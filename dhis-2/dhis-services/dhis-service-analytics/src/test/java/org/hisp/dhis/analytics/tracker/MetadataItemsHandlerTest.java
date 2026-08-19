@@ -838,6 +838,55 @@ class MetadataItemsHandlerTest {
     }
 
     @Test
+    @DisplayName(
+        "should include both the bare item id and the stage-prefixed id for a program-stage item, for backwards compatibility")
+    void shouldIncludeBareItemIdAlongsideStagePrefixedIdForNonQueryRequest() {
+      // Given
+      Grid grid = new ListGrid();
+
+      ProgramStage programStage = createProgramStage('S', programA);
+
+      QueryItem queryItem =
+          new QueryItem(
+              dataElementA,
+              null,
+              dataElementA.getValueType(),
+              dataElementA.getAggregationType(),
+              null);
+      queryItem.setProgramStage(programStage);
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      String prefixedKey = programStage.getUid() + "." + dataElementA.getUid();
+      assertTrue(
+          items.containsKey(prefixedKey),
+          "Items should contain the stage-prefixed key '" + prefixedKey + "'");
+      assertTrue(
+          items.containsKey(dataElementA.getUid()),
+          "Items should also contain the bare item id '"
+              + dataElementA.getUid()
+              + "' for backwards compatibility");
+    }
+
+    @Test
     @DisplayName("should include legend metadata for non-query request")
     void shouldIncludeLegendMetadataForNonQueryRequest() {
       // Given
