@@ -82,7 +82,7 @@ final class OrgTreeOutput {
         ou -> {
           ou.addString("id", entry.id().getValue());
           ou.addString("displayName", entry.displayName());
-          ou.addString("path", entry.path());
+          ou.addString("path", entry.path().toString());
           ou.addNumber("level", entry.level());
           ou.addBoolean("leaf", entry.leaf());
         });

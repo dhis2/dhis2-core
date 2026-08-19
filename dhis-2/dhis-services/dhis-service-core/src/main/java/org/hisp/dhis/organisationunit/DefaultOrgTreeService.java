@@ -31,10 +31,12 @@ package org.hisp.dhis.organisationunit;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -74,9 +76,11 @@ public class DefaultOrgTreeService implements OrgTreeService {
     int total = store.countTotalMatches(params);
     Set<OrgUnitPath> ancestors = OrgUnitPath.ofMissingAncestors(matches);
     Locale locale = params.locale();
+    Stream<OrgTreeEntry> entries =
+        store.streamEntries(locale, matches.stream().map(OrgUnitPath::toUID));
+    if (OrgTree.isHierarchical(matches))
+      entries = OrgTree.sortedHierarchical(entries.toList()).stream();
     return new OrgTree(
-        null,
-        store.streamEntries(locale, matches.stream().map(OrgUnitPath::toUID)),
-        store.streamEntries(locale, ancestors.stream().map(OrgUnitPath::toUID)));
+        null, entries, store.streamEntries(locale, ancestors.stream().map(OrgUnitPath::toUID)));
   }
 }

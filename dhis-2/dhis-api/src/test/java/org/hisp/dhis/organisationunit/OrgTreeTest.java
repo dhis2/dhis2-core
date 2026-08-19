@@ -29,35 +29,46 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.common.UID;
+import org.junit.jupiter.api.Test;
 
-/**
- * API to support OU tree searching and fetching.
- *
- * @since 2.44
- * @author Jan Bernitt
- */
-public interface OrgTreeStore {
+class OrgTreeTest {
 
-  /**
-   * @param params criteria of OUs to include in the matches
-   * @return The paths of all matches to the query params in random order
-   */
-  List<OrgUnitPath> queryPageMatches(OrgTreeParams params);
+  @Test
+  void testSortedHierarchical() {
+    assertSorted(List.of("a", "a/b", "a/c", "b", "b/a"), List.of("a", "b", "a/b", "a/c", "b/a"));
+    assertSorted(
+        List.of("a", "a/b", "a/c", "b", "b/a", "b/b"),
+        List.of("a", "b", "a/b", "a/c", "b/a", "b/b"));
+    assertSorted(
+        List.of("a", "a/b", "a/b/x", "a/c", "b", "b/a", "c", "c/t"),
+        List.of("a", "b", "c", "a/b", "a/c", "b/a", "c/t", "a/b/x"));
+  }
 
-  /**
-   * @param params criteria of OUs to include in the count
-   * @return number of total rows matching the given criteria
-   */
-  int countTotalMatches(OrgTreeParams params);
+  private void assertSorted(List<String> expected, List<String> actual) {
+    List<OrgTree.OrgTreeEntry> actualEntries = namesToEntries(actual);
+    List<OrgTree.OrgTreeEntry> actualSorted = OrgTree.sortedHierarchical(actualEntries);
+    assertEquals(expected, actualSorted.stream().map(OrgTree.OrgTreeEntry::displayName).toList());
+  }
 
-  /**
-   * @param locale to use when resolving the display name
-   * @param orgUnits of the OU to fetch
-   * @return A stream of entries for the given IDs sorted by level first, display name second
-   */
-  Stream<OrgTree.OrgTreeEntry> streamEntries(Locale locale, Stream<UID> orgUnits);
+  private static List<OrgTree.OrgTreeEntry> namesToEntries(List<String> paths) {
+    return paths.stream().map(OrgTreeTest::nameToEntry).toList();
+  }
+
+  private static OrgTree.OrgTreeEntry nameToEntry(String name) {
+    OrgUnitPath path = lettersToPath(name);
+    return new OrgTree.OrgTreeEntry(path, name, path.length(), false);
+  }
+
+  private static OrgUnitPath lettersToPath(String path) {
+    return OrgUnitPath.of(
+        "/"
+            + Stream.of(path.split("/"))
+                .map(letter -> letter + "1234567890")
+                .collect(Collectors.joining("/")));
+  }
 }

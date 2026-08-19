@@ -67,28 +67,23 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
     String sql =
         """
       SELECT
-          ou.uid,
-          ou.name,
-          ou.hierarchylevel,
           ou.path,
+          ou.name as displayName,
+          ou.hierarchylevel as level,
           NOT EXISTS (
               SELECT 1
               FROM organisationunit child
               WHERE child.parentid = ou.organisationunitid
           ) AS leaf
       FROM organisationunit ou
-      WHERE ou.uid = ANY(:ou)""";
-    return createQuery(sql).setParameter("ou", orgUnits).stream(HibernateOrgTreeStore::entry)
-        .sorted();
+      WHERE ou.uid = ANY(:ou)
+      ORDER BY level, displayName""";
+    return createQuery(sql).setParameter("ou", orgUnits).stream(HibernateOrgTreeStore::entry);
   }
 
   private static OrgTreeEntry entry(SQL.Row row) {
     return new OrgTreeEntry(
-        UID.of(row.getString(0)),
-        row.getString(1),
-        row.getInteger(2),
-        row.getString(3),
-        row.getBoolean(4));
+        OrgUnitPath.of(row.getString(0)), row.getString(1), row.getInteger(2), row.getBoolean(3));
   }
 
   private QueryBuilder createQuery(@Language("sql") String sql) {
