@@ -514,9 +514,9 @@ public class Dhis2OAuth2ClientServiceImpl
    * uses, and must carry both {@code settings.client.require-proof-key} and {@code
    * settings.client.require-authorization-consent} as booleans — Spring AS unboxes these on every
    * authorize call, so a partial map would NPE at runtime. {@code
-   * settings.client.require-proof-key} must be {@code true} for {@code authorization_code}
-   * clients; disabling PKCE is rejected. {@code client_credentials} clients (the DCR system
-   * registrar) are not subject to this check.
+   * settings.client.require-proof-key} must be {@code true} for {@code authorization_code} clients;
+   * disabling PKCE is rejected. {@code client_credentials} clients (the DCR system registrar) are
+   * not subject to this check.
    */
   private void validateSettings(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
     String clientSettings = entity.getClientSettings();
