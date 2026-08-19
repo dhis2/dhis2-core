@@ -370,8 +370,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
         () -> assertNoErrors(importReport),
         () -> assertHasOnlyWarnings(importReport, E1308),
         () ->
-            assertContainsOnly(
-                List.of("ASSIGNED"), getValueForAssignedDataElement("D9PbzJY8bZZ")));
+            assertContainsOnly(List.of("ASSIGNED"), getValueForAssignedDataElement("D9PbzJY8bZZ")));
   }
 
   /**
@@ -392,9 +391,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
     Assertions.assertAll(
         () -> assertNoErrors(importReport),
-        () ->
-            assertIsEmpty(
-                getValueForDataElement("D9PbzJY8bZZ", dataElementNotInStage.getUid())));
+        () -> assertIsEmpty(getValueForDataElement("D9PbzJY8bZZ", dataElementNotInStage.getUid())));
   }
 
   private TrackerObjects getEvent(String eventUid, String occurredDate, String value)
