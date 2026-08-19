@@ -71,13 +71,13 @@ public record OrgUnitPath(@CheckForNull OrgUnitPath parent, @Nonnull Text uid) {
     if (path.charAt(0) != '/') throw new IllegalArgumentException("Path must start with a slash");
     int len = path.length();
     if (len % 12 != 0)
-      throw new IllegalArgumentException("Path must consist of UIDs segments with a leading slash");
+      throw new IllegalArgumentException("Path must consist of UIDs segments each with a leading slash");
     Text p = Text.of(path);
-    int s = 1;
-    OrgUnitPath res = new OrgUnitPath(null, p.subSequence(s, 12));
+    int s = 0;
+    OrgUnitPath res = new OrgUnitPath(null, p.subSequence(s + 1, 12));
     s += 12;
     while (s < len) {
-      res = new OrgUnitPath(res, p.subSequence(s, s + 12));
+      res = new OrgUnitPath(res, p.subSequence(s+1, s + 12));
       s += 12;
     }
     return res;
