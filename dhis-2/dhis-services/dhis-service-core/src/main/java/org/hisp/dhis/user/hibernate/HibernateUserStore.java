@@ -35,6 +35,7 @@ import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.toMap;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaUpdate;
@@ -449,6 +450,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
     typedQuery.setParameter("username", username);
     typedQuery.setHint(QueryHints.CACHEABLE, true);
+    // Read-only lookup: do not auto-flush the persistence context first.
+    // In bulk paths this is called once per user; AUTO flush mode makes each
+    // call dirty-check the entire growing session -> O(n^2) CPU.
+    typedQuery.setFlushMode(FlushModeType.COMMIT);
 
     return QueryUtils.getSingleResult(typedQuery);
   }
