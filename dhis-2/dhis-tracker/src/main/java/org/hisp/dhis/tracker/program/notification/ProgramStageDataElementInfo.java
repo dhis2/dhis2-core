@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2026, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.tracker.program.notification;
 
-import org.hisp.dhis.option.OptionSet;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import java.util.Map;
 
 /**
- * {@code options} is deliberately left unmapped — mapping it would force Hibernate to fully
- * materialize the {@code OptionSet.options} collection (including JSONB attribute values) on every
- * preheat, regardless of how many option codes the import actually references. {@link
- * org.hisp.dhis.tracker.imports.preheat.supplier.OptionValueSupplier} preheats only the specific
- * {@code (option set, code)} pairs the payload references instead.
+ * Pre-fetched data element metadata for rendering {@code #{dataElement}} placeholders. Only data
+ * elements of the event's program stage are fetched, so a placeholder whose uid is absent is not
+ * part of the stage and renders as such.
+ *
+ * @param hasOptionSet whether the data element has an option set. Kept separate from {@code
+ *     optionCodeToName} as an option set with no options still renders as a missing option rather
+ *     than as the raw value.
+ * @param optionCodeToName option code to name of the data element's option set. The value to render
+ *     is looked up in here, mirroring what the renderer used to walk the option set for.
  */
-@Mapper
-public interface OptionSetMapper extends PreheatMapper<OptionSet> {
-  OptionSetMapper INSTANCE = Mappers.getMapper(OptionSetMapper.class);
-
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "name")
-  @Mapping(target = "code")
-  OptionSet map(OptionSet optionSet);
-}
+record ProgramStageDataElementInfo(boolean hasOptionSet, Map<String, String> optionCodeToName) {}
