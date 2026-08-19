@@ -113,6 +113,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Setter
 @Table(name = "categoryoptioncombo")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SecondaryTable(
     name = "categorycombos_optioncombos",
     pkJoinColumns =
@@ -551,6 +552,7 @@ public class CategoryOptionCombo
 
   @Override
   @jakarta.persistence.Access(AccessType.PROPERTY)
+  @Type(type = "text")
   @Column(name = "name", columnDefinition = "text")
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
