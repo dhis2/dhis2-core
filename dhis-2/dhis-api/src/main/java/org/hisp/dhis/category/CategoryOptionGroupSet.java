@@ -92,8 +92,10 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
@@ -123,6 +125,7 @@ public class CategoryOptionGroupSet extends BaseMetadataObject implements Dimens
   @Column(name = "shortname", nullable = false, unique = true, length = 50)
   private String shortName;
 
+  @Type(type = "text")
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
@@ -263,6 +266,8 @@ public class CategoryOptionGroupSet extends BaseMetadataObject implements Dimens
   }
 
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DimensionType getDimensionType() {
     return DimensionType.CATEGORY_OPTION_GROUP_SET;
   }
@@ -440,6 +445,7 @@ public class CategoryOptionGroupSet extends BaseMetadataObject implements Dimens
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
+  @Property(PropertyType.IDENTIFIER)
   public String getCode() {
     return code;
   }
@@ -504,6 +510,8 @@ public class CategoryOptionGroupSet extends BaseMetadataObject implements Dimens
   }
 
   @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
