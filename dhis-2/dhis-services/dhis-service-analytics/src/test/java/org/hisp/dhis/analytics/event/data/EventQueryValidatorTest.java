@@ -104,7 +104,7 @@ class EventQueryValidatorTest extends TestBase {
   @InjectMocks private DefaultEventQueryValidator eventQueryValidator;
 
   @BeforeEach
-  public void setUpTest() {
+  void setUpTest() {
     prA = createProgram('A');
     prB = createProgram('B');
 
