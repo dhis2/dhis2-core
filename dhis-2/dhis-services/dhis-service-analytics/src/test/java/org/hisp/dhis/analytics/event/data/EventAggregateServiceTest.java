@@ -197,6 +197,22 @@ class EventAggregateServiceTest {
     assertEquals(VALUE_ID, headers.get(2).getName());
   }
 
+  @Test
+  void shouldAddRegistrationOuHeaderAfterPeriod() throws Exception {
+    EventQueryParams params =
+        new EventQueryParams.Builder(defaultPeriodParams())
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('A')))
+            .build();
+
+    Grid grid = new ListGrid();
+    invokePrivate("addHeaders", EventQueryParams.class, Grid.class, params, grid);
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertEquals("pe", headers.get(0).getName());
+    assertEquals(ColumnHeader.REGISTRATION_OU.getItem(), headers.get(1).getName());
+    assertEquals(VALUE_ID, headers.get(2).getName());
+  }
+
   private GridHeader invokeAddDimensionHeaders(EventQueryParams params) throws Exception {
     return invokeDimensionHeadersGrid(params).getHeaders().get(0);
   }

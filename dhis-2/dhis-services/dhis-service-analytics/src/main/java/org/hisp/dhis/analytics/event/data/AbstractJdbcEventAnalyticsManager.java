@@ -141,6 +141,7 @@ import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlFragments;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -597,6 +598,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, isGroupByClause, isAggregated, getAnalyticsType(), sqlBuilder);
+
+    RegistrationOuSqlCoordinator.addDimensionSelectColumns(
+        columns, params, isGroupByClause, isAggregated, sqlBuilder);
 
     if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
       columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());

@@ -71,6 +71,7 @@ import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -365,6 +366,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
     OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
+    RegistrationOuSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
   }
 
   /**
@@ -501,6 +503,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
     OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
+    RegistrationOuSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -738,6 +741,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
     sql += enrollmentOuSql;
 
+    StringBuilder registrationOuSql = new StringBuilder();
+    RegistrationOuSqlCoordinator.appendWherePredicateIfNeeded(
+        registrationOuSql, hlp, params, sqlBuilder);
+    sql += registrationOuSql;
+
     if (params.hasBbox()) {
       sql +=
           hlp.whereAnd()
@@ -918,6 +926,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
     OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
+    RegistrationOuSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
     columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
     columns.forEach(
