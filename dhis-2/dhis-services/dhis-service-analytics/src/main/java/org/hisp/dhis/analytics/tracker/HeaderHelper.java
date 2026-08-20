@@ -95,6 +95,28 @@ public class HeaderHelper {
               true));
     }
 
+    if (params.hasRegistrationOuDimension()) {
+      grid.addHeader(
+          new GridHeader(
+              ColumnHeader.REGISTRATION_OU.getItem(),
+              ColumnHeader.REGISTRATION_OU.getName(),
+              TEXT,
+              false,
+              true));
+
+      // The aggregate grid carries one column per dimension and its base CTE projects only the org
+      // unit uid, so the name column belongs to the query endpoints alone.
+      if (!params.isAggregatedEnrollments()) {
+        grid.addHeader(
+            new GridHeader(
+                ColumnHeader.REGISTRATION_OU_NAME.getItem(),
+                ColumnHeader.REGISTRATION_OU_NAME.getName(),
+                TEXT,
+                false,
+                true));
+      }
+    }
+
     DisplayProperty displayProperty = params.getDisplayProperty();
     HeaderBuildContext context = HeaderBuildContext.of(params, displayProperty);
 

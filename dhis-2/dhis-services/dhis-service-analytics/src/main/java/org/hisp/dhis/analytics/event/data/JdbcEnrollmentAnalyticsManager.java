@@ -65,6 +65,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
@@ -743,11 +744,16 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     addDimensionSelectColumns(columns, params, true, true);
     removeLegacyPeriodDimensionColumns(columns, params);
 
+    // The registration OU projection is added separately, qualified and aliased, because stripping
+    // its table alias would leave a uidlevelN reference that is ambiguous once regous is joined.
+    columns.removeIf(RegistrationOuSqlCoordinator::isRegistrationOuColumn);
+
     SelectBuilder sb = new SelectBuilder();
     sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
       sb.addColumn(SqlColumnParser.removeTableAlias(column));
     }
+    RegistrationOuSqlCoordinator.addBaseCteSelectColumn(sb, params, sqlBuilder);
 
     addNonDefaultPeriodSourceColumns(sb, params);
 
@@ -764,6 +770,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       }
       String colToAdd =
           dateHeaderResolver.normalizeHeaderKey(SqlColumnParser.removeTableAlias(column));
+      // Added above as a qualified, aliased projection; a bare copy would resolve to the raw
+      // registration OU uid instead of the requested ancestor level.
+      if (ColumnHeader.REGISTRATION_OU.getItem().equals(colToAdd)) {
+        continue;
+      }
       if (!programIndicators.contains(colToAdd)) {
         Optional<AggregatedEnrollmentDateHeaderResolver.BaseAggregationHeaderProjection>
             headerProjection =
