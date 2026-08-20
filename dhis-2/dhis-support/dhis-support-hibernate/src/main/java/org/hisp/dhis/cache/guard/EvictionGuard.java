@@ -30,6 +30,7 @@
 package org.hisp.dhis.cache.guard;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 
@@ -46,19 +47,19 @@ import java.util.function.LongSupplier;
  * two rotations is dropped. Retention therefore depends on where in a window a record lands. A
  * record written just after a rotation lives through its own window and the next one, so two
  * windows is the upper bound; a record written just before a rotation is demoted immediately and
- * dropped at the following rotation, so the guaranteed retention is one window, thirty minutes. The
- * window premise is that this floor, not the upper bound, exceeds the longest plausible
- * transaction, and DHIS2 does have long ones. Analytics table generation and metadata import
- * routinely run for many minutes, far past the 60 second API request timeout, so the window is
- * sized in tens of minutes rather than in seconds. If an extreme transaction still outlives its
+ * dropped at the following rotation, so the guaranteed retention is one window, thirty minutes of
+ * running time. The window premise is that this floor, not the upper bound, exceeds the longest
+ * plausible transaction, and DHIS2 does have long ones. Analytics table generation and metadata
+ * import routinely run for many minutes, far past the 60 second API request timeout, so the window
+ * is sized in tens of minutes rather than in seconds. If an extreme transaction still outlives its
  * records, the guard forgives a put it would otherwise have refused: that single key degrades to
  * plain unguarded NONSTRICT_READ_WRITE behaviour, which is a bounded staleness risk, never
  * corruption.
  *
  * <p>The bound is on time only, not on size: there is no entry cap, so every distinct evicted key
- * of a NONSTRICT_READ_WRITE region is held for thirty to sixty minutes, which means a mass metadata
- * import can retain on the order of 1e5 to 1e6 keys, tens of MB of transient heap, for up to an
- * hour.
+ * of a NONSTRICT_READ_WRITE region is held for thirty to sixty minutes of running time, which means
+ * a mass metadata import can retain on the order of 1e5 to 1e6 keys, tens of MB of transient heap,
+ * for up to an hour.
  *
  * <p>A per-key eviction recorded with a timestamp later than a {@link #recordClearAll} timestamp
  * survives independently of that clear. The per-key generations are never wiped by a region clear,
@@ -73,8 +74,16 @@ import java.util.function.LongSupplier;
  * wrote into and repeats the record, so a record always ends up in a generation whose full window
  * is still ahead of it.
  *
- * <p>Wall-clock time drives rotation only. Every guard comparison compares Hibernate cache
- * timestamps against each other.
+ * <p>The guard reads no wall-clock time anywhere, and neither side of it can be walked backwards by
+ * a clock change. Refusal comparisons use Hibernate's cache timestamp clock, which this class does
+ * not touch and which cannot regress: {@code SimpleTimestamper.next()} returns the greater of
+ * {@code currentTimeMillis() << 12} and {@code previous + 1} under a CAS, so it is wall-seeded but
+ * monotonic. A forward clock step raises eviction timestamps and transaction timestamps alike, and
+ * a backward step is clamped to {@code previous + 1}, so refusal ordering survives clock steps in
+ * either direction. Rotation uses {@link System#nanoTime}, the JVM's monotonic elapsed time source,
+ * immune to clock steps, NTP adjustments and RTC changes. The consequence is that a window measures
+ * JVM running time, not wall time: a suspended VM does not age generations. That is the coherent
+ * measure, because in-flight transactions on this JVM do not progress while it is frozen either.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -85,24 +94,24 @@ public final class EvictionGuard {
    * metadata import); the class javadoc states the failure mode for a transaction that outlives its
    * records.
    */
-  private static final long DEFAULT_WINDOW_MILLIS = 30 * 60 * 1000L;
+  private static final long DEFAULT_WINDOW_NANOS = TimeUnit.MINUTES.toNanos(30);
 
-  private final LongSupplier wallClock;
-  private final long windowMillis;
+  private final LongSupplier clock;
+  private final long windowNanos;
   private final AtomicLong regionClearTimestamp = new AtomicLong(Long.MIN_VALUE);
 
   /** The only mutable state reachable by readers, always replaced as a whole. */
   private volatile Generations generations;
 
   public EvictionGuard() {
-    this(System::currentTimeMillis, DEFAULT_WINDOW_MILLIS);
+    this(System::nanoTime, DEFAULT_WINDOW_NANOS);
   }
 
-  EvictionGuard(LongSupplier wallClock, long windowMillis) { // visible for tests
-    this.wallClock = wallClock;
-    this.windowMillis = windowMillis;
-    long startMillis = wallClock.getAsLong();
-    this.generations = new Generations(new Generation(startMillis), new Generation(startMillis));
+  EvictionGuard(LongSupplier clock, long windowNanos) { // visible for tests
+    this.clock = clock;
+    this.windowNanos = windowNanos;
+    long start = clock.getAsLong();
+    this.generations = new Generations(new Generation(start), new Generation(start));
   }
 
   public void recordEviction(Object key, long cacheTimestamp) {
@@ -133,10 +142,12 @@ public final class EvictionGuard {
   /** Returns the live pair, rotating first if the current window has elapsed. */
   private Generations rotated() {
     Generations pair = generations;
-    if (wallClock.getAsLong() - pair.current.startMillis <= windowMillis) return pair;
+    // subtraction, never a comparison of absolute values: only the difference of two nanoTime
+    // readings is meaningful, and it stays correct across the counter wrapping
+    if (clock.getAsLong() - pair.current.start <= windowNanos) return pair;
     synchronized (this) {
       if (generations != pair) return generations; // another thread rotated, its pair is fresh
-      Generations rotated = new Generations(new Generation(wallClock.getAsLong()), pair.current);
+      Generations rotated = new Generations(new Generation(clock.getAsLong()), pair.current);
       generations = rotated;
       return rotated;
     }
@@ -153,11 +164,11 @@ public final class EvictionGuard {
   }
 
   private static final class Generation {
-    final long startMillis;
+    final long start;
     final ConcurrentHashMap<Object, Long> evictions = new ConcurrentHashMap<>();
 
-    Generation(long startMillis) {
-      this.startMillis = startMillis;
+    Generation(long start) {
+      this.start = start;
     }
   }
 }

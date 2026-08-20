@@ -90,13 +90,13 @@ class EvictionGuardTest {
 
   @Test
   void rotationKeepsPreviousGenerationVisible() {
-    AtomicLong wallClock = new AtomicLong(0);
-    EvictionGuard guard = new EvictionGuard(wallClock::get, 1000L); // windowMillis=1000
+    AtomicLong clock = new AtomicLong(0);
+    EvictionGuard guard = new EvictionGuard(clock::get, 1000L); // window=1000 clock ticks
     guard.recordEviction("k", 100L);
-    wallClock.set(1500); // one rotation: k moves to previous gen
+    clock.set(1500); // one rotation: k moves to previous gen
     guard.recordEviction("other", 200L); // write path triggers rotation
     assertFalse(guard.isPutAllowed("k", 50L), "previous generation must still refuse");
-    wallClock.set(3000); // two windows later: k fully expired
+    clock.set(3000); // two windows later: k fully expired
     guard.recordEviction("other2", 300L);
     assertTrue(guard.isPutAllowed("k", 50L), "expired entries no longer refuse");
   }
@@ -136,8 +136,8 @@ class EvictionGuardTest {
   void rotationOnEveryCallNeverHidesYoungEviction() {
     // a clock that jumps a full window on every read forces a rotation inside every guard call, so
     // each call sees the generation pair one rotation later than the previous call did
-    AtomicLong wallClock = new AtomicLong(0);
-    EvictionGuard guard = new EvictionGuard(() -> wallClock.addAndGet(1001L), 1000L);
+    AtomicLong clock = new AtomicLong(0);
+    EvictionGuard guard = new EvictionGuard(() -> clock.addAndGet(1001L), 1000L);
     guard.recordEviction("k", 100L);
     assertFalse(guard.isPutAllowed("k", 50L), "a rotation on the read path must not hide k");
     assertTrue(guard.isPutAllowed("k", 50L), "after a second rotation k has expired");
@@ -145,10 +145,10 @@ class EvictionGuardTest {
 
   @Test
   void oneConcurrentRotationNeverHidesAYoungEviction() throws Exception {
-    long windowMillis = 1000L;
+    long window = 1000L;
     int rounds = 500;
-    AtomicLong wallClock = new AtomicLong(0);
-    EvictionGuard guard = new EvictionGuard(wallClock::get, windowMillis);
+    AtomicLong clock = new AtomicLong(0);
+    EvictionGuard guard = new EvictionGuard(clock::get, window);
     CyclicBarrier barrier = new CyclicBarrier(2);
     AtomicReference<Throwable> rotatorFailure = new AtomicReference<>();
 
@@ -158,7 +158,7 @@ class EvictionGuardTest {
               try {
                 for (int round = 0; round < rounds; round++) {
                   barrier.await();
-                  wallClock.addAndGet(windowMillis + 1); // exactly one rotation per round
+                  clock.addAndGet(window + 1); // exactly one rotation per round
                   guard.recordEviction("rotator-" + round, 1L);
                   barrier.await();
                 }
