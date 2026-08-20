@@ -101,8 +101,9 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
   @Override
   public List<Option> findOptionsNameAndCode(@Nonnull UID optionSet) {
     String hql =
-        "select new org.hisp.dhis.option.Option(o.name, o.code) "
-            + "from Option o where o.optionSet.uid = :optionSetId order by o.sortOrder";
+        "select new org.hisp.dhis.option.Option(option.name, option.code) "
+            + "from OptionSet as optionset join optionset.options as option "
+            + "where optionset.uid = :optionSetId order by option.sortOrder";
 
     Query<Option> query = getQuery(hql);
     query.setParameter("optionSetId", optionSet.getValue());
