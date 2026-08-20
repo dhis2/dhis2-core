@@ -351,6 +351,16 @@ public class EventAggregateService {
           new GridHeader(ColumnHeader.ENROLLMENT_OU.getItem(), ouLabel, TEXT, false, true));
     }
 
+    if (!params.getRegistrationOuDimensionItems().isEmpty()) {
+      grid.addHeader(
+          new GridHeader(
+              ColumnHeader.REGISTRATION_OU.getItem(),
+              ColumnHeader.REGISTRATION_OU.getName(),
+              TEXT,
+              false,
+              true));
+    }
+
     if (params.hasEnrollmentStatuses()) {
       grid.addHeader(
           new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
