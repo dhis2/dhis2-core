@@ -103,10 +103,12 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
 
       """;
     int offset = (params.page() - 1) * params.pageSize();
+    String search = params.search();
+    if (search != null) search = "%" + search + "%";
     return SQL.of(sql, api)
         .setParameter("level", params.level())
-        .setParameter("search", params.shortName() ? null : "%" + params.search() + "%")
-        .setParameter("shortsearch", params.shortName() ? "%" + params.search() + "%" : null)
+        .setParameter("search", params.shortName() ? null : search)
+        .setParameter("shortsearch", params.shortName() ? search : null)
         .setParameter("roots", params.roots())
         .setParameter("groups", params.groups())
         .setParameter("gropSets", params.groupSets())

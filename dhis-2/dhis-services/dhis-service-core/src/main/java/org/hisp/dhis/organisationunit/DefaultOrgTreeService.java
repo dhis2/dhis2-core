@@ -85,14 +85,19 @@ public class DefaultOrgTreeService implements OrgTreeService {
   @Transactional(readOnly = true, propagation = Propagation.MANDATORY)
   public OrgTree query(@Nonnull OrgTreeParams params) {
     List<OrgUnitPath> matches = store.queryPageMatches(params);
-    int total = store.countTotalMatches(params);
     Set<OrgUnitPath> ancestors = OrgUnitPath.ofMissingAncestors(matches);
     Locale locale = params.locale();
     Stream<OrgTreeEntry> entries =
         store.streamEntries(locale, matches.stream().map(OrgUnitPath::toUID));
     if (OrgTree.isHierarchical(matches))
       entries = OrgTree.sortedHierarchical(entries.toList()).stream();
-    OrgTree.Pager pager = new OrgTree.Pager(params.page(), params.pageSize(), total);
+    int total = -1;
+    int pageSize = params.pageSize();
+    int page = params.page();
+    if (matches.size() < pageSize) total = matches.size() + ((page - 1) * pageSize);
+    // only count if we don't already know from a partial page
+    if (total < 0) total = store.countTotalMatches(params);
+    OrgTree.Pager pager = new OrgTree.Pager(page, pageSize, total);
     return new OrgTree(
         pager, entries, store.streamEntries(locale, ancestors.stream().map(OrgUnitPath::toUID)));
   }
