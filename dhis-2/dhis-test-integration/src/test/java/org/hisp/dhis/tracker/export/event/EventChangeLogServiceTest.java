@@ -30,8 +30,8 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
-import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -191,8 +191,8 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     // read access to GieVkTxp4HH. The event is accessible but the user cannot read that data
     // element, so its change logs must not be returned while change logs of the other (readable)
     // data elements of the event still are.
-    grantPublicAccess(manager.get(Program.class, "iS7eutanDry"), READ_ONLY);
-    grantPublicAccess(manager.get(ProgramStage.class, "qLZC0lvvxQH"), READ_ONLY);
+    grantPublicAccess(manager.get(Program.class, "iS7eutanDry"), DATA_READ);
+    grantPublicAccess(manager.get(ProgramStage.class, "qLZC0lvvxQH"), DATA_READ);
     grantPublicAccess(manager.get(DataElement.class, "GieVkTxp4HH"), DEFAULT);
     manager.flush();
     manager.clear();
@@ -200,7 +200,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(manager.get(User.class, "Hop98yh65pL"));
 
     Page<EventChangeLog> changeLogs =
-        singleEventChangeLogService.getEventChangeLog(
+        eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
 
     List<EventChangeLog> dataElementChangeLogs = getDataElementChangeLogs(changeLogs);

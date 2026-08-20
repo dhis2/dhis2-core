@@ -799,10 +799,10 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
     injectSecurityContextUser(userService.getUser("Z7870757a75"));
 
-    TrackerEventOperationParams params =
-        TrackerEventOperationParams.builderForEvent(UID.of("D9PbzJY8bJM")).build();
+    EventOperationParams params =
+        EventOperationParams.builder().events(Set.of(UID.of("D9PbzJY8bJM"))).build();
 
-    List<TrackerEvent> events = trackerEventService.findEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertContainsOnly(
         Set.of("DATAEL00002", "DATAEL00005", "DATAEL00006", "DATAEL00007", "GieVkTxp4HH"),
@@ -828,7 +828,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
   }
 
-  private static Set<String> dataElements(TrackerEvent event) {
+  private static Set<String> dataElements(Event event) {
     return event.getEventDataValues().stream()
         .map(EventDataValue::getDataElement)
         .collect(Collectors.toSet());

@@ -33,6 +33,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,8 +67,6 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -298,11 +297,10 @@ class DefaultEventService implements EventService {
    * cannot be resolved for the requested idScheme are dropped as well. The readability of a data
    * element is cached per call since the same data element is typically shared across many events.
    */
-  private void filterReadableDataValues(
-      List<SingleEvent> events, TrackerIdSchemeParams idSchemeParams) {
+  private void filterReadableDataValues(List<Event> events, TrackerIdSchemeParams idSchemeParams) {
     UserDetails user = getCurrentUserDetails();
     Map<String, Boolean> readableByIdentifier = new HashMap<>();
-    for (SingleEvent event : events) {
+    for (Event event : events) {
       Set<EventDataValue> readable =
           event.getEventDataValues().stream()
               .filter(
