@@ -164,6 +164,37 @@ public final class RegistrationOuSqlCoordinator {
     columns.add(RegistrationOuSqlFragments.selectRegistrationOuName(sqlBuilder));
   }
 
+  /**
+   * True if the given projection is the registration OU column contributed by {@link
+   * #addDimensionSelectColumns}. The enrollment aggregate base CTE strips table aliases from its
+   * projections, which would turn this column into a bare {@code uidlevelN} that is ambiguous
+   * between the analytics table and the joined org unit structure table, so it has to be recognised
+   * and handled separately.
+   */
+  public static boolean isRegistrationOuColumn(String column) {
+    return column != null && column.contains(RegistrationOuSqlConstants.STRUCT_ALIAS + ".");
+  }
+
+  /**
+   * Adds the registration OU projection to the enrollment aggregate base CTE, qualified and aliased
+   * as {@code registrationou} so the outer query can select and group by it off the CTE.
+   *
+   * @param sb builder for the base CTE
+   * @param params query parameters
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   */
+  public static void addBaseCteSelectColumn(
+      SelectBuilder sb, EventQueryParams params, SqlBuilder sqlBuilder) {
+    List<OrganisationUnit> items = params.getRegistrationOuDimensionItems();
+
+    if (items.isEmpty()) {
+      return;
+    }
+
+    sb.addColumn(
+        RegistrationOuSqlFragments.selectUidLevel(singleLevelOf(items), false, sqlBuilder));
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
