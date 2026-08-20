@@ -14,6 +14,27 @@
     <jsr107:defaults default-template="defaultCacheTemplate" enable-statistics="true"/>
   </service>
 
+  <!-- Store EVERY region by reference, restoring the pre-2.42 semantics.
+
+       Regions not declared below are created at runtime through the JSR-107 API
+       (hibernate-jcache MissingCacheStrategy.CREATE with an empty MutableConfiguration),
+       and the JCache spec defaults that to store-BY-VALUE: Ehcache then serializes and
+       deserializes every entry on every get and put (SerializingCopier), under READ_WRITE
+       inside the region lock critical section. DHIS2 stored all regions by reference from
+       2016 through 2.41 (Ehcache 2); the 2.42 Spring 6 upgrade flipped runtime-created
+       regions to by-value as a silent side effect of that spec default.
+
+       This CacheManager-level default copier overrides the JSR-107 by-value semantics for
+       runtime-created caches (all typed Object/Object), so they store by reference like the
+       declared caches. Safe for Hibernate's use: the cache holds Hibernate-internal
+       disassembled state, never handed to application code, never mutated in place. Entries
+       are consequently no longer required to be Serializable; a deployment overriding this
+       file to add off-heap or disk tiers must configure serializers, exactly as before 2.42.
+       Pinned by StoreByReferenceConfigTest. -->
+  <default-copiers>
+    <copier type="java.lang.Object">org.ehcache.impl.copy.IdentityCopier</copier>
+  </default-copiers>
+
   <!-- Cache template definition (referenced by jsr107:defaults and potentially explicit caches) -->
   <!-- Based on old defaultCache settings -->
   <cache-template name="defaultCacheTemplate">
