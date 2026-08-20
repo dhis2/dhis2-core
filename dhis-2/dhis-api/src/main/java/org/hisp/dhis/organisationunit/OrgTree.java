@@ -71,7 +71,11 @@ public record OrgTree(
     }
   }
 
-  public record Pager(int page, int pageSize, int total, int pageCount) {}
+  public record Pager(int page, int pageSize, int total) {
+    public int pageCount() {
+      return 1 + (total / pageSize);
+    }
+  }
 
   /**
    * @param paths some path to check if they are not flat (all on the same level)

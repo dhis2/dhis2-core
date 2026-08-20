@@ -92,7 +92,8 @@ public class DefaultOrgTreeService implements OrgTreeService {
         store.streamEntries(locale, matches.stream().map(OrgUnitPath::toUID));
     if (OrgTree.isHierarchical(matches))
       entries = OrgTree.sortedHierarchical(entries.toList()).stream();
+    OrgTree.Pager pager = new OrgTree.Pager(params.page(), params.pageSize(), total);
     return new OrgTree(
-        null, entries, store.streamEntries(locale, ancestors.stream().map(OrgUnitPath::toUID)));
+        pager, entries, store.streamEntries(locale, ancestors.stream().map(OrgUnitPath::toUID)));
   }
 }
