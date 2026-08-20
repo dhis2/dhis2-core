@@ -67,7 +67,7 @@ final class OrgTreeOutput {
             }
             response.addArray(
                 "organisationUnits",
-                matches -> matches.addElements(tree.matches(), OrgTreeOutput::addEntry));
+                matches -> matches.addElements(tree.organisationUnits(), OrgTreeOutput::addEntry));
             response.addArray(
                 "ancestors",
                 ancestors -> ancestors.addElements(tree.ancestors(), OrgTreeOutput::addEntry));

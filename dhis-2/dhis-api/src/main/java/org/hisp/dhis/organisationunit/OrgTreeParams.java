@@ -31,6 +31,7 @@ package org.hisp.dhis.organisationunit;
 
 import static java.util.Objects.requireNonNull;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -118,10 +119,12 @@ public record OrgTreeParams(
       Includes any OU where `displayName` has a substring match for the `search` term.
       When combined with `shortName` the `displayShortName` is searched instead.""")
           @CheckForNull
+          @JsonAlias("q")
           String search,
       @OpenApi.Description(
               "Can be used with `search` to match on `displayShortName` instead of `displayName`")
-          boolean shortName,
+          @CheckForNull
+          Boolean shortName,
       @OpenApi.Description(
               """
       Includes the given number of levels of children for each of the given `roots`.

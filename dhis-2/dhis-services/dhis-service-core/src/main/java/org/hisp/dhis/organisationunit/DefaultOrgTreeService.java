@@ -36,8 +36,11 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.setting.UserSettings;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,19 +55,28 @@ public class DefaultOrgTreeService implements OrgTreeService {
   @Override
   @NonTransactional
   public OrgTreeParams decode(@Nonnull OrgTreeParams.Input params) {
+    List<UID> roots = params.roots();
+    if (roots == null) roots = List.of();
+    if (roots.isEmpty() && CurrentUserUtil.hasCurrentUser()) {
+      UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+      roots = currentUser.getUserSearchOrgUnitIds().stream().map(UID::of).toList();
+      if (roots.isEmpty()) roots = currentUser.getUserOrgUnitIds().stream().map(UID::of).toList();
+    }
+    Locale locale =
+        params.locale() == null
+            ? UserSettings.getCurrentSettings().getUserDbLocale()
+            : params.locale();
     return new OrgTreeParams(
         params.page() == null ? 1 : params.page(),
         params.pageSize() == null ? 50 : params.pageSize(),
-        params.locale() == null
-            ? UserSettings.getCurrentSettings().getUserDbLocale()
-            : params.locale(),
-        params.roots() == null ? List.of() : params.roots(),
+        locale,
+        roots,
         params.groups() == null ? List.of() : params.groups(),
         params.groupSets() == null ? List.of() : params.groupSets(),
         params.level(),
         params.currentlyOpen(),
         params.search(),
-        params.shortName(),
+        Boolean.TRUE.equals(params.shortName()),
         params.depth());
   }
 

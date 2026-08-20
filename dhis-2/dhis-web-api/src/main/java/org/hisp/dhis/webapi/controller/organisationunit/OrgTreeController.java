@@ -27,41 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.webapi.controller.organisationunit;
 
-import java.util.List;
-import java.util.stream.Stream;
-import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.common.UID;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
-/**
- * API to support OU tree searching and fetching.
- *
- * @since 2.44
- * @author Jan Bernitt
- */
-public interface OrgTreeStore {
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.organisationunit.OrgTree;
+import org.hisp.dhis.organisationunit.OrgTreeParams;
+import org.hisp.dhis.organisationunit.OrgTreePipeline;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-  /**
-   * Note that it is crucial that the results are order by path so that matches within the same
-   * subtree do not unnecessarily occur on random pages but instead are either all on one page or on
-   * successive pages.
-   *
-   * @param params criteria of OUs to include in the matches
-   * @return The paths of all matches to the query params ordered by path
-   */
-  List<OrgUnitPath> queryPageMatches(OrgTreeParams params);
+@RestController
+@RequestMapping("/api/organisationUnits")
+@OpenApi.Document(
+    entity = OrganisationUnit.class,
+    classifiers = {"team:platform", "purpose:metadata"})
+@RequiredArgsConstructor
+public class OrgTreeController {
 
-  /**
-   * @param params criteria of OUs to include in the count
-   * @return number of total rows matching the given criteria
-   */
-  int countTotalMatches(OrgTreeParams params);
+  private final OrgTreePipeline pipeline;
 
-  /**
-   * @param locale to use when resolving the display name
-   * @param orgUnits of the OU to fetch
-   * @return A stream of entries for the given IDs sorted by level first, display name second
-   */
-  Stream<OrgTree.OrgTreeEntry> streamEntries(Locale locale, Stream<UID> orgUnits);
+  @OpenApi.Response(OrgTree.class)
+  @GetMapping("/tree")
+  public void getOrgTree(OrgTreeParams.Input params, HttpServletResponse response) {
+    pipeline.exportAsJson(
+        params,
+        () -> {
+          response.setContentType(CONTENT_TYPE_JSON);
+          try {
+            return response.getOutputStream();
+          } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+          }
+        });
+  }
 }

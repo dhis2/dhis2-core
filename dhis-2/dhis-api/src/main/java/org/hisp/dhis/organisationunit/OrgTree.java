@@ -37,13 +37,22 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 
+/**
+ * @param pager pager information
+ * @param organisationUnits list of OUs matching the query
+ * @param ancestors additional ancestors for the query
+ */
 public record OrgTree(
     @CheckForNull Pager pager,
-    @Nonnull Stream<OrgTreeEntry> matches,
+    @Nonnull Stream<OrgTreeEntry> organisationUnits,
     @Nonnull Stream<OrgTreeEntry> ancestors) {
 
   public record OrgTreeEntry(
       @Nonnull OrgUnitPath path, @Nonnull String displayName, int level, boolean leaf) {
+
+    public OrgTreeEntry(@Nonnull OrgUnitPath path, @Nonnull String displayName, boolean leaf) {
+      this(path, displayName, path.length(), leaf);
+    }
 
     public OrgTreeEntry {
       requireNonNull(path);

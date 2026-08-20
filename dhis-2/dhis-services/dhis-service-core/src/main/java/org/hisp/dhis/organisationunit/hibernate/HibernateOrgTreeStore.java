@@ -54,12 +54,70 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
 
   @Override
   public List<OrgUnitPath> queryPageMatches(OrgTreeParams params) {
-    return null;
+    return createTreeQuery(params, NativeSQL.of(getSession())).stream(String.class)
+        .map(OrgUnitPath::of)
+        .toList();
   }
 
   @Override
   public int countTotalMatches(OrgTreeParams params) {
-    return 0;
+    return createTreeQuery(params, NativeSQL.of(getSession())).count();
+  }
+
+  static QueryBuilder createTreeQuery(OrgTreeParams params, SQL.QueryAPI api) {
+    String sql =
+        """
+      WITH
+      roots_with_descendants_ids AS (
+        SELECT DISTINCT ou.organisationunitid
+        FROM organisationunit root
+        JOIN organisationunit ou
+          ON (root.organisationunitid = ou.parentid OR ou.path LIKE root.path || '%')
+          AND ou.hierarchylevel <= (root.hierarchylevel + :depth)
+        WHERE root.uid = ANY(:roots)
+      ),
+      groups_member_ids AS (
+        SELECT DISTINCT ougm.organisationunitid
+        FROM orgunitgroup oug
+        JOIN orgunitgroupmembers ougm ON oug.orgunitgroupid = ougm.orgunitgroupid
+        WHERE oug.uid = ANY(:groups)
+      ),
+      set_member_ids AS (
+        SELECT DISTINCT ougm.organisationunitid
+        FROM orgunitgroupset ougs
+        JOIN orgunitgroupsetmembers ougsm ON ougs.orgunitgroupsetid = ougsm.orgunitgroupsetid
+        JOIN orgunitgroupmembers ougm ON ougsm.orgunitgroupid = ougm.orgunitgroupid
+        WHERE ougs.uid = ANY(:gropSets)
+      )
+      SELECT ou.path
+      FROM organisationunit ou
+      JOIN roots_with_descendants_ids ON ou.organisationunitid = roots_with_descendants_ids.organisationunitid
+      JOIN groups_member_ids ON ou.organisationunitid = groups_member_ids.organisationunitid
+      JOIN set_member_ids ON ou.organisationunitid = set_member_ids.organisationunitid
+      WHERE 1=1
+        AND ou.hierarchylevel = :level
+        AND ou.name ilike :search
+        AND ou.shortname ilike :shortsearch
+        AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
+      ORDER BY ou.path
+
+      """;
+    int offset = (params.page() - 1) * params.pageSize();
+    return SQL.of(sql, api)
+        .setParameter("level", params.level())
+        .setParameter("search", params.shortName() ? null : "%" + params.search() + "%")
+        .setParameter("shortsearch", params.shortName() ? "%" + params.search() + "%" : null)
+        .setParameter("roots", params.roots())
+        .setParameter("groups", params.groups())
+        .setParameter("gropSets", params.groupSets())
+        .setParameter("currentlyOpen", params.currentlyOpen())
+        .setParameter("depth", params.depth())
+        .eraseNullParameterLines()
+        .eraseJoinLine("roots_with_descendants_ids", params.roots().isEmpty())
+        .eraseJoinLine("groups_member_ids", params.groups().isEmpty())
+        .eraseJoinLine("set_member_ids", params.groupSets().isEmpty())
+        .setOffset(offset)
+        .setLimit(params.pageSize());
   }
 
   @Override
@@ -69,7 +127,6 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
       SELECT
           ou.path,
           ou.name as displayName,
-          ou.hierarchylevel as level,
           NOT EXISTS (
               SELECT 1
               FROM organisationunit child
@@ -77,13 +134,13 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
           ) AS leaf
       FROM organisationunit ou
       WHERE ou.uid = ANY(:ou)
-      ORDER BY level, displayName""";
-    return createQuery(sql).setParameter("ou", orgUnits).stream(HibernateOrgTreeStore::entry);
+      ORDER BY ou.hierarchylevel, displayName""";
+    QueryBuilder query = createQuery(sql).setParameter("ou", orgUnits);
+    return query.isNullParameter("ou") ? Stream.of() : query.stream(HibernateOrgTreeStore::entry);
   }
 
   private static OrgTreeEntry entry(SQL.Row row) {
-    return new OrgTreeEntry(
-        OrgUnitPath.of(row.getString(0)), row.getString(1), row.getInteger(2), row.getBoolean(3));
+    return new OrgTreeEntry(OrgUnitPath.of(row.getString(0)), row.getString(1), row.getBoolean(2));
   }
 
   private QueryBuilder createQuery(@Language("sql") String sql) {
