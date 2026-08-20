@@ -42,17 +42,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 /**
- * Exposes the second level cache eviction guard counters, one pair per region the guard has seen.
+ * Exposes the second level cache eviction guard counters, three per region the guard has seen.
  *
  * <p>Ungated on purpose, unlike every sibling {@code *MetricsConfig} in this package. Those are
  * conditional on a {@code monitoring.*.enabled} key because they cost something: they switch on
  * Hibernate statistics, walk cache managers reflectively or poll the JVM, and all of those keys
- * default to off. These two counters are two {@code LongAdder}s per region which the guard
+ * default to off. These three counters are three {@code LongAdder}s per region which the guard
  * increments whether or not anybody reads them, so exposing them costs one {@link FunctionCounter}
  * registration each at boot and nothing at all after that. They are also the only observability of
  * the guard that keeps NONSTRICT_READ_WRITE regions from stranding stale entries, and a stale cache
- * incident is diagnosed after the fact, not after a config flip and a restart. Two zero cost longs
- * that are the safety net's only witness do not belong behind a flag that is off by default.
+ * incident is diagnosed after the fact, not after a config flip and a restart. Three zero cost
+ * longs that are the safety net's only witness do not belong behind a flag that is off by default.
  *
  * <p>Binding is a no-op when the context holds no {@link MeterRegistry}, which is the same
  * tolerance {@code StaticCacheMetrics} and {@code SessionMetrics} apply.
@@ -117,6 +117,13 @@ public class EvictionGuardMetricsConfig {
           .tags(guardTags)
           .description(
               "The total number of values a reader stored and then took back, because a write landed between the guard check and the store and the post-store re-check saw the newer eviction. A reader undoing its own put, not writer bookkeeping")
+          .register(registry);
+
+      FunctionCounter.builder(
+              "hibernate_l2_guard_stored_puts_total", stats, EvictionGuardStats::getStoredPuts)
+          .tags(guardTags)
+          .description(
+              "The total number of second-level cache puts the guard let through and that stayed in the region's storage: the up-front check passed, the value was stored, and the post-store re-check still allowed it. A nonzero and growing count is normal operation, not an incident, it is cache misses reloading rows into the region. It is the denominator the other two guard counters are read against, and per region it should account for the region's own put count together with hibernate_l2_guard_self_evictions_total, since a NONSTRICT_READ_WRITE region is only ever populated through putFromLoad: an ehcache_puts series above that sum means something writes to the region without passing the guard")
           .register(registry);
     }
   }

@@ -172,15 +172,19 @@ public class GuardedEntityNonStrictReadWriteAccess extends EntityNonStrictReadWr
       return false;
     }
     boolean stored = super.putFromLoad(session, key, value, version);
+    if (!stored) {
+      return false;
+    }
     // Re-validate: a writer may have recorded and evicted between our check and our put.
     // Writer order is record THEN evict, so if its evict raced past our put, the record
     // is already visible here and we remove our own stale entry.
-    if (stored && !guard.isPutAllowed(key, txTimestamp)) {
+    if (!guard.isPutAllowed(key, txTimestamp)) {
       getStorageAccess().evictData(key);
       stats.countSelfEvicted();
       return false;
     }
-    return stored;
+    stats.countStoredPut();
+    return true;
   }
 
   private long nextTimestamp() {

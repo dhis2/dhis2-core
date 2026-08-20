@@ -110,16 +110,16 @@ class GuardedNonStrictInterleavingTest {
   static Stream<Arguments> schedules() {
     return Stream.of(
         // put after both evicts: refused up front, the guard already knows about the write
-        arguments(List.of(Step.W1, Step.C, Step.P), 1L),
+        arguments(List.of(Step.W1, Step.C, Step.P), 1L, 0L),
         // put between the two evicts: still refused, the first evict was already recorded
-        arguments(List.of(Step.W1, Step.P, Step.C), 1L),
-        // put before the write: accepted, then removed by the write's own evicts
-        arguments(List.of(Step.P, Step.W1, Step.C), 0L));
+        arguments(List.of(Step.W1, Step.P, Step.C), 1L, 0L),
+        // put before the write: stored, then removed by the write's own evicts
+        arguments(List.of(Step.P, Step.W1, Step.C), 0L, 1L));
   }
 
   @ParameterizedTest
   @MethodSource("schedules")
-  void stalePutNeverSurvives(List<Step> schedule, long expectedRefused) {
+  void stalePutNeverSurvives(List<Step> schedule, long expectedRefused, long expectedStoredPuts) {
     String regionName =
         "t3-schedule-" + schedule.stream().map(Enum::name).collect(Collectors.joining("-"));
     GuardedEntityNonStrictReadWriteAccess access = entityAccess(regionName);
@@ -139,6 +139,8 @@ class GuardedNonStrictInterleavingTest {
     assertFalse(storage.contains(KEY), "stale value survived schedule " + schedule);
     assertNull(storage.getFromCache(KEY, reader));
     assertEquals(expectedRefused, stats.getRefused());
+    // a refused put is only refused: it never reaches the store, so it is not a stored put either
+    assertEquals(expectedStoredPuts, stats.getStoredPuts());
   }
 
   @Test
@@ -157,6 +159,7 @@ class GuardedNonStrictInterleavingTest {
     assertEquals(FRESH, storage.getFromCache(KEY, reader));
     assertEquals(0, stats.getRefused());
     assertEquals(0, stats.getSelfEvicted());
+    assertEquals(1, stats.getStoredPuts());
   }
 
   @Test
@@ -176,6 +179,8 @@ class GuardedNonStrictInterleavingTest {
     assertEquals(1, stats.getSelfEvicted());
     // the up front check passed, so this must not also be counted as a refusal
     assertEquals(0, stats.getRefused());
+    // nor as a stored put: the value did not stay, so the three outcomes stay mutually exclusive
+    assertEquals(0, stats.getStoredPuts());
   }
 
   @Test

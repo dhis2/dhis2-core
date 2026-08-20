@@ -35,8 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
- * Per-region counters for what {@link EvictionGuard} did: puts it refused up front, and puts it had
- * already stored and then had to take back.
+ * Per-region counters for what {@link EvictionGuard} did: puts it let through and that stayed, puts
+ * it refused up front, and puts it had already stored and then had to take back.
  *
  * <p>The registry is static on purpose, not out of laziness. The two ends of it cannot see each
  * other through Spring. The counting end is the Hibernate cache access strategy, which Hibernate
@@ -57,6 +57,7 @@ public final class EvictionGuardStats {
       new ConcurrentHashMap<>();
 
   private final String regionName;
+  private final LongAdder storedPuts = new LongAdder();
   private final LongAdder refused = new LongAdder();
   private final LongAdder selfEvicted = new LongAdder();
 
@@ -94,12 +95,40 @@ public final class EvictionGuardStats {
     selfEvicted.increment();
   }
 
+  /**
+   * Records that one {@code putFromLoad} passed both guard checks and left its value in the region
+   * storage. Counted only when the guarded put reports success, so the three counters partition the
+   * guarded puts: every call ends as exactly one of stored, refused or self evicted, never two of
+   * them, with one branch left out of the partition on purpose. The guarded put also declines to
+   * count anything when the superclass reports that it did not store the value at all, which counts
+   * as neither a store nor a refusal by the guard. That branch is unreachable on Hibernate 5.6,
+   * whose base {@code putFromLoad} always reports stored, and it is kept precisely because that is
+   * an assumption about upstream rather than a guarantee: should an upgrade start reporting a
+   * declined store, the three counters would no longer add up to the calls, and this is the branch
+   * to count next.
+   *
+   * <p>This is the denominator the other two are read against, and it is also a cross check on the
+   * guard's own reach. A NONSTRICT_READ_WRITE region has no other way into its storage: Hibernate
+   * populates such a region through {@code putFromLoad} and nothing else, so per region the
+   * storage's own put count has to equal stored puts plus self evictions, the self evictions being
+   * the stores that were taken back right after they landed. A region whose {@code ehcache_puts}
+   * drifts above that sum is being written to by a path that does not pass this class, and a path
+   * the guard does not see is a path it cannot bar.
+   */
+  public void countStoredPut() {
+    storedPuts.increment();
+  }
+
   public long getRefused() {
     return refused.sum();
   }
 
   public long getSelfEvicted() {
     return selfEvicted.sum();
+  }
+
+  public long getStoredPuts() {
+    return storedPuts.sum();
   }
 
   public String getRegionName() {

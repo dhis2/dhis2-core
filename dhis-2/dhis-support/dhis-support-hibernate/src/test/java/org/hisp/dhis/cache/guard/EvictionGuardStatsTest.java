@@ -50,8 +50,12 @@ class EvictionGuardStatsTest {
     stats.countRefused();
     stats.countRefused();
     stats.countSelfEvicted();
+    stats.countStoredPut();
+    stats.countStoredPut();
+    stats.countStoredPut();
     assertEquals(2, stats.getRefused());
     assertEquals(1, stats.getSelfEvicted());
+    assertEquals(3, stats.getStoredPuts());
     assertTrue(EvictionGuardStats.all().containsKey("r1"));
   }
 

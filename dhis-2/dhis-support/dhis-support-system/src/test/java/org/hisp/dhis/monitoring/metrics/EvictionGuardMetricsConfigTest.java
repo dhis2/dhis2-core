@@ -87,6 +87,31 @@ class EvictionGuardMetricsConfigTest {
   }
 
   @Test
+  void registersStoredPutsCounterPerRegion() {
+    EvictionGuardStats stats = EvictionGuardStats.forRegion("t6-stored-puts");
+    stats.countStoredPut();
+    stats.countStoredPut();
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+
+    new EvictionGuardMetricsConfig().registerGuardMetrics(registry);
+
+    assertEquals(
+        2.0,
+        registry
+            .get("hibernate_l2_guard_stored_puts_total")
+            .tag("region", "t6-stored-puts")
+            .functionCounter()
+            .count());
+    assertEquals(
+        0.0,
+        registry
+            .get("hibernate_l2_guard_refused_puts_total")
+            .tag("region", "t6-stored-puts")
+            .functionCounter()
+            .count());
+  }
+
+  @Test
   void guardCountersTrackLaterIncrements() {
     EvictionGuardStats stats = EvictionGuardStats.forRegion("t6-live");
     SimpleMeterRegistry registry = new SimpleMeterRegistry();
