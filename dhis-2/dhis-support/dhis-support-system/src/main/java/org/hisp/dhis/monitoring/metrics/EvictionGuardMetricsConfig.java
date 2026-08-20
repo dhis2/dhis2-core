@@ -1,0 +1,123 @@
+/*
+ * Copyright (c) 2004-2026, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.monitoring.metrics;
+
+import io.micrometer.core.instrument.FunctionCounter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.cache.guard.EvictionGuardStats;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+
+/**
+ * Exposes the second level cache eviction guard counters, one pair per region the guard has seen.
+ *
+ * <p>Ungated on purpose, unlike every sibling {@code *MetricsConfig} in this package. Those are
+ * conditional on a {@code monitoring.*.enabled} key because they cost something: they switch on
+ * Hibernate statistics, walk cache managers reflectively or poll the JVM, and all of those keys
+ * default to off. These two counters are two {@code LongAdder}s per region which the guard
+ * increments whether or not anybody reads them, so exposing them costs one {@link FunctionCounter}
+ * registration each at boot and nothing at all after that. They are also the only observability of
+ * the guard that keeps NONSTRICT_READ_WRITE regions from stranding stale entries, and a stale cache
+ * incident is diagnosed after the fact, not after a config flip and a restart. Two zero cost longs
+ * that are the safety net's only witness do not belong behind a flag that is off by default.
+ *
+ * <p>Binding is a no-op when the context holds no {@link MeterRegistry}, which is the same
+ * tolerance {@code StaticCacheMetrics} and {@code SessionMetrics} apply.
+ *
+ * <p>The {@code region} tag carries the Hibernate region name, the entity or collection FQN the
+ * region is built under, which is also the JCache cache name the neighbouring {@code ehcache_*}
+ * region metrics are derived from, so an operator can join the two series in a dashboard. It is
+ * kept unshortened, unlike the {@code cache} tag of those metrics, which is this same name with the
+ * package stripped off: the FQN is the identity the guard is keyed by and it stays unambiguous when
+ * two packages hold the same simple name.
+ *
+ * <p>{@code @DependsOn("entityManagerFactory")} is there for ordering only: the guard registers a
+ * region's counters while Hibernate builds that region, so this binder has to run after the
+ * EntityManagerFactory exists or it would find the registry empty. Regions are fixed at boot, so
+ * there is no case of a region turning up later and missing its meters. The annotation sits on the
+ * type because Spring honours {@code @DependsOn} for bean definitions, and this configuration class
+ * is the bean whose creation has to follow the EntityManagerFactory; it also means the context has
+ * to hold a bean named {@code entityManagerFactory}, which both {@code HibernateConfig} and {@code
+ * H2TestConfig} declare.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Slf4j
+@Configuration
+@DependsOn("entityManagerFactory")
+public class EvictionGuardMetricsConfig {
+
+  @Autowired
+  public void bindEvictionGuardToRegistry(ObjectProvider<MeterRegistry> registryProvider) {
+    MeterRegistry registry = registryProvider.getIfAvailable();
+    if (registry == null) {
+      log.debug("No MeterRegistry present, eviction guard counters not exposed.");
+      return;
+    }
+    registerGuardMetrics(registry);
+  }
+
+  /**
+   * Registers the counters of every region the guard has seen. The counters are function counters
+   * over the live per-region adders, so they keep tracking after registration.
+   */
+  void registerGuardMetrics(MeterRegistry registry) {
+    Map<String, EvictionGuardStats> guardStats = EvictionGuardStats.all();
+    if (guardStats.isEmpty()) {
+      log.debug("No eviction guard regions registered, guard counters not exposed.");
+      return;
+    }
+    log.info("Registering eviction guard counters for {} regions.", guardStats.size());
+
+    for (EvictionGuardStats stats : guardStats.values()) {
+      Tags guardTags = Tags.of(Tag.of("region", stats.getRegionName()));
+
+      FunctionCounter.builder(
+              "hibernate_l2_guard_refused_puts_total", stats, EvictionGuardStats::getRefused)
+          .tags(guardTags)
+          .description(
+              "The total number of second-level cache puts the eviction guard refused because the transaction's caching timestamp predates the key's last recorded eviction or the region's last recorded clear. A nonzero count is expected in normal operation, not an incident: DHIS2 clears whole regions on metadata mutations, and sessions older than a clear then have their puts refused. Read it as the volume of refused late puts; hibernate_l2_guard_self_evictions_total is the signal that the mid-put race fired")
+          .register(registry);
+
+      FunctionCounter.builder(
+              "hibernate_l2_guard_self_evictions_total", stats, EvictionGuardStats::getSelfEvicted)
+          .tags(guardTags)
+          .description(
+              "The total number of values a reader stored and then took back, because a write landed between the guard check and the store and the post-store re-check saw the newer eviction. A reader undoing its own put, not writer bookkeeping")
+          .register(registry);
+    }
+  }
+}
