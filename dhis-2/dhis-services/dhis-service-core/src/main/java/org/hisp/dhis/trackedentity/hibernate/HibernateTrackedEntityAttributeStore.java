@@ -30,6 +30,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.math.BigInteger;
 import java.util.HashSet;
@@ -132,5 +133,15 @@ public class HibernateTrackedEntityAttributeStore
             .getResultList();
 
     return result.stream().map(UID::of).collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<UID> getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue() {
+    TypedQuery<String> query =
+        entityManager.createQuery(
+            "select tea.uid from TrackedEntityAttribute tea where tea.skipSynchronization = true",
+            String.class);
+
+    return query.getResultList().stream().map(UID::of).collect(Collectors.toSet());
   }
 }
