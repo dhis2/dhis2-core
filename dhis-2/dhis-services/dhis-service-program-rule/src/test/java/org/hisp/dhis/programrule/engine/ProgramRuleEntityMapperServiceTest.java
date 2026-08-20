@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -57,6 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -66,6 +68,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.option.OptionStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -91,6 +94,7 @@ import org.hisp.dhis.rules.models.RuleLocalDate;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
 import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
+import org.hisp.dhis.rules.models.RuleVariableCurrentEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -136,6 +140,10 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
   private DataElement dataElement;
 
+  private OptionSet optionSet;
+
+  private DataElement dataElementWithOptionSet;
+
   @Mock private ProgramRuleVariableService programRuleVariableService;
 
   @Mock private ConstantService constantService;
@@ -143,6 +151,8 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   @Mock private I18nManager i18nManager;
 
   @Mock private I18n i18n;
+
+  @Mock private OptionStore optionStore;
 
   @InjectMocks private DefaultProgramRuleEntityMapperService mapper;
 
@@ -158,14 +168,19 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     DataElement dataElement1 = createDataElement('E');
     dataElement1.setFormName("DateElement_E");
 
-    OptionSet optionSet = new OptionSet();
+    optionSet = new OptionSet();
+    optionSet.setAutoFields();
+    // Deliberately different from what the optionStore mock returns in
+    // shouldMapOptionSetBackedVariableUsingOptionStoreNameAndCodeProjection, so that test fails
+    // loudly if the mapper ever regresses to reading this entity collection directly instead of
+    // going through optionStore.
     Option option = new Option();
-    option.setName("optionName");
-    option.setCode("optionCode");
+    option.setName("entityCollectionOptionName");
+    option.setCode("entityCollectionOptionCode");
 
     optionSet.setOptions(List.of(option));
 
-    DataElement dataElementWithOptionSet = createDataElement('F');
+    dataElementWithOptionSet = createDataElement('F');
     dataElementWithOptionSet.setFormName("dataElementWithOptionSet");
     dataElementWithOptionSet.setOptionSet(optionSet);
 
@@ -262,6 +277,31 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
         assertEquals(ruleVariableCalculatedValue.getName(), programRuleVariableA.getName());
       }
     }
+  }
+
+  @Test
+  void shouldMapOptionSetBackedVariableUsingOptionStoreNameAndCodeProjection() {
+    ProgramRuleVariable optionSetVariable =
+        createProgramRuleVariable(
+            'G',
+            ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT,
+            program,
+            dataElementWithOptionSet,
+            null);
+
+    when(optionStore.findOptionsNameAndCode(UID.of(optionSet)))
+        .thenReturn(List.of(new Option("projectedOptionName", "projectedOptionCode")));
+
+    List<RuleVariable> ruleVariables =
+        mapper.toMappedProgramRuleVariables(List.of(optionSetVariable));
+
+    verify(optionStore).findOptionsNameAndCode(UID.of(optionSet));
+    assertEquals(1, ruleVariables.size());
+    RuleVariableCurrentEvent ruleVariable = (RuleVariableCurrentEvent) ruleVariables.get(0);
+    assertEquals(
+        List.of(
+            new org.hisp.dhis.rules.models.Option("projectedOptionName", "projectedOptionCode")),
+        ruleVariable.getOptions());
   }
 
   @Test

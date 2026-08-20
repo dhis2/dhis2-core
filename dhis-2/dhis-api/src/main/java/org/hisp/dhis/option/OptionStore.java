@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,4 +44,12 @@ public interface OptionStore extends IdentifiableObjectStore<Option> {
   boolean existsAllOptions(@Nonnull UID optionSet, @Nonnull Collection<String> codes);
 
   Optional<Option> findOptionByCode(@Nonnull UID optionSet, @Nonnull String code);
+
+  /**
+   * Returns the options of the given option set as lightweight, transient {@link Option} instances
+   * carrying only name and code, ordered by sort order. Callers that don't need the full entity
+   * (uid, style/translations/attributeValues JSONB, etc.) should prefer this over {@code
+   * optionSet.getOptions()} to avoid materializing and JSONB-deserializing every option.
+   */
+  List<Option> findOptionsNameAndCode(@Nonnull UID optionSet);
 }
