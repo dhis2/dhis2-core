@@ -81,6 +81,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfo;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
@@ -1302,6 +1303,13 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasEnrollmentOu() {
     return hasEnrollmentOuDimension() || hasEnrollmentOuFilter();
+  }
+
+  /** Indicates whether any sort item reads an enrollment org unit column. */
+  public boolean hasEnrollmentOuSort() {
+    return Stream.concat(asc.stream(), desc.stream())
+        .map(QueryItem::getItemId)
+        .anyMatch(OrgUnitSqlConstants.RESULT_ALIASES::contains);
   }
 
   public List<DimensionalItemObject> getEnrollmentOuDimensionItems() {
