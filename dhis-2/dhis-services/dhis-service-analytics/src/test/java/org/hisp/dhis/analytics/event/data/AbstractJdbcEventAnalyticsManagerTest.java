@@ -1485,6 +1485,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .addAscSortItem(
                 new QueryItem(
                     new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
             .build();
 
     String sortClause =
@@ -1504,6 +1505,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndDate(to)
             .addDescSortItem(
                 new QueryItem(new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU.getItem())))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
             .build();
 
     String sortClause =
@@ -1511,46 +1513,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
 
     assertThat(sortClause, containsString("enrl.\"ou\" desc nulls last"));
-  }
-
-  @Test
-  void testExperimentalFromClauseIncludesEnrollmentOuJoinWhenSorting() {
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(programA)
-            .withTableName("analytics_event_test")
-            .withStartDate(from)
-            .withEndDate(to)
-            .addAscSortItem(
-                new QueryItem(
-                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
-            .build();
-
-    SelectBuilder sb = new SelectBuilder();
-    eventSubject.addFromClause(sb, params);
-    String fromClause = sb.build();
-
-    assertThat(fromClause, containsString("analytics_enrollment_"));
-    assertThat(fromClause, containsString("enrl"));
-  }
-
-  @Test
-  void testFromClauseIncludesEnrollmentOuJoinWhenSorting() {
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(programA)
-            .withTableName("analytics_event_test")
-            .withStartDate(from)
-            .withEndDate(to)
-            .addAscSortItem(
-                new QueryItem(
-                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
-            .build();
-
-    String fromClause = eventSubject.getFromClause(params);
-
-    assertThat(fromClause, containsString("inner join analytics_enrollment_"));
-    assertThat(fromClause, containsString("enrl on ax.\"enrollment\" = enrl.\"enrollment\""));
   }
 
   @Test

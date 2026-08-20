@@ -1305,11 +1305,12 @@ public class EventQueryParams extends DataQueryParams {
     return hasEnrollmentOuDimension() || hasEnrollmentOuFilter();
   }
 
-  /** Indicates whether any sort item reads an enrollment org unit column. */
-  public boolean hasEnrollmentOuSort() {
+  /** Returns the first sort item that reads an enrollment org unit column, if any. */
+  public Optional<String> getEnrollmentOuSortColumn() {
     return Stream.concat(asc.stream(), desc.stream())
         .map(QueryItem::getItemId)
-        .anyMatch(OrgUnitSqlConstants.RESULT_ALIASES::contains);
+        .filter(OrgUnitSqlConstants.RESULT_ALIASES::contains)
+        .findFirst();
   }
 
   public List<DimensionalItemObject> getEnrollmentOuDimensionItems() {
