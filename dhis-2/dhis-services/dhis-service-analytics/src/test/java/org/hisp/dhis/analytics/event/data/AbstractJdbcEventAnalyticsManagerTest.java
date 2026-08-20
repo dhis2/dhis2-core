@@ -86,6 +86,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -1471,6 +1472,85 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(selectClause, containsString("enrl.\"ou\" as enrollmentou"));
     assertThat(selectClause, containsString("enrl.\"ouname\" as enrollmentouname"));
+  }
+
+  @Test
+  void testSortClauseReadsEnrollmentOuNameFromEnrollmentTable() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .addAscSortItem(
+                new QueryItem(
+                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
+            .build();
+
+    String sortClause =
+        eventSubject.getCteAwareSortClause(
+            new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
+
+    assertThat(sortClause, containsString("enrl.\"ouname\" asc nulls last"));
+  }
+
+  @Test
+  void testSortClauseReadsEnrollmentOuFromEnrollmentTable() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .addDescSortItem(
+                new QueryItem(new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU.getItem())))
+            .build();
+
+    String sortClause =
+        eventSubject.getCteAwareSortClause(
+            new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
+
+    assertThat(sortClause, containsString("enrl.\"ou\" desc nulls last"));
+  }
+
+  @Test
+  void testExperimentalFromClauseIncludesEnrollmentOuJoinWhenSorting() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .addAscSortItem(
+                new QueryItem(
+                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
+            .build();
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addFromClause(sb, params);
+    String fromClause = sb.build();
+
+    assertThat(fromClause, containsString("analytics_enrollment_"));
+    assertThat(fromClause, containsString("enrl"));
+  }
+
+  @Test
+  void testFromClauseIncludesEnrollmentOuJoinWhenSorting() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .addAscSortItem(
+                new QueryItem(
+                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
+            .build();
+
+    String fromClause = eventSubject.getFromClause(params);
+
+    assertThat(fromClause, containsString("inner join analytics_enrollment_"));
+    assertThat(fromClause, containsString("enrl on ax.\"enrollment\" = enrl.\"enrollment\""));
   }
 
   @Test

@@ -349,6 +349,20 @@
       "version": {
         "min": 41
       }
+    },
+    {
+      "name": "eventsSortedByEnrollmentOuNameAscending",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?dimension=pe:2022,ENROLLMENT_OU:Gtnbmf4LkOz;DiszpKrYNg8&headers=enrollmentouname,ouname&displayProperty=NAME&totalPages=false&pageSize=10&page=1&asc=enrollmentouname",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "eventsSortedByEnrollmentOuNameDescending",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?dimension=pe:2022,ENROLLMENT_OU:Gtnbmf4LkOz;DiszpKrYNg8&headers=enrollmentouname,ouname&displayProperty=NAME&totalPages=false&pageSize=10&page=3&desc=enrollmentouname",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

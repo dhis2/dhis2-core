@@ -53,7 +53,7 @@ public final class OrgUnitSqlCoordinator {
 
   /**
    * Adds the ENROLLMENT_OU join to a {@link SelectBuilder} query when enrollment OU is used as a
-   * filter or dimension.
+   * filter, dimension or sort.
    *
    * @param sb builder being assembled
    * @param params query parameters
@@ -61,7 +61,7 @@ public final class OrgUnitSqlCoordinator {
    */
   public static void addJoinIfNeeded(
       SelectBuilder sb, EventQueryParams params, SqlBuilder sqlBuilder) {
-    if (!params.hasEnrollmentOu()) {
+    if (!needsJoin(params)) {
       return;
     }
 
@@ -82,9 +82,17 @@ public final class OrgUnitSqlCoordinator {
    */
   public static void appendLegacyJoin(
       StringBuilder sql, EventQueryParams params, SqlBuilder sqlBuilder) {
-    if (params.hasEnrollmentOu()) {
+    if (needsJoin(params)) {
       sql.append(OrgUnitSqlFragments.innerJoinClause(enrollmentTableName(params), sqlBuilder));
     }
+  }
+
+  /**
+   * Indicates whether the enrollment analytics table must be joined. Sorting on an enrollment OU
+   * column needs the join even when enrollment OU is not requested as a dimension or filter.
+   */
+  private static boolean needsJoin(EventQueryParams params) {
+    return params.hasEnrollmentOu() || params.hasEnrollmentOuSort();
   }
 
   /**
