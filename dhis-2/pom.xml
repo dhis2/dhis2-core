@@ -110,7 +110,7 @@
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
-    <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
+    <com.google.zxing.javase.version>3.5.4</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>7.0.8</spring.version>
@@ -178,7 +178,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.55.0</artemis-jakarta.version>
-    <netty-all.version>4.2.15.Final</netty-all.version>
+    <netty-all.version>4.2.17.Final</netty-all.version>
     <classgraph.version>4.8.192</classgraph.version>
 
     <!-- SMS/SMPP -->

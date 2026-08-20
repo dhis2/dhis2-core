@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import org.hisp.dhis.tracker.model.Relationship;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Date;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.model.RelationshipItem;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = {
-      RelationshipTypeMapper.class,
-      TrackedEntityMapper.class,
-      EnrollmentMapper.class,
-      TrackerEventMapper.class,
-      SingleEventMapper.class
-    })
-public interface RelationshipMapper extends PreheatMapper<Relationship> {
-  RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
+class RelationshipMapperTest {
 
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "relationshipType")
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "from", qualifiedByName = "itemMapper")
-  @Mapping(target = "to", qualifiedByName = "itemMapper")
-  @Mapping(target = "key")
-  @Mapping(target = "invertedKey")
-  @Mapping(target = "created")
-  @Mapping(target = "lastUpdated")
-  @Mapping(target = "lastUpdatedBy")
-  @Mapping(target = "createdAtClient")
-  @Mapping(target = "deleted")
-  Relationship map(Relationship relationship);
+  private static final RelationshipMapper MAPPER = Mappers.getMapper(RelationshipMapper.class);
 
-  @Named("itemMapper")
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "trackedEntity")
-  @Mapping(target = "enrollment")
-  @Mapping(target = "trackerEvent")
-  @Mapping(target = "singleEvent")
-  RelationshipItem mapItem(RelationshipItem relationshipItem);
+  @Test
+  void shouldMapDeletedTrueWhenRelationshipIsDeleted() {
+    org.hisp.dhis.webapi.controller.tracker.view.Relationship result = map(true);
+
+    assertTrue(result.isDeleted());
+  }
+
+  @Test
+  void shouldMapDeletedFalseWhenRelationshipIsNotDeleted() {
+    org.hisp.dhis.webapi.controller.tracker.view.Relationship result = map(false);
+
+    assertFalse(result.isDeleted());
+  }
+
+  private org.hisp.dhis.webapi.controller.tracker.view.Relationship map(boolean deleted) {
+    RelationshipType type = new RelationshipType();
+    type.setUid("RelTypeUiAB");
+
+    org.hisp.dhis.tracker.model.Relationship relationship =
+        new org.hisp.dhis.tracker.model.Relationship();
+    relationship.setUid("RelUid1234A");
+    relationship.setRelationshipType(type);
+    relationship.setCreated(new Date());
+    relationship.setCreatedAtClient(new Date());
+    relationship.setLastUpdated(new Date());
+    relationship.setDeleted(deleted);
+    relationship.setFrom(new RelationshipItem());
+    relationship.setTo(new RelationshipItem());
+
+    return MAPPER.map(relationship);
+  }
 }

@@ -234,14 +234,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   @Override
   @Transactional
   public void postCommit(@Nonnull TrackerBundle bundle) {
-    updateTrackedEntitiesLastUpdated(bundle);
-  }
-
-  private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
-    if (bundle.getUpdatedTrackedEntities().isEmpty()) {
-      return;
-    }
-
+    Date lastUpdated = new Date();
     String userInfoJson;
     try {
       userInfoJson = mapper.writeValueAsString(UserInfoSnapshot.from(bundle.getUser()));
@@ -249,20 +242,31 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       throw new PersistenceException(e);
     }
 
-    Date lastUpdated = new Date();
-    String sql =
-        "update trackedentity set lastUpdated = :lastUpdated,"
-            + " lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
-            + " where uid in (:trackedEntities)";
+    updateLastUpdated(
+        "trackedentity", bundle.getUpdatedTrackedEntities(), lastUpdated, userInfoJson);
+    updateLastUpdated("singleevent", bundle.getUpdatedSingleEvents(), lastUpdated, userInfoJson);
+  }
 
-    for (List<UID> partition :
-        Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000)) {
+  private void updateLastUpdated(
+      String table, Set<UID> uids, Date lastUpdated, String userInfoJson) {
+    if (uids.isEmpty()) {
+      return;
+    }
+
+    String sql =
+        "update "
+            + table
+            + " set lastUpdated = :lastUpdated,"
+            + " lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
+            + " where uid in (:uids)";
+
+    for (List<UID> partition : Lists.partition(Lists.newArrayList(uids), 20000)) {
       if (partition.isEmpty()) {
         continue;
       }
       MapSqlParameterSource params =
           new MapSqlParameterSource()
-              .addValue("trackedEntities", UID.toValueList(partition))
+              .addValue("uids", UID.toValueList(partition))
               .addValue("lastUpdated", lastUpdated)
               .addValue("lastupdatedbyuserinfo", userInfoJson);
       jdbcTemplate.update(sql, params);
