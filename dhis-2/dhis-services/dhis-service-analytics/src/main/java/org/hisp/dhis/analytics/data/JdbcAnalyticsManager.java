@@ -313,7 +313,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    */
   private String getSqlQuery(DataQueryParams params, AnalyticsTableType tableType) {
     if (params.hasSubexpressions()) {
-      return new JdbcSubexpressionQueryGenerator(this, params, tableType).getSql();
+      return new JdbcSubexpressionQueryGenerator(this, sqlBuilder, params, tableType).getSql();
     }
 
     StringBuilder builder = new StringBuilder();
