@@ -75,7 +75,8 @@ public class SimpleDimension implements Serializable {
     CREATED_BY("createdBy", DATA_X),
     LAST_UPDATED_BY("lastUpdatedBy", DATA_X),
     OU("ou", ORGANISATION_UNIT),
-    ENROLLMENT_OU("enrollmentOu", ORGANISATION_UNIT);
+    ENROLLMENT_OU("enrollmentOu", ORGANISATION_UNIT),
+    REGISTRATION_OU("registrationOu", ORGANISATION_UNIT);
 
     private final String dimension;
 
