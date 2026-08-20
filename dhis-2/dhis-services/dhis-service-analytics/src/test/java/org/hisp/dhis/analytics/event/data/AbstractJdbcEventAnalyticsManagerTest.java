@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -1390,6 +1391,132 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     List<String> columns = eventSubject.getGroupByColumnNames(params, true);
 
     assertTrue(columns.stream().anyMatch(c -> c.contains("enrl.\"ou\"")));
+  }
+
+  @Test
+  void testRegistrationOuInWhereClause() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuFilter(List.of(ouA, ouB))
+            .build();
+
+    String whereClause = eventSubject.getWhereClause(params);
+
+    assertThat(whereClause, containsString("regous.\"uidlevel1\""));
+    assertThat(whereClause, containsString(ouA.getUid()));
+    assertThat(whereClause, containsString(ouB.getUid()));
+  }
+
+  @Test
+  void testFromClauseIncludesRegistrationOuJoinWhenRegistrationOuIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    String fromClause = eventSubject.getFromClause(params);
+
+    assertThat(fromClause, containsString("inner join analytics_rs_orgunitstructure as regous"));
+    assertThat(
+        fromClause, containsString("on regous.\"organisationunituid\" = ax.\"registrationou\""));
+  }
+
+  @Test
+  void testFromClauseOmitsRegistrationOuJoinWhenUnused() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .build();
+
+    assertThat(eventSubject.getFromClause(params), not(containsString("regous")));
+  }
+
+  @Test
+  void testLegacySelectColumnsDoesNotIncludeRegistrationOuAggregateColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, false);
+
+    assertTrue(columns.stream().noneMatch(c -> c.contains("registrationou")));
+  }
+
+  @Test
+  void testAggregatedLegacySelectColumnsIncludesRegistrationOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("as registrationou")));
+  }
+
+  @Test
+  void testAggregatedLegacyGroupByColumnsIncludesRegistrationOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getGroupByColumnNames(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("regous.\"uidlevel1\"")));
+  }
+
+  /** REGISTRATION_OU and ENROLLMENT_OU must be able to appear in one query without colliding. */
+  @Test
+  void testRegistrationOuAndEnrollmentOuCoexist() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .withEnrollmentOuDimension(List.of(ouB))
+            .build();
+
+    String fromClause = eventSubject.getFromClause(params);
+
+    assertThat(fromClause, containsString("as regous"));
+    assertThat(fromClause, containsString("as enrl"));
   }
 
   @Test
