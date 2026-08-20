@@ -209,7 +209,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
         "expected change logs of the other readable data elements to be returned");
     assertTrue(
         dataElementChangeLogs.stream()
-            .noneMatch(cl -> "GieVkTxp4HH".equals(cl.dataElement().getUid())),
+            .noneMatch(cl -> "GieVkTxp4HH".equals(cl.getDataElement().getUid())),
         "expected no change logs of the restricted data element to be returned");
   }
 
