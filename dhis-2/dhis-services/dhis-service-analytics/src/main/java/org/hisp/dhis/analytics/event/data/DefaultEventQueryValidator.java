@@ -97,7 +97,9 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (params == null) {
       throw new IllegalQueryException(ErrorCode.E7100);
     }
-    if (!params.hasOrganisationUnits() && !params.hasEnrollmentOu()) {
+    if (!params.hasOrganisationUnits()
+        && !params.hasEnrollmentOu()
+        && !params.hasRegistrationOuItems()) {
       return new ErrorMessage(ErrorCode.E7200);
     }
     Optional<String> enrollmentOuSortColumn = params.getEnrollmentOuSortColumn();
