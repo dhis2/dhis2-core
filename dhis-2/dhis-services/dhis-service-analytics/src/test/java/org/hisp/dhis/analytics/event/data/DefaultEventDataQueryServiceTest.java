@@ -503,6 +503,32 @@ class DefaultEventDataQueryServiceTest {
     assertEquals("completeddate", params.getAsc().get(0).getItemId());
   }
 
+  /**
+   * The registration OU columns are projected under their own aliases, so sorting resolves to the
+   * alias rather than an analytics table column.
+   */
+  @Test
+  void getFromRequestAcceptsRegistrationOuNameSort() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).desc(Set.of("registrationouname")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getDesc().size());
+    assertEquals("registrationouname", params.getDesc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsRegistrationOuSortForEnrollmentEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).asc(Set.of("registrationou")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getAsc().size());
+    assertEquals("registrationou", params.getAsc().get(0).getItemId());
+  }
+
   @Test
   void getFromRequestAcceptsDescendingCreatedSortForEventEndpoint() {
     EventDataQueryRequest request =

@@ -1298,6 +1298,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         ColumnHeader.SCHEDULED_DATE.getItem(), EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
     ORG_UNIT_NAME(ColumnHeader.ORG_UNIT_NAME.getItem()),
     ORG_UNIT_NAME_HIERARCHY(ColumnHeader.ORG_UNIT_NAME_HIERARCHY.getItem()),
+    // Projected under their own aliases, so sorting resolves to the alias, not a table column.
+    REGISTRATION_OU(ColumnHeader.REGISTRATION_OU.getItem()),
+    REGISTRATION_OU_NAME(ColumnHeader.REGISTRATION_OU_NAME.getItem()),
     ORG_UNIT_CODE(ColumnHeader.ORG_UNIT_CODE.getItem()),
     PROGRAM_STATUS(
         ColumnHeader.PROGRAM_STATUS.getItem(),

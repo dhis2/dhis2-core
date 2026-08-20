@@ -42,6 +42,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARC
 import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_OU;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.common.ColumnHeader.REGISTRATION_OU;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
@@ -290,6 +291,7 @@ public class MetadataItemsHandler {
     addPeriodDimensionValueMetadata(metadataItemMap, params, includeDetails);
     addDateFieldDimensionMetadata(metadataItemMap, params);
     addEnrollmentOuMetadata(metadataItemMap, params, includeDetails);
+    addRegistrationOuMetadata(metadataItemMap, params, includeDetails);
     addProgramStatusMetadata(metadataItemMap, params);
 
     return metadataItemMap;
@@ -679,6 +681,25 @@ public class MetadataItemsHandler {
     return "Enrollment org. unit";
   }
 
+  private void addRegistrationOuMetadata(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params, boolean includeDetails) {
+    List<OrganisationUnit> items = params.getRegistrationOuDimensionItems();
+
+    if (items.isEmpty()) {
+      return;
+    }
+
+    metadataItemMap.putIfAbsent(
+        REGISTRATION_OU.getItem(), new MetadataItem(REGISTRATION_OU.getName()));
+
+    for (OrganisationUnit item : items) {
+      metadataItemMap.put(
+          item.getUid(),
+          new MetadataItem(
+              item.getDisplayProperty(params.getDisplayProperty()), includeDetails ? item : null));
+    }
+  }
+
   private void addProgramStatusMetadata(
       Map<String, MetadataItem> metadataItemMap, EventQueryParams params) {
     if (params.hasEnrollmentStatuses()) {
@@ -770,6 +791,7 @@ public class MetadataItemsHandler {
     addQueryItemDimensions(dimensionItems, params, itemOptions);
     addItemFiltersToDimensionItems(params.getItemFilters(), dimensionItems);
     addEnrollmentOuDimensionItems(dimensionItems, params);
+    addRegistrationOuDimensionItems(dimensionItems, params);
     addProgramStatusDimensionItems(dimensionItems, params);
 
     return dimensionItems;
@@ -850,6 +872,16 @@ public class MetadataItemsHandler {
     if (params.hasEnrollmentOuDimension()) {
       dimensionItems.put(
           "enrollmentou", getDimensionalItemIds(params.getEnrollmentOuDimensionItems()));
+    }
+  }
+
+  private void addRegistrationOuDimensionItems(
+      Map<String, List<String>> dimensionItems, EventQueryParams params) {
+    List<OrganisationUnit> items = params.getRegistrationOuDimensionItems();
+
+    if (!items.isEmpty()) {
+      dimensionItems.put(
+          REGISTRATION_OU.getItem(), items.stream().map(OrganisationUnit::getUid).toList());
     }
   }
 
