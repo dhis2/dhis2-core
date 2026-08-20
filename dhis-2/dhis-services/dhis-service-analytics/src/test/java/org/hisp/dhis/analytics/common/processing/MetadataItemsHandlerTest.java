@@ -1,0 +1,167 @@
+/*
+ * Copyright (c) 2004-2026, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.analytics.common.processing;
+
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createOption;
+import static org.hisp.dhis.DhisConvenienceTest.createOptionSet;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.junit.jupiter.api.Test;
+
+class MetadataItemsHandlerTest {
+
+  private final OptionService optionService = mock(OptionService.class);
+  private final MetadataItemsHandler handler = new MetadataItemsHandler(optionService);
+
+  @Test
+  void handleDoesNotEagerlyReloadFullOptionSetWhenGridHasResults() {
+    // Option set actually referenced by a grid row: resolved via the grid-scoped path.
+    Option rowOption = createOption('R');
+    OptionSet gridOptionSet = createOptionSet('G', rowOption);
+    when(optionService.findOptionsByNamePattern(gridOptionSet.getUid(), null, null))
+        .thenReturn(List.of(rowOption));
+
+    // Option set attached only to the query item, as seen by CommonParamsDelegator. Spied so we
+    // can prove its full option collection is never reloaded once the grid already has results -
+    // that eager reload is dead work, since getOptionItems() only reads it on the empty-grid path.
+    Option unusedOption = createOption('U');
+    OptionSet queryItemOptionSet = spy(createOptionSet('Q', unusedOption));
+
+    DataElement dataElement = createDataElement('A');
+    QueryItem queryItem =
+        new QueryItem(
+            dataElement,
+            null,
+            dataElement.getValueType(),
+            dataElement.getAggregationType(),
+            queryItemOptionSet);
+
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            queryItem, DimensionParamType.DIMENSIONS, IdScheme.UID, emptyList());
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam);
+
+    CommonParams commonParams =
+        CommonParams.builder().dimensionIdentifiers(List.of(dimensionIdentifier)).build();
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(
+        new GridHeader(
+            dataElement.getUid(),
+            dataElement.getUid(),
+            ValueType.TEXT,
+            false,
+            true,
+            gridOptionSet,
+            null));
+    grid.addRow();
+    grid.addValue(rowOption.getCode());
+
+    Map<String, MetadataItem> result = handler.handle(grid, commonParams);
+
+    assertNotNull(result);
+    verify(queryItemOptionSet, never()).getOptions();
+  }
+
+  @Test
+  void handleStillSurfacesFilterOptionsWhenGridHasNoResults() {
+    // Proves the fix doesn't change behaviour on the empty-grid path: itemOptions is now lazy,
+    // but it's still computed and used exactly as before whenever the grid has no rows.
+    Option filterOption = createOption('F');
+    OptionSet queryItemOptionSet = createOptionSet('Q', filterOption);
+
+    DataElement dataElement = createDataElement('A');
+    QueryItem queryItem =
+        new QueryItem(
+            dataElement,
+            null,
+            dataElement.getValueType(),
+            dataElement.getAggregationType(),
+            queryItemOptionSet);
+    queryItem.addFilter(new QueryFilter(QueryOperator.EQ, filterOption.getCode()));
+
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            queryItem, DimensionParamType.DIMENSIONS, IdScheme.UID, emptyList());
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam);
+
+    CommonQueryRequest originalRequest = new CommonQueryRequest();
+    originalRequest.getFilter().add(dataElement.getUid());
+    originalRequest.getFilter().add(filterOption.getUid());
+
+    CommonParams commonParams =
+        CommonParams.builder()
+            .dimensionIdentifiers(List.of(dimensionIdentifier))
+            .originalRequest(originalRequest)
+            .build();
+
+    ListGrid grid = new ListGrid();
+
+    Map<String, MetadataItem> result = handler.handle(grid, commonParams);
+
+    assertTrue(
+        result.containsKey(filterOption.getUid()),
+        "Filter option metadata should still be surfaced when the grid has no results");
+  }
+}
