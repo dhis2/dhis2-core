@@ -311,7 +311,8 @@ class JdbcEnrollmentStore {
               select json_agg(json_build_object('uid', tea.uid, 'name', tea.name,
               'code', tea.code, 'value', teav.value, 'encryptedValue', teav.encryptedvalue,
               'valueType', tea.valuetype, 'confidential', tea.confidential, 'created', teav.created,
-              'lastUpdated', teav.lastupdated, 'storedBy', teav.storedby)) as jsonattributes
+              'lastUpdated', teav.lastupdated, 'storedBy', teav.storedby,
+              'skipSynchronization', tea.skipsynchronization)) as jsonattributes
               from trackedentityattributevalue teav
               join trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
               where teav.trackedentityid = e.trackedentityid
@@ -763,6 +764,7 @@ class JdbcEnrollmentStore {
         tea.setName(attribute.getName());
         tea.setCode(attribute.getCode());
         tea.setConfidential(attribute.isConfidential());
+        tea.setSkipSynchronization(attribute.isSkipSynchronization());
         teav.setAttribute(tea);
         teav.setStoredBy(attribute.getStoredBy());
         teav.setCreated(DateUtils.safeParseDate(attribute.getCreated()));
@@ -813,5 +815,6 @@ class JdbcEnrollmentStore {
     private String created;
     private String lastUpdated;
     private String storedBy;
+    private boolean skipSynchronization;
   }
 }

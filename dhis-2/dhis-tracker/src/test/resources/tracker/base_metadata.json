@@ -2173,6 +2173,33 @@
           "id": "BFcipDERJnf"
         }
       }
+    },
+    {
+      "id": "EvE2Ev2Type",
+      "name": "Event to event",
+      "fromToName": "Event to event",
+      "sharing": {
+        "owner": "tTgjgobT1oS",
+        "public": "rwrwrw--"
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "BFcipDERJne"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSe"
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "BFcipDERJne"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSe"
+        }
+      }
     }
   ],
   "trackedEntityAttributes": [
