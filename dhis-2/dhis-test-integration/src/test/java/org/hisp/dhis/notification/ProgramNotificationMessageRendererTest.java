@@ -45,6 +45,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.option.Option;
@@ -169,6 +170,8 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
   private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private DbmsManager dbmsManager;
 
   @Autowired private OptionService optionService;
 
@@ -300,6 +303,8 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     programNotificationTemplate.setAutoFields();
     programNotificationTemplate.setUid("PNT-1");
     programNotificationTemplateStore.save(programNotificationTemplate);
+    // the renderer reads the metadata with SQL, so flush what was built through Hibernate
+    dbmsManager.clearSession();
   }
 
   @Test
