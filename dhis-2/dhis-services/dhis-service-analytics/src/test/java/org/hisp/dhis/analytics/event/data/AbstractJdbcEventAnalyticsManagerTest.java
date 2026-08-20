@@ -205,7 +205,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   private final UUID uuidB = UUID.fromString("1786142e-6d51-48e3-8bbe-9cc2a2836120");
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     programA = createProgram('A');
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
