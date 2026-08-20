@@ -2075,6 +2075,103 @@ class MetadataItemsHandlerTest {
   }
 
   @Nested
+  @DisplayName("Registration OU Dimension Tests")
+  class RegistrationOuDimensionTests {
+
+    @Test
+    @DisplayName("should include registration OU dimension items and metadata")
+    void shouldIncludeRegistrationOuDimensionItemsAndMetadata() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .withRegistrationOuDimension(List.of(orgUnitA, orgUnitB))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+      assertTrue(dimensions.containsKey("registrationou"));
+      assertEquals(2, dimensions.get("registrationou").size());
+      assertTrue(dimensions.get("registrationou").contains(orgUnitA.getUid()));
+      assertTrue(dimensions.get("registrationou").contains(orgUnitB.getUid()));
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey(orgUnitA.getUid()));
+      assertTrue(items.containsKey(orgUnitB.getUid()));
+      assertTrue(items.containsKey("registrationou"));
+      // The ticket specifies the unabbreviated form, unlike the enrollment OU equivalent.
+      assertEquals("Registration org unit", ((MetadataItem) items.get("registrationou")).getName());
+    }
+
+    @Test
+    @DisplayName("should include registration OU metadata on the query endpoints too")
+    void shouldIncludeRegistrationOuMetadataOnQuery() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withRegistrationOuDimension(List.of(orgUnitB))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertTrue(dimensions.containsKey("registrationou"));
+      assertEquals(List.of(orgUnitB.getUid()), dimensions.get("registrationou"));
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertTrue(items.containsKey("registrationou"));
+      assertTrue(items.containsKey(orgUnitB.getUid()));
+    }
+
+    @Test
+    @DisplayName("a bare dimension carries no items, so no dimension entry is emitted")
+    void shouldOmitRegistrationOuWhenBare() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withRegistrationOuDimension(List.of())
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertFalse(dimensions.containsKey("registrationou"));
+    }
+  }
+
+  @Nested
   @DisplayName("Program Status Metadata Tests")
   class ProgramStatusMetadataTests {
 
