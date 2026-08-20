@@ -83,6 +83,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -791,6 +792,169 @@ class DefaultEventDataQueryServiceTest {
     assertTrue(params.hasEnrollmentOuFilter());
     assertEquals(1, params.getEnrollmentOuFilterItems().size());
     assertEquals(Set.of(4), params.getEnrollmentOuFilterLevels());
+  }
+
+  @Test
+  void getFromRequestResolvesRegistrationOuAsDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    BaseDimensionalObject ouDimension =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB));
+
+    when(dataQueryService.getDimension(
+            eq("ou"),
+            eq(List.of(ouA.getUid(), ouB.getUid())),
+            any(),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(ouDimension);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:" + ouA.getUid() + ";" + ouB.getUid())))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertTrue(params.hasRegistrationOuItems());
+    assertEquals(2, params.getRegistrationOuDimensionItems().size());
+    assertFalse(params.hasEnrollmentOuDimension());
+  }
+
+  @Test
+  void getFromRequestResolvesRegistrationOuAsFilter() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+
+    BaseDimensionalObject ouDimension =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA));
+
+    when(dataQueryService.getDimension(
+            eq("ou"),
+            eq(List.of(ouA.getUid())),
+            any(),
+            anyList(),
+            anyBoolean(),
+            any(),
+            any(IdScheme.class)))
+        .thenReturn(ouDimension);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .filter(Set.of(Set.of("REGISTRATION_OU:" + ouA.getUid())))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.hasRegistrationOuFilter());
+    assertFalse(params.hasRegistrationOuDimension());
+    assertEquals(1, params.getRegistrationOuFilterItems().size());
+  }
+
+  /**
+   * REGISTRATION_OU delegates keyword expansion wholesale to the "ou" dimension, so LEVEL-n arrives
+   * back as concrete org units. This is the deliberate difference from ENROLLMENT_OU, which strips
+   * levels out and tracks them separately.
+   */
+  @Test
+  void getFromRequestDelegatesRegistrationOuLevelKeywordToOuDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+
+    BaseDimensionalObject ouDimension =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA));
+
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of("LEVEL-m9lBJogzE95")), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(ouDimension);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:LEVEL-m9lBJogzE95")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertEquals(1, params.getRegistrationOuDimensionItems().size());
+  }
+
+  @Test
+  void getFromRequestKeepsRegistrationOuIndependentOfEnrollmentOu() {
+    OrganisationUnit registrationOu = createOrganisationUnit('B');
+    OrganisationUnit enrollmentOu = createOrganisationUnit('C');
+
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of(registrationOu.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(
+            new BaseDimensionalObject(
+                "ou", DimensionType.ORGANISATION_UNIT, List.of(registrationOu)));
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of(enrollmentOu.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(
+            new BaseDimensionalObject(
+                "ou", DimensionType.ORGANISATION_UNIT, List.of(enrollmentOu)));
+
+    Set<Set<String>> dimensions = new LinkedHashSet<>();
+    dimensions.add(Set.of("REGISTRATION_OU:" + registrationOu.getUid()));
+    dimensions.add(Set.of("ENROLLMENT_OU:" + enrollmentOu.getUid()));
+
+    EventQueryParams params =
+        subject.getFromRequest(baseRequestBuilder(AGGREGATE, EVENT).dimension(dimensions).build());
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertTrue(params.hasEnrollmentOuDimension());
+    assertEquals(
+        List.of(registrationOu.getUid()),
+        params.getRegistrationOuDimensionItems().stream().map(OrganisationUnit::getUid).toList());
+    assertEquals(
+        List.of(enrollmentOu.getUid()),
+        params.getEnrollmentOuDimensionItems().stream().map(item -> item.getUid()).toList());
+  }
+
+  @Test
+  void getFromRequestRejectsRegistrationOuForProgramWithoutRegistration() {
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    OrganisationUnit ouA = createOrganisationUnit('B');
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:" + ouA.getUid())))
+            .build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7259, exception.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsBareRegistrationOuOnAggregate() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).dimension(Set.of(Set.of("REGISTRATION_OU"))).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7260, exception.getErrorCode());
+  }
+
+  /**
+   * A bare REGISTRATION_OU is legal on the query endpoints — it only projects the columns. It does
+   * not count as an org unit condition, so the query validator still has to see no items.
+   */
+  @Test
+  void getFromRequestAcceptsBareRegistrationOuOnQueryWithoutContributingItems() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).dimension(Set.of(Set.of("REGISTRATION_OU"))).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertFalse(params.hasRegistrationOuItems());
+    assertTrue(params.getRegistrationOuDimensionItems().isEmpty());
   }
 
   @Test

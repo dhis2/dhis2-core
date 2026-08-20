@@ -178,6 +178,51 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateSucceedsWithRegistrationOuAsOnlyOrgUnitDimension() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateSucceedsWithRegistrationOuAsOnlyOrgUnitFilter() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withRegistrationOuFilter(List.of(ouA))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  /**
+   * A REGISTRATION_OU dimension named without items projects columns but restricts nothing, so it
+   * must not satisfy the "at least one organisation unit" rule.
+   */
+  @Test
+  void validateFailsWithBareRegistrationOuAsOnlyOrgUnitDimension() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withRegistrationOuDimension(List.of())
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7200, error.getErrorCode());
+  }
+
+  @Test
   void validateSingleDataElementMultipleProgramsQueryItemSuccess() {
     EventQueryParams params =
         new EventQueryParams.Builder()

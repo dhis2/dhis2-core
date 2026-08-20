@@ -289,6 +289,21 @@ public class EventQueryParams extends DataQueryParams {
   /** Whether ENROLLMENT_OU dimension was requested via relative keywords (e.g. USER_ORGUNIT). */
   private boolean enrollmentOuDimensionHierarchical = false;
 
+  /**
+   * Org units when REGISTRATION_OU is used as a dimension, already expanded from any keyword form
+   * and therefore carrying their hierarchy level.
+   */
+  private List<OrganisationUnit> registrationOuDimensionItems = new ArrayList<>();
+
+  /** Org units when REGISTRATION_OU is used as a filter. */
+  private List<OrganisationUnit> registrationOuFilterItems = new ArrayList<>();
+
+  /**
+   * Whether REGISTRATION_OU was named as a dimension, independently of whether it carries items. A
+   * dimension without items projects the output columns without restricting any rows.
+   */
+  private boolean registrationOuDimensionRequested = false;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -370,6 +385,9 @@ public class EventQueryParams extends DataQueryParams {
     params.enrollmentOuDimensionLevels = new LinkedHashSet<>(this.enrollmentOuDimensionLevels);
     params.enrollmentOuFilterLevels = new LinkedHashSet<>(this.enrollmentOuFilterLevels);
     params.enrollmentOuDimensionHierarchical = this.enrollmentOuDimensionHierarchical;
+    params.registrationOuDimensionItems = new ArrayList<>(this.registrationOuDimensionItems);
+    params.registrationOuFilterItems = new ArrayList<>(this.registrationOuFilterItems);
+    params.registrationOuDimensionRequested = this.registrationOuDimensionRequested;
     return params;
   }
 
@@ -1297,6 +1315,44 @@ public class EventQueryParams extends DataQueryParams {
     return isNotEmpty(enrollmentOuDimensionItems) || !enrollmentOuDimensionLevels.isEmpty();
   }
 
+  /** Returns true if REGISTRATION_OU was named as a dimension, with or without items. */
+  public boolean hasRegistrationOuDimension() {
+    return registrationOuDimensionRequested;
+  }
+
+  public boolean hasRegistrationOuFilter() {
+    return isNotEmpty(registrationOuFilterItems);
+  }
+
+  /**
+   * Returns true if REGISTRATION_OU restricts the query, i.e. carries org units as a dimension or
+   * as a filter. A dimension named without items does not restrict anything and so does not count
+   * as an organisation unit condition.
+   */
+  public boolean hasRegistrationOuItems() {
+    return isNotEmpty(registrationOuDimensionItems) || isNotEmpty(registrationOuFilterItems);
+  }
+
+  public List<OrganisationUnit> getRegistrationOuDimensionItems() {
+    return registrationOuDimensionItems;
+  }
+
+  public List<OrganisationUnit> getRegistrationOuFilterItems() {
+    return registrationOuFilterItems;
+  }
+
+  /** Returns the REGISTRATION_OU org units from both the dimension and the filter. */
+  public List<OrganisationUnit> getAllRegistrationOuItems() {
+    return ListUtils.union(registrationOuDimensionItems, registrationOuFilterItems);
+  }
+
+  /** Returns the distinct hierarchy levels of the REGISTRATION_OU org units. */
+  public Set<Integer> getRegistrationOuItemLevels() {
+    return getAllRegistrationOuItems().stream()
+        .map(OrganisationUnit::getLevel)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
   public boolean hasEnrollmentOuFilter() {
     return isNotEmpty(enrollmentOuFilterItems) || !enrollmentOuFilterLevels.isEmpty();
   }
@@ -1956,6 +2012,17 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withEnrollmentOuFilterLevels(Set<Integer> levels) {
       this.params.enrollmentOuFilterLevels = new LinkedHashSet<>(levels);
+      return this;
+    }
+
+    public Builder withRegistrationOuDimension(List<OrganisationUnit> items) {
+      this.params.registrationOuDimensionItems = new ArrayList<>(items);
+      this.params.registrationOuDimensionRequested = true;
+      return this;
+    }
+
+    public Builder withRegistrationOuFilter(List<OrganisationUnit> items) {
+      this.params.registrationOuFilterItems = new ArrayList<>(items);
       return this;
     }
 
