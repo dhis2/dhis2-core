@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
-import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,6 +51,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -93,6 +93,16 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   private final PageParams defaultPageParams;
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
+  /**
+   * Events are only returned if the user has metadata and data read access to the program and
+   * program stage, see {@link org.hisp.dhis.tracker.acl.TrackerProgramService}.
+   */
+  private static final String READ_AND_DATA_READ =
+      AccessStringHelper.newInstance()
+          .enable(AccessStringHelper.Permission.READ)
+          .enable(AccessStringHelper.Permission.DATA_READ)
+          .build();
 
   private TrackerObjects trackerObjects;
   @Autowired private TestSetup testSetup;
@@ -191,8 +201,8 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     // read access to GieVkTxp4HH. The event is accessible but the user cannot read that data
     // element, so its change logs must not be returned while change logs of the other (readable)
     // data elements of the event still are.
-    grantPublicAccess(manager.get(Program.class, "iS7eutanDry"), READ);
-    grantPublicAccess(manager.get(ProgramStage.class, "qLZC0lvvxQH"), READ);
+    grantPublicAccess(manager.get(Program.class, "iS7eutanDry"), READ_AND_DATA_READ);
+    grantPublicAccess(manager.get(ProgramStage.class, "qLZC0lvvxQH"), READ_AND_DATA_READ);
     grantPublicAccess(manager.get(DataElement.class, "GieVkTxp4HH"), DEFAULT);
     manager.flush();
     manager.clear();
