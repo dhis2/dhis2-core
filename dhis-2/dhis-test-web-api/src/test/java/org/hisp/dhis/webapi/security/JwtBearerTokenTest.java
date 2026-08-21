@@ -36,14 +36,13 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Properties;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
-import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
-import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerWithJwtTokenAuthTest;
@@ -61,6 +60,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
@@ -68,24 +68,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
-  public static final String EXPIRED_GOOGLE_JWT_TOKEN =
-      "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIx"
-          + "M2I4MGFjYmNmZDA4Y2ZiMzAyYTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiO"
-          + "iIxMDE5NDE3MDAyNTQ0LW1xYTdmbGs0bWpvaHJnc2JnOWJ0YTlidmx1b2o4NW8wLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiY"
-          + "XVkIjoiMTAxOTQxNzAwMjU0NC1tcWE3ZmxrNG1qb2hyZ3NiZzlidGE5YnZsdW9qODVvMC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvb"
-          + "SIsInN1YiI6IjExMDk3ODA1MDEyNzk2NzA2NTUwNiIsImVtYWlsIjoiZGhpczJvaWRjdXNlckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZ"
-          + "mllZCI6dHJ1ZSwiYXRfaGFzaCI6IkhXbTNXcXphM2p5TEFUZjNlU1pBNVEiLCJuYW1lIjoiZGhpczJvaWRjdXNlciBUZXN0ZXIiLCJwa"
-          + "WN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1oRmptUnhOQkJTWS9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBQ"
-          + "S9BTVp1dWNuQkdYVTF5X05fV25qSXJndHBpSXFWMl9ndll3L3M5Ni1jL3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJkaGlzMm9pZGN1c"
-          + "2VyIiwiZmFtaWx5X25hbWUiOiJUZXN0ZXIiLCJsb2NhbGUiOiJlbiIsImlhdCI6MTYxNDk1NzU5MCwiZXhwIjoxNjE0OTYxMTkwfQ.OC"
-          + "m7hj4H-UqRpM_Xrfq58U3ZGI3k7-S3c4AslVAaMxKsNitsPDZ7oxs-FJT-E7uDqnp1wW5LyBLj8jfJZ4JnvuiNGZrvCCpR3m70_4mSgP"
-          + "8VTjFFEijgfW1IIy_BWI8gDY6iCK7qgOATdYnCyJteWBMKRPr5wVSN05TT3xxLzsE7C5ViOzHAm2v6XrrsEhfcjNmwKmlljjpImTwtUS"
-          + "TBS3DWoWsHaNqXfE3rO0M7231FWl2X0vk5oO-KycNoS1vDZLAvdf6QRJVnPMkQ6Cx5XSMSYEmUmFqM3Sj2ip0Q48hAe4ydzIgRWdGbzG"
-          + "nMH3euqGWr4_G_EBvVqfVPnBF0YA";
-
-  public static final String GOOGLE_CLIENT_ID =
-      "1019417002544-mqa7flk4mjohrgsbg9bta9bvluoj85o0.apps.googleusercontent.com";
-
   public static final String TEST_PROVIDER_ONE_URI = "testproviderone.com";
 
   public static final String TEST_PROVIDER_ONE_NAME = "testproviderone";
@@ -128,6 +110,20 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
     return jwsEncoder.encode(joseHeader, jwtClaimsSet);
   }
 
+  private Jwt createExpiredJwt(
+      String provider, String clientId, String mappingKey, String mappingValue) {
+    Instant expiresAt = Instant.ofEpochSecond(1614961190);
+    Instant issuedAt = expiresAt.minus(1, ChronoUnit.HOURS);
+    JoseHeader joseHeader = TestJoseHeaders.joseHeader(provider).build();
+    JwtClaimsSet jwtClaimsSet =
+        TestJwtClaimsSets.jwtClaimsSet(provider, clientId, mappingKey, mappingValue)
+            .issuedAt(issuedAt)
+            .notBefore(issuedAt)
+            .expiresAt(expiresAt)
+            .build();
+    return jwsEncoder.encode(joseHeader, jwtClaimsSet);
+  }
+
   @Test
   void testJwkEncodeEndDecode() throws JOSEException {
     Jwt encodedJws =
@@ -160,11 +156,34 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
 
   @Test
   void testExpiredToken() {
-    dhis2JwtAuthenticationManagerResolver.setJwtDecoder(null);
-    setupGoogleProvider(GOOGLE_CLIENT_ID);
+    setupTestingProvider(CLIENT_ID_1, TEST_PROVIDER_ONE_NAME, TEST_PROVIDER_ONE_URI);
+    String tokenValue =
+        createExpiredJwt(TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL)
+            .getTokenValue();
+    assertInvalidTokenError(
+        "An error occurred while attempting to decode the Jwt: Jwt expired at 2021-03-05T16:19:50Z",
+        GET("/me", JwtTokenHeader(tokenValue)));
+  }
+
+  /**
+   * This error happens when using ephemeral signing keys, so for example when you restart the
+   * server, the access tokens issued before the restart will no longer be valid. Here it is
+   * simulated by signing the token with an algorithm (RS384) that the decoder does not accept, so
+   * no matching key is found.
+   */
+  @Test
+  void testUnknownSigningKey() {
+    setupTestingProvider(CLIENT_ID_1, TEST_PROVIDER_ONE_NAME, TEST_PROVIDER_ONE_URI);
+    JoseHeader joseHeader =
+        TestJoseHeaders.joseHeader(SignatureAlgorithm.RS384, TEST_PROVIDER_ONE_URI).build();
+    JwtClaimsSet jwtClaimsSet =
+        TestJwtClaimsSets.jwtClaimsSet(
+                TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL)
+            .build();
+    String tokenValue = jwsEncoder.encode(joseHeader, jwtClaimsSet).getTokenValue();
     assertInvalidTokenError(
         "An error occurred while attempting to decode the Jwt: Signed JWT rejected: Another algorithm expected, or no matching key(s) found",
-        GET("/me", JwtTokenHeader(EXPIRED_GOOGLE_JWT_TOKEN)));
+        GET("/me", JwtTokenHeader(tokenValue)));
   }
 
   @Test
@@ -191,14 +210,6 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
     JsonError error = response.error(HttpStatus.UNAUTHORIZED);
     assertEquals("invalid_token", error.getMessage());
     assertEquals(expected, error.getDevMessage());
-  }
-
-  private void setupGoogleProvider(String clientId) {
-    Properties config = new Properties();
-    config.put(ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID.getKey(), clientId);
-    config.put(ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_SECRET.getKey(), "secret");
-    DhisOidcClientRegistration parse = GoogleProvider.parse(config);
-    dhisOidcProviderRepository.addRegistration(parse);
   }
 
   private void setupTestingProvider(
