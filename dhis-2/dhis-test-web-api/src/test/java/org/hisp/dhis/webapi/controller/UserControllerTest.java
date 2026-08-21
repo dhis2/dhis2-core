@@ -51,7 +51,12 @@ import com.google.gson.JsonElement;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
@@ -96,6 +101,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private SystemSettingsService settingsService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private CategoryService categoryService;
 
   @Autowired private SessionRegistry sessionRegistry;
 
