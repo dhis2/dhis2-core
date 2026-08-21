@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,11 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.option.OptionStore;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -84,6 +86,7 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
   private final I18nManager i18nManager;
+  private final OptionStore optionStore;
 
   @Override
   public List<Rule> toRules(@Nonnull List<ProgramRule> programRules) {
@@ -443,12 +446,18 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
       return List.of();
     }
 
+    // Only name and code are ever used below, so a narrow store projection is fetched instead of
+    // the full OptionSet.getOptions() entity collection - that avoids materializing (and
+    // JSONB-deserializing the style/translations/attributeValues of) every Option just to read
+    // two plain varchar columns off each one.
     if (prv.hasDataElement() && prv.getDataElement().hasOptionSet()) {
-      return prv.getDataElement().getOptionSet().getOptions().stream()
+      return optionStore
+          .findOptionsNameAndCode(UID.of(prv.getDataElement().getOptionSet()))
+          .stream()
           .map(op -> new Option(op.getName(), op.getCode()))
           .toList();
     } else if (prv.hasTrackedEntityAttribute() && prv.getAttribute().hasOptionSet()) {
-      return prv.getAttribute().getOptionSet().getOptions().stream()
+      return optionStore.findOptionsNameAndCode(UID.of(prv.getAttribute().getOptionSet())).stream()
           .map(op -> new Option(op.getName(), op.getCode()))
           .toList();
     }
