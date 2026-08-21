@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonDate;
@@ -102,7 +103,7 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(148, keys.size());
+    assertEquals(156, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
@@ -110,6 +111,12 @@ class SystemSettingsTest {
     assertTrue(keys.contains("keyCustomTranslationsEnabled"));
     assertTrue(keys.contains(("keyCustomColor")));
     assertTrue(keys.contains(("keyCustomColorMobile")));
+    // the new per-table-type analytics update keys (DHIS2-21992)
+    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
+      assertTrue(keys.contains(SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(type)));
+      assertTrue(
+          keys.contains(SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(type)));
+    }
   }
 
   @Test
@@ -179,6 +186,101 @@ class SystemSettingsTest {
         SystemSettings.of(
             Map.of("keyLastSuccessfulResourceTablesUpdate", Settings.valueOf(new Date(123456L))));
     assertEquals(new Date(123456L), settings.getLastSuccessfulResourceTablesUpdate());
+  }
+
+  private static final List<AnalyticsTableType> LATEST_PARTITION_TABLE_TYPES =
+      List.of(
+          AnalyticsTableType.DATA_VALUE,
+          AnalyticsTableType.COMPLETENESS,
+          AnalyticsTableType.EVENT,
+          AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS);
+
+  @Test
+  void testKeyLastSuccessfulAnalyticsTablesUpdate_PerType() {
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateDataValue",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateCompleteness",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.COMPLETENESS));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateEvent",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT));
+    assertEquals(
+        "keyLastSuccessfulAnalyticsTablesUpdateTrackedEntityInstanceEvents",
+        SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS));
+  }
+
+  @Test
+  void testKeyLastSuccessfulLatestAnalyticsPartitionUpdate_PerType() {
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateDataValue",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.DATA_VALUE));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateCompleteness",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.COMPLETENESS));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateEvent",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT));
+    assertEquals(
+        "keyLastSuccessfulLatestAnalyticsPartitionUpdateTrackedEntityInstanceEvents",
+        SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS));
+  }
+
+  @Test
+  void testKeyLastSuccessfulUpdate_PerType_NoDotSeparator() {
+    // regression guard: a literal "." in a flat settings key breaks JsonObject.get(path)-style
+    // dot-as-path-separator accessors (e.g. SystemSettingsControllerTest), which read a flat
+    // "keyXxx.EVENT" key as a nested lookup and silently report it missing
+    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
+      assertFalse(SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(type).contains("."));
+      assertFalse(
+          SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(type).contains("."));
+    }
+  }
+
+  @Test
+  void testAsDate_LastSuccessfulAnalyticsTablesUpdatePerType() {
+    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
+      SystemSettings settings =
+          SystemSettings.of(
+              Map.of(
+                  SystemSettings.keyLastSuccessfulAnalyticsTablesUpdate(type),
+                  Settings.valueOf(new Date(123456L))));
+      assertEquals(new Date(123456L), settings.getLastSuccessfulAnalyticsTablesUpdate(type));
+    }
+  }
+
+  @Test
+  void testAsDate_LastSuccessfulLatestAnalyticsPartitionUpdatePerType() {
+    for (AnalyticsTableType type : LATEST_PARTITION_TABLE_TYPES) {
+      SystemSettings settings =
+          SystemSettings.of(
+              Map.of(
+                  SystemSettings.keyLastSuccessfulLatestAnalyticsPartitionUpdate(type),
+                  Settings.valueOf(new Date(654321L))));
+      assertEquals(
+          new Date(654321L), settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(type));
+    }
+  }
+
+  @Test
+  void testLastSuccessfulAnalyticsTablesUpdatePerType_DefaultsToEpoch() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertEquals(
+        new Date(0L), settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT));
+    assertEquals(
+        new Date(0L),
+        settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT));
+    // a type with no registered per-type key (not one of the four above) must not throw, and
+    // defaults to epoch the same way
+    assertEquals(
+        new Date(0L),
+        settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.ENROLLMENT));
   }
 
   @Test
