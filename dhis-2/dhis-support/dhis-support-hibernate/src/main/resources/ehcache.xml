@@ -14,13 +14,37 @@
     <jsr107:defaults default-template="defaultCacheTemplate" enable-statistics="true"/>
   </service>
 
+  <!-- Store EVERY region by reference, restoring the pre-2.42 semantics.
+
+       Regions not declared below are created at runtime through the JSR-107 API
+       (hibernate-jcache MissingCacheStrategy.CREATE with an empty MutableConfiguration),
+       and the JCache spec defaults that to store-BY-VALUE: Ehcache then serializes and
+       deserializes every entry on every get and put (SerializingCopier), under READ_WRITE
+       inside the region lock critical section. DHIS2 stored all regions by reference from
+       2016 through 2.41 (Ehcache 2); the 2.42 Spring 6 upgrade flipped runtime-created
+       regions to by-value as a silent side effect of that spec default.
+
+       This CacheManager-level default copier overrides the JSR-107 by-value semantics for
+       runtime-created caches (all typed Object/Object), so they store by reference like the
+       declared caches. Safe for Hibernate's use: the cache holds Hibernate-internal
+       disassembled state, never handed to application code, never mutated in place. Entries
+       are consequently no longer required to be Serializable; a deployment overriding this
+       file to add off-heap or disk tiers must configure serializers, exactly as before 2.42.
+       Pinned by StoreByReferenceConfigTest. -->
+  <default-copiers>
+    <copier type="java.lang.Object">org.ehcache.impl.copy.IdentityCopier</copier>
+  </default-copiers>
+
   <!-- Cache template definition (referenced by jsr107:defaults and potentially explicit caches) -->
   <!-- Based on old defaultCache settings -->
   <cache-template name="defaultCacheTemplate">
     <expiry>
-      <!-- Time-to-live: 6 hours (Chosen as primary expiry from old config) -->
-      <!-- TTI (Time-to-idle) was also 6 hours, but only one can be specified directly here. -->
-      <ttl unit="seconds">21600</ttl>
+      <!-- Time-to-live: 1 hour. This is the upper bound on how long a stale entry can survive
+           (e.g. after an out-of-band database change, or a late cache-put re-inserting a value
+           just evicted by a concurrent write under NONSTRICT_READ_WRITE). Entries reload once
+           per hour, which is noise at production request rates. TTI (time-to-idle) is not set;
+           only one of the two can be given here. -->
+      <ttl unit="seconds">3600</ttl>
     </expiry>
     <resources>
       <!-- Max 1,000,000 entries on heap -->
@@ -45,15 +69,140 @@
   </cache>
 
   <!--
-    NOTE: The old configuration did not define specific caches for entities.
-    Entities will use the 'defaultCacheTemplate' settings unless you define
-    specific <cache> elements for them below using their fully qualified class name as the alias.
-    Example:
-    <cache alias="org.hisp.dhis.organisationunit.OrganisationUnit" uses-template="defaultCacheTemplate">
-      <resources>
-        <heap unit="entries">50000</heap> <!- More specific size ->
-      </resources>
-    </cache>
+    The hottest Hibernate regions under concurrent load are DECLARED here as ehcache-native
+    caches. Caches created on demand through the JSR-107 API (hibernate-jcache
+    MissingCacheStrategy.CREATE) get the JCache MutableConfiguration defaults, which force
+    store-BY-VALUE: every get and put serializes the entry (SerializingCopier), and under
+    READ_WRITE that happens inside the region lock critical section. Declared caches keep
+    ehcache-native store-by-reference: no copier, no serialization on the cache path.
+    Hibernate stores disassembled (immutable) cache entries, so by-reference is safe;
+    DHIS2 2.41 ran Ehcache 2 by-reference for years.
+
+    The region list is the measured hottest regions under concurrent tracker import and
+    metadata read load; heap bounds are sized with headroom for large national deployments,
+    not the demo database. Regions not declared here fall back to the jsr107 template above
+    (bounded, store-by-value). Per-region cache metrics (gets, hits, puts, evictions) are
+    exposed via /api/metrics; a region evicting while hot is undersized and should be raised.
   -->
+
+  <!-- Entity regions -->
+  <cache alias="org.hisp.dhis.organisationunit.OrganisationUnit">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">200000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryOption">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataelement.DataElement">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataset.DataSet">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataset.DataSetElement">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">200000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.Category">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryOptionCombo">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">500000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.User">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserGroup">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">50000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserRole">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.program.Program">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">10000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.period.PeriodType">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">1000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.period.Period">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <!-- Tracker-import hot regions: the Option region alone out-reads every other region by
+       roughly two orders of magnitude under concurrent event imports against option-heavy
+       programs, so leaving it undeclared would keep the hottest path store-by-value. -->
+  <cache alias="org.hisp.dhis.option.Option">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">200000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.trackedentity.TrackedEntityAttribute">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.trackedentity.TrackedEntityType">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">1000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.option.OptionSet.options">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+
+
+  <!-- Collection regions (element ids only, entries are small) -->
+  <cache alias="org.hisp.dhis.organisationunit.OrganisationUnit.children">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">200000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryCombo.categories">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryCombo.optionCombos">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.Category.categoryOptions">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.category.CategoryOptionCombo.categoryOptions">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">500000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserGroup.managedGroups">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">50000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserRole.restrictions">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.user.UserRole.authorities">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataelement.DataElement.dataSetElements">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataelement.DataElement.groups">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
+  <cache alias="org.hisp.dhis.dataelement.DataElement.legendSets">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">100000</heap></resources>
+  </cache>
 
 </config>
