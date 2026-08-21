@@ -81,7 +81,7 @@
     <sonar.issue.ignore.multicriteria.S1117.ruleKey>java:S1117</sonar.issue.ignore.multicriteria.S1117.ruleKey>
     <sonar.issue.ignore.multicriteria.S1117.resourceKey>**/src/test/**/*.java</sonar.issue.ignore.multicriteria.S1117.resourceKey>
 
-    <byte-buddy.version>1.17.5</byte-buddy.version>
+    <byte-buddy.version>1.18.12</byte-buddy.version>
     <byte-buddy-agent.version>1.17.5</byte-buddy-agent.version>
     <!-- spring.test.extension.context.scope=test_class restores the pre-Spring-7 test-class-scoped
          SpringExtension ExtensionContext (Spring 7.0 switched the default to test-method scope, which
