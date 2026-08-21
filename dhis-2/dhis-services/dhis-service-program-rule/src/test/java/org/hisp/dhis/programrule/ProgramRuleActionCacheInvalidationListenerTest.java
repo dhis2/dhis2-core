@@ -41,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ProgramRuleActionCacheInvalidationListenerTest {
 
-  @Mock private DefaultProgramRuleService programRuleService;
+  @Mock private ProgramRuleActionCaches caches;
 
   @Mock private org.hibernate.event.spi.PostInsertEvent postInsertEvent;
 
@@ -53,7 +53,7 @@ class ProgramRuleActionCacheInvalidationListenerTest {
 
   @BeforeEach
   void setUp() {
-    listener = new ProgramRuleActionCacheInvalidationListener(programRuleService);
+    listener = new ProgramRuleActionCacheInvalidationListener(caches);
   }
 
   @Test
@@ -62,7 +62,7 @@ class ProgramRuleActionCacheInvalidationListenerTest {
 
     listener.onPostInsert(postInsertEvent);
 
-    verify(programRuleService).invalidateProgramRuleActionCaches();
+    verify(caches).invalidateAll();
   }
 
   @Test
@@ -71,7 +71,7 @@ class ProgramRuleActionCacheInvalidationListenerTest {
 
     listener.onPostUpdate(postUpdateEvent);
 
-    verify(programRuleService).invalidateProgramRuleActionCaches();
+    verify(caches).invalidateAll();
   }
 
   @Test
@@ -80,7 +80,7 @@ class ProgramRuleActionCacheInvalidationListenerTest {
 
     listener.onPostDelete(postDeleteEvent);
 
-    verify(programRuleService).invalidateProgramRuleActionCaches();
+    verify(caches).invalidateAll();
   }
 
   @Test
@@ -89,6 +89,6 @@ class ProgramRuleActionCacheInvalidationListenerTest {
 
     listener.onPostInsert(postInsertEvent);
 
-    verify(programRuleService, never()).invalidateProgramRuleActionCaches();
+    verify(caches, never()).invalidateAll();
   }
 }

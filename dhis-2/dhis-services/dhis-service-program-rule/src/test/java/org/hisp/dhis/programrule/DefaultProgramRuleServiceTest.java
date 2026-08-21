@@ -54,6 +54,8 @@ class DefaultProgramRuleServiceTest {
 
   private DefaultProgramRuleService service;
 
+  private ProgramRuleActionCaches caches;
+
   private Program program;
 
   @BeforeEach
@@ -63,7 +65,8 @@ class DefaultProgramRuleServiceTest {
     when(cacheProvider.<List<String>>createProgramRuleActionUidsCache())
         .thenReturn(new SimpleCacheBuilder<List<String>>().build());
 
-    service = new DefaultProgramRuleService(programRuleStore, cacheProvider);
+    caches = new ProgramRuleActionCaches(cacheProvider);
+    service = new DefaultProgramRuleService(programRuleStore, caches);
 
     program = new Program();
     program.setUid("program12345");
@@ -110,13 +113,13 @@ class DefaultProgramRuleServiceTest {
   }
 
   @Test
-  void invalidateProgramRuleActionCachesForcesARecompute() {
+  void invalidatingTheCachesForcesARecompute() {
     when(programRuleStore.getDataElementsPresentInProgramRules(
             ProgramRuleActionType.SERVER_SUPPORTED_TYPES))
         .thenReturn(List.of("dataElementUid1"));
 
     service.getDataElementsPresentInProgramRules();
-    service.invalidateProgramRuleActionCaches();
+    caches.invalidateAll();
     service.getDataElementsPresentInProgramRules();
 
     verify(programRuleStore, times(2))

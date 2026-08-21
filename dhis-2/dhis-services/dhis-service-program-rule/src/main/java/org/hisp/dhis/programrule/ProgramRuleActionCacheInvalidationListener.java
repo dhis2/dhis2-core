@@ -39,14 +39,15 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.springframework.stereotype.Component;
 
 /**
- * Invalidates {@link DefaultProgramRuleService}'s program-rule-action caches whenever a {@link
- * ProgramRuleAction} is inserted, updated, or deleted. Registered globally against Hibernate's
- * post-commit events by {@link ProgramRuleActionCacheInvalidationListenerConfigurer}, mirroring
- * {@code DeletedObjectListenerConfigurer}'s registration pattern.
+ * Invalidates {@link ProgramRuleActionCaches} whenever a {@link ProgramRuleAction} is inserted,
+ * updated, or deleted. Registered globally against Hibernate's post-commit events by {@link
+ * ProgramRuleActionCacheInvalidationListenerConfigurer}, mirroring {@code
+ * DeletedObjectListenerConfigurer}'s registration pattern.
  *
  * <p>This has to hook Hibernate directly rather than a service method: {@code ProgramRuleAction}
- * writes can arrive via this service, the generic metadata CRUD controller, or a metadata import -
- * none of which funnel through one call site this class could invalidate from directly.
+ * writes can arrive via {@link DefaultProgramRuleService}, the generic metadata CRUD controller, or
+ * a metadata import - none of which funnel through one call site this class could invalidate from
+ * directly.
  *
  * <p>Invalidates wholesale rather than per-program: {@code ProgramRuleAction} writes are rare admin
  * edits, so the simplicity of a full clear outweighs the cost of resolving which program(s) were
@@ -66,7 +67,7 @@ public class ProgramRuleActionCacheInvalidationListener
   // class transitively Serializable even though it's just a Spring singleton registered with the
   // EventListenerRegistry and never actually serialized. transient satisfies that contract without
   // changing runtime behaviour.
-  private final transient DefaultProgramRuleService programRuleService;
+  private final transient ProgramRuleActionCaches caches;
 
   @Override
   public void onPostInsert(PostInsertEvent event) {
@@ -85,7 +86,7 @@ public class ProgramRuleActionCacheInvalidationListener
 
   private void invalidate(Object entity) {
     if (entity instanceof ProgramRuleAction) {
-      programRuleService.invalidateProgramRuleActionCaches();
+      caches.invalidateAll();
     }
   }
 
