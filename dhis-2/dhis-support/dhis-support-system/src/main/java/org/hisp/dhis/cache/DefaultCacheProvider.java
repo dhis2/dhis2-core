@@ -372,6 +372,17 @@ public class DefaultCacheProvider implements CacheProvider {
   }
 
   @Override
+  public <V> Cache<V> createUserDetailsAuthzCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.userDetailsAuthzCache.name())
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .withInitialCapacity((int) getActualSize(SIZE_1K))
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
+  }
+
+  @Override
   public <V> Cache<V> createTeAttributesCache() {
     return registerCache(
         this.<V>newBuilder()

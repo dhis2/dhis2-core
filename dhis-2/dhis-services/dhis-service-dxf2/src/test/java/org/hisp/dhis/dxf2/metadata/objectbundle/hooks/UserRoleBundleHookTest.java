@@ -36,18 +36,16 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserRoleAuthoritiesChangedEvent;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Unit test of {@link UserRoleBundleHook}.
@@ -59,7 +57,7 @@ class UserRoleBundleHookTest {
 
   private static final String ROLE_UID = "Rab1234abcd";
 
-  @Mock private ApplicationEventPublisher eventPublisher;
+  @Mock private AuthzService authzService;
 
   private UserRoleBundleHook hook;
 
@@ -67,40 +65,40 @@ class UserRoleBundleHookTest {
 
   @BeforeEach
   void setUp() {
-    hook = new UserRoleBundleHook(eventPublisher);
+    hook = new UserRoleBundleHook(authzService);
     bundle = new ObjectBundle(new ObjectBundleParams(), new Preheat(), Map.of());
   }
 
   @Test
-  void postUpdatePublishesEventWhenAuthoritiesChanged() {
+  void postUpdateBumpsRoleAuthzWhenAuthoritiesChanged() {
     UserRole existing = createUserRole(Set.of("F_USER_VIEW"));
     UserRole update = spy(createUserRole(Set.of("F_USER_VIEW", "F_USER_ADD")));
 
     hook.preUpdate(update, existing, bundle);
     hook.postUpdate(update, bundle);
 
-    verify(eventPublisher).publishEvent(new UserRoleAuthoritiesChangedEvent(UID.of(ROLE_UID)));
+    verify(authzService).bumpRoleAuthz(ROLE_UID);
     // the members of the role must never be loaded on the update path
     verify(update, never()).getUsers();
     verify(update, never()).getMembers();
   }
 
   @Test
-  void postUpdateDoesNotPublishWhenAuthoritiesUnchanged() {
+  void postUpdateDoesNotBumpWhenAuthoritiesUnchanged() {
     UserRole existing = createUserRole(Set.of("F_USER_VIEW"));
     UserRole update = createUserRole(Set.of("F_USER_VIEW"));
 
     hook.preUpdate(update, existing, bundle);
     hook.postUpdate(update, bundle);
 
-    verifyNoInteractions(eventPublisher);
+    verifyNoInteractions(authzService);
   }
 
   @Test
-  void postUpdateDoesNotPublishWithoutPrecedingPreUpdate() {
+  void postUpdateDoesNotBumpWithoutPrecedingPreUpdate() {
     hook.postUpdate(createUserRole(Set.of("F_USER_VIEW")), bundle);
 
-    verifyNoInteractions(eventPublisher);
+    verifyNoInteractions(authzService);
   }
 
   private static UserRole createUserRole(Set<String> authorities) {
