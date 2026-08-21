@@ -27,7 +27,15 @@
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" foreign-key="fk_programrule_programstage" />
 
-    <set name="programRuleActions" cascade="all-delete-orphan">
+    <!-- batch-size: without it, mapping all ProgramRules to rule-engine Rules
+         (DefaultProgramRuleEntityMapperService.toMappedProgramRules) lazily inits this
+         collection once per distinct ProgramRule, live-traced as ~400 single-row
+         "WHERE programruleid = ?" SELECTs per request. L2 cache doesn't help here since
+         each rule is a first-touch within the request, not a repeat lookup. batch-size
+         folds pending collection inits within one session into WHERE programruleid IN (...)
+         batches instead. Same category as the CategoryOption/Option batch-size="100"
+         precedent already in this codebase. -->
+    <set name="programRuleActions" cascade="all-delete-orphan" batch-size="100">
       <cache usage="read-write"/>
       <key column="programruleid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleAction" />
