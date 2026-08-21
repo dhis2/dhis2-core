@@ -125,6 +125,33 @@ class SchemaControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testSchemasDoNotContainEmbeddedObjects() {
+    JsonList<JsonSchema> schemas =
+        GET("/schemas?fields=name,klass,embeddedObject")
+            .content(HttpStatus.OK)
+            .getList("schemas", JsonSchema.class);
+    assertFalse(schemas.isEmpty());
+    java.util.List<String> embedded =
+        schemas.stream()
+            .filter(JsonSchema::isEmbeddedObject)
+            .map(JsonSchema::getName)
+            .collect(java.util.stream.Collectors.toList());
+    assertTrue(embedded.isEmpty(), () -> "embedded schemas should not be returned: " + embedded);
+  }
+
+  @org.springframework.beans.factory.annotation.Autowired
+  private org.hisp.dhis.schema.SchemaService schemaService;
+
+  @Test
+  void testSchemasDoNotContainMapView() {
+    JsonList<JsonSchema> schemas =
+        GET("/schemas?fields=name").content(HttpStatus.OK).getList("schemas", JsonSchema.class);
+    assertFalse(
+        schemas.stream().anyMatch(schema -> "mapView".equals(schema.getName())),
+        "embedded mapView schema should not be returned");
+  }
+
+  @Test
   void testAttributeWritable() {
     JsonSchema schema = GET("/schemas/attribute").content().as(JsonSchema.class);
     schema

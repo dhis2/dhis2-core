@@ -95,7 +95,7 @@ public class SchemaController {
   @GetMapping
   public ResponseEntity<JsonRoot> getSchemas(
       @RequestParam(defaultValue = "*") List<String> fields) {
-    List<Schema> schemas = schemaService.getSortedSchemas();
+    List<Schema> schemas = schemaService.getSortedNonEmbeddedSchemas();
     linkService.generateSchemaLinks(schemas);
 
     FieldFilterParams<Schema> params = FieldFilterParams.of(schemas, fields);
