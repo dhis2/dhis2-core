@@ -59,19 +59,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Deterministic interleaving tests for {@link GuardedEntityNonStrictReadWriteAccess} and {@link
- * GuardedCollectionNonStrictReadWriteAccess}. No threads and no timing: the schedules are executed
- * step by step in the test thread, which is exactly what makes the outcome an assertion about the
- * guard's ordering rules rather than about a lucky run.
+ * GuardedCollectionNonStrictReadWriteAccess}: no threads and no timing. Schedules run step by step
+ * on the test thread, so the outcome asserts the guard's ordering rules, not a lucky run.
  *
- * <p>Hibernate cache timestamps are scripted through a mocked {@link RegionFactory} handing out an
- * {@link AtomicLong}, and reader transactions get their caching timestamp from a mocked {@link
+ * <p>Cache timestamps are scripted through a mocked {@link RegionFactory} over an {@link
+ * AtomicLong}; reader transactions get theirs from a mocked {@link
  * CacheTransactionSynchronization}. Storage is a {@link HashMap} behind a {@link
- * DomainDataStorageAccess} stub whose put can run a callback first, which is how a writer landing
- * in the middle of a reader's put is simulated without a race.
- *
- * <p>The guard is created by the test and injected, mirroring how a region creates one guard and
- * hands it to every access object it builds. Every test uses its own {@link EvictionGuardStats}
- * region name, because the stats registry is process wide and has no reset.
+ * DomainDataStorageAccess} stub whose put can run a callback first, which simulates a writer
+ * landing mid-put without a race. The guard is created by the test and injected, mirroring one
+ * guard per region. Every test uses its own {@link EvictionGuardStats} region name: the registry is
+ * process-wide and has no reset.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

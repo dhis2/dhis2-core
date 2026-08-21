@@ -42,36 +42,24 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 /**
- * Exposes the second level cache eviction guard counters, three per region the guard has seen.
+ * Exposes the second-level cache eviction guard counters, three per region the guard has seen.
  *
- * <p>Ungated on purpose, unlike every sibling {@code *MetricsConfig} in this package. Those are
- * conditional on a {@code monitoring.*.enabled} key because they cost something: they switch on
- * Hibernate statistics, walk cache managers reflectively or poll the JVM, and all of those keys
- * default to off. These three counters are three {@code LongAdder}s per region which the guard
- * increments whether or not anybody reads them, so exposing them costs one {@link FunctionCounter}
- * registration each at boot and nothing at all after that. They are also the only observability of
- * the guard that keeps NONSTRICT_READ_WRITE regions from stranding stale entries, and a stale cache
- * incident is diagnosed after the fact, not after a config flip and a restart. Three zero cost
- * longs that are the safety net's only witness do not belong behind a flag that is off by default.
+ * <p>Ungated on purpose, unlike the sibling {@code *MetricsConfig} classes: those cost something
+ * (Hibernate statistics, reflective cache walks, JVM polling) and default to off. These counters
+ * are three {@code LongAdder}s per region that the guard increments anyway, so exposing them costs
+ * one {@link FunctionCounter} registration each at boot and nothing after that. They are also the
+ * guard's only observability, and a stale-cache incident is diagnosed after the fact, not after a
+ * config flip and a restart.
  *
- * <p>Binding is a no-op when the context holds no {@link MeterRegistry}, which is the same
- * tolerance {@code StaticCacheMetrics} and {@code SessionMetrics} apply.
+ * <p>Binding is a no-op when the context holds no {@link MeterRegistry}, the same tolerance as
+ * {@code StaticCacheMetrics}. The {@code region} tag carries the full Hibernate region name (the
+ * entity or collection FQN, also the JCache cache name behind the {@code ehcache_*} series), kept
+ * unshortened so the two series stay joinable and unambiguous.
  *
- * <p>The {@code region} tag carries the Hibernate region name, the entity or collection FQN the
- * region is built under, which is also the JCache cache name the neighbouring {@code ehcache_*}
- * region metrics are derived from, so an operator can join the two series in a dashboard. It is
- * kept unshortened, unlike the {@code cache} tag of those metrics, which is this same name with the
- * package stripped off: the FQN is the identity the guard is keyed by and it stays unambiguous when
- * two packages hold the same simple name.
- *
- * <p>{@code @DependsOn("entityManagerFactory")} is there for ordering only: the guard registers a
- * region's counters while Hibernate builds that region, so this binder has to run after the
- * EntityManagerFactory exists or it would find the registry empty. Regions are fixed at boot, so
- * there is no case of a region turning up later and missing its meters. The annotation sits on the
- * type because Spring honours {@code @DependsOn} for bean definitions, and this configuration class
- * is the bean whose creation has to follow the EntityManagerFactory; it also means the context has
- * to hold a bean named {@code entityManagerFactory}, which both {@code HibernateConfig} and {@code
- * H2TestConfig} declare.
+ * <p>{@code @DependsOn("entityManagerFactory")} is ordering only: the guard registers a region's
+ * counters while Hibernate builds that region, so this binder must run after the
+ * EntityManagerFactory exists or it would find the registry empty. Regions are fixed at boot; none
+ * turn up later.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

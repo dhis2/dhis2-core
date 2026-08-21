@@ -41,39 +41,31 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 /**
  * NONSTRICT_READ_WRITE entity access that refuses stale late puts. Plain NONSTRICT_READ_WRITE
  * evicts on write and then accepts any {@code putFromLoad} that arrives afterwards, so a reader
- * that loaded a row before the write and stores it after the write strands the pre write value in
- * the L2 cache until something else evicts that key. This subclass closes that window with two
- * rules. Writers record the eviction in an {@link EvictionGuard} before they evict storage, never
- * after, so a recorded eviction is always at least as old as the storage change it describes.
- * Readers check the guard, put, then check again and remove their own entry if the second check
- * fails, so a write that landed between the check and the put cannot leave the reader's value
- * behind.
+ * that loaded a row before a write and stores it after the write strands the pre-write value in the
+ * L2 cache until something else evicts that key. Two rules close that window:
  *
- * <p>The guard only protects a put whose eviction was recorded before that put's guard check, which
- * is exactly the ordering the two rules above supply: record before evict on the writer side means
- * an eviction that is visible in storage is already visible in the guard, and the check then put
- * then recheck loop on the reader side means a put that slipped past the first check is caught by
- * the second one. Any future caller that evicts region storage directly, without recording into the
- * guard first, breaks this ordering and reopens the window, which is why every path of the
- * superclass that reaches storage is overridden here rather than only the ones current DHIS2 code
- * happens to call. Two of them do not route through {@code evictAll} and are easy to miss: {@code
- * unlockRegion}, which the superclass sends straight to {@code clearCache}, and {@code destroy}.
- * The insert paths are deliberately not overridden: no prior value exists for a freshly inserted
- * row, so nothing can be stranded.
+ * <ol>
+ *   <li>Writers record into the {@link EvictionGuard} BEFORE they touch storage, so an eviction
+ *       visible in storage is already visible in the guard.
+ *   <li>Readers check the guard, put, then re-check and remove their own entry if the re-check
+ *       fails, so a write landing between check and put cannot leave the reader's value behind.
+ * </ol>
  *
- * <p>The guard is supplied by the caller and its scope is the region, not this access object. Every
- * access object built over one {@link DomainDataRegion} must be given the same guard instance,
- * because sibling access objects of a shared region share one storage: a region wide clear recorded
- * through one of them has to bar stale puts arriving through any of the others, and it only does so
- * if they all consult the same guard.
+ * <p>Every superclass path that reaches storage is overridden, not only the ones current DHIS2 code
+ * calls: a path that evicts storage without recording first reopens the window. Two are easy to
+ * miss: {@code unlockRegion}, which the superclass routes straight to {@code clearCache} and which
+ * is reached after a bulk HQL update or delete commits, and {@code destroy}. Insert paths are
+ * deliberately not overridden: a freshly inserted row has no prior value to strand.
  *
- * <p>The design is not novel, only missing from Hibernate's own NONSTRICT implementation.
- * Infinispan carries the same rule in its NonStrictAccessDelegate and PutFromLoadValidator, which
- * refuse a putFromLoad from a transaction that started before the last invalidation. Hibernate's
- * UpdateTimestampsCache applies the same timestamp comparison to query result caching, and
- * READ_WRITE achieves the same effect for entities with a SoftLock whose unlock timestamp bars
- * older puts. This class buys that guarantee for NONSTRICT_READ_WRITE without READ_WRITE's per key
- * locking cost.
+ * <p>The guard's scope is the region: every access object of one {@link DomainDataRegion} must be
+ * given the same guard instance, because sibling accesses share one storage, and a clear recorded
+ * through one must bar stale puts arriving through the others.
+ *
+ * <p>The design is not novel, only missing from Hibernate's NONSTRICT implementation: Infinispan's
+ * NonStrictAccessDelegate and PutFromLoadValidator refuse the same put, Hibernate's
+ * UpdateTimestampsCache applies the same comparison to the query cache, and READ_WRITE gets the
+ * effect from SoftLock unlock timestamps. This class buys the guarantee without READ_WRITE's per
+ * key locking cost.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

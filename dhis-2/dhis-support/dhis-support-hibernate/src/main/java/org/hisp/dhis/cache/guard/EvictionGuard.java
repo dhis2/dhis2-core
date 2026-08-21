@@ -37,62 +37,39 @@ import java.util.function.LongSupplier;
 /**
  * Lock-free record of recent L2 cache evictions for NONSTRICT_READ_WRITE regions.
  *
- * <p>Refuses stale {@code putFromLoad} calls the same way READ_WRITE's SoftLock unlock timestamp
- * does, without the per-region ReentrantReadWriteLock: a put is allowed only if its transaction's
- * caching timestamp is strictly newer than the key's last recorded eviction and than the region's
- * last recorded clear. Same discipline as Infinispan's NonStrictAccessDelegate ("putFromLoad not
- * executed since tx started before last region invalidation").
+ * <p>A put is allowed only if its transaction's caching timestamp is strictly newer than the key's
+ * last recorded eviction and the region's last recorded clear. This is the refusal READ_WRITE gets
+ * from its SoftLock unlock timestamp, without the per-region lock, and the same discipline as
+ * Infinispan's NonStrictAccessDelegate.
  *
- * <p>Memory is bounded by two rotating generations of eviction records: a record that has survived
- * two rotations is dropped. Retention therefore depends on where in a window a record lands. A
- * record written just after a rotation lives through its own window and the next one, so two
- * windows is the upper bound; a record written just before a rotation is demoted immediately and
- * dropped at the following rotation, so the guaranteed retention is one window, thirty minutes of
- * running time. The window premise is that this floor, not the upper bound, exceeds the longest
- * plausible transaction, and DHIS2 does have long ones. Analytics table generation and metadata
- * import routinely run for many minutes, far past the 60 second API request timeout, so the window
- * is sized in tens of minutes rather than in seconds. If an extreme transaction still outlives its
- * records, the guard forgives a put it would otherwise have refused: that single key degrades to
- * plain unguarded NONSTRICT_READ_WRITE behaviour, which is a bounded staleness risk, never
- * corruption.
+ * <p>Memory is bounded by time, not size: records live in two rotating generations and are dropped
+ * after surviving two rotations. Guaranteed retention is one window, thirty minutes of JVM running
+ * time, sized to exceed the longest plausible transaction (analytics table generation and metadata
+ * import run for many minutes). If a transaction still outlives its records, the guard forgives a
+ * put it should have refused: that key degrades to plain unguarded NONSTRICT_READ_WRITE behaviour,
+ * a bounded staleness risk, never corruption. There is no entry cap, so a mass metadata import can
+ * retain 1e5 to 1e6 keys, tens of MB of transient heap, for up to an hour.
  *
- * <p>The bound is on time only, not on size: there is no entry cap, so every distinct evicted key
- * of a NONSTRICT_READ_WRITE region is held for thirty to sixty minutes of running time, which means
- * a mass metadata import can retain on the order of 1e5 to 1e6 keys, tens of MB of transient heap,
- * for up to an hour.
+ * <p>Both bars only move forward: a region clear never wipes per-key records, and out-of-order
+ * records cannot lower either bar. A put must clear both. The generation pair lives behind one
+ * volatile field, which {@link #isPutAllowed} dereferences exactly once, so a rotation cannot hide
+ * a record between its two generation lookups. {@link #recordEviction} rereads the field after
+ * writing and repeats the record if a rotation demoted its target generation, so a record always
+ * lands in a generation with a full window ahead of it.
  *
- * <p>A per-key eviction recorded with a timestamp later than a {@link #recordClearAll} timestamp
- * survives independently of that clear. The per-key generations are never wiped by a region clear,
- * and the region bar and the per-key bar both only ever move forward, so out-of-order clear and
- * eviction records cannot lower the per-key bar. A put must clear both bars.
- *
- * <p>Both generations live in one immutable {@code Generations} holder behind a single volatile
- * field. The guard check dereferences that field exactly once, so no rotation can interleave
- * between the two generation lookups of one {@link #isPutAllowed} call and hide a record younger
- * than a full window. The write path deliberately differs: {@link #recordEviction} rereads the
- * field on every iteration, which is how it notices that a rotation demoted the generation it just
- * wrote into and repeats the record, so a record always ends up in a generation whose full window
- * is still ahead of it.
- *
- * <p>The guard reads no wall-clock time anywhere, and neither side of it can be walked backwards by
- * a clock change. Refusal comparisons use Hibernate's cache timestamp clock, which this class does
- * not touch and which cannot regress: {@code SimpleTimestamper.next()} returns the greater of
- * {@code currentTimeMillis() << 12} and {@code previous + 1} under a CAS, so it is wall-seeded but
- * monotonic. A forward clock step raises eviction timestamps and transaction timestamps alike, and
- * a backward step is clamped to {@code previous + 1}, so refusal ordering survives clock steps in
- * either direction. Rotation uses {@link System#nanoTime}, the JVM's monotonic elapsed time source,
- * immune to clock steps, NTP adjustments and RTC changes. The consequence is that a window measures
- * JVM running time, not wall time: a suspended VM does not age generations. That is the coherent
- * measure, because in-flight transactions on this JVM do not progress while it is frozen either.
+ * <p>No wall-clock time anywhere. Refusals compare Hibernate cache timestamps ({@code
+ * SimpleTimestamper}: wall-seeded, monotone under CAS), so refusal ordering survives clock steps in
+ * either direction. Rotation uses {@link System#nanoTime}, so a suspended VM does not age the
+ * windows; it does not advance in-flight transactions on this JVM either, which is the coherent
+ * pairing.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public final class EvictionGuard {
   /**
-   * One window is the guaranteed retention, so one window must exceed the longest plausible
-   * transaction. Thirty minutes covers the long DHIS2 transactions (analytics table generation,
-   * metadata import); the class javadoc states the failure mode for a transaction that outlives its
-   * records.
+   * One window is the guaranteed retention, so it must exceed the longest plausible transaction;
+   * thirty minutes covers the long DHIS2 ones. The class javadoc states the failure mode for a
+   * transaction that outlives its records.
    */
   private static final long DEFAULT_WINDOW_NANOS = TimeUnit.MINUTES.toNanos(30);
 

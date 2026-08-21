@@ -77,43 +77,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Boot level proof that the eviction guard is actually wired and actually refuses a stale late put,
- * asserted against a real {@link SessionFactory} over H2 and a real ehcache backed JCache
- * CacheManager built from {@link
+ * Boot-level proof that the eviction guard is wired and refuses a stale late put, asserted against
+ * a real {@link SessionFactory} over H2 and a real ehcache-backed CacheManager built from {@link
  * HibernateConfig#getAdditionalProperties(DhisConfigurationProvider)}. Everything below the test is
- * production wiring: the region factory comes from the DHIS2 property set, the region and its
- * access objects are the ones Hibernate resolved for the mappings, and the storage is the real
- * cache, not a map stub.
+ * production wiring.
  *
- * <p>Two kinds of assertion live here, and both are needed. The wiring assertions state that a
- * NONSTRICT_READ_WRITE mapping resolves to {@link GuardedEntityNonStrictReadWriteAccess} and {@link
- * GuardedCollectionNonStrictReadWriteAccess} while a READ_WRITE mapping in the same SessionFactory
- * stays on Hibernate's own implementation, so a future change that drops the region factory, the
- * region, or the NONSTRICT dispatch fails here instead of silently reverting to unguarded
- * behaviour. The behavioural assertion drives Ivo's interleaving through the real access object.
+ * <p>Wiring assertions: a NONSTRICT_READ_WRITE mapping resolves to the guarded access classes while
+ * a READ_WRITE mapping in the same SessionFactory stays on Hibernate's own, so dropping the region
+ * factory, the region or the NONSTRICT dispatch fails here instead of silently reverting.
+ * Behavioural assertion: the stranding interleaving is scripted, not raced. A reader session opened
+ * before the write keeps its caching timestamp older than the eviction, and its late {@code
+ * putFromLoad} is replayed directly on the {@link EntityDataAccess} SPI, so the only reason the put
+ * is refused is the guard's timestamp comparison. {@link GuardedNonStrictInterleavingTest} covers
+ * every eviction path against a stub; this test proves the rules survive real wiring.
  *
- * <p>The interleaving is scripted, not raced. A reader session is opened before the write and held
- * open across it, which is what keeps its caching timestamp older than the eviction, and its late
- * {@code putFromLoad} is then replayed directly on the {@link EntityDataAccess} SPI with that
- * session. There is no sleeping, no second thread and no timing assumption: the only reason the put
- * is refused is the timestamp comparison the guard performs. {@link
- * GuardedNonStrictInterleavingTest} covers the same rules exhaustively over every eviction path
- * against a storage stub; this test exists to prove the rules survive real wiring.
- *
- * <p>The test entities are mapped so that one SessionFactory carries both cases at once: {@link
- * NonstrictEntity} is NONSTRICT_READ_WRITE and owns a NONSTRICT_READ_WRITE collection, and the
- * collection's element type {@link ReadWriteEntity} is the READ_WRITE control. Guarding is
- * therefore shown to follow the mapping, not the region factory. Their region names are the nested
- * class FQNs, unique to this test, which matters because the {@link EvictionGuardStats} registry is
- * process wide and has no reset.
- *
- * <p>{@code dhisConfig} and {@code buildSessionFactory} are copied from {@code
- * org.hisp.dhis.config.HibernateCacheEffectTest}, where they are private, rather than widened there
- * for a test in another package. The copies drop that test's statement inspector and statistics
- * settings, which nothing here asserts on, and they point at their own H2 database. The
- * CacheManager URI is not what isolates the test methods from each other: all four boot the same
- * {@code classpath:ehcache.xml}. Isolation comes from {@code sessionFactory.close()}, which closes
- * the CacheManager and with it every region's storage.
+ * <p>{@link NonstrictEntity} (NONSTRICT_READ_WRITE, owns a NONSTRICT_READ_WRITE collection) and its
+ * element type {@link ReadWriteEntity} (the READ_WRITE control) share one SessionFactory, so
+ * guarding is shown to follow the mapping, not the region factory. Region names are the nested
+ * class FQNs, unique to this test, because the {@link EvictionGuardStats} registry has no reset.
+ * {@code dhisConfig} and {@code buildSessionFactory} are copied from {@code
+ * org.hisp.dhis.config.HibernateCacheEffectTest} (private there) minus its statement inspector and
+ * statistics settings. Isolation between test methods comes from {@code sessionFactory.close()},
+ * which closes the CacheManager and with it every region's storage.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

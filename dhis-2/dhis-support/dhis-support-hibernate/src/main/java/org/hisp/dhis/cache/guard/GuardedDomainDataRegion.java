@@ -42,43 +42,32 @@ import org.hibernate.cache.spi.support.DomainDataStorageAccess;
 import org.hibernate.cache.spi.support.RegionFactoryTemplate;
 
 /**
- * JCache domain data region whose NONSTRICT_READ_WRITE entity and collection accesses are the
- * guarded ones, {@link GuardedEntityNonStrictReadWriteAccess} and {@link
- * GuardedCollectionNonStrictReadWriteAccess}. Every other access type is left exactly as Hibernate
- * builds it.
+ * JCache domain data region whose NONSTRICT_READ_WRITE entity and collection accesses are {@link
+ * GuardedEntityNonStrictReadWriteAccess} and {@link GuardedCollectionNonStrictReadWriteAccess}.
+ * Every other access type is left exactly as Hibernate builds it.
  *
- * <p>Extends {@link JCacheDomainDataRegionImpl} rather than {@code DomainDataRegionTemplate}
- * directly, because that is the region {@code JCacheRegionFactory} builds itself: it adds the
- * TRANSACTIONAL access implementations of {@code DomainDataRegionImpl} plus the non standard access
- * type warning. Extending the plain template instead would silently turn a TRANSACTIONAL mapping
- * from a warning into an {@code UnsupportedOperationException}.
- *
- * <p>Natural id access is deliberately not overridden: nothing in the NONSTRICT_READ_WRITE bucket
- * of this code base uses natural id caching, and a guarded natural id access with no caller would
- * be untested code.
+ * <p>Extends {@link JCacheDomainDataRegionImpl} rather than {@code DomainDataRegionTemplate}: that
+ * is the region {@code JCacheRegionFactory} builds itself, and it downgrades a TRANSACTIONAL
+ * mapping to a warning where the plain template would throw. Natural-id access is not overridden:
+ * nothing in the NONSTRICT_READ_WRITE bucket uses it, and a guarded access with no caller would be
+ * untested code.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class GuardedDomainDataRegion extends JCacheDomainDataRegionImpl {
 
   /**
-   * One guard per region instance, shared by every access object this region generates, because
-   * sibling accesses of one region share one storage: a clear recorded through one of them must bar
-   * stale puts arriving through any of the others.
+   * One guard per region instance, shared by every access object the region generates: sibling
+   * accesses share one storage, so a clear recorded through one must bar stale puts arriving
+   * through the others. DHIS2 builds one SessionFactory, and closing it closes its CacheManager, so
+   * a guard and the storage it protects live and die together.
    *
-   * <p>The scope is the region instance and not the storage, which is worth stating because the two
-   * are not the same thing: a JCache cache is identified by its name, so two region instances built
-   * over one CacheManager URI would share storage while holding separate guards. DHIS2 builds one
-   * SessionFactory, and closing a SessionFactory closes its CacheManager with it, so in practice a
-   * guard and the storage it protects are created and discarded together.
-   *
-   * <p>Not assigned in the constructor, and a field initializer is equally forbidden here: both run
-   * only after {@code DomainDataRegionTemplate}'s constructor has already generated every access
-   * object through {@code completeInstantiation}, so either one would hand out accesses built with
-   * a null guard and then overwrite the field behind them. Created on first use instead. The
-   * unsynchronized lazy init is safe because Hibernate builds a region entirely on the thread that
-   * calls {@code buildDomainDataRegion} during SessionFactory bootstrap, and no access object of
-   * this region can be reached by another thread before that build has returned.
+   * <p>Created lazily on first use. Constructor assignment and a field initializer are both
+   * forbidden here: they run only after the superclass constructor has already generated every
+   * access object through {@code completeInstantiation}, which would hand out accesses holding a
+   * null guard. The unsynchronized lazy init is safe because Hibernate builds a region entirely on
+   * the bootstrap thread, and no access object is reachable by another thread before the build
+   * returns.
    */
   private EvictionGuard guard;
 

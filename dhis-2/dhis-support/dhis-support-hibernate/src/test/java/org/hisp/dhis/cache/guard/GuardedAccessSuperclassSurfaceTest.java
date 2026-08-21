@@ -45,23 +45,19 @@ import org.hibernate.cache.spi.support.EntityNonStrictReadWriteAccess;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the declared method surface of the five Hibernate classes {@link
- * GuardedEntityNonStrictReadWriteAccess} and {@link GuardedCollectionNonStrictReadWriteAccess}
- * inherit from.
+ * Pins the declared method surface of the five Hibernate superclasses of {@link
+ * GuardedEntityNonStrictReadWriteAccess} and {@link GuardedCollectionNonStrictReadWriteAccess}.
  *
- * <p>The guard's correctness invariant is that every inherited path which writes or clears region
- * storage is overridden and records into the {@link EvictionGuard} before it touches storage. That
- * invariant is stated in prose in those two classes and it holds for Hibernate 5.6.15, but prose is
- * not a constraint: if an upgrade adds a storage-touching method to one of these superclasses, the
- * guarded subclasses still compile, every other test still passes, and the stale-put window
- * silently reopens for that one path. Everything else about an upgrade is compiler-enforced, since
- * the classes being extended fail to compile if they move or change shape. This is the one silent
- * failure mode left, so it gets a test.
+ * <p>The guard's invariant is that every inherited path which writes or clears region storage is
+ * overridden and records into the {@link EvictionGuard} first. If a Hibernate upgrade adds a
+ * storage-touching method to a superclass, the subclasses still compile, every other test passes,
+ * and the stale-put window silently reopens for that path. This test turns that one silent failure
+ * mode into a loud one.
  *
- * <p>A failure here means the inherited surface changed. That is not by itself a defect: read the
- * new or changed entry, decide whether it can reach storage, extend the guarded subclasses if it
- * can, and only then update the expected set below. Signature comparison uses simple type names,
- * which is enough to separate the overloads that exist here and keeps the expected sets readable.
+ * <p>A failure here means the inherited surface changed, which is not by itself a defect: read the
+ * new entry, decide whether it can reach storage, extend the guarded subclasses if it can, and only
+ * then update the expected set. Signatures use simple type names, enough to separate the existing
+ * overloads.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

@@ -35,20 +35,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
- * Per-region counters for what {@link EvictionGuard} did: puts it let through and that stayed, puts
- * it refused up front, and puts it had already stored and then had to take back.
+ * Per-region counters for {@link EvictionGuard} outcomes: puts stored, puts refused up front, and
+ * puts stored and then taken back.
  *
- * <p>The registry is static on purpose, not out of laziness. The two ends of it cannot see each
- * other through Spring. The counting end is the Hibernate cache access strategy, which Hibernate
- * constructs deep inside its own region factory with no access to any DI container, so it cannot
- * have a registry injected. The reading end is the Micrometer binder, which lives in a different
- * Spring module and context altogether. A process wide static keyed by region name is the only
- * meeting point both ends already share. The counters are diagnostics, so a single JVM wide
- * registry is also exactly the right scope for them.
- *
- * <p>Counting is lock free: {@link LongAdder} trades a slightly more expensive read for contention
- * free increments, which is the correct trade here because increments happen on every guarded put
- * while reads happen only when metrics are scraped.
+ * <p>The registry is static because its two ends cannot meet through Spring: the counting end is a
+ * Hibernate cache access strategy built deep inside the region factory with no access to any DI
+ * container, the reading end is a Micrometer binder in another module. A process-wide static keyed
+ * by region name is the only meeting point both ends share, and JVM scope is the right scope for
+ * diagnostics. {@link LongAdder} keeps increments contention-free; reads happen only on metrics
+ * scrapes.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -72,9 +67,8 @@ public final class EvictionGuardStats {
 
   /**
    * Returns every region's counters keyed by region name, as an unmodifiable view of the live
-   * registry. It is a view, not a copy: regions registered later become visible through it, and the
-   * counters it exposes keep moving. That is what a metrics binder wants, and no caller needs a
-   * frozen snapshot.
+   * registry: regions registered later become visible through it, and the counters keep moving,
+   * which is what a metrics binder wants.
    */
   public static Map<String, EvictionGuardStats> all() {
     return Collections.unmodifiableMap(REGISTRY);
@@ -86,34 +80,26 @@ public final class EvictionGuardStats {
   }
 
   /**
-   * Records that a reader took back one value it had already stored, because a write landed between
-   * the guard check and the store and the post store re-check saw the newer eviction. This counts
-   * the reader undoing its own put, not writer bookkeeping: nothing counts {@link
-   * EvictionGuard#recordEviction}.
+   * Records that a reader took back a value it had already stored: a write landed between the guard
+   * check and the store, and the post-store re-check saw the newer eviction. Counts the reader
+   * undoing its own put, never writer bookkeeping.
    */
   public void countSelfEvicted() {
     selfEvicted.increment();
   }
 
   /**
-   * Records that one {@code putFromLoad} passed both guard checks and left its value in the region
-   * storage. Counted only when the guarded put reports success, so the three counters partition the
-   * guarded puts: every call ends as exactly one of stored, refused or self evicted, never two of
-   * them, with one branch left out of the partition on purpose. The guarded put also declines to
-   * count anything when the superclass reports that it did not store the value at all, which counts
-   * as neither a store nor a refusal by the guard. That branch is unreachable on Hibernate 5.6,
-   * whose base {@code putFromLoad} always reports stored, and it is kept precisely because that is
-   * an assumption about upstream rather than a guarantee: should an upgrade start reporting a
-   * declined store, the three counters would no longer add up to the calls, and this is the branch
-   * to count next.
+   * Records a {@code putFromLoad} that passed both guard checks and stayed in storage. The three
+   * counters partition the guarded puts: every call ends as exactly one of stored, refused or
+   * self-evicted. One branch is left out on purpose: when the superclass reports that it did not
+   * store, nothing is counted. That branch is unreachable on Hibernate 5.6, whose base {@code
+   * putFromLoad} always reports stored; if an upgrade changes that, the three counters stop adding
+   * up to the calls, and this is the branch to count next.
    *
-   * <p>This is the denominator the other two are read against, and it is also a cross check on the
-   * guard's own reach. A NONSTRICT_READ_WRITE region has no other way into its storage: Hibernate
-   * populates such a region through {@code putFromLoad} and nothing else, so per region the
-   * storage's own put count has to equal stored puts plus self evictions, the self evictions being
-   * the stores that were taken back right after they landed. A region whose {@code ehcache_puts}
-   * drifts above that sum is being written to by a path that does not pass this class, and a path
-   * the guard does not see is a path it cannot bar.
+   * <p>This counter is also a cross-check on the guard's reach: a NONSTRICT_READ_WRITE region is
+   * populated only through {@code putFromLoad}, so per region {@code ehcache_puts} must equal
+   * stored puts plus self-evictions. Drift above that sum means a write path bypasses the guard,
+   * and a path the guard does not see is a path it cannot bar.
    */
   public void countStoredPut() {
     storedPuts.increment();

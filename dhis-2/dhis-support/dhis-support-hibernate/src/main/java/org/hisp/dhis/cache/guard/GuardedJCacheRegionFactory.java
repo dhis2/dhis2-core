@@ -36,20 +36,14 @@ import org.hibernate.cache.spi.DomainDataRegion;
 
 /**
  * JCache region factory that builds {@link GuardedDomainDataRegion} instead of Hibernate's own
- * region, so NONSTRICT_READ_WRITE entities and collections refuse stale late puts.
+ * region, so NONSTRICT_READ_WRITE entities and collections refuse stale late puts. See {@link
+ * GuardedEntityNonStrictReadWriteAccess} for the race and the ordering rules, {@link EvictionGuard}
+ * for the bookkeeping.
  *
- * <p>Why it exists: plain NONSTRICT_READ_WRITE evicts a key on write and then accepts any {@code
- * putFromLoad} arriving afterwards, so a reader that loaded the row before the write and stores it
- * after the write strands the pre write value in the L2 cache until something else evicts that key.
- * READ_WRITE has no such window, but pays for it with a per key soft lock. The guarded accesses
- * restore the refusal with a lock free timestamp comparison instead, see {@link
- * GuardedEntityNonStrictReadWriteAccess} and {@link GuardedCollectionNonStrictReadWriteAccess} for
- * the ordering rules and {@link EvictionGuard} for the bookkeeping.
- *
- * <p>Hibernate instantiates this class reflectively from its fully qualified name in {@code
- * hibernate.cache.region.factory_class}, so it must stay public with a public no argument
- * constructor. Only the domain data region build is replaced; everything else stays as inherited,
- * query results regions and timestamps regions included.
+ * <p>Hibernate instantiates this class reflectively from {@code
+ * hibernate.cache.region.factory_class}, so it must stay public with a public no-argument
+ * constructor. Only the domain data region build is replaced; query results and timestamps regions
+ * stay inherited.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
