@@ -65,6 +65,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -82,6 +83,12 @@ import org.springframework.stereotype.Component;
 public class MetadataParamsHandler {
   private static final String DOT = ".";
   private static final String ORG_UNIT_DIM = "ou";
+
+  private final OptionService optionService;
+
+  public MetadataParamsHandler(OptionService optionService) {
+    this.optionService = optionService;
+  }
 
   /**
    * Appends the metadata to the given {@link Grid} based on the given arguments.
@@ -103,7 +110,8 @@ public class MetadataParamsHandler {
       List<AnalyticsMetaDataKey> userOrgUnitMetaDataKeys =
           getUserOrgUnitsMetadataKeys(commonParsed);
       Map<String, Object> items =
-          new HashMap<>(new MetadataItemsHandler().handle(grid, commonParsed, commonRequest));
+          new HashMap<>(
+              new MetadataItemsHandler(optionService).handle(grid, commonParsed, commonRequest));
 
       commonParsed
           .getAllDimensionIdentifiers()
@@ -116,7 +124,8 @@ public class MetadataParamsHandler {
       metadataInfo.put(ITEMS.getKey(), items);
 
       metadataInfo.put(
-          DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParsed));
+          DIMENSIONS.getKey(),
+          new MetadataDimensionsHandler(optionService).handle(grid, commonParsed));
 
       // Org. Units.
       boolean hierarchyMeta = commonRequest.isHierarchyMeta();

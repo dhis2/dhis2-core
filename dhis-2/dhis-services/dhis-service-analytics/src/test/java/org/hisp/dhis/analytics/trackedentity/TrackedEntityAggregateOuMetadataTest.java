@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
@@ -110,6 +111,7 @@ class TrackedEntityAggregateOuMetadataTest {
   private final UserService userService = mock(UserService.class);
   private final OrganisationUnitService organisationUnitService =
       mock(OrganisationUnitService.class);
+  private final OptionService optionService = mock(OptionService.class);
 
   private final TrackedEntityAggregateService service =
       new TrackedEntityAggregateService(
@@ -117,7 +119,7 @@ class TrackedEntityAggregateOuMetadataTest {
           sqlQueryCreatorService,
           executionPlanStore,
           securityManager,
-          new MetadataParamsHandler(),
+          new MetadataParamsHandler(optionService),
           userService,
           organisationUnitService);
 

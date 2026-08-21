@@ -72,6 +72,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.TestBase;
@@ -96,6 +97,8 @@ class GridAdaptorTest extends TestBase {
 
   @Mock private I18n i18n;
 
+  @Mock private OptionService optionService;
+
   private GridAdaptor gridAdaptor;
 
   private HeaderParamsHandler headerParamsHandler;
@@ -107,7 +110,7 @@ class GridAdaptorTest extends TestBase {
   @BeforeEach
   void setUp() {
     headerParamsHandler = new HeaderParamsHandler();
-    metadataDetailsHandler = new MetadataParamsHandler();
+    metadataDetailsHandler = new MetadataParamsHandler(optionService);
     schemeIdResponseMapper = new SchemeIdResponseMapper(i18nManager);
     gridAdaptor =
         new GridAdaptor(headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper);

@@ -91,6 +91,8 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
@@ -111,6 +113,8 @@ public class MetadataItemsHandler {
   private final OrganisationUnitResolver organisationUnitResolver;
 
   private final I18nManager i18nManager;
+
+  private final OptionService optionService;
 
   /**
    * Adds meta-data values to the given grid based on the given data query parameters.
@@ -187,7 +191,8 @@ public class MetadataItemsHandler {
    */
   private Set<Option> collectOptionItems(Grid grid, EventQueryParams params) {
     Set<Option> optionItems = new LinkedHashSet<>();
-    Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, params.getItems());
+    Map<String, List<Option>> optionsPresentInGrid =
+        getItemOptions(grid, params.getItems(), this::resolveOptions);
 
     if (isNotEmpty(grid.getRows())) {
       optionItems.addAll(
@@ -208,10 +213,23 @@ public class MetadataItemsHandler {
    */
   private Map<String, List<String>> buildDimensionItems(Grid grid, EventQueryParams params) {
     if (params.isComingFromQuery()) {
-      Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, params.getItems());
+      Map<String, List<Option>> optionsPresentInGrid =
+          getItemOptions(grid, params.getItems(), this::resolveOptions);
       return getDimensionItems(params, Optional.of(optionsPresentInGrid));
     }
     return getDimensionItems(params, empty());
+  }
+
+  /**
+   * Resolves the {@link Option}s belonging to the given {@link OptionSet} directly, instead of
+   * through {@link OptionSet#getOptions()} - that lazy collection can fall back to one query per
+   * option under a cold second-level cache.
+   *
+   * @param optionSet the {@link OptionSet}.
+   * @return the list of {@link Option}.
+   */
+  private List<Option> resolveOptions(OptionSet optionSet) {
+    return optionService.findOptionsByNamePattern(optionSet.getUid(), null, null);
   }
 
   /**
@@ -337,7 +355,7 @@ public class MetadataItemsHandler {
                     includeDetails ? option.getUid() : null,
                     option.getCode())));
 
-    new org.hisp.dhis.analytics.common.processing.MetadataItemsHandler()
+    new org.hisp.dhis.analytics.common.processing.MetadataItemsHandler(optionService)
         .addOptionsSetIntoMap(metadataItemMap, itemOptions);
   }
 
