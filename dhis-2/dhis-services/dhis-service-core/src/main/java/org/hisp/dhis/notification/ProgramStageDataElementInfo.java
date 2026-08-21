@@ -25,51 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.dataset;
+package org.hisp.dhis.notification;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import java.util.Map;
 
 /**
- * @author Lars Helge Overland
+ * Pre-fetched data element metadata for rendering {@code #{dataElement}} placeholders. Only data
+ * elements of the event's program stage are fetched, so a placeholder whose uid is absent is not
+ * part of the stage and renders as such.
+ *
+ * @param hasOptionSet whether the data element has an option set. Kept separate from {@code
+ *     optionCodeToName} as an option set with no options still renders as a missing option rather
+ *     than as the raw value.
+ * @param optionCodeToName option code to name of the data element's option set. The value to render
+ *     is looked up in here, mirroring what the renderer used to walk the option set for.
  */
-public class MetadataCaches {
-  private CachingMap<String, DataSet> dataSets = new CachingMap<>();
-
-  private CachingMap<String, OrganisationUnit> orgUnits = new CachingMap<>();
-
-  private CachingMap<String, Period> periods = new CachingMap<>();
-
-  private CachingMap<String, CategoryOptionCombo> attrOptionCombos = new CachingMap<>();
-
-  private CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
-
-  private CachingMap<String, Boolean> attrOptComboOrgUnitMap = new CachingMap<>();
-
-  public CachingMap<String, DataSet> getDataSets() {
-    return dataSets;
-  }
-
-  public CachingMap<String, OrganisationUnit> getOrgUnits() {
-    return orgUnits;
-  }
-
-  public CachingMap<String, Period> getPeriods() {
-    return periods;
-  }
-
-  public CachingMap<String, CategoryOptionCombo> getAttrOptionCombos() {
-    return attrOptionCombos;
-  }
-
-  public CachingMap<String, Boolean> getOrgUnitInHierarchyMap() {
-    return orgUnitInHierarchyMap;
-  }
-
-  public CachingMap<String, Boolean> getAttrOptComboOrgUnitMap() {
-    return attrOptComboOrgUnitMap;
-  }
-}
+record ProgramStageDataElementInfo(boolean hasOptionSet, Map<String, String> optionCodeToName) {}

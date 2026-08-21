@@ -25,51 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.dataset;
+package org.hisp.dhis.tracker.imports.preheat;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import java.util.Set;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
- * @author Lars Helge Overland
+ * Data elements of a program stage, projected instead of loaded as entities.
+ *
+ * <p>These replace walking {@link org.hisp.dhis.program.ProgramStage#getProgramStageDataElements()}
+ * on a preheated stage, which is no longer mapped. A program can have thousands of data elements
+ * while an event references a handful, so loading them all as entities dominated preheat on wide
+ * programs. Only the data elements needed to answer the validations are projected: the compulsory
+ * ones, plus those referenced by the payload or by program rules. See {@link
+ * org.hisp.dhis.tracker.imports.preheat.supplier.ProgramStageDataElementsSupplier}.
+ *
+ * @param compulsory identifiers of the compulsory data elements, used to report a missing mandatory
+ *     value
+ * @param members identifiers of the projected data elements, used to check that a payload data
+ *     element belongs to the stage
+ * @param memberUids uids of the projected data elements. Program rules only know uids, so this is
+ *     kept separately from {@code members} which is in the requested idScheme
  */
-public class MetadataCaches {
-  private CachingMap<String, DataSet> dataSets = new CachingMap<>();
+public record ProgramStageDataElements(
+    Set<MetadataIdentifier> compulsory, Set<MetadataIdentifier> members, Set<UID> memberUids) {
 
-  private CachingMap<String, OrganisationUnit> orgUnits = new CachingMap<>();
-
-  private CachingMap<String, Period> periods = new CachingMap<>();
-
-  private CachingMap<String, CategoryOptionCombo> attrOptionCombos = new CachingMap<>();
-
-  private CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
-
-  private CachingMap<String, Boolean> attrOptComboOrgUnitMap = new CachingMap<>();
-
-  public CachingMap<String, DataSet> getDataSets() {
-    return dataSets;
-  }
-
-  public CachingMap<String, OrganisationUnit> getOrgUnits() {
-    return orgUnits;
-  }
-
-  public CachingMap<String, Period> getPeriods() {
-    return periods;
-  }
-
-  public CachingMap<String, CategoryOptionCombo> getAttrOptionCombos() {
-    return attrOptionCombos;
-  }
-
-  public CachingMap<String, Boolean> getOrgUnitInHierarchyMap() {
-    return orgUnitInHierarchyMap;
-  }
-
-  public CachingMap<String, Boolean> getAttrOptComboOrgUnitMap() {
-    return attrOptComboOrgUnitMap;
-  }
+  public static final ProgramStageDataElements EMPTY =
+      new ProgramStageDataElements(Set.of(), Set.of(), Set.of());
 }
