@@ -104,7 +104,7 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "maplegendsetid")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<Legend> legends = new HashSet<>();
 
   public LegendSet() {}
