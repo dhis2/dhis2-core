@@ -46,6 +46,8 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
@@ -87,14 +89,35 @@ class SubexpressionPeriodOffsetUtilsTest {
 
   @Test
   void testJoinPeriodOffsetValues() {
-    String result = SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues(params);
+    String result =
+        SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues(params, new PostgreSqlBuilder());
     String expected =
-        " join (values"
-            + "(-2,'202309','202307'),(-2,'202310','202308'),"
-            + "(-1,'202309','202308'),(-1,'202310','202309'),"
-            + "(0,'202309','202309'),(0,'202310','202310'),"
-            + "(1,'202309','202310'),(1,'202310','202311'))"
-            + " as shift (\"delta\", \"reportperiod\", \"dataperiod\") on \"dataperiod\" = \"monthly\"";
+        " join (select -2 as \"delta\", '202309' as \"reportperiod\", '202307' as \"dataperiod\""
+            + " union all select -2, '202310', '202308'"
+            + " union all select -1, '202309', '202308'"
+            + " union all select -1, '202310', '202309'"
+            + " union all select 0, '202309', '202309'"
+            + " union all select 0, '202310', '202310'"
+            + " union all select 1, '202309', '202310'"
+            + " union all select 1, '202310', '202311'"
+            + ") as shift on \"dataperiod\" = \"monthly\"";
+    assertEquals(expected, result);
+  }
+
+  @Test
+  void testJoinPeriodOffsetValuesWithDoris() {
+    String result =
+        SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues(params, new DorisSqlBuilder("", ""));
+    String expected =
+        " join (select -2 as `delta`, '202309' as `reportperiod`, '202307' as `dataperiod`"
+            + " union all select -2, '202310', '202308'"
+            + " union all select -1, '202309', '202308'"
+            + " union all select -1, '202310', '202309'"
+            + " union all select 0, '202309', '202309'"
+            + " union all select 0, '202310', '202310'"
+            + " union all select 1, '202309', '202310'"
+            + " union all select 1, '202310', '202311'"
+            + ") as shift on `dataperiod` = `monthly`";
     assertEquals(expected, result);
   }
 
