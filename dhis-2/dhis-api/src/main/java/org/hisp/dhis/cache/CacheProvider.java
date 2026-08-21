@@ -99,6 +99,8 @@ public interface CacheProvider {
 
   <V> Cache<V> createProgramRuleVariablesCache();
 
+  <V> Cache<V> createProgramRuleVariableOptionsCache();
+
   <V> Cache<V> createUserGroupNameCache();
 
   <V> Cache<V> createUserDisplayNameCache();

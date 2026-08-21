@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -99,7 +101,6 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -144,10 +145,17 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
   @Mock private I18n i18n;
 
-  @InjectMocks private DefaultProgramRuleEntityMapperService mapper;
+  @Mock private CacheProvider cacheProvider;
+
+  private DefaultProgramRuleEntityMapperService mapper;
 
   @BeforeEach
   public void initTest() {
+    when(cacheProvider.<List<Option>>createProgramRuleVariableOptionsCache())
+        .thenReturn(new SimpleCacheBuilder<List<Option>>().build());
+    mapper =
+        new DefaultProgramRuleEntityMapperService(
+            null, programRuleVariableService, constantService, i18nManager, cacheProvider);
 
     program = createProgram('P');
     programStage = createProgramStage('S', program);

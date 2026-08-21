@@ -112,6 +112,7 @@ public class DefaultCacheProvider implements CacheProvider {
     propertyTransformerCache,
     programHasRulesCache,
     programRuleVariablesCache,
+    programRuleVariableOptionsCache,
     userGroupNameCache,
     userDisplayNameCache,
     programWebHookNotificationTemplateCache,
@@ -457,6 +458,17 @@ public class DefaultCacheProvider implements CacheProvider {
         this.<V>newBuilder()
             .forRegion(Region.programRuleVariablesCache.name())
             .expireAfterWrite(3, TimeUnit.HOURS)
+            .withInitialCapacity((int) getActualSize(20))
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
+  }
+
+  @Override
+  public <V> Cache<V> createProgramRuleVariableOptionsCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.programRuleVariableOptionsCache.name())
+            .expireAfterWrite(1, TimeUnit.HOURS)
             .withInitialCapacity((int) getActualSize(20))
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));

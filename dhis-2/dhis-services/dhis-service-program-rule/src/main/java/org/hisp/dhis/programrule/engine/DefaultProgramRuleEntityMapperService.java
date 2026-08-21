@@ -51,13 +51,15 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -94,7 +96,6 @@ import org.springframework.stereotype.Service;
  * @author Zubair Asghar
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
 
@@ -105,6 +106,45 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   private final ConstantService constantService;
 
   private final I18nManager i18nManager;
+
+  /**
+   * OptionSet id (as string) -> mapped {@code (name, code)} pairs for its options. A program rule
+   * variable's option set almost never changes at the timescale of data entry, but {@link
+   * #getOptions(ProgramRuleVariable)} previously ran {@code optionSet.getOptions()} fresh on every
+   * tracker import that touched the owning program: that collection has no L2 cache (see {@code
+   * OptionSet.hbm.xml}, deliberately, to avoid a different N+1), so every call re-queried the
+   * database and re-populated the {@code Option} entity cache without ever reading from it.
+   *
+   * <p>Invalidated per option set by {@link OptionCacheInvalidationListener} on every local
+   * insert/update/delete of an {@code Option}, since writes can arrive via {@code
+   * DefaultOptionService}, the generic metadata CRUD controller, or a metadata import - none of
+   * which funnel through one service method this class could hook into directly. The 1 hour TTL
+   * (matching {@code programRuleVariablesCache}'s existing precedent in this module) remains as a
+   * backstop for writes on another node in a cluster, which this same-node listener cannot see.
+   */
+  private final Cache<List<Option>> optionsByOptionSetId;
+
+  public DefaultProgramRuleEntityMapperService(
+      ProgramRuleService programRuleService,
+      ProgramRuleVariableService programRuleVariableService,
+      ConstantService constantService,
+      I18nManager i18nManager,
+      CacheProvider cacheProvider) {
+    this.programRuleService = programRuleService;
+    this.programRuleVariableService = programRuleVariableService;
+    this.constantService = constantService;
+    this.i18nManager = i18nManager;
+    this.optionsByOptionSetId = cacheProvider.createProgramRuleVariableOptionsCache();
+  }
+
+  /**
+   * Evicts the cached options of the given option set, so the next {@link
+   * #getOptions(ProgramRuleVariable)} call recomputes them instead of serving a stale list. Called
+   * by {@link OptionCacheInvalidationListener}.
+   */
+  void invalidateOptionsCache(long optionSetId) {
+    optionsByOptionSetId.invalidate(String.valueOf(optionSetId));
+  }
 
   @Override
   public List<Rule> toMappedProgramRules() {
@@ -608,16 +648,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
       return List.of();
     }
 
+    OptionSet optionSet;
     if (prv.hasDataElement() && prv.getDataElement().hasOptionSet()) {
-      return prv.getDataElement().getOptionSet().getOptions().stream()
-          .map(op -> new Option(op.getName(), op.getCode()))
-          .toList();
+      optionSet = prv.getDataElement().getOptionSet();
     } else if (prv.hasTrackedEntityAttribute() && prv.getAttribute().hasOptionSet()) {
-      return prv.getAttribute().getOptionSet().getOptions().stream()
-          .map(op -> new Option(op.getName(), op.getCode()))
-          .toList();
+      optionSet = prv.getAttribute().getOptionSet();
+    } else {
+      return List.of();
     }
 
-    return List.of();
+    return optionsByOptionSetId.get(
+        String.valueOf(optionSet.getId()),
+        key ->
+            optionSet.getOptions().stream()
+                .map(op -> new Option(op.getName(), op.getCode()))
+                .toList());
   }
 }
