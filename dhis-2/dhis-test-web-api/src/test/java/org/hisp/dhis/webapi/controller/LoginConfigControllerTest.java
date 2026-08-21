@@ -33,8 +33,10 @@ import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Properties;
+import java.util.Set;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -49,6 +51,10 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserRole;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,5 +230,40 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     POST("/systemSettings/maxPasswordLength", "100").content(HttpStatus.OK);
     response = GET("/loginConfig").content();
     assertEquals("100", response.getString("maxPasswordLength").string());
+  }
+
+  /**
+   * Regression for DHIS2-21909: createUserDetails must batch-load role authorities and restrictions
+   * so authenticated /api/loginConfig does not N+1 on userroleauthorities / userrolerestrictions.
+   */
+  @Test
+  void testCreateUserDetails_BatchLoadsRoleAuthoritiesAndRestrictions() {
+    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    for (int i = 0; i < 5; i++) {
+      char c = (char) ('A' + i);
+      UserRole role = createUserRole(c, "F_QH21909_" + c);
+      role.getRestrictions().add("RESTR_" + c);
+      userService.addUserRole(role);
+      user.getUserRoles().add(role);
+    }
+    userService.updateUser(user);
+
+    // Drop first-level cache so role element-collections are lazy again. Reload by uid (not
+    // username) so the username query cache cannot return a stale User without the new roles.
+    manager.flush();
+    manager.clear();
+
+    User reloaded = userService.getUser(user.getUid());
+    UserDetails details = userService.createUserDetails(reloaded);
+
+    assertTrue(details.getAllAuthorities().contains("F_QH21909_A"));
+    assertTrue(details.getAllAuthorities().contains("F_QH21909_E"));
+    assertTrue(details.hasAnyRestrictions(Set.of("RESTR_A")));
+    assertTrue(details.hasAnyRestrictions(Set.of("RESTR_E")));
+
+    // Endpoint still serves config under auth after the UserDetails path runs.
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals(systemService.getSystemInfoVersion(), response.getString("apiVersion").string());
   }
 }
