@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -103,7 +104,7 @@ class EventQueryValidatorTest extends TestBase {
   @InjectMocks private DefaultEventQueryValidator eventQueryValidator;
 
   @BeforeEach
-  public void setUpTest() {
+  void setUpTest() {
     prA = createProgram('A');
     prB = createProgram('B');
 
@@ -835,6 +836,38 @@ class EventQueryValidatorTest extends TestBase {
    * @param errorCode the {@link ErrorCode}.
    * @param params the {@link DataQueryParams}.
    */
+  @Test
+  void validateFailureEnrollmentOuSortWithoutEnrollmentOu() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .addAscSortItem(
+                new QueryItem(
+                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
+            .build();
+
+    assertValidationError(ErrorCode.E7246, params);
+  }
+
+  @Test
+  void validateSuccessEnrollmentOuSortWithEnrollmentOuDimension() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withEnrollmentOuDimension(List.of(ouA))
+            .addAscSortItem(
+                new QueryItem(
+                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
+            .build();
+
+    eventQueryValidator.validate(params);
+  }
+
   private void assertValidationError(ErrorCode errorCode, EventQueryParams params) {
     IllegalQueryException ex =
         assertThrows(IllegalQueryException.class, () -> eventQueryValidator.validate(params));
