@@ -805,7 +805,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     List<Event> events = eventService.findEvents(params);
 
     assertContainsOnly(
-        Set.of("DATAEL00002", "DATAEL00005", "DATAEL00006", "DATAEL00007", "GieVkTxp4HH"),
+        Set.of("DATAEL00002", "DATAEL00005", "DATAEL00006", "DATAEL00007"),
         dataElements(events.get(0)));
   }
 
