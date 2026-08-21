@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,6 +112,8 @@ public class DefaultCacheProvider implements CacheProvider {
     propertyTransformerCache,
     programHasRulesCache,
     programRuleVariablesCache,
+    programRulesByActionTypesCache,
+    programRuleActionUidsCache,
     userGroupNameCache,
     userDisplayNameCache,
     programWebHookNotificationTemplateCache,
@@ -460,6 +462,28 @@ public class DefaultCacheProvider implements CacheProvider {
             .withInitialCapacity((int) getActualSize(20))
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
+  }
+
+  @Override
+  public <V> Cache<V> createProgramRulesByActionTypesCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.programRulesByActionTypesCache.name())
+            .expireAfterWrite(3, TimeUnit.HOURS)
+            .withInitialCapacity((int) getActualSize(20))
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
+  }
+
+  @Override
+  public <V> Cache<V> createProgramRuleActionUidsCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.programRuleActionUidsCache.name())
+            .expireAfterWrite(3, TimeUnit.HOURS)
+            .withInitialCapacity(2)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(2)));
   }
 
   @Override
