@@ -197,7 +197,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
 
-    injectSecurityContextUser(manager.get(User.class, "Hop98yh65pL"));
+    testAsUser("o1HMTIzBGo7");
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
