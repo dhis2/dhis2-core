@@ -33,13 +33,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.notification.BaseNotificationMessageRenderer;
 import org.hisp.dhis.notification.TemplateVariable;
@@ -55,6 +53,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProgramStageNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<TrackerEvent> {
+
+  private final ProgramStageDataElementFetcher programStageDataElementFetcher;
 
   public static final ImmutableMap<TemplateVariable, Function<TrackerEvent, String>>
       VARIABLE_RESOLVERS =
@@ -144,18 +144,18 @@ public class ProgramStageNotificationMessageRenderer
   protected Map<String, String> resolveDataElementValues(
       Set<String> elementKeys, TrackerEvent entity) {
     if (elementKeys.isEmpty()) {
-      return Maps.newHashMap();
+      return Map.of();
     }
 
-    Map<String, DataElement> dataElementsMap = new HashMap<>();
-    entity.getProgramStage().getDataElements().forEach(de -> dataElementsMap.put(de.getUid(), de));
+    Map<String, ProgramStageDataElementInfo> dataElements =
+        programStageDataElementFetcher.fetch(entity.getProgramStage().getId(), elementKeys);
 
     return entity.getEventDataValues().stream()
         .filter(dv -> elementKeys.contains(dv.getDataElement()))
         .collect(
             Collectors.toMap(
                 EventDataValue::getDataElement,
-                dv -> renderDataElementValue(dv, dataElementsMap.get(dv.getDataElement()))));
+                dv -> renderValue(dv, dataElements.get(dv.getDataElement()))));
   }
 
   @Override
@@ -181,5 +181,33 @@ public class ProgramStageNotificationMessageRenderer
     return av.getAttribute().hasOptionSet()
         ? getOptionName(av.getAttribute().getOptionSet(), value)
         : value;
+  }
+
+  /**
+   * Renders the display value for a {@link ProgramStageDataElementInfo} within the context of an
+   * event.
+   *
+   * <p>This method performs the following:
+   *
+   * <ul>
+   *   <li>Returns a placeholder if the data element is not part of the program stage.
+   *   <li>Resolves OptionSet codes to their corresponding display names when applicable.
+   *   <li>Otherwise, returns the raw data value.
+   * </ul>
+   *
+   * @param dv the {@link EventDataValue} containing the stored value
+   * @param dataElement the projected data element associated with the value, null when it is not
+   *     part of the program stage
+   * @return a rendered, user-friendly value suitable for notifications or messages
+   */
+  private static String renderValue(EventDataValue dv, ProgramStageDataElementInfo dataElement) {
+    if (dataElement == null) {
+      return DE_NOT_IN_STAGE;
+    }
+    String value = dv.getValue();
+    if (!dataElement.hasOptionSet()) {
+      return value;
+    }
+    return dataElement.optionCodeToName().getOrDefault(value, OPTION_SET_NOT_FOUND);
   }
 }

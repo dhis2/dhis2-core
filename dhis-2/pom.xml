@@ -81,7 +81,7 @@
     <sonar.issue.ignore.multicriteria.S1117.ruleKey>java:S1117</sonar.issue.ignore.multicriteria.S1117.ruleKey>
     <sonar.issue.ignore.multicriteria.S1117.resourceKey>**/src/test/**/*.java</sonar.issue.ignore.multicriteria.S1117.resourceKey>
 
-    <byte-buddy.version>1.17.5</byte-buddy.version>
+    <byte-buddy.version>1.18.12</byte-buddy.version>
     <byte-buddy-agent.version>1.17.5</byte-buddy-agent.version>
     <!-- spring.test.extension.context.scope=test_class restores the pre-Spring-7 test-class-scoped
          SpringExtension ExtensionContext (Spring 7.0 switched the default to test-method scope, which
@@ -110,7 +110,7 @@
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
-    <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
+    <com.google.zxing.javase.version>3.5.4</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>7.0.8</spring.version>
@@ -124,14 +124,14 @@
     <lettuce.version>6.8.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>13.0.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>13.3.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.12.0</ehcache3.version>
     <jaxb-runtime.version>4.0.9</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.5</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.14.1</c3p0.version>
-    <HikariCP.version>7.0.2</HikariCP.version>
+    <HikariCP.version>7.1.0</HikariCP.version>
     <postgresql-driver.version>42.7.12</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
@@ -178,7 +178,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.55.0</artemis-jakarta.version>
-    <netty-all.version>4.2.15.Final</netty-all.version>
+    <netty-all.version>4.2.17.Final</netty-all.version>
     <classgraph.version>4.8.192</classgraph.version>
 
     <!-- SMS/SMPP -->
