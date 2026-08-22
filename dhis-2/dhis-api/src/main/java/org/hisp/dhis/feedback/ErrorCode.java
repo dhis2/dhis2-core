@@ -621,6 +621,8 @@ public enum ErrorCode {
   E7256("Value `{0}` is not a numeric tracked entity attribute of tracked entity type `{1}`"),
   E7257(
       "Value `{0}` does not reference a numeric data element of a program stage; expected format `programUid.programStageUid.dataElementUid`"),
+  E7258(
+      "Dimension is not supported as a group by in a tracked entity aggregate query: `{0}`. Supported dimensions are the registration organisation unit, tracked entity static fields and tracked entity attributes"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

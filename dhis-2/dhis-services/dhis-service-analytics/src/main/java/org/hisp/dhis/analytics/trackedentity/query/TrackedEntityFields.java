@@ -51,7 +51,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
@@ -66,10 +65,8 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField;
-import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OrgUnitQueryBuilder;
-import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.TrackedEntityQueryBuilder;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
@@ -212,21 +209,14 @@ public class TrackedEntityFields {
     // Aggregate select fields are built via Field.ofDimensionIdentifier, which carries neither a
     // field alias nor a dimension identifier key, so they cannot be matched back to a dimension by
     // Field.getDimensionIdentifier() the way the per-TEI path does. Headers are therefore built
-    // directly from the grouped dimensions, mirroring the SELECT/GROUP BY selection in
-    // AggregateQueryBuilder: only user-requested org unit or tracked entity dimensions become
-    // columns. Each header is named by its dimension key to match the SQL result column name.
-    Set<String> requestedKeys =
-        contextParams.getCommonRaw().getDimension().stream()
-            .map(DimensionalObjectUtils::getDimensionFromParam)
-            .collect(Collectors.toSet());
+    // directly from the dimensions the query groups by, so that there is exactly one header per
+    // grouped column. Each header is named by its dimension key to match the SQL result column
+    // name.
+    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
 
     Set<GridHeader> headers = new LinkedHashSet<>();
     commonParsed.getDimensionIdentifiers().stream()
-        .filter(dimIdentifier -> requestedKeys.contains(dimIdentifier.getKey()))
-        .filter(
-            dimIdentifier ->
-                OrgUnitQueryBuilder.isOu(dimIdentifier)
-                    || TrackedEntityQueryBuilder.isTrackedEntity(dimIdentifier))
+        .filter(dimIdentifier -> groupedKeys.contains(dimIdentifier.getKey()))
         .forEach(
             dimIdentifier -> {
               GridHeader header = getHeaderForDimensionParam(dimIdentifier, contextParams);
