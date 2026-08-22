@@ -32,6 +32,10 @@ package org.hisp.dhis.period;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.input.Fields;
 
 /**
  * @author Kristian Nordal
@@ -128,8 +132,6 @@ public interface PeriodService {
    */
   List<Period> reloadPeriods(Collection<Period> periods);
 
-  List<PeriodType> loadAllPeriodTypes();
-
   /**
    * Returns a list of the given number of previous periods in ascending order. The given last
    * period appears last in the returned list.
@@ -220,10 +222,10 @@ public interface PeriodService {
   }
 
   /**
-   * Updates the label of the given period type name.
-   *
-   * @param periodTypeName the {@link PeriodType}'s name.
-   * @param label the new label.
+   * @param locale for display labels (falls back to user's DB locale when null)
+   * @param fields fields to include for each {@link PeriodTypes.Entry}
+   * @return all period types with they display properties resolved for the current user
+   * @since 2.44
    */
-  void updatePeriodTypeLabel(String periodTypeName, String label);
+  PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, @Nonnull Fields fields);
 }

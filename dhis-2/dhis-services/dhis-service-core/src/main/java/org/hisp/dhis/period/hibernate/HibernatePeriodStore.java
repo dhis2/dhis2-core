@@ -31,6 +31,7 @@ package org.hisp.dhis.period.hibernate;
 
 import jakarta.persistence.EntityManager;
 import java.sql.Connection;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -43,11 +44,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.translation.JsonTranslations;
+import org.hisp.dhis.translation.Translation;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -276,23 +282,140 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   }
 
   @Override
-  public void updatePeriodType(PeriodType periodType) {
-    String name = periodType.getName();
-    String label = periodType.getLabel();
-
-    String sql =
-        """
-        UPDATE periodtype SET label = :label
+  public boolean updatePeriodTypeLabel(
+      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale) {
+    if (locale == null) {
+      String sql =
+          """
+        UPDATE periodtype
+        SET label = :label
         WHERE name = :name""";
 
-    runAutoJoinTransaction(
+      String newValue = label == null ? null : label.isEmpty() ? null : label;
+      return runAutoJoinTransaction(
+              session ->
+                  session
+                      .createNativeQuery(sql)
+                      .addSynchronizedEntityClass(PeriodType.class)
+                      .setParameter("name", name)
+                      .setParameter("label", newValue)
+                      .executeUpdate())
+          > 0;
+    }
+    // erase potentially existing value
+    String sql =
+        """
+      UPDATE periodtype
+      SET translations = (
+        SELECT jsonb_agg(elem)
+        FROM jsonb_array_elements(translations) AS elem
+        WHERE elem->>'locale' <> :locale
+      )
+      WHERE name = :name""";
+    boolean erased =
+        runAutoJoinTransaction(
+                session ->
+                    session
+                        .createNativeQuery(sql)
+                        .addSynchronizedEntityClass(PeriodType.class)
+                        .setParameter("name", name)
+                        .setParameter("locale", locale.toString())
+                        .executeUpdate())
+            > 0;
+    // now insert the language object
+    if (label == null || label.isEmpty()) return erased;
+    String sql2 =
+        """
+      UPDATE periodtype
+      SET translations = translations ||
+        jsonb_build_array(jsonb_build_object('locale',:locale,'property','NAME','value',:value))
+      WHERE name = :name""";
+    boolean inserted =
+        runAutoJoinTransaction(
+                session ->
+                    session
+                        .createNativeQuery(sql2)
+                        .addSynchronizedEntityClass(PeriodType.class)
+                        .setParameter("name", name)
+                        .setParameter("locale", locale.toString())
+                        .setParameter("value", label)
+                        .executeUpdate())
+            > 0;
+    return erased || inserted;
+  }
+
+  @Override
+  public boolean updatePeriodTypeLabel(
+      @Nonnull String name, @Nonnull Collection<Translation> translations) {
+    List<Translation> keep =
+        translations.stream().filter(t -> t.getValue() != null && !t.getValue().isEmpty()).toList();
+    if (keep.isEmpty()) {
+      String sql =
+          """
+        UPDATE periodtype
+        SET translations = '{}'
+        WHERE name = :name
+        """;
+      return runAutoJoinTransaction(
+              session ->
+                  session
+                      .createNativeQuery(sql)
+                      .addSynchronizedEntityClass(PeriodType.class)
+                      .setParameter("name", name)
+                      .executeUpdate())
+          > 0;
+    }
+    @Language("sql")
+    String sql1 =
+        """
+    UPDATE periodtype
+    SET translations = jsonb_build_array(
+      jsonb_build_object('locale',:locale,'property','NAME','value',:value )
+    )
+    where name = :name""";
+    StringBuilder json = new StringBuilder();
+    for (int k = 0; k < keep.size(); k++) {
+      if (k > 0) json.append(",\n");
+      json.append(
+          "jsonb_build_object('locale',:locale%d,'property','NAME','value',:value%d)"
+              .formatted(k, k));
+    }
+    String sql =
+        sql1.replace(
+            "jsonb_build_object('locale',:locale,'property','NAME','value',:value )", json);
+    return runAutoJoinTransaction(
+            session -> {
+              NativeQuery<?> query =
+                  session
+                      .createNativeQuery(sql)
+                      .addSynchronizedEntityClass(PeriodType.class)
+                      .setParameter("name", name);
+              int i = 0;
+              for (Translation t : keep) {
+                query.setParameter("locale" + i, t.getLocale().toString());
+                query.setParameter("value" + i, t.getValue());
+                i++;
+              }
+              return query.executeUpdate();
+            })
+        > 0;
+  }
+
+  @Override
+  public List<PeriodTypeLabels> getAllPeriodTypeLabels() {
+    String sql = "SELECT name, label, translations #>> '{}' FROM periodtype";
+    return runAutoJoinTransaction(
         session ->
-            session
-                .createNativeQuery(sql)
-                .addSynchronizedEntityClass(PeriodType.class)
-                .setParameter("name", name)
-                .setParameter("label", label)
-                .executeUpdate());
+            session.createNativeQuery(sql).stream().map(HibernatePeriodStore::toLabels).toList());
+  }
+
+  private static PeriodTypeLabels toLabels(Object row) {
+    if (!(row instanceof Object[] columns))
+      throw new IllegalArgumentException("Period type labels must be an Object[]");
+    return new PeriodTypeLabels(
+        (String) columns[0],
+        (String) columns[1],
+        JsonMixed.of((String) columns[2]).as(JsonTranslations.class));
   }
 
   @Override

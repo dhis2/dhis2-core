@@ -33,13 +33,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.setting.UserSettings;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +60,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.period.PeriodService")
 public class DefaultPeriodService implements PeriodService {
+
   private final PeriodStore periodStore;
+  private final I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
   // Period
@@ -135,11 +147,6 @@ public class DefaultPeriodService implements PeriodService {
   @IndirectTransactional
   public List<Period> reloadPeriods(Collection<Period> periods) {
     return periods.stream().map(periodStore::reloadForceAddPeriod).toList();
-  }
-
-  @Override
-  public List<PeriodType> loadAllPeriodTypes() {
-    return periodStore.getAllPeriodTypes();
   }
 
   @Override
@@ -230,15 +237,56 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @IndirectTransactional
-  public void updatePeriodTypeLabel(String periodTypeName, String label) {
-    PeriodType pType = periodStore.getPeriodTypeByName(periodTypeName);
+  public PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, @Nonnull Fields fields) {
+    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    boolean hasAll = fields.contains(":all");
+    boolean hasDuration = hasAll || fields.contains("isoDuration");
+    boolean hasFormat = hasAll || fields.contains("isoFormat");
+    boolean hasOrder = hasAll || fields.contains("frequencyOrder");
+    boolean hasLabel = hasAll || fields.contains("label");
+    boolean hasTranslations = hasAll || fields.contains("translations");
+    boolean hasDisplayName = hasAll || fields.contains("displayName");
+    boolean hasDisplayLabel = hasAll || fields.contains("displayLabel");
+    boolean hasPersistedLabels = hasTranslations || hasLabel || hasDisplayName || hasDisplayLabel;
+    Map<String, PeriodStore.PeriodTypeLabels> labels =
+        hasPersistedLabels ? new HashMap<>() : Map.of();
+    if (hasPersistedLabels)
+      periodStore.getAllPeriodTypeLabels().forEach(e -> labels.put(e.name(), e));
 
-    if (pType != null) {
-      pType.setLabel(label);
-      periodStore.updatePeriodType(pType);
-    } else {
-      throw new IllegalArgumentException(periodTypeName + " does not exist.");
+    I18n i18n = i18nManager.getI18n(locale);
+    List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
+    List<PeriodTypes.Entry> entries = new ArrayList<>(types.size());
+    for (PeriodType t : types) {
+      String name = t.getName();
+      String label = null;
+      String displayLabel = null;
+      List<Translation> translations = null;
+      if (hasPersistedLabels) {
+        PeriodStore.PeriodTypeLabels l = labels.get(name);
+        if (l != null) {
+          label = l.label();
+          if (hasTranslations) translations = l.translations().translationsList();
+          if (hasDisplayLabel || hasDisplayName)
+            displayLabel = l.translations().translationValue(locale);
+        }
+      }
+      if (label == null && (hasLabel || hasDisplayName)) label = i18n.getString(name, name);
+      String displayName = displayLabel;
+      if (displayName == null) displayName = label;
+
+      PeriodTypes.Entry e =
+          new PeriodTypes.Entry(
+              name,
+              hasDuration ? t.getIso8601Duration() : null,
+              hasFormat ? t.getIsoFormat() : null,
+              hasOrder ? t.getFrequencyOrder() : null,
+              hasLabel ? label : null,
+              translations,
+              hasDisplayLabel ? displayLabel : null,
+              hasDisplayName ? displayName : null);
+      entries.add(e);
     }
+    return new PeriodTypes(locale, entries);
   }
 
   // -------------------------------------------------------------------------

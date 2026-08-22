@@ -106,6 +106,12 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
     return fields.iterator();
   }
 
+  public boolean contains(CharSequence path) {
+    PropertyPath p = PropertyPath.of(path);
+    for (Field f : fields) if (f.propertyPath.equals(p)) return true;
+    return false;
+  }
+
   /**
    * @param propertyPath the path as found in the schema model
    * @param renamedPath the name (also nested) as it should be rendered in the response (if
