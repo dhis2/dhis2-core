@@ -52,15 +52,39 @@ class QueryFilterTest {
   }
 
   @Test
-  @DisplayName("When value substitution allowed and NV provided, equals operator returns null")
-  void testEqualsAndNullValueReturnNullStringWhenAllowed() {
+  @DisplayName("Non-option-set NV with substitution allowed: equals operator returns null")
+  void testNonOptionSetNvReturnsNull() {
     QueryFilter queryFilter = new QueryFilter();
     queryFilter.setOperator(QueryOperator.EQ);
     assertThat(queryFilter.getSqlFilter("NV", true), is("null"));
   }
 
   @Test
-  @DisplayName("When value substitution not allowed and NV provided, equals operator returns NV")
+  @DisplayName("Option-set D2__NOVALUE with substitution allowed: equals operator returns null")
+  void testOptionSetNoValueReturnsNull() {
+    QueryFilter queryFilter = new QueryFilter();
+    queryFilter.setOperator(QueryOperator.EQ);
+    assertThat(queryFilter.getSqlFilter("D2__NOVALUE", true, true), is("null"));
+  }
+
+  @Test
+  @DisplayName("Option-set NV is a literal option code, not no-value")
+  void testOptionSetNvIsLiteral() {
+    QueryFilter queryFilter = new QueryFilter();
+    queryFilter.setOperator(QueryOperator.EQ);
+    assertThat(queryFilter.getSqlFilter("NV", true, true), is("'NV'"));
+  }
+
+  @Test
+  @DisplayName("D2__NOVALUE on a non-option-set dimension is a literal, not no-value")
+  void testNonOptionSetNoValueKeywordIsLiteral() {
+    QueryFilter queryFilter = new QueryFilter();
+    queryFilter.setOperator(QueryOperator.EQ);
+    assertThat(queryFilter.getSqlFilter("D2__NOVALUE", true), is("'D2__NOVALUE'"));
+  }
+
+  @Test
+  @DisplayName("When substitution is not allowed, the no-value keyword is returned as a literal")
   void testNullValueReturnedIfSubstitutionNotAllowed() {
     QueryFilter queryFilter = new QueryFilter();
     queryFilter.setOperator(QueryOperator.EQ);
@@ -83,9 +107,31 @@ class QueryFilterTest {
   }
 
   @Test
-  void testOperatorIsReplacedWhenAllowed() {
+  @DisplayName("Non-option-set NV replaces the equals operator with 'is' when allowed")
+  void testOperatorIsReplacedForNonOptionSetNv() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "NV");
     assertThat(queryFilter.getSqlOperator(true), is("is"));
+  }
+
+  @Test
+  @DisplayName("Option-set D2__NOVALUE replaces the equals operator with 'is' when allowed")
+  void testOperatorIsReplacedForOptionSetNoValue() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "D2__NOVALUE");
+    assertThat(queryFilter.getSqlOperator(true, true), is("is"));
+  }
+
+  @Test
+  @DisplayName("Option-set NV does not replace the operator, since it is a literal code")
+  void testOperatorIsNotReplacedForOptionSetNv() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "NV");
+    assertThat(queryFilter.getSqlOperator(true, true), is("="));
+  }
+
+  @Test
+  @DisplayName("D2__NOVALUE does not replace the operator on a non-option-set dimension")
+  void testOperatorIsNotReplacedForNonOptionSetNoValueKeyword() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "D2__NOVALUE");
+    assertThat(queryFilter.getSqlOperator(true), is("="));
   }
 
   @Test

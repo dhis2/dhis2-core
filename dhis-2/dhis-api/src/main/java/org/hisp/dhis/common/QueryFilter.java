@@ -29,7 +29,8 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.QueryKey.isNoValue;
+import static org.hisp.dhis.analytics.QueryKey.noValueKeyword;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.EW;
 import static org.hisp.dhis.common.QueryOperator.GE;
@@ -128,19 +129,33 @@ public class QueryFilter {
    * @return a SQL operator string.
    */
   public String getSqlOperator(boolean isOperatorSubstitutionAllowed) {
+    return getSqlOperator(isOperatorSubstitutionAllowed, false);
+  }
+
+  /**
+   * Returns a SQL operator string.
+   *
+   * @param isOperatorSubstitutionAllowed whether the operator should be replaced to support null
+   *     values.
+   * @param isOptionSet whether the dimension is backed by an option set, which selects the no-value
+   *     keyword ({@code D2__NOVALUE} for option sets, {@code NV} otherwise).
+   * @return a SQL operator string.
+   */
+  public String getSqlOperator(boolean isOperatorSubstitutionAllowed, boolean isOptionSet) {
     if (operator == null) {
       return null;
     }
 
-    return safelyGetOperator(isOperatorSubstitutionAllowed);
+    return safelyGetOperator(isOperatorSubstitutionAllowed, isOptionSet);
   }
 
-  private String safelyGetOperator(boolean isOperatorSubstitutionAllowed) {
+  private String safelyGetOperator(boolean isOperatorSubstitutionAllowed, boolean isOptionSet) {
     Function<Boolean, String> operatorFunction = OPERATOR_MAP.get(operator);
 
     if (operatorFunction != null) {
       return operatorFunction.apply(
-          StringUtils.trimToEmpty(filter).equalsIgnoreCase(NV) && isOperatorSubstitutionAllowed);
+          StringUtils.trimToEmpty(filter).equalsIgnoreCase(noValueKeyword(isOptionSet))
+              && isOperatorSubstitutionAllowed);
     }
 
     return null;
@@ -156,6 +171,11 @@ public class QueryFilter {
   }
 
   public String getSqlFilter(final String encodedFilter, boolean isNullValueSubstitutionAllowed) {
+    return getSqlFilter(encodedFilter, isNullValueSubstitutionAllowed, false);
+  }
+
+  public String getSqlFilter(
+      final String encodedFilter, boolean isNullValueSubstitutionAllowed, boolean isOptionSet) {
     if (operator == null || encodedFilter == null) {
       return null;
     }
@@ -163,7 +183,7 @@ public class QueryFilter {
     if (operator.isLike()) {
       return "'%" + encodedFilter.replace("_", "\\_").replace("%", "\\%") + "%'";
     } else if (operator.isEqualTo()) {
-      if (encodedFilter.equals(NV) && isNullValueSubstitutionAllowed) {
+      if (isNoValue(encodedFilter, isOptionSet) && isNullValueSubstitutionAllowed) {
         return "null";
       }
     } else if (IN == operator) {
@@ -180,10 +200,14 @@ public class QueryFilter {
   }
 
   public String getSqlBindFilter() {
+    return getSqlBindFilter(false);
+  }
+
+  public String getSqlBindFilter(boolean isOptionSet) {
     if (operator.isLike()) {
       return "%" + this.filter + "%";
     } else if (operator.isEqualTo()) {
-      if (this.filter.equals(NV)) {
+      if (isNoValue(this.filter, isOptionSet)) {
         return "null";
       }
     } else if (SW == operator) {
@@ -220,7 +244,16 @@ public class QueryFilter {
       final String encodedFilter,
       final ValueType valueType,
       boolean isNullValueSubstitutionAllowed) {
-    final String sqlFilter = getSqlFilter(encodedFilter, isNullValueSubstitutionAllowed);
+    return getSqlFilter(encodedFilter, valueType, isNullValueSubstitutionAllowed, false);
+  }
+
+  public String getSqlFilter(
+      final String encodedFilter,
+      final ValueType valueType,
+      boolean isNullValueSubstitutionAllowed,
+      boolean isOptionSet) {
+    final String sqlFilter =
+        getSqlFilter(encodedFilter, isNullValueSubstitutionAllowed, isOptionSet);
 
     // Force lowercase to compare ignoring case
 

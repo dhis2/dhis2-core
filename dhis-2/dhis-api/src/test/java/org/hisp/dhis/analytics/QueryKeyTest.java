@@ -30,9 +30,12 @@
 package org.hisp.dhis.analytics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.Locale;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -136,5 +139,24 @@ class QueryKeyTest {
 
     // Then
     assertNotEquals(keyA, keyB);
+  }
+
+  @Test
+  @DisplayName("No-value keyword is D2__NOVALUE for option sets and NV otherwise")
+  void noValueKeywordDependsOnOptionSet() {
+    assertEquals("D2__NOVALUE", QueryKey.noValueKeyword(true));
+    assertEquals("NV", QueryKey.noValueKeyword(false));
+  }
+
+  @Test
+  @DisplayName("isNoValue matches the keyword appropriate to the dimension type")
+  void isNoValueMatchesByDimensionType() {
+    // Option set: only D2__NOVALUE is the no-value keyword; NV is a literal code.
+    assertTrue(QueryKey.isNoValue("D2__NOVALUE", true));
+    assertFalse(QueryKey.isNoValue("NV", true));
+
+    // Non-option-set: only NV is the no-value keyword; D2__NOVALUE is not.
+    assertTrue(QueryKey.isNoValue("NV", false));
+    assertFalse(QueryKey.isNoValue("D2__NOVALUE", false));
   }
 }
