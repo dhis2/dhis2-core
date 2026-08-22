@@ -269,6 +269,11 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
                   .collect(toList())));
     }
 
+    // Attribute-level restriction: on top of the parent program/type data-read gating above, honor
+    // each attribute's own metadata sharing. canRead (not canDataRead) is used because a
+    // TrackedEntityAttribute is metadata-shareable only; canDataRead is always false for it.
+    attributes.removeIf(attribute -> !aclService.canRead(userDetails, attribute));
+
     return attributes;
   }
 
