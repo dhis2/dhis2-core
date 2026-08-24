@@ -248,6 +248,17 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldPreserveOriginalCaseWhenValueIsAvailable() {
+    ReservedValue rv = reservedValue.value("ABC").build();
+
+    List<ReservedValue> res =
+        reservedValueStore.getAvailableValues(rv, List.of("ABC"), rv.getOwnerObject());
+
+    assertEquals(1, res.size());
+    assertEquals("ABC", res.get(0).getValue());
+  }
+
+  @Test
   void shouldNotReturnValueAsAvailableWhenValueWithDifferentCaseAlreadyReserved() {
     ReservedValue upperCaseValue = reservedValue.value("ABC").build();
     saveReservedValue(upperCaseValue);
