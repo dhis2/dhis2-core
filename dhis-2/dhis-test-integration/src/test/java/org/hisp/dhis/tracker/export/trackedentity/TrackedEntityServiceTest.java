@@ -797,6 +797,30 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnOnlyReadableAttributesWhenUserCannotReadSomeAttributes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    // Remove metadata read access to attribute C for the current user; A and B stay readable. The
+    // export must return only the attribute values the user is allowed to read.
+    injectSecurityContextUser(superuser);
+    teaC.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(teaC);
+    injectSecurityContextUser(user);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .orgUnitMode(SELECTED)
+            .program(programA)
+            .fields(TrackedEntityFields.builder().includeAttributes().build())
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        Set.of("A", "B"), attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
+  }
+
+  @Test
   void shouldReturnEnrollmentsFromSpecifiedProgramWhenRequestingSingleTrackedEntity()
       throws ForbiddenException, NotFoundException {
     Enrollment enrollmentProgramB = createEnrollment(programB, trackedEntityA, orgUnitA);
