@@ -28,6 +28,11 @@ show_usage() {
   echo "                        Required for analytics endpoints that query pre-computed tables"
   echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
+  echo "  DHIS_CONF_FILE        dhis.conf variant from ./docker/ mounted into the web container"
+  echo "                        (default: dhis.conf; e.g. dhis-l2cache-on.conf, dhis-l2cache-off.conf)"
+  echo "  COMPOSE_EXTRA_FILE    Additional docker compose override file appended to every compose"
+  echo "                        invocation (e.g. to pin a network subnet on hosts with exhausted"
+  echo "                        docker address pools)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
@@ -99,6 +104,15 @@ REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
+DHIS_CONF_FILE=${DHIS_CONF_FILE:-"dhis.conf"}
+COMPOSE_EXTRA_FILE=${COMPOSE_EXTRA_FILE:-""}
+# docker compose interpolates ${DHIS_CONF_FILE} in the volume mount
+export DHIS_CONF_FILE
+
+if [ ! -f "docker/$DHIS_CONF_FILE" ]; then
+  echo "Error: DHIS_CONF_FILE=$DHIS_CONF_FILE does not exist in ./docker/"
+  exit 1
+fi
 
 # Track last non-warmup run directory for output summary
 LAST_RUN_DIR=""
@@ -164,7 +178,10 @@ cleanup() {
   if [ -n "$PROF_ARGS" ]; then
     compose_files+=("-f" "docker-compose.profile.yml")
   fi
-  docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
+  if [ -n "$COMPOSE_EXTRA_FILE" ]; then
+    compose_files+=("-f" "$COMPOSE_EXTRA_FILE")
+  fi
+  docker compose "${compose_files[@]}" down --volumes --remove-orphans 2>/dev/null || true
 
   # Show output summary for the main (non-warmup) run
   if [ -n "$LAST_RUN_DIR" ] && [ -d "$LAST_RUN_DIR" ]; then
@@ -192,6 +209,9 @@ get_compose_args() {
   local args=("-f" "docker-compose.yml")
   if [ -n "$PROF_ARGS" ]; then
     args+=("-f" "docker-compose.profile.yml")
+  fi
+  if [ -n "$COMPOSE_EXTRA_FILE" ]; then
+    args+=("-f" "$COMPOSE_EXTRA_FILE")
   fi
   echo "${args[@]}"
 }
@@ -592,6 +612,8 @@ generate_metadata() {
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
     echo "DB_TYPE=$DB_TYPE"
     echo "DB_VERSION=$DB_VERSION"
+    echo "DHIS_CONF_FILE=$DHIS_CONF_FILE"
+    echo "COMPOSE_EXTRA_FILE=$COMPOSE_EXTRA_FILE"
     echo "DHIS2_USERNAME=$DHIS2_USERNAME"
     echo "DHIS2_PASSWORD=$DHIS2_PASSWORD"
     echo "ANALYTICS_GENERATE=$ANALYTICS_GENERATE"
