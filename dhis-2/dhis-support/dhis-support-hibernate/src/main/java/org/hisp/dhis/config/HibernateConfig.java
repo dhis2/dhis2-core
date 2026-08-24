@@ -45,11 +45,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.cache.jcache.ConfigSettings;
 import org.hibernate.cache.jcache.MissingCacheStrategy;
-import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.tool.schema.Action;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
+import org.hisp.dhis.cache.guard.GuardedJCacheRegionFactory;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -166,7 +166,8 @@ public class HibernateConfig {
 
     if (dhisConfig.isEnabled(USE_SECOND_LEVEL_CACHE)) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
-      properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
+      properties.put(
+          AvailableSettings.CACHE_REGION_FACTORY, GuardedJCacheRegionFactory.class.getName());
       // Normalize to true/false: Hibernate parses this value itself and does not understand
       // the on/off variants allowed in dhis.conf.
       properties.put(
