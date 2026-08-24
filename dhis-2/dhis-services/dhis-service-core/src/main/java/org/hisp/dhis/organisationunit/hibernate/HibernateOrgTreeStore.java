@@ -96,30 +96,33 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
       JOIN set_member_ids ON ou.organisationunitid = set_member_ids.organisationunitid
       WHERE 1=1
         AND ou.hierarchylevel = :level
-        AND ou.name ilike :search
-        AND ou.shortname ilike :shortsearch
         AND :currentlyOpen = ((ou.openingdate IS NULL || ou.openingdate <= now()) && (ou.closeddate IS NULL || ou.closeddate > now()))
+        AND unaccent(coalesce(jsonb_get_translated_value(ou.translations, 'NAME', :locale), ou.name)) ilike unaccent(:search)
+        AND unaccent(coalesce(jsonb_get_translated_value(ou.translations, 'SHORT_NAME', :locale), ou.shortname)) ilike unaccent(:shortsearch)
       ORDER BY ou.path
 
       """;
     int offset = (params.page() - 1) * params.pageSize();
     String search = params.search();
     if (search != null) search = "%" + search + "%";
-    return SQL.of(sql, api)
-        .setParameter("level", params.level())
-        .setParameter("search", params.shortName() ? null : search)
-        .setParameter("shortsearch", params.shortName() ? search : null)
-        .setParameter("roots", params.roots())
-        .setParameter("groups", params.groups())
-        .setParameter("gropSets", params.groupSets())
-        .setParameter("currentlyOpen", params.currentlyOpen())
-        .setParameter("depth", params.depth())
-        .eraseNullParameterLines()
-        .eraseJoinLine("roots_with_descendants_ids", params.roots().isEmpty())
-        .eraseJoinLine("groups_member_ids", params.groups().isEmpty())
-        .eraseJoinLine("set_member_ids", params.groupSets().isEmpty())
-        .setOffset(offset)
-        .setLimit(params.pageSize());
+    QueryBuilder builder =
+        SQL.of(sql, api)
+            .setParameter("level", params.level())
+            .setParameter("search", params.shortName() ? null : search)
+            .setParameter("shortsearch", params.shortName() ? search : null)
+            .setParameter("roots", params.roots())
+            .setParameter("groups", params.groups())
+            .setParameter("gropSets", params.groupSets())
+            .setParameter("currentlyOpen", params.currentlyOpen())
+            .setParameter("depth", params.depth())
+            .eraseNullParameterLines()
+            .eraseJoinLine("roots_with_descendants_ids", params.roots().isEmpty())
+            .eraseJoinLine("groups_member_ids", params.groups().isEmpty())
+            .eraseJoinLine("set_member_ids", params.groupSets().isEmpty())
+            .setOffset(offset)
+            .setLimit(params.pageSize());
+    if (search != null) builder.setParameter("locale", params.locale().toString());
+    return builder;
   }
 
   @Override
@@ -128,7 +131,7 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
         """
       SELECT
           ou.path,
-          ou.name as displayName,
+          coalesce(jsonb_get_translated_value(ou.translations, 'NAME', :locale), ou.name) as displayName,
           NOT EXISTS (
               SELECT 1
               FROM organisationunit child
@@ -137,7 +140,8 @@ public class HibernateOrgTreeStore implements OrgTreeStore {
       FROM organisationunit ou
       WHERE ou.uid = ANY(:ou)
       ORDER BY ou.hierarchylevel, displayName""";
-    QueryBuilder query = createQuery(sql).setParameter("ou", orgUnits);
+    QueryBuilder query =
+        createQuery(sql).setParameter("ou", orgUnits).setParameter("locale", locale.toString());
     return query.isNullParameter("ou") ? Stream.of() : query.stream(HibernateOrgTreeStore::entry);
   }
 
