@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
@@ -60,6 +61,7 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -388,6 +390,44 @@ class AttributeValidatorTest {
         reporter, te, trackedEntityAttribute, "a".repeat(Constant.MAX_ATTR_VALUE_LENGTH + 1));
 
     assertHasError(reporter, te, ValidationCode.E1077);
+  }
+
+  @Test
+  void shouldFailValidationWhenUniqueAttributeHasSameValueWithDifferentCase() {
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("uid");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
+    trackedEntityAttribute.setUnique(true);
+    trackedEntityAttribute.setOrgunitScope(false);
+
+    when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
+        .thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
+        .thenReturn(new TrackedEntityType());
+    when(preheat.getUniqueAttributeValues())
+        .thenReturn(
+            List.of(
+                new UniqueAttributeValue(
+                    UID.generate(),
+                    MetadataIdentifier.ofUid("uid"),
+                    "ABC",
+                    MetadataIdentifier.ofUid("orgUnit"))));
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(UID.generate())
+            .attributes(
+                Collections.singletonList(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("uid"))
+                        .value("abc")
+                        .build()))
+            .trackedEntityType(MetadataIdentifier.ofUid("trackedEntityType"))
+            .build();
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1064);
   }
 
   @Test
