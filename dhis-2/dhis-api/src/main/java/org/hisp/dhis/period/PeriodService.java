@@ -223,7 +223,7 @@ public interface PeriodService {
 
   /**
    * @param locale for display labels (falls back to user's DB locale when null)
-   * @param fields fields to include for each {@link PeriodTypes.Entry}
+   * @param fields fields to include for each {@link PeriodTypes.PeriodTypeEntry}
    * @return all period types with they display properties resolved for the current user
    * @since 2.44
    */

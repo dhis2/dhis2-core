@@ -46,7 +46,8 @@ import org.hisp.dhis.translation.Translation;
  * @since 2.44
  */
 public record PeriodTypes(
-    @JsonProperty @Nonnull Locale locale, @JsonProperty @Nonnull List<Entry> periodTypes) {
+    @JsonProperty @Nonnull Locale locale,
+    @JsonProperty @Nonnull List<PeriodTypeEntry> periodTypes) {
 
   public PeriodTypes {
     requireNonNull(locale);
@@ -54,16 +55,19 @@ public record PeriodTypes(
   }
 
   /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
-  public record Entry(
-      @OpenApi.Description("The ID of the period type") @Nonnull @JsonProperty String name,
+  public record PeriodTypeEntry(
+      @OpenApi.Description("The ID of the period type") @JsonProperty @Nonnull String name,
       @JsonProperty String isoDuration,
       @JsonProperty String isoFormat,
       @JsonProperty Integer frequencyOrder,
-      @OpenApi.Description("The i18n translation of `name` or the custom override for it")
+      @OpenApi.Description("The i18n translation of `name`") @JsonProperty String defaultName,
+      @OpenApi.Description(
+              "An optional override for the `name` taking precedence over the `defaultName`")
           @JsonProperty
           String label,
       @JsonProperty List<Translation> translations,
-      @OpenApi.Description("An optional translation for `label` resolved for a specific `locale`")
+      @OpenApi.Description(
+              "An optional translation for `label` resolved for a specific `locale` (falls back to `label` when no translation exists)")
           @JsonProperty
           String displayLabel,
       @OpenApi.Description(
@@ -71,7 +75,7 @@ public record PeriodTypes(
           @JsonProperty
           String displayName) {
 
-    public Entry {
+    public PeriodTypeEntry {
       requireNonNull(name);
       // all other properties may be null due to fields-filtering
     }

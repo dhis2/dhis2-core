@@ -67,7 +67,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypes.Entry;
+import org.hisp.dhis.period.PeriodTypes.PeriodTypeEntry;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
@@ -478,7 +478,7 @@ public class ConfigurationController {
   @GetMapping(
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody List<Entry> getDataOutputPeriodTypes(
+  public @ResponseBody List<PeriodTypeEntry> getDataOutputPeriodTypes(
       @RequestParam(required = false) Locale locale,
       @RequestParam(defaultValue = "*") String fields) {
     Set<String> names =

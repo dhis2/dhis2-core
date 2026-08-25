@@ -243,6 +243,7 @@ public class DefaultPeriodService implements PeriodService {
     boolean hasDuration = hasAll || fields.contains("isoDuration");
     boolean hasFormat = hasAll || fields.contains("isoFormat");
     boolean hasOrder = hasAll || fields.contains("frequencyOrder");
+    boolean hasDefaultName = hasAll || fields.contains("defaultName");
     boolean hasLabel = hasAll || fields.contains("label");
     boolean hasTranslations = hasAll || fields.contains("translations");
     boolean hasDisplayName = hasAll || fields.contains("displayName");
@@ -255,7 +256,7 @@ public class DefaultPeriodService implements PeriodService {
 
     I18n i18n = i18nManager.getI18n(locale);
     List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
-    List<PeriodTypes.Entry> entries = new ArrayList<>(types.size());
+    List<PeriodTypes.PeriodTypeEntry> entries = new ArrayList<>(types.size());
     for (PeriodType t : types) {
       String name = t.getName();
       String label = null;
@@ -270,16 +271,20 @@ public class DefaultPeriodService implements PeriodService {
             displayLabel = l.translations().translationValue(locale);
         }
       }
-      if (label == null && (hasLabel || hasDisplayName)) label = i18n.getString(name, name);
+      if (displayLabel == null) displayLabel = label;
       String displayName = displayLabel;
-      if (displayName == null) displayName = label;
+      String defaultName = null;
+      if (hasDefaultName || hasDisplayName && displayName == null)
+        defaultName = i18n.getString(name, name);
+      if (displayName == null) displayName = defaultName;
 
-      PeriodTypes.Entry e =
-          new PeriodTypes.Entry(
+      PeriodTypes.PeriodTypeEntry e =
+          new PeriodTypes.PeriodTypeEntry(
               name,
               hasDuration ? t.getIso8601Duration() : null,
               hasFormat ? t.getIsoFormat() : null,
               hasOrder ? t.getFrequencyOrder() : null,
+              hasDefaultName ? defaultName : null,
               hasLabel ? label : null,
               translations,
               hasDisplayLabel ? displayLabel : null,

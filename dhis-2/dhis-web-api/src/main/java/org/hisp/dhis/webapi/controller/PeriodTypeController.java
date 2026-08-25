@@ -124,12 +124,12 @@ public class PeriodTypeController {
   }
 
   @GetMapping("/{name}")
-  public PeriodTypes.Entry getPeriodType(
+  public PeriodTypes.PeriodTypeEntry getPeriodType(
       @PathVariable("name") String name,
       @RequestParam(required = false) Locale locale,
       @RequestParam(defaultValue = "*") String fields)
       throws NotFoundException {
-    PeriodTypes.Entry entry =
+    PeriodTypes.PeriodTypeEntry entry =
         periodService.getAllPeriodTypes(locale, Fields.of(fields)).periodTypes().stream()
             .filter(pt -> name.equalsIgnoreCase(pt.name()))
             .findFirst()
