@@ -916,7 +916,32 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     peTracker.insertMergedInto(normalizedInputs);
+    rejectRepeatedOrgUnitDimensions(normalizedInputs);
     return normalizedInputs;
+  }
+
+  /**
+   * Rejects a request naming ENROLLMENT_OU or REGISTRATION_OU more than once. Both are held outside
+   * {@code params.dimensions} and so are invisible to {@link
+   * org.hisp.dhis.analytics.DataQueryParams#getDuplicateDimensions()}, which is what raises E7201
+   * for an ordinary dimension. Without this check the last occurrence processed would silently win,
+   * and which one that is follows hash order rather than the order the caller wrote them in.
+   *
+   * <p>Several org units in one dimension ({@code REGISTRATION_OU:uidA;uidB}) is a single
+   * occurrence and stays valid, as does the same dimension used once as a dimension and once as a
+   * filter, since those are normalized separately.
+   */
+  private void rejectRepeatedOrgUnitDimensions(List<NormalizedDimensionInput> normalizedInputs) {
+    for (String dimensionId : List.of(ENROLLMENT_OU_DIMENSION, REGISTRATION_OU_DIMENSION)) {
+      long occurrences =
+          normalizedInputs.stream()
+              .filter(input -> dimensionId.equals(input.dimensionId()))
+              .count();
+
+      if (occurrences > 1) {
+        throwIllegalQueryEx(ErrorCode.E7201, dimensionId);
+      }
+    }
   }
 
   private record NormalizedDimensionInput(
@@ -1298,7 +1323,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         ColumnHeader.SCHEDULED_DATE.getItem(), EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
     ORG_UNIT_NAME(ColumnHeader.ORG_UNIT_NAME.getItem()),
     ORG_UNIT_NAME_HIERARCHY(ColumnHeader.ORG_UNIT_NAME_HIERARCHY.getItem()),
-    // Projected under their own aliases, so sorting resolves to the alias, not a table column.
+    // Projected under their own aliases only when REGISTRATION_OU is a dimension, so the query
+    // validator rejects sorting on them otherwise.
     REGISTRATION_OU(ColumnHeader.REGISTRATION_OU.getItem()),
     REGISTRATION_OU_NAME(ColumnHeader.REGISTRATION_OU_NAME.getItem()),
     ORG_UNIT_CODE(ColumnHeader.ORG_UNIT_CODE.getItem()),
