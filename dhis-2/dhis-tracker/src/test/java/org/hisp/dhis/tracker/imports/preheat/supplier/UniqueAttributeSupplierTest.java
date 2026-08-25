@@ -92,7 +92,7 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
   private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     params = TrackerObjects.builder().build();
     preheat = new TrackerPreheat();
     uniqueAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
