@@ -176,6 +176,41 @@
       }
     },
     {
+      "name": "registrationOuWithLevel2",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:LEVEL-2&sortOrder=asc&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuWithMultipleOus",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu;fdc6uOvgoji&sortOrder=asc&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuAsFilter",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022&filter=REGISTRATION_OU:jUb8gELQApl&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuWithUserOrgUnit",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:USER_ORGUNIT&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuCombinedWithEnrollmentOu",
+      "query": "/api/analytics/enrollments/aggregate/regOuProg01.json?dimension=pe:2022,ou:LEVEL-2,REGISTRATION_OU:O6uvpzGd5pu&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "optionSetDimensionFilteredByNoValueKeyword",
       "query": "/api/analytics/enrollments/aggregate/ur1Edk5Oe2n.json?includeMetadataDetails=true&displayProperty=NAME&totalPages=false&pageSize=10&outputType=ENROLLMENT&page=1&lastUpdated=LAST_10_YEARS&dimension=ou:ImspTQPwCqd,cejWyOfXge6:IN:D2__NOVALUE&relativePeriodDate=2022-07-01",
       "version": {
