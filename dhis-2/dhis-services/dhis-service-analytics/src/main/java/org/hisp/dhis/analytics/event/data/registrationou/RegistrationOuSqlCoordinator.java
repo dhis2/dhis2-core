@@ -195,6 +195,23 @@ public final class RegistrationOuSqlCoordinator {
         RegistrationOuSqlFragments.selectUidLevel(singleLevelOf(items), false, sqlBuilder));
   }
 
+  /**
+   * Keeps the table qualifier on a {@code uidlevelN} projection instead of the alias-stripped form.
+   * The org unit structure table joined for registration org unit also carries {@code uidlevelN}
+   * columns, so a bare reference is ambiguous whenever the org unit dimension is itself
+   * level-based. The CTE's output column name is unaffected, because a column reference is named
+   * after the column rather than its qualifier.
+   *
+   * @param qualified the projection as produced by the dimension resolver, table alias included
+   * @param stripped the same projection with its table alias removed
+   * @return the qualified form for org unit level columns, otherwise the stripped form
+   */
+  public static String preserveQualifierIfAmbiguous(String qualified, String stripped) {
+    String bare = stripped == null ? "" : stripped.replace("\"", "").trim();
+
+    return bare.startsWith(RegistrationOuSqlConstants.UID_LEVEL_PREFIX) ? qualified : stripped;
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------

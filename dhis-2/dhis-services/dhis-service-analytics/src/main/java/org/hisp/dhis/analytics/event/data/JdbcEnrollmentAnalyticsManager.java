@@ -746,12 +746,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // The registration OU projection is added separately, qualified and aliased, because stripping
     // its table alias would leave a uidlevelN reference that is ambiguous once regous is joined.
+    boolean joinsRegistrationOu =
+        params.hasRegistrationOuDimension() || params.hasRegistrationOuFilter();
     columns.removeIf(RegistrationOuSqlCoordinator::isRegistrationOuColumn);
 
     SelectBuilder sb = new SelectBuilder();
     sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
-      sb.addColumn(SqlColumnParser.removeTableAlias(column));
+      String stripped = SqlColumnParser.removeTableAlias(column);
+      sb.addColumn(
+          joinsRegistrationOu
+              ? RegistrationOuSqlCoordinator.preserveQualifierIfAmbiguous(column, stripped)
+              : stripped);
     }
     RegistrationOuSqlCoordinator.addBaseCteSelectColumn(sb, params, sqlBuilder);
 

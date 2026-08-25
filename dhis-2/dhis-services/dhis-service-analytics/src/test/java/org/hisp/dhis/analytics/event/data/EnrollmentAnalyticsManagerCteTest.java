@@ -85,6 +85,8 @@ import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -99,6 +101,7 @@ import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
@@ -371,6 +374,45 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     // The outer query selects and groups by the CTE's aliased column.
     assertThat(generatedSql, containsString("from enrollment_aggr_base as eb"));
     assertThat(generatedSql, containsString("group by \"registrationou\""));
+  }
+
+  /**
+   * When the org unit dimension is itself level-based it projects a uidlevelN column too, which
+   * collides with the org unit structure table joined for REGISTRATION_OU. Stripping the table
+   * alias from both leaves an ambiguous bare name, so the org unit dimension's projection has to
+   * stay qualified.
+   */
+  @Test
+  void verifyAggregateEnrollmentKeepsOuLevelColumnQualifiedAlongsideRegistrationOu() {
+    OrganisationUnit district = createOrganisationUnit('D');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                createRequestParamsBuilder().withEndpointAction(AGGREGATE).build())
+            .addDimension(
+                new BaseDimensionalObject(
+                    "uidlevel2", DimensionType.ORGANISATION_UNIT, List.of(district)))
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .build();
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader("registrationou", "Registration org unit", ValueType.TEXT, false, true));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
+
+    // The org unit dimension's own level column keeps its table qualifier.
+    assertThat(baseCteSql, containsString("ax.\"uidlevel2\""));
+    // And no unqualified copy survives to be ambiguous against regous.
+    assertThat(baseCteSql, not(containsString(", uidlevel2")));
   }
 
   @Test
