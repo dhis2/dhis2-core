@@ -940,6 +940,141 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestRejectsRepeatedRegistrationOuDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    Set<Set<String>> dimensions = new LinkedHashSet<>();
+    dimensions.add(Set.of("REGISTRATION_OU:" + ouA.getUid()));
+    dimensions.add(Set.of("REGISTRATION_OU:" + ouB.getUid()));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).dimension(dimensions).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7201, exception.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsRepeatedRegistrationOuFilter() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    Set<Set<String>> filters = new LinkedHashSet<>();
+    filters.add(Set.of("REGISTRATION_OU:" + ouA.getUid()));
+    filters.add(Set.of("REGISTRATION_OU:" + ouB.getUid()));
+
+    EventDataQueryRequest request = baseRequestBuilder(AGGREGATE, EVENT).filter(filters).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7201, exception.getErrorCode());
+  }
+
+  /** Two occurrences can also arrive inside a single "_OR_" separated dimension group. */
+  @Test
+  void getFromRequestRejectsRepeatedRegistrationOuWithinOneGroup() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(
+                Set.of(
+                    Set.of("REGISTRATION_OU:" + ouA.getUid(), "REGISTRATION_OU:" + ouB.getUid())))
+            .build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7201, exception.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsRepeatedEnrollmentOuDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    Set<Set<String>> dimensions = new LinkedHashSet<>();
+    dimensions.add(Set.of("ENROLLMENT_OU:" + ouA.getUid()));
+    dimensions.add(Set.of("ENROLLMENT_OU:" + ouB.getUid()));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).dimension(dimensions).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7201, exception.getErrorCode());
+  }
+
+  /** Several org units in one dimension is one occurrence, and must not be rejected. */
+  @Test
+  void getFromRequestAcceptsSeveralOrgUnitsInOneRegistrationOuDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    when(dataQueryService.getDimension(
+            eq("ou"),
+            eq(List.of(ouA.getUid(), ouB.getUid())),
+            any(),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB)));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:" + ouA.getUid() + ";" + ouB.getUid())))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(2, params.getRegistrationOuDimensionItems().size());
+  }
+
+  /** The same dimension as both a dimension and a filter is a supported shape. */
+  @Test
+  void getFromRequestAcceptsRegistrationOuAsDimensionAndFilterTogether() {
+    OrganisationUnit dimensionOu = createOrganisationUnit('B');
+    OrganisationUnit filterOu = createOrganisationUnit('C');
+
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of(dimensionOu.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(dimensionOu)));
+    when(dataQueryService.getDimension(
+            eq("ou"),
+            eq(List.of(filterOu.getUid())),
+            any(),
+            anyList(),
+            anyBoolean(),
+            any(),
+            any(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(filterOu)));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:" + dimensionOu.getUid())))
+            .filter(Set.of(Set.of("REGISTRATION_OU:" + filterOu.getUid())))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(
+        List.of(dimensionOu.getUid()),
+        params.getRegistrationOuDimensionItems().stream().map(OrganisationUnit::getUid).toList());
+    assertEquals(
+        List.of(filterOu.getUid()),
+        params.getRegistrationOuFilterItems().stream().map(OrganisationUnit::getUid).toList());
+  }
+
+  @Test
   void getFromRequestRejectsRegistrationOuForProgramWithoutRegistration() {
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
 

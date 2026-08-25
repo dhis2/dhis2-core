@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Strings;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
@@ -58,6 +59,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.Program;
@@ -70,6 +72,11 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.analytics.event.EventQueryValidator")
 @RequiredArgsConstructor
 public class DefaultEventQueryValidator implements EventQueryValidator {
+
+  private static final String REGISTRATION_OU_DIMENSION = "REGISTRATION_OU";
+
+  private static final Set<String> REGISTRATION_OU_SORT_ITEMS =
+      Set.of(ColumnHeader.REGISTRATION_OU.getItem(), ColumnHeader.REGISTRATION_OU_NAME.getItem());
 
   private final SystemSettingsProvider settingsProvider;
 
@@ -108,6 +115,10 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
     if (!params.getDuplicateDimensions().isEmpty()) {
       return new ErrorMessage(ErrorCode.E7201, params.getDuplicateDimensions());
+    }
+    ErrorMessage registrationOuSortError = validateRegistrationOuSorting(params);
+    if (registrationOuSortError != null) {
+      return registrationOuSortError;
     }
 
     // Check for duplicate stage dimension identifiers (must be before E7202 check)
@@ -212,6 +223,27 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
 
     // TODO validate coordinate field
     return null;
+  }
+
+  /**
+   * Rejects sorting by a registration organisation unit column when REGISTRATION_OU is not a
+   * dimension. Both columns are projected only for the dimension, so {@code registrationouname}
+   * would order by an alias that is not in the select list, and {@code registrationou} would fall
+   * back to the raw analytics column and order by the organisation unit the tracked entity was
+   * registered in rather than the requested ancestor. A dimension named without organisation units
+   * still projects both columns, so it is enough.
+   */
+  private ErrorMessage validateRegistrationOuSorting(EventQueryParams params) {
+    if (!params.isSorting() || params.hasRegistrationOuDimension()) {
+      return null;
+    }
+
+    return ListUtils.union(params.getAsc(), params.getDesc()).stream()
+        .map(QueryItem::getItemId)
+        .filter(REGISTRATION_OU_SORT_ITEMS::contains)
+        .findFirst()
+        .map(item -> new ErrorMessage(ErrorCode.E7262, item, REGISTRATION_OU_DIMENSION))
+        .orElse(null);
   }
 
   private boolean hasDateQueryItem(EventQueryParams params) {
