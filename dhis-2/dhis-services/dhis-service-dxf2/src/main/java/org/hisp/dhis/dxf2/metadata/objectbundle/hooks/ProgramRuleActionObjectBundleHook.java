@@ -34,8 +34,13 @@ import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -66,12 +71,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<
   @Override
   public void validate(
       ProgramRuleAction programRuleAction, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    ProgramRuleActionValidationResult validationResult =
-        validateProgramRuleAction(programRuleAction, bundle);
-
-    if (!validationResult.isValid()) {
-      addReports.accept(validationResult.getErrorReport());
-    }
+    validateProgramRuleAction(programRuleAction, bundle, addReports);
   }
 
   @Override
@@ -85,19 +85,76 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<
     getNotificationTemplate(object, bundle);
   }
 
-  private ProgramRuleActionValidationResult validateProgramRuleAction(
-      ProgramRuleAction ruleAction, ObjectBundle bundle) {
-    ProgramRuleActionValidationResult validationResult;
+  /**
+   * Validates a single action, reporting any unresolved reference as an {@link ErrorReport} against
+   * the action itself. Every reference the validation context is built from is resolved here first,
+   * so that a payload with an incomplete reference is reported as a conflict on the offending
+   * object rather than aborting the whole import with an exception.
+   */
+  private void validateProgramRuleAction(
+      ProgramRuleAction ruleAction, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    Preheat preheat = bundle.getPreheat();
+    PreheatIdentifier preheatIdentifier = bundle.getPreheatIdentifier();
 
-    ProgramRuleActionValidationContext validationContext =
-        contextLoader.load(bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction);
+    ProgramRule ruleReference = ruleAction.getProgramRule();
+
+    if (ruleReference == null) {
+      addReports.accept(
+          new ErrorReport(ProgramRuleAction.class, ErrorCode.E4093, ruleAction.getUid()));
+      return;
+    }
+
+    ProgramRule rule = contextLoader.resolveProgramRule(preheat, preheatIdentifier, ruleAction);
+
+    if (rule == null) {
+      addReports.accept(
+          new ErrorReport(
+              ProgramRuleAction.class,
+              ErrorCode.E4094,
+              preheatIdentifier.getIdentifier(ruleReference),
+              ruleAction.getUid()));
+      return;
+    }
+
+    if (rule.getProgram() == null) {
+      addReports.accept(new ErrorReport(ProgramRuleAction.class, ErrorCode.E4095, rule.getUid()));
+      return;
+    }
+
+    Program program = contextLoader.resolveProgram(preheat, preheatIdentifier, rule);
+
+    if (program == null) {
+      addReports.accept(
+          new ErrorReport(
+              ProgramRuleAction.class,
+              ErrorCode.E4096,
+              preheatIdentifier.getIdentifier(rule.getProgram()),
+              rule.getUid()));
+      return;
+    }
 
     ProgramRuleActionValidator validator =
         programRuleActionValidatorMap.get(ruleAction.getProgramRuleActionType());
 
-    validationResult = validator.validate(ruleAction, validationContext);
+    if (validator == null) {
+      addReports.accept(
+          new ErrorReport(
+              ProgramRuleAction.class,
+              ErrorCode.E4097,
+              ruleAction.getUid(),
+              ruleAction.getProgramRuleActionType()));
+      return;
+    }
 
-    return validationResult;
+    ProgramRuleActionValidationContext validationContext =
+        contextLoader.load(preheat, preheatIdentifier, ruleAction, rule, program);
+
+    ProgramRuleActionValidationResult validationResult =
+        validator.validate(ruleAction, validationContext);
+
+    if (!validationResult.isValid()) {
+      addReports.accept(validationResult.getErrorReport());
+    }
   }
 
   private void getNotificationTemplate(ProgramRuleAction object, ObjectBundle bundle) {

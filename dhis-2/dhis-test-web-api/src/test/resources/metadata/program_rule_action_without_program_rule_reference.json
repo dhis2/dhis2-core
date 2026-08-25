@@ -1,0 +1,183 @@
+{
+  "categoryOptions": [
+    {
+      "code": "default",
+      "name": "default",
+      "id": "xYerKDKCefk",
+      "shortName": "default",
+      "sharing": { "userGroups": {}, "external": false, "public": "rwrw----", "users": {} },
+      "organisationUnits": []
+    }
+  ],
+  "categories": [
+    {
+      "code": "default",
+      "name": "default",
+      "id": "GLevLNI9wkl",
+      "shortName": "default",
+      "dataDimensionType": "DISAGGREGATION",
+      "dataDimension": false,
+      "sharing": { "userGroups": {}, "external": false, "public": "rw------", "users": {} },
+      "categoryOptions": [{ "id": "xYerKDKCefk" }]
+    }
+  ],
+  "categoryCombos": [
+    {
+      "code": "default",
+      "name": "default",
+      "id": "bjDvmb4bfuf",
+      "dataDimensionType": "DISAGGREGATION",
+      "skipTotal": false,
+      "sharing": { "userGroups": {}, "external": false, "public": "rw------", "users": {} },
+      "categories": [{ "id": "GLevLNI9wkl" }]
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "code": "default",
+      "name": "default",
+      "id": "HllvX50cXC0",
+      "ignoreApproval": false,
+      "categoryCombo": { "id": "bjDvmb4bfuf" },
+      "categoryOptions": [{ "id": "xYerKDKCefk" }]
+    }
+  ],
+  "dataElements": [
+    {
+      "id": "IWLWOXyHwFb",
+      "name": "zzTest input number 1",
+      "shortName": "zzTest input number 1",
+      "aggregationType": "SUM",
+      "domainType": "TRACKER",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": { "id": "bjDvmb4bfuf" },
+      "sharing": { "userGroups": {}, "external": false, "public": "rw------", "users": {} }
+    },
+    {
+      "id": "EZfu1R3vdSe",
+      "name": "zzTest input number 2",
+      "shortName": "zzTest input number 2",
+      "aggregationType": "SUM",
+      "domainType": "TRACKER",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": { "id": "bjDvmb4bfuf" },
+      "sharing": { "userGroups": {}, "external": false, "public": "rw------", "users": {} }
+    }
+  ],
+  "programs": [
+    {
+      "id": "aUbnwuv5D2z",
+      "name": "zzTest program with number variable comparator issue",
+      "shortName": "zzTest program with number var comparator issue",
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 0,
+      "completeEventsExpiryDays": 0,
+      "expiryDays": 0,
+      "openDaysAfterCoEndDate": 0,
+      "maxTeiCountToReturn": 0,
+      "minAttributesRequiredToSearch": 1,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "selectIncidentDatesInFuture": false,
+      "selectEnrollmentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": { "id": "bjDvmb4bfuf" },
+      "sharing": { "userGroups": {}, "external": false, "public": "rwrw----", "users": {} },
+      "programStages": [{ "id": "nN0GtXmGhvi" }]
+    }
+  ],
+  "programStages": [
+    {
+      "id": "nN0GtXmGhvi",
+      "name": "zzTest program with number variable comparator issue",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 0,
+      "program": { "id": "aUbnwuv5D2z" },
+      "sharing": { "userGroups": {}, "external": false, "public": "rwrw----", "users": {} },
+      "programStageDataElements": [{ "id": "An1CL5heDpm" }, { "id": "KfsxuuU9UM4" }]
+    }
+  ],
+  "programStageDataElements": [
+    {
+      "id": "An1CL5heDpm",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "renderOptionsAsRadio": false,
+      "compulsory": false,
+      "skipAnalytics": false,
+      "allowProvidedElsewhere": false,
+      "sortOrder": 1,
+      "allowFutureDate": false,
+      "programStage": { "id": "nN0GtXmGhvi" },
+      "dataElement": { "id": "IWLWOXyHwFb" }
+    },
+    {
+      "id": "KfsxuuU9UM4",
+      "displayInReports": false,
+      "skipSynchronization": false,
+      "renderOptionsAsRadio": false,
+      "compulsory": false,
+      "skipAnalytics": false,
+      "allowProvidedElsewhere": false,
+      "sortOrder": 2,
+      "allowFutureDate": false,
+      "programStage": { "id": "nN0GtXmGhvi" },
+      "dataElement": { "id": "EZfu1R3vdSe" }
+    }
+  ],
+  "programRuleVariables": [
+    {
+      "id": "VkhzN9gHAUJ",
+      "name": "zzTest number var 1",
+      "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
+      "useCodeForOptionSet": false,
+      "valueType": "NUMBER",
+      "program": { "id": "aUbnwuv5D2z" },
+      "dataElement": { "id": "IWLWOXyHwFb" }
+    },
+    {
+      "id": "Hv83fT0LeEV",
+      "name": "zzTest number var 2",
+      "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
+      "useCodeForOptionSet": false,
+      "valueType": "NUMBER",
+      "program": { "id": "aUbnwuv5D2z" },
+      "dataElement": { "id": "EZfu1R3vdSe" }
+    }
+  ],
+  "programRules": [
+    {
+      "id": "YKxrqRMonw2",
+      "name": "zzTest rule - error if var 1 is larger than var 2",
+      "condition": "#{zzTest number var 1} > #{zzTest number var 2}",
+      "program": { "id": "aUbnwuv5D2z" },
+      "programRuleActions": [{ "id": "HMAVLnd1bZ8" }]
+    }
+  ],
+  "programRuleActions": [
+    {
+      "id": "HMAVLnd1bZ8",
+      "programRuleActionType": "SHOWERROR",
+      "evaluationTime": "ALWAYS",
+      "content": "input 1 is greater than input 2",
+      "evaluationEnvironments": ["ANDROID", "WEB"]
+    }
+  ]
+}

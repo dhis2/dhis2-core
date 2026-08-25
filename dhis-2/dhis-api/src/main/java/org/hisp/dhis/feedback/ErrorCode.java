@@ -343,6 +343,11 @@ public enum ErrorCode {
   E4090("ProgramRuleVariable `{0}` is missing a source type"),
   E4091("ProgramRuleVariable `{0}` with source type `{1}` requires a program stage"),
   E4092("ProgramRuleVariable `{0}` with source type `{1}` requires a value type"),
+  E4093("ProgramRuleAction `{0}` must reference a program rule"),
+  E4094("ProgramRule `{0}` referenced by program rule action `{1}` does not exist"),
+  E4095("ProgramRule `{0}` must reference a program"),
+  E4096("Program `{0}` referenced by program rule `{1}` does not exist"),
+  E4097("ProgramRuleAction `{0}` has no validator for action type `{1}`"),
 
   /* Metadata Validation (continued) */
   E4060("Object could not be deleted: {0}"),

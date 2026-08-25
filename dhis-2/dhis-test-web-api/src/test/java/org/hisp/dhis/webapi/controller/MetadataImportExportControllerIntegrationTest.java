@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
@@ -38,9 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonObjectReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
@@ -51,6 +56,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class MetadataImportExportControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
+
+  private static final String PROGRAM_RULE_ACTION_WITHOUT_RULE =
+      "metadata/program_rule_action_without_program_rule_reference.json";
 
   @Test
   void testAggregateDataExchangeSuccess() {
@@ -101,6 +109,67 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
                 Body("<metadata></metadata>"),
                 ContentType("application/xml")));
     assertStartsWith("Initiated METADATA_IMPORT", msg.getMessage());
+  }
+
+  @Test
+  @DisplayName(
+      "A program rule action with no programRule reference is reported against that object (atomicMode=ALL)")
+  void testProgramRuleActionWithoutProgramRuleReference_atomicAll() {
+    // programRules[0].programRuleActions lists the action, but programRuleActions[0] carries no
+    // "programRule" property. This used to abort the whole import with a NullPointerException.
+    JsonImportSummary summary =
+        POST("/metadata", Path.of(PROGRAM_RULE_ACTION_WITHOUT_RULE))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("ERROR", summary.getStatus());
+    assertProgramRuleActionErrorIsVisible(summary);
+
+    // atomicMode=ALL, so nothing at all is persisted
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/aUbnwuv5D2z"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRules/YKxrqRMonw2"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/HMAVLnd1bZ8"));
+  }
+
+  @Test
+  @DisplayName(
+      "A program rule action with no programRule reference is reported against that object (atomicMode=NONE)")
+  void testProgramRuleActionWithoutProgramRuleReference_atomicNone() {
+    JsonImportSummary summary =
+        POST("/metadata?atomicMode=NONE", Path.of(PROGRAM_RULE_ACTION_WITHOUT_RULE))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("WARNING", summary.getStatus());
+    assertProgramRuleActionErrorIsVisible(summary);
+
+    // atomicMode=NONE, so only the offending action is skipped
+    assertStatus(HttpStatus.OK, GET("/programs/aUbnwuv5D2z"));
+    assertStatus(HttpStatus.OK, GET("/programRules/YKxrqRMonw2"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/HMAVLnd1bZ8"));
+  }
+
+  /**
+   * Asserts the failure is attributed to the offending {@link ProgramRuleAction} itself -- its
+   * class, bundle index and UID -- and not reported as a bare message on the import as a whole.
+   */
+  private void assertProgramRuleActionErrorIsVisible(JsonImportSummary summary) {
+    JsonTypeReport typeReport = summary.getTypeReport(ProgramRuleAction.class);
+    assertEquals(1, typeReport.getObjectReports().size());
+
+    JsonObjectReport objectReport = typeReport.getObjectReports().get(0);
+    assertEquals(ProgramRuleAction.class, objectReport.getKlass());
+    assertEquals("HMAVLnd1bZ8", objectReport.getUid());
+    assertEquals(0, objectReport.getIndex());
+
+    assertEquals(1, objectReport.getErrorReports().size());
+    JsonErrorReport errorReport = objectReport.getErrorReports().get(0);
+    assertEquals(ErrorCode.E4093, errorReport.getErrorCode());
+    assertEquals(ProgramRuleAction.class, errorReport.getMainKlass());
+    assertEquals(
+        "ProgramRuleAction `HMAVLnd1bZ8` must reference a program rule", errorReport.getMessage());
   }
 
   @Test

@@ -31,6 +31,7 @@ package org.hisp.dhis.programrule.action.validation;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -64,11 +65,36 @@ public class ProgramRuleActionValidationContextLoader {
     this.objectManager = manager;
   }
 
+  /**
+   * Resolves the {@link ProgramRule} the given action belongs to.
+   *
+   * @return the rule from the bundle, or {@code null} if the action has no rule reference or the
+   *     referenced rule is not part of the bundle
+   */
+  @CheckForNull
+  public ProgramRule resolveProgramRule(
+      @Nonnull Preheat preheat,
+      @Nonnull PreheatIdentifier preheatIdentifier,
+      @Nonnull ProgramRuleAction ruleAction) {
+    return preheat.get(preheatIdentifier, ProgramRule.class, ruleAction.getProgramRule());
+  }
+
+  /**
+   * Resolves the {@link Program} of the given rule, falling back to the database and seeding the
+   * bundle with what it finds there.
+   *
+   * @return the program, or {@code null} if the rule has no program reference or the referenced
+   *     program exists neither in the bundle nor in the database
+   */
+  @CheckForNull
   @Transactional(readOnly = true)
-  public ProgramRuleActionValidationContext load(
-      Preheat preheat, PreheatIdentifier preheatIdentifier, ProgramRuleAction ruleAction) {
-    ProgramRule rule =
-        preheat.get(preheatIdentifier, ProgramRule.class, ruleAction.getProgramRule());
+  public Program resolveProgram(
+      @Nonnull Preheat preheat,
+      @Nonnull PreheatIdentifier preheatIdentifier,
+      @Nonnull ProgramRule rule) {
+    if (rule.getProgram() == null) {
+      return null;
+    }
 
     Program program = preheat.get(preheatIdentifier, Program.class, rule.getProgram());
 
@@ -77,6 +103,22 @@ public class ProgramRuleActionValidationContextLoader {
       preheat.put(preheatIdentifier, program);
     }
 
+    return program;
+  }
+
+  /**
+   * Builds the context a {@link ProgramRuleActionValidator} validates against. The {@code rule} and
+   * {@code program} must already have been resolved via {@link #resolveProgramRule} and {@link
+   * #resolveProgram}; unresolved references are a validation error for the caller to report, not
+   * something this method can express.
+   */
+  @Transactional(readOnly = true)
+  public ProgramRuleActionValidationContext load(
+      @Nonnull Preheat preheat,
+      @Nonnull PreheatIdentifier preheatIdentifier,
+      @Nonnull ProgramRuleAction ruleAction,
+      @Nonnull ProgramRule rule,
+      @Nonnull Program program) {
     List<ProgramStage> stages =
         preheat.getAll(preheatIdentifier, new ArrayList<>(program.getProgramStages()));
 
