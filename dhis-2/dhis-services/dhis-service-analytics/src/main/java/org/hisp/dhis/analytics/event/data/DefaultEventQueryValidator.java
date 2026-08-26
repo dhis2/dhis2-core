@@ -49,6 +49,7 @@ import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlConstants;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionType;
@@ -73,7 +74,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultEventQueryValidator implements EventQueryValidator {
 
-  private static final String REGISTRATION_OU_DIMENSION = "REGISTRATION_OU";
+  private static final String REGISTRATION_OU_DIMENSION = RegistrationOuSqlConstants.DIMENSION_NAME;
 
   private static final Set<String> REGISTRATION_OU_SORT_ITEMS =
       Set.of(ColumnHeader.REGISTRATION_OU.getItem(), ColumnHeader.REGISTRATION_OU_NAME.getItem());
@@ -106,7 +107,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
     if (!params.hasOrganisationUnits()
         && !params.hasEnrollmentOu()
-        && !params.hasRegistrationOuItems()) {
+        && !params.hasRegistrationOuRestriction()) {
       return new ErrorMessage(ErrorCode.E7200);
     }
     Optional<String> enrollmentOuSortColumn = params.getEnrollmentOuSortColumn();

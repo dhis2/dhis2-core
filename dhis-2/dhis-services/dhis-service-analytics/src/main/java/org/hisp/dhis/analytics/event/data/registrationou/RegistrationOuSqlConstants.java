@@ -29,22 +29,16 @@
  */
 package org.hisp.dhis.analytics.event.data.registrationou;
 
-import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.common.ColumnHeader;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 
-/** Shared SQL identifiers for REGISTRATION_OU query and aggregate handling. */
+/** Shared identifiers for REGISTRATION_OU query and aggregate handling. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RegistrationOuSqlConstants {
 
-  public static final String ANALYTICS_TABLE_ALIAS = ANALYTICS_TBL_ALIAS;
-
-  public static final String REGISTRATION_OU_COLUMN =
-      EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME;
+  /** The dimension keyword as written in a request. */
+  public static final String DIMENSION_NAME = "REGISTRATION_OU";
 
   public static final String STRUCT_TABLE = OrganisationUnitStructureResourceTable.TABLE_NAME;
 
@@ -59,9 +53,4 @@ public final class RegistrationOuSqlConstants {
   public static final String STRUCT_NAME_COLUMN = "name";
 
   public static final String UID_LEVEL_PREFIX = "uidlevel";
-
-  public static final String REGISTRATION_OU_RESULT_ALIAS = ColumnHeader.REGISTRATION_OU.getItem();
-
-  public static final String REGISTRATION_OU_NAME_RESULT_ALIAS =
-      ColumnHeader.REGISTRATION_OU_NAME.getItem();
 }

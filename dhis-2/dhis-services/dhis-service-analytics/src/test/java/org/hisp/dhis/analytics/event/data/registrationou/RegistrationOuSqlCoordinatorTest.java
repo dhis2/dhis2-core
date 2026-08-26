@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -73,40 +73,32 @@ class RegistrationOuSqlCoordinatorTest {
 
   @Test
   void testNoJoinWithoutRegistrationOu() {
-    StringBuilder sql = new StringBuilder();
-
-    RegistrationOuSqlCoordinator.appendLegacyJoin(
-        sql, new EventQueryParams.Builder().build(), sqlBuilder);
-
-    assertEquals("", sql.toString());
+    assertEquals(
+        "",
+        RegistrationOuSqlCoordinator.joinClause(
+            new EventQueryParams.Builder().build(), sqlBuilder));
   }
 
   @Test
   void testJoinAddedForDimension() {
-    StringBuilder sql = new StringBuilder();
-
-    RegistrationOuSqlCoordinator.appendLegacyJoin(sql, dimensionParams(districtA), sqlBuilder);
-
-    assertTrue(sql.toString().contains("inner join analytics_rs_orgunitstructure as regous"));
+    assertTrue(
+        RegistrationOuSqlCoordinator.joinClause(dimensionParams(districtA), sqlBuilder)
+            .contains("inner join analytics_rs_orgunitstructure as regous"));
   }
 
   @Test
   void testJoinAddedForFilterOnly() {
-    StringBuilder sql = new StringBuilder();
-
-    RegistrationOuSqlCoordinator.appendLegacyJoin(sql, filterParams(districtA), sqlBuilder);
-
-    assertTrue(sql.toString().contains("inner join analytics_rs_orgunitstructure as regous"));
+    assertTrue(
+        RegistrationOuSqlCoordinator.joinClause(filterParams(districtA), sqlBuilder)
+            .contains("inner join analytics_rs_orgunitstructure as regous"));
   }
 
   /** A bare dimension still needs the join, because the query endpoint projects the OU name. */
   @Test
   void testJoinAddedForBareDimension() {
-    StringBuilder sql = new StringBuilder();
-
-    RegistrationOuSqlCoordinator.appendLegacyJoin(sql, dimensionParams(), sqlBuilder);
-
-    assertTrue(sql.toString().contains("inner join analytics_rs_orgunitstructure as regous"));
+    assertTrue(
+        RegistrationOuSqlCoordinator.joinClause(dimensionParams(), sqlBuilder)
+            .contains("inner join analytics_rs_orgunitstructure as regous"));
   }
 
   @Test
@@ -139,59 +131,45 @@ class RegistrationOuSqlCoordinatorTest {
 
   @Test
   void testNoPredicateWithoutItems() {
-    StringBuilder sql = new StringBuilder();
-
-    RegistrationOuSqlCoordinator.appendWherePredicateIfNeeded(
-        sql, new SqlHelper(), dimensionParams(), sqlBuilder);
-
-    assertEquals("", sql.toString());
+    assertEquals(
+        "",
+        RegistrationOuSqlCoordinator.wherePredicate(
+            dimensionParams(), new SqlHelper(), sqlBuilder));
   }
 
   @Test
   void testPredicateForSingleLevel() {
-    StringBuilder sql = new StringBuilder();
-
-    RegistrationOuSqlCoordinator.appendWherePredicateIfNeeded(
-        sql, new SqlHelper(), dimensionParams(districtA, districtB), sqlBuilder);
-
     assertEquals(
         "where (regous.\"uidlevel2\" in ('"
             + districtA.getUid()
             + "','"
             + districtB.getUid()
             + "')) ",
-        sql.toString());
+        RegistrationOuSqlCoordinator.wherePredicate(
+            dimensionParams(districtA, districtB), new SqlHelper(), sqlBuilder));
   }
 
   /** Items spanning levels union their subtrees, so the per-level predicates are OR-ed. */
   @Test
   void testPredicateForMixedLevelsIsOred() {
-    StringBuilder sql = new StringBuilder();
-
-    RegistrationOuSqlCoordinator.appendWherePredicateIfNeeded(
-        sql, new SqlHelper(), dimensionParams(root, districtA), sqlBuilder);
-
     assertEquals(
         "where (regous.\"uidlevel1\" in ('"
             + root.getUid()
             + "') or regous.\"uidlevel2\" in ('"
             + districtA.getUid()
             + "')) ",
-        sql.toString());
+        RegistrationOuSqlCoordinator.wherePredicate(
+            dimensionParams(root, districtA), new SqlHelper(), sqlBuilder));
   }
 
   /** A dimension and a filter both restrict, so they are AND-ed rather than OR-ed. */
   @Test
   void testDimensionAndFilterAreAnded() {
-    StringBuilder sql = new StringBuilder();
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withRegistrationOuDimension(List.of(districtA))
             .withRegistrationOuFilter(List.of(districtB))
             .build();
-
-    RegistrationOuSqlCoordinator.appendWherePredicateIfNeeded(
-        sql, new SqlHelper(), params, sqlBuilder);
 
     assertEquals(
         "where (regous.\"uidlevel2\" in ('"
@@ -199,7 +177,7 @@ class RegistrationOuSqlCoordinatorTest {
             + "')) and (regous.\"uidlevel2\" in ('"
             + districtB.getUid()
             + "')) ",
-        sql.toString());
+        RegistrationOuSqlCoordinator.wherePredicate(params, new SqlHelper(), sqlBuilder));
   }
 
   // -------------------------------------------------------------------------
@@ -208,42 +186,34 @@ class RegistrationOuSqlCoordinatorTest {
 
   @Test
   void testNoAggregateColumnWhenNotAggregated() {
-    List<String> columns = new ArrayList<>();
-
-    RegistrationOuSqlCoordinator.addDimensionSelectColumns(
-        columns, dimensionParams(districtA), false, false, sqlBuilder);
-
-    assertTrue(columns.isEmpty());
+    assertTrue(
+        RegistrationOuSqlCoordinator.dimensionSelectColumn(
+                dimensionParams(districtA), false, false, sqlBuilder)
+            .isEmpty());
   }
 
   @Test
   void testNoAggregateColumnForFilterOnly() {
-    List<String> columns = new ArrayList<>();
-
-    RegistrationOuSqlCoordinator.addDimensionSelectColumns(
-        columns, filterParams(districtA), false, true, sqlBuilder);
-
-    assertTrue(columns.isEmpty());
+    assertTrue(
+        RegistrationOuSqlCoordinator.dimensionSelectColumn(
+                filterParams(districtA), false, true, sqlBuilder)
+            .isEmpty());
   }
 
   @Test
   void testAggregateGroupByColumn() {
-    List<String> columns = new ArrayList<>();
-
-    RegistrationOuSqlCoordinator.addDimensionSelectColumns(
-        columns, dimensionParams(districtA), true, true, sqlBuilder);
-
-    assertEquals(List.of("regous.\"uidlevel2\""), columns);
+    assertEquals(
+        Optional.of("regous.\"uidlevel2\""),
+        RegistrationOuSqlCoordinator.dimensionSelectColumn(
+            dimensionParams(districtA), true, true, sqlBuilder));
   }
 
   @Test
   void testAggregateProjectionColumn() {
-    List<String> columns = new ArrayList<>();
-
-    RegistrationOuSqlCoordinator.addDimensionSelectColumns(
-        columns, dimensionParams(districtA), false, true, sqlBuilder);
-
-    assertEquals(List.of("regous.\"uidlevel2\" as registrationou"), columns);
+    assertEquals(
+        Optional.of("regous.\"uidlevel2\" as registrationou"),
+        RegistrationOuSqlCoordinator.dimensionSelectColumn(
+            dimensionParams(districtA), false, true, sqlBuilder));
   }
 
   /**
@@ -252,15 +222,14 @@ class RegistrationOuSqlCoordinatorTest {
    */
   @Test
   void testAggregateRejectsMixedLevels() {
-    List<String> columns = new ArrayList<>();
     EventQueryParams params = dimensionParams(root, districtA);
 
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
             () ->
-                RegistrationOuSqlCoordinator.addDimensionSelectColumns(
-                    columns, params, false, true, sqlBuilder));
+                RegistrationOuSqlCoordinator.dimensionSelectColumn(
+                    params, false, true, sqlBuilder));
 
     assertEquals(ErrorCode.E7261, exception.getErrorCode());
   }
@@ -271,35 +240,24 @@ class RegistrationOuSqlCoordinatorTest {
 
   @Test
   void testNoQueryColumnsWithoutDimension() {
-    List<String> columns = new ArrayList<>();
-
-    RegistrationOuSqlCoordinator.addQuerySelectColumns(
-        columns, filterParams(districtA), sqlBuilder);
-
-    assertTrue(columns.isEmpty());
+    assertTrue(
+        RegistrationOuSqlCoordinator.querySelectColumns(filterParams(districtA), sqlBuilder)
+            .isEmpty());
   }
 
   @Test
   void testQueryColumnsForDimension() {
-    List<String> columns = new ArrayList<>();
-
-    RegistrationOuSqlCoordinator.addQuerySelectColumns(
-        columns, dimensionParams(districtA), sqlBuilder);
-
     assertEquals(
         List.of(
             "regous.\"organisationunituid\" as registrationou",
             "regous.\"name\" as registrationouname"),
-        columns);
+        RegistrationOuSqlCoordinator.querySelectColumns(dimensionParams(districtA), sqlBuilder));
   }
 
   @Test
   void testQueryColumnsForBareDimension() {
-    List<String> columns = new ArrayList<>();
-
-    RegistrationOuSqlCoordinator.addQuerySelectColumns(columns, dimensionParams(), sqlBuilder);
-
-    assertEquals(2, columns.size());
+    assertEquals(
+        2, RegistrationOuSqlCoordinator.querySelectColumns(dimensionParams(), sqlBuilder).size());
   }
 
   private EventQueryParams dimensionParams(OrganisationUnit... items) {

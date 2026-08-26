@@ -29,8 +29,12 @@
  */
 package org.hisp.dhis.analytics.event.data.registrationou;
 
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
 /** Pure SQL fragments used by REGISTRATION_OU support. */
@@ -48,8 +52,7 @@ public final class RegistrationOuSqlFragments {
     return sqlBuilder.quote(structAlias, RegistrationOuSqlConstants.STRUCT_UID_COLUMN)
         + " = "
         + sqlBuilder.quote(
-            RegistrationOuSqlConstants.ANALYTICS_TABLE_ALIAS,
-            RegistrationOuSqlConstants.REGISTRATION_OU_COLUMN);
+            ANALYTICS_TBL_ALIAS, EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME);
   }
 
   /**
@@ -104,9 +107,7 @@ public final class RegistrationOuSqlFragments {
             RegistrationOuSqlConstants.STRUCT_ALIAS,
             RegistrationOuSqlConstants.UID_LEVEL_PREFIX + level);
 
-    return groupBy
-        ? column
-        : column + " as " + RegistrationOuSqlConstants.REGISTRATION_OU_RESULT_ALIAS;
+    return groupBy ? column : column + " as " + ColumnHeader.REGISTRATION_OU.getItem();
   }
 
   /**
@@ -120,7 +121,7 @@ public final class RegistrationOuSqlFragments {
     return sqlBuilder.quote(
             RegistrationOuSqlConstants.STRUCT_ALIAS, RegistrationOuSqlConstants.STRUCT_UID_COLUMN)
         + " as "
-        + RegistrationOuSqlConstants.REGISTRATION_OU_RESULT_ALIAS;
+        + ColumnHeader.REGISTRATION_OU.getItem();
   }
 
   /**
@@ -133,6 +134,6 @@ public final class RegistrationOuSqlFragments {
     return sqlBuilder.quote(
             RegistrationOuSqlConstants.STRUCT_ALIAS, RegistrationOuSqlConstants.STRUCT_NAME_COLUMN)
         + " as "
-        + RegistrationOuSqlConstants.REGISTRATION_OU_NAME_RESULT_ALIAS;
+        + ColumnHeader.REGISTRATION_OU_NAME.getItem();
   }
 }

@@ -208,7 +208,7 @@ class AggregatedRowBuilder {
     }
 
     // A REGISTRATION_OU dimension without items emits no aggregate column, so nothing to read.
-    if (!params.getRegistrationOuDimensionItems().isEmpty()) {
+    if (params.hasRegistrationOuAggregateColumn()) {
       row.add(extractStringValue(ColumnHeader.REGISTRATION_OU.getItem(), ValueType.TEXT));
     }
 

@@ -503,7 +503,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
     OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
-    RegistrationOuSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
+    sql.append(RegistrationOuSqlCoordinator.joinClause(params, sqlBuilder));
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -741,10 +741,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
     sql += enrollmentOuSql;
 
-    StringBuilder registrationOuSql = new StringBuilder();
-    RegistrationOuSqlCoordinator.appendWherePredicateIfNeeded(
-        registrationOuSql, hlp, params, sqlBuilder);
-    sql += registrationOuSql;
+    sql += RegistrationOuSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
 
     if (params.hasBbox()) {
       sql +=
@@ -926,7 +923,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
     OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
-    RegistrationOuSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
+    columns.addAll(RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder));
     columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
     columns.forEach(

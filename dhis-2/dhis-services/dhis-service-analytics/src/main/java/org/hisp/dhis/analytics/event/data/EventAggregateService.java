@@ -351,7 +351,7 @@ public class EventAggregateService {
           new GridHeader(ColumnHeader.ENROLLMENT_OU.getItem(), ouLabel, TEXT, false, true));
     }
 
-    if (!params.getRegistrationOuDimensionItems().isEmpty()) {
+    if (params.hasRegistrationOuAggregateColumn()) {
       grid.addHeader(
           new GridHeader(
               ColumnHeader.REGISTRATION_OU.getItem(),

@@ -845,7 +845,7 @@ class DefaultEventDataQueryServiceTest {
     EventQueryParams params = subject.getFromRequest(request);
 
     assertTrue(params.hasRegistrationOuDimension());
-    assertTrue(params.hasRegistrationOuItems());
+    assertTrue(params.hasRegistrationOuRestriction());
     assertEquals(2, params.getRegistrationOuDimensionItems().size());
     assertFalse(params.hasEnrollmentOuDimension());
   }
@@ -858,13 +858,7 @@ class DefaultEventDataQueryServiceTest {
         new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA));
 
     when(dataQueryService.getDimension(
-            eq("ou"),
-            eq(List.of(ouA.getUid())),
-            any(),
-            anyList(),
-            anyBoolean(),
-            any(),
-            any(IdScheme.class)))
+            eq("ou"), eq(List.of(ouA.getUid())), any(), anyList(), anyBoolean(), any()))
         .thenReturn(ouDimension);
 
     EventDataQueryRequest request =
@@ -877,6 +871,31 @@ class DefaultEventDataQueryServiceTest {
     assertTrue(params.hasRegistrationOuFilter());
     assertFalse(params.hasRegistrationOuDimension());
     assertEquals(1, params.getRegistrationOuFilterItems().size());
+  }
+
+  /**
+   * The dimension keyword is spelled in upper case, and a lower case spelling is a different
+   * dimension that must not resolve as REGISTRATION_OU. The org unit dimension is stubbed so that a
+   * keyword match would produce a populated filter, which is what makes this assertion
+   * discriminate: without the stub the filter comes back empty either way. The stub is lenient
+   * because, once the comparison is exact, it is correctly never reached.
+   */
+  @Test
+  void getFromRequestDoesNotResolveRegistrationOuSpelledInLowerCase() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+
+    lenient()
+        .when(
+            dataQueryService.getDimension(
+                eq("ou"), eq(List.of(ouA.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA)));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .filter(Set.of(Set.of("registration_ou:" + ouA.getUid())))
+            .build();
+
+    assertFalse(subject.getFromRequest(request).hasRegistrationOuFilter());
   }
 
   /**
@@ -1048,13 +1067,7 @@ class DefaultEventDataQueryServiceTest {
         .thenReturn(
             new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(dimensionOu)));
     when(dataQueryService.getDimension(
-            eq("ou"),
-            eq(List.of(filterOu.getUid())),
-            any(),
-            anyList(),
-            anyBoolean(),
-            any(),
-            any(IdScheme.class)))
+            eq("ou"), eq(List.of(filterOu.getUid())), any(), anyList(), anyBoolean(), any()))
         .thenReturn(
             new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(filterOu)));
 
@@ -1114,7 +1127,7 @@ class DefaultEventDataQueryServiceTest {
     EventQueryParams params = subject.getFromRequest(request);
 
     assertTrue(params.hasRegistrationOuDimension());
-    assertFalse(params.hasRegistrationOuItems());
+    assertFalse(params.hasRegistrationOuRestriction());
     assertTrue(params.getRegistrationOuDimensionItems().isEmpty());
   }
 
