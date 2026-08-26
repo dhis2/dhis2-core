@@ -715,11 +715,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getFilter() != null) {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getFilter())) {
-        if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
+        if (isEnrollmentOuDimension(input.dimensionId())) {
           resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
           continue;
         }
-        if (REGISTRATION_OU_DIMENSION.equals(input.dimensionId())) {
+        if (isRegistrationOuDimension(input.dimensionId())) {
           requireRegistrationProgram(pr);
           params.withRegistrationOuFilter(
               resolveRegistrationOuItems(input.items(), request, userOrgUnits, idScheme, false));
@@ -875,8 +875,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     String dimensionId = getDimensionFromParam(rawDimension);
     List<String> items = getDimensionItemsFromParam(rawDimension);
 
-    if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)
-        || REGISTRATION_OU_DIMENSION.equals(dimensionId)) {
+    if (isEnrollmentOuDimension(dimensionId) || isRegistrationOuDimension(dimensionId)) {
       normalizedInputs.add(
           new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
       return;
@@ -1083,6 +1082,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private boolean isProgramStatusDimension(String dimensionId) {
     return ColumnHeader.PROGRAM_STATUS.name().equalsIgnoreCase(dimensionId)
         || ColumnHeader.PROGRAM_STATUS.getItem().equalsIgnoreCase(dimensionId);
+  }
+
+  private boolean isEnrollmentOuDimension(String dimensionId) {
+    return ENROLLMENT_OU_DIMENSION.equalsIgnoreCase(dimensionId);
+  }
+
+  private boolean isRegistrationOuDimension(String dimensionId) {
+    return REGISTRATION_OU_DIMENSION.equalsIgnoreCase(dimensionId);
   }
 
   private boolean isAggregateRequest(EventDataQueryRequest request) {
