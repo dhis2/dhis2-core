@@ -41,7 +41,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
     <jsr305.version>3.0.2</jsr305.version>
-    <postgresql.version>42.7.12</postgresql.version>
+    <postgresql.version>42.7.13</postgresql.version>
   </properties>
 
   <dependencies>
