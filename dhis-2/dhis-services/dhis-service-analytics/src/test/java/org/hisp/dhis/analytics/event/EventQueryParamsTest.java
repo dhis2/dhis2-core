@@ -190,7 +190,7 @@ class EventQueryParamsTest extends TestBase {
 
     assertTrue(copy.hasRegistrationOuDimension());
     assertTrue(copy.hasRegistrationOuFilter());
-    assertTrue(copy.hasRegistrationOuItems());
+    assertTrue(copy.hasRegistrationOuRestriction());
     assertEquals(List.of(ouA), copy.getRegistrationOuDimensionItems());
     assertEquals(List.of(ouB), copy.getRegistrationOuFilterItems());
     assertEquals(List.of(ouA, ouB), copy.getAllRegistrationOuItems());
@@ -212,7 +212,7 @@ class EventQueryParamsTest extends TestBase {
         new EventQueryParams.Builder().withRegistrationOuDimension(List.of()).build();
 
     assertTrue(params.hasRegistrationOuDimension());
-    assertFalse(params.hasRegistrationOuItems());
+    assertFalse(params.hasRegistrationOuRestriction());
   }
 
   @Test

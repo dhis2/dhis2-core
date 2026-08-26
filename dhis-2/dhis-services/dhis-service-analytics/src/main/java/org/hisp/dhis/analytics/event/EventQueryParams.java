@@ -1324,12 +1324,26 @@ public class EventQueryParams extends DataQueryParams {
     return isNotEmpty(registrationOuFilterItems);
   }
 
+  /** Returns true if REGISTRATION_OU was named at all, as a dimension or as a filter. */
+  public boolean hasRegistrationOu() {
+    return hasRegistrationOuDimension() || hasRegistrationOuFilter();
+  }
+
+  /**
+   * Returns true if the REGISTRATION_OU dimension carries org units, which is the condition for the
+   * aggregate disaggregation column to exist. A dimension named without org units projects the
+   * query output columns but has nothing to group by.
+   */
+  public boolean hasRegistrationOuAggregateColumn() {
+    return isNotEmpty(registrationOuDimensionItems);
+  }
+
   /**
    * Returns true if REGISTRATION_OU restricts the query, i.e. carries org units as a dimension or
    * as a filter. A dimension named without items does not restrict anything and so does not count
    * as an organisation unit condition.
    */
-  public boolean hasRegistrationOuItems() {
+  public boolean hasRegistrationOuRestriction() {
     return isNotEmpty(registrationOuDimensionItems) || isNotEmpty(registrationOuFilterItems);
   }
 
@@ -1344,13 +1358,6 @@ public class EventQueryParams extends DataQueryParams {
   /** Returns the REGISTRATION_OU org units from both the dimension and the filter. */
   public List<OrganisationUnit> getAllRegistrationOuItems() {
     return ListUtils.union(registrationOuDimensionItems, registrationOuFilterItems);
-  }
-
-  /** Returns the distinct hierarchy levels of the REGISTRATION_OU org units. */
-  public Set<Integer> getRegistrationOuItemLevels() {
-    return getAllRegistrationOuItems().stream()
-        .map(OrganisationUnit::getLevel)
-        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   public boolean hasEnrollmentOuFilter() {

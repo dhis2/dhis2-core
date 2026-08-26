@@ -387,7 +387,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
-    RegistrationOuSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
+    sql.append(RegistrationOuSqlCoordinator.joinClause(params, sqlBuilder));
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -562,10 +562,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + ",4326) ";
     }
 
-    StringBuilder registrationOuSql = new StringBuilder();
-    RegistrationOuSqlCoordinator.appendWherePredicateIfNeeded(
-        registrationOuSql, hlp, params, sqlBuilder);
-    sql += registrationOuSql;
+    sql += RegistrationOuSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
 
     return sql;
   }
@@ -746,8 +743,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // The registration OU projection is added separately, qualified and aliased, because stripping
     // its table alias would leave a uidlevelN reference that is ambiguous once regous is joined.
-    boolean joinsRegistrationOu =
-        params.hasRegistrationOuDimension() || params.hasRegistrationOuFilter();
+    boolean joinsRegistrationOu = params.hasRegistrationOu();
     columns.removeIf(RegistrationOuSqlCoordinator::isRegistrationOuColumn);
 
     SelectBuilder sb = new SelectBuilder();
@@ -759,7 +755,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               ? RegistrationOuSqlCoordinator.preserveQualifierIfAmbiguous(column, stripped)
               : stripped);
     }
-    RegistrationOuSqlCoordinator.addBaseCteSelectColumn(sb, params, sqlBuilder);
+    RegistrationOuSqlCoordinator.baseCteSelectColumn(params, sqlBuilder).ifPresent(sb::addColumn);
 
     addNonDefaultPeriodSourceColumns(sb, params);
 
@@ -1210,9 +1206,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       aggregatedAssembler.addStandardColumns(sb, cteContext, getStandardColumns(params));
 
-      List<String> registrationOuColumns = new ArrayList<>();
-      RegistrationOuSqlCoordinator.addQuerySelectColumns(registrationOuColumns, params, sqlBuilder);
-      registrationOuColumns.forEach(sb::addColumn);
+      RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder).forEach(sb::addColumn);
     }
 
     // Append columns from CTE definitions

@@ -77,6 +77,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlConstants;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -123,7 +124,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private static final String SCHEDULED_DATE_DIMENSION = "SCHEDULED_DATE";
 
   private static final String ENROLLMENT_OU_DIMENSION = "ENROLLMENT_OU";
-  private static final String REGISTRATION_OU_DIMENSION = "REGISTRATION_OU";
+  private static final String REGISTRATION_OU_DIMENSION = RegistrationOuSqlConstants.DIMENSION_NAME;
   private static final String LEVEL_PREFIX = "LEVEL-";
 
   private final ProgramService programService;
@@ -715,14 +716,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getFilter() != null) {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getFilter())) {
-        if (isEnrollmentOuDimension(input.dimensionId())) {
+        if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
           continue;
         }
-        if (isRegistrationOuDimension(input.dimensionId())) {
+        if (REGISTRATION_OU_DIMENSION.equals(input.dimensionId())) {
           requireRegistrationProgram(pr);
           params.withRegistrationOuFilter(
-              resolveRegistrationOuItems(input.items(), request, userOrgUnits, idScheme, false));
+              resolveRegistrationOuItems(input.items(), request, userOrgUnits, idScheme));
           continue;
         }
         if (isProgramStatusDimension(input.dimensionId())) {
@@ -875,7 +876,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     String dimensionId = getDimensionFromParam(rawDimension);
     List<String> items = getDimensionItemsFromParam(rawDimension);
 
-    if (isEnrollmentOuDimension(dimensionId) || isRegistrationOuDimension(dimensionId)) {
+    if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)
+        || REGISTRATION_OU_DIMENSION.equals(dimensionId)) {
       normalizedInputs.add(
           new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
       return;
@@ -1084,14 +1086,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         || ColumnHeader.PROGRAM_STATUS.getItem().equalsIgnoreCase(dimensionId);
   }
 
-  private boolean isEnrollmentOuDimension(String dimensionId) {
-    return ENROLLMENT_OU_DIMENSION.equalsIgnoreCase(dimensionId);
-  }
-
-  private boolean isRegistrationOuDimension(String dimensionId) {
-    return REGISTRATION_OU_DIMENSION.equalsIgnoreCase(dimensionId);
-  }
-
   private boolean isAggregateRequest(EventDataQueryRequest request) {
     return request.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE;
   }
@@ -1261,27 +1255,22 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       List<String> items,
       EventDataQueryRequest request,
       List<OrganisationUnit> userOrgUnits,
-      IdScheme idScheme,
-      boolean fromDimension) {
+      IdScheme idScheme) {
     if (items == null || items.isEmpty()) {
       return List.of();
     }
 
-    GroupableItem ouDimension =
-        fromDimension
-            ? dataQueryService.getDimension("ou", items, request, userOrgUnits, true, idScheme)
-            : dataQueryService.getDimension(
-                "ou", items, request.getRelativePeriodDate(), userOrgUnits, true, null, idScheme);
+    DimensionalObject ouDimension =
+        dataQueryService.getDimension("ou", items, request, userOrgUnits, true, idScheme);
 
     if (ouDimension == null) {
       return List.of();
     }
 
-    return ((DimensionalObject) ouDimension)
-        .getItems().stream()
-            .filter(OrganisationUnit.class::isInstance)
-            .map(OrganisationUnit.class::cast)
-            .toList();
+    return ouDimension.getItems().stream()
+        .filter(OrganisationUnit.class::isInstance)
+        .map(OrganisationUnit.class::cast)
+        .toList();
   }
 
   private void resolveRegistrationOuDimension(
@@ -1298,7 +1287,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     params.withRegistrationOuDimension(
-        resolveRegistrationOuItems(items, request, userOrgUnits, idScheme, true));
+        resolveRegistrationOuItems(items, request, userOrgUnits, idScheme));
   }
 
   /** Registration org unit is a property of a tracked entity, so it needs a tracker program. */
