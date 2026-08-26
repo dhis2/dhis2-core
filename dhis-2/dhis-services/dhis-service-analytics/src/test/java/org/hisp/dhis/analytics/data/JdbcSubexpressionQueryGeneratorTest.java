@@ -227,7 +227,7 @@ class JdbcSubexpressionQueryGeneratorTest {
             select -1 as "delta", '202305' as "reportperiod", '202304' as "dataperiod" \
             union all select 0, '202305', '202305'\
             ) as shift on \
-            "dataperiod" = "monthly"\
+            shift."dataperiod" = ax."monthly"\
             where ax."monthly" in ('202304', '202305') \
             and ( ax."pe" in ('202305') ) \
             and ( ax."ou" in ('ouabcdefghA') ) \
