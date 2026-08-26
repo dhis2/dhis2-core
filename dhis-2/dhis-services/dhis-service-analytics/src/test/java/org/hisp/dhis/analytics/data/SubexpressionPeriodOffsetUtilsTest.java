@@ -100,7 +100,7 @@ class SubexpressionPeriodOffsetUtilsTest {
             + " union all select 0, '202310', '202310'"
             + " union all select 1, '202309', '202310'"
             + " union all select 1, '202310', '202311'"
-            + ") as shift on \"dataperiod\" = \"monthly\"";
+            + ") as shift on shift.\"dataperiod\" = ax.\"monthly\"";
     assertEquals(expected, result);
   }
 
@@ -117,7 +117,7 @@ class SubexpressionPeriodOffsetUtilsTest {
             + " union all select 0, '202310', '202310'"
             + " union all select 1, '202309', '202310'"
             + " union all select 1, '202310', '202311'"
-            + ") as shift on `dataperiod` = `monthly`";
+            + ") as shift on shift.`dataperiod` = ax.`monthly`";
     assertEquals(expected, result);
   }
 
