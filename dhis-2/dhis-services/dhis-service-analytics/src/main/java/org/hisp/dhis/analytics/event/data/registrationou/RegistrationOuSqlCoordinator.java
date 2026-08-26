@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -54,8 +55,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RegistrationOuSqlCoordinator {
 
-  private static final String DIMENSION_NAME = "REGISTRATION_OU";
-
   /**
    * Adds the org unit structure join to a {@link SelectBuilder} query when registration org unit is
    * used as a dimension or a filter.
@@ -66,7 +65,7 @@ public final class RegistrationOuSqlCoordinator {
    */
   public static void addJoinIfNeeded(
       SelectBuilder sb, EventQueryParams params, SqlBuilder sqlBuilder) {
-    if (!isNeeded(params)) {
+    if (!params.hasRegistrationOu()) {
       return;
     }
 
@@ -77,17 +76,15 @@ public final class RegistrationOuSqlCoordinator {
   }
 
   /**
-   * Appends the org unit structure join clause for string-based SQL generation.
+   * Returns the org unit structure join clause, or an empty string when registration org unit is
+   * not used.
    *
-   * @param sql SQL buffer being assembled
    * @param params query parameters
    * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return {@code inner join ... on ...} clause, or an empty string
    */
-  public static void appendLegacyJoin(
-      StringBuilder sql, EventQueryParams params, SqlBuilder sqlBuilder) {
-    if (isNeeded(params)) {
-      sql.append(RegistrationOuSqlFragments.innerJoinClause(sqlBuilder));
-    }
+  public static String joinClause(EventQueryParams params, SqlBuilder sqlBuilder) {
+    return params.hasRegistrationOu() ? RegistrationOuSqlFragments.innerJoinClause(sqlBuilder) : "";
   }
 
   /**
@@ -97,71 +94,62 @@ public final class RegistrationOuSqlCoordinator {
    * requested subtrees form a union. The dimension and the filter are AND-ed, because each
    * restricts the result independently.
    *
-   * @param sql SQL buffer being assembled
-   * @param hlp helper used to add {@code where/and} prefixes
    * @param params query parameters
+   * @param hlp helper used to add {@code where/and} prefixes
    * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return where conditions, or an empty string when registration org unit restricts nothing
    */
-  public static void appendWherePredicateIfNeeded(
-      StringBuilder sql, SqlHelper hlp, EventQueryParams params, SqlBuilder sqlBuilder) {
+  public static String wherePredicate(
+      EventQueryParams params, SqlHelper hlp, SqlBuilder sqlBuilder) {
     List<String> restrictions = new ArrayList<>();
 
     addRestriction(restrictions, params.getRegistrationOuDimensionItems(), sqlBuilder);
     addRestriction(restrictions, params.getRegistrationOuFilterItems(), sqlBuilder);
 
     if (restrictions.isEmpty()) {
-      return;
+      return "";
     }
 
-    sql.append(hlp.whereAnd()).append(" ").append(String.join(" and ", restrictions)).append(" ");
+    return hlp.whereAnd() + " " + String.join(" and ", restrictions) + " ";
   }
 
   /**
    * Adds the REGISTRATION_OU select and group-by column for aggregate queries, producing one output
    * row per requested org unit, each aggregating its whole subtree.
    *
-   * @param columns mutable output column list
    * @param params query parameters
-   * @param isGroupBy whether the target list is used for group-by
+   * @param isGroupBy whether the column is destined for the group-by clause
    * @param isAggregated whether the query is in aggregated mode
    * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return the column, or empty when the query has no registration org unit disaggregation
    */
-  public static void addDimensionSelectColumns(
-      List<String> columns,
-      EventQueryParams params,
-      boolean isGroupBy,
-      boolean isAggregated,
-      SqlBuilder sqlBuilder) {
-    if (!isAggregated || !params.hasRegistrationOuDimension()) {
-      return;
+  public static Optional<String> dimensionSelectColumn(
+      EventQueryParams params, boolean isGroupBy, boolean isAggregated, SqlBuilder sqlBuilder) {
+    if (!isAggregated || !params.hasRegistrationOuAggregateColumn()) {
+      return Optional.empty();
     }
 
-    List<OrganisationUnit> items = params.getRegistrationOuDimensionItems();
-
-    if (items.isEmpty()) {
-      return;
-    }
-
-    columns.add(
-        RegistrationOuSqlFragments.selectUidLevel(singleLevelOf(items), isGroupBy, sqlBuilder));
+    return Optional.of(
+        RegistrationOuSqlFragments.selectUidLevel(
+            singleLevelOf(params.getRegistrationOuDimensionItems()), isGroupBy, sqlBuilder));
   }
 
   /**
    * Adds the REGISTRATION_OU query output columns, being the UID and the name of the org unit the
    * tracked entity was registered in.
    *
-   * @param columns mutable output column list
    * @param params query parameters
    * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return the UID and name projections, or an empty list when the dimension is absent
    */
-  public static void addQuerySelectColumns(
-      List<String> columns, EventQueryParams params, SqlBuilder sqlBuilder) {
+  public static List<String> querySelectColumns(EventQueryParams params, SqlBuilder sqlBuilder) {
     if (!params.hasRegistrationOuDimension()) {
-      return;
+      return List.of();
     }
 
-    columns.add(RegistrationOuSqlFragments.selectRegistrationOuUid(sqlBuilder));
-    columns.add(RegistrationOuSqlFragments.selectRegistrationOuName(sqlBuilder));
+    return List.of(
+        RegistrationOuSqlFragments.selectRegistrationOuUid(sqlBuilder),
+        RegistrationOuSqlFragments.selectRegistrationOuName(sqlBuilder));
   }
 
   /**
@@ -176,23 +164,22 @@ public final class RegistrationOuSqlCoordinator {
   }
 
   /**
-   * Adds the registration OU projection to the enrollment aggregate base CTE, qualified and aliased
-   * as {@code registrationou} so the outer query can select and group by it off the CTE.
+   * Returns the registration OU projection for the enrollment aggregate base CTE, qualified and
+   * aliased as {@code registrationou} so the outer query can select and group by it off the CTE.
    *
-   * @param sb builder for the base CTE
    * @param params query parameters
    * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return the projection, or empty when the dimension carries no org units
    */
-  public static void addBaseCteSelectColumn(
-      SelectBuilder sb, EventQueryParams params, SqlBuilder sqlBuilder) {
-    List<OrganisationUnit> items = params.getRegistrationOuDimensionItems();
-
-    if (items.isEmpty()) {
-      return;
+  public static Optional<String> baseCteSelectColumn(
+      EventQueryParams params, SqlBuilder sqlBuilder) {
+    if (!params.hasRegistrationOuAggregateColumn()) {
+      return Optional.empty();
     }
 
-    sb.addColumn(
-        RegistrationOuSqlFragments.selectUidLevel(singleLevelOf(items), false, sqlBuilder));
+    return Optional.of(
+        RegistrationOuSqlFragments.selectUidLevel(
+            singleLevelOf(params.getRegistrationOuDimensionItems()), false, sqlBuilder));
   }
 
   /**
@@ -215,10 +202,6 @@ public final class RegistrationOuSqlCoordinator {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
-
-  private static boolean isNeeded(EventQueryParams params) {
-    return params.hasRegistrationOuDimension() || params.hasRegistrationOuFilter();
-  }
 
   /** Adds one parenthesised restriction covering all levels present in the given items. */
   private static void addRestriction(
@@ -247,7 +230,7 @@ public final class RegistrationOuSqlCoordinator {
     Map<Integer, List<OrganisationUnit>> byLevel = byLevel(items);
 
     if (byLevel.size() > 1) {
-      throwIllegalQueryEx(ErrorCode.E7261, DIMENSION_NAME);
+      throwIllegalQueryEx(ErrorCode.E7261, RegistrationOuSqlConstants.DIMENSION_NAME);
     }
 
     return byLevel.keySet().iterator().next();
