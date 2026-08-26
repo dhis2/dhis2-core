@@ -127,9 +127,9 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     assertProgramRuleActionErrorIsVisible(summary);
 
     // atomicMode=ALL, so nothing at all is persisted
-    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/aUbnwuv5D2z"));
-    assertStatus(HttpStatus.NOT_FOUND, GET("/programRules/YKxrqRMonw2"));
-    assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/HMAVLnd1bZ8"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/ProgramUid1"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRules/PrgRuleUid1"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/PrgRuleAct1"));
   }
 
   @Test
@@ -146,9 +146,9 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     assertProgramRuleActionErrorIsVisible(summary);
 
     // atomicMode=NONE, so only the offending action is skipped
-    assertStatus(HttpStatus.OK, GET("/programs/aUbnwuv5D2z"));
-    assertStatus(HttpStatus.OK, GET("/programRules/YKxrqRMonw2"));
-    assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/HMAVLnd1bZ8"));
+    assertStatus(HttpStatus.OK, GET("/programs/ProgramUid1"));
+    assertStatus(HttpStatus.OK, GET("/programRules/PrgRuleUid1"));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/PrgRuleAct1"));
   }
 
   /**
@@ -161,7 +161,7 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
 
     JsonObjectReport objectReport = typeReport.getObjectReports().get(0);
     assertEquals(ProgramRuleAction.class, objectReport.getKlass());
-    assertEquals("HMAVLnd1bZ8", objectReport.getUid());
+    assertEquals("PrgRuleAct1", objectReport.getUid());
     assertEquals(0, objectReport.getIndex());
 
     assertEquals(1, objectReport.getErrorReports().size());
@@ -169,7 +169,7 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     assertEquals(ErrorCode.E4093, errorReport.getErrorCode());
     assertEquals(ProgramRuleAction.class, errorReport.getMainKlass());
     assertEquals(
-        "ProgramRuleAction `HMAVLnd1bZ8` must reference a program rule", errorReport.getMessage());
+        "ProgramRuleAction `PrgRuleAct1` must reference a program rule", errorReport.getMessage());
   }
 
   @Test
