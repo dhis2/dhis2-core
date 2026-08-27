@@ -90,8 +90,8 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<
       ProgramRuleAction ruleAction, ObjectBundle bundle) {
     ProgramRuleActionValidationResult validationResult;
 
+    // report error if no programRule
     if (ruleAction.getProgramRule() == null) {
-      // there is no rule to build a validation context from, so report it against the action
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
           .errorReport(

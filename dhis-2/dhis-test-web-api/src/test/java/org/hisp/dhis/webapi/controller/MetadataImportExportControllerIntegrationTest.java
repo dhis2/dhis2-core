@@ -149,6 +149,14 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     assertStatus(HttpStatus.OK, GET("/programs/ProgramUid1"));
     assertStatus(HttpStatus.OK, GET("/programRules/PrgRuleUid1"));
     assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/PrgRuleAct1"));
+
+    // the rule is imported action-less: the skipped action is absent from its collection rather
+    // than left as a dangling reference
+    assertTrue(
+        GET("/programRules/PrgRuleUid1?fields=programRuleActions[id]")
+            .content()
+            .getArray("programRuleActions")
+            .isEmpty());
   }
 
   /**
