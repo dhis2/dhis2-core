@@ -30,11 +30,10 @@
 package org.hisp.dhis.test.analytics;
 
 import static io.gatling.javaapi.core.CoreDsl.exec;
-import static io.gatling.javaapi.core.CoreDsl.repeat;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
+import static io.gatling.javaapi.http.HttpDsl.status;
 import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
-import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
 
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
@@ -67,9 +66,13 @@ public class TestHelper {
    */
   public static ScenarioBuilder buildScenario(String group, String apiQuery) {
     return scenario("Analytics test - " + group)
-        .group("Authentication")
-        .on(exec(loginChain()))
+        .group("Disabling cache")
+        .on(
+            exec(
+                http("POST Disable cache")
+                    .post("/api/systemSettings/keyCacheStrategy?value=NO_CACHE")
+                    .check(status().is(200))))
         .group(group)
-        .on(repeat(1).on(exec(http(group).get(apiQuery).basicAuth("admin", "district")).pause(1)));
+        .on(exec(http(group).get(apiQuery).basicAuth("admin", "district")));
   }
 }

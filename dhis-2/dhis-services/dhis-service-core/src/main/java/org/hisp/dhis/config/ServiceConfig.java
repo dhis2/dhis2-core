@@ -31,6 +31,7 @@ package org.hisp.dhis.config;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
@@ -39,6 +40,7 @@ import org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -72,5 +74,21 @@ public class ServiceConfig {
   @Bean("org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager")
   public ResourceBundleManager resourceBundleManager() {
     return new DefaultResourceBundleManager();
+  }
+
+  /**
+   * Single-threaded, bounded executor for asynchronous user session invalidation, see {@code
+   * UserRoleSessionInvalidationListener}. A single thread serializes the work and keeps it from
+   * competing with more important work.
+   */
+  @Bean("userSessionInvalidationTaskExecutor")
+  public Executor userSessionInvalidationTaskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(1);
+    executor.setMaxPoolSize(1);
+    executor.setQueueCapacity(1000);
+    executor.setThreadNamePrefix("SessionInvalidation-");
+    executor.initialize();
+    return executor;
   }
 }

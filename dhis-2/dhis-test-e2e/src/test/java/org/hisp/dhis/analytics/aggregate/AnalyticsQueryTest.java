@@ -45,6 +45,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
@@ -207,6 +208,7 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  @EnabledIf(value = "isPostgres", disabledReason = "Test is only applicable for Postgres")
   public void testQueryFailsGracefullyIfMultipleQueries() {
     // Given
     QueryParamsBuilder params =

@@ -101,7 +101,7 @@ public class QueryItemFilterBuilder {
               boolean needsResolution = requiresOrgUnitResolution(item);
               String resolvedFilter =
                   needsResolution
-                      ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits())
+                      ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits(), item)
                       : f.getFilter();
 
               return buildFilterCondition(f, item, columnName, resolvedFilter);
@@ -228,7 +228,7 @@ public class QueryItemFilterBuilder {
               boolean needsResolution = requiresOrgUnitResolution(item);
               String resolvedFilter =
                   needsResolution
-                      ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits())
+                      ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits(), item)
                       : f.getFilter();
 
               // For IN operator with mixed values, only include non-NV values

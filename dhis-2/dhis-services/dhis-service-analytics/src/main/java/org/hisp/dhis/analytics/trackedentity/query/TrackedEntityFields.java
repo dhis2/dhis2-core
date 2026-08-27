@@ -51,6 +51,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
@@ -65,7 +66,10 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OrgUnitQueryBuilder;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.TrackedEntityQueryBuilder;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
@@ -187,6 +191,65 @@ public class TrackedEntityFields {
                         true)));
 
     // Adding dimension headers.
+    addDimensionHeaders(fields, commonParsed, contextParams, headersMap);
+
+    return reorder(headersMap, fields);
+  }
+
+  /**
+   * Returns a collection of headers for the given {@link TrackedEntityQueryParams}, covering only
+   * the GROUP BY dimensions requested for aggregation. Unlike {@link #getGridHeaders(ContextParams,
+   * List)}, the unconditional per-TEI {@link TrackedEntityStaticField} headers are not included,
+   * since aggregate output has no per-TEI rows.
+   *
+   * @param contextParams the {@link ContextParams}.
+   * @return a {@link Set} of {@link GridHeader}.
+   */
+  public static Set<GridHeader> getAggregateGridHeaders(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    CommonParsedParams commonParsed = contextParams.getCommonParsed();
+
+    // Aggregate select fields are built via Field.ofDimensionIdentifier, which carries neither a
+    // field alias nor a dimension identifier key, so they cannot be matched back to a dimension by
+    // Field.getDimensionIdentifier() the way the per-TEI path does. Headers are therefore built
+    // directly from the grouped dimensions, mirroring the SELECT/GROUP BY selection in
+    // AggregateQueryBuilder: only user-requested org unit or tracked entity dimensions become
+    // columns. Each header is named by its dimension key to match the SQL result column name.
+    Set<String> requestedKeys =
+        contextParams.getCommonRaw().getDimension().stream()
+            .map(DimensionalObjectUtils::getDimensionFromParam)
+            .collect(Collectors.toSet());
+
+    Set<GridHeader> headers = new LinkedHashSet<>();
+    commonParsed.getDimensionIdentifiers().stream()
+        .filter(dimIdentifier -> requestedKeys.contains(dimIdentifier.getKey()))
+        .filter(
+            dimIdentifier ->
+                OrgUnitQueryBuilder.isOu(dimIdentifier)
+                    || TrackedEntityQueryBuilder.isTrackedEntity(dimIdentifier))
+        .forEach(
+            dimIdentifier -> {
+              GridHeader header = getHeaderForDimensionParam(dimIdentifier, contextParams);
+              headers.add(withStageOffsetIfNecessary(dimIdentifier, header));
+            });
+
+    return headers;
+  }
+
+  /**
+   * Adds headers, to the given headers map, for the dimensions found in the given list of {@link
+   * Field}.
+   *
+   * @param fields list of {@link Field}.
+   * @param commonParsed the {@link CommonParsedParams}.
+   * @param contextParams the {@link ContextParams}.
+   * @param headersMap the headers map to add to.
+   */
+  private static void addDimensionHeaders(
+      List<Field> fields,
+      CommonParsedParams commonParsed,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
+      Map<String, GridHeader> headersMap) {
     fields.stream()
         .map(
             field ->
@@ -197,8 +260,6 @@ public class TrackedEntityFields {
                         getEligibleParsedHeaders(commonParsed))))
         .filter(Objects::nonNull)
         .forEach(dimIdentifier -> addHeaderToMap(dimIdentifier, contextParams, headersMap));
-
-    return reorder(headersMap, fields);
   }
 
   /**

@@ -95,10 +95,11 @@ public class SmsOutboundController
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OutboundSms>> getObjectList(
       GetObjectListParams params,
+      HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, ConflictException {
-    return super.getObjectList(params, response, currentUser);
+    return super.getObjectList(params, request, response, currentUser);
   }
 
   // -------------------------------------------------------------------------

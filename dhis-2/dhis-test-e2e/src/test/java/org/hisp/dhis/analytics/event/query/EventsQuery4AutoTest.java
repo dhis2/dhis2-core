@@ -570,7 +570,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
-            (expectPostgis ? new HashSet<>() : Set.of(10, 11, 12, 13))));
+            (expectPostgis ? new HashSet<>() : Set.of(9, 10, 11, 12))));
 
     validateRow(
         response,
@@ -596,7 +596,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
-            (expectPostgis ? new HashSet<>() : Set.of(10, 11, 12, 13))));
+            (expectPostgis ? new HashSet<>() : Set.of(9, 10, 11, 12))));
     validateRow(
         response,
         2,
@@ -621,7 +621,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
-            (expectPostgis ? new HashSet<>() : Set.of(10, 11, 12, 13))));
+            (expectPostgis ? new HashSet<>() : Set.of(9, 10, 11, 12))));
     validateRow(
         response,
         3,
@@ -646,7 +646,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
-            (expectPostgis ? new HashSet<>() : Set.of(10, 11, 12, 13))));
+            (expectPostgis ? new HashSet<>() : Set.of(9, 10, 11, 12))));
   }
 
   @Test

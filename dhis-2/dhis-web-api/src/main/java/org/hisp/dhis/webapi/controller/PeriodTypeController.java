@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
@@ -92,8 +91,7 @@ public class PeriodTypeController {
         @OpenApi.Property(name = "periodTypes", value = PeriodType[].class)
       })
   @GetMapping
-  public ResponseEntity<JsonRoot> getPeriodTypes(
-      @RequestParam(defaultValue = "*") List<String> fields) {
+  public ResponseEntity<JsonRoot> getPeriodTypes(@RequestParam(defaultValue = "*") String fields) {
     I18n i18n = i18nManager.getI18n();
 
     var periodTypes =

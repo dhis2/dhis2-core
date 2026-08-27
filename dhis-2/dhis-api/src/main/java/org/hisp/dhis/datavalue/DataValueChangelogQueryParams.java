@@ -47,7 +47,7 @@ import org.hisp.dhis.period.Period;
  * @author Lars Helge Overland
  */
 public record DataValueChangelogQueryParams(
-    List<String> fields,
+    String fields,
     @OpenApi.Property({UID[].class, DataSet.class}) List<UID> ds,
     @OpenApi.Property({UID[].class, DataElement.class}) List<UID> de,
     List<Period> pe,
@@ -62,7 +62,7 @@ public record DataValueChangelogQueryParams(
 
   public static DataValueChangelogQueryParams ofType(DataValueChangelogType... types) {
     return new DataValueChangelogQueryParams(
-        List.of(),
+        "",
         List.of(),
         List.of(),
         List.of(),

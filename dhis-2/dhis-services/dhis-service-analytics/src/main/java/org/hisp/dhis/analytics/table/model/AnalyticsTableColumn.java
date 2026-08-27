@@ -66,6 +66,14 @@ public class AnalyticsTableColumn {
   /** The expression to use in select clauses. */
   private final String selectExpression;
 
+  /**
+   * Optional JOIN clause that must be present in the populating SELECT for this column's select
+   * expression to resolve. Used when the engine does not support correlated subqueries (e.g.
+   * ClickHouse) and the column is populated via a lookup join instead. Identical clauses across
+   * columns are deduplicated when assembled.
+   */
+  private final String joinClause;
+
   /** Whether to skip or include an index for column. */
   @Builder.Default private final Skip skipIndex = Skip.INCLUDE;
 

@@ -31,13 +31,16 @@ package org.hisp.dhis.analytics.trackedentity.query.context.sql;
 
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
@@ -47,8 +50,11 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.DataElementQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.EnrolledInProgramQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.LimitOffsetQueryBuilder;
@@ -58,13 +64,18 @@ import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.PeriodQu
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.ProgramIndicatorQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.TrackedEntityQueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,10 +88,12 @@ import org.junit.jupiter.api.Test;
 class SqlQueryCreatorServiceTest extends TestBase {
   private SqlQueryCreatorService sqlQueryCreatorService;
 
+  private List<SqlQueryBuilder> queryBuilders;
+
   @BeforeEach
   void setUp() {
     ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
-    List<SqlQueryBuilder> queryBuilders =
+    queryBuilders =
         List.of(
             new DataElementQueryBuilder(),
             new LimitOffsetQueryBuilder(),
@@ -188,6 +201,434 @@ class SqlQueryCreatorServiceTest extends TestBase {
 
     assertTrue(sql.contains("ouname"));
     assertContains("(t_1.\"program1\" or t_1.\"program2\")", sql);
+  }
+
+  @Test
+  void testGroupByFieldsArePropagatedToFinalQuery() {
+    List<SqlQueryBuilder> buildersWithGroupBy = new ArrayList<>(queryBuilders);
+    buildersWithGroupBy.add(new GroupByStubBuilder());
+    SqlQueryCreatorService service = new SqlQueryCreatorService(buildersWithGroupBy);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().trackedEntityType(createTrackedEntityType('A')).build();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(stubSortingCommonParams(null, 1, "ouname"))
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("group by t_1.\"ou\"", sql);
+  }
+
+  @Test
+  void testAggregateCountGroupedByOrgUnit() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("count(1) as \"value\"", sql);
+    assertContains("group by t_1.\"ou\"", sql);
+    assertFalse(
+        sql.contains("enrollments"), "per-TEI columns must be suppressed in aggregate mode");
+  }
+
+  @Test
+  void testAggregateCountGroupedByAttribute() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("attr1"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubAttributeDimension("attr1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("count(1) as \"value\"", sql);
+    assertContains("group by t_1.\"attr1\"", sql);
+  }
+
+  @Test
+  void testAggregateCountGroupedByOrgUnitAndAttribute() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou", "attr1"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(
+                        List.of(stubOuDimension("ou1"), stubAttributeDimension("attr1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    // every explicitly requested dimension becomes a group-by key; the value column is last
+    // and not grouped.
+    assertContains("select t_1.\"ou\", t_1.\"attr1\", count(1) as \"value\"", sql);
+    assertContains("group by t_1.\"ou\", t_1.\"attr1\"", sql);
+  }
+
+  @Test
+  void testAggregateAverageOverValueAttribute() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityAttribute valueAttribute = createTrackedEntityAttribute('V');
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .attributeValue(valueAttribute)
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("avg(t_1.\"" + valueAttribute.getUid() + "\") as \"value\"", sql);
+    assertContains("group by t_1.\"ou\"", sql);
+    assertFalse(sql.contains("count(1)"), "value aggregation must replace the count(1) column");
+  }
+
+  @Test
+  void testAggregateCountOverValueAttributeCountsNonNullValues() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityAttribute valueAttribute = createTrackedEntityAttribute('V');
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .attributeValue(valueAttribute)
+            .aggregationType(AggregationType.COUNT)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("count(t_1.\"" + valueAttribute.getUid() + "\") as \"value\"", sql);
+    assertFalse(sql.contains("count(1)"), "explicit COUNT over a value counts non-null values");
+  }
+
+  @Test
+  void testAggregateAverageOverDataElementValue() {
+    SqlQueryCreatorService service = aggregateService();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        eventValueContextParams(
+            stubEventValue("PsUid000001", "DeUid000001", ValueType.NUMBER, 0),
+            AggregationType.AVERAGE);
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    // collapse-per-TE derived table joined at TE grain
+    assertContains("left join (select trackedentity, eventdatavalues", sql);
+    assertContains(
+        "row_number() over (partition by trackedentity order by occurreddate desc) as rn", sql);
+    assertContains("from analytics_te_event_tetuid00001", sql);
+    assertContains("programstage = 'PsUid000001'", sql);
+    assertContains("jsonb_exists(eventdatavalues, 'DeUid000001')", sql);
+    assertContains("status != 'SCHEDULE'", sql);
+    assertContains("where rn = 1) ev on ev.trackedentity = t_1.trackedentity", sql);
+    // value extraction from the collapsed event row
+    assertContains(
+        "avg((ev.\"eventdatavalues\" -> 'DeUid000001' ->> 'value')::DECIMAL) as \"value\"", sql);
+    assertContains("group by t_1.\"ou\"", sql);
+    assertFalse(sql.contains("count(1)"), "value aggregation must replace the count(1) column");
+  }
+
+  @Test
+  void testAggregateCountOverDataElementValueCountsNonNullValues() {
+    SqlQueryCreatorService service = aggregateService();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        eventValueContextParams(
+            stubEventValue("PsUid000001", "DeUid000001", ValueType.NUMBER, 0),
+            AggregationType.COUNT);
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains(
+        "count((ev.\"eventdatavalues\" -> 'DeUid000001' ->> 'value')::DECIMAL) as \"value\"", sql);
+    assertFalse(sql.contains("count(1)"), "explicit COUNT over a value counts non-null values");
+  }
+
+  @Test
+  void testAggregateDataElementValueWithStageOffset() {
+    SqlQueryCreatorService service = aggregateService();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        eventValueContextParams(
+            stubEventValue("PsUid000001", "DeUid000001", ValueType.NUMBER, -1),
+            AggregationType.AVERAGE);
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    // offset -1 selects the second-latest event: row_number() is 1-based, so rn = 2, desc
+    assertContains("order by occurreddate desc", sql);
+    assertContains("where rn = 2) ev on ev.trackedentity = t_1.trackedentity", sql);
+  }
+
+  @Test
+  void testAggregateDataElementValueCountQueryIncludesCollapseJoin() {
+    SqlQueryCreatorService service = aggregateService();
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        eventValueContextParams(
+            stubEventValue("PsUid000001", "DeUid000001", ValueType.NUMBER, 0),
+            AggregationType.AVERAGE);
+
+    String countSql = service.getSqlQueryCreator(contextParams).createForCount().getStatement();
+
+    assertContains("select count(*) from (", countSql);
+    assertContains("left join (select trackedentity, eventdatavalues", countSql);
+  }
+
+  @Test
+  void testAggregateAttributeValueAddsNoCollapseJoin() {
+    SqlQueryCreatorService service = aggregateService();
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setUid("TetUid00001");
+    TrackedEntityAttribute valueAttribute = createTrackedEntityAttribute('V');
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .aggregate(true)
+            .attributeValue(valueAttribute)
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertFalse(
+        sql.contains("analytics_te_event_"),
+        "aggregating over an attribute must not join the event table");
+  }
+
+  @Test
+  void testAggregateGroupsByExplicitlyRequestedDimensionsOnly() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(createTrackedEntityType('A'))
+            .aggregate(true)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(
+                        List.of(stubOuDimension("ou1"), stubAttributeDimension("attr1")))
+                    .build())
+            .build();
+
+    String sql = service.getSqlQueryCreator(contextParams).createForSelect().getStatement();
+
+    assertContains("count(1) as \"value\"", sql);
+    assertContains("group by t_1.\"ou\"", sql);
+    assertFalse(sql.contains("attr1"), "auto-injected attribute must not leak into the SQL");
+  }
+
+  private SqlQueryCreatorService aggregateService() {
+    List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
+    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.addAll(queryBuilders);
+    return new SqlQueryCreatorService(aggregateBuilders);
+  }
+
+  private EventValue stubEventValue(
+      String stageUid, String dataElementUid, ValueType valueType, int offset) {
+    DataElement dataElement = createDataElement('D');
+    dataElement.setUid(dataElementUid);
+    dataElement.setValueType(valueType);
+
+    ProgramStage programStage = createProgramStage('S', createProgram('P'));
+    programStage.setUid(stageUid);
+
+    return new EventValue(programStage, dataElement, offset);
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      eventValueContextParams(EventValue eventValue, AggregationType aggregationType) {
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setUid("TetUid00001");
+
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .aggregate(true)
+            .eventValue(eventValue)
+            .aggregationType(aggregationType)
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setDimension(Set.of("ou"));
+
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(trackedEntityQueryParams)
+        .commonRaw(requestParams)
+        .commonParsed(
+            CommonParsedParams.builder()
+                .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                .build())
+        .build();
+  }
+
+  private DimensionIdentifier<DimensionParam> stubAttributeDimension(String attribute) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject(attribute, DimensionType.PROGRAM_ATTRIBUTE, List.of()),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of());
+    return DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  private DimensionIdentifier<DimensionParam> stubOuDimension(String ou) {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(ou);
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(orgUnit)),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of(ou));
+    return DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  /** Stub builder that contributes a group-by field, used to verify group-by propagation. */
+  private static class GroupByStubBuilder implements SqlQueryBuilder {
+    @Override
+    public RenderableSqlQuery buildSqlQuery(
+        QueryContext queryContext,
+        List<DimensionIdentifier<DimensionParam>> acceptedHeaders,
+        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+        List<AnalyticsSortingParams> acceptedSortingParams) {
+      return RenderableSqlQuery.builder().groupByField(Field.of("t_1", () -> "ou", "")).build();
+    }
+
+    @Override
+    public boolean alwaysRun() {
+      return true;
+    }
   }
 
   private Program mockProgram(String uid) {

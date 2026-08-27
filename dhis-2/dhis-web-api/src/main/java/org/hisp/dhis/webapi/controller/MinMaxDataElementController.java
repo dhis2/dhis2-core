@@ -53,7 +53,6 @@ import org.hisp.dhis.feedback.ImportSuccessResponse;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -94,8 +93,8 @@ public class MinMaxDataElementController {
   public @ResponseBody RootNode getObjectList(MinMaxDataElementParams query)
       throws QueryParserException {
 
-    List<String> fields = query.fields();
-    if (fields.isEmpty()) fields = FieldPreset.ALL.getFields();
+    String fields = query.fields();
+    if (fields == null || fields.isEmpty()) fields = "*";
 
     List<MinMaxDataElement> entries = minMaxService.getMinMaxDataElements(query);
     Pager pager = query.paged().toPager(query, minMaxService::countMinMaxDataElements);

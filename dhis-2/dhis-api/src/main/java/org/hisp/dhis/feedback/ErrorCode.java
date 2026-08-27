@@ -609,12 +609,19 @@ public enum ErrorCode {
   E7243("Duplicate stage dimension identifier: `{0}`"),
   E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
   E7245("Program stage `{0}` does not belong to program `{1}`"),
+  E7246("Sorting by `{0}` requires ENROLLMENT_OU as a dimension or filter"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
+  E7252("Sorting is only supported on grouped dimensions in an aggregate query: `{0}`"),
   E7253(
       "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
+  E7254("Aggregation type is not supported by tracked entity aggregate queries: `{0}`"),
+  E7255("Aggregation type `{0}` requires the `value` parameter"),
+  E7256("Value `{0}` is not a numeric tracked entity attribute of tracked entity type `{1}`"),
+  E7257(
+      "Value `{0}` does not reference a numeric data element of a program stage; expected format `programUid.programStageUid.dataElementUid`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

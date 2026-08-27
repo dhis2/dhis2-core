@@ -50,6 +50,7 @@ checks:
   - program_rules/program_rules_no_priority.yaml
   - program_rules/program_rules_inconsistent_program_program_stage.yaml
   - analytical_objects/visualizations_not_used_1year.yaml
+  - analytical_objects/visualizations_wrong_sort_order.yaml
   - analytical_objects/maps_not_used_1year.yaml
   - analytical_objects/dashboards_not_used_1year.yaml
   - analytical_objects/dashboards_empty.yaml
@@ -90,6 +91,7 @@ checks:
   - users/users_with_invalid_usernames.yaml
   - users/users_with_all_authority.yaml
   - users/users_with_app_hub_authority.yaml
+  - users/users_with_no_organisation_units.yaml
   - file_resources/file_resources_no_icon.yaml
   - tracked_entity_attributes/tracked_entity_attributes_invalid_trigram_search_configuration.yaml
   - tracked_entity_attributes/tracked_entity_attributes_trigram_index_out_of_sync.yaml

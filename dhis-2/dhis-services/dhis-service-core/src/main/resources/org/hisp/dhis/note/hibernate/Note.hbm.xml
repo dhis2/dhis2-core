@@ -9,7 +9,9 @@
   <class name="org.hisp.dhis.note.Note" table="note">
 
     <id name="id" column="noteid">
-      <generator class="native" />
+      <generator class="sequence">
+        <param name="sequence_name">note_sequence</param>
+      </generator>
     </id>
 
     <property name="uid" column="uid" unique="true" not-null="true" />

@@ -45,7 +45,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SortDirection;
@@ -85,7 +84,12 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
+    // cacheable=false: every query space this store reads (relationship, relationshipitem,
+    // trackedentity, enrollment, trackerevent, singleevent) is written via raw JDBC in the
+    // importer, which bypasses Hibernate's query-cache invalidation -- cached results would go
+    // stale across imports (e.g. an empty duplicate-check result would silently disable
+    // duplicate detection).
+    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, false);
   }
 
   public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity, boolean includeDeleted) {
@@ -176,14 +180,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))""";
     List<String> relationshipKeysAsString =
         relationshipKeys.stream().map(RelationshipKey::asString).toList();
-    // Query cache must be off here: the tracker importer writes relationships through JDBC, which
-    // bypasses Hibernate's query-cache invalidation. Leaving the cache on would let an earlier
-    // empty result for a key linger across imports and silently disable duplicate detection.
-    return getQuery(hql, Relationship.class)
-        .setParameter("keys", relationshipKeysAsString)
-        .setCacheable(false)
-        .setHint(QueryHints.CACHEABLE, false)
-        .list();
+    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString).list();
   }
 
   public List<RelationshipItem> getRelationshipItemsByTrackedEntity(

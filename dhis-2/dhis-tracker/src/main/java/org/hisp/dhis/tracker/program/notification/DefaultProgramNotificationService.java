@@ -294,26 +294,39 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   private ProgramNotificationTemplate getApplicableTemplate(
       ProgramNotificationInstance programNotificationInstance) {
-    return Optional.of(programNotificationInstance)
-        .map(ProgramNotificationInstance::getProgramNotificationTemplateSnapshot)
-        .map(NotificationTemplateMapper::toProgramNotificationTemplate)
-        .orElseGet(() -> this.getDatabaseTemplate(programNotificationInstance));
+    // Prefer the live template so edits made after the notification was scheduled (e.g. removing a
+    // delivery channel) take effect. The frozen jsonb snapshot is only a fallback for when the
+    // template has since been deleted, so the notification can still be sent.
+    ProgramNotificationTemplate databaseTemplate = getDatabaseTemplate(programNotificationInstance);
+    if (databaseTemplate != null) {
+      return databaseTemplate;
+    }
+    return getSnapshotTemplate(programNotificationInstance);
   }
 
   private ProgramNotificationTemplate getDatabaseTemplate(
       ProgramNotificationInstance programNotificationInstance) {
-    log.warn("Couldn't use template from jsonb column, using the one from database if possible");
-    if (Objects.nonNull(programNotificationInstance.getProgramNotificationTemplateId())) {
-      ProgramNotificationTemplate programNotificationTemplate =
-          notificationTemplateService.get(
-              programNotificationInstance.getProgramNotificationTemplateId());
-      if (Objects.isNull(programNotificationTemplate)) {
-        log.warn(
-            "Unable to load program notification template from database, because it might have been deleted.");
-      }
-      return programNotificationTemplate;
+    if (Objects.isNull(programNotificationInstance.getProgramNotificationTemplateId())) {
+      return null;
     }
-    return null;
+    return notificationTemplateService.get(
+        programNotificationInstance.getProgramNotificationTemplateId());
+  }
+
+  private ProgramNotificationTemplate getSnapshotTemplate(
+      ProgramNotificationInstance programNotificationInstance) {
+    ProgramNotificationTemplate snapshotTemplate =
+        Optional.of(programNotificationInstance)
+            .map(ProgramNotificationInstance::getProgramNotificationTemplateSnapshot)
+            .map(NotificationTemplateMapper::toProgramNotificationTemplate)
+            .orElse(null);
+    if (snapshotTemplate == null) {
+      log.warn(
+          "Unable to resolve a program notification template for instance with id: {}. The template "
+              + "may have been deleted and no snapshot is available.",
+          programNotificationInstance.getId());
+    }
+    return snapshotTemplate;
   }
 
   @Override
@@ -689,6 +702,9 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       } else if (template.getDeliveryChannels().contains(DeliveryChannel.EMAIL)) {
         recipients.getEmailAddresses().addAll(recipientList);
       }
+    } else if (template.getNotificationRecipient()
+        == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT) {
+      recipients.setOrganisationUnit(event.getOrganisationUnit());
     }
     return recipients;
   }

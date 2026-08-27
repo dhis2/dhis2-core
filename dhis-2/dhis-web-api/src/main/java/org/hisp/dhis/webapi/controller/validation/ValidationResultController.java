@@ -40,7 +40,6 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -75,11 +74,9 @@ public class ValidationResultController {
   @OpenApi.Response(AbstractFullReadOnlyController.GetObjectListResponse.class)
   public @ResponseBody RootNode getObjectList(
       ValidationResultQuery query, HttpServletResponse response) {
-    List<String> fields = query.getFields();
+    String fields = query.getFields();
 
-    if (fields == null || fields.isEmpty()) {
-      fields = FieldPreset.ALL.getFields();
-    }
+    if (fields == null || fields.isEmpty()) fields = "*";
 
     List<ValidationResult> validationResults = validationResultService.getValidationResults(query);
 

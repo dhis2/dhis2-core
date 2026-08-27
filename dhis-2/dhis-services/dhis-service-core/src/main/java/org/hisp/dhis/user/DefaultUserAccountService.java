@@ -37,12 +37,19 @@ import java.io.IOException;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.HiddenNotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -62,11 +69,21 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultUserAccountService implements UserAccountService {
 
+  /**
+   * Valid bcrypt hash (of a random string, same cost as the configured encoder) used to spend one
+   * password verification on the unknown-username path of {@link #updateExpiredPassword}, so that
+   * unknown and known usernames respond in similar time (no enumeration via timing).
+   */
+  private static final String TIMING_EQUALIZATION_HASH =
+      "$2a$10$4TXauPu06PhCTK8Up3oHi.0Y7SXLeu8ISJ6jq1GYpaaQOsSL5FOxG";
+
   private final UserService userService;
   private final ConfigurationService configService;
   private final TwoFactorAuthenticationProvider twoFactorAuthProvider;
   private final SystemSettingsProvider settingsProvider;
   private final PasswordValidationService passwordValidationService;
+  private final DhisConfigurationProvider configProvider;
+  private final PasswordManager passwordManager;
 
   @Override
   public void validateUserRegistration(RegistrationParams params, String remoteAddress)
@@ -132,6 +149,164 @@ public class DefaultUserAccountService implements UserAccountService {
     log.info("User invitation accepted");
 
     authenticate(user.getUsername(), params.getPassword(), user.getAuthorities(), request);
+  }
+
+  @Override
+  @Transactional
+  public void forgotPassword(String emailOrUsername)
+      throws HiddenNotFoundException, ConflictException, ForbiddenException {
+    if (!settingsProvider.getCurrentSettings().getAccountRecoveryEnabled()) {
+      throw new ConflictException("Account recovery is not enabled");
+    }
+
+    String baseUrl = configProvider.getServerBaseUrl();
+    if (StringUtils.isEmpty(baseUrl)) {
+      throw new ConflictException("Server base URL is not configured");
+    }
+
+    User user = getUserByEmailOrUsername(emailOrUsername);
+
+    checkRecoveryLock(user.getUsername());
+
+    ErrorCode errorCode = userService.validateRestore(user);
+    if (errorCode != null) {
+      log.warn("Validate email restore failed: {}", errorCode);
+      throw new HiddenNotFoundException("Validate failed: " + errorCode);
+    }
+
+    if (!userService.sendRestoreOrInviteMessage(
+        user, baseUrl, RestoreOptions.RECOVER_PASSWORD_OPTION)) {
+      throw new ConflictException("Account could not be recovered");
+    }
+
+    log.info("Forgot email was sent to user: {}", user.getUsername());
+  }
+
+  @Override
+  @Transactional
+  public void resetPassword(String token, String newPassword)
+      throws ConflictException, BadRequestException {
+    if (!settingsProvider.getCurrentSettings().getAccountRecoveryEnabled()) {
+      throw new ConflictException("Account recovery is not enabled");
+    }
+
+    if (StringUtils.isBlank(token)) {
+      throw new BadRequestException("Token is required");
+    }
+    if (StringUtils.isBlank(newPassword)) {
+      throw new BadRequestException("New password is required");
+    }
+
+    String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
+    String idToken = idAndRestoreToken[0];
+
+    User user = userService.getUserByIdToken(idToken);
+    if (user == null || idAndRestoreToken.length < 2 || user.isExternalAuth()) {
+      throw new ConflictException("Account recovery failed");
+    }
+
+    String restoreToken = idAndRestoreToken[1];
+
+    validateNewPassword(user, newPassword);
+
+    if (!userService.restore(user, restoreToken, newPassword, RestoreType.RECOVER_PASSWORD)) {
+      throw new BadRequestException(
+          "Account could not be restored for user: " + user.getUsername());
+    }
+
+    log.info("Password was reset for user: {}", user.getUsername());
+  }
+
+  @Override
+  @Transactional
+  public void updateExpiredPassword(String username, String oldPassword, String newPassword)
+      throws BadRequestException, ForbiddenException {
+    if (StringUtils.isBlank(username)
+        || StringUtils.isBlank(oldPassword)
+        || StringUtils.isBlank(newPassword)) {
+      throw new BadRequestException("Username, old password and new password are required");
+    }
+
+    User user = userService.getUserByUsername(username);
+    if (user == null) {
+      // Generic message on purpose: do not reveal whether the username exists. Spend one password
+      // verification (result deliberately ignored) so this path takes as long as the known-user
+      // path below and the timing does not reveal it either.
+      passwordManager.matches(oldPassword, TIMING_EQUALIZATION_HASH);
+      throw new BadRequestException("Invalid username or password");
+    }
+
+    // Throttle repeated attempts against a single account (brute-force protection), reusing the
+    // account-recovery lockout. Registers an attempt and rejects once the threshold is exceeded.
+    checkRecoveryLock(user.getUsername());
+
+    // Caller must know the current (expired) password. Checked before the expiry guard below so
+    // that "Account is not expired" can only be observed by someone who knows the password.
+    if (!passwordManager.matches(oldPassword, user.getPassword())) {
+      throw new BadRequestException("Invalid username or password");
+    }
+
+    // This self-service path is ONLY for expired accounts.
+    if (userService.userNonExpired(user)) {
+      throw new BadRequestException("Account is not expired");
+    }
+
+    // The old password was verified against the stored hash above, so plain equality is enough.
+    if (newPassword.equals(oldPassword)) {
+      throw new BadRequestException("New password must be different from the old password");
+    }
+
+    validateNewPassword(user, newPassword);
+
+    userService.encodeAndSetPassword(user, newPassword);
+    userService.updateUser(user, new SystemUser());
+
+    log.info("Expired password updated for user: {}", user.getUsername());
+  }
+
+  /** Rejects a new password that is equal to the username or fails the password policy. */
+  private void validateNewPassword(User user, String newPassword) throws BadRequestException {
+    if (newPassword.trim().equals(user.getUsername().trim())) {
+      throw new BadRequestException("Password cannot be equal to username");
+    }
+
+    PasswordValidationResult result =
+        passwordValidationService.validate(
+            CredentialsInfo.builder()
+                .username(user.getUsername())
+                .password(newPassword)
+                .email(StringUtils.trimToEmpty(user.getEmail()))
+                .newUser(false)
+                .build());
+    if (!result.isValid()) {
+      throw new BadRequestException(result.getErrorMessage());
+    }
+  }
+
+  /** Registers a recovery attempt and rejects once the account has exceeded the allowed rate. */
+  private void checkRecoveryLock(String username) throws ForbiddenException {
+    if (userService.isRecoveryLocked(username)) {
+      throw new ForbiddenException(
+          "The account recovery operation for the given user is temporarily locked due to too "
+              + "many calls to this endpoint in the last '"
+              + UserConstants.RECOVERY_LOCKOUT_MINS
+              + "' minutes. Username:"
+              + username);
+    }
+    userService.registerRecoveryAttempt(username);
+  }
+
+  private User getUserByEmailOrUsername(String emailOrUsername) throws HiddenNotFoundException {
+    User user;
+    if (ValidationUtils.emailIsValid(emailOrUsername)) {
+      user = userService.getUserByEmail(emailOrUsername);
+    } else {
+      user = userService.getUserByUsername(emailOrUsername);
+    }
+    if (user == null) {
+      throw new HiddenNotFoundException("User does not exist: " + emailOrUsername);
+    }
+    return user;
   }
 
   private User validateRestoreLinkAndToken(UserInviteParams params) throws BadRequestException {

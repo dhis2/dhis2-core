@@ -33,7 +33,6 @@ import static java.lang.String.format;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.shiftPeriod;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +43,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.PeriodDimension;
 
@@ -65,53 +64,75 @@ public class SubexpressionPeriodOffsetUtils {
 
   static final String SHIFT = "shift";
 
-  static final String DELTA = quote("delta");
+  static final String DELTA = "delta";
 
-  static final String REPORTPERIOD = quote("reportperiod");
+  static final String REPORTPERIOD = "reportperiod";
 
-  private static final String DATAPERIOD = quote("dataperiod");
+  private static final String DATAPERIOD = "dataperiod";
 
   /**
    * For {@link DataQueryParams} containing a subexpression with periodOffsets, joins an inline
    * value table that maps the reporting periods to data periods, for each distinct periodOffset
    * value.
    *
+   * <p>The inline table is built from selects combined with union all rather than from a values
+   * list. For the join and the surrounding query to refer to the columns of a values list, it needs
+   * a column alias list such as "as shift (delta, reportperiod, dataperiod)", which Doris does not
+   * support.
+   *
    * <p>For example, for periods '202309' and '202310' and periods offsets -1 and 0, this would
    * generate:
    *
    * <pre>
-   *       join (values(-1,'202309','202308'),(-1,'202310','202309'),
-   *                   (0,'202309','202309'),(0,'202310','202310'))
-   *       as shift (delta, reportperiod, dataperiod) on dataperiod = "monthly"
+   *       join (select -1 as "delta", '202309' as "reportperiod", '202308' as "dataperiod"
+   *             union all select -1, '202310', '202309'
+   *             union all select 0, '202309', '202309'
+   *             union all select 0, '202310', '202310')
+   *       as shift on shift."dataperiod" = ax."monthly"
    * </pre>
    *
    * @param params parameters with reporting periods
+   * @param sqlBuilder SQL builder for the configured analytics database
    * @return a join clause to an inline table to map reporting periods to data periods
    */
-  protected static String joinPeriodOffsetValues(DataQueryParams params) {
+  protected static String joinPeriodOffsetValues(DataQueryParams params, SqlBuilder sqlBuilder) {
     List<PeriodDimension> reportPeriods = getReportPeriods(params);
     List<Integer> periodOffsets = getPeriodOffsets(params);
 
-    StringBuilder sb = new StringBuilder(" join (values");
+    StringBuilder sb = new StringBuilder(" join (");
+    boolean namesColumns = true;
 
     for (Integer delta : periodOffsets) {
       for (PeriodDimension reportPeriod : reportPeriods) {
         PeriodDimension dataPeriod = shiftPeriod(reportPeriod, delta);
-        sb.append(
-            format("(%s,'%s','%s'),", delta, reportPeriod.getIsoDate(), dataPeriod.getIsoDate()));
+
+        // Only the first select names the columns, the others follow its column order.
+        if (namesColumns) {
+          sb.append(
+              format(
+                  "select %s as %s, '%s' as %s, '%s' as %s",
+                  delta,
+                  sqlBuilder.quote(DELTA),
+                  reportPeriod.getIsoDate(),
+                  sqlBuilder.quote(REPORTPERIOD),
+                  dataPeriod.getIsoDate(),
+                  sqlBuilder.quote(DATAPERIOD)));
+          namesColumns = false;
+        } else {
+          sb.append(
+              format(
+                  " union all select %s, '%s', '%s'",
+                  delta, reportPeriod.getIsoDate(), dataPeriod.getIsoDate()));
+        }
       }
     }
 
-    TextUtils.removeLastComma(sb)
-        .append(
-            format(
-                ") as %s (%s, %s, %s) on %s = %s",
-                SHIFT,
-                DELTA,
-                REPORTPERIOD,
-                DATAPERIOD,
-                DATAPERIOD,
-                quote(params.getPeriodType().toLowerCase())));
+    sb.append(
+        format(
+            ") as %s on %s = %s",
+            SHIFT,
+            sqlBuilder.quote(SHIFT, DATAPERIOD),
+            sqlBuilder.quoteAx(params.getPeriodType().toLowerCase())));
 
     return sb.toString();
   }

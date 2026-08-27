@@ -552,6 +552,88 @@ class DimensionIdentifierConverterTest {
   }
 
   @Test
+  void fromStringCanonicalizesProgramScopedEnrollmentOuKeywordToOu() {
+    // Given - the ENROLLMENT_OU keyword with a program UID is an alias for programId.ou.
+    // It must be canonicalized to "ou" and stay program-scoped (not stage-scoped, no error).
+    Program program = new Program("prg-1");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, "IpHINAT79UW.ENROLLMENT_OU");
+
+    // Then
+    assertEquals(
+        "ou",
+        dimensionIdentifier.getDimension().getUid(),
+        "ENROLLMENT_OU keyword should be canonicalized to ou");
+    assertEquals(
+        "IpHINAT79UW",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be IpHINAT79UW");
+    assertEquals(
+        emptyElementWithOffset(),
+        dimensionIdentifier.getProgramStage(),
+        "Stage should be empty for the program-scoped enrollment OU keyword");
+  }
+
+  @Test
+  void fromStringCanonicalizesProgramScopedEnrollmentOuNameKeywordToOuName() {
+    // Given - the enrollmentouname keyword with a program UID is an alias for programId.ouname.
+    Program program = new Program("prg-1");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, "IpHINAT79UW.enrollmentouname");
+
+    // Then
+    assertEquals(
+        "ouname",
+        dimensionIdentifier.getDimension().getUid(),
+        "enrollmentouname keyword should be canonicalized to ouname");
+    assertEquals(
+        "IpHINAT79UW",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be IpHINAT79UW");
+    assertEquals(
+        emptyElementWithOffset(),
+        dimensionIdentifier.getProgramStage(),
+        "Stage should be empty for the program-scoped enrollment OU name keyword");
+  }
+
+  @Test
+  void fromStringDoesNotCanonicalizeVariantSpellingsOfTheKeywords() {
+    // Given - only the exact keywords are aliased. Variant casings/spellings are left untouched,
+    // so they are rejected as unknown dimensions downstream.
+    Program program = new Program("prg-1");
+    program.setUid("IpHINAT79UW");
+
+    List<Program> programs = List.of(program);
+
+    // When / Then - the raw (non-canonicalized) uid is preserved
+    assertEquals(
+        "enrollment_ou",
+        converter.fromString(programs, "IpHINAT79UW.enrollment_ou").getDimension().getUid());
+    assertEquals(
+        "enrollmentou",
+        converter.fromString(programs, "IpHINAT79UW.enrollmentou").getDimension().getUid());
+    assertEquals(
+        "ENROLLMENTOUNAME",
+        converter.fromString(programs, "IpHINAT79UW.ENROLLMENTOUNAME").getDimension().getUid());
+  }
+
+  @Test
   void fromStringWithStageUidAndEnrollmentDateDimensionShouldFail() {
     // Given - program stage UID that is ALSO a program UID, used with enrollment-level dimension
     // This tests the scenario where a UID exists as both a program and a stage UID

@@ -166,6 +166,21 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
       Collection<OrganisationUnitGroup> groups, Collection<OrganisationUnit> parents);
 
   /**
+   * Returns the intersection of the members of the given OrganisationUnitGroups and the
+   * OrganisationUnits which are children of the given collection of parents in the hierarchy,
+   * optionally restricted to units that have a non-null geometry.
+   *
+   * @param groups the collection of OrganisationUnitGroups.
+   * @param parents the collection of OrganisationUnit parents in the hierarchy.
+   * @param geometryOnly whether to include only OrganisationUnits that have a non-null geometry.
+   * @return A list of OrganisationUnits.
+   */
+  List<OrganisationUnit> getOrganisationUnits(
+      Collection<OrganisationUnitGroup> groups,
+      Collection<OrganisationUnit> parents,
+      boolean geometryOnly);
+
+  /**
    * Returns an OrganisationUnit and all its children.
    *
    * @param uid the uid of the parent OrganisationUnit in the subtree.
@@ -288,6 +303,21 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    */
   List<OrganisationUnit> getOrganisationUnitsAtLevels(
       Collection<Integer> levels, Collection<OrganisationUnit> parents);
+
+  /**
+   * Returns all OrganisationUnits which are children of the given unit and are at the given
+   * hierarchical levels, optionally restricted to units that have a non-null geometry. The root
+   * OrganisationUnits are at level 1.
+   *
+   * @param levels the hierarchical levels.
+   * @param parents the parent units.
+   * @param geometryOnly whether to include only OrganisationUnits that have a non-null geometry.
+   * @return all OrganisationUnits which are children of the given unit and are at the given
+   *     hierarchical level.
+   * @throws IllegalArgumentException if the level is illegal.
+   */
+  List<OrganisationUnit> getOrganisationUnitsAtLevels(
+      Collection<Integer> levels, Collection<OrganisationUnit> parents, boolean geometryOnly);
 
   /**
    * Returns the number of levels in the OrganisationUnit hierarchy.

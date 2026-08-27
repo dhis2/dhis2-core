@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.storage;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -42,8 +44,6 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import javax.annotation.CheckForNull;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -480,7 +480,7 @@ public class S3BlobStoreService implements BlobStoreService {
 
     private static String md5Base64(RequestBody body) {
       try (InputStream in = body.contentStreamProvider().newStream()) {
-        MessageDigest md = MessageDigest.getInstance("MD5");
+        MessageDigest md = MessageDigest.getInstance("MD5"); // NOSONAR java:S4790 - S3 Content-MD5
         byte[] buf = new byte[8192];
         int n;
         while ((n = in.read(buf)) != -1) md.update(buf, 0, n);

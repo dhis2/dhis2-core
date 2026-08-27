@@ -193,6 +193,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>net.ttddyy</groupId>
+      <artifactId>datasource-proxy</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>minio</artifactId>
       <scope>test</scope>
@@ -298,6 +303,23 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-jcache</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <classifier>jakarta</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
       <scope>test</scope>
@@ -354,6 +376,11 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-oauth2-client</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-core</artifactId>
       <scope>test</scope>
     </dependency>
@@ -404,6 +431,10 @@
             <ignoredNonTestScopedDependency>software.amazon.awssdk:aws-core</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>software.amazon.awssdk:auth</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>software.amazon.awssdk:regions</ignoredNonTestScopedDependency>
+            <!-- javax.cache API arrives transitively at compile scope (via dhis-support-hibernate);
+                 used directly only in the second level cache effect tests. It is never declared
+                 anywhere in the build (no managed version), matching dhis-support-hibernate. -->
+            <ignoredNonTestScopedDependency>javax.cache:cache-api</ignoredNonTestScopedDependency>
           </ignoredNonTestScopedDependencies>
           <ignoredUsedUndeclaredDependencies>
             <ignoredUsedUndeclaredDependency>software.amazon.awssdk:s3</ignoredUsedUndeclaredDependency>
@@ -411,6 +442,7 @@
             <ignoredUsedUndeclaredDependency>software.amazon.awssdk:aws-core</ignoredUsedUndeclaredDependency>
             <ignoredUsedUndeclaredDependency>software.amazon.awssdk:auth</ignoredUsedUndeclaredDependency>
             <ignoredUsedUndeclaredDependency>software.amazon.awssdk:regions</ignoredUsedUndeclaredDependency>
+            <ignoredUsedUndeclaredDependency>javax.cache:cache-api:jar</ignoredUsedUndeclaredDependency>
           </ignoredUsedUndeclaredDependencies>
           <!-- If code from the following modules is accessed in tests they'll have to move up to ignoredNonTestScopedDependency -->
           <ignoredUnusedDeclaredDependencies>

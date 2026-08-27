@@ -107,6 +107,12 @@ public @interface Gist {
     /** Used to indicate that the property does not need or use a projection. */
     NONE,
 
+    /** The property should use the translation (argument can be used to decide language) */
+    TRANSLATE,
+
+    /** The property is an attribute */
+    ATTRIBUTE,
+
     /** Emptiness of a collection (no item exists) */
     IS_EMPTY,
 
@@ -140,7 +146,7 @@ public @interface Gist {
 
     /**
      * Without argument same as {@link #IDS}, argument can be used to extract any other {@link
-     * String} field.
+     * String} field, for example: {@code pluck(id,name)}.
      */
     PLUCK,
 
@@ -150,22 +156,14 @@ public @interface Gist {
      */
     FROM;
 
-    public static Transform parse(String transform) {
-      int startOfArgument = transform.indexOf('(');
-      String name =
-          (startOfArgument < 0 ? transform : transform.substring(0, startOfArgument))
-              .replace("-", "")
-              .replace("+", "");
-      for (Transform p : Transform.values()) {
-        if (p.name().replace("_", "").equalsIgnoreCase(name)) {
-          return p;
-        }
-      }
-      return AUTO;
-    }
-
     public boolean isArrayAggregate() {
       return this == IDS || this == PLUCK || this == ID_OBJECTS;
+    }
+
+    public static Transform of(String name) {
+      for (Transform t : values())
+        if (t.name().replace("_", "").equalsIgnoreCase(name.replace("-", ""))) return t;
+      return AUTO;
     }
   }
 }

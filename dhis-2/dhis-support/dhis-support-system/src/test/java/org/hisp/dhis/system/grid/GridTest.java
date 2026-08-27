@@ -652,6 +652,38 @@ class GridTest {
   }
 
   @Test
+  void testGridRowComparatorWithNumberValuesAsStringsDesc() {
+    List<List<Object>> lists = new ArrayList<>();
+    List<Object> l1 = List.of("b", "b", "50");
+    List<Object> l2 = List.of("c", "c", "400");
+    List<Object> l3 = List.of("a", "a", "100");
+    lists.add(l1);
+    lists.add(l2);
+    lists.add(l3);
+    Comparator<List<Object>> comparator = new ListGrid.GridRowComparator(2, -1);
+    Collections.sort(lists, comparator);
+    assertEquals(l1, lists.get(0));
+    assertEquals(l3, lists.get(1));
+    assertEquals(l2, lists.get(2));
+  }
+
+  @Test
+  void testGridRowComparatorWithNumberValuesAsStringsAsc() {
+    List<List<Object>> lists = new ArrayList<>();
+    List<Object> l1 = List.of("b", "b", "50");
+    List<Object> l2 = List.of("c", "c", "400");
+    List<Object> l3 = List.of("a", "a", "100");
+    lists.add(l1);
+    lists.add(l2);
+    lists.add(l3);
+    Comparator<List<Object>> comparator = new ListGrid.GridRowComparator(2, 1);
+    Collections.sort(lists, comparator);
+    assertEquals(l2, lists.get(0));
+    assertEquals(l3, lists.get(1));
+    assertEquals(l1, lists.get(2));
+  }
+
+  @Test
   void testAddRegressionColumn() {
     gridA = new ListGrid();
     gridA.addRow();

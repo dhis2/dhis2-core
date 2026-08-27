@@ -35,6 +35,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.object.ObjectOutput.Property;
 
@@ -78,7 +79,8 @@ public record GistObject(@Nonnull List<Property> properties, @CheckForNull Objec
    * @param properties the scope contained in the data
    * @param values the values for the properties in matching order
    */
-  public record Output(@Nonnull List<Property> properties, @Nonnull Object[] values) {
+  public record Output(
+      boolean unwrap, @Nonnull List<Property> properties, @Nonnull Object[] values) {
 
     public Output {
       requireNonNull(properties);
@@ -86,7 +88,7 @@ public record GistObject(@Nonnull List<Property> properties, @CheckForNull Objec
     }
 
     public List<String> paths() {
-      return properties.stream().map(Property::path).toList();
+      return properties.stream().map(Property::path).map(PropertyPath::toString).toList();
     }
   }
 }

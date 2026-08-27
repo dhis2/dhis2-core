@@ -30,12 +30,15 @@
 package org.hisp.dhis.test.analytics.sl.trackedentity.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
+import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildHttpProtocol;
 import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
 import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
+import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
@@ -45,14 +48,28 @@ public class AnalyticsTrackedEntityQuery3 extends Simulation implements Analytic
   private static final String GET_QUERY_API =
       "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=8&page=1&includeMetadataDetails=true&asc=gHGyrwKPzej&relativePeriodDate=2017-01-27";
 
+  public AnalyticsTrackedEntityQuery3() {
+    // How users should enter the scenarios.
+    OpenInjectionStep defaultInjectionStep = simpleUsersRumpUp(1, 20);
+
+    // Build scenarios and assertions from the discovered simulations.
+    List<PopulationBuilder> scenarios = new ArrayList<>();
+    List<Assertion> assertions = new ArrayList<>();
+
+    // Build scenarios, assertions and execution setup.
+    scenarios.add(buildPopulation(defaultInjectionStep));
+    assertions.addAll(buildAssertions());
+    setUp(scenarios).protocols(buildHttpProtocol("/api/ping")).assertions(assertions);
+  }
+
   public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
     return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
   }
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(5900),
-        details(GET_QUERY).responseTime().max().lt(5900),
+        details(GET_QUERY).responseTime().percentile(95).lt(480),
+        details(GET_QUERY).responseTime().max().lt(515),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }

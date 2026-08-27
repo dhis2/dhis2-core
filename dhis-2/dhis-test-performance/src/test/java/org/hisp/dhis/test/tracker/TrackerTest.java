@@ -122,7 +122,9 @@ import org.slf4j.LoggerFactory;
  *   <li>{@code -DimportDurationSec} -- how long each program's import phase runs. Duration-based:
  *       each user loops for the given duration; the circular feeder replays data as needed. Same
  *       wall time across versions; workload varies. Opt in by setting this instead of {@code
- *       importRequestsPerUser}; setting both fails the simulation at startup.
+ *       importRequestsPerUser}: doing so disables the profile's {@code importRequestsPerUser}
+ *       default so duration mode actually takes effect. Setting both explicitly fails the
+ *       simulation at startup.
  * </ul>
  *
  * <p><b>Profiles:</b>
@@ -277,16 +279,22 @@ public class TrackerTest extends Simulation {
     this.testMode = TestMode.fromString(System.getProperty("testMode", "all"));
     this.importEntitiesPerRequest =
         Integer.getInteger("importEntitiesPerRequest", defaults.importEntitiesPerRequest());
-    this.importRequestsPerUser =
-        Integer.getInteger("importRequestsPerUser", defaults.importRequestsPerUser());
-    this.importDurationSec = Integer.getInteger("importDurationSec", defaults.importDurationSec());
-    this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
-
-    if (System.getProperty("importRequestsPerUser") != null
-        && System.getProperty("importDurationSec") != null) {
+    boolean repeatSet = System.getProperty("importRequestsPerUser") != null;
+    boolean durationSet = System.getProperty("importDurationSec") != null;
+    if (repeatSet && durationSet) {
       throw new IllegalArgumentException(
           "importRequestsPerUser and importDurationSec are mutually exclusive.");
     }
+    // The repeat-vs-duration branch keys off importRequestsPerUser > 0, so an explicitly set
+    // importDurationSec must disable the profile's importRequestsPerUser default (and vice versa);
+    // otherwise the opt-in mode never takes effect.
+    this.importRequestsPerUser =
+        durationSet
+            ? 0
+            : Integer.getInteger("importRequestsPerUser", defaults.importRequestsPerUser());
+    this.importDurationSec =
+        repeatSet ? 0 : Integer.getInteger("importDurationSec", defaults.importDurationSec());
+    this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
 
     if (this.testMode != TestMode.EXPORT) {
       String s3Base =
@@ -467,13 +475,15 @@ public class TrackerTest extends Simulation {
    * tracked entity or one event). Lines are batched into requests of {@code
    * importEntitiesPerRequest} entities.
    *
-   * <p>On load/capacity profiles, the scenario uses {@code during(importDurationSec)} with a closed
-   * injection model: a fixed pool of {@code importUsers} concurrent users loop for the given
-   * duration. The circular {@link NdjsonFeeder} replays data as needed since payloads contain no
-   * entity UIDs (DHIS2 generates them), so every request creates new entities.
-   *
-   * <p>On smoke, the scenario uses {@code repeat(importRequestsPerUser)} for deterministic
-   * iteration counts.
+   * <p>The injection model depends on which import mode is active (see the mutually-exclusive
+   * {@code importRequestsPerUser} / {@code importDurationSec} parameters). When {@code
+   * importRequestsPerUser > 0} (the default on every profile), the scenario uses {@code
+   * repeat(importRequestsPerUser)} with an open injection model for deterministic iteration counts.
+   * When {@code importDurationSec} is opted into instead (which zeroes {@code
+   * importRequestsPerUser}), it uses {@code during(importDurationSec)} with a closed injection
+   * model: a fixed pool of {@code importUsers} concurrent users loop for the given duration. Either
+   * way the circular {@link NdjsonFeeder} replays data as needed since payloads contain no entity
+   * UIDs (DHIS2 generates them), so every request creates new entities.
    */
   private PopulationBuilder importProgram(
       String name, NdjsonFeeder feeder, int entitiesPerLine, String wrapperKey) {
@@ -1032,11 +1042,11 @@ public class TrackerTest extends Simulation {
   }
 
   private static final EnumMap<Profile, Integer> MNCH_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 303, Profile.LOAD, 3526));
+      new EnumMap<>(Map.of(Profile.SMOKE, 140, Profile.LOAD, 982));
   private static final EnumMap<Profile, Integer> CHILD_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 168, Profile.LOAD, 1769));
+      new EnumMap<>(Map.of(Profile.SMOKE, 115, Profile.LOAD, 318));
   private static final EnumMap<Profile, Integer> ANC_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 119, Profile.LOAD, 2652));
+      new EnumMap<>(Map.of(Profile.SMOKE, 71, Profile.LOAD, 1124));
 
   private Stream<Assertion> getImportAssertions(Profile profile) {
     return Stream.of(

@@ -73,7 +73,8 @@ class CategoryControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Default Category should be present in payload when defaults are INCLUDE by default")
   void getAllCategoriesIncludingDefaultsTest() {
-    JsonArray categories = GET("/categories").content(HttpStatus.OK).getArray("categories");
+    JsonArray categories =
+        GET("/categories?gist=false").content(HttpStatus.OK).getArray("categories");
 
     assertEquals(
         Set.of("CategoryA", "CategoryB", "CategoryC", "default"),
@@ -211,7 +212,7 @@ class CategoryControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("API doesn't error when version 44 included in API call")
   void v44ApiTest() {
-    assertStatus(HttpStatus.OK, GET("/44/categories"));
+    assertStatus(HttpStatus.OK, GET("/44/categories?gist=false"));
   }
 
   @Test

@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -46,7 +47,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonUserGroup;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.gist.GistQuery.Field} related features of the Gist API.
+ * Tests the {@link Fields.Field} related features of the Gist API.
  *
  * @author Jan Bernitt
  */
@@ -101,7 +102,8 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     switchToGuestUser();
     JsonArray users = GET("/users/gist?headless=true").content();
     JsonObject user0 = users.getObject(1);
-    assertContainsOnly(Set.of("id", "code", "surname", "firstName", "username"), user0.names());
+    assertContainsOnly(
+        Set.of("id", "code", "name", "surname", "firstName", "username"), user0.names());
     switchToAdminUser();
     users = GET("/users/gist?headless=true").content();
     user0 = users.getObject(0);
@@ -140,9 +142,9 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     String noUsersGroupId =
         assertStatus(HttpStatus.CREATED, POST("/userGroups/", "{'name':'groupX', 'users':[]}"));
     JsonObject group = GET("/userGroups/{uid}/gist?fields=name,users", noUsersGroupId).content();
-    assertFalse(group.getObject("apiEndpoints").getString("users").exists());
+    assertTrue(group.getObject("apiEndpoints").getString("users").exists());
     group = GET("/userGroups/{uid}/gist?fields=name,users::size", noUsersGroupId).content();
-    assertFalse(group.getObject("apiEndpoints").getString("users").exists());
+    assertTrue(group.getObject("apiEndpoints").getString("users").exists());
     group = GET("/userGroups/{uid}/gist?fields=name,users", userGroupId).content();
     assertTrue(group.getObject("apiEndpoints").getString("users").exists());
     group = GET("/userGroups/{uid}/gist?fields=name,users::size", userGroupId).content();
@@ -167,8 +169,8 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
         PUT(
             "/organisationUnits/" + orgUnitId + "/translations",
             "{'translations': ["
-                + "{'locale':'sv', 'property':'name', 'value':'enhet A'}, "
-                + "{'locale':'de', 'property':'name', 'value':'Einheit A'}]}"));
+                + "{'locale':'sv', 'property':'NAME', 'value':'enhet A'}, "
+                + "{'locale':'de', 'property':'NAME', 'value':'Einheit A'}]}"));
     JsonString displayName =
         GET("/organisationUnits/{id}/gist?fields=displayName&locale=de&headless=true", orgUnitId)
             .content();

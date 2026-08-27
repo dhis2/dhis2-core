@@ -167,6 +167,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "withSortOrderAndLimit",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_5_YEARS&stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&outputType=EVENT&sortOrder=desc&limit=1&relativePeriodDate=2026-06-23",
+      "version": {
+        "min": 41
+      }
     }
   ]
 }
