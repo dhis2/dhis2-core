@@ -193,7 +193,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         teByAttributeValue =
             new TreeMap<>(
                 (o1, o2) -> {
-                  if (Objects.equals(o1.getValue(), o2.getValue())
+                  if (o1.getValue().equalsIgnoreCase(o2.getValue())
                       && Objects.equals(o1.getAttribute(), o2.getAttribute())) {
                     return 0;
                   }
@@ -268,6 +268,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   private Set<Attribute> filterUniqueAttributes(
       List<Attribute> attributes, List<TrackedEntityAttribute> uniqueTrackedEntityAttributes) {
     return attributes.stream()
+        .filter(tea -> tea.getValue() != null)
         .filter(
             tea ->
                 uniqueTrackedEntityAttributes.stream()
