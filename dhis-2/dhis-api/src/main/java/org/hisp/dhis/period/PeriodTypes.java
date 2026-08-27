@@ -36,36 +36,35 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.translation.Translation;
 
 /**
  * List of (all) {@link PeriodType}s with their labels as exposed in the web API.
  *
  * @param locale the locale for which labels were resolved
- * @param periodTypes the list of period types
+ * @param entries the list of period types
  * @since 2.44
  */
-public record PeriodTypes(
-    @JsonProperty @Nonnull Locale locale,
-    @JsonProperty @Nonnull List<PeriodTypeEntry> periodTypes) {
+public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry> entries) {
 
   public PeriodTypes {
     requireNonNull(locale);
-    requireNonNull(periodTypes);
+    requireNonNull(entries);
   }
 
   /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
   public record PeriodTypeEntry(
-      @OpenApi.Description("The ID of the period type") @JsonProperty @Nonnull String name,
-      @JsonProperty String isoDuration,
-      @JsonProperty String isoFormat,
-      @JsonProperty Integer frequencyOrder,
-      @OpenApi.Description("The i18n translation of `name`") @JsonProperty String defaultName,
+      @OpenApi.Description("The ID of the period type") @Nonnull String name,
+      String isoDuration,
+      String isoFormat,
+      Integer frequencyOrder,
+      @OpenApi.Description("The i18n translation of `name`") String defaultName,
       @OpenApi.Description(
               "An optional override for the `name` taking precedence over the `defaultName`")
           @JsonProperty
           String label,
-      @JsonProperty List<Translation> translations,
+      List<Translation> translations,
       @OpenApi.Description(
               "An optional translation for `label` resolved for a specific `locale` (falls back to `label` when no translation exists)")
           @JsonProperty
@@ -80,4 +79,7 @@ public record PeriodTypes(
       // all other properties may be null due to fields-filtering
     }
   }
+
+  public record Output(
+      @Nonnull Locale locale, @Nonnull List<PeriodTypeEntry> entries, @Nonnull Fields fields) {}
 }

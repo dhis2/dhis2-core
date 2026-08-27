@@ -35,7 +35,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.translation.Translation;
 
 /**
  * @author Kristian Nordal
@@ -227,5 +227,26 @@ public interface PeriodService {
    * @return all period types with they display properties resolved for the current user
    * @since 2.44
    */
-  PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale, @Nonnull Fields fields);
+  PeriodTypes getAllPeriodTypes(@Nonnull Locale locale);
+
+  /**
+   * Updates the label of the given period type name.
+   *
+   * @param periodTypeName the {@link PeriodType}'s name.
+   * @param label the new label, null or empty to erase
+   * @param locale when null label is the override for the name not associated with a locale,
+   *     otherwise it is a translation for the given locale
+   */
+  boolean updatePeriodTypeLabel(
+      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale);
+
+  /**
+   * Replaces the period type's translation labels with the given ones
+   *
+   * @param name of the type (key)
+   * @param translations labels in different languages
+   * @return true, if a change occurred, false if no row was affected
+   */
+  boolean updatePeriodTypeLabel(
+      @Nonnull String name, @Nonnull Collection<Translation> translations);
 }

@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.period.hibernate;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import jakarta.persistence.EntityManager;
 import java.sql.Connection;
 import java.util.Collection;
@@ -41,7 +44,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
@@ -60,9 +62,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Persistence for {@link Period} and {@link PeriodType}.
@@ -351,8 +350,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   @Override
   public boolean updatePeriodTypeLabel(
       @Nonnull String name, @Nonnull Collection<Translation> translations) {
-    List<Translation> keep =
-        translations.stream().filter(t -> isNotBlank(t.getValue())).toList();
+    List<Translation> keep = translations.stream().filter(t -> isNotBlank(t.getValue())).toList();
     if (keep.isEmpty()) {
       String sql =
           """

@@ -32,9 +32,15 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
@@ -44,8 +50,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.period.PeriodPipeline;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeParams;
 import org.hisp.dhis.period.PeriodTypes;
@@ -75,7 +81,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PeriodTypeController {
 
   private final PeriodService periodService;
-  private final PeriodStore periodStore;
+  private final PeriodPipeline periodPipeline;
 
   @RequiresAuthority(anyOf = ALL)
   @PutMapping
@@ -91,7 +97,7 @@ public class PeriodTypeController {
       @RequestParam(required = false) Locale locale,
       @RequestParam(required = false) String value)
       throws NotFoundException {
-    if (periodStore.updatePeriodTypeLabel(name, value, locale))
+    if (periodService.updatePeriodTypeLabel(name, value, locale))
       return ok(name + " updated successfully.");
     throw new NotFoundException(PeriodType.class, name);
   }
@@ -110,32 +116,30 @@ public class PeriodTypeController {
     ObjectReport report = new ObjectReport(PeriodType.class, 0);
     TranslationsCheck.checkTranslations(translations, report::addErrorReport);
     if (!report.hasErrorReports()) {
-      if (periodStore.updatePeriodTypeLabel(name, translations)) return null;
+      if (periodService.updatePeriodTypeLabel(name, translations)) return null;
       throw new NotFoundException(PeriodType.class, name);
     }
     return objectReport(report);
   }
 
+  @OpenApi.Response(PeriodTypes.class)
   @GetMapping
-  public PeriodTypes getPeriodTypes(
+  public void getPeriodTypes(
       @RequestParam(required = false) Locale locale,
-      @RequestParam(defaultValue = "*") String fields) {
-    return periodService.getAllPeriodTypes(locale, Fields.of(fields));
+      @RequestParam(defaultValue = "*") String fields,
+      HttpServletResponse response) {
+    periodPipeline.exportAllAsJson(locale, Fields.of(fields), lazyOutputStream(response));
   }
 
+  @OpenApi.Response(PeriodTypes.PeriodTypeEntry.class)
   @GetMapping("/{name}")
-  public PeriodTypes.PeriodTypeEntry getPeriodType(
+  public void getPeriodType(
       @PathVariable("name") String name,
       @RequestParam(required = false) Locale locale,
-      @RequestParam(defaultValue = "*") String fields)
+      @RequestParam(defaultValue = "*") String fields,
+      HttpServletResponse response)
       throws NotFoundException {
-    PeriodTypes.PeriodTypeEntry entry =
-        periodService.getAllPeriodTypes(locale, Fields.of(fields)).periodTypes().stream()
-            .filter(pt -> name.equalsIgnoreCase(pt.name()))
-            .findFirst()
-            .orElse(null);
-    if (entry == null) throw new NotFoundException(PeriodType.class, name);
-    return entry;
+    periodPipeline.exportAsJson(name, locale, Fields.of(fields), lazyOutputStream(response));
   }
 
   @GetMapping(
@@ -143,5 +147,16 @@ public class PeriodTypeController {
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public RelativePeriodEnum[] getRelativePeriodTypes() {
     return RelativePeriodEnum.values();
+  }
+
+  private static Supplier<OutputStream> lazyOutputStream(HttpServletResponse response) {
+    return () -> {
+      response.setContentType(CONTENT_TYPE_JSON);
+      try {
+        return response.getOutputStream();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
   }
 }

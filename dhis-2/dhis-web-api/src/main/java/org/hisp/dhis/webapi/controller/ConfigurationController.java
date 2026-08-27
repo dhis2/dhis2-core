@@ -53,7 +53,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -479,14 +478,13 @@ public class ConfigurationController {
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
   public @ResponseBody List<PeriodTypeEntry> getDataOutputPeriodTypes(
-      @RequestParam(required = false) Locale locale,
-      @RequestParam(defaultValue = "*") String fields) {
+      @RequestParam(required = false) Locale locale) {
     Set<String> names =
         configurationService.getConfiguration().getDataOutputPeriodTypes().stream()
             .map(PeriodType::getName)
             .collect(toSet());
 
-    return periodService.getAllPeriodTypes(locale, Fields.of(fields)).periodTypes().stream()
+    return periodService.getAllPeriodTypes(locale).entries().stream()
         .filter(pt -> names.contains(pt.name()))
         .toList();
   }
