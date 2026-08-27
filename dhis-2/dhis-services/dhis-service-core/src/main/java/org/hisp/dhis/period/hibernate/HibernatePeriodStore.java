@@ -41,6 +41,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
@@ -59,6 +60,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Persistence for {@link Period} and {@link PeriodType}.
@@ -291,7 +295,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         SET label = :label
         WHERE name = :name""";
 
-      String newValue = label == null ? null : label.isEmpty() ? null : label;
+      String newValue = isBlank(label) ? null : label;
       return runAutoJoinTransaction(
               session ->
                   session
@@ -323,7 +327,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
                         .executeUpdate())
             > 0;
     // now insert the language object
-    if (label == null || label.isEmpty()) return erased;
+    if (isBlank(label)) return erased;
     String sql2 =
         """
       UPDATE periodtype
@@ -348,12 +352,12 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   public boolean updatePeriodTypeLabel(
       @Nonnull String name, @Nonnull Collection<Translation> translations) {
     List<Translation> keep =
-        translations.stream().filter(t -> t.getValue() != null && !t.getValue().isEmpty()).toList();
+        translations.stream().filter(t -> isNotBlank(t.getValue())).toList();
     if (keep.isEmpty()) {
       String sql =
           """
         UPDATE periodtype
-        SET translations = '{}'
+        SET translations = '[]'
         WHERE name = :name
         """;
       return runAutoJoinTransaction(
