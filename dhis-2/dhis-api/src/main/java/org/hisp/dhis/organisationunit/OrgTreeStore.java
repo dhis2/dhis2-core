@@ -31,6 +31,8 @@ package org.hisp.dhis.organisationunit;
 
 import java.util.List;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 
@@ -41,6 +43,18 @@ import org.hisp.dhis.common.UID;
  * @author Jan Bernitt
  */
 public interface OrgTreeStore {
+
+  record OrgTreeScope(
+      @Nonnull List<UID> roots,
+      @Nonnull List<UID> groups,
+      @CheckForNull Integer level,
+      @CheckForNull Integer depth) {}
+
+  /**
+   * @param params criteria of OUs to include in the matches
+   * @return the number of org units that can be potential matches for a search
+   */
+  int countOrgUnitsInScope(OrgTreeScope params);
 
   /**
    * Note that it is crucial that the results are order by path so that matches within the same

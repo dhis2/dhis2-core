@@ -35,7 +35,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrgTree.OrgTreeEntry;
 import org.hisp.dhis.setting.UserSettings;
@@ -53,26 +52,31 @@ public class DefaultOrgTreeService implements OrgTreeService {
 
   @Nonnull
   @Override
-  @NonTransactional
+  @Transactional(readOnly = true)
   public OrgTreeParams decode(@Nonnull OrgTreeParams.Input params) {
     List<UID> roots = params.roots();
     if (roots == null) roots = List.of();
     if (roots.isEmpty() && CurrentUserUtil.hasCurrentUser()) {
       UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-      roots = currentUser.getUserSearchOrgUnitIds().stream().map(UID::of).toList();
-      if (roots.isEmpty()) roots = currentUser.getUserOrgUnitIds().stream().map(UID::of).toList();
+      roots = currentUser.getUserEffectiveSearchOrgUnitIds().stream().map(UID::of).toList();
     }
     Locale locale =
         params.locale() == null
             ? UserSettings.getCurrentSettings().getUserDbLocale()
             : params.locale();
+    List<UID> groups = params.groups() == null ? List.of() : params.groups();
+    int hierarchySize =
+        store.countOrgUnitsInScope(
+            new OrgTreeStore.OrgTreeScope(roots, groups, params.level(), params.depth()));
+
+    // TODO validate and/or filter root/group IDs?
     return new OrgTreeParams(
         params.page() == null ? 1 : params.page(),
         params.pageSize() == null ? 50 : params.pageSize(),
+        hierarchySize,
         locale,
         roots,
-        params.groups() == null ? List.of() : params.groups(),
-        params.groupSets() == null ? List.of() : params.groupSets(),
+        groups,
         params.level(),
         params.currentlyOpen(),
         params.search(),

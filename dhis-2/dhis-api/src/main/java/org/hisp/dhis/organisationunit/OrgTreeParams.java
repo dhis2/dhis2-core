@@ -35,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -49,9 +50,9 @@ import org.hisp.dhis.common.UID;
  *
  * @param page
  * @param pageSize
+ * @param hierarchySize number of OUs in the user's search hierarchy (approximation)
  * @param roots
  * @param groups
- * @param groupSets
  * @param level
  * @param search
  * @param shortName
@@ -60,10 +61,10 @@ import org.hisp.dhis.common.UID;
 public record OrgTreeParams(
     int page,
     int pageSize,
+    int hierarchySize,
     @Nonnull Locale locale,
     @Nonnull List<UID> roots,
     @Nonnull List<UID> groups,
-    @Nonnull List<UID> groupSets,
     @CheckForNull Integer level,
     @CheckForNull Boolean currentlyOpen,
     @CheckForNull String search,
@@ -74,11 +75,35 @@ public record OrgTreeParams(
     requireNonNull(locale);
     requireNonNull(roots);
     requireNonNull(groups);
-    requireNonNull(groupSets);
     if (page < 1) throw new IllegalArgumentException("Page must be positive");
     if (pageSize < 1) throw new IllegalArgumentException("Page size must be positive");
     if (level != null && level < 1) throw new IllegalArgumentException("Level must be positive");
     if (depth != null && depth < 1) throw new IllegalArgumentException("Depth must be positive");
+  }
+
+  public int offset() {
+    return (page - 1) * pageSize;
+  }
+
+  /**
+   * @return the {@link #search} as DB like expression
+   */
+  @CheckForNull
+  public String searchLike() {
+    return likePattern(search);
+  }
+
+  private static String likePattern(String pattern) {
+    if (StringUtils.isBlank(pattern)) return null;
+    int len = pattern.length();
+    if (len > 2 && pattern.charAt(0) == '"' && pattern.charAt(len - 1) == '"')
+      return likeEscape(pattern);
+    if (pattern.indexOf('*') < 0) return "%" + likeEscape(pattern) + "%";
+    return pattern.replace("*", "%").replace("?", "_").replace("\\", "\\\\");
+  }
+
+  private static String likeEscape(String input) {
+    return input.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
   }
 
   /** The parameters as seen and provided from user input. */
