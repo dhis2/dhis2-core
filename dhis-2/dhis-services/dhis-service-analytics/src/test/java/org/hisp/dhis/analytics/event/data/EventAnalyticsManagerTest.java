@@ -1103,6 +1103,82 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyNoValueInFilterMatchesEmptyStringForClickHouse() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    mockEmptyRowSet();
+
+    clickHouseSubject.getAggregatedEventData(
+        optionSetNoValueParams(QueryOperator.IN), createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("nullif(ax.\"fwiaetyvegk\", '') is null"));
+  }
+
+  @Test
+  void verifyNoValueEqFilterMatchesEmptyStringForClickHouse() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    mockEmptyRowSet();
+
+    clickHouseSubject.getAggregatedEventData(
+        optionSetNoValueParams(QueryOperator.EQ), createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("nullif(ax.\"fwiaetyvegk\", '') is null"));
+  }
+
+  @Test
+  void verifyNoValueInFilterKeepsRawColumnForPostgres() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+    mockEmptyRowSet();
+
+    subject.getAggregatedEventData(optionSetNoValueParams(QueryOperator.IN), createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("ax.\"fwiaetyvegk\" is null"));
+    assertThat(generatedSql, not(containsString("nullif(ax.\"fwiaetyvegk\", '') is null")));
+  }
+
+  @Test
+  void verifyGetEventsNoValueFilterMatchesEmptyStringForClickHouse() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+    mockEmptyRowSet();
+
+    clickHouseSubject.getEvents(optionSetNoValueParams(QueryOperator.IN), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("nullif(ax.\"fwiaetyvegk\", '') is null"));
+  }
+
+  /** Builds an aggregated event query whose option set item is filtered by the no-value keyword. */
+  private EventQueryParams optionSetNoValueParams(QueryOperator operator) {
+    EventQueryParams params = createRequestParams(programStage, ValueType.TEXT);
+    QueryItem queryItem = params.getItems().get(0);
+    queryItem.setOptionSet(new OptionSet());
+    queryItem.addFilter(new QueryFilter(operator, "D2__NOVALUE"));
+
+    return new EventQueryParams.Builder(params).build();
+  }
+
+  @Test
   void verifyGetAggregatedEventQueryUsesJoinBasedPeriodLookupForClickHouse() {
     ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
     JdbcEventAnalyticsManager clickHouseSubject =

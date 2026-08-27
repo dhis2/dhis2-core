@@ -1759,7 +1759,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       InQueryFilter inQueryFilter =
           new InQueryFilter(
-              prefixedField,
+              normalizeNoValueField(prefixedField, item, filter),
               sqlBuilder.escape(filterString),
               !item.isNumeric(),
               item.hasOptionSet());
@@ -1782,13 +1782,41 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
 
-      return field
+      return normalizeNoValueField(field, item, filter)
           + SPACE
           + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + SPACE;
     }
+  }
+
+  /**
+   * Wraps a text field in a null-normalising expression when the filter asks for the no-value
+   * keyword. ClickHouse stores an absent text value as an empty string rather than NULL, so an
+   * {@code is null} comparison against the raw column matches nothing. The select and group by
+   * clauses normalise the same column, so the filter must use the identical expression. The wrapper
+   * is a no-op on databases that store absent values as NULL.
+   *
+   * @param field the field to filter on.
+   * @param item the {@link QueryItem}.
+   * @param filter the {@link QueryFilter}.
+   * @return the field, wrapped when the filter selects the no-value keyword.
+   */
+  private String normalizeNoValueField(String field, QueryItem item, QueryFilter filter) {
+    boolean isText = item.getValueType() != null && item.getValueType().isText();
+
+    return isText && filtersOnNoValue(item, filter) ? sqlBuilder.nullIfEmpty(field) : field;
+  }
+
+  /** Indicates whether any of the filter values is the no-value keyword. */
+  private boolean filtersOnNoValue(QueryItem item, QueryFilter filter) {
+    if (filter.getFilter() == null) {
+      return false;
+    }
+
+    return QueryFilter.getFilterItems(filter.getFilter()).stream()
+        .anyMatch(value -> isNoValue(value, item.hasOptionSet()));
   }
 
   /**
