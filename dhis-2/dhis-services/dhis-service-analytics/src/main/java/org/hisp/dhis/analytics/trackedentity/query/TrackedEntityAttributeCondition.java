@@ -54,7 +54,7 @@ public class TrackedEntityAttributeCondition extends BaseRenderable {
 
     DimensionParam dimension = dimensionIdentifier.getDimension();
     ValueTypeMapping valueTypeMapping = ValueTypeMapping.fromValueType(dimension.getValueType());
-    boolean isOptionSet = dimension.isQueryItem() && dimension.getQueryItem().hasOptionSet();
+    boolean isOptionSet = dimension.hasOptionSet();
 
     for (DimensionParamItem item : dimension.getItems()) {
       BinaryConditionRenderer binaryConditionRenderer =

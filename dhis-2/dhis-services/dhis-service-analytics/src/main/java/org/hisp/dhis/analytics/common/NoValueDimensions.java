@@ -27,41 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.analytics.common;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 
+import java.util.ArrayList;
 import java.util.List;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import java.util.Map;
 
-class NoValueFilterValidatorTest {
+/**
+ * Appends the reserved no-value keyword to the item list of a response metadata dimension. Shared
+ * by the tracked entity and event/enrollment metadata handlers, which detect the keyword
+ * differently but render it into {@code metaData.dimensions} the same way.
+ */
+public final class NoValueDimensions {
+  private NoValueDimensions() {}
 
-  @Test
-  @DisplayName("D2__NOVALUE on a non-option-set dimension is rejected")
-  void rejectsNoValueKeywordOnNonOptionSet() {
-    ErrorMessage error = NoValueFilterValidator.validateValues(false, List.of("1", "D2__NOVALUE"));
-    assertEquals(ErrorCode.E7247, error.getErrorCode());
-  }
+  /**
+   * Appends the no-value keyword to the item list of each given key that the dimensions map holds.
+   * Keys the map does not contain are skipped, as is a key whose list already carries the keyword.
+   *
+   * <p>Several keys are accepted because the map is not keyed uniformly: dimensions are keyed by
+   * item UID and filters by item id, depending on the handler that built the map.
+   *
+   * @param dimensions the dimension items map, modified in place.
+   * @param keys the candidate keys of the dimension to append to.
+   */
+  public static void append(Map<String, List<String>> dimensions, String... keys) {
+    for (String key : keys) {
+      List<String> values = dimensions.get(key);
 
-  @Test
-  @DisplayName("D2__NOVALUE on an option-set dimension is allowed")
-  void allowsNoValueKeywordOnOptionSet() {
-    assertNull(NoValueFilterValidator.validateValues(true, List.of("MODDISCH", "D2__NOVALUE")));
-  }
-
-  @Test
-  @DisplayName("NV on a non-option-set dimension is allowed (legacy keyword, not the reserved one)")
-  void allowsNvOnNonOptionSet() {
-    assertNull(NoValueFilterValidator.validateValues(false, List.of("1", "NV")));
-  }
-
-  @Test
-  @DisplayName("Ordinary values are allowed")
-  void allowsOrdinaryValues() {
-    assertNull(NoValueFilterValidator.validateValues(false, List.of("1", "2")));
+      if (values != null && !values.contains(NO_VALUE)) {
+        List<String> withNoValue = new ArrayList<>(values);
+        withNoValue.add(NO_VALUE);
+        dimensions.put(key, withNoValue);
+      }
+    }
   }
 }

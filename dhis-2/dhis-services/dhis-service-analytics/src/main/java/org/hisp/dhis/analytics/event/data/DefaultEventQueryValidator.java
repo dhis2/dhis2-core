@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.feedback.ErrorCode.E7229;
 import static org.hisp.dhis.feedback.ErrorCode.E7234;
-import static org.hisp.dhis.feedback.ErrorCode.E7246;
+import static org.hisp.dhis.feedback.ErrorCode.E7247;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -102,7 +102,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
     Optional<String> enrollmentOuSortColumn = params.getEnrollmentOuSortColumn();
     if (enrollmentOuSortColumn.isPresent() && !params.hasEnrollmentOu()) {
-      return new ErrorMessage(ErrorCode.E7247, enrollmentOuSortColumn.get());
+      return new ErrorMessage(ErrorCode.E7246, enrollmentOuSortColumn.get());
     }
     if (!params.getDuplicateDimensions().isEmpty()) {
       return new ErrorMessage(ErrorCode.E7201, params.getDuplicateDimensions());
@@ -315,7 +315,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       QueryOperator operator, ValueType valueType, String filterValue, boolean isOptionSet) {
     // The reserved no-value keyword may only be used with option set dimensions.
     if (NO_VALUE.equals(filterValue) && !isOptionSet) {
-      return new ErrorMessage(E7246, NO_VALUE);
+      return new ErrorMessage(E7247, NO_VALUE);
     }
 
     boolean noValue = isNoValue(filterValue, isOptionSet);

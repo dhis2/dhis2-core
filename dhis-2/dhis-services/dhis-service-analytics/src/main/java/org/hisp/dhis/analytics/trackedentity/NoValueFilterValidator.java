@@ -30,7 +30,7 @@
 package org.hisp.dhis.analytics.trackedentity;
 
 import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
-import static org.hisp.dhis.feedback.ErrorCode.E7246;
+import static org.hisp.dhis.feedback.ErrorCode.E7247;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +42,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * Validates that the reserved no-value keyword {@code D2__NOVALUE} is used only on option-set
- * dimensions in tracked entity query filters.
+ * dimensions in tracked entity filters. Applied to every tracked entity query and aggregate
+ * request, since both build their SQL through the same creator service.
  */
 public final class NoValueFilterValidator {
   private NoValueFilterValidator() {}
@@ -57,7 +58,7 @@ public final class NoValueFilterValidator {
     for (DimensionIdentifier<DimensionParam> dimensionIdentifier :
         params.getDimensionIdentifiers()) {
       DimensionParam dimension = dimensionIdentifier.getDimension();
-      boolean isOptionSet = dimension.isQueryItem() && dimension.getQueryItem().hasOptionSet();
+      boolean isOptionSet = dimension.hasOptionSet();
 
       List<String> values =
           dimension.getItems().stream().flatMap(item -> item.getValues().stream()).toList();
@@ -78,7 +79,7 @@ public final class NoValueFilterValidator {
    */
   static ErrorMessage validateValues(boolean isOptionSet, Collection<String> values) {
     if (!isOptionSet && values.contains(NO_VALUE)) {
-      return new ErrorMessage(E7246, NO_VALUE);
+      return new ErrorMessage(E7247, NO_VALUE);
     }
 
     return null;

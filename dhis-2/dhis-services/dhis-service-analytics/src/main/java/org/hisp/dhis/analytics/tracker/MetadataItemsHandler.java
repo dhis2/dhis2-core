@@ -72,6 +72,7 @@ import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.common.NoValueDimensions;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
@@ -237,14 +238,7 @@ public class MetadataItemsHandler {
         continue;
       }
 
-      String dimension = getItemUid(item);
-      List<String> values = dimensionItems.get(dimension);
-
-      if (values != null && !values.contains(NO_VALUE)) {
-        List<String> withNoValue = new ArrayList<>(values);
-        withNoValue.add(NO_VALUE);
-        dimensionItems.put(dimension, withNoValue);
-      }
+      NoValueDimensions.append(dimensionItems, getItemUid(item));
     }
   }
 

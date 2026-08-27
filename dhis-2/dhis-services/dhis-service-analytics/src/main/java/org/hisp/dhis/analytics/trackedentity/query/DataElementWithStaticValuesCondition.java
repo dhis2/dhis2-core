@@ -61,7 +61,7 @@ public class DataElementWithStaticValuesCondition extends BaseRenderable {
 
   private Renderable toCondition(DimensionParamItem item) {
     DimensionParam dimension = dimensionIdentifier.getDimension();
-    boolean isOptionSet = dimension.isQueryItem() && dimension.getQueryItem().hasOptionSet();
+    boolean isOptionSet = dimension.hasOptionSet();
     return BinaryConditionRenderer.of(
         getDataValueRenderable(dimensionIdentifier, getValueTypeMapping()),
         item.getOperator(),

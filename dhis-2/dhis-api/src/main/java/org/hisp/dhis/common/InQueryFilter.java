@@ -53,18 +53,6 @@ public class InQueryFilter extends QueryFilter {
   private final boolean isOptionSet;
 
   /**
-   * Construct a InQueryFilter using field name and the original {@link QueryFilter}. Defaults to a
-   * non-option-set dimension (the {@code NV} no-value keyword).
-   *
-   * @param field the field on which to construct the InQueryFilter
-   * @param encodedFilter The original encodedFilter in {@link QueryFilter}
-   * @param shouldQuote whether this filter contains text or numeric values
-   */
-  public InQueryFilter(String field, String encodedFilter, boolean shouldQuote) {
-    this(field, encodedFilter, shouldQuote, false);
-  }
-
-  /**
    * Construct a InQueryFilter using field name and the original {@link QueryFilter}.
    *
    * @param field the field on which to construct the InQueryFilter

@@ -50,7 +50,7 @@ class DefaultEventQueryValidatorTest {
   void rejectsNoValueKeywordOnNonOptionSet() {
     ErrorMessage error =
         validator.validateQueryFilter(new QueryFilter(IN, "D2__NOVALUE"), ValueType.NUMBER, false);
-    assertEquals(ErrorCode.E7246, error.getErrorCode());
+    assertEquals(ErrorCode.E7247, error.getErrorCode());
   }
 
   @Test
@@ -58,7 +58,7 @@ class DefaultEventQueryValidatorTest {
   void rejectsNoValueKeywordWithEqOnNonOptionSet() {
     ErrorMessage error =
         validator.validateQueryFilter(new QueryFilter(EQ, "D2__NOVALUE"), ValueType.NUMBER, false);
-    assertEquals(ErrorCode.E7246, error.getErrorCode());
+    assertEquals(ErrorCode.E7247, error.getErrorCode());
   }
 
   @Test

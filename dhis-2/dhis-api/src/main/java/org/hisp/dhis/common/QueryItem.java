@@ -371,6 +371,17 @@ public class QueryItem implements GroupableItem {
   }
 
   /**
+   * Indicates whether the given filter token is the no-value keyword for this query item. Option
+   * set items use the reserved {@code D2__NOVALUE} keyword, all other items the legacy {@code NV}
+   * keyword.
+   *
+   * @param token the filter token.
+   */
+  public boolean isNoValue(String token) {
+    return QueryKey.isNoValue(token, hasOptionSet());
+  }
+
+  /**
    * Returns SQL filter for the given query filter and SQL encoded filter. If the item value type is
    * text-based, the filter is converted to lower-case.
    *

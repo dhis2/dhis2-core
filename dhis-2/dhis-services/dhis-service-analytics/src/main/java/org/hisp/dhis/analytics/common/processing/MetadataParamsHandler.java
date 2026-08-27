@@ -46,7 +46,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +56,7 @@ import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.MetadataInfo;
+import org.hisp.dhis.analytics.common.NoValueDimensions;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -171,11 +171,8 @@ public class MetadataParamsHandler {
         continue;
       }
 
-      // The dimensions map is keyed by getItemUid for dimensions and getItemId for filters; append
-      // to whichever key is present.
       QueryItem item = dimension.getQueryItem();
-      appendNoValue(dimensions, getItemUid(item));
-      appendNoValue(dimensions, item.getItemId());
+      NoValueDimensions.append(dimensions, getItemUid(item), item.getItemId());
     }
   }
 
@@ -185,21 +182,10 @@ public class MetadataParamsHandler {
    * QueryItem#getFilters()}).
    */
   private boolean isFilteredByNoValue(DimensionParam dimension) {
-    return dimension.isQueryItem()
-        && dimension.getQueryItem().hasOptionSet()
+    return dimension.hasOptionSet()
         && dimension.getItems().stream()
             .flatMap(item -> item.getValues().stream())
             .anyMatch(NO_VALUE::equals);
-  }
-
-  private void appendNoValue(Map<String, List<String>> dimensions, String key) {
-    List<String> values = dimensions.get(key);
-
-    if (values != null && !values.contains(NO_VALUE)) {
-      List<String> withNoValue = new ArrayList<>(values);
-      withNoValue.add(NO_VALUE);
-      dimensions.put(key, withNoValue);
-    }
   }
 
   /**

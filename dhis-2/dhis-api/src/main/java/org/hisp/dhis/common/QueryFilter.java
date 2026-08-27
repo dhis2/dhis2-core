@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 import static org.hisp.dhis.analytics.QueryKey.noValueKeyword;
 import static org.hisp.dhis.common.QueryOperator.EQ;
@@ -200,14 +201,10 @@ public class QueryFilter {
   }
 
   public String getSqlBindFilter() {
-    return getSqlBindFilter(false);
-  }
-
-  public String getSqlBindFilter(boolean isOptionSet) {
     if (operator.isLike()) {
       return "%" + this.filter + "%";
     } else if (operator.isEqualTo()) {
-      if (isNoValue(this.filter, isOptionSet)) {
+      if (this.filter.equals(NV)) {
         return "null";
       }
     } else if (SW == operator) {
@@ -238,13 +235,6 @@ public class QueryFilter {
     }
 
     return filter;
-  }
-
-  public String getSqlFilter(
-      final String encodedFilter,
-      final ValueType valueType,
-      boolean isNullValueSubstitutionAllowed) {
-    return getSqlFilter(encodedFilter, valueType, isNullValueSubstitutionAllowed, false);
   }
 
   public String getSqlFilter(

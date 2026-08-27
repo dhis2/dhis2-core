@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.QueryOperator.IN;
 
@@ -54,7 +53,7 @@ import org.springframework.stereotype.Service;
  * <p>This class handles:
  *
  * <ul>
- *   <li>NO_VALUE (null value) filter semantics
+ *   <li>No-value filter semantics
  *   <li>Organisation unit keyword resolution (USER_ORGUNIT, etc.)
  *   <li>IN clause generation with proper quoting
  *   <li>Date/time format conversion
@@ -127,10 +126,10 @@ public class QueryItemFilterBuilder {
   }
 
   /**
-   * Builds a SQL filter condition for the given filter, handling NO_VALUE (null value) for IN
-   * operator. For IN operator with NO_VALUE: generates IS NULL condition. For IN operator without
-   * NO_VALUE: generates standard IN clause. For mixed NO_VALUE and values: generates (column IN
-   * (...) OR column IS NULL).
+   * Builds a SQL filter condition for the given filter, handling the no-value keyword for the IN
+   * operator. For IN with only the keyword: generates IS NULL. For IN without it: generates a
+   * standard IN clause. For a mix of the keyword and actual values: generates (column IN (...) OR
+   * column IS NULL).
    *
    * @param queryFilter the {@link QueryFilter}.
    * @param item the {@link QueryItem}.
@@ -149,30 +148,29 @@ public class QueryItemFilterBuilder {
   }
 
   /**
-   * Builds a SQL IN filter condition, properly handling NO_VALUE (null value).
+   * Builds a SQL IN filter condition, properly handling the no-value keyword.
    *
    * @param item the {@link QueryItem}.
    * @param columnName the column name.
    * @param filterValue the filter value.
-   * @return the SQL IN condition with proper NO_VALUE handling.
+   * @return the SQL IN condition with proper no-value handling.
    */
   public String buildInFilterCondition(QueryItem item, String columnName, String filterValue) {
     List<String> filterItems = QueryFilter.getFilterItems(filterValue);
 
-    boolean hasNv = filterItems.stream().anyMatch(v -> isNoValue(v, item.hasOptionSet()));
-    List<String> nonNvItems =
-        filterItems.stream().filter(v -> !isNoValue(v, item.hasOptionSet())).toList();
+    boolean hasNoValue = filterItems.stream().anyMatch(item::isNoValue);
+    List<String> actualValues = filterItems.stream().filter(v -> !item.isNoValue(v)).toList();
 
-    if (nonNvItems.isEmpty() && hasNv) {
-      // Only NO_VALUE: generate IS NULL
+    if (actualValues.isEmpty() && hasNoValue) {
+      // Keyword only: generate IS NULL
       return "%s is null".formatted(columnName);
-    } else if (!nonNvItems.isEmpty() && hasNv) {
+    } else if (!actualValues.isEmpty() && hasNoValue) {
       // Mixed: generate (column IN (...) OR column IS NULL)
-      String inClause = buildInClause(item, columnName, nonNvItems);
+      String inClause = buildInClause(item, columnName, actualValues);
       return "(%s or %s is null)".formatted(inClause, columnName);
     } else {
-      // No NO_VALUE: standard IN clause
-      return buildInClause(item, columnName, nonNvItems);
+      // No keyword: standard IN clause
+      return buildInClause(item, columnName, actualValues);
     }
   }
 
@@ -193,14 +191,14 @@ public class QueryItemFilterBuilder {
   }
 
   /**
-   * Checks if the item has filters that contain non-NO_VALUE values. NO_VALUE (null value) filters
-   * should NOT be pushed into CTEs because the semantics require checking if the most recent
-   * event's value is null, not finding events with null values.
+   * Checks if the item has filters that carry at least one actual value. No-value filters must NOT
+   * be pushed into CTEs, because their semantics require checking whether the most recent event's
+   * value is null, rather than finding events with null values.
    *
    * @param item the query item
-   * @return true if the item has filters with non-NO_VALUE values
+   * @return true if the item has a filter with at least one actual value
    */
-  public boolean hasNonNvFilter(QueryItem item) {
+  public boolean hasActualValueFilter(QueryItem item) {
     if (!item.hasFilter()) {
       return false;
     }
@@ -208,24 +206,24 @@ public class QueryItemFilterBuilder {
         .anyMatch(
             filter -> {
               List<String> filterItems = QueryFilter.getFilterItems(filter.getFilter());
-              return filterItems.stream().anyMatch(v -> !isNoValue(v, item.hasOptionSet()));
+              return filterItems.stream().anyMatch(v -> !item.isNoValue(v));
             });
   }
 
   /**
-   * Extracts filters as SQL, excluding NO_VALUE-only filters. For mixed filters (non-NO_VALUE +
-   * NO_VALUE), only the non-NO_VALUE values are included. NO_VALUE filters should remain in the
-   * WHERE clause, not in the CTE.
+   * Extracts filters as SQL, skipping filters that only ask for the no-value keyword. For a filter
+   * that mixes the keyword with actual values, only the actual values are included. No-value
+   * filters stay in the WHERE clause rather than moving into the CTE.
    *
    * @param item the query item
    * @param columnName the column name
    * @param params the event query parameters
-   * @return SQL conditions for non-NO_VALUE filters only
+   * @return SQL conditions for the actual values only
    */
-  public String extractNonNvFiltersAsSql(
+  public String extractActualValueFiltersAsSql(
       QueryItem item, String columnName, EventQueryParams params) {
     return item.getFilters().stream()
-        .filter(f -> hasNonNvValues(f, item))
+        .filter(f -> hasActualValues(f, item))
         .map(
             f -> {
               boolean needsResolution = requiresOrgUnitResolution(item);
@@ -234,13 +232,13 @@ public class QueryItemFilterBuilder {
                       ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits(), item)
                       : f.getFilter();
 
-              // For IN operator with mixed values, only include non-NO_VALUE values
+              // For IN operator with mixed values, only include the actual values
               if (f.getOperator() == IN) {
                 List<String> filterItems = QueryFilter.getFilterItems(resolvedFilter);
-                List<String> nonNvItems =
-                    filterItems.stream().filter(v -> !isNoValue(v, item.hasOptionSet())).toList();
-                if (!nonNvItems.isEmpty()) {
-                  return buildInClause(item, columnName, nonNvItems);
+                List<String> actualValues =
+                    filterItems.stream().filter(v -> !item.isNoValue(v)).toList();
+                if (!actualValues.isEmpty()) {
+                  return buildInClause(item, columnName, actualValues);
                 }
                 return "";
               }
@@ -252,14 +250,15 @@ public class QueryItemFilterBuilder {
   }
 
   /**
-   * Checks if a filter has any non-NO_VALUE values.
+   * Checks if a filter carries any actual value, i.e. any value other than the no-value keyword.
    *
    * @param filter the query filter
-   * @return true if the filter contains at least one non-NO_VALUE value
+   * @param item the query item the filter belongs to, which selects the no-value keyword
+   * @return true if the filter contains at least one actual value
    */
-  public boolean hasNonNvValues(QueryFilter filter, QueryItem item) {
+  public boolean hasActualValues(QueryFilter filter, QueryItem item) {
     List<String> filterItems = QueryFilter.getFilterItems(filter.getFilter());
-    return filterItems.stream().anyMatch(v -> !isNoValue(v, item.hasOptionSet()));
+    return filterItems.stream().anyMatch(v -> !item.isNoValue(v));
   }
 
   /**
@@ -285,7 +284,7 @@ public class QueryItemFilterBuilder {
    */
   private String getFilter(String filter, QueryItem item) {
     try {
-      if (!isNoValue(filter, item.hasOptionSet()) && item.getValueType() == ValueType.DATETIME) {
+      if (!item.isNoValue(filter) && item.getValueType() == ValueType.DATETIME) {
         return DateFormatUtils.format(
             DateUtils.parseDate(
                 filter,
