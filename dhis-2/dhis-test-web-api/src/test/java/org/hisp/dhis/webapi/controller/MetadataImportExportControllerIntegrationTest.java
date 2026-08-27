@@ -115,10 +115,8 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
   @DisplayName(
       "A program rule action with no programRule reference is reported against that object (atomicMode=ALL)")
   void testProgramRuleActionWithoutProgramRuleReference_atomicAll() {
-    // programRules[0].programRuleActions lists the action, but programRuleActions[0] carries no
-    // "programRule" property. This used to abort the whole import with a NullPointerException.
     JsonImportSummary summary =
-        POST("/metadata", Path.of(PROGRAM_RULE_ACTION_WITHOUT_RULE))
+        POST("/metadata?atomicMode=ALL", Path.of(PROGRAM_RULE_ACTION_WITHOUT_RULE))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
@@ -145,13 +143,12 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     assertEquals("WARNING", summary.getStatus());
     assertProgramRuleActionErrorIsVisible(summary);
 
-    // atomicMode=NONE, so only the offending action is skipped
+    // atomicMode=NONE, so only the invalid object is ignored
     assertStatus(HttpStatus.OK, GET("/programs/ProgramUid1"));
     assertStatus(HttpStatus.OK, GET("/programRules/PrgRuleUid1"));
     assertStatus(HttpStatus.NOT_FOUND, GET("/programRuleActions/PrgRuleAct1"));
 
-    // the rule is imported action-less: the skipped action is absent from its collection rather
-    // than left as a dangling reference
+    // the rule is imported without the action, rather than left as a dangling reference
     assertTrue(
         GET("/programRules/PrgRuleUid1?fields=programRuleActions[id]")
             .content()
@@ -160,8 +157,8 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
   }
 
   /**
-   * Asserts the failure is attributed to the offending {@link ProgramRuleAction} itself -- its
-   * class, bundle index and UID -- and not reported as a bare message on the import as a whole.
+   * Asserts the failure is attributed to the offending {@link ProgramRuleAction} itself in an
+   * import report.
    */
   private void assertProgramRuleActionErrorIsVisible(JsonImportSummary summary) {
     JsonTypeReport typeReport = summary.getTypeReport(ProgramRuleAction.class);
