@@ -9,23 +9,114 @@
   -->
 
   <defaultCache
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false" 
+    maxElementsInMemory="1000000"
+    eternal="false"
+    timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600"
+    overflowToDisk="false"
     diskPersistent="false" />
 
   <!-- Hibernate query cache -->
 
   <cache name="org.hibernate.cache.internal.StandardQueryCache"
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false" 
+    maxElementsInMemory="1000000"
+    eternal="false"
+    timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600"
+    overflowToDisk="false"
     diskPersistent="false" />
 
-  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" 
+  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
     maxElementsInMemory="5000" />
+
+  <!--
+    Predefined hot L2 regions (port of #24810's ehcache.xml change for Ehcache 2).
+    Region list and heap bounds are taken from #24810's measured hot set so the
+    busiest regions get their own sized, bounded cache instead of competing for
+    headroom in the shared default. TTL is capped at one hour to match #24810.
+    OptionSet.options is intentionally not predefined: that collection is left
+    uncached on this branch.
+  -->
+
+  <cache name="org.hisp.dhis.organisationunit.OrganisationUnit"
+    maxElementsInMemory="200000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryOption"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataelement.DataElement"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataset.DataSet"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataset.DataSetElement"
+    maxElementsInMemory="200000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.Category"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryOptionCombo"
+    maxElementsInMemory="500000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.User"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserGroup"
+    maxElementsInMemory="50000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserRole"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.program.Program"
+    maxElementsInMemory="10000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.period.PeriodType"
+    maxElementsInMemory="1000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.period.Period"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.option.Option"
+    maxElementsInMemory="200000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.trackedentity.TrackedEntityType"
+    maxElementsInMemory="1000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.organisationunit.OrganisationUnit.children"
+    maxElementsInMemory="200000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryCombo.categories"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryCombo.optionCombos"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.Category.categoryOptions"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.category.CategoryOptionCombo.categoryOptions"
+    maxElementsInMemory="500000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserGroup.managedGroups"
+    maxElementsInMemory="50000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserRole.restrictions"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.user.UserRole.authorities"
+    maxElementsInMemory="20000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataelement.DataElement.dataSetElements"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataelement.DataElement.groups"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
+  <cache name="org.hisp.dhis.dataelement.DataElement.legendSets"
+    maxElementsInMemory="100000" eternal="false" timeToIdleSeconds="3600"
+    timeToLiveSeconds="3600" overflowToDisk="false" diskPersistent="false" />
 </ehcache>
