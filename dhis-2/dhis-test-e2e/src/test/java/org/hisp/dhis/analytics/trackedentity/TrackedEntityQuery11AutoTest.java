@@ -63,6 +63,7 @@ public class TrackedEntityQuery11AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=10")
             .add("page=1")
+            .add("relativePeriodDate=2025-03-01")
             .add("dimension=ou:ImspTQPwCqd,ciq2USN94oJ:IN:D2__NOVALUE");
 
     // When

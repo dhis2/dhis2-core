@@ -167,12 +167,10 @@ public class MetadataParamsHandler {
         commonParsed.getDimensionIdentifiers()) {
       DimensionParam dimension = dimensionIdentifier.getDimension();
 
-      if (!isFilteredByNoValue(dimension)) {
-        continue;
+      if (isFilteredByNoValue(dimension)) {
+        QueryItem item = dimension.getQueryItem();
+        NoValueDimensions.append(dimensions, getItemUid(item), item.getItemId());
       }
-
-      QueryItem item = dimension.getQueryItem();
-      NoValueDimensions.append(dimensions, getItemUid(item), item.getItemId());
     }
   }
 
