@@ -54,7 +54,7 @@ import org.hibernate.cache.spi.support.RegionFactoryTemplate;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GuardedDomainDataRegion extends JCacheDomainDataRegionImpl {
+public class GuardedDomainDataRegion extends JCacheDomainDataRegionImpl { // NOSONAR java:S110
 
   /**
    * One guard per region instance, shared by every access object the region generates: sibling

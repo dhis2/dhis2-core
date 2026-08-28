@@ -53,7 +53,7 @@ import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -103,6 +103,8 @@ import org.junit.jupiter.api.Test;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class GuardedNonStrictCacheEffectTest {
+
+  private static final AtomicInteger DB_SEQ = new AtomicInteger();
 
   private static final long ENTITY_ID = 1L;
 
@@ -267,7 +269,7 @@ class GuardedNonStrictCacheEffectTest {
     registryBuilder.applySetting(AvailableSettings.DRIVER, "org.h2.Driver");
     registryBuilder.applySetting(
         AvailableSettings.URL,
-        "jdbc:h2:mem:guarded-nonstrict-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
+        "jdbc:h2:mem:guarded-nonstrict-" + DB_SEQ.incrementAndGet() + ";DB_CLOSE_DELAY=-1");
     registryBuilder.applySetting(AvailableSettings.USER, "sa");
     registryBuilder.applySetting(AvailableSettings.PASS, "");
     // The DHIS2 schema is owned by Flyway, but this test schema only exists in memory
@@ -388,7 +390,9 @@ class GuardedNonStrictCacheEffectTest {
 
     @Column private String name;
 
-    public ReadWriteEntity() {}
+    public ReadWriteEntity() {
+      // JPA requires a public no-arg constructor
+    }
 
     public Long getId() {
       return id;
