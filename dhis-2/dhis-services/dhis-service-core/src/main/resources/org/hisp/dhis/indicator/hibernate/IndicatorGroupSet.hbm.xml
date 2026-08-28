@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.indicator.IndicatorGroupSet" table="indicatorgroupset">
 
-    <cache usage="read-write"/>
+    <cache usage="nonstrict-read-write"/>
 
     <id name="id" column="indicatorgroupsetid">
       <generator class="native"/>
@@ -28,7 +28,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <list name="members" table="indicatorgroupsetmembers">
-      <cache usage="read-write"/>
+      <cache usage="nonstrict-read-write"/>
       <key column="indicatorgroupsetid"
            foreign-key="fk_indicatorgroupsetmembers_indicatorgroupsetid"/>
       <list-index column="sort_order" base="1"/>
