@@ -42,10 +42,10 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.cache.ehcache.internal.EhcacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.tool.schema.Action;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
-import org.hisp.dhis.cache.guard.GuardedEhcacheRegionFactory;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -149,8 +149,7 @@ public class HibernateConfig {
 
     if (dhisConfig.isEnabled(USE_SECOND_LEVEL_CACHE)) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
-      properties.put(
-          AvailableSettings.CACHE_REGION_FACTORY, GuardedEhcacheRegionFactory.class.getName());
+      properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
       // Normalize to true/false: Hibernate parses this value itself and does not understand
       // the on/off variants allowed in dhis.conf.
       properties.put(
