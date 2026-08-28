@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataelement.DataElementGroup" table="dataelementgroup">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="dataelementgroupid">
       <generator class="native" />
@@ -24,14 +24,14 @@
     <property name="translations" type="jblTranslations"/>
 
     <set name="members" table="dataelementgroupmembers">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="dataelementgroupid" foreign-key="fk_dataelementgroupmembers_dataelementgroupid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
         foreign-key="fk_dataelementgroup_dataelementid" />
     </set>
 
     <set name="groupSets" table="dataelementgroupsetmembers" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="dataelementgroupid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementGroupSet" column="dataelementgroupsetid" />
     </set>

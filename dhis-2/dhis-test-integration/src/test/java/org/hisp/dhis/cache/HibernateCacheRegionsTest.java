@@ -58,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * JCache {@link CacheManager} runs on the ehcache provider default configuration, not on
  * ehcache.xml. Also proves the per-flow region behavior on real production mappings: a second
  * entity load by id is a region hit, and a collection region hit rehydrates every element
- * individually through the entity region (N+1 on hit).
+ * individually through the entity region (F5, N+1 on hit).
  *
  * @author Morten Svanæs
  */

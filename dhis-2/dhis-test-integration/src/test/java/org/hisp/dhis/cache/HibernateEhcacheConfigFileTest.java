@@ -46,6 +46,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.cache.HibernateEhcacheConfigFileTest.DhisConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.test.config.PostgresTestConfigOverride;
@@ -86,6 +87,13 @@ class HibernateEhcacheConfigFileTest extends PostgresIntegrationTestBase {
   /** Heap bound from the ehcache.xml default cache template (jsr107:defaults). */
   private static final long EHCACHE_XML_TEMPLATE_HEAP_ENTRIES = 1_000_000;
 
+  /**
+   * Heap bound declared explicitly for the predefined {@code org.hisp.dhis.user.User} region in
+   * ehcache.xml. Hot regions are declared individually so they can be sized and stored by
+   * reference; the rest still inherit the default template above.
+   */
+  private static final long EHCACHE_XML_USER_HEAP_ENTRIES = 100_000;
+
   @Autowired private EntityManagerFactory entityManagerFactory;
 
   @Test
@@ -105,10 +113,17 @@ class HibernateEhcacheConfigFileTest extends PostgresIntegrationTestBase {
   void regionsCarryTheEhcacheXmlHeapBounds() {
     CacheManager cacheManager = cacheManager();
 
+    // Attribute has no explicit <cache> element, so it must inherit the default template.
     assertEquals(
         EHCACHE_XML_TEMPLATE_HEAP_ENTRIES,
+        heapEntries(cacheManager, Attribute.class.getName()),
+        "entity regions without an explicit declaration must carry the heap bound of the"
+            + " ehcache.xml default template");
+    // User is declared explicitly in ehcache.xml and must carry its own bound, not the template's.
+    assertEquals(
+        EHCACHE_XML_USER_HEAP_ENTRIES,
         heapEntries(cacheManager, User.class.getName()),
-        "entity regions must carry the heap bound of the ehcache.xml default template");
+        "explicitly declared entity regions must carry their own ehcache.xml heap bound");
     assertEquals(
         EHCACHE_XML_TIMESTAMPS_HEAP_ENTRIES,
         heapEntries(cacheManager, "default-update-timestamps-region"),
