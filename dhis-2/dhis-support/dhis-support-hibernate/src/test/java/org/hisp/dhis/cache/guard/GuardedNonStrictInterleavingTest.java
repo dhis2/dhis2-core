@@ -216,7 +216,7 @@ class GuardedNonStrictInterleavingTest {
         arguments(
             "unlockItem", (WriterPath) (access, session) -> access.unlockItem(session, KEY, null)),
         arguments("remove", (WriterPath) (access, session) -> access.remove(session, KEY)),
-        arguments("removeAll", (WriterPath) (access, session) -> access.removeAll(session)),
+        arguments("removeAll", (WriterPath) GuardedEntityNonStrictReadWriteAccess::removeAll),
         arguments("evict", (WriterPath) (access, session) -> access.evict(KEY)),
         arguments("evictAll", (WriterPath) (access, session) -> access.evictAll()),
         // unlockRegion reaches storage through clearCache, not through evictAll, so it needs an
@@ -305,7 +305,8 @@ class GuardedNonStrictInterleavingTest {
         arguments(
             "remove", (CollectionWriterPath) (access, session) -> access.remove(session, KEY)),
         arguments(
-            "removeAll", (CollectionWriterPath) (access, session) -> access.removeAll(session)),
+            "removeAll",
+            (CollectionWriterPath) GuardedCollectionNonStrictReadWriteAccess::removeAll),
         arguments("evict", (CollectionWriterPath) (access, session) -> access.evict(KEY)),
         arguments("evictAll", (CollectionWriterPath) (access, session) -> access.evictAll()),
         arguments(

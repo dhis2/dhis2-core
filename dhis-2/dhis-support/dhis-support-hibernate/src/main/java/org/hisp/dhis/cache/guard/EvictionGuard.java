@@ -78,7 +78,7 @@ public final class EvictionGuard {
   private final AtomicLong regionClearTimestamp = new AtomicLong(Long.MIN_VALUE);
 
   /** The only mutable state reachable by readers, always replaced as a whole. */
-  private volatile Generations generations;
+  private volatile Generations generations; // NOSONAR java:S3077 - replaced as a whole
 
   public EvictionGuard() {
     this(System::nanoTime, DEFAULT_WINDOW_NANOS);
