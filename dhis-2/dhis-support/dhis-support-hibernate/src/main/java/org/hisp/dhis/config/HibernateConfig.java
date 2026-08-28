@@ -195,5 +195,4 @@ public class HibernateConfig {
     }
     return ArrayUtils.EMPTY_STRING_ARRAY;
   }
-
 }
