@@ -329,6 +329,7 @@ public enum ErrorCode {
   E4055("User needs to have at least one user role associated with it"),
   E4050(
       "One of DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`"),
+  E4093("ProgramRuleAction `{0}` must reference a program rule"),
 
   /* ProgramRuleVariable validation */
   E4051("A program rule variable with name `{0}` and program uid `{1}` already exists"),
