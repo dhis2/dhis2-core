@@ -29,26 +29,19 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.AggregationType.MAX;
-import static org.hisp.dhis.analytics.AggregationType.MAX_SUM_ORG_UNIT;
-import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.MIN_SUM_ORG_UNIT;
 import static org.hisp.dhis.test.TestBase.createDataElement;
-import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Set;
+import java.util.function.IntFunction;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -76,6 +69,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** Unit tests for {@link OrganisationUnitResolver}. */
 @ExtendWith(MockitoExtension.class)
 class OrganisationUnitResolverTest {
+
+  private static final String OU_COLUMN = "ax.\"ou\"";
+
+  /** Renders the uidlevel column for a level, the way the analytics managers do. */
+  private static final IntFunction<String> LEVEL_COLUMN = level -> "ax.\"uidlevel" + level + "\"";
 
   @Mock private DimensionalObjectProvider dimensionalObjectProducer;
 
@@ -233,116 +231,49 @@ class OrganisationUnitResolverTest {
   }
 
   @Test
-  void
-      getMinOrMaxOrgUnitAggregationIfAnyReturnsGivenTypeWhenAggregationTypeIsNotMinOrMaxSumOrgUnit() {
+  void getParentOrgUnitExpressionReturnsCaseExpressionWalkingLevelsUpwards() {
     // Given
-    AnalyticsAggregationType givenType = AnalyticsAggregationType.SUM;
+    when(organisationUnitService.getFilledOrganisationUnitLevels())
+        .thenReturn(List.of(level(1), level(2), level(3)));
 
     // When
-    AnalyticsAggregationType result =
-        resolver.getMinOrMaxOrgUnitAggregationIfAny(List.of(), AggregationType.SUM, givenType);
+    String result = resolver.getParentOrgUnitExpression(OU_COLUMN, LEVEL_COLUMN);
 
     // Then
-    assertSame(givenType, result);
+    assertEquals(
+        "case when ax.\"uidlevel3\" = ax.\"ou\" then ax.\"uidlevel2\""
+            + " when ax.\"uidlevel2\" = ax.\"ou\" then ax.\"uidlevel1\""
+            + " else ax.\"ou\" end",
+        result);
   }
 
   @Test
-  void
-      getMinOrMaxOrgUnitAggregationIfAnyReturnsNullWhenAggregationTypeIsNotMinOrMaxSumOrgUnitAndGivenTypeIsNull() {
-    // When
-    AnalyticsAggregationType result =
-        resolver.getMinOrMaxOrgUnitAggregationIfAny(List.of(), AggregationType.SUM, null);
-
-    // Then
-    assertNull(result);
-  }
-
-  @Test
-  void
-      getMinOrMaxOrgUnitAggregationIfAnyReturnsMaxAggregationWhenMaxSumOrgUnitAndOrgUnitListIsEmpty() {
-    // When
-    AnalyticsAggregationType result =
-        resolver.getMinOrMaxOrgUnitAggregationIfAny(List.of(), MAX_SUM_ORG_UNIT, null);
-
-    // Then
-    assertEquals(new AnalyticsAggregationType(MAX, MAX), result);
-  }
-
-  @Test
-  void
-      getMinOrMaxOrgUnitAggregationIfAnyReturnsMinAggregationWhenMinSumOrgUnitAndOrgUnitListIsEmpty() {
-    // When
-    AnalyticsAggregationType result =
-        resolver.getMinOrMaxOrgUnitAggregationIfAny(List.of(), MIN_SUM_ORG_UNIT, null);
-
-    // Then
-    assertEquals(new AnalyticsAggregationType(MIN, MIN), result);
-  }
-
-  @Test
-  void
-      getMinOrMaxOrgUnitAggregationIfAnyReturnsMaxAggregationWhenMaxSumOrgUnitAndNoOrgUnitHasChildren() {
+  void getParentOrgUnitExpressionReturnsOrgUnitColumnWhenOnlyOneLevelExists() {
     // Given
-    OrganisationUnit ouA = createOrganisationUnit('A');
+    when(organisationUnitService.getFilledOrganisationUnitLevels()).thenReturn(List.of(level(1)));
 
     // When
-    AnalyticsAggregationType result =
-        resolver.getMinOrMaxOrgUnitAggregationIfAny(List.of(ouA), MAX_SUM_ORG_UNIT, null);
+    String result = resolver.getParentOrgUnitExpression(OU_COLUMN, LEVEL_COLUMN);
 
     // Then
-    assertEquals(new AnalyticsAggregationType(MAX, MAX), result);
+    assertEquals("ax.\"ou\"", result);
   }
 
   @Test
-  void getMinOrMaxOrgUnitAggregationIfAnyReturnsGivenTypeWhenMaxSumOrgUnitAndOrgUnitHasChildren() {
+  void getParentOrgUnitExpressionReturnsOrgUnitColumnWhenNoLevelsExist() {
     // Given
-    OrganisationUnit ouChild = createOrganisationUnit('B');
-    OrganisationUnit ouA = createOrganisationUnit('A');
-    ouA.setChildren(Set.of(ouChild));
-
-    AnalyticsAggregationType givenType = AnalyticsAggregationType.SUM;
+    when(organisationUnitService.getFilledOrganisationUnitLevels()).thenReturn(List.of());
 
     // When
-    AnalyticsAggregationType result =
-        resolver.getMinOrMaxOrgUnitAggregationIfAny(List.of(ouA), MAX_SUM_ORG_UNIT, givenType);
+    String result = resolver.getParentOrgUnitExpression(OU_COLUMN, LEVEL_COLUMN);
 
     // Then
-    assertSame(givenType, result);
+    assertEquals("ax.\"ou\"", result);
   }
 
-  @Test
-  void getMinOrMaxOrgUnitAggregationIfAnyReturnsGivenTypeWhenMinSumOrgUnitAndOrgUnitHasChildren() {
-    // Given
-    OrganisationUnit ouChild = createOrganisationUnit('B');
-    OrganisationUnit ouA = createOrganisationUnit('A');
-    ouA.setChildren(Set.of(ouChild));
-
-    AnalyticsAggregationType givenType = AnalyticsAggregationType.SUM;
-
-    // When
-    AnalyticsAggregationType result =
-        resolver.getMinOrMaxOrgUnitAggregationIfAny(List.of(ouA), MIN_SUM_ORG_UNIT, givenType);
-
-    // Then
-    assertSame(givenType, result);
-  }
-
-  @Test
-  void
-      getMinOrMaxOrgUnitAggregationIfAnyOnlyConsidersTheLastOrgUnitInTheListWhenCheckingForChildren() {
-    // Given: the first org unit has children, but the last one doesn't. The method only inspects
-    // the last org unit in the loop, so it behaves as if none of the org units had children.
-    OrganisationUnit ouChild = createOrganisationUnit('B');
-    OrganisationUnit ouWithChildren = createOrganisationUnit('A');
-    ouWithChildren.setChildren(Set.of(ouChild));
-    OrganisationUnit ouWithoutChildren = createOrganisationUnit('C');
-
-    // When
-    AnalyticsAggregationType result =
-        resolver.getMinOrMaxOrgUnitAggregationIfAny(
-            List.of(ouWithChildren, ouWithoutChildren), MAX_SUM_ORG_UNIT, null);
-
-    // Then
-    assertEquals(new AnalyticsAggregationType(MAX, MAX), result);
+  private static OrganisationUnitLevel level(int level) {
+    OrganisationUnitLevel organisationUnitLevel = new OrganisationUnitLevel();
+    organisationUnitLevel.setLevel(level);
+    return organisationUnitLevel;
   }
 }

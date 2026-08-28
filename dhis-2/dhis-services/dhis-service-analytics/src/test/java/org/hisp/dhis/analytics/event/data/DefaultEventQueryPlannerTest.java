@@ -81,8 +81,6 @@ class DefaultEventQueryPlannerTest extends TestBase {
 
   @Mock private PartitionManager partitionManager;
 
-  @Mock private OrganisationUnitResolver organisationUnitResolver;
-
   @InjectMocks private DefaultEventQueryPlanner eventQueryPlanner;
 
   private Program program;

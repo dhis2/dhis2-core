@@ -48,7 +48,6 @@ import static org.apache.commons.lang3.math.NumberUtils.createDouble;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
-import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
@@ -126,9 +125,9 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
@@ -233,6 +232,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return new AggregateClause(sql, type, innerExpression);
     }
   }
+
+  /** Separator between a select expression and its output column name. */
+  private static final String AS_SEPARATOR = " as ";
+
+  /** Output column alias holding the aggregated value. */
+  private static final String VALUE_ALIAS = "value";
+
+  /** Output column alias holding the parent organisation unit of the row organisation unit. */
+  private static final String PARENT_OU_ALIAS = "parentou";
 
   protected static final String COL_COUNT = "count";
 
@@ -826,11 +834,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     List<String> columns =
         union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
 
+    List<String> minOrMaxOrgUnitAliases = getMinOrMaxOrgUnitAliases(params, columns);
+    boolean minOrMaxOrgUnit = minOrMaxOrgUnitAliases != null;
+
     String sql =
         TextUtils.removeLastComma(
             "select "
                 + aggregateClause.sql()
-                + " as value,"
+                + " as "
+                + VALUE_ALIAS
+                + ","
+                + (minOrMaxOrgUnit
+                    ? getParentOrgUnitExpression(params) + " as " + PARENT_OU_ALIAS + ","
+                    : "")
                 + StringUtils.join(columns, ",")
                 + " ");
 
@@ -845,7 +861,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sql += whereClause;
     sql += getAdditionalQueryItemWhereClause(params, whereClause);
 
-    sql += getGroupByClause(params);
+    sql +=
+        minOrMaxOrgUnit
+            ? getGroupByClause(params, getMinOrMaxOrgUnitGroupByColumns(params))
+            : getGroupByClause(params);
+
+    if (minOrMaxOrgUnit) {
+      sql = getMinOrMaxOrgUnitSql(params, sql, minOrMaxOrgUnitAliases);
+      aggregateClause =
+          AggregateClause.of("sum(" + VALUE_ALIAS + ")", AggregationType.SUM, VALUE_ALIAS);
+    }
 
     // ---------------------------------------------------------------------
     // Sort order
@@ -892,6 +917,133 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * Returns the output column names of the select columns of an aggregate query when the query is
+   * eligible for MIN or MAX organisation unit aggregation, or {@code null} when it is not.
+   *
+   * <p>Eligible queries are aggregate program indicator queries whose aggregation type is {@link
+   * AggregationType#MIN_SUM_ORG_UNIT} or {@link AggregationType#MAX_SUM_ORG_UNIT}. Program
+   * indicators with non default analytics period boundaries are excluded, as those queries hard
+   * code the period into the select clause.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param columns the select columns of the query.
+   * @return the output column names, or null if the query must not be wrapped.
+   */
+  private List<String> getMinOrMaxOrgUnitAliases(EventQueryParams params, List<String> columns) {
+    if (params.isAggregation()
+        || params.hasProgramIndicatorDimension()
+        || !params.hasProgramIndicatorDimension()
+            && (params.getValue() != null
+                && params.getValue().getAggregationType().isMinOrMaxInPeriodAggregationType())
+        || !params.hasNonDefaultBoundaries()
+        || params.getAggregationTypeFallback().isMinOrMaxInPeriodAggregationType()) {
+      return getOutputColumnNames(columns);
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns the output column name of each of the given select columns, so that a wrapping query
+   * can carry every column of the inner query through by name.
+   *
+   * <p>Select columns are rendered as {@code expression as alias}, or as a bare column name when no
+   * alias is needed. A column whose output name cannot be referenced from a wrapping query, being
+   * either a qualified column with no alias or an expression, makes the whole query ineligible for
+   * wrapping rather than producing SQL that does not resolve. Duplicate names are rejected for the
+   * same reason, as referencing them from a wrapping query would be ambiguous.
+   *
+   * @param columns the select columns.
+   * @return the output column names, or null if any name could not be derived.
+   */
+  private List<String> getOutputColumnNames(List<String> columns) {
+    List<String> names = new ArrayList<>();
+
+    for (String column : columns) {
+      int index = column.lastIndexOf(AS_SEPARATOR);
+      String name = (index >= 0 ? column.substring(index + AS_SEPARATOR.length()) : column).trim();
+
+      if (name.isEmpty() || name.contains(".") || name.contains("(") || names.contains(name)) {
+        return null;
+      }
+
+      names.add(name);
+    }
+
+    return names;
+  }
+
+  /**
+   * Returns the additional group by columns for the innermost level of a MIN or MAX organisation
+   * unit aggregation, being the parent organisation unit and the organisation unit of the row.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return the additional group by columns.
+   */
+  private List<String> getMinOrMaxOrgUnitGroupByColumns(EventQueryParams params) {
+    String ouColumn =
+        params.getOrgUnitField().withSqlBuilder(sqlBuilder).getOrgUnitWhereCol(getAnalyticsType());
+    String parentExpression = getParentOrgUnitExpression(params);
+
+    return parentExpression.equals(ouColumn)
+        ? List.of(ouColumn)
+        : List.of(parentExpression, ouColumn);
+  }
+
+  /**
+   * Returns a SQL expression resolving the parent organisation unit of the organisation unit of
+   * each row.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a SQL expression.
+   */
+  private String getParentOrgUnitExpression(EventQueryParams params) {
+    OrgUnitField orgUnitField = params.getOrgUnitField().withSqlBuilder(sqlBuilder);
+
+    return organisationUnitResolver.getParentOrgUnitExpression(
+        orgUnitField.getOrgUnitWhereCol(getAnalyticsType()),
+        level -> orgUnitField.getOrgUnitLevelCol(level, getAnalyticsType()));
+  }
+
+  /**
+   * Wraps the given aggregate program indicator query so that the value of an organisation unit is
+   * the MIN or MAX across its children, and values are only summed above that level.
+   *
+   * <p>Aggregation happens in three levels. The given query is the innermost one and produces one
+   * row per parent organisation unit, organisation unit and output dimension, holding the value
+   * summed within that organisation unit. The second level reduces the children of each parent
+   * organisation unit with MIN or MAX. The third level sums those values up to the requested output
+   * dimensions.
+   *
+   * <p>So for a hierarchy T &gt; (P1, P2) with P1 &gt; (A, B) and P2 &gt; (C, D), P1 yields {@code
+   * max(A, B)}, P2 yields {@code max(C, D)} and T yields {@code max(A, B) + max(C, D)}. When the
+   * requested output organisation units are the children themselves, the child column is part of
+   * the second level grouping and the MIN or MAX reduces to the value of that child.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param childSql the innermost query, aggregating within each organisation unit.
+   * @param aliases the output column names carried through all three levels.
+   * @return the wrapped SQL query.
+   */
+  private String getMinOrMaxOrgUnitSql(
+      EventQueryParams params, String childSql, List<String> aliases) {
+    String aliasList = getCommaDelimitedString(aliases);
+    String trailingAliases = aliases.isEmpty() ? "" : "," + aliasList;
+    String outerGroupBy = aliases.isEmpty() ? "" : "group by " + aliasList + " ";
+
+    // Using "+" as it makes the code much more readable in such cases.
+    // spotless:off
+    return "select sum(" + VALUE_ALIAS + ") as " + VALUE_ALIAS + trailingAliases + " " +
+        "from (" +
+            "select sum(" + VALUE_ALIAS + ") as " + VALUE_ALIAS + "," + PARENT_OU_ALIAS + trailingAliases + " " +
+            "from (" + childSql + ") as " + ANALYTICS_TBL_ALIAS + " " +
+            "group by " + PARENT_OU_ALIAS + trailingAliases + " " +
+        ") as " + ANALYTICS_TBL_ALIAS + " " +
+        outerGroupBy;
+    // spotless:on
+  }
+
+  /**
    * Returns the SQL fragment for QueryItem filters that must be appended after the base WHERE
    * clause.
    *
@@ -924,13 +1076,25 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return a group by SQL clause.
    */
   private String getGroupByClause(EventQueryParams params) {
+    return getGroupByClause(params, List.of());
+  }
+
+  /**
+   * Returns a group by SQL clause with additional grouping columns appended.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param extraColumns additional columns or expressions to group by.
+   * @return a group by SQL clause.
+   */
+  private String getGroupByClause(EventQueryParams params, List<String> extraColumns) {
     String sql = "";
 
     if (params.isAggregation()) {
       List<String> selectColumnNames =
           union(
               getGroupByColumnNames(params, true),
-              piDisagQueryGenerator.getCocColumnsForGroupBy(params));
+              piDisagQueryGenerator.getCocColumnsForGroupBy(params),
+              extraColumns);
 
       if (isNotEmpty(selectColumnNames)) {
         sql += "group by " + getCommaDelimitedString(selectColumnNames) + " ";
@@ -1018,7 +1182,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     EventOutputType outputType = params.getOutputType();
 
-    AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
+    AggregationType aggregationType =
+        params.getAggregationTypeFallback().getPeriodAggregationType();
 
     String function =
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
@@ -1031,10 +1196,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       String sql = function + "(value)";
       return AggregateClause.of(sql, aggregationType, "value");
     } else if (params.hasNumericValueDimension() || params.hasBooleanValueDimension()) {
-      if (params.getValue() != null && params.getValue().hasAggregationType()) {
-        function = getMinOrMaxOrgUnitAggregationFunction(params, aggregationType, function);
-      }
-
       String expression = quoteAlias(params.getValue().getUid());
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
@@ -1048,12 +1209,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                   params.getProgramIndicator(),
                   params.getEarliestStartDate(),
                   params.getLatestEndDate());
-
-      aggregationType = params.getProgramIndicator().getAggregationType();
-
-      if (aggregationType != null && aggregationType.isSqlCompatible()) {
-        function = getMinOrMaxOrgUnitAggregationFunction(params, aggregationType, function);
-      }
 
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
@@ -1085,20 +1240,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
-  }
-
-  private String getMinOrMaxOrgUnitAggregationFunction(
-      EventQueryParams params, AggregationType aggregationType, String function) {
-    AnalyticsAggregationType analyticsAggregationType = fromAggregationType(aggregationType);
-
-    analyticsAggregationType =
-        organisationUnitResolver.getMinOrMaxOrgUnitAggregationIfAny(
-            params.getAllOrganisationUnits(), aggregationType, analyticsAggregationType);
-
-    if (analyticsAggregationType != null) {
-      function = analyticsAggregationType.getAggregationType().getValue();
-    }
-    return function;
   }
 
   /**

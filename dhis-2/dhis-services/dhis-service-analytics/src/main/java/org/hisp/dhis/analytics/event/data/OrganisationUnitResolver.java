@@ -31,10 +31,6 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-import static org.hisp.dhis.analytics.AggregationType.MAX;
-import static org.hisp.dhis.analytics.AggregationType.MAX_SUM_ORG_UNIT;
-import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.MIN_SUM_ORG_UNIT;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -50,15 +46,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.analytics.util.sql.OrgUnitHierarchySql;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -401,42 +397,27 @@ public class OrganisationUnitResolver {
   }
 
   /**
-   * Based on the given org. units and dimension aggregation types, this method checks if there is
-   * any child in the hierarchy. If there is none, it returns MAX or MIN, depending on the given
-   * "aggregationType". If no rule is matched it returns the given "aggregationType" itself.
+   * Returns a SQL expression resolving, for each analytics row, the UID of the parent organisation
+   * unit of the row's own organisation unit. Grouping by this expression puts sibling organisation
+   * units into the same group, which lets MIN or MAX be taken across the children of an
+   * organisation unit before the resulting values are summed up the hierarchy.
    *
-   * @param allOrgUnits a list of org. units.
-   * @param aggregationType the current {@link AggregationType}.
-   * @param analyticsAggregationType the current {@link AnalyticsAggregationType}.
-   * @return the OU {@link AnalyticsAggregationType}, or the given one.
+   * <p>The expression walks the {@code uidlevelN} columns from the deepest filled level upwards and
+   * yields the level above the one matching the row's own organisation unit. Rows whose
+   * organisation unit sits at level one have no parent and resolve to the organisation unit itself.
+   *
+   * @param ouColumn the qualified and quoted column holding the row's organisation unit UID.
+   * @param levelColumn maps an organisation unit level to its qualified {@code uidlevelN} column.
+   * @return a SQL {@code case} expression, or {@code ouColumn} when only one level exists.
    */
-  public AnalyticsAggregationType getMinOrMaxOrgUnitAggregationIfAny(
-      List<DimensionalItemObject> allOrgUnits,
-      AggregationType aggregationType,
-      AnalyticsAggregationType analyticsAggregationType) {
+  public String getParentOrgUnitExpression(String ouColumn, IntFunction<String> levelColumn) {
+    int maxLevel =
+        organisationUnitService.getFilledOrganisationUnitLevels().stream()
+            .mapToInt(OrganisationUnitLevel::getLevel)
+            .max()
+            .orElse(1);
 
-    if (aggregationType != MAX_SUM_ORG_UNIT && aggregationType != MIN_SUM_ORG_UNIT) {
-      return analyticsAggregationType;
-    }
-
-    boolean isMaxOrgUnit = aggregationType == MAX_SUM_ORG_UNIT;
-    boolean isMinOrgUnit = aggregationType == MIN_SUM_ORG_UNIT;
-    boolean hasAnyChild = false;
-
-    for (DimensionalItemObject dimensionalItemObject : allOrgUnits) {
-      OrganisationUnit organisationUnit = (OrganisationUnit) dimensionalItemObject;
-      hasAnyChild = organisationUnit.hasChild();
-    }
-
-    if (isMaxOrgUnit && !hasAnyChild) {
-      analyticsAggregationType = new AnalyticsAggregationType(MAX, MAX);
-    }
-
-    if (isMinOrgUnit && !hasAnyChild) {
-      analyticsAggregationType = new AnalyticsAggregationType(MIN, MIN);
-    }
-
-    return analyticsAggregationType;
+    return OrgUnitHierarchySql.getParentOrgUnitExpression(maxLevel, ouColumn, levelColumn);
   }
 
   /**

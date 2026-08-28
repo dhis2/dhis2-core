@@ -611,14 +611,14 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     withIndicator(inA, "#{" + deA.getUid() + "}.aggregationType(MAX_SUM_ORG_UNIT)");
     withIndicator(inB, "#{" + deA.getUid() + "}.aggregationType(MIN_SUM_ORG_UNIT)");
 
-    // Find max and min values inside periods within each orgUnit
-    // over a larger period:
+    // ouD and ouE have no children, so each one holds its own summed value and there is
+    // nothing to take a MIN or MAX across. ouD is 66 + 233 = 299, ouE is 1:
     assertDataValues(
         Map.of(
             "indicatorAA-ouabcdefghD-2017Q1",
-            233.0,
+            299.0,
             "indicatorBB-ouabcdefghD-2017Q1",
-            66.0,
+            299.0,
             "indicatorAA-ouabcdefghE-2017Q1",
             1.0,
             "indicatorBB-ouabcdefghE-2017Q1",
@@ -631,8 +631,8 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build());
 
-    // Find max and min values inside periods within each orgUnit
-    // with a period filter that skips a period between start and end:
+    // Same, with a period filter that skips a period between start and end, so only the
+    // January value of ouD is summed:
     assertDataValues(
         Map.of(
             "indicatorAA-ouabcdefghD",
@@ -651,11 +651,12 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build());
 
-    // Sum the max/min values across different orgUnits
-    // over a larger period:
-    // (Note: orgUnit B is parent of D and E and also has value 1.)
+    // ouB is the parent of ouD and ouE, so the MIN or MAX is taken across those two, and
+    // ouB's own value is summed on top of it, not compared against its children.
+    // ouD is 299, ouE is 1, ouB's own value is 1, so max is 1 + max(299, 1) = 300 and
+    // min is 1 + min(299, 1) = 2:
     assertDataValues(
-        Map.of("indicatorAA-ouabcdefghB-2017Q1", 235.0, "indicatorBB-ouabcdefghB-2017Q1", 68.0),
+        Map.of("indicatorAA-ouabcdefghB-2017Q1", 300.0, "indicatorBB-ouabcdefghB-2017Q1", 2.0),
         DataQueryParams.newBuilder()
             .withOrganisationUnit(ouB)
             .withIndicators(List.of(inA, inB))
@@ -664,10 +665,9 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build());
 
-    // Sum the max/min values across different orgUnits
-    // with a list of periods in the filter:
+    // Same, with the whole quarter given as a list of periods in the filter:
     assertDataValues(
-        Map.of("indicatorAA-ouabcdefghB", 235.0, "indicatorBB-ouabcdefghB", 68.0),
+        Map.of("indicatorAA-ouabcdefghB", 300.0, "indicatorBB-ouabcdefghB", 2.0),
         DataQueryParams.newBuilder()
             .withOrganisationUnit(ouB)
             .withIndicators(List.of(inA, inB))
