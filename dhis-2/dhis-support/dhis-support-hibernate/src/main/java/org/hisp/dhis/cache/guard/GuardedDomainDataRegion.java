@@ -33,28 +33,27 @@ import org.hibernate.cache.cfg.spi.CollectionDataCachingConfig;
 import org.hibernate.cache.cfg.spi.DomainDataRegionBuildingContext;
 import org.hibernate.cache.cfg.spi.DomainDataRegionConfig;
 import org.hibernate.cache.cfg.spi.EntityDataCachingConfig;
-import org.hibernate.cache.jcache.internal.JCacheDomainDataRegionImpl;
 import org.hibernate.cache.spi.CacheKeysFactory;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cache.spi.access.CollectionDataAccess;
 import org.hibernate.cache.spi.access.EntityDataAccess;
+import org.hibernate.cache.spi.support.DomainDataRegionImpl;
 import org.hibernate.cache.spi.support.DomainDataStorageAccess;
 import org.hibernate.cache.spi.support.RegionFactoryTemplate;
 
 /**
- * JCache domain data region whose NONSTRICT_READ_WRITE entity and collection accesses are {@link
+ * Domain data region whose NONSTRICT_READ_WRITE entity and collection accesses are {@link
  * GuardedEntityNonStrictReadWriteAccess} and {@link GuardedCollectionNonStrictReadWriteAccess}.
  * Every other access type is left exactly as Hibernate builds it.
  *
- * <p>Extends {@link JCacheDomainDataRegionImpl} rather than {@code DomainDataRegionTemplate}: that
- * is the region {@code JCacheRegionFactory} builds itself, and it downgrades a TRANSACTIONAL
- * mapping to a warning where the plain template would throw. Natural-id access is not overridden:
+ * <p>Extends {@link DomainDataRegionImpl}, the region {@code EhcacheRegionFactory} builds itself.
+ * Natural-id access is not overridden:
  * nothing in the NONSTRICT_READ_WRITE bucket uses it, and a guarded access with no caller would be
  * untested code.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GuardedDomainDataRegion extends JCacheDomainDataRegionImpl {
+public class GuardedDomainDataRegion extends DomainDataRegionImpl {
 
   /**
    * One guard per region instance, shared by every access object the region generates: sibling
