@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data.ou;
 
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -95,6 +96,28 @@ public final class OrgUnitSqlFragments {
             OrgUnitSqlConstants.ENROLLMENT_OU_NAME_COLUMN)
         + " as "
         + OrgUnitSqlConstants.ENROLLMENT_OU_NAME_RESULT_ALIAS;
+  }
+
+  /**
+   * Builds the sort column for an enrollment OU output column, reading it from the joined
+   * enrollment analytics table.
+   *
+   * @param item the output column name to sort on
+   * @param sqlBuilder database-specific SQL builder for column quoting
+   * @return the qualified enrollment table column, or empty when the item is not an enrollment OU
+   *     output column
+   */
+  public static Optional<String> sortColumn(String item, SqlBuilder sqlBuilder) {
+    String column = null;
+
+    if (OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS.equals(item)) {
+      column = OrgUnitSqlConstants.ENROLLMENT_OU_COLUMN;
+    } else if (OrgUnitSqlConstants.ENROLLMENT_OU_NAME_RESULT_ALIAS.equals(item)) {
+      column = OrgUnitSqlConstants.ENROLLMENT_OU_NAME_COLUMN;
+    }
+
+    return Optional.ofNullable(column)
+        .map(col -> sqlBuilder.quote(OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS, col));
   }
 
   /**

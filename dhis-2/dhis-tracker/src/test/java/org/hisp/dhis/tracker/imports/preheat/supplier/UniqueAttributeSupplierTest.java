@@ -92,7 +92,7 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
   private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     params = TrackerObjects.builder().build();
     preheat = new TrackerPreheat();
     uniqueAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
@@ -138,7 +138,9 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
     when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
         .thenReturn(Collections.singletonList(uniqueAttribute));
     TrackerObjects importParams =
-        TrackerObjects.builder().trackedEntities(sameUniqueAttributeTrackedEntities()).build();
+        TrackerObjects.builder()
+            .trackedEntities(sameUniqueAttributeTrackedEntities(UNIQUE_VALUE))
+            .build();
 
     this.supplier.preheatAdd(importParams, preheat);
 
@@ -153,6 +155,35 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
         TrackerObjects.builder()
             .trackedEntities(Collections.singletonList(trackedEntity()))
             .enrollments(Collections.singletonList(enrollment(ANOTHER_TE_UID)))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertThat(preheat.getUniqueAttributeValues(), hasSize(2));
+  }
+
+  @Test
+  void shouldNotFlagAsDuplicateWhenUniqueAttributeValueIsNullForBothTrackedEntities() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder().trackedEntities(sameUniqueAttributeTrackedEntities(null)).build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertThat(preheat.getUniqueAttributeValues(), hasSize(0));
+  }
+
+  @Test
+  void shouldFlagAsDuplicateWhenUniqueAttributeValuesHaveDifferentCasing() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(
+                    trackedEntityWithAttributeValue(TE_UID, UNIQUE_VALUE.toUpperCase()),
+                    trackedEntityWithAttributeValue(ANOTHER_TE_UID, UNIQUE_VALUE.toLowerCase())))
             .build();
 
     this.supplier.preheatAdd(importParams, preheat);
@@ -202,13 +233,25 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
   }
 
   private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
-      sameUniqueAttributeTrackedEntities() {
+      sameUniqueAttributeTrackedEntities(String value) {
     return Lists.newArrayList(
-        trackedEntity(),
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(ANOTHER_TE_UID)
-            .attributes(Collections.singletonList(uniqueAttribute()))
-            .build());
+        trackedEntityWithAttributeValue(TE_UID, value),
+        trackedEntityWithAttributeValue(ANOTHER_TE_UID, value));
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityWithAttributeValue(
+      UID teUid, String value) {
+    return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+        .trackedEntity(teUid)
+        .attributes(Collections.singletonList(attributeWithValue(value)))
+        .build();
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.Attribute attributeWithValue(String value) {
+    return org.hisp.dhis.tracker.imports.domain.Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid(this.uniqueAttribute))
+        .value(value)
+        .build();
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity() {
@@ -236,9 +279,6 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
   }
 
   private org.hisp.dhis.tracker.imports.domain.Attribute uniqueAttribute() {
-    return org.hisp.dhis.tracker.imports.domain.Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid(this.uniqueAttribute))
-        .value(UNIQUE_VALUE)
-        .build();
+    return attributeWithValue(UNIQUE_VALUE);
   }
 }

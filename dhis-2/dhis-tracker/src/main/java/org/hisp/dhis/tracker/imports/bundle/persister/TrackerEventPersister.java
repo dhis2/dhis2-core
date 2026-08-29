@@ -363,6 +363,11 @@ public class TrackerEventPersister
         .collect(Collectors.toSet());
   }
 
+  @Override
+  protected Set<UID> getUpdatedSingleEvents(TrackerEvent entity) {
+    return Set.of();
+  }
+
   private boolean isNewDataValue(
       @CheckForNull EventDataValue eventDataValue, @Nonnull DataValue dv) {
     return eventDataValue == null && !StringUtils.isBlank(dv.getValue());
