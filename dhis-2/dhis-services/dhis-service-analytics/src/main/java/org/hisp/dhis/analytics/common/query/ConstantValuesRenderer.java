@@ -30,10 +30,8 @@
 package org.hisp.dhis.analytics.common.query;
 
 import static java.util.Collections.singleton;
-import static java.util.function.Predicate.isEqual;
-import static java.util.function.Predicate.not;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.QueryKey.isNoValue;
 
 import java.util.Collection;
 import java.util.List;
@@ -59,9 +57,28 @@ public class ConstantValuesRenderer extends BaseRenderable {
 
   private final Function<String, String> argumentTransformer;
 
+  /**
+   * Whether the dimension is backed by an option set. Selects the no-value keyword: {@code
+   * D2__NOVALUE} for option sets, {@code NV} otherwise.
+   */
+  private final boolean isOptionSet;
+
   public static ConstantValuesRenderer of(
       Object values, ValueTypeMapping valueTypeMapping, QueryContext queryContext) {
-    return of(values, valueTypeMapping, queryContext, valueTypeMapping.getArgumentTransformer());
+    return of(values, valueTypeMapping, queryContext, false);
+  }
+
+  public static ConstantValuesRenderer of(
+      Object values,
+      ValueTypeMapping valueTypeMapping,
+      QueryContext queryContext,
+      boolean isOptionSet) {
+    return of(
+        values,
+        valueTypeMapping,
+        queryContext,
+        valueTypeMapping.getArgumentTransformer(),
+        isOptionSet);
   }
 
   @Override
@@ -81,7 +98,7 @@ public class ConstantValuesRenderer extends BaseRenderable {
     List<String> valuesAsStringList =
         values.stream()
             .map(Object::toString)
-            .filter(not(isEqual(NV)))
+            .filter(value -> !isNoValue(value, isOptionSet))
             .map(argumentTransformer)
             .toList();
 
@@ -99,10 +116,12 @@ public class ConstantValuesRenderer extends BaseRenderable {
   public static boolean hasNullValue(Renderable renderableValues) {
     if (renderableValues instanceof ConstantValuesRenderer constantValuesRenderer) {
       Object values = constantValuesRenderer.getValues();
+      boolean isOptionSet = constantValuesRenderer.isOptionSet;
       if (values instanceof Collection) {
-        return ((Collection<?>) values).stream().anyMatch(isEqual(NV));
+        return ((Collection<?>) values)
+            .stream().anyMatch(value -> isNoValue(value.toString(), isOptionSet));
       }
-      return values.equals(NV);
+      return isNoValue(values.toString(), isOptionSet);
     }
     return false;
   }
@@ -114,6 +133,6 @@ public class ConstantValuesRenderer extends BaseRenderable {
   }
 
   public ConstantValuesRenderer withArgumentTransformer(UnaryOperator<String> valueTransformer) {
-    return of(values, valueTypeMapping, queryContext, valueTransformer);
+    return of(values, valueTypeMapping, queryContext, valueTransformer, isOptionSet);
   }
 }
