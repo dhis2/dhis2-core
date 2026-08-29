@@ -108,7 +108,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "categoryoptiongroupset")
 @Setter
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @JacksonXmlRootElement(localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0)
 public class CategoryOptionGroupSet extends BaseMetadataObject implements DimensionalObject {
   @Id
@@ -151,7 +151,7 @@ public class CategoryOptionGroupSet extends BaseMetadataObject implements Dimens
                   @ForeignKey(name = "fk_categoryoptiongroupsetmembers_categoryoptiongroupid")))
   @OrderColumn(name = "sort_order")
   @ListIndexBase(1)
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<CategoryOptionGroup> members = new ArrayList<>();
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
