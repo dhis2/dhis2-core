@@ -91,7 +91,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "categoryoptiongroup")
 @Setter
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @JacksonXmlRootElement(localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0)
 public class CategoryOptionGroup extends BaseMetadataObject
     implements DimensionalItemObject, IdentifiableObject {
@@ -125,11 +125,11 @@ public class CategoryOptionGroup extends BaseMetadataObject
           @JoinColumn(
               name = "categoryoptionid",
               foreignKey = @ForeignKey(name = "fk_categoryoptiongroupmembers_categoryoptionid")))
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryOption> members = new HashSet<>();
 
   @ManyToMany(fetch = FetchType.LAZY, mappedBy = "members")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
 
   @Enumerated(EnumType.STRING)
