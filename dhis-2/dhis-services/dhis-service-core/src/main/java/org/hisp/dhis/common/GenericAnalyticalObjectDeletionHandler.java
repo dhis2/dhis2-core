@@ -95,14 +95,6 @@ public abstract class GenericAnalyticalObjectDeletionHandler<
         AnalyticalObject::removeDataDimensionItem);
   }
 
-  /**
-   * Removes the given {@link ProgramIndicator} from the {@code programIndicatorDimensions} of any
-   * analytical object referencing it, e.g. as a disaggregation in a tracker/event line list.
-   * Unlike {@link #deleteProgramIndicator(ProgramIndicator)}, this only touches {@code
-   * programIndicatorDimensions} and must only be wired up for analytical object types that
-   * actually persist that collection (currently event visualizations, event reports and event
-   * charts), since it is not mapped on all {@link BaseAnalyticalObject} subtypes.
-   */
   protected final void deleteProgramIndicatorDimension(ProgramIndicator programIndicator) {
     List<T> analyticalObjects = service.getAnalyticalObjectsByDataDimension(programIndicator);
 
@@ -112,8 +104,6 @@ public abstract class GenericAnalyticalObjectDeletionHandler<
           .removeIf(
               dimension ->
                   dimension != null && programIndicator.equals(dimension.getProgramIndicator()));
-
-      service.update(analyticalObject);
     }
   }
 
