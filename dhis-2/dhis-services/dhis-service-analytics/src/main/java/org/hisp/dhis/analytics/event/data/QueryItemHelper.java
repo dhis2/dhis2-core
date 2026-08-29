@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -174,18 +175,23 @@ public class QueryItemHelper {
    *
    * @param grid the {@link Grid}.
    * @param queryItems the list of {@link QueryItem}.
+   * @param optionsResolver resolves the {@link Option}s belonging to an {@link OptionSet}. Callers
+   *     backed by a real persistence context should supply a resolver that fetches the options
+   *     directly (e.g. via a service call), rather than {@link OptionSet#getOptions()}, since that
+   *     lazy collection can degrade into one query per option under a cold second-level cache.
    * @return a map of list of options.
    */
-  public static Map<String, List<Option>> getItemOptions(Grid grid, List<QueryItem> queryItems) {
+  public static Map<String, List<Option>> getItemOptions(
+      Grid grid, List<QueryItem> queryItems, Function<OptionSet, List<Option>> optionsResolver) {
     Map<String, List<Option>> options = new HashMap<>();
 
     for (int i = 0; i < grid.getHeaders().size(); ++i) {
       GridHeader gridHeader = grid.getHeaders().get(i);
 
       if (gridHeader.hasOptionSet() && isNotEmpty(grid.getRows())) {
-        options.put(gridHeader.getName(), getItemOptionsThatMatchesRows(grid, i));
+        options.put(gridHeader.getName(), getItemOptionsThatMatchesRows(grid, i, optionsResolver));
       } else if (gridHeader.hasOptionSet() && isEmpty(grid.getRows())) {
-        options.put(gridHeader.getName(), getItemOptionsForEmptyRows(queryItems));
+        options.put(gridHeader.getName(), getItemOptionsForEmptyRows(queryItems, optionsResolver));
       }
     }
 
@@ -255,18 +261,14 @@ public class QueryItemHelper {
    * @param queryItems the {@link EventQueryParams}.
    * @return the options for empty rows.
    */
-  private static List<Option> getItemOptionsForEmptyRows(List<QueryItem> queryItems) {
+  private static List<Option> getItemOptionsForEmptyRows(
+      List<QueryItem> queryItems, Function<OptionSet, List<Option>> optionsResolver) {
     List<Option> options = new ArrayList<>();
 
     if (isNotEmpty(queryItems)) {
-      List<QueryItem> items = queryItems;
-
-      for (QueryItem item : items) {
-        boolean hasOptions =
-            item.getOptionSet() != null && isNotEmpty(item.getOptionSet().getOptions());
-
-        if (hasOptions && isNotEmpty(item.getFilters())) {
-          options.addAll(getItemOptionsForFilter(item));
+      for (QueryItem item : queryItems) {
+        if (item.getOptionSet() != null && isNotEmpty(item.getFilters())) {
+          options.addAll(getItemOptionsForFilter(item, optionsResolver));
         }
       }
     }
@@ -281,9 +283,12 @@ public class QueryItemHelper {
    *
    * @param grid the {@link Grid}.
    * @param columnIndex the column index.
+   * @param optionsResolver resolves the {@link Option}s belonging to an {@link OptionSet} without
+   *     going through {@link OptionSet#getOptions()}.
    * @return a list of matching options.
    */
-  private static List<Option> getItemOptionsThatMatchesRows(Grid grid, int columnIndex) {
+  private static List<Option> getItemOptionsThatMatchesRows(
+      Grid grid, int columnIndex, Function<OptionSet, List<Option>> optionsResolver) {
     if (grid == null || grid.getHeaders() == null || columnIndex < 0) {
       return Collections.emptyList();
     }
@@ -292,15 +297,11 @@ public class QueryItemHelper {
     }
 
     GridHeader gridHeader = grid.getHeaders().get(columnIndex);
-    if (gridHeader == null
-        || gridHeader.getOptionSetObject() == null
-        || gridHeader.getOptionSetObject().getOptions() == null) {
+    if (gridHeader == null || gridHeader.getOptionSetObject() == null) {
       return Collections.emptyList();
     }
 
-    List<Option> allOptions = gridHeader.getOptionSetObject().getOptions();
-    // Check if there are no options to filter or no rows to check against
-    if (allOptions.isEmpty() || grid.getRows() == null || grid.getRows().isEmpty()) {
+    if (grid.getRows() == null || grid.getRows().isEmpty()) {
       return Collections.emptyList();
     }
 
@@ -315,8 +316,13 @@ public class QueryItemHelper {
             .collect(Collectors.toSet());
 
     // If there are no distinct, non-null values in the rows for this column, no option can possibly
-    // match.
+    // match, so there is no need to resolve any options at all.
     if (distinctRowCellValues.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<Option> allOptions = optionsResolver.apply(gridHeader.getOptionSetObject());
+    if (allOptions == null || allOptions.isEmpty()) {
       return Collections.emptyList();
     }
 
@@ -400,10 +406,16 @@ public class QueryItemHelper {
    * @param item the {@link QueryItem}.
    * @return a list of options found in the filter.
    */
-  private static List<Option> getItemOptionsForFilter(QueryItem item) {
+  private static List<Option> getItemOptionsForFilter(
+      QueryItem item, Function<OptionSet, List<Option>> optionsResolver) {
     List<Option> options = new ArrayList<>();
+    List<Option> resolvedOptions = optionsResolver.apply(item.getOptionSet());
 
-    for (Option option : item.getOptionSet().getOptions()) {
+    if (resolvedOptions == null) {
+      return options;
+    }
+
+    for (Option option : resolvedOptions) {
       for (QueryFilter filter : item.getFilters()) {
         List<String> filterSplit =
             Arrays.stream(trimToEmpty(filter.getFilter()).split(";")).collect(toList());

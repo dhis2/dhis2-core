@@ -52,6 +52,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.period.PeriodType;
 
 /**
@@ -66,6 +67,12 @@ import org.hisp.dhis.period.PeriodType;
  * the risk of bugs.
  */
 public class MetadataDimensionsHandler {
+  private final OptionService optionService;
+
+  MetadataDimensionsHandler(OptionService optionService) {
+    this.optionService = optionService;
+  }
+
   /**
    * Handles all required logic/rules in order to return a map of metadata item identifiers.
    *
@@ -147,7 +154,11 @@ public class MetadataDimensionsHandler {
    */
   private void putQueryItemsIntoMap(
       Map<String, List<String>> dimensionItems, List<QueryItem> items, Grid grid) {
-    Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, items);
+    Map<String, List<Option>> optionsPresentInGrid =
+        getItemOptions(
+            grid,
+            items,
+            optionSet -> optionService.findOptionsByNamePattern(optionSet.getUid(), null, null));
 
     for (QueryItem item : items) {
       String itemUid = getItemUid(item);

@@ -51,6 +51,7 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -59,16 +60,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class MetadataParamsHandlerTest {
 
+  @Mock private OptionService optionService;
+
   private MetadataParamsHandler metadataParamsHandler;
 
   @BeforeEach
   void setUp() {
-    metadataParamsHandler = new MetadataParamsHandler();
+    metadataParamsHandler = new MetadataParamsHandler(optionService);
   }
 
   @Nested
