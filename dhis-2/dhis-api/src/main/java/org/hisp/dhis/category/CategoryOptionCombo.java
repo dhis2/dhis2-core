@@ -113,7 +113,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Setter
 @Table(name = "categoryoptioncombo")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @SecondaryTable(
     name = "categorycombos_optioncombos",
     pkJoinColumns =
@@ -195,7 +195,7 @@ public class CategoryOptionCombo
           @JoinColumn(
               name = "categoryoptionid",
               foreignKey = @ForeignKey(name = "fk_categoryoptioncombo_categoryoptionid")))
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryOption> categoryOptions = new HashSet<>();
 
   /** Indicates whether to ignore data approval. */
