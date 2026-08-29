@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.option.OptionGroupSet" table="optiongroupset">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="optiongroupsetid">
       <generator class="native" />
@@ -24,7 +24,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <list name="members" table="optiongroupsetmembers">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="optiongroupsetid" foreign-key="fk_optiongroupsetmembers_optiongroupsetid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.option.OptionGroup" column="optiongroupid" unique="true"

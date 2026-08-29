@@ -51,10 +51,7 @@ import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.joinPe
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.collection.CollectionUtils.addUnique;
-import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +66,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 
 /**
@@ -121,9 +119,11 @@ import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
  *              sum(case when dx = 'A2VfEfPflHV' and shift.delta = 0 then value else null end) as "A2VfEfPflHV",
  *              sum(case when dx = 'A2VfEfPflHV' and shift.delta = -1 then value else null end) as "A2VfEfPflHV_minus_1"
  *       from analytics
- *       join (values(-1,'202309','202308'),(-1,'202310','202309'),
- *                   (0,'202309','202309'),(0,'202310','202310'))
- *              as shift (delta, reportperiod, dataperiod) on dataperiod = monthly
+ *       join (select -1 as delta, '202309' as reportperiod, '202308' as dataperiod
+ *             union all select -1, '202310', '202309'
+ *             union all select 0, '202309', '202309'
+ *             union all select 0, '202310', '202310')
+ *              as shift on shift.dataperiod = ax.monthly
  *       where monthly in ('202308', '202309', '202310')
  *       and dx in ('A2VfEfPflHV') // (greatly improves performance)
  *       group by uidlevel2, monthly, ou) as ax
@@ -136,6 +136,9 @@ import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 public class JdbcSubexpressionQueryGenerator {
   /** {@link JdbcAnalyticsManager} for callbacks. */
   private final JdbcAnalyticsManager jam;
+
+  /** SQL builder for the configured analytics database. */
+  private final SqlBuilder sqlBuilder;
 
   /** Query parameters. */
   private final DataQueryParams params;
@@ -153,8 +156,12 @@ public class JdbcSubexpressionQueryGenerator {
   private final boolean hasPeriodOffsets;
 
   public JdbcSubexpressionQueryGenerator(
-      JdbcAnalyticsManager jam, DataQueryParams params, AnalyticsTableType tableType) {
+      JdbcAnalyticsManager jam,
+      SqlBuilder sqlBuilder,
+      DataQueryParams params,
+      AnalyticsTableType tableType) {
     this.jam = jam;
+    this.sqlBuilder = sqlBuilder;
     this.params = params;
     this.tableType = tableType;
     this.paramsWithoutData =
@@ -190,7 +197,10 @@ public class JdbcSubexpressionQueryGenerator {
     String dimensions =
         jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getDimensions());
 
-    String data = singleQuote(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
+    String data =
+        sqlBuilder.singleQuote(subex.getDimensionItemWithQueryModsId())
+            + " as "
+            + sqlBuilder.quote(DX);
 
     String aggregate = getHighLevelAggregateFunction();
 
@@ -198,10 +208,12 @@ public class JdbcSubexpressionQueryGenerator {
 
     // Dimensions can be empty if the query is a Single Value query.
     if (StringUtils.isBlank(dimensions)) {
-      return String.format("select %s,%s(%s) as %s ", data, aggregate, value, quote(VALUE));
+      return String.format(
+          "select %s,%s(%s) as %s ", data, aggregate, value, sqlBuilder.quote(VALUE));
     } else {
       return String.format(
-          "select %s,%s,%s(%s) as %s ", dimensions, data, aggregate, value, quote(VALUE));
+          "select %s,%s,%s(%s) as %s ",
+          dimensions, data, aggregate, value, sqlBuilder.quote(VALUE));
     }
   }
 
@@ -211,7 +223,7 @@ public class JdbcSubexpressionQueryGenerator {
 
     String fromSub = "from " + jam.getFromSourceClause(params) + " as " + ANALYTICS_TBL_ALIAS + " ";
 
-    String joinSub = (hasPeriodOffsets) ? joinPeriodOffsetValues(params) : "";
+    String joinSub = (hasPeriodOffsets) ? joinPeriodOffsetValues(params, sqlBuilder) : "";
 
     String whereSub = getWhereSubquery();
 
@@ -251,7 +263,7 @@ public class JdbcSubexpressionQueryGenerator {
         jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getNonPeriodDimensions());
     return SHIFT
         + "."
-        + REPORTPERIOD
+        + sqlBuilder.quote(REPORTPERIOD)
         + " as "
         + paramsWithoutData.getPeriodType().toLowerCase()
         + (nonPeriodDimensions.isEmpty() ? "" : "," + nonPeriodDimensions);
@@ -270,7 +282,7 @@ public class JdbcSubexpressionQueryGenerator {
       sql += "and ";
     }
 
-    sql += quote(ANALYTICS_TBL_ALIAS, DX) + " in (" + getSubexpressionDataElementList() + ") ";
+    sql += sqlBuilder.quoteAx(DX) + " in (" + getSubexpressionDataElementList() + ") ";
 
     return sql;
   }
@@ -284,10 +296,10 @@ public class JdbcSubexpressionQueryGenerator {
 
     List<String> cols = jam.getQuotedDimensionColumns(groupByParams.getDimensions());
 
-    addUnique(cols, quote(ANALYTICS_TBL_ALIAS, OU));
+    addUnique(cols, sqlBuilder.quoteAx(OU));
 
     if (hasPeriodOffsets) {
-      cols.add(SHIFT + "." + REPORTPERIOD);
+      cols.add(SHIFT + "." + sqlBuilder.quote(REPORTPERIOD));
     }
 
     return " group by " + join(",", cols);
@@ -322,9 +334,9 @@ public class JdbcSubexpressionQueryGenerator {
 
   /** Gets the data element UID from a data element or data element operand. */
   private String getQuotedDataElementUid(DimensionalItemObject item) {
-    return "'"
-        + ((item instanceof DataElementOperand deo) ? deo.getDataElement().getUid() : item.getUid())
-        + "'";
+    String uid =
+        (item instanceof DataElementOperand deo) ? deo.getDataElement().getUid() : item.getUid();
+    return sqlBuilder.singleQuote(uid);
   }
 
   /**
@@ -348,36 +360,32 @@ public class JdbcSubexpressionQueryGenerator {
     String fun = getLowLevelAggregateFunction(dataElement);
 
     String conditional =
-        quote(ANALYTICS_TBL_ALIAS, DX)
+        sqlBuilder.quoteAx(DX)
             + "='"
             + deUid
             + "'"
-            + (isEmpty(cocUid)
-                ? ""
-                : " and " + quote(ANALYTICS_TBL_ALIAS, CO) + "='" + cocUid + "'")
-            + (isEmpty(aocUid)
-                ? ""
-                : " and " + quote(ANALYTICS_TBL_ALIAS, AO) + "='" + aocUid + "'")
+            + (isEmpty(cocUid) ? "" : " and " + sqlBuilder.quoteAx(CO) + "='" + cocUid + "'")
+            + (isEmpty(aocUid) ? "" : " and " + sqlBuilder.quoteAx(AO) + "='" + aocUid + "'")
             + (hasPeriodOffsets
-                ? " and " + SHIFT + "." + DELTA + " = " + item.getPeriodOffset()
+                ? " and " + SHIFT + "." + sqlBuilder.quote(DELTA) + " = " + item.getPeriodOffset()
                 : "");
 
-    String value = quote(dataElement.getValueColumn());
+    String value = sqlBuilder.quote(dataElement.getValueColumn());
 
     DataType dataType = fromValueType(dataElement.getValueType());
     if (dataType == BOOLEAN) {
       dataType = NUMERIC; // Booleans are always aggregated as numeric in subex.
     }
-    String cast = castSql("", dataType);
+    String castValue = sqlBuilder.cast(value, dataType);
 
-    String column = getItemColumnName(deUid, cocUid, aocUid, dataElement.getQueryMods());
+    String column =
+        sqlBuilder.quote(getItemColumnName(deUid, cocUid, aocUid, dataElement.getQueryMods()));
 
     return fun
         + "(case when "
         + conditional
         + " then "
-        + value
-        + cast
+        + castValue
         + " else null end)"
         + " as "
         + column;
