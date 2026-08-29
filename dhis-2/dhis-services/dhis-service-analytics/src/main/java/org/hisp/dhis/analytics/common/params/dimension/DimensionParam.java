@@ -183,6 +183,13 @@ public class DimensionParam implements UidObject {
   }
 
   /**
+   * @return true if this DimensionParam is a query item backed by an option set.
+   */
+  public boolean hasOptionSet() {
+    return isQueryItem() && queryItem.hasOptionSet();
+  }
+
+  /**
    * Returns the type of the current {@link DimensionParam} instance.
    *
    * @return the respective {@link DimensionParamObjectType}.
