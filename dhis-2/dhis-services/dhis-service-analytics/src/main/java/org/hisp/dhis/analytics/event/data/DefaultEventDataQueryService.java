@@ -75,6 +75,7 @@ import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -978,7 +979,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       Program program,
       EventOutputType type,
       RequestTypeAware.EndpointItem endpointItem) {
-    if (isSortable(item)) {
+    if (isSortable(item, endpointItem)) {
       return new QueryItem(
           new BaseDimensionalItemObject(translateItemIfNecessary(item, endpointItem)));
     }
@@ -1264,6 +1265,17 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     static boolean isSortable(String itemName) {
       return Arrays.stream(values()).map(SortableItems::getItemName).anyMatch(itemName::equals);
+    }
+
+    /**
+     * Enrollment org unit columns are projected by the ENROLLMENT_OU join, which only the event
+     * endpoint builds, so they are sortable there alone.
+     */
+    static boolean isSortable(String itemName, RequestTypeAware.EndpointItem endpointItem) {
+      if (OrgUnitSqlConstants.RESULT_ALIASES.contains(itemName)) {
+        return endpointItem == RequestTypeAware.EndpointItem.EVENT;
+      }
+      return isSortable(itemName);
     }
 
     static String translateItemIfNecessary(String item, RequestTypeAware.EndpointItem type) {
