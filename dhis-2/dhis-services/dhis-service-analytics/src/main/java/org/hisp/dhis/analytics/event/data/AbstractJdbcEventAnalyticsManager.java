@@ -844,7 +844,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     List<String> columns =
         union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
 
-    List<String> minOrMaxOrgUnitAliases = getMinOrMaxOrgUnitAliases(params, columns);
+    List<String> minOrMaxOrgUnitAliases = List.of();
+
+    if (params.getAggregationType().isMinOrMaxInPeriodAggregationType()) {
+      minOrMaxOrgUnitAliases = getMinOrMaxOrgUnitAliases(params, columns);
+    }
+
     boolean minOrMaxOrgUnit = isNotEmpty(minOrMaxOrgUnitAliases);
 
     String sql =
