@@ -845,7 +845,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
 
     List<String> minOrMaxOrgUnitAliases = getMinOrMaxOrgUnitAliases(params, columns);
-    boolean minOrMaxOrgUnit = minOrMaxOrgUnitAliases != null;
+    boolean minOrMaxOrgUnit = isNotEmpty(minOrMaxOrgUnitAliases);
 
     String sql =
         TextUtils.removeLastComma(
@@ -877,7 +877,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             : getGroupByClause(params);
 
     if (minOrMaxOrgUnit) {
-      sql = getMinOrMaxOrgUnitSql(params, sql, minOrMaxOrgUnitAliases);
+      sql = getMinOrMaxOrgUnitSql(sql, minOrMaxOrgUnitAliases);
       aggregateClause =
           AggregateClause.of("sum(" + VALUE_ALIAS + ")", AggregationType.SUM, VALUE_ALIAS);
     }
@@ -950,7 +950,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return getOutputColumnNames(columns);
     }
 
-    return null;
+    return List.of();
   }
 
   /**
@@ -974,7 +974,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       String name = (index >= 0 ? column.substring(index + AS_SEPARATOR.length()) : column).trim();
 
       if (name.isEmpty() || name.contains(".") || name.contains("(") || names.contains(name)) {
-        return null;
+        return List.of();
       }
 
       names.add(name);
@@ -1030,13 +1030,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * requested output organisation units are the children themselves, the child column is part of
    * the second level grouping and the MIN or MAX reduces to the value of that child.
    *
-   * @param params the {@link EventQueryParams}.
    * @param childSql the innermost query, aggregating within each organisation unit.
    * @param aliases the output column names carried through all three levels.
    * @return the wrapped SQL query.
    */
-  private String getMinOrMaxOrgUnitSql(
-      EventQueryParams params, String childSql, List<String> aliases) {
+  private String getMinOrMaxOrgUnitSql(String childSql, List<String> aliases) {
     String aliasList = getCommaDelimitedString(aliases);
     String trailingAliases = aliases.isEmpty() ? "" : "," + aliasList;
     String outerGroupBy = aliases.isEmpty() ? "" : "group by " + aliasList + " ";
