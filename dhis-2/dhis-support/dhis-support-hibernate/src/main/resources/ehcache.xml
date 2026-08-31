@@ -124,6 +124,13 @@
     <expiry><ttl unit="seconds">3600</ttl></expiry>
     <resources><heap unit="entries">200000</heap></resources>
   </cache>
+  <!-- Entity-level cache restored after the OptionSet.hbm.xml -> JPA migration dropped it: the
+       metadata query cache stores OptionSet ids only, so without this region every query-cache
+       hit re-selects each OptionSet row by id (one select per option set in the result). -->
+  <cache alias="org.hisp.dhis.option.OptionSet">
+    <expiry><ttl unit="seconds">3600</ttl></expiry>
+    <resources><heap unit="entries">20000</heap></resources>
+  </cache>
   <cache alias="org.hisp.dhis.trackedentity.TrackedEntityAttribute">
     <expiry><ttl unit="seconds">3600</ttl></expiry>
     <resources><heap unit="entries">20000</heap></resources>

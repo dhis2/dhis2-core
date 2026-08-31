@@ -35,12 +35,10 @@ import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,8 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.option.OptionService")
 public class DefaultOptionService implements OptionService {
-  @Qualifier("org.hisp.dhis.option.OptionSetStore")
-  private final IdentifiableObjectStore<OptionSet> optionSetStore;
+  private final OptionSetStore optionSetStore;
 
   private final OptionStore optionStore;
 
@@ -130,6 +127,12 @@ public class DefaultOptionService implements OptionService {
   @Transactional(readOnly = true)
   public List<OptionSet> getAllOptionSets() {
     return optionSetStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void preloadOptions(@Nonnull Collection<OptionSet> optionSets) {
+    optionSetStore.preloadOptions(optionSets);
   }
 
   // -------------------------------------------------------------------------

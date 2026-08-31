@@ -44,7 +44,6 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.ProgramExpression;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
@@ -122,12 +121,6 @@ public class StoreConfig {
   public HibernateIdentifiableObjectStore<Constant> constantStore() {
     return new HibernateIdentifiableObjectStore<>(
         entityManager, jdbcTemplate, publisher, Constant.class, aclService, true);
-  }
-
-  @Bean("org.hisp.dhis.option.OptionSetStore")
-  public HibernateIdentifiableObjectStore<OptionSet> optionSetStore() {
-    return new HibernateIdentifiableObjectStore<>(
-        entityManager, jdbcTemplate, publisher, OptionSet.class, aclService, true);
   }
 
   @Bean("org.hisp.dhis.legend.LegendSetStore")

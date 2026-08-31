@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -30,40 +30,15 @@
 package org.hisp.dhis.option;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
- * @author Lars Helge Overland
+ * Persistence operations specific to {@link OptionSet}.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface OptionService {
-
-  // -------------------------------------------------------------------------
-  // OptionSet
-  // -------------------------------------------------------------------------
-
-  long saveOptionSet(OptionSet optionSet) throws ConflictException;
-
-  void updateOptionSet(OptionSet optionSet) throws ConflictException;
-
-  /**
-   * Validate an {@link OptionSet}.
-   *
-   * @param optionSet the set to validate
-   * @throws ConflictException when the provided {@link OptionSet} has validation errors
-   */
-  void validateOptionSet(OptionSet optionSet) throws ConflictException;
-
-  void validateOption(OptionSet optionSet, Option option) throws ConflictException;
-
-  OptionSet getOptionSet(String uid);
-
-  OptionSet getOptionSetByCode(String code);
-
-  List<OptionSet> getAllOptionSets();
+public interface OptionSetStore extends IdentifiableObjectStore<OptionSet> {
 
   /**
    * Initializes the {@link OptionSet#getOptions()} collections of the supplied managed option sets.
@@ -73,27 +48,4 @@ public interface OptionService {
    * @param optionSets managed option sets whose options collections should be initialized
    */
   void preloadOptions(@Nonnull Collection<OptionSet> optionSets);
-
-  List<Option> findOptionsByNamePattern(
-      @Nonnull String optionSet, @CheckForNull String infix, @CheckForNull Integer maxResults);
-
-  boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes);
-
-  Optional<Option> findOptionByCode(@Nonnull String optionSet, @Nonnull String code);
-
-  // -------------------------------------------------------------------------
-  // OptionGroup
-  // -------------------------------------------------------------------------
-
-  void saveOptionGroup(OptionGroup group);
-
-  OptionGroup getOptionGroup(String uid);
-
-  // -------------------------------------------------------------------------
-  // OptionGroupSet
-  // -------------------------------------------------------------------------
-
-  void saveOptionGroupSet(OptionGroupSet group);
-
-  OptionGroupSet getOptionGroupSet(String uid);
 }
