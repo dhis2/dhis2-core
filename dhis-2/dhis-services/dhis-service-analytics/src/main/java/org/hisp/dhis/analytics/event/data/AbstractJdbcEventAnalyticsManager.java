@@ -846,7 +846,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     List<String> minOrMaxOrgUnitAliases = List.of();
 
-    if (params.getAggregationType().isMinOrMaxInPeriodAggregationType()) {
+    if (params.getAggregationTypeFallback().isMinOrMaxInPeriodAggregationType()) {
       minOrMaxOrgUnitAliases = getMinOrMaxOrgUnitAliases(params, columns);
     }
 
