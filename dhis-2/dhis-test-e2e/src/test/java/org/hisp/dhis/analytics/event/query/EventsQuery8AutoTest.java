@@ -56,13 +56,13 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
 
     // Given
     QueryParamsBuilder params =
-            new QueryParamsBuilder()
-                    .add("includeMetadataDetails=true")
-                    .add("headers=ouname,fWIAEtYVEGk")
-                    .add("stage=Zj7UnCAulEk")
-                    .add("paging=false")
-                    .add("dimension=ou:ImspTQPwCqd,fWIAEtYVEGk:IN:D2__NOVALUE")
-                    .add("eventDate=2021");
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("headers=ouname,fWIAEtYVEGk")
+            .add("stage=Zj7UnCAulEk")
+            .add("paging=false")
+            .add("dimension=ou:ImspTQPwCqd,fWIAEtYVEGk:IN:D2__NOVALUE")
+            .add("eventDate=2021");
 
     // When
     ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
@@ -72,43 +72,43 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
     //    This helper checks basic counts and dimensions, adapting based on the runtime
     // 'expectPostgis' flag.
     validateResponseStructure(
-            response,
-            expectPostgis,
-            13,
-            2,
-            2); // Pass runtime flag, row count, and expected header counts
+        response,
+        expectPostgis,
+        13,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
-            response.extractList("headers", Map.class).stream()
-                    .map(obj -> (Map<String, Object>) obj) // Ensure correct type
-                    .collect(Collectors.toList());
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
 
     // 3. Assert metaData.
     String expectedMetaData =
-            "{\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"eBAyeGv0exc\":{\"uid\":\"eBAyeGv0exc\",\"name\":\"Inpatient morbidity and mortality\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"fWIAEtYVEGk\":{\"uid\":\"fWIAEtYVEGk\",\"code\":\"DE_3000009\",\"name\":\"Mode of Discharge\",\"description\":\"How the patient was discharged.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"2021\":{\"name\":\"2021\"},\"eventdate\":{\"name\":\"Event date\"},\"Zj7UnCAulEk\":{\"uid\":\"Zj7UnCAulEk\",\"name\":\"Inpatient morbidity and mortality\",\"description\":\"Anonymous and ICD-10 coded inpatient data\"}},\"dimensions\":{\"pe\":[],\"eventdate\":[\"2021\"],\"ou\":[\"ImspTQPwCqd\"],\"fWIAEtYVEGk\":[\"D2__NOVALUE\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"eBAyeGv0exc\":{\"uid\":\"eBAyeGv0exc\",\"name\":\"Inpatient morbidity and mortality\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"fWIAEtYVEGk\":{\"uid\":\"fWIAEtYVEGk\",\"code\":\"DE_3000009\",\"name\":\"Mode of Discharge\",\"description\":\"How the patient was discharged.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"2021\":{\"name\":\"2021\"},\"eventdate\":{\"name\":\"Event date\"},\"Zj7UnCAulEk\":{\"uid\":\"Zj7UnCAulEk\",\"name\":\"Inpatient morbidity and mortality\",\"description\":\"Anonymous and ICD-10 coded inpatient data\"}},\"dimensions\":{\"pe\":[],\"eventdate\":[\"2021\"],\"ou\":[\"ImspTQPwCqd\"],\"fWIAEtYVEGk\":[\"D2__NOVALUE\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     validateHeaderPropertiesByName(
-            response,
-            actualHeaders,
-            "ouname",
-            "Organisation unit name",
-            "TEXT",
-            "java.lang.String",
-            false,
-            true);
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
-            response,
-            actualHeaders,
-            "fWIAEtYVEGk",
-            "Mode of Discharge",
-            "TEXT",
-            "java.lang.String",
-            false,
-            true);
+        response,
+        actualHeaders,
+        "fWIAEtYVEGk",
+        "Mode of Discharge",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
 
     // rowContext not found or empty in the response, skipping assertions.
 
