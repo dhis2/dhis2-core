@@ -34,7 +34,9 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.alreadyDeletedOrSucceededUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedItems;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedItems;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.formatFailedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.sendTrackerRequest;
@@ -560,7 +562,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             .filter(te -> syncedTeUids.contains(te.getTrackedEntity()))
             .toList();
 
-    Set<UID> failedTeUids = blockingFailedUids(report, TrackerType.TRACKED_ENTITY);
     Set<UID> failedEnrollmentUids = blockingFailedUids(report, TrackerType.ENROLLMENT);
     Set<UID> failedEventUids = blockingFailedUids(report, TrackerType.EVENT);
     Set<UID> failedRelationshipUids = blockingFailedUids(report, TrackerType.RELATIONSHIP);
@@ -574,16 +575,16 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             + " events={}/{} synced{}, relationships={}/{} synced{}",
         syncedTes.size(),
         deletedTrackedEntities.size(),
-        formatFailedUids(failedTeUids),
+        formatFailedUids(blockingFailedItems(report, TrackerType.TRACKED_ENTITY)),
         syncedEnrollmentUids.size(),
         deletedEnrollments.size(),
-        formatFailedUids(failedEnrollmentUids),
+        formatFailedUids(blockingFailedItems(report, TrackerType.ENROLLMENT)),
         syncedEventUids.size(),
         deletedEvents.size(),
-        formatFailedUids(failedEventUids),
+        formatFailedUids(blockingFailedItems(report, TrackerType.EVENT)),
         syncedRelationshipUids.size(),
         deletedRelationships.size(),
-        formatFailedUids(failedRelationshipUids));
+        formatFailedUids(blockingFailedItems(report, TrackerType.RELATIONSHIP)));
 
     return new DeleteSyncResult(syncedTeUids, blockingFailedChildUids);
   }
@@ -618,24 +619,22 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         trackedEntities.stream().flatMap(te -> te.getEnrollments().stream()).toList();
     List<Event> events = enrollments.stream().flatMap(e -> e.getEvents().stream()).toList();
     Set<UID> relationshipUids = getAllRelationshipUids(trackedEntities);
-    Set<UID> failedEnrollmentUids = failedUids(report, TrackerType.ENROLLMENT);
-    Set<UID> failedEventUids = failedUids(report, TrackerType.EVENT);
-    Set<UID> failedRelationshipUids = failedUids(report, TrackerType.RELATIONSHIP);
 
     log.info(
-        "Tracker create/update sync: TEs={}/{} synced, enrollments={}/{} synced{},"
+        "Tracker create/update sync: TEs={}/{} synced{}, enrollments={}/{} synced{},"
             + " events={}/{} synced{}, relationships={}/{} synced{}",
         syncedTes.size(),
         trackedEntities.size(),
+        formatFailedUids(failedItems(report, TrackerType.TRACKED_ENTITY)),
         successfullyProcessedUids(report, TrackerType.ENROLLMENT).size(),
         enrollments.size(),
-        formatFailedUids(failedEnrollmentUids),
+        formatFailedUids(failedItems(report, TrackerType.ENROLLMENT)),
         successfullyProcessedUids(report, TrackerType.EVENT).size(),
         events.size(),
-        formatFailedUids(failedEventUids),
+        formatFailedUids(failedItems(report, TrackerType.EVENT)),
         successfullyProcessedUids(report, TrackerType.RELATIONSHIP).size(),
         relationshipUids.size(),
-        formatFailedUids(failedRelationshipUids));
+        formatFailedUids(failedItems(report, TrackerType.RELATIONSHIP)));
 
     return syncedTeUids;
   }
