@@ -42,7 +42,8 @@ import org.mapstruct.factory.Mappers;
       RelationshipTypeMapper.class,
       TrackedEntityMapper.class,
       EnrollmentMapper.class,
-      TrackerEventMapper.class
+      TrackerEventMapper.class,
+      SingleEventMapper.class
     })
 public interface RelationshipMapper extends PreheatMapper<Relationship> {
   RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);

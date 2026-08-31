@@ -86,6 +86,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -204,7 +205,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   private final UUID uuidB = UUID.fromString("1786142e-6d51-48e3-8bbe-9cc2a2836120");
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     programA = createProgram('A');
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
@@ -1471,6 +1472,47 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(selectClause, containsString("enrl.\"ou\" as enrollmentou"));
     assertThat(selectClause, containsString("enrl.\"ouname\" as enrollmentouname"));
+  }
+
+  @Test
+  void testSortClauseReadsEnrollmentOuNameFromEnrollmentTable() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .addAscSortItem(
+                new QueryItem(
+                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
+            .build();
+
+    String sortClause =
+        eventSubject.getCteAwareSortClause(
+            new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
+
+    assertThat(sortClause, containsString("enrl.\"ouname\" asc nulls last"));
+  }
+
+  @Test
+  void testSortClauseReadsEnrollmentOuFromEnrollmentTable() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .addDescSortItem(
+                new QueryItem(new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU.getItem())))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
+            .build();
+
+    String sortClause =
+        eventSubject.getCteAwareSortClause(
+            new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
+
+    assertThat(sortClause, containsString("enrl.\"ou\" desc nulls last"));
   }
 
   @Test
