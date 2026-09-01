@@ -702,19 +702,28 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             replaceQualify(
                 sqlBuilder,
                 """
-                select distinct(year) \
-                from ${datavalue} dv \
-                inner join analytics_rs_periodstructure pes on dv.periodid=pes.periodid \
+                select distinct(pes.year) \
+                from analytics_rs_periodstructure pes \
                 where pes.startdate is not null \
-                and dv.lastupdated < '${startTime}'\s""",
-                Map.of("startTime", toLongDate(params.getStartTime()))));
+                """,
+                Map.of()));
 
     if (params.hasFromDate()) {
       sql.append(
           replace(
-              "and pes.startdate >= '${fromDate}'",
+              "and pes.startdate >= '${fromDate}' ",
               Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate()))));
     }
+
+    sql.append(
+        replaceQualify(
+            sqlBuilder,
+            """
+            and exists (select 1 from ${datavalue} dv \
+            where dv.periodid = pes.periodid \
+            and dv.lastupdated < '${startTime}')\
+            """,
+            Map.of("startTime", toLongDate(params.getStartTime()))));
 
     return jdbcTemplate.queryForList(sql.toString(), Integer.class);
   }
