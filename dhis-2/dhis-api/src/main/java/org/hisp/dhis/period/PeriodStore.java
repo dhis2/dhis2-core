@@ -29,16 +29,9 @@
  */
 package org.hisp.dhis.period;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.translation.JsonTranslations;
-import org.hisp.dhis.translation.Translation;
 
 /**
  * Defines the functionality for persisting Periods and PeriodTypes.
@@ -125,53 +118,6 @@ public interface PeriodStore {
   Period reloadForceAddPeriod(Period period);
 
   // -------------------------------------------------------------------------
-  // PeriodType
-  // -------------------------------------------------------------------------
-
-  /**
-   * Adds a PeriodType.
-   *
-   * @param periodType the PeriodType to add.
-   */
-  void addPeriodType(PeriodType periodType);
-
-  /**
-   * Updates the label of the given period type name.
-   *
-   * @param periodTypeName the {@link PeriodType}'s name.
-   * @param label the new label, null or empty to erase
-   * @param locale when null label is the override for the name not associated with a locale,
-   *     otherwise it is a translation for the given locale
-   */
-  boolean updatePeriodTypeLabel(
-      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale);
-
-  /**
-   * Replaces the period type's translation labels with the given ones
-   *
-   * @param name of the type (key)
-   * @param translations labels in different languages
-   * @return true, if a change occurred, false if no row was affected
-   */
-  boolean updatePeriodTypeLabel(
-      @Nonnull String name, @Nonnull Collection<Translation> translations);
-
-  /**
-   * Returns all PeriodTypes.
-   *
-   * @return a list of all PeriodTypes, or an empty list if there are no PeriodTypes.
-   */
-  List<PeriodType> getAllPeriodTypes();
-
-  /**
-   * Return the {@link PeriodType} by name.
-   *
-   * @param name the period type's name.
-   * @return the {@link PeriodType}, or null.
-   */
-  PeriodType getPeriodTypeByName(String name);
-
-  // -------------------------------------------------------------------------
   // RelativePeriods
   // -------------------------------------------------------------------------
 
@@ -181,25 +127,4 @@ public interface PeriodStore {
    * @param relativePeriods the RelativePeriods instance.
    */
   void deleteRelativePeriods(RelativePeriods relativePeriods);
-
-  /**
-   * @return the label information for all periods
-   */
-  List<PeriodTypeLabels> getAllPeriodTypeLabels();
-
-  /**
-   * Label information for a period type that is stored in the DB
-   *
-   * @param name the key
-   * @param label override on the properties based i18n translation
-   * @param translations local specific translations
-   */
-  record PeriodTypeLabels(
-      @Nonnull String name, @CheckForNull String label, @Nonnull JsonTranslations translations) {
-
-    public PeriodTypeLabels {
-      requireNonNull(name);
-      requireNonNull(translations);
-    }
-  }
 }

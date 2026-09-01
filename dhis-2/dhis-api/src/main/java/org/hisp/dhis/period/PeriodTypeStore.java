@@ -31,64 +31,74 @@ package org.hisp.dhis.period;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.translation.JsonTranslations;
 import org.hisp.dhis.translation.Translation;
 
 /**
- * List of (all) {@link PeriodType}s with their labels as exposed in the web API.
- *
- * @param locale the locale for which labels were resolved
- * @param entries the list of period types
+ * @apiNote extracted from {@link PeriodStore}
  * @since 2.44
  */
-public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry> entries) {
+public interface PeriodTypeStore {
 
-  public PeriodTypes {
-    requireNonNull(locale);
-    requireNonNull(entries);
-  }
+  /**
+   * Adds a PeriodType.
+   *
+   * @param periodType the PeriodType to add.
+   */
+  void addPeriodType(@Nonnull PeriodType periodType);
 
-  /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
-  public record PeriodTypeEntry(
-      @Nonnull @OpenApi.Description("The ID of the period type") String name,
-      @Nonnull String isoDuration,
-      @Nonnull String isoFormat,
-      int frequencyOrder,
-      @CheckForNull @OpenApi.Description("The i18n translation of `name`") String defaultName,
-      @CheckForNull
-          @OpenApi.Description(
-              "An optional override for the `name` taking precedence over the `defaultName`")
-          String label,
-      @Nonnull List<Translation> translations,
-      @CheckForNull
-          @OpenApi.Description(
-              "An optional translation for `label` resolved for a specific `locale` (falls back to `label` when no translation exists)")
-          String displayLabel,
-      @Nonnull
-          @OpenApi.Description(
-              "The name to display in the UI computed from all sources resolved for a specific `locale`")
-          String displayName) {
+  /**
+   * Updates the label of the given period type name.
+   *
+   * @param name the {@link PeriodType}'s name.
+   * @param label the new label, null or empty to erase
+   * @param locale when null label is the override for the name not associated with a locale,
+   *     otherwise it is a translation for the given locale
+   */
+  boolean updatePeriodTypeLabel(
+      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale);
 
-    public PeriodTypeEntry {
+  /**
+   * Replaces the period type's translation labels with the given ones
+   *
+   * @param name of the type (key)
+   * @param translations labels in different languages
+   * @return true, if a change occurred, false if no row was affected
+   */
+  boolean updatePeriodTypeLabel(
+      @Nonnull String name, @Nonnull Collection<Translation> translations);
+
+  /**
+   * Returns all PeriodTypes.
+   *
+   * @return a list of all PeriodTypes, or an empty list if there are no PeriodTypes.
+   */
+  @Nonnull
+  List<PeriodType> getAllPeriodTypes();
+
+  /**
+   * @return the label information for all periods
+   */
+  List<PeriodTypeLabels> getAllPeriodTypeLabels();
+
+  /**
+   * Label information for a period type that is stored in the DB
+   *
+   * @param name the key
+   * @param label override on the properties based i18n translation
+   * @param translations local specific translations
+   */
+  record PeriodTypeLabels(
+      @Nonnull String name, @CheckForNull String label, @Nonnull JsonTranslations translations) {
+
+    public PeriodTypeLabels {
       requireNonNull(name);
-      requireNonNull(isoDuration);
-      requireNonNull(isoFormat);
       requireNonNull(translations);
-    }
-  }
-
-  public record Output(
-      @Nonnull Locale locale, @Nonnull List<PeriodTypeEntry> entries, @Nonnull Fields fields) {
-
-    public Output {
-      requireNonNull(locale);
-      requireNonNull(entries);
-      requireNonNull(fields);
     }
   }
 }

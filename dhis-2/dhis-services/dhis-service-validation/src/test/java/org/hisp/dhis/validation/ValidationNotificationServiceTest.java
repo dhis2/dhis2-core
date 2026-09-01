@@ -60,6 +60,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.PeriodTypeStore;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
@@ -99,6 +100,7 @@ class ValidationNotificationServiceTest extends TestBase {
   @Mock private ValidationResultService validationResultService;
 
   @Mock private PeriodStore periodStore;
+  @Mock private PeriodTypeStore periodperiodTypeStore;
 
   @Mock private I18nManager i18nManager;
 
@@ -131,7 +133,7 @@ class ValidationNotificationServiceTest extends TestBase {
   void initTest() {
     subject =
         new DefaultValidationNotificationService(renderer, messageService, validationResultService);
-    this.periodService = new DefaultPeriodService(periodStore, i18nManager);
+    this.periodService = new DefaultPeriodService(periodStore, periodperiodTypeStore, i18nManager);
     sentMessages = new ArrayList<>();
     when(messageService.sendValidationMessage(
             anySet(), anyString(), anyString(), any(MessageConversationPriority.class)))

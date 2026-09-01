@@ -191,7 +191,10 @@ public interface PeriodService {
    *
    * @param name the name of the PeriodType to return.
    * @return the PeriodType with the given name, or null if no match.
+   * @deprecated replace with static PeriodType.getPeriodTypeByName in another PR (applies to other
+   *     similar methods as well)
    */
+  @Deprecated(forRemoval = true)
   PeriodType getPeriodTypeByName(String name);
 
   /**
@@ -223,7 +226,6 @@ public interface PeriodService {
 
   /**
    * @param locale for display labels (falls back to user's DB locale when null)
-   * @param fields fields to include for each {@link PeriodTypes.PeriodTypeEntry}
    * @return all period types with they display properties resolved for the current user
    * @since 2.44
    */
@@ -232,7 +234,7 @@ public interface PeriodService {
   /**
    * Updates the label of the given period type name.
    *
-   * @param periodTypeName the {@link PeriodType}'s name.
+   * @param name the {@link PeriodType}'s name.
    * @param label the new label, null or empty to erase
    * @param locale when null label is the override for the name not associated with a locale,
    *     otherwise it is a translation for the given locale

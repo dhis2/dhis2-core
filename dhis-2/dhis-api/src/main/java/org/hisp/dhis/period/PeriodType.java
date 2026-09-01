@@ -369,6 +369,7 @@ public abstract class PeriodType implements Serializable {
     return toIsoPeriod(dateTimeUnit, dateTimeUnit);
   }
 
+  @Nonnull
   public abstract String getIso8601Duration();
 
   public abstract Period createPeriod(
@@ -552,6 +553,7 @@ public abstract class PeriodType implements Serializable {
    *
    * @return the iso8601 format.
    */
+  @Nonnull
   public abstract String getIsoFormat();
 
   // -------------------------------------------------------------------------

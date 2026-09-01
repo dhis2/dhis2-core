@@ -64,6 +64,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.PeriodTypeStore;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -102,6 +103,7 @@ public class DefaultPreheatService implements PreheatService {
   private final IdentifiableObjectManager manager;
 
   private final PeriodStore periodStore;
+  private final PeriodTypeStore periodTypeStore;
 
   private final AttributeService attributeService;
 
@@ -245,7 +247,7 @@ public class DefaultPreheatService implements PreheatService {
     handleAttributes(params.getObjects(), preheat);
     handleSharing(params, preheat);
 
-    periodStore
+    periodTypeStore
         .getAllPeriodTypes()
         .forEach(periodType -> preheat.getPeriodTypeMap().put(periodType.getName(), periodType));
 

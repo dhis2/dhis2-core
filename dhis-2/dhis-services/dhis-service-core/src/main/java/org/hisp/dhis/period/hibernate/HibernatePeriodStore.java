@@ -29,39 +29,25 @@
  */
 package org.hisp.dhis.period.hibernate;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import jakarta.persistence.EntityManager;
-import java.sql.Connection;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
-import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
-import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.hibernate.HibernateAutoTransactionStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.translation.JsonTranslations;
-import org.hisp.dhis.translation.Translation;
-import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Persistence for {@link Period} and {@link PeriodType}.
@@ -83,19 +69,17 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 @Repository
 @Slf4j
-public class HibernatePeriodStore extends HibernateGenericStore<Period> implements PeriodStore {
+public class HibernatePeriodStore extends HibernateAutoTransactionStore<Period>
+    implements PeriodStore {
 
   private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
-
-  private final DataSource dataSource;
 
   public HibernatePeriodStore(
       EntityManager entityManager,
       DataSource dataSource,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, Period.class, false);
-    this.dataSource = dataSource;
+    super(entityManager, dataSource, jdbcTemplate, publisher, Period.class, false);
   }
 
   @Override
@@ -245,230 +229,6 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   public Period reloadForceAddPeriod(Period period) {
     addPeriod(period);
     return period;
-  }
-
-  // -------------------------------------------------------------------------
-  // PeriodType (do not use generic store which is linked to Period)
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void addPeriodType(PeriodType periodType) {
-    String name = periodType.getName();
-
-    String sql1 = "SELECT periodtypeid from periodtype where name = :name";
-    String sql2 =
-        """
-        INSERT INTO periodtype (periodtypeid, name)
-        VALUES (nextval('hibernate_sequence'), :name)""";
-    Object id =
-        runAutoJoinTransaction(
-            session -> {
-              Object pk =
-                  getSingleResult(session.createNativeQuery(sql1).setParameter("name", name));
-              if (pk != null) {
-                return pk;
-              }
-              session
-                  .createNativeQuery(sql2)
-                  // PeriodType, not the store's own Period
-                  .addSynchronizedEntityClass(PeriodType.class)
-                  .setParameter("name", name)
-                  .executeUpdate();
-              return session.createNativeQuery("SELECT lastval()").uniqueResult();
-            });
-    if (id instanceof Number n) {
-      int periodTypeId = n.intValue();
-      periodType.setId(periodTypeId);
-      return;
-    }
-    throw new IllegalStateException("Failed to upsert period type: " + name);
-  }
-
-  @Override
-  public boolean updatePeriodTypeLabel(
-      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale) {
-    if (locale == null) {
-      String sql =
-          """
-        UPDATE periodtype
-        SET label = :label
-        WHERE name = :name""";
-
-      String newValue = isBlank(label) ? null : label;
-      return runAutoJoinTransaction(
-              session ->
-                  session
-                      .createNativeQuery(sql)
-                      .addSynchronizedEntityClass(PeriodType.class)
-                      .setParameter("name", name)
-                      .setParameter("label", newValue)
-                      .executeUpdate())
-          > 0;
-    }
-    // erase potentially existing value
-    String sql =
-        """
-      UPDATE periodtype
-      SET translations = (
-        SELECT jsonb_agg(elem)
-        FROM jsonb_array_elements(translations) AS elem
-        WHERE elem->>'locale' <> :locale
-      )
-      WHERE name = :name""";
-    boolean erased =
-        runAutoJoinTransaction(
-                session ->
-                    session
-                        .createNativeQuery(sql)
-                        .addSynchronizedEntityClass(PeriodType.class)
-                        .setParameter("name", name)
-                        .setParameter("locale", locale.toString())
-                        .executeUpdate())
-            > 0;
-    // now insert the language object
-    if (isBlank(label)) return erased;
-    String sql2 =
-        """
-      UPDATE periodtype
-      SET translations = translations ||
-        jsonb_build_array(jsonb_build_object('locale',:locale,'property','NAME','value',:value))
-      WHERE name = :name""";
-    boolean inserted =
-        runAutoJoinTransaction(
-                session ->
-                    session
-                        .createNativeQuery(sql2)
-                        .addSynchronizedEntityClass(PeriodType.class)
-                        .setParameter("name", name)
-                        .setParameter("locale", locale.toString())
-                        .setParameter("value", label)
-                        .executeUpdate())
-            > 0;
-    return erased || inserted;
-  }
-
-  @Override
-  public boolean updatePeriodTypeLabel(
-      @Nonnull String name, @Nonnull Collection<Translation> translations) {
-    List<Translation> keep = translations.stream().filter(t -> isNotBlank(t.getValue())).toList();
-    if (keep.isEmpty()) {
-      String sql =
-          """
-        UPDATE periodtype
-        SET translations = '[]'
-        WHERE name = :name
-        """;
-      return runAutoJoinTransaction(
-              session ->
-                  session
-                      .createNativeQuery(sql)
-                      .addSynchronizedEntityClass(PeriodType.class)
-                      .setParameter("name", name)
-                      .executeUpdate())
-          > 0;
-    }
-    @Language("sql")
-    String sql1 =
-        """
-    UPDATE periodtype
-    SET translations = jsonb_build_array(
-      jsonb_build_object('locale',:locale,'property','NAME','value',:value )
-    )
-    where name = :name""";
-    StringBuilder json = new StringBuilder();
-    for (int k = 0; k < keep.size(); k++) {
-      if (k > 0) json.append(",\n");
-      json.append(
-          "jsonb_build_object('locale',:locale%d,'property','NAME','value',:value%d)"
-              .formatted(k, k));
-    }
-    String sql =
-        sql1.replace(
-            "jsonb_build_object('locale',:locale,'property','NAME','value',:value )", json);
-    return runAutoJoinTransaction(
-            session -> {
-              NativeQuery<?> query =
-                  session
-                      .createNativeQuery(sql)
-                      .addSynchronizedEntityClass(PeriodType.class)
-                      .setParameter("name", name);
-              int i = 0;
-              for (Translation t : keep) {
-                query.setParameter("locale" + i, t.getLocale().toString());
-                query.setParameter("value" + i, t.getValue());
-                i++;
-              }
-              return query.executeUpdate();
-            })
-        > 0;
-  }
-
-  @Override
-  public List<PeriodTypeLabels> getAllPeriodTypeLabels() {
-    String sql = "SELECT name, label, translations #>> '{}' FROM periodtype";
-    return runAutoJoinTransaction(
-        session ->
-            session.createNativeQuery(sql).stream().map(HibernatePeriodStore::toLabels).toList());
-  }
-
-  private static PeriodTypeLabels toLabels(Object row) {
-    if (!(row instanceof Object[] columns))
-      throw new IllegalArgumentException("Period type labels must be an Object[]");
-    return new PeriodTypeLabels(
-        (String) columns[0],
-        (String) columns[1],
-        JsonMixed.of((String) columns[2]).as(JsonTranslations.class));
-  }
-
-  @Override
-  public List<PeriodType> getAllPeriodTypes() {
-    return getSession()
-        .createNativeQuery("select * from periodtype order by name asc", PeriodType.class)
-        .list();
-  }
-
-  @Override
-  public PeriodType getPeriodTypeByName(String name) {
-    return getSession()
-        .createNativeQuery("select * from periodtype where name = :name", PeriodType.class)
-        .setParameter("name", name)
-        .uniqueResult();
-  }
-
-  private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
-    boolean active = TransactionSynchronizationManager.isActualTransactionActive();
-    boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
-
-    if (active && !readOnly) {
-      // run in existing TX (for visibility)
-      Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
-      StatelessSession session =
-          getSession().getSessionFactory().openStatelessSession(borrowedConnection);
-      return query.apply(session);
-    }
-
-    // run in new TX
-    StatelessSession session = getSession().getSessionFactory().openStatelessSession();
-
-    Transaction transaction = null;
-    try {
-      transaction = session.beginTransaction();
-      R result = query.apply(session);
-      transaction.commit();
-      return result;
-    } catch (RuntimeException e) {
-      // Handle rollback for self-managed transactions
-      if (transaction != null && transaction.isActive()) {
-        transaction.rollback();
-      }
-      throw e;
-    } finally {
-      try {
-        session.close();
-      } catch (Exception e) {
-        log.error("Session close error", e);
-      }
-    }
   }
 
   // -------------------------------------------------------------------------

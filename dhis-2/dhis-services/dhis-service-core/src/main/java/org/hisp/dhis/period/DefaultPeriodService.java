@@ -50,6 +50,7 @@ import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.period.PeriodTypeStore.PeriodTypeLabels;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultPeriodService implements PeriodService {
 
   private final PeriodStore periodStore;
+  private final PeriodTypeStore periodTypeStore;
   private final I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
@@ -230,14 +232,14 @@ public class DefaultPeriodService implements PeriodService {
   public PeriodType getPeriodTypeByClass(Class<? extends PeriodType> periodType) {
     PeriodType type = PeriodType.getPeriodTypeByClass(periodType);
     if (type == null) throw new IllegalArgumentException("Unknown period type: " + periodType);
-    periodStore.addPeriodType(type);
+    periodTypeStore.addPeriodType(type);
     return type;
   }
 
   @Override
   @IndirectTransactional
   public PeriodType reloadPeriodType(PeriodType periodType) {
-    periodStore.addPeriodType(periodType);
+    periodTypeStore.addPeriodType(periodType);
     return periodType;
   }
 
@@ -246,7 +248,7 @@ public class DefaultPeriodService implements PeriodService {
   public boolean updatePeriodTypeLabel(
       @Nonnull String name, @Nonnull Collection<Translation> translations) {
     translations.forEach(t -> PERIOD_TYPES_CACHE.remove(t.getLocale()));
-    return periodStore.updatePeriodTypeLabel(name, translations);
+    return periodTypeStore.updatePeriodTypeLabel(name, translations);
   }
 
   @Override
@@ -258,7 +260,7 @@ public class DefaultPeriodService implements PeriodService {
     } else {
       PERIOD_TYPES_CACHE.clear();
     }
-    return periodStore.updatePeriodTypeLabel(name, label, locale);
+    return periodTypeStore.updatePeriodTypeLabel(name, label, locale);
   }
 
   @Override
@@ -277,8 +279,8 @@ public class DefaultPeriodService implements PeriodService {
 
   @Nonnull
   private PeriodTypes reloadAllPeriodTypes(Locale locale) {
-    Map<String, PeriodStore.PeriodTypeLabels> labels = new HashMap<>();
-    periodStore.getAllPeriodTypeLabels().forEach(e -> labels.put(e.name(), e));
+    Map<String, PeriodTypeLabels> labels = new HashMap<>();
+    periodTypeStore.getAllPeriodTypeLabels().forEach(e -> labels.put(e.name(), e));
 
     I18n i18n = i18nManager.getI18n(locale);
     List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
@@ -287,8 +289,8 @@ public class DefaultPeriodService implements PeriodService {
       String name = t.getName();
       String label = null;
       String displayLabel = null;
-      List<Translation> translations = null;
-      PeriodStore.PeriodTypeLabels l = labels.get(name);
+      List<Translation> translations = List.of();
+      PeriodTypeLabels l = labels.get(name);
       if (l != null) {
         label = l.label();
         translations = l.translations().translationsList();
