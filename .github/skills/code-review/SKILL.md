@@ -241,8 +241,8 @@ Banned imports (build-enforced; their presence means the author never built):
   Body explains what and why, wrapped at 72 chars. No generic "Minor fix" messages.
 - Formatting: Google Java Format via Spotless. `mvn spotless:check -f dhis-2/pom.xml` must pass.
 - No unused imports, no commented-out code, no dead code, license header present on new files.
-- No stray markdown in the product diff: no `*.md` files other than an intentional `README.md`
-  (no plans, notes, changelogs, agent artifacts). Their presence blocks merge.
+- No stray agent artifacts, plans, or review notes in the product diff. Intentional documentation,
+  OpenAPI resources, repository guidance, and `README.md` files are allowed when in scope.
 - Deprecation warnings introduced by dependency bumps are fixed in the same PR, not left behind.
 - New files staged and included; generated/IDE files excluded.
 
