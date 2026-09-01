@@ -160,19 +160,21 @@ public class TrackedEntityAggregate {
       Deadline deadline) {
     return condition
         ? supplyAsync(withRequestContext(mdc, deadline, supplier), executor)
-        : supplyAsync(ArrayListMultimap::create, executor);
+        : supplyAsync(withRequestContext(mdc, deadline, ArrayListMultimap::create), executor);
   }
 
   /**
-   * Sets the calling request's MDC context and export deadline on the pooled thread. Both are
-   * restored afterwards, which in practice means cleared: the pool is cached and its threads
-   * outlive the request, so a deadline left behind would bound whatever runs there next.
+   * Sets the calling request's MDC context and export deadline on the pooled thread, clearing the
+   * deadline when the task is done.
+   *
+   * <p>Cleared, not restored to what the thread held before: the pool is private to this class and
+   * every task sets its own deadline, so restoring would only hand the next request the expired
+   * deadline of the previous one and fail it with a 504 it never earned.
    */
-  private static <T> Supplier<T> withRequestContext(
+  static <T> Supplier<T> withRequestContext(
       Map<String, String> mdc, Deadline deadline, Supplier<T> supplier) {
     return () -> {
       Map<String, String> previousMdc = MDC.getCopyOfContextMap();
-      Deadline previousDeadline = DeadlineHolder.get();
       if (mdc != null) {
         MDC.setContextMap(mdc);
       }
@@ -180,7 +182,7 @@ public class TrackedEntityAggregate {
       try {
         return supplier.get();
       } finally {
-        DeadlineHolder.set(previousDeadline);
+        DeadlineHolder.clear();
         if (previousMdc != null) {
           MDC.setContextMap(previousMdc);
         } else {
