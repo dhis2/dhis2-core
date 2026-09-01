@@ -454,6 +454,16 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
+  /**
+   * Maximum number of seconds a tracker export request may spend querying the database before it is
+   * canceled and the request fails with 504. The budget is shared by all queries of one request.
+   * {@code 0} disables the timeout. (default: 10)
+   *
+   * <p>Because the underlying JDBC timeout has whole second granularity and the remaining budget is
+   * rounded up, a request can take up to one second longer than this value.
+   */
+  TRACKER_EXPORT_TIMEOUT("tracker.export.timeout", "10", false),
+
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 

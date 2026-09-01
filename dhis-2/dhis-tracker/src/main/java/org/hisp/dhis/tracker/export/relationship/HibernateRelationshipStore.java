@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.resultList;
+import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.singleResult;
+import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.withDeadline;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -103,9 +107,10 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       hql += "and te.deleted = false";
     }
     List<TrackedEntity> trackedEntities =
-        getQuery(hql, TrackedEntity.class)
-            .setParameter("trackedEntity", trackedEntity.getValue())
-            .getResultList();
+        resultList(
+            getQuery(hql, TrackedEntity.class)
+                .setParameter("trackedEntity", trackedEntity.getValue()),
+            "relationship query");
     return trackedEntities.stream().findFirst();
   }
 
@@ -120,9 +125,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       hql += "and e.deleted = false";
     }
     List<Enrollment> enrollments =
-        getQuery(hql, Enrollment.class)
-            .setParameter("enrollment", enrollment.getValue())
-            .getResultList();
+        resultList(
+            getQuery(hql, Enrollment.class).setParameter("enrollment", enrollment.getValue()),
+            "relationship query");
     return enrollments.stream().findFirst();
   }
 
@@ -137,7 +142,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       hql += "and e.deleted = false";
     }
     List<TrackerEvent> events =
-        getQuery(hql, TrackerEvent.class).setParameter("event", event.getValue()).getResultList();
+        resultList(
+            getQuery(hql, TrackerEvent.class).setParameter("event", event.getValue()),
+            "relationship query");
     return events.stream().findFirst();
   }
 
@@ -152,7 +159,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       hql += "and e.deleted = false";
     }
     List<SingleEvent> events =
-        getQuery(hql, SingleEvent.class).setParameter("event", event.getValue()).getResultList();
+        resultList(
+            getQuery(hql, SingleEvent.class).setParameter("event", event.getValue()),
+            "relationship query");
     return events.stream().findFirst();
   }
 
@@ -180,7 +189,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))""";
     List<String> relationshipKeysAsString =
         relationshipKeys.stream().map(RelationshipKey::asString).toList();
-    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString).list();
+    return resultList(
+        getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString),
+        "relationship query");
   }
 
   public List<RelationshipItem> getRelationshipItemsByTrackedEntity(
@@ -198,9 +209,10 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     if (!includeDeleted) {
       hql += "and r.deleted = false";
     }
-    return getQuery(hql, RelationshipItem.class)
-        .setParameter("trackedEntity", trackedEntity.getValue())
-        .list();
+    return resultList(
+        getQuery(hql, RelationshipItem.class)
+            .setParameter("trackedEntity", trackedEntity.getValue()),
+        "relationship query");
   }
 
   public List<RelationshipItem> getRelationshipItemsByEnrollment(
@@ -218,9 +230,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     if (!includeDeleted) {
       hql += "and r.deleted = false";
     }
-    return getQuery(hql, RelationshipItem.class)
-        .setParameter("enrollment", enrollment.getValue())
-        .list();
+    return resultList(
+        getQuery(hql, RelationshipItem.class).setParameter("enrollment", enrollment.getValue()),
+        "relationship query");
   }
 
   public List<RelationshipItem> getRelationshipItemsByEvent(UID event, boolean includeDeleted) {
@@ -239,14 +251,17 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     if (!includeDeleted) {
       hql += "and r.deleted = false";
     }
-    return getQuery(hql, RelationshipItem.class).setParameter("event", event.getValue()).list();
+    return resultList(
+        getQuery(hql, RelationshipItem.class).setParameter("event", event.getValue()),
+        "relationship query");
   }
 
   private List<Relationship> relationshipsList(
       RelationshipQueryParams queryParams, PageParams pageParams) {
     CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(queryParams);
 
-    TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
+    TypedQuery<Relationship> query =
+        withDeadline(entityManager.createQuery(criteriaQuery), "relationship query");
 
     if (pageParams != null) {
       query.setFirstResult(pageParams.getOffset());
@@ -255,7 +270,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
               + 1); // get extra relationship to determine if there is a nextPage
     }
 
-    return query.getResultList();
+    return resultList(query, "relationship query");
   }
 
   private long countRelationships(RelationshipQueryParams queryParams) {
@@ -286,7 +301,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
       criteriaQuery.where(predicates.toArray(Predicate[]::new));
     }
-    return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
+    return singleResult(entityManager.createQuery(criteriaQuery), "relationship query");
   }
 
   private CriteriaQuery<Relationship> criteriaQuery(RelationshipQueryParams queryParams) {

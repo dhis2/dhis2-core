@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.resultList;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -178,7 +179,7 @@ public class HibernateTrackedEntityChangeLogStore {
       query.setParameter("filterValue", filter.getValue().getFilter());
     }
 
-    List<Object[]> results = query.getResultList();
+    List<Object[]> results = resultList(query, "tracked entity change log query");
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         results.stream()
             .map(
