@@ -188,7 +188,6 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
       property.setUnique(column.isUnique());
       property.setRequired(!column.isNullable());
       property.setMin(0d);
-      property.setMax((double) column.getLength());
       property.setLength(column.getLength());
 
       if (type instanceof TextType) {
