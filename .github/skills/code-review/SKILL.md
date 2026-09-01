@@ -102,8 +102,8 @@ so hold changes to the standard: idiomatic, no shortcuts, done right the first t
   `ForbiddenException` (403), `ConflictException` (409), `BadRequestException` (400).
   Do not invent new exception-to-status mappings; `CrudControllerAdvice` handles them globally.
 - Use `ErrorCode` entries to identify errors; add a new code rather than a bare message string.
-- `get*` store/service methods never return `null`: they throw if missing.
-  `find*` methods return `Optional<X>`. Flag methods that violate this contract.
+- Respect each service/store method's documented absence contract. Prefer throwing `get*` methods
+  and `Optional<X>`-returning `find*` methods for new APIs, but verify existing contracts before flagging.
 
 ### Domain model and serialization
 
