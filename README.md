@@ -95,6 +95,18 @@ When running compose up with multiple compose files, you need to pass the same f
 docker compose -f docker-compose.yml -f docker-compose.doris.yml down
 ```
 
+### Launch for CHAP
+
+This overlay configures DHIS2 for the Climate Health Analytics Platform (CHAP). It uses `docker/chap/dhis-chap.conf`, which allows the route API to reach any HTTP server (`route.remote_servers_allowed = http://*`), and loads the Laos climate demo database.
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.chap.yml up -d
+```
+
+```
+docker compose -f docker-compose.yml -f docker-compose.chap.yml down
+```
+
 ### Synchronization between DHIS2 instances
 
 You can run multiple DHIS2 instances to test data and metadata [synchronization](https://docs.dhis2.org/en/use/user-guides/dhis-core-version-master/exchanging-data/metadata-synchronization.html) by running the following command.
