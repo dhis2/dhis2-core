@@ -61,10 +61,13 @@ public class EnrollmentSupplier extends AbstractPreheatSupplier {
       programsWithoutRegistration = programStore.getByType(ProgramType.WITHOUT_REGISTRATION);
     }
     if (!programsWithoutRegistration.isEmpty()) {
+      // This enrollment is only ever used as an FK reference for events (it is never converted
+      // or persisted), so its notes are never read: map without them to avoid an unnecessary
+      // lazy-load query per WITHOUT_REGISTRATION program on every import.
       List<Enrollment> enrollments =
-          DetachUtils.detach(
-              EnrollmentMapper.INSTANCE,
-              enrollmentStore.getByPrograms(programsWithoutRegistration));
+          enrollmentStore.getByPrograms(programsWithoutRegistration).stream()
+              .map(EnrollmentMapper.INSTANCE::mapWithoutNotes)
+              .collect(Collectors.toList());
 
       enrollments.forEach(
           e -> {
