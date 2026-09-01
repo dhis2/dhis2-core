@@ -1,3 +1,7 @@
+---
+name: dhis2-core-code-review
+description: Code review skill for DHIS2 Core backend pull requests. Applies DHIS2 architecture, security/ACL, transaction, Flyway migration, API design, testing, and WOW conventions on top of a general engineering review.
+---
 
 # DHIS2 Core Code Review
 
@@ -8,12 +12,40 @@ with the DHIS2-specific conventions and WOW rules that generic reviews miss.
 Everything in this repository is open source. Reviews are read and judged by the community,
 so hold changes to the standard: idiomatic, no shortcuts, done right the first time.
 
+## Mandatory Findings (check every one, flag every hit)
+
+High-signal DHIS2 defect patterns. Scan the whole diff for each of these before anything else;
+every hit MUST become a comment at the stated severity.
+
+1. New/changed endpoint without `@RequiresAuthority` and without an ACL check, especially
+   state-writing endpoints -> Critical
+2. `catch (Exception ...)` returning `ex.getMessage()` (or other raw internals) to the client -> Critical
+3. SQL built by concatenating request input instead of bound parameters -> Critical
+4. Write operation under `@Transactional(readOnly = true)` -> Critical
+5. Boolean `dhis.conf` key compared as an exact string instead of `isEnabled()`/`isDisabled()` -> Critical
+6. Migration DDL without `IF NOT EXISTS`/`IF EXISTS` idempotency guards -> Critical
+7. Public `@Service` method with no effective transaction boundary (method-level or inherited
+   from a class-level annotation) -> Important
+8. Controller injecting a Store or containing aggregation/business logic -> Important
+9. Per-item service/store lookups inside a loop (N+1) instead of a bulk lookup such as
+   `getByUid(Collection)` -> Important
+10. Hand-rolled field/`Map` caching of Hibernate entities instead of `CacheProvider` -> Important
+11. Public method mutating a caller-supplied collection -> Important
+12. Silent success/no-op for an unknown UID instead of `NotFoundException` -> Important
+13. Ad-hoc `Map<String, Object>` request/response shapes instead of dedicated records -> Important
+14. New endpoints or request parameters without tests; auth-gated or mutating endpoints without
+    a negative (403) test -> Important
+15. New Flyway migration where the PR does not state a WOW coordination entry exists -> Important
+16. No `[DHIS2-XXXX]` Jira reference in PR title, commits, or description -> Important
+17. Raw `String` uid parameters or CSV id strings in new signatures instead of `UID`/`List<UID>` -> Minor
+18. `Collections.emptyList()` over `List.of()`; long if-else chains over modern switch;
+    `@SneakyThrows` -> Minor
+
 ## Review Process
 
-1. **Establish scope.** Get the full diff and its context:
-   - `gh pr view <n>` and `gh pr diff <n>`, or `git diff master...HEAD`
-   - Read the PR description and the linked Jira issue (`DHIS2-XXXX`). The Jira issue is the
-     requirements source; the PR must actually solve it.
+1. **Establish scope.** Read the full diff, the PR title/description, and the linked Jira issue
+   (`DHIS2-XXXX`); when running locally use `gh pr view/diff <n>` or `git diff master...HEAD`.
+   The Jira issue is the requirements source; the PR must actually solve it.
 2. **Read the changed files, not just the hunks.** Open each touched class fully. A hunk that
    looks fine in isolation often violates layering, transaction, or ACL rules visible only in
    the surrounding class.
@@ -66,10 +98,11 @@ so hold changes to the standard: idiomatic, no shortcuts, done right the first t
 
 ### Transactions
 
-- EVERY public method of a `@Service` bean must carry exactly one of:
+- Every public method of a `@Service` bean must have an effective transaction boundary: one of
   `@Transactional`, `@Transactional(readOnly = true)`, `@NonTransactional`, or
-  `@IndirectTransactional`. Missing annotation = finding. Class-level `@Transactional` is not
-  used: always method-level.
+  `@IndirectTransactional`, either on the method or inherited from a class-level
+  `@Transactional(readOnly = true)` with method-level overrides on writes (an accepted existing
+  pattern). No effective boundary at all = finding. For new code prefer method-level annotations.
 - Read paths use `readOnly = true`. A write inside a `readOnly` transaction is a bug.
 - Do not rely on OSIV (Open Session In View). It is active but is an anti-pattern scheduled for
   removal: code must work with explicit transaction boundaries.
@@ -102,8 +135,9 @@ so hold changes to the standard: idiomatic, no shortcuts, done right the first t
   `ForbiddenException` (403), `ConflictException` (409), `BadRequestException` (400).
   Do not invent new exception-to-status mappings; `CrudControllerAdvice` handles them globally.
 - Use `ErrorCode` entries to identify errors; add a new code rather than a bare message string.
-- Respect each service/store method's documented absence contract. Prefer throwing `get*` methods
-  and `Optional<X>`-returning `find*` methods for new APIs, but verify existing contracts before flagging.
+- Convention for new APIs: `get*` methods do not return `null` (throw when missing) and `find*`
+  methods return `Optional<X>`. Many legacy `get*` methods DO return `null`: do not flag those
+  existing signatures, but DO flag new code that assumes a non-null result from them.
 
 ### Domain model and serialization
 
@@ -131,6 +165,8 @@ so hold changes to the standard: idiomatic, no shortcuts, done right the first t
 - hbm.xml change without a matching Flyway migration will fail Hibernate schema validation at
   startup: always check both sides changed together.
 - JSONB columns use the custom types from `dhis-support-hibernate` (`JsonBinaryType` family).
+- Bulk over per-item access: flag loops issuing one service/store call per id (N+1); use bulk
+  lookups such as `getByUid(Collection)` or a single query.
 
 ### Caching
 
@@ -157,7 +193,8 @@ so hold changes to the standard: idiomatic, no shortcuts, done right the first t
 - Migrations MUST be idempotent (`IF NOT EXISTS` / `IF EXISTS`, drop-then-create for named
   constraints) and must work on a fresh, empty database. Non-idempotent migration = Critical.
 - Every new migration MUST get an entry in the WOW coordination document
-  (`wow-backend/coordination/flyway_versioning.md`). Missing entry = must fix before merge.
+  (`wow-backend/coordination/flyway_versioning.md`). If the PR does not state the entry exists,
+  raise it as a finding; do not assume it was done.
 - Lowercase SQL in migration files. No explicit BEGIN/COMMIT (Flyway owns the transaction);
   Java migrations must not close the connection.
 - Backports: copy the migration under the next free number for EACH target branch and add
@@ -173,7 +210,9 @@ so hold changes to the standard: idiomatic, no shortcuts, done right the first t
   `WebMessage` built by `WebMessageUtils` (`ok()`, `created()`, `conflict()`, ...).
 - One media type and one unique path per method; avoid header/parameter-based mapping.
 - Dedicated `Params`/`Request`/`Response` record-like classes for parameters and bodies, with
-  defaults in the params object. `UID` over `String`, enums over `String`.
+  defaults in the params object. Flag ad-hoc `Map<String, Object>` request/response shapes.
+- `UID` over `String`, enums over `String`. Flag raw `String` uid parameters and CSV id strings
+  in new signatures; use `UID` / `List<UID>`.
 - Use `204 NO_CONTENT` where there is nothing to return.
 - OpenAPI is custom (`@OpenApi.*` annotations, not springdoc): new/changed endpoints must keep
   annotations accurate; add `@OpenApi.Document` classifiers (`team:...`, `purpose:...`).
@@ -239,10 +278,13 @@ Banned imports (build-enforced; their presence means the author never built):
 - Commit/PR title: `prefix: Imperative subject [DHIS2-XXXX]`, capitalized, max 50 chars, no
   trailing period. Prefixes: `feat:` `fix:` `chore:` `ci:` `docs:` `refactor:` `perf:` `test:`.
   Body explains what and why, wrapped at 72 chars. No generic "Minor fix" messages.
+- No Jira reference (`[DHIS2-XXXX]`) anywhere in the PR title, commits, or description: flag it
+  (rare intentional exceptions: trivial `chore:`/`ci:` changes).
 - Formatting: Google Java Format via Spotless. `mvn spotless:check -f dhis-2/pom.xml` must pass.
 - No unused imports, no commented-out code, no dead code, license header present on new files.
-- No stray agent artifacts, plans, or review notes in the product diff. Intentional documentation,
-  OpenAPI resources, repository guidance, and `README.md` files are allowed when in scope.
+- No agent/planning markdown in the product diff: plans, notes, changelogs, handoffs, review
+  artifacts, session logs. Intentional repository docs are fine (`README.md`, `CONTRIBUTING.md`,
+  `SECURITY.md`, `.github/` docs and skills, `resources/openapi/*.md`).
 - Deprecation warnings introduced by dependency bumps are fixed in the same PR, not left behind.
 - New files staged and included; generated/IDE files excluded.
 
