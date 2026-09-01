@@ -15,7 +15,9 @@ so hold changes to the standard: idiomatic, no shortcuts, done right the first t
 ## Mandatory Findings (check every one, flag every hit)
 
 High-signal DHIS2 defect patterns. Scan the whole diff for each of these before anything else;
-every hit MUST become a comment at the stated severity.
+every hit MUST become a comment at the stated severity. When several rules hit the same file,
+report every violated rule explicitly (separate findings or one comment listing each); never
+silently drop sub-findings.
 
 1. New/changed endpoint without `@RequiresAuthority` and without an ACL check, especially
    state-writing endpoints -> Critical
@@ -23,7 +25,11 @@ every hit MUST become a comment at the stated severity.
 3. SQL built by concatenating request input instead of bound parameters -> Critical
 4. Write operation under `@Transactional(readOnly = true)` -> Critical
 5. Boolean `dhis.conf` key compared as an exact string instead of `isEnabled()`/`isDisabled()` -> Critical
-6. Migration DDL without `IF NOT EXISTS`/`IF EXISTS` idempotency guards -> Critical
+6. Flyway migration file touched: check ALL of (a) DDL has `IF NOT EXISTS`/`IF EXISTS`
+   idempotency guards, missing -> Critical; (b) SQL keywords lowercase, uppercase -> Minor;
+   (c) filename description words lowercase_with_underscores, CamelCase -> Minor; (d) a WOW
+   coordination entry (`wow-backend/coordination/flyway_versioning.md`) is confirmed in the PR
+   description, not confirmed -> Important. Report each failed sub-check.
 7. Public `@Service` method with no effective transaction boundary (method-level or inherited
    from a class-level annotation) -> Important
 8. Controller injecting a Store or containing aggregation/business logic -> Important
@@ -35,10 +41,9 @@ every hit MUST become a comment at the stated severity.
 13. Ad-hoc `Map<String, Object>` request/response shapes instead of dedicated records -> Important
 14. New endpoints or request parameters without tests; auth-gated or mutating endpoints without
     a negative (403) test -> Important
-15. New Flyway migration where the PR does not state a WOW coordination entry exists -> Important
-16. No `[DHIS2-XXXX]` Jira reference in PR title, commits, or description -> Important
-17. Raw `String` uid parameters or CSV id strings in new signatures instead of `UID`/`List<UID>` -> Minor
-18. `Collections.emptyList()` over `List.of()`; long if-else chains over modern switch;
+15. No `[DHIS2-XXXX]` Jira reference in PR title, commits, or description -> Important
+16. Raw `String` uid parameters or CSV id strings in new signatures instead of `UID`/`List<UID>` -> Minor
+17. `Collections.emptyList()` over `List.of()`; long if-else chains over modern switch;
     `@SneakyThrows` -> Minor
 
 ## Review Process
@@ -189,7 +194,8 @@ every hit MUST become a comment at the stated severity.
 ### Flyway migrations
 
 - Location `dhis-support-db-migration`, naming `V2_{major}_{seq}__{Description_with_underscores}.sql`
-  (e.g. `V2_43_56__add_default_order_indices.sql`); pick the next unused sequence number.
+  (e.g. `V2_43_56__add_default_order_indices.sql`); pick the next unused sequence number. The
+  description words are lowercase and underscore separated: CamelCase words are a finding.
 - Migrations MUST be idempotent (`IF NOT EXISTS` / `IF EXISTS`, drop-then-create for named
   constraints) and must work on a fresh, empty database. Non-idempotent migration = Critical.
 - Every new migration MUST get an entry in the WOW coordination document
