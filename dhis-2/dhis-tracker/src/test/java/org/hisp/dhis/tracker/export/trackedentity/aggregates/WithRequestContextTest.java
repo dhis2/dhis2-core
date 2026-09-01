@@ -117,7 +117,7 @@ class WithRequestContextTest {
   }
 
   @Test
-  void shouldClearTheDeadlineEvenWhenTheTaskFails() throws Exception {
+  void shouldClearTheDeadlineEvenWhenTheTaskFails() {
     // a branch whose query times out throws, and its budget is spent by then, so the exception
     // path is exactly where an expired deadline would be left behind
     assertThrows(
