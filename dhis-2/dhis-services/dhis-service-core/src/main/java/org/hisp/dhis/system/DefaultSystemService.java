@@ -34,16 +34,14 @@ import static org.hisp.dhis.util.DateUtils.getPrettyInterval;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -181,9 +179,13 @@ public class DefaultSystemService implements SystemService, InitializingBean {
    */
   static Map<AnalyticsTableType, Date> getLastSuccessfulUpdateByType(
       Function<AnalyticsTableType, Date> getter) {
-    return Arrays.stream(AnalyticsTableType.values())
-        .filter(AnalyticsTableType::isLatestPartition)
-        .collect(Collectors.toMap(Function.identity(), getter, (a, b) -> a, LinkedHashMap::new));
+    Map<AnalyticsTableType, Date> updates = new EnumMap<>(AnalyticsTableType.class);
+    for (AnalyticsTableType type : AnalyticsTableType.values()) {
+      if (type.isLatestPartition()) {
+        updates.put(type, getter.apply(type));
+      }
+    }
+    return updates;
   }
 
   @Override
