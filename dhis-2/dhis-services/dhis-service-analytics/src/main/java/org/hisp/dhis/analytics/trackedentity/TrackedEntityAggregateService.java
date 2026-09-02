@@ -36,7 +36,9 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getAggregateGridHeaders;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -127,6 +129,7 @@ public class TrackedEntityAggregateService {
     securityManager.applyOrganisationUnitConstraint(commonParams);
     securityManager.applyDimensionConstraints(commonParams);
 
+    validateDimensions(contextParams);
     validateSorting(contextParams);
 
     SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator(contextParams);
@@ -153,7 +156,34 @@ public class TrackedEntityAggregateService {
     metadataParamsHandler.handle(
         grid, withGroupedDimensionsOnly(contextParams), currentUser, rowsCount);
     addGroupedOrgUnitMetadata(grid, contextParams);
+    addHeaderMetadata(grid);
     return grid;
+  }
+
+  /**
+   * Adds the {@code metaData} entries for headers the shared {@link MetadataParamsHandler} does not
+   * describe. The label is extracted from the header, and the item list is empty because a static
+   * dimension has no fixed set of items. Entries that already exist are not touched.
+   */
+  private void addHeaderMetadata(Grid grid) {
+    GridMetadata metadata = getGridMetadata(grid);
+    if (metadata == null || metadata.isEmpty()) {
+      return;
+    }
+
+    for (GridHeader header : grid.getHeaders()) {
+      if (VALUE_HEADER.getName().equals(header.getName())) {
+        continue;
+      }
+
+      if (metadata.items() != null) {
+        metadata.items().putIfAbsent(header.getName(), new MetadataItem(header.getColumn()));
+      }
+
+      if (metadata.dimensions() != null) {
+        metadata.dimensions().putIfAbsent(header.getName(), List.of());
+      }
+    }
   }
 
   /**
@@ -205,6 +235,40 @@ public class TrackedEntityAggregateService {
             .build();
 
     return contextParams.toBuilder().commonParsed(scoped).build();
+  }
+
+  /**
+   * Rejects a dimension the query is asked to group by but cannot group by. Dropping it silently
+   * would answer with an ungrouped total that looks like a valid grouped answer. {@link
+   * AggregateQueryBuilder#getGroupedDimensionKeys} decides what is grouped.
+   *
+   * <p>A dimension carrying items, such as {@code ou:USER_ORGUNIT} or {@code
+   * programUid.PROGRAM_STATUS:ACTIVE}, is a restriction: it is applied to the query and is grouped
+   * only when it can be, which is the same contract as the {@code filter} parameter. A dimension
+   * without items can only be a request to group by, so it must be groupable.
+   */
+  private void validateDimensions(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
+
+    for (String dimension : contextParams.getCommonRaw().getDimension()) {
+      if (hasItems(dimension)) {
+        continue;
+      }
+
+      if (!groupedKeys.contains(AggregateQueryBuilder.canonicalDimensionKey(dimension))) {
+        throw new IllegalQueryException(
+            new ErrorMessage(ErrorCode.E7258, getDimensionFromParam(dimension)));
+      }
+    }
+  }
+
+  /**
+   * Whether a raw {@code dimension} parameter carries items, that is whether it has the {@code
+   * dimension:items} form of {@code ou:USER_ORGUNIT}.
+   */
+  private static boolean hasItems(String dimension) {
+    return dimension.contains(DIMENSION_NAME_SEP);
   }
 
   /**
@@ -358,6 +422,7 @@ public class TrackedEntityAggregateService {
 
   public Grid getGridExplain(
       @Nonnull ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    validateDimensions(contextParams);
     validateSorting(contextParams);
 
     Grid grid = new ListGrid();
