@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
+import org.hisp.dhis.test.e2e.dependsOn.Resource;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
@@ -53,9 +54,11 @@ public class EnrollmentsQuery9AutoTest extends AnalyticsApiTest {
   @DependsOn(
       files = {"pi-true-only-data-element.json"},
       delete = true)
-  public void queryProgramIndicatorWithTrueOnlyDataElement() throws JSONException {
+  public void queryProgramIndicatorWithTrueOnlyDataElement(List<Resource> dependencies)
+      throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
+    String piUid = dependencies.get(0).uid();
 
     // Given
     QueryParamsBuilder params =
@@ -70,7 +73,7 @@ public class EnrollmentsQuery9AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("outputType=ENROLLMENT")
             .add("page=1")
-            .add("dimension=PItrueOnly1:EQ:1,ou:ImspTQPwCqd")
+            .add("dimension=" + piUid + ":EQ:1,ou:ImspTQPwCqd")
             .add("relativePeriodDate=2023-07-01");
 
     // When
