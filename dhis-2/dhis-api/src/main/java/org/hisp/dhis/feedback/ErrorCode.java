@@ -611,6 +611,7 @@ public enum ErrorCode {
   E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
   E7245("Program stage `{0}` does not belong to program `{1}`"),
   E7246("Sorting by `{0}` requires ENROLLMENT_OU as a dimension or filter"),
+  E7247("Query filter keyword `{0}` can only be used with option set dimensions"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
@@ -623,6 +624,8 @@ public enum ErrorCode {
   E7256("Value `{0}` is not a numeric tracked entity attribute of tracked entity type `{1}`"),
   E7257(
       "Value `{0}` does not reference a numeric data element of a program stage; expected format `programUid.programStageUid.dataElementUid`"),
+  E7258(
+      "Dimension is not supported as a group by in a tracked entity aggregate query: `{0}`. Supported dimensions are the registration organisation unit, tracked entity static fields and tracked entity attributes"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
