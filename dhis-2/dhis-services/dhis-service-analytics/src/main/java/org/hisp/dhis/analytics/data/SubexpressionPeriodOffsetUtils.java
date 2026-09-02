@@ -88,7 +88,7 @@ public class SubexpressionPeriodOffsetUtils {
    *             union all select -1, '202310', '202309'
    *             union all select 0, '202309', '202309'
    *             union all select 0, '202310', '202310')
-   *       as shift on "dataperiod" = "monthly"
+   *       as shift on shift."dataperiod" = ax."monthly"
    * </pre>
    *
    * @param params parameters with reporting periods
@@ -131,8 +131,8 @@ public class SubexpressionPeriodOffsetUtils {
         format(
             ") as %s on %s = %s",
             SHIFT,
-            sqlBuilder.quote(DATAPERIOD),
-            sqlBuilder.quote(params.getPeriodType().toLowerCase())));
+            sqlBuilder.quote(SHIFT, DATAPERIOD),
+            sqlBuilder.quoteAx(params.getPeriodType().toLowerCase())));
 
     return sb.toString();
   }

@@ -14,6 +14,27 @@
     <jsr107:defaults default-template="defaultCacheTemplate" enable-statistics="true"/>
   </service>
 
+  <!-- Store EVERY region by reference, restoring the pre-2.42 semantics.
+
+       Regions not declared below are created at runtime through the JSR-107 API
+       (hibernate-jcache MissingCacheStrategy.CREATE with an empty MutableConfiguration),
+       and the JCache spec defaults that to store-BY-VALUE: Ehcache then serializes and
+       deserializes every entry on every get and put (SerializingCopier), under READ_WRITE
+       inside the region lock critical section. DHIS2 stored all regions by reference from
+       2016 through 2.41 (Ehcache 2); the 2.42 Spring 6 upgrade flipped runtime-created
+       regions to by-value as a silent side effect of that spec default.
+
+       This CacheManager-level default copier overrides the JSR-107 by-value semantics for
+       runtime-created caches (all typed Object/Object), so they store by reference like the
+       declared caches. Safe for Hibernate's use: the cache holds Hibernate-internal
+       disassembled state, never handed to application code, never mutated in place. Entries
+       are consequently no longer required to be Serializable; a deployment overriding this
+       file to add off-heap or disk tiers must configure serializers, exactly as before 2.42.
+       Pinned by StoreByReferenceConfigTest. -->
+  <default-copiers>
+    <copier type="java.lang.Object">org.ehcache.impl.copy.IdentityCopier</copier>
+  </default-copiers>
+
   <!-- Cache template definition (referenced by jsr107:defaults and potentially explicit caches) -->
   <!-- Based on old defaultCache settings -->
   <cache-template name="defaultCacheTemplate">
@@ -49,19 +70,21 @@
 
   <!--
     The hottest Hibernate regions under concurrent load are DECLARED here as ehcache-native
-    caches. Caches created on demand through the JSR-107 API (hibernate-jcache
-    MissingCacheStrategy.CREATE) get the JCache MutableConfiguration defaults, which force
-    store-BY-VALUE: every get and put serializes the entry (SerializingCopier), and under
-    READ_WRITE that happens inside the region lock critical section. Declared caches keep
-    ehcache-native store-by-reference: no copier, no serialization on the cache path.
-    Hibernate stores disassembled (immutable) cache entries, so by-reference is safe;
-    DHIS2 2.41 ran Ehcache 2 by-reference for years.
+    caches. Store-by-reference is already the CacheManager default (see default-copiers
+    above); declaring a region does not change copy semantics. Explicit caches exist only
+    to override heap size and expiry from defaultCacheTemplate.
+
+    Regions created on demand through the JSR-107 API (hibernate-jcache
+    MissingCacheStrategy.CREATE) still inherit the template bounds and the manager-wide
+    IdentityCopier. Hibernate stores disassembled (immutable) cache entries, so
+    by-reference is safe; DHIS2 2.41 ran Ehcache 2 by-reference for years.
 
     The region list is the measured hottest regions under concurrent tracker import and
     metadata read load; heap bounds are sized with headroom for large national deployments,
     not the demo database. Regions not declared here fall back to the jsr107 template above
-    (bounded, store-by-value). Per-region cache metrics (gets, hits, puts, evictions) are
-    exposed via /api/metrics; a region evicting while hot is undersized and should be raised.
+    (bounded, store-by-reference). Per-region cache metrics (gets, hits, puts, evictions)
+    are exposed via /api/metrics; a region evicting while hot is undersized and should be
+    raised.
   -->
 
   <!-- Entity regions -->
@@ -119,7 +142,8 @@
   </cache>
   <!-- Tracker-import hot regions: the Option region alone out-reads every other region by
        roughly two orders of magnitude under concurrent event imports against option-heavy
-       programs, so leaving it undeclared would keep the hottest path store-by-value. -->
+       programs. Declared here to pin a 200k heap bound; leaving it undeclared would still
+       store by reference (default-copiers) but would use the 1M template heap. -->
   <cache alias="org.hisp.dhis.option.Option">
     <expiry><ttl unit="seconds">3600</ttl></expiry>
     <resources><heap unit="entries">200000</heap></resources>

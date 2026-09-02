@@ -691,9 +691,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
   private boolean isBaseIdentifiableObjectIdOnly(
       @Nonnull Object object, @Nonnull List<String> fields) {
-    return fields.size() == 1
-        && fields.get(0).equals("id")
-        && object instanceof BaseIdentifiableObject;
+    return fields.size() == 1 && fields.get(0).equals("id") && object instanceof IdentifiableObject;
   }
 
   private ComplexNode createBaseIdentifiableObjectIdNode(
