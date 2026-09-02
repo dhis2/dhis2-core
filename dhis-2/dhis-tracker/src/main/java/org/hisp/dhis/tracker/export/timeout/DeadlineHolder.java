@@ -74,10 +74,10 @@ public final class DeadlineHolder {
   /**
    * @throws DeadlineExceededException if this thread's budget is used up
    */
-  public static void checkNotExpired(String what) {
+  public static void checkNotExpired() {
     Deadline deadline = DEADLINE.get();
     if (deadline != null && deadline.isExpired()) {
-      throw new DeadlineExceededException("Tracker export exceeded its time budget before " + what);
+      throw new DeadlineExceededException(deadline.budget());
     }
   }
 }

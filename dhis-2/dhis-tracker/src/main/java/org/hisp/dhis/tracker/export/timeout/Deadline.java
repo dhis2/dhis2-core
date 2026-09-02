@@ -36,8 +36,11 @@ import java.util.function.LongSupplier;
  * An absolute point in time by which a tracker export request must be done. Absolute rather than a
  * duration so that passing it along cannot extend it, and based on {@link System#nanoTime()} so an
  * NTP step cannot move it.
+ *
+ * @param budget what the deadline was created with, kept only so an error can name the limit the
+ *     request ran into
  */
-public record Deadline(long deadlineNanos, LongSupplier nanoTime) {
+public record Deadline(Duration budget, long deadlineNanos, LongSupplier nanoTime) {
 
   /** A deadline {@code budget} from now. */
   public static Deadline in(Duration budget) {
@@ -46,7 +49,7 @@ public record Deadline(long deadlineNanos, LongSupplier nanoTime) {
 
   /** Visible for testing. */
   public static Deadline in(Duration budget, LongSupplier nanoTime) {
-    return new Deadline(nanoTime.getAsLong() + budget.toNanos(), nanoTime);
+    return new Deadline(budget, nanoTime.getAsLong() + budget.toNanos(), nanoTime);
   }
 
   /** Negative once the deadline has passed. */

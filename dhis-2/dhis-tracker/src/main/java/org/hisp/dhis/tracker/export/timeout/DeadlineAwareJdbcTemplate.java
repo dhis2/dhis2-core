@@ -65,7 +65,7 @@ public class DeadlineAwareJdbcTemplate extends JdbcTemplate {
     }
 
     // fail fast rather than arming a 1s timeout per remaining statement only to fail anyway
-    DeadlineHolder.checkNotExpired("issuing a query");
+    DeadlineHolder.checkNotExpired();
 
     stmt.setQueryTimeout(deadline.remainingSecondsCeil());
   }
@@ -82,9 +82,9 @@ public class DeadlineAwareJdbcTemplate extends JdbcTemplate {
   @Override
   protected DataAccessException translateException(String task, String sql, SQLException ex) {
     DataAccessException translated = super.translateException(task, sql, ex);
-    if (translated instanceof QueryTimeoutException && DeadlineHolder.get() != null) {
-      return new DeadlineExceededException(
-          "Tracker export exceeded its time budget and the query was cancelled", ex);
+    Deadline deadline = DeadlineHolder.get();
+    if (translated instanceof QueryTimeoutException && deadline != null) {
+      return new DeadlineExceededException(deadline.budget(), ex);
     }
     return translated;
   }

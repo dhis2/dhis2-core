@@ -163,7 +163,7 @@ public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableEnt
       query.setParameter("filterValue", filter.getValue().getFilter());
     }
 
-    List<Object[]> results = resultList(query, "event change log query");
+    List<Object[]> results = resultList(query);
     List<EventChangeLog> eventChangeLogs =
         results.stream()
             .map(

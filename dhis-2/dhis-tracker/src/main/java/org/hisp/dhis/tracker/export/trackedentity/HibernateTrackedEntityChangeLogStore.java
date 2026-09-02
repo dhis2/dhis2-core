@@ -179,7 +179,7 @@ public class HibernateTrackedEntityChangeLogStore {
       query.setParameter("filterValue", filter.getValue().getFilter());
     }
 
-    List<Object[]> results = resultList(query, "tracked entity change log query");
+    List<Object[]> results = resultList(query);
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         results.stream()
             .map(

@@ -56,17 +56,16 @@ public final class DeadlineQueries {
    * translation the JPA {@code QueryTimeoutException} is a {@code PersistenceException}, which the
    * advice maps to 409.
    *
-   * @param what names the query in the error, for example {@code "relationship query"}
    * @throws DeadlineExceededException if the budget is already used up, so we fail fast rather than
    *     issue a query that cannot finish in time
    */
-  public static <T> List<T> resultList(Query query, String what) {
-    return bounded(withDeadline(query, what)::getResultList, what);
+  public static <T> List<T> resultList(Query query) {
+    return bounded(withDeadline(query)::getResultList);
   }
 
   /** {@link #resultList} for a query returning a single row, such as a count. */
-  public static <T> T singleResult(TypedQuery<T> query, String what) {
-    return bounded(withDeadline(query, what)::getSingleResult, what);
+  public static <T> T singleResult(TypedQuery<T> query) {
+    return bounded(withDeadline(query)::getSingleResult);
   }
 
   /**
@@ -74,23 +73,27 @@ public final class DeadlineQueries {
    * #resultList} or {@link #singleResult}, which arm and run in one call. This is only for a query
    * that needs more configuration after it is created, such as paging.
    */
-  public static <Q extends Query> Q withDeadline(Q query, String what) {
+  public static <Q extends Query> Q withDeadline(Q query) {
     Deadline deadline = DeadlineHolder.get();
     if (deadline == null) {
       return query;
     }
-    DeadlineHolder.checkNotExpired("issuing " + what);
+    DeadlineHolder.checkNotExpired();
     // this hint is in milliseconds
     query.setHint(QueryHints.TIMEOUT_JAKARTA_JPA, (int) deadline.remaining().toMillis());
     return query;
   }
 
-  private static <T> T bounded(Supplier<T> execute, String what) {
+  private static <T> T bounded(Supplier<T> execute) {
     try {
       return execute.get();
     } catch (jakarta.persistence.QueryTimeoutException | org.hibernate.QueryTimeoutException e) {
-      throw new DeadlineExceededException(
-          "Tracker export exceeded its time budget and the %s was cancelled".formatted(what), e);
+      Deadline deadline = DeadlineHolder.get();
+      if (deadline == null) {
+        // a timeout from some other source, not ours to translate
+        throw e;
+      }
+      throw new DeadlineExceededException(deadline.budget(), e);
     }
   }
 }

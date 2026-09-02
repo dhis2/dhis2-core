@@ -92,7 +92,7 @@ public class TrackedEntityAggregate {
     List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
 
     // do not start four parallel fetches if the id query already spent the budget
-    DeadlineHolder.checkNotExpired("fetching tracked entities");
+    DeadlineHolder.checkNotExpired();
 
     Map<String, String> mdc = MDC.getCopyOfContextMap();
     // carried onto each pooled thread like MDC already is. All four close over this one deadline,

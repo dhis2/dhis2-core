@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.timeout;
 
+import java.time.Duration;
 import org.springframework.dao.DataAccessException;
 
 /**
@@ -37,14 +38,23 @@ import org.springframework.dao.DataAccessException;
  *
  * <p>Extends {@link DataAccessException} so it can be returned from {@code JdbcTemplate}'s
  * exception translation, which is where a query cancelled by the deadline surfaces.
+ *
+ * <p>The message names the budget and nothing else. The caller knows the request they sent, and
+ * what made it slow is usually something it does not name, such as ordering by a non-indexed
+ * attribute. Nothing is logged either: the access log already records the 504, and the request is
+ * an idempotent GET, so diagnosis is to reproduce it rather than to read anything captured here.
  */
 public class DeadlineExceededException extends DataAccessException {
 
-  public DeadlineExceededException(String message) {
-    super(message);
+  public DeadlineExceededException(Duration budget) {
+    super(message(budget));
   }
 
-  public DeadlineExceededException(String message, Throwable cause) {
-    super(message, cause);
+  public DeadlineExceededException(Duration budget, Throwable cause) {
+    super(message(budget), cause);
+  }
+
+  private static String message(Duration budget) {
+    return "Tracker export exceeded its time budget of %ss".formatted(budget.toSeconds());
   }
 }

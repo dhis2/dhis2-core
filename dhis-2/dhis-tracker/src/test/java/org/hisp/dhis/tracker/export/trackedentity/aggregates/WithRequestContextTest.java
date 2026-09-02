@@ -98,7 +98,7 @@ class WithRequestContextTest {
   /** Reads the deadline the way a query does, throwing if the thread holds an expired one. */
   private static Supplier<Void> readDeadline() {
     return () -> {
-      DeadlineHolder.checkNotExpired("fetching tracked entities");
+      DeadlineHolder.checkNotExpired();
       return null;
     };
   }
