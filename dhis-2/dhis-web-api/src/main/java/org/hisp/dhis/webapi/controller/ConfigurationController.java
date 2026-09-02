@@ -70,6 +70,7 @@ import org.hisp.dhis.period.PeriodTypes.PeriodTypeEntry;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.ObjectUtils;
@@ -484,6 +485,7 @@ public class ConfigurationController {
             .map(PeriodType::getName)
             .collect(toSet());
 
+    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
     return periodService.getAllPeriodTypes(locale).entries().stream()
         .filter(pt -> names.contains(pt.name()))
         .toList();

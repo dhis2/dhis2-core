@@ -31,6 +31,7 @@ package org.hisp.dhis.period;
 
 import static java.util.Objects.requireNonNull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -55,21 +56,25 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
 
   /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
   public record PeriodTypeEntry(
-      @Nonnull @OpenApi.Description("The ID of the period type") String name,
-      @Nonnull String isoDuration,
-      @Nonnull String isoFormat,
-      int frequencyOrder,
-      @CheckForNull @OpenApi.Description("The i18n translation of `name`") String defaultName,
-      @CheckForNull
+      @JsonProperty @Nonnull @OpenApi.Description("The ID of the period type") String name,
+      @JsonProperty @Nonnull String isoDuration,
+      @JsonProperty @Nonnull String isoFormat,
+      @JsonProperty int frequencyOrder,
+      @JsonProperty @CheckForNull @OpenApi.Description("The i18n translation of `name`")
+          String defaultName,
+      @JsonProperty
+          @CheckForNull
           @OpenApi.Description(
               "An optional override for the `name` taking precedence over the `defaultName`")
           String label,
-      @Nonnull List<Translation> translations,
-      @CheckForNull
+      @JsonProperty @Nonnull List<Translation> translations,
+      @JsonProperty
+          @CheckForNull
           @OpenApi.Description(
               "An optional translation for `label` resolved for a specific `locale` (falls back to `label` when no translation exists)")
           String displayLabel,
-      @Nonnull
+      @JsonProperty
+          @Nonnull
           @OpenApi.Description(
               "The name to display in the UI computed from all sources resolved for a specific `locale`")
           String displayName) {
