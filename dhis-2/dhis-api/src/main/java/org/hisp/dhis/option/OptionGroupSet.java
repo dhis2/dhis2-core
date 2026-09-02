@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -70,7 +69,7 @@ public class OptionGroupSet extends BaseDimensionalObject implements MetadataObj
   // -------------------------------------------------------------------------
 
   @JsonProperty("optionGroups")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "optionGroups", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0)
   public List<OptionGroup> getMembers() {

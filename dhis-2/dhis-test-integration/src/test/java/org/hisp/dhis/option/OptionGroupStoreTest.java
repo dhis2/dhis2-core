@@ -35,10 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -52,6 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class OptionGroupStoreTest extends PostgresIntegrationTestBase {
   @Autowired private OptionGroupStore store;
+
+  @Autowired private OptionGroupSetStore optionGroupSetStore;
 
   @Autowired private OptionStore optionStore;
 
@@ -143,5 +149,160 @@ class OptionGroupStoreTest extends PostgresIntegrationTestBase {
     optionStore.delete(option);
     optionGroupA = store.get(optionGroupA.getId());
     assertTrue(optionGroupA.getMembers().isEmpty());
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA migration verification (HBM -> annotations)
+  // -------------------------------------------------------------------------
+
+  private Option saveOption(char uniqueChar, OptionSet optionSet) {
+    Option option = createOption(uniqueChar);
+    option.setOptionSet(optionSet);
+    optionStore.save(option);
+    return option;
+  }
+
+  @Test
+  @DisplayName("JPA: members round-trip through the optiongroupmembers join table")
+  void testJpaMembersJoinTable() {
+    OptionSet optionSet = createOptionSet('J');
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetStore.save(optionSet);
+    Option o1 = saveOption('1', optionSet);
+    Option o2 = saveOption('2', optionSet);
+
+    OptionGroup group = new OptionGroup("JpaMembersGroup");
+    group.setShortName("JpaMembersGroup");
+    group.addOption(o1);
+    group.addOption(o2);
+    store.save(group);
+    long id = group.getId();
+
+    clearSession(); // force reload from DB
+
+    OptionGroup reloaded = store.get(id);
+    assertNotNull(reloaded);
+    Set<String> memberUids = new HashSet<>();
+    reloaded.getMembers().forEach(o -> memberUids.add(o.getUid()));
+    assertEquals(2, memberUids.size());
+    assertTrue(memberUids.containsAll(Set.of(o1.getUid(), o2.getUid())));
+  }
+
+  @Test
+  @DisplayName("JPA: createdBy IS persisted (optiongroup has a userid column)")
+  void testJpaCreatedByPersisted() {
+    OptionGroup group = new OptionGroup("JpaCreatedByGroup");
+    group.setShortName("JpaCreatedByGroup");
+    group.setCreatedBy(getAdminUser());
+    store.save(group);
+    long id = group.getId();
+
+    clearSession();
+
+    OptionGroup reloaded = store.get(id);
+    assertNotNull(reloaded.getCreatedBy(), "createdBy must persist to the userid column");
+    assertEquals(getAdminUser().getUid(), reloaded.getCreatedBy().getUid());
+  }
+
+  @Test
+  @DisplayName("JPA: shortName and description (text-typed) round-trip")
+  void testJpaScalarFieldsPersist() {
+    OptionGroup group = new OptionGroup("JpaScalarGroup");
+    group.setShortName("JpaScalarGroup");
+    // Longer than 255 chars - only round-trips correctly if @Type(type = "text") was kept
+    // alongside @Column(columnDefinition = "text"); columnDefinition alone still binds as
+    // StringType and truncates the schema-reported length back to 255 (see gotcha #14).
+    String longDescription = "d".repeat(1000);
+    group.setDescription(longDescription);
+    store.save(group);
+    long id = group.getId();
+
+    clearSession();
+
+    OptionGroup reloaded = store.get(id);
+    assertEquals("JpaScalarGroup", reloaded.getShortName());
+    assertEquals(longDescription, reloaded.getDescription());
+  }
+
+  @Test
+  @DisplayName("JPA: optionSet many-to-one round-trip")
+  void testJpaOptionSetPersisted() {
+    OptionSet optionSet = createOptionSet('K');
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetStore.save(optionSet);
+
+    OptionGroup group = new OptionGroup("JpaOptionSetGroup");
+    group.setShortName("JpaOptionSetGroup");
+    group.setOptionSet(optionSet);
+    store.save(group);
+    long id = group.getId();
+
+    clearSession();
+
+    OptionGroup reloaded = store.get(id);
+    assertNotNull(reloaded.getOptionSet());
+    assertEquals(optionSet.getUid(), reloaded.getOptionSet().getUid());
+  }
+
+  @Test
+  @DisplayName("JPA: id is generated (SEQUENCE) on save")
+  void testJpaIdGeneration() {
+    OptionGroup group = new OptionGroup("JpaIdGenGroup");
+    group.setShortName("JpaIdGenGroup");
+    store.save(group);
+    assertTrue(group.getId() > 0, "id must be generated on save");
+    assertNotNull(group.getUid());
+  }
+
+  @Test
+  @DisplayName(
+      "JPA: OptionGroup round-trips as a member of the still-HBM-mapped OptionGroupSet ordered list")
+  void testJpaOptionGroupAsHbmOptionGroupSetMember() {
+    OptionGroup groupA = new OptionGroup("JpaGroupSetMemberA");
+    groupA.setShortName("JpaGroupSetMemberA");
+    OptionGroup groupB = new OptionGroup("JpaGroupSetMemberB");
+    groupB.setShortName("JpaGroupSetMemberB");
+    store.save(groupA);
+    store.save(groupB);
+
+    OptionGroupSet groupSet = new OptionGroupSet("JpaGroupSet");
+    groupSet.addOptionGroup(groupA);
+    groupSet.addOptionGroup(groupB);
+    optionGroupSetStore.save(groupSet);
+    long groupSetId = groupSet.getId();
+
+    clearSession(); // force reload from DB - exercises the HBM <list> -> JPA entity edge
+
+    OptionGroupSet reloaded = optionGroupSetStore.get(groupSetId);
+    assertNotNull(reloaded);
+    // Order must be preserved (HBM <list-index column="sort_order" base="1">).
+    assertEquals(
+        List.of(groupA.getUid(), groupB.getUid()),
+        reloaded.getMembers().stream().map(OptionGroup::getUid).toList());
+  }
+
+  @Test
+  @DisplayName(
+      "JPA: preserved HBM cascade=\"all\" on members - deleting the group also deletes its member Option")
+  void testJpaMembersCascadeAllDeletesOptions() {
+    OptionSet optionSet = createOptionSet('L');
+    optionSet.setValueType(ValueType.TEXT);
+    optionSetStore.save(optionSet);
+    Option option = saveOption('3', optionSet);
+    long optionId = option.getId();
+
+    OptionGroup group = new OptionGroup("JpaCascadeGroup");
+    group.setShortName("JpaCascadeGroup");
+    group.addOption(option);
+    store.save(group);
+    long id = group.getId();
+
+    store.delete(store.get(id));
+
+    clearSession();
+
+    assertNull(
+        optionStore.get(optionId),
+        "cascade=\"all\" carried over from the HBM <set> must delete the member Option too");
   }
 }
