@@ -55,12 +55,14 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.DataElementQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.EnrolledInProgramQueryBuilder;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.EventAttributeQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.LimitOffsetQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.MainTableQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OrgUnitQueryBuilder;
@@ -70,12 +72,14 @@ import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.TrackedE
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -230,10 +234,139 @@ class SqlQueryCreatorServiceTest extends TestBase {
     assertContains("group by t_1.\"ou\"", sql);
   }
 
+  /**
+   * Sorting a grouped stage dimension must not add a second, differently chosen event column.
+   * {@link EventAttributeQueryBuilder} projects a scalar subquery for a sorting param that has no
+   * matching dimension of its own, and that column is absent from the GROUP BY, which PostgreSQL
+   * rejects with "subquery uses ungrouped column". The grouped expression partitions by tracked
+   * entity, so no enrollment partitioned subquery may survive in an aggregate query.
+   */
+  /**
+   * A grouped registration org unit must still be restricted to the requested units. The aggregate
+   * builder takes over the restriction of scoped dimensions only, so if it also claimed tracked
+   * entity dimensions from {@link OrgUnitQueryBuilder} the restriction would vanish and the query
+   * would answer over every org unit.
+   */
+  @Test
+  void testAggregateGroupedRegistrationOrgUnitKeepsItsRestriction() {
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+
+    List<SqlQueryBuilder> builders = new ArrayList<>();
+    builders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    builders.addAll(queryBuilders);
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(
+                TrackedEntityQueryParams.builder()
+                    .trackedEntityType(trackedEntityType)
+                    .aggregate(true)
+                    .build())
+            .commonRaw(new CommonRequestParams().withDimension(Set.of("ou")))
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                    .build())
+            .build();
+
+    String sql =
+        new SqlQueryCreatorService(builders)
+            .getSqlQueryCreator(contextParams)
+            .createForSelect()
+            .getStatement();
+
+    assertContains("group by t_1.\"ou\"", sql);
+    assertTrue(
+        sql.contains("where"),
+        "a grouped org unit carrying items must still restrict the query, but was: " + sql);
+  }
+
+  @Test
+  void testAggregateSortingOnStageOrgUnitAddsNoUngroupedColumn() {
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+
+    Program program = new Program();
+    program.setUid("IpHINAT79UW");
+    program.setTrackedEntityType(trackedEntityType);
+
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("A03MvHHogjR");
+    programStage.setProgram(program);
+
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("QII5GqfDfO3");
+
+    DimensionIdentifier<DimensionParam> grouped =
+        DimensionIdentifier.of(
+                ElementWithOffset.of(program),
+                ElementWithOffset.of(programStage),
+                DimensionParam.ofObject(
+                    new BaseDimensionalObject(
+                        "ou", DimensionType.ORGANISATION_UNIT, List.of(orgUnit)),
+                    DimensionParamType.DIMENSIONS,
+                    IdScheme.UID,
+                    List.of("QII5GqfDfO3")))
+            .withDefaultGroupId();
+
+    // A sorting param carries no items, so it stays a static dimension.
+    DimensionIdentifier<DimensionParam> sortBy =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program),
+            ElementWithOffset.of(programStage),
+            DimensionParam.ofObject(
+                DimensionParam.StaticDimension.OU.name(),
+                DimensionParamType.SORTING,
+                IdScheme.UID,
+                List.of()));
+
+    List<SqlQueryBuilder> builders = new ArrayList<>();
+    builders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    builders.add(new EventAttributeQueryBuilder());
+    builders.addAll(queryBuilders);
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(
+                TrackedEntityQueryParams.builder()
+                    .trackedEntityType(trackedEntityType)
+                    .aggregate(true)
+                    .build())
+            .commonRaw(
+                new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.ou:QII5GqfDfO3")))
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(grouped))
+                    .orderParams(
+                        List.of(
+                            AnalyticsSortingParams.builder()
+                                .index(0)
+                                .orderBy(sortBy)
+                                .sortDirection(SortDirection.ASC)
+                                .build()))
+                    .build())
+            .build();
+
+    String sql =
+        new SqlQueryCreatorService(builders)
+            .getSqlQueryCreator(contextParams)
+            .createForSelect()
+            .getStatement();
+
+    assertFalse(
+        sql.contains("partition by enrollment"),
+        "an aggregate query must not carry an enrollment partitioned subquery, but was: " + sql);
+  }
+
   @Test
   void testAggregateCountGroupedByOrgUnit() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -267,7 +400,9 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateCountGroupedByAttribute() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -299,7 +434,9 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateCountGroupedByOrgUnitAndAttribute() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -334,7 +471,9 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateAverageOverValueAttribute() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -370,7 +509,9 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateCountOverValueAttributeCountsNonNullValues() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -514,7 +655,9 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateGroupsByExplicitlyRequestedDimensionsOnly() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -547,7 +690,9 @@ class SqlQueryCreatorServiceTest extends TestBase {
 
   private SqlQueryCreatorService aggregateService() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(new AggregateQueryBuilder());
+    aggregateBuilders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
     aggregateBuilders.addAll(queryBuilders);
     return new SqlQueryCreatorService(aggregateBuilders);
   }

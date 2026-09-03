@@ -66,7 +66,9 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -309,6 +311,63 @@ class TrackedEntityAggregateOuMetadataTest {
     assertEquals("Mabesseneh CHP", items.get("b04CZxe0PSe").getName());
     assertEquals("b04CZxe0PSe", items.get("b04CZxe0PSe").getUid());
     assertEquals("MABESS", items.get("b04CZxe0PSe").getCode());
+  }
+
+  /**
+   * A stage scoped org unit is grouped under its own header, so its uids must resolve to display
+   * names under that header rather than under the bare {@code ou} one.
+   */
+  @Test
+  void metadataExposesGroupedOrgUnitsForStageScopedOuDimension() {
+    OrganisationUnit ngelehun = orgUnit("Ngelehun CHC", "a04CZxe0PSe", null);
+    CommonRequestParams request = new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.ou"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("A03MvHHogjR.ou")))
+        .thenReturn(
+            DimensionIdentifier.of(
+                ElementWithOffset.of(program()),
+                ElementWithOffset.of(programStage()),
+                StringUid.of("ou")));
+
+    CommonParsedParams commonParsed = parser.parse(request);
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(TrackedEntityQueryParams.builder().aggregate(true).build())
+            .commonRaw(request)
+            .commonParsed(commonParsed)
+            .build();
+
+    stubQuery(
+        ctx,
+        fakeRowSet(
+            new String[] {"A03MvHHogjR.ou", "value"},
+            List.<Object[]>of(new Object[] {"a04CZxe0PSe", 42})));
+    when(organisationUnitService.getOrganisationUnitsByUid(Set.of("a04CZxe0PSe")))
+        .thenReturn(List.of(ngelehun));
+
+    Grid grid = service.getGrid(ctx);
+
+    Map<String, List<String>> dimensions = getDimensions(grid);
+    assertEquals(
+        List.of("a04CZxe0PSe"),
+        dimensions.get("A03MvHHogjR.ou"),
+        "metaData.dimensions must list the grouped org units under the scoped header; was: "
+            + dimensions);
+
+    Map<String, MetadataItem> items = getItems(grid);
+    assertEquals("Ngelehun CHC", items.get("a04CZxe0PSe").getName());
+  }
+
+  private Program program() {
+    Program program = new Program();
+    program.setUid("IpHINAT79UW");
+    return program;
+  }
+
+  private ProgramStage programStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("A03MvHHogjR");
+    return programStage;
   }
 
   private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>

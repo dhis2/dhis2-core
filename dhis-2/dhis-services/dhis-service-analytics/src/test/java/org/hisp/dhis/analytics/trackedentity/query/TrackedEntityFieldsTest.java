@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
@@ -53,7 +54,14 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlParameterManag
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
 
 class TrackedEntityFieldsTest {
@@ -88,7 +96,8 @@ class TrackedEntityFieldsTest {
     // Exercise the real aggregate select-field construction so the ou field matches runtime.
     QueryContext queryContext = QueryContext.of(contextParams, new SqlParameterManager());
     RenderableSqlQuery renderableSqlQuery =
-        new AggregateQueryBuilder()
+        new AggregateQueryBuilder(
+                new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder()))
             .buildSqlQuery(
                 queryContext,
                 List.of(),
@@ -106,6 +115,54 @@ class TrackedEntityFieldsTest {
         headers.stream().map(GridHeader::getName).anyMatch("ou"::equals),
         "aggregate headers should include the requested ou dimension, but were: "
             + headers.stream().map(GridHeader::getName).toList());
+  }
+
+  /**
+   * Renaming a grouped header to its stage scoped form must not lose what the header carries.
+   * Option set metadata in particular decides whether downstream option discovery can map stored
+   * codes to their display labels.
+   */
+  @Test
+  void getAggregateGridHeadersKeepsOptionSetAndStageWhenRenamingAGroupedDataElement() {
+    OptionSet optionSet = new OptionSet();
+    optionSet.setUid("optionSet1");
+
+    DataElement dataElement = new DataElement();
+    dataElement.setUid("UXz7xuGCEhU");
+    dataElement.setValueType(ValueType.TEXT);
+    dataElement.setOptionSet(optionSet);
+
+    QueryItem queryItem = new QueryItem(dataElement, null, ValueType.TEXT, null, optionSet);
+
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(queryItem, DimensionParamType.DIMENSIONS, UID, List.of());
+
+    Program program = new Program();
+    program.setUid("IpHINAT79UW");
+
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("A03MvHHogjR");
+    programStage.setProgram(program);
+
+    DimensionIdentifier<DimensionParam> dimension =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program), ElementWithOffset.of(programStage), dimensionParam);
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(TrackedEntityQueryParams.builder().aggregate(true).build())
+            .commonRaw(new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.UXz7xuGCEhU")))
+            .commonParsed(
+                CommonParsedParams.builder().dimensionIdentifiers(List.of(dimension)).build())
+            .build();
+
+    Set<GridHeader> headers = TrackedEntityFields.getAggregateGridHeaders(contextParams);
+
+    assertEquals(1, headers.size());
+    GridHeader header = headers.iterator().next();
+    assertEquals("A03MvHHogjR.UXz7xuGCEhU", header.getName());
+    assertTrue(header.hasOptionSet(), "the renamed header must keep its option set");
+    assertEquals("optionSet1", header.getOptionSetObject().getUid());
   }
 
   private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>

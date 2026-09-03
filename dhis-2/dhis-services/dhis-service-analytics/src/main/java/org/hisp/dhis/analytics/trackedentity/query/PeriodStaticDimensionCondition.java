@@ -61,7 +61,7 @@ import org.hisp.dhis.period.RelativePeriods;
  * Generates SQL conditions for period-based static dimensions. Handles relative periods, ISO
  * periods, date ranges, and operator-based filters.
  */
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class PeriodStaticDimensionCondition extends BaseRenderable {
 
   private static final Pattern DATE_RANGE_PATTERN =
@@ -70,6 +70,22 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
   private final QueryContext queryContext;
+
+  private final ScopedColumnResolver columnResolver;
+
+  public static PeriodStaticDimensionCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
+    String prefix = getPrefix(dimensionIdentifier);
+    return of(
+        dimensionIdentifier, queryContext, columnName -> Field.of(prefix, () -> columnName, EMPTY));
+  }
+
+  public static PeriodStaticDimensionCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      QueryContext queryContext,
+      ScopedColumnResolver columnResolver) {
+    return new PeriodStaticDimensionCondition(dimensionIdentifier, queryContext, columnResolver);
+  }
 
   @Override
   public String render() {
@@ -138,7 +154,7 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
   private Renderable createOperatorCondition(
       DimensionParamItem item, String prefix, String columnName) {
     return BinaryConditionRenderer.of(
-        Field.of(prefix, () -> columnName, EMPTY),
+        columnResolver.resolve(columnName),
         item.getOperator(),
         item.getValues(),
         DATE,
@@ -152,13 +168,13 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
 
     conditions.add(
         BinaryConditionRenderer.of(
-            Field.of(prefix, () -> columnName, EMPTY),
+            columnResolver.resolve(columnName),
             QueryOperator.GE,
             ConstantValuesRenderer.of(dates[0], DATE, queryContext)));
 
     conditions.add(
         BinaryConditionRenderer.of(
-            Field.of(prefix, () -> columnName, EMPTY),
+            columnResolver.resolve(columnName),
             QueryOperator.LT,
             ConstantValuesRenderer.of(nextDay(dates[1]), DATE, queryContext)));
 
@@ -194,13 +210,13 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
 
     conditions.add(
         BinaryConditionRenderer.of(
-            Field.of(prefix, () -> columnName, EMPTY),
+            columnResolver.resolve(columnName),
             QueryOperator.GE,
             ConstantValuesRenderer.of(toMediumDate(startDate), DATE, queryContext)));
 
     conditions.add(
         BinaryConditionRenderer.of(
-            Field.of(prefix, () -> columnName, EMPTY),
+            columnResolver.resolve(columnName),
             QueryOperator.LT,
             ConstantValuesRenderer.of(toMediumDate(nextDay(endDate)), DATE, queryContext)));
 

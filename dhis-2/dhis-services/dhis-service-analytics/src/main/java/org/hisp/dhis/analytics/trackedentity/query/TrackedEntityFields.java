@@ -210,8 +210,8 @@ public class TrackedEntityFields {
     // field alias nor a dimension identifier key, so they cannot be matched back to a dimension by
     // Field.getDimensionIdentifier() the way the per-TEI path does. Headers are therefore built
     // directly from the dimensions the query groups by, so that there is exactly one header per
-    // grouped column. Each header is named by its dimension key to match the SQL result column
-    // name.
+    // grouped column. Each header is named by the name the query aliases its column to, so that
+    // the grid can read every row by header name.
     Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
 
     Set<GridHeader> headers = new LinkedHashSet<>();
@@ -220,10 +220,38 @@ public class TrackedEntityFields {
         .forEach(
             dimIdentifier -> {
               GridHeader header = getHeaderForDimensionParam(dimIdentifier, contextParams);
-              headers.add(withStageOffsetIfNecessary(dimIdentifier, header));
+              headers.add(
+                  withStageOffsetIfNecessary(
+                      dimIdentifier,
+                      named(header, AggregateQueryBuilder.groupedDimensionName(dimIdentifier))));
             });
 
     return headers;
+  }
+
+  /**
+   * Returns the given header under the given name, leaving everything else about it alone. Every
+   * property has to be carried over: the option set decides whether stored codes can be mapped to
+   * their display labels, and the legend set decides whether the value is read as a legend. The
+   * repeatable stage params are not copied because they are applied after the rename, by {@link
+   * #withStageOffsetIfNecessary}.
+   */
+  private static GridHeader named(GridHeader header, String name) {
+    if (name.equals(header.getName())) {
+      return header;
+    }
+
+    return new GridHeader(
+        name,
+        header.getColumn(),
+        header.getDisplayColumn(),
+        header.getValueType(),
+        header.isHidden(),
+        header.isMeta(),
+        header.getOptionSetObject(),
+        header.getLegendSetObject(),
+        header.getProgramStage(),
+        null);
   }
 
   /**

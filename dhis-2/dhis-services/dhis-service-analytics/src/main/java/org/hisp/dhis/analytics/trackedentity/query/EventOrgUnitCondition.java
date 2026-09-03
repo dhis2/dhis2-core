@@ -62,7 +62,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /** Generates SQL conditions for event-level organisation unit filtering. */
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class EventOrgUnitCondition extends BaseRenderable {
   private static final Collection<OrganisationUnitSelectionMode> ACCEPTED_OU_MODES =
       List.of(DESCENDANTS, CHILDREN, SELECTED);
@@ -73,6 +73,22 @@ public class EventOrgUnitCondition extends BaseRenderable {
 
   private final QueryContext queryContext;
 
+  private final ScopedColumnResolver columnResolver;
+
+  public static EventOrgUnitCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
+    String prefix = doubleQuote(getPrefix(dimensionIdentifier));
+    return of(
+        dimensionIdentifier, queryContext, columnName -> Field.of(prefix, () -> columnName, ""));
+  }
+
+  public static EventOrgUnitCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      QueryContext queryContext,
+      ScopedColumnResolver columnResolver) {
+    return new EventOrgUnitCondition(dimensionIdentifier, queryContext, columnResolver);
+  }
+
   @Nonnull
   @Override
   public String render() {
@@ -82,7 +98,6 @@ public class EventOrgUnitCondition extends BaseRenderable {
   private Renderable getCondition() {
     OrganisationUnitSelectionMode ouMode = getOuMode();
     List<OrganisationUnit> organisationUnits = getOrganisationUnits();
-    String prefix = getPrefix(dimensionIdentifier);
 
     if (ouMode == SELECTED) {
       List<String> items = organisationUnits.stream().map(IdentifiableObject::getUid).toList();
@@ -90,7 +105,7 @@ public class EventOrgUnitCondition extends BaseRenderable {
       return isEmpty(items)
           ? FALSE_CONDITION
           : BinaryConditionRenderer.of(
-              Field.of(doubleQuote(prefix), () -> "ou", ""), IN, items, STRING, queryContext);
+              columnResolver.resolve("ou"), IN, items, STRING, queryContext);
     } else if (ouMode == CHILDREN) {
       // CHILDREN mode includes only immediate children (align with OrganisationUnitCondition)
       List<String> items =
@@ -103,7 +118,7 @@ public class EventOrgUnitCondition extends BaseRenderable {
       return isEmpty(items)
           ? FALSE_CONDITION
           : BinaryConditionRenderer.of(
-              Field.of(doubleQuote(prefix), () -> "ou", ""), IN, items, STRING, queryContext);
+              columnResolver.resolve("ou"), IN, items, STRING, queryContext);
     }
 
     // ouMode = DESCENDANTS
@@ -112,7 +127,7 @@ public class EventOrgUnitCondition extends BaseRenderable {
     for (OrganisationUnit organisationUnit : organisationUnits) {
       orgUnitConditions.add(
           BinaryConditionRenderer.of(
-              Field.of(doubleQuote(prefix), () -> OULEVEL + organisationUnit.getLevel(), ""),
+              columnResolver.resolve(OULEVEL + organisationUnit.getLevel()),
               IN,
               List.of(organisationUnit.getUid()),
               STRING,

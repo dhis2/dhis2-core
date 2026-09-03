@@ -63,7 +63,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * Provides methods responsible for generating SQL statements on top of organization units, for
  * events, enrollments and teis.
  */
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class OrganisationUnitCondition extends BaseRenderable {
   private static final Collection<OrganisationUnitSelectionMode> ACCEPTED_OU_MODES =
       List.of(DESCENDANTS, CHILDREN, SELECTED);
@@ -73,6 +73,23 @@ public class OrganisationUnitCondition extends BaseRenderable {
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
   private final QueryContext queryContext;
+
+  private final ScopedColumnResolver columnResolver;
+
+  public static OrganisationUnitCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
+    return of(
+        dimensionIdentifier,
+        queryContext,
+        columnName -> Field.ofRenamedDimensionIdentifier(dimensionIdentifier, columnName));
+  }
+
+  public static OrganisationUnitCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      QueryContext queryContext,
+      ScopedColumnResolver columnResolver) {
+    return new OrganisationUnitCondition(dimensionIdentifier, queryContext, columnResolver);
+  }
 
   /**
    * Renders the org. unit SQL conditions for a given enrollment. The SQL output will look like:
@@ -98,7 +115,11 @@ public class OrganisationUnitCondition extends BaseRenderable {
       return isEmpty(items)
           ? FALSE_CONDITION
           : BinaryConditionRenderer.of(
-              Field.ofDimensionIdentifier(dimensionIdentifier), IN, items, STRING, queryContext);
+              columnResolver.resolve(dimensionIdentifier.getDimension().getUid()),
+              IN,
+              items,
+              STRING,
+              queryContext);
     } else if (ouMode == CHILDREN) {
 
       List<String> items =
@@ -111,7 +132,11 @@ public class OrganisationUnitCondition extends BaseRenderable {
       return isEmpty(items)
           ? FALSE_CONDITION
           : BinaryConditionRenderer.of(
-              Field.ofDimensionIdentifier(dimensionIdentifier), IN, items, STRING, queryContext);
+              columnResolver.resolve(dimensionIdentifier.getDimension().getUid()),
+              IN,
+              items,
+              STRING,
+              queryContext);
     }
 
     // ouMode = Descendants
@@ -120,8 +145,7 @@ public class OrganisationUnitCondition extends BaseRenderable {
     for (OrganisationUnit organisationUnit : organisationUnits) {
       orgUnitConditions.add(
           BinaryConditionRenderer.of(
-              Field.ofRenamedDimensionIdentifier(
-                  dimensionIdentifier, OULEVEL + organisationUnit.getLevel()),
+              columnResolver.resolve(OULEVEL + organisationUnit.getLevel()),
               IN,
               List.of(organisationUnit.getUid()),
               STRING,

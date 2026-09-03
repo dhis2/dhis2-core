@@ -50,20 +50,36 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
  * a condition renderable for status dimension. will render to one of these:
  * "program".enrollmentstatus in (...) "program.programstage".status in (...)
  */
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class StatusCondition extends BaseRenderable {
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
   private final QueryContext queryContext;
 
+  private final ScopedColumnResolver columnResolver;
+
+  public static StatusCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
+    String prefix = doubleQuote(getPrefix(dimensionIdentifier));
+    return of(
+        dimensionIdentifier,
+        queryContext,
+        columnName -> Field.ofUnquoted(prefix, () -> columnName, StringUtils.EMPTY));
+  }
+
+  public static StatusCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      QueryContext queryContext,
+      ScopedColumnResolver columnResolver) {
+    return new StatusCondition(dimensionIdentifier, queryContext, columnResolver);
+  }
+
   @Nonnull
   @Override
   public String render() {
     return InConditionRenderer.of(
-            Field.ofUnquoted(
-                doubleQuote(getPrefix(dimensionIdentifier)),
-                () -> dimensionIdentifier.getDimension().getStaticDimension().getColumnName(),
-                StringUtils.EMPTY),
+            columnResolver.resolve(
+                dimensionIdentifier.getDimension().getStaticDimension().getColumnName()),
             ConstantValuesRenderer.of(
                 dimensionIdentifier.getDimension().getItems().stream()
                     .map(DimensionParamItem::getValues)

@@ -132,6 +132,195 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "aggregateCountByStageOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByFullyQualifiedStageOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.A03MvHHogjR.ou:QII5GqfDfO3;DiszpKrYNg8&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageOrgUnitWithStageOffset",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR[1].ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageEventDateIsoYear",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.EVENT_DATE:2021&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageEventDateIsoMonths",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.EVENT_DATE:202107;202108&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageEventDateRelativePeriod",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.EVENT_DATE:LAST_5_YEARS&relativePeriodDate=2022-07-01&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageScheduledDateIsoYear",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.SCHEDULED_DATE:2021&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageEventStatus",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.EVENT_STATUS&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageEventStatusActiveAndCompleted",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.EVENT_STATUS:ACTIVE;COMPLETED&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageDataElementValue",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.UXz7xuGCEhU&filter=A03MvHHogjR.ou:QII5GqfDfO3&pageSize=100&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageOrgUnitAndEventStatus",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m,A03MvHHogjR.EVENT_STATUS&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByRegistrationAndStageOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m,A03MvHHogjR.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateAverageBirthWeightByStageOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&value=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU&aggregationType=AVERAGE&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageOrgUnitAndTrackedEntityAttribute",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m,cejWyOfXge6&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByEnrollmentOrgUnit",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByEnrollmentOuKeywordScopedToProgram",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.ENROLLMENT_OU:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByEnrollmentOrgUnitName",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.ouname&filter=IpHINAT79UW.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByEnrollmentDateIsoYear",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.ENROLLMENT_DATE:2022&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByEnrollmentIncidentDateIsoYear",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.INCIDENT_DATE:2022&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByProgramStatus",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.PROGRAM_STATUS&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByEnrollmentStatusActive",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.ENROLLMENT_STATUS:ACTIVE&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByEnrollmentOrgUnitAndProgramStatus",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m,IpHINAT79UW.PROGRAM_STATUS&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageOrgUnitSortedAscending",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&asc=A03MvHHogjR.ou&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageEventDateSortedDescending",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.EVENT_DATE:202107;202108&desc=A03MvHHogjR.EVENT_DATE&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByEnrollmentOrgUnitSortedAscending",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=IpHINAT79UW.ou:QII5GqfDfO3;DiszpKrYNg8;QZzRkqdGjlm;Qr41Mw2MSjo;VpYAl8dXs6m&asc=IpHINAT79UW.ou&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageEventStatusSortedAscending",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.EVENT_STATUS&asc=A03MvHHogjR.EVENT_STATUS&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByStageDataElementSortedDescending",
+      "query": "/api/analytics/trackedEntities/aggregate/nEenWmSyUEp.json?dimension=A03MvHHogjR.UXz7xuGCEhU&filter=A03MvHHogjR.ou:QII5GqfDfO3&desc=A03MvHHogjR.UXz7xuGCEhU&pageSize=100&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
