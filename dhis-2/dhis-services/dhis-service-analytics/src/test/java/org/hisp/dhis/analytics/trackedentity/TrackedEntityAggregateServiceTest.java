@@ -72,6 +72,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -325,13 +326,19 @@ class TrackedEntityAggregateServiceTest {
     assertDoesNotThrow(() -> service.getGrid(ctx));
   }
 
+  /**
+   * An end date is {@code completeddate} on the enrollment table, so the query has no column to
+   * group it on and the request is rejected rather than reaching the database.
+   */
   @Test
   void getGridRejectsDimensionTheQueryCannotGroupBy() {
-    String dataElement = "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU";
+    String endDate = "IpHINAT79UW.ENDDATE";
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
         aggregateContextParams(
-            Set.of("ou", dataElement),
-            List.of(stubOuDimension("ou1"), stubDataElementDimension("UXz7xuGCEhU")));
+            Set.of("ou", endDate),
+            List.of(
+                stubOuDimension("ou1"),
+                stubProgramScopedStaticDimension(StaticDimension.ENDDATE, List.of())));
 
     IllegalQueryException ex =
         assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
@@ -364,17 +371,50 @@ class TrackedEntityAggregateServiceTest {
     assertEquals(1, grid.getHeight());
   }
 
-  /** An event data element dimension carrying items is rejected alongside a grouped dimension. */
+  /**
+   * A program scoped event status has no enrollment column, so it cannot be grouped. Carrying items
+   * does not turn it into a filter: a {@code dimension} the query cannot group on is rejected, so
+   * the caller never gets a restricted number with no column to show for it.
+   */
   @Test
-  void getGridRejectsEventDataElementDimensionCarryingItems() {
+  void getGridRejectsNonGroupableScopedDimensionCarryingItems() {
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
         aggregateContextParams(
-            Set.of("ou", "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU:GT:10"),
-            List.of(stubOuDimension("ou1"), stubDataElementDimension("UXz7xuGCEhU")));
+            Set.of("ou", "IpHINAT79UW.EVENT_STATUS:ACTIVE"),
+            List.of(
+                stubOuDimension("ou1"),
+                stubProgramScopedStaticDimension(StaticDimension.EVENT_STATUS, List.of("ACTIVE"))));
 
     IllegalQueryException ex =
         assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
     assertEquals(ErrorCode.E7258, ex.getErrorCode());
+  }
+
+  /**
+   * A stage data element is grouped on the value of the chosen event and reported under its stage
+   * scoped name, both when it carries items and when it does not.
+   */
+  @Test
+  void getGridGroupsByStageDataElement() {
+    DimensionIdentifier<DimensionParam> dataElement =
+        stubStageDataElementDimension("UXz7xuGCEhU", List.of("GT:10"));
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(Set.of("A03MvHHogjR.UXz7xuGCEhU:GT:10"), List.of(dataElement));
+    SqlRowSet rowSet =
+        fakeRowSet(
+            new String[] {"A03MvHHogjR.UXz7xuGCEhU", "value"},
+            List.<Object[]>of(new Object[] {"3400", 3}));
+
+    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
+    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
+    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(
+        List.of("A03MvHHogjR.UXz7xuGCEhU", "value"),
+        grid.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(1, grid.getHeight());
   }
 
   /**
@@ -445,8 +485,10 @@ class TrackedEntityAggregateServiceTest {
   void getGridExplainRejectsDimensionTheQueryCannotGroupBy() {
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
         aggregateContextParams(
-            Set.of("ou", "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU"),
-            List.of(stubOuDimension("ou1"), stubDataElementDimension("UXz7xuGCEhU")));
+            Set.of("ou", "IpHINAT79UW.ENDDATE"),
+            List.of(
+                stubOuDimension("ou1"),
+                stubProgramScopedStaticDimension(StaticDimension.ENDDATE, List.of())));
 
     IllegalQueryException ex =
         assertThrows(IllegalQueryException.class, () -> service.getGridExplain(ctx));
@@ -711,16 +753,41 @@ class TrackedEntityAggregateServiceTest {
         .withDefaultGroupId();
   }
 
-  private DimensionIdentifier<DimensionParam> stubDataElementDimension(String dataElement) {
+  /**
+   * A stage data element as the request parser produces it: a {@link QueryItem}, which is the shape
+   * {@code program.stage.dataElement} falls through to once it matches neither a static dimension
+   * nor a dimensional object.
+   */
+  private DimensionIdentifier<DimensionParam> stubStageDataElementDimension(
+      String dataElement, List<String> items) {
+    DataElement element = new DataElement();
+    element.setUid(dataElement);
+    element.setValueType(ValueType.NUMBER);
+
+    Program program = stubProgram();
+    ProgramStage programStage = stubProgramStage();
+
+    QueryItem queryItem = new QueryItem(element, program, null, element.getValueType(), null, null);
+    queryItem.setProgramStage(programStage);
+
     DimensionParam dimensionParam =
-        DimensionParam.ofObject(
-            new BaseDimensionalObject(dataElement, DimensionType.PROGRAM_DATA_ELEMENT, List.of()),
-            DimensionParamType.DIMENSIONS,
-            UID,
-            List.of());
+        DimensionParam.ofObject(queryItem, DimensionParamType.DIMENSIONS, UID, items);
+    return DimensionIdentifier.of(
+            ElementWithOffset.of(program), ElementWithOffset.of(programStage), dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  /**
+   * A static dimension scoped to a program but not to a stage, which is how a request writes {@code
+   * IpHINAT79UW.ENDDATE}. The query reads such a dimension from the enrollment table.
+   */
+  private DimensionIdentifier<DimensionParam> stubProgramScopedStaticDimension(
+      StaticDimension staticDimension, List<String> items) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(staticDimension.name(), DimensionParamType.DIMENSIONS, UID, items);
     return DimensionIdentifier.of(
             ElementWithOffset.of(stubProgram()),
-            ElementWithOffset.of(stubProgramStage()),
+            ElementWithOffset.emptyElementWithOffset(),
             dimensionParam)
         .withDefaultGroupId();
   }

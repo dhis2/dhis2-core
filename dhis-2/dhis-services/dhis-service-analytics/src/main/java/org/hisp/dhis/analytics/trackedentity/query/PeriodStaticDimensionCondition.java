@@ -32,8 +32,6 @@ package org.hisp.dhis.analytics.trackedentity.query;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.DATE;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.ArrayList;
@@ -48,7 +46,6 @@ import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.ConstantValuesRenderer;
-import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
@@ -75,9 +72,7 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
 
   public static PeriodStaticDimensionCondition of(
       DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
-    String prefix = getPrefix(dimensionIdentifier);
-    return of(
-        dimensionIdentifier, queryContext, columnName -> Field.of(prefix, () -> columnName, EMPTY));
+    return of(dimensionIdentifier, queryContext, ScopedColumnResolver.period(dimensionIdentifier));
   }
 
   public static PeriodStaticDimensionCondition of(
@@ -90,18 +85,17 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
   @Override
   public String render() {
     List<Renderable> conditions = new ArrayList<>();
-    String prefix = getPrefix(dimensionIdentifier);
     String columnName = dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
 
     for (DimensionParamItem item : dimensionIdentifier.getDimension().getItems()) {
-      List<Renderable> itemConditions = processItem(item, prefix, columnName);
+      List<Renderable> itemConditions = processItem(item, columnName);
       conditions.addAll(itemConditions);
     }
 
     return AndCondition.of(conditions).render();
   }
 
-  private List<Renderable> processItem(DimensionParamItem item, String prefix, String columnName) {
+  private List<Renderable> processItem(DimensionParamItem item, String columnName) {
     List<Renderable> conditions = new ArrayList<>();
     List<String> values = item.getValues();
 
@@ -112,15 +106,15 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     String value = values.get(0);
 
     if (isOperatorFormat(item)) {
-      conditions.add(createOperatorCondition(item, prefix, columnName));
+      conditions.add(createOperatorCondition(item, columnName));
     } else if (isDateRange(value)) {
-      conditions.addAll(createDateRangeConditions(value, prefix, columnName));
+      conditions.addAll(createDateRangeConditions(value, columnName));
     } else if (isRelativePeriod(value)) {
-      conditions.addAll(createRelativePeriodConditions(value, prefix, columnName));
+      conditions.addAll(createRelativePeriodConditions(value, columnName));
     } else if (isIsoPeriod(value)) {
-      conditions.addAll(createIsoPeriodConditions(value, prefix, columnName));
+      conditions.addAll(createIsoPeriodConditions(value, columnName));
     } else {
-      conditions.add(createOperatorCondition(item, prefix, columnName));
+      conditions.add(createOperatorCondition(item, columnName));
     }
 
     return conditions;
@@ -151,8 +145,7 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     }
   }
 
-  private Renderable createOperatorCondition(
-      DimensionParamItem item, String prefix, String columnName) {
+  private Renderable createOperatorCondition(DimensionParamItem item, String columnName) {
     return BinaryConditionRenderer.of(
         columnResolver.resolve(columnName),
         item.getOperator(),
@@ -161,8 +154,7 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
         queryContext);
   }
 
-  private List<Renderable> createDateRangeConditions(
-      String value, String prefix, String columnName) {
+  private List<Renderable> createDateRangeConditions(String value, String columnName) {
     String[] dates = value.split("_");
     List<Renderable> conditions = new ArrayList<>();
 
@@ -181,8 +173,7 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     return conditions;
   }
 
-  private List<Renderable> createRelativePeriodConditions(
-      String value, String prefix, String columnName) {
+  private List<Renderable> createRelativePeriodConditions(String value, String columnName) {
     RelativePeriodEnum relativePeriodEnum = RelativePeriodEnum.valueOf(value);
     List<org.hisp.dhis.period.PeriodDimension> periods =
         RelativePeriods.getRelativePeriodsFromEnum(
@@ -195,17 +186,15 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     Date startDate = periods.get(0).getStartDate();
     Date endDate = periods.get(periods.size() - 1).getEndDate();
 
-    return createDateConditions(startDate, endDate, prefix, columnName);
+    return createDateConditions(startDate, endDate, columnName);
   }
 
-  private List<Renderable> createIsoPeriodConditions(
-      String value, String prefix, String columnName) {
+  private List<Renderable> createIsoPeriodConditions(String value, String columnName) {
     Period period = Period.of(value);
-    return createDateConditions(period.getStartDate(), period.getEndDate(), prefix, columnName);
+    return createDateConditions(period.getStartDate(), period.getEndDate(), columnName);
   }
 
-  private List<Renderable> createDateConditions(
-      Date startDate, Date endDate, String prefix, String columnName) {
+  private List<Renderable> createDateConditions(Date startDate, Date endDate, String columnName) {
     List<Renderable> conditions = new ArrayList<>();
 
     conditions.add(

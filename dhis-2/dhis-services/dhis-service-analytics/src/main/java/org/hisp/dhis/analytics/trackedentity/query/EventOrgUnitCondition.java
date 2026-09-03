@@ -31,14 +31,12 @@ package org.hisp.dhis.analytics.trackedentity.query;
 
 import static org.hisp.dhis.analytics.common.CommonRequestParams.DEFAULT_ORG_UNIT_SELECTION_MODE;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.query.RenderableHelper.FALSE_CONDITION;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +50,6 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
@@ -77,9 +74,8 @@ public class EventOrgUnitCondition extends BaseRenderable {
 
   public static EventOrgUnitCondition of(
       DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
-    String prefix = doubleQuote(getPrefix(dimensionIdentifier));
     return of(
-        dimensionIdentifier, queryContext, columnName -> Field.of(prefix, () -> columnName, ""));
+        dimensionIdentifier, queryContext, ScopedColumnResolver.eventOrgUnit(dimensionIdentifier));
   }
 
   public static EventOrgUnitCondition of(

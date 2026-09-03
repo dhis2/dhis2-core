@@ -235,13 +235,6 @@ class SqlQueryCreatorServiceTest extends TestBase {
   }
 
   /**
-   * Sorting a grouped stage dimension must not add a second, differently chosen event column.
-   * {@link EventAttributeQueryBuilder} projects a scalar subquery for a sorting param that has no
-   * matching dimension of its own, and that column is absent from the GROUP BY, which PostgreSQL
-   * rejects with "subquery uses ungrouped column". The grouped expression partitions by tracked
-   * entity, so no enrollment partitioned subquery may survive in an aggregate query.
-   */
-  /**
    * A grouped registration org unit must still be restricted to the requested units. The aggregate
    * builder takes over the restriction of scoped dimensions only, so if it also claimed tracked
    * entity dimensions from {@link OrgUnitQueryBuilder} the restriction would vanish and the query
@@ -283,6 +276,13 @@ class SqlQueryCreatorServiceTest extends TestBase {
         "a grouped org unit carrying items must still restrict the query, but was: " + sql);
   }
 
+  /**
+   * Sorting a grouped stage dimension must not add a second, differently chosen event column.
+   * {@link EventAttributeQueryBuilder} projects a scalar subquery for a sorting param that has no
+   * matching dimension of its own, and that column is absent from the GROUP BY, which PostgreSQL
+   * rejects with "subquery uses ungrouped column". The grouped expression partitions by tracked
+   * entity, so no enrollment partitioned subquery may survive in an aggregate query.
+   */
   @Test
   void testAggregateSortingOnStageOrgUnitAddsNoUngroupedColumn() {
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');

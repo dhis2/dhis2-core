@@ -119,17 +119,18 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
           .collect(toUnmodifiableSet());
 
   /**
-   * The event table column behind each event scoped dimension that can be grouped on. An org unit
-   * reaches this map only as a static dimension; once its items have been resolved it arrives as a
-   * dimensional object and is recognised by {@link
+   * The event table column behind each event scoped dimension that can be grouped on, and whether
+   * it holds a date grouped by period bucket. An org unit reaches this map only as a static
+   * dimension; once its items have been resolved it arrives as a dimensional object and is
+   * recognised by {@link
    * org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper#isOrgUnitObject}.
    */
-  private static final Map<StaticDimension, String> GROUPABLE_EVENT_COLUMNS =
+  private static final Map<StaticDimension, GroupableColumn> GROUPABLE_EVENT_COLUMNS =
       Map.of(
-          OU, "ou",
-          EVENT_DATE, "occurreddate",
-          SCHEDULED_DATE, "scheduleddate",
-          EVENT_STATUS, "status");
+          OU, new GroupableColumn("ou", false),
+          EVENT_DATE, new GroupableColumn("occurreddate", true),
+          SCHEDULED_DATE, new GroupableColumn("scheduleddate", true),
+          EVENT_STATUS, new GroupableColumn("status", false));
 
   /**
    * The enrollment table column behind each enrollment scoped dimension that can be grouped on. The
@@ -138,15 +139,15 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * completeddate} there, and an event status has no enrollment column at all. Both are left out,
    * so they are rejected instead of reaching the database.
    */
-  private static final Map<StaticDimension, String> GROUPABLE_ENROLLMENT_COLUMNS =
+  private static final Map<StaticDimension, GroupableColumn> GROUPABLE_ENROLLMENT_COLUMNS =
       Map.of(
-          OU, "ou",
-          OUNAME, "ouname",
-          ENROLLMENTDATE, "enrollmentdate",
-          INCIDENTDATE, "occurreddate",
-          OCCURREDDATE, "occurreddate",
-          ENROLLMENT_STATUS, "enrollmentstatus",
-          PROGRAM_STATUS, "enrollmentstatus");
+          OU, new GroupableColumn("ou", false),
+          OUNAME, new GroupableColumn("ouname", false),
+          ENROLLMENTDATE, new GroupableColumn("enrollmentdate", true),
+          INCIDENTDATE, new GroupableColumn("occurreddate", true),
+          OCCURREDDATE, new GroupableColumn("occurreddate", true),
+          ENROLLMENT_STATUS, new GroupableColumn("enrollmentstatus", false),
+          PROGRAM_STATUS, new GroupableColumn("enrollmentstatus", false));
 
   /**
    * Stands for a stage data element, whose value is read out of the event's data values rather than
@@ -154,9 +155,11 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    */
   private static final String DATA_VALUES_COLUMN = "eventdatavalues";
 
-  /** The scoped dimensions that hold a date and so are grouped by period bucket. */
-  private static final Set<StaticDimension> DATE_DIMENSIONS =
-      Set.of(EVENT_DATE, SCHEDULED_DATE, ENROLLMENTDATE, INCIDENTDATE, OCCURREDDATE);
+  /**
+   * The table column a groupable scoped dimension reads, and whether it holds a date grouped by
+   * period bucket rather than as a raw timestamp.
+   */
+  private record GroupableColumn(String column, boolean dateBucketed) {}
 
   /**
    * A sort on a scoped dimension is claimed here so that the order clause is built from the same
@@ -204,7 +207,9 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
     acceptedDimensions.stream()
         .filter(dimension -> groupedKeys.contains(dimension.getKey()))
         .forEach(
-            dimension -> addGroupedDimension(queryContext, builder, dimension, groupedExpressions));
+            dimension ->
+                groupedExpressions.put(
+                    dimension.getKey(), addGroupedDimension(queryContext, builder, dimension)));
 
     // A program-stage data element value is aggregated from the collapsed event row, joined at
     // tracked-entity grain so the GROUP BY counts tracked entities, not events.
@@ -240,31 +245,30 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * header name, because the grid reads each row by header name, while the group by repeats the
    * bare expression, since an alias is not a valid group by key.
    */
-  private void addGroupedDimension(
+  private Renderable addGroupedDimension(
       QueryContext queryContext,
       RenderableSqlQuery.RenderableSqlQueryBuilder builder,
-      DimensionIdentifier<DimensionParam> dimension,
-      Map<String, Renderable> groupedExpressions) {
-    Optional<String> scopedColumn = groupableScopedColumn(dimension);
+      DimensionIdentifier<DimensionParam> dimension) {
+    Optional<GroupableColumn> scopedColumn = groupableScopedColumn(dimension);
 
     if (scopedColumn.isEmpty()) {
       Field field = Field.ofDimensionIdentifier(dimension);
       builder.selectField(field);
       builder.groupByField(field);
-      groupedExpressions.put(dimension.getKey(), field);
-      return;
+      return field;
     }
 
     Renderable expression = groupedScopedExpression(dimension, scopedColumn.get());
-    groupedExpressions.put(dimension.getKey(), expression);
     builder.selectField(Field.ofUnquoted(expression, groupedDimensionName(dimension)));
     builder.groupByField(Field.ofUnquoted(expression, ""));
 
     if (SqlQueryBuilders.hasRestrictions(dimension)) {
       builder.groupableCondition(
           GroupableCondition.of(
-              dimension.getGroupId(), scopedRestriction(queryContext, dimension)));
+              dimension.getGroupId(),
+              scopedRestriction(queryContext, dimension, scopedColumn.get())));
     }
+    return expression;
   }
 
   /**
@@ -277,8 +281,10 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * period and a date range restrict the same way.
    */
   private Renderable scopedRestriction(
-      QueryContext queryContext, DimensionIdentifier<DimensionParam> dimension) {
-    ScopedColumnResolver columnResolver = column -> scopedExpression(dimension, column);
+      QueryContext queryContext,
+      DimensionIdentifier<DimensionParam> dimension,
+      GroupableColumn column) {
+    ScopedColumnResolver columnResolver = name -> scopedExpression(dimension, name);
 
     if (isOrgUnitUid(dimension)) {
       return dimension.isEventDimension()
@@ -293,7 +299,7 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
           valueTypeMapping -> dataElementExpression(dimension, valueTypeMapping));
     }
 
-    if (isDateDimension(dimension)) {
+    if (column.dateBucketed()) {
       return PeriodStaticDimensionCondition.of(dimension, queryContext, columnResolver);
     }
 
@@ -341,10 +347,10 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * how the enrollment aggregate endpoint answers the same request.
    */
   private Renderable groupedScopedExpression(
-      DimensionIdentifier<DimensionParam> dimension, String column) {
-    Renderable scopedExpression = scopedExpression(dimension, column);
+      DimensionIdentifier<DimensionParam> dimension, GroupableColumn column) {
+    Renderable scopedExpression = scopedExpression(dimension, column.column());
 
-    if (!isDateDimension(dimension)) {
+    if (!column.dateBucketed()) {
       return scopedExpression;
     }
 
@@ -362,15 +368,24 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * Returns the expression reading the given column from the single event or enrollment chosen for
    * each tracked entity. The enrollment expression is the one the row level endpoint already sorts
    * and filters on, so a grouped enrollment dimension agrees with a sort on the same dimension.
+   *
+   * <p>Every grouped field of a program stage reads the same event, so a grouped row always
+   * describes one real event. That event is the one {@code value=} aggregates over, which is why
+   * scheduled events are excluded: a scheduled event carries no data values, so letting one win the
+   * offset would empty the aggregated value.
+   *
+   * <p>The consequence is that {@code EVENT_STATUS} never groups a tracked entity under {@code
+   * SCHEDULE}, since a scheduled event is never the chosen row.
    */
   private static Renderable scopedExpression(
       DimensionIdentifier<DimensionParam> dimension, String column) {
     if (isGroupableDataElement(dimension)) {
-      return dataElementExpression(dimension, valueTypeMappingOf(dimension));
+      return dataElementExpression(
+          dimension, ValueTypeMapping.fromValueType(dimension.getDimension().getValueType()));
     }
 
     return dimension.isEventDimension()
-        ? collapsedEventExpression(dimension, column)
+        ? SqlQueryHelper.buildCollapsedEventSubquery(dimension, column)
         : SqlQueryHelper.buildOrderSubQuery(dimension, () -> column);
   }
 
@@ -388,11 +403,6 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
             valueTypeMapping));
   }
 
-  private static ValueTypeMapping valueTypeMappingOf(
-      DimensionIdentifier<DimensionParam> dimension) {
-    return ValueTypeMapping.fromValueType(dimension.getDimension().getValueType());
-  }
-
   /**
    * Whether the dimension is a stage data element the query can group on. A legend set is not
    * grouped: the row level path renders the legend rather than the value, and a grouped legend is
@@ -402,19 +412,15 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
     return isDataElement(dimension) && !dimension.hasLegendSet();
   }
 
-  private static boolean isDateDimension(DimensionIdentifier<DimensionParam> dimension) {
-    return dimension.getDimension().isStaticDimension()
-        && DATE_DIMENSIONS.contains(dimension.getDimension().getStaticDimension());
-  }
-
   /**
    * Returns the table column a program or stage scoped dimension groups on, or empty when the
    * dimension is not one this query can group on. An event scoped dimension reads the event table
    * and an enrollment scoped one the enrollment table, so the two have their own supported sets.
    */
-  static Optional<String> groupableScopedColumn(DimensionIdentifier<DimensionParam> dimension) {
+  static Optional<GroupableColumn> groupableScopedColumn(
+      DimensionIdentifier<DimensionParam> dimension) {
     if (isGroupableDataElement(dimension)) {
-      return Optional.of(DATA_VALUES_COLUMN);
+      return Optional.of(new GroupableColumn(DATA_VALUES_COLUMN, false));
     }
 
     if (dimension.isEventDimension()) {
@@ -428,8 +434,9 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
     return Optional.empty();
   }
 
-  private static Optional<String> scopedColumn(
-      DimensionIdentifier<DimensionParam> dimension, Map<StaticDimension, String> columns) {
+  private static Optional<GroupableColumn> scopedColumn(
+      DimensionIdentifier<DimensionParam> dimension,
+      Map<StaticDimension, GroupableColumn> columns) {
     if (isOrgUnitObject(dimension)) {
       return Optional.ofNullable(columns.get(OU));
     }
@@ -439,21 +446,6 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
     }
 
     return Optional.ofNullable(columns.get(dimension.getDimension().getStaticDimension()));
-  }
-
-  /**
-   * Returns the expression reading the given column from the single event the tracked entity has in
-   * the dimension's program stage. Every grouped field of a program stage goes through here, so all
-   * of them read the same event and a grouped row always describes one real event. That event is
-   * the one {@code value=} aggregates over, which is why scheduled events are excluded: a scheduled
-   * event carries no data values, so letting one win the offset would empty the aggregated value.
-   *
-   * <p>The consequence is that {@code EVENT_STATUS} never groups a tracked entity under {@code
-   * SCHEDULE}, since a scheduled event is never the chosen row.
-   */
-  private static Renderable collapsedEventExpression(
-      DimensionIdentifier<DimensionParam> dimension, String column) {
-    return SqlQueryHelper.buildCollapsedEventSubquery(dimension, column);
   }
 
   /**
@@ -507,17 +499,17 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
 
   /**
    * Returns the keys of the dimensions the query groups by: the ones asked for in the {@code
-   * dimension} param that can also be grouped on, which are the registration org unit, the tracked
-   * entity static fields and the attributes. The raw request is needed because the parsed
+   * dimension} param that can also be grouped on. Those are the registration org unit, the tracked
+   * entity static fields, the attributes, and the program or stage scoped dimensions that {@link
+   * #groupableScopedColumn} names a column for. The raw request is needed because the parsed
    * dimensions also contain the attributes the mapper adds for row level display, and those must
    * stay out of the GROUP BY. What is grouped here is also what can be sorted on.
    *
-   * <p>A dimension can be grouped on only when the tracked entity table has a column for it, which
-   * takes both its scope and its own level into account. A program or stage scoped org unit is the
-   * enrollment or event org unit and lives in the enrollment and event tables; an enrollment or
-   * event level field such as {@code enrollmentdate} has no tracked entity column either, even
-   * without a program or stage prefix. Both can restrict the query but neither can be a group by
-   * key.
+   * <p>A scoped dimension is read from the enrollment or event table rather than from a tracked
+   * entity column, so its group by key is the collapsed subquery that picks one row per tracked
+   * entity. A dimension neither the tracked entity table nor that collapse can produce, such as an
+   * unscoped {@code enrollmentdate} or a program scoped event status, is rejected rather than
+   * silently applied as a restriction.
    */
   public static Set<String> getGroupedDimensionKeys(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
