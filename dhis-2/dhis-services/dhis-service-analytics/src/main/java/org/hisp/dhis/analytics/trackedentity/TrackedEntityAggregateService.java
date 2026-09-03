@@ -36,8 +36,6 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getAggregateGridHeaders;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
-import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 
 import java.math.BigDecimal;
@@ -59,6 +57,8 @@ import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
@@ -242,33 +242,50 @@ public class TrackedEntityAggregateService {
    * would answer with an ungrouped total that looks like a valid grouped answer. {@link
    * AggregateQueryBuilder#getGroupedDimensionKeys} decides what is grouped.
    *
-   * <p>A dimension carrying items, such as {@code ou:USER_ORGUNIT} or {@code
-   * programUid.PROGRAM_STATUS:ACTIVE}, is a restriction: it is applied to the query and is grouped
-   * only when it can be, which is the same contract as the {@code filter} parameter. A dimension
-   * without items can only be a request to group by, so it must be groupable.
+   * <p>A dimension is a request for a column whether or not it carries items, so the items make no
+   * difference here: {@code A03MvHHogjR.ou} and {@code A03MvHHogjR.ou:USER_ORGUNIT} are both
+   * rejected. Restricting the query without adding a column is what the {@code filter} parameter is
+   * for, which is why filters are not validated against the grouped set.
    */
   private void validateDimensions(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
-    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
+    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedRequestKeys(contextParams);
 
     for (String dimension : contextParams.getCommonRaw().getDimension()) {
-      if (hasItems(dimension)) {
-        continue;
-      }
-
       if (!groupedKeys.contains(AggregateQueryBuilder.canonicalDimensionKey(dimension))) {
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7258, getDimensionFromParam(dimension)));
       }
     }
+
+    validateDistinctGroupedNames(contextParams);
   }
 
   /**
-   * Whether a raw {@code dimension} parameter carries items, that is whether it has the {@code
-   * dimension:items} form of {@code ou:USER_ORGUNIT}.
+   * Rejects a request whose grouped dimensions do not all have distinct names. A program stage
+   * dimension is reported under a name that carries no offset, so two offsets of one stage group on
+   * two different expressions but answer under one name: the rows would carry two grouping
+   * coordinates that cannot be told apart, and {@link Grid} would keep only one of the two headers.
    */
-  private static boolean hasItems(String dimension) {
-    return dimension.contains(DIMENSION_NAME_SEP);
+  private void validateDistinctGroupedNames(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
+    Map<String, String> dimensionsByName = new LinkedHashMap<>();
+
+    for (DimensionIdentifier<DimensionParam> dimension :
+        contextParams.getCommonParsed().getDimensionIdentifiers()) {
+      if (!groupedKeys.contains(dimension.getKey())) {
+        continue;
+      }
+
+      String name = AggregateQueryBuilder.groupedDimensionName(dimension);
+      String existing = dimensionsByName.putIfAbsent(name, dimension.getKey());
+
+      if (existing != null && !existing.equals(dimension.getKey())) {
+        throw new IllegalQueryException(
+            new ErrorMessage(ErrorCode.E7259, existing, dimension.getKey(), name));
+      }
+    }
   }
 
   /**
@@ -310,23 +327,42 @@ public class TrackedEntityAggregateService {
       return;
     }
 
-    int ouColumnIndex = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
-    if (ouColumnIndex < 0) {
-      return;
-    }
-
-    Set<String> orgUnitUids = getGroupedOrgUnitUids(grid, ouColumnIndex);
-    if (orgUnitUids.isEmpty()) {
-      return;
-    }
-
     DisplayProperty displayProperty = contextParams.getCommonRaw().getDisplayProperty();
     boolean includeMetadataDetails = contextParams.getCommonRaw().isIncludeMetadataDetails();
 
-    Map<String, OrganisationUnit> orgUnitsByUid = getOrgUnitsByUid(orgUnitUids);
-    addOrgUnitItems(
-        metadata.items(), orgUnitUids, orgUnitsByUid, displayProperty, includeMetadataDetails);
-    addOrgUnitDimension(metadata.dimensions(), orgUnitUids);
+    for (String header : groupedOrgUnitHeaders(contextParams)) {
+      int ouColumnIndex = grid.getIndexOfHeader(header);
+      if (ouColumnIndex < 0) {
+        continue;
+      }
+
+      Set<String> orgUnitUids = getGroupedOrgUnitUids(grid, ouColumnIndex);
+      if (orgUnitUids.isEmpty()) {
+        continue;
+      }
+
+      Map<String, OrganisationUnit> orgUnitsByUid = getOrgUnitsByUid(orgUnitUids);
+      addOrgUnitItems(
+          metadata.items(), orgUnitUids, orgUnitsByUid, displayProperty, includeMetadataDetails);
+      addOrgUnitDimension(metadata.dimensions(), header, orgUnitUids);
+    }
+  }
+
+  /**
+   * Returns the headers of the org unit dimensions the query groups by, in request order. A program
+   * or stage scoped org unit is reported under its own header, so it needs its own {@code
+   * metaData.dimensions} entry; the shared {@link MetadataParamsHandler} describes neither, since a
+   * grouped org unit is not resolved to a dimensional object at every scope.
+   */
+  private Set<String> groupedOrgUnitHeaders(
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
+
+    return contextParams.getCommonParsed().getDimensionIdentifiers().stream()
+        .filter(dimension -> groupedKeys.contains(dimension.getKey()))
+        .filter(AggregateQueryBuilder::isOrgUnitUid)
+        .map(AggregateQueryBuilder::groupedDimensionName)
+        .collect(toCollection(LinkedHashSet::new));
   }
 
   private Set<String> getGroupedOrgUnitUids(Grid grid, int ouColumnIndex) {
@@ -370,12 +406,13 @@ public class TrackedEntityAggregateService {
     }
   }
 
-  private void addOrgUnitDimension(Map<String, Object> dimensions, Set<String> orgUnitUids) {
+  private void addOrgUnitDimension(
+      Map<String, Object> dimensions, String header, Set<String> orgUnitUids) {
     if (dimensions == null) {
       return;
     }
 
-    dimensions.put(ORGUNIT_DIM_ID, List.copyOf(orgUnitUids));
+    dimensions.put(header, List.copyOf(orgUnitUids));
   }
 
   private GridMetadata getGridMetadata(Grid grid) {

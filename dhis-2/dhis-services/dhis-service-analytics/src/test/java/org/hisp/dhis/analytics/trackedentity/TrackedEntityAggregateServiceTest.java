@@ -338,47 +338,19 @@ class TrackedEntityAggregateServiceTest {
     assertEquals(ErrorCode.E7258, ex.getErrorCode());
   }
 
-  @Test
-  void getGridRejectsStageScopedOrgUnitDimension() {
-    DimensionIdentifier<DimensionParam> stageOu = stubStageScopedOuDimension();
-    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
-        aggregateContextParams(Set.of(stageOu.getKey()), List.of(stageOu));
-
-    IllegalQueryException ex =
-        assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
-    assertEquals(ErrorCode.E7258, ex.getErrorCode());
-  }
-
   /**
-   * A dimension carrying items is a restriction: it is applied to the query and produces no column,
-   * so it is not a request to group by and must be accepted even when it could not be grouped.
+   * A stage scoped org unit is grouped on the org unit of the single event chosen for each tracked
+   * entity, and is reported under the stage scoped name the request used, matching the enrollment
+   * aggregate endpoint.
    */
   @Test
-  void getGridAppliesARestrictionOnAStageScopedOrgUnitWithoutGroupingByIt() {
+  void getGridGroupsByStageScopedOrgUnit() {
+    DimensionIdentifier<DimensionParam> stageOu = stubStageScopedOuDimension();
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
-        aggregateContextParams(
-            Set.of("A03MvHHogjR.ou:USER_ORGUNIT"), List.of(stubStageScopedOuDimension()));
-    SqlRowSet rowSet = fakeRowSet(new String[] {"value"}, List.<Object[]>of(new Object[] {19018}));
-
-    when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
-    when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
-    when(queryExecutor.find(any())).thenReturn(new SqlQueryResult(rowSet));
-
-    Grid grid = service.getGrid(ctx);
-
-    assertEquals(List.of("value"), grid.getHeaders().stream().map(GridHeader::getName).toList());
-    assertEquals(1, grid.getHeight());
-  }
-
-  /** A restriction on an event data element is applied alongside the grouped dimensions. */
-  @Test
-  void getGridAppliesARestrictionOnAnEventDataElementWithoutGroupingByIt() {
-    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
-        aggregateContextParams(
-            Set.of("ou", "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU:GT:10"),
-            List.of(stubOuDimension("ou1"), stubDataElementDimension("UXz7xuGCEhU")));
+        aggregateContextParams(Set.of("A03MvHHogjR.ou:USER_ORGUNIT"), List.of(stageOu));
     SqlRowSet rowSet =
-        fakeRowSet(new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 3}));
+        fakeRowSet(
+            new String[] {"A03MvHHogjR.ou", "value"}, List.<Object[]>of(new Object[] {"OU1", 3}));
 
     when(sqlQueryCreatorService.getSqlQueryCreator(ctx)).thenReturn(queryCreator);
     when(queryCreator.createForSelect()).thenReturn(mock(SqlQuery.class));
@@ -387,7 +359,22 @@ class TrackedEntityAggregateServiceTest {
     Grid grid = service.getGrid(ctx);
 
     assertEquals(
-        List.of("ou", "value"), grid.getHeaders().stream().map(GridHeader::getName).toList());
+        List.of("A03MvHHogjR.ou", "value"),
+        grid.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(1, grid.getHeight());
+  }
+
+  /** An event data element dimension carrying items is rejected alongside a grouped dimension. */
+  @Test
+  void getGridRejectsEventDataElementDimensionCarryingItems() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("ou", "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU:GT:10"),
+            List.of(stubOuDimension("ou1"), stubDataElementDimension("UXz7xuGCEhU")));
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
+    assertEquals(ErrorCode.E7258, ex.getErrorCode());
   }
 
   /**
@@ -734,6 +721,38 @@ class TrackedEntityAggregateServiceTest {
     return DimensionIdentifier.of(
             ElementWithOffset.of(stubProgram()),
             ElementWithOffset.of(stubProgramStage()),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  /**
+   * Two offsets of one stage are two dimensions but share one response name, so the rows could not
+   * be told apart. The request is rejected rather than answered ambiguously.
+   */
+  @Test
+  void getGridRejectsTwoOffsetsOfTheSameStageDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        aggregateContextParams(
+            Set.of("A03MvHHogjR.ou:USER_ORGUNIT", "A03MvHHogjR[1].ou:USER_ORGUNIT"),
+            List.of(stubStageScopedOuDimension(), stubStageScopedOuDimensionWithOffset(1)));
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getGrid(ctx));
+    assertEquals(ErrorCode.E7259, ex.getErrorCode());
+  }
+
+  private DimensionIdentifier<DimensionParam> stubStageScopedOuDimensionWithOffset(int offset) {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("ou1");
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(orgUnit)),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of("ou1"));
+    return DimensionIdentifier.of(
+            ElementWithOffset.of(stubProgram(), offset),
+            ElementWithOffset.of(stubProgramStage(), offset),
             dimensionParam)
         .withDefaultGroupId();
   }

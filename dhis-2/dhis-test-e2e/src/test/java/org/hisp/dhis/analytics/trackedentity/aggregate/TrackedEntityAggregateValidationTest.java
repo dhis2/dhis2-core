@@ -49,50 +49,38 @@ public class TrackedEntityAggregateValidationTest extends AnalyticsApiTest {
   private final AnalyticsTrackedEntityActions actions = new AnalyticsTrackedEntityActions();
 
   /**
-   * A dimension the query cannot group by used to be dropped from the headers and the GROUP BY
-   * while its restriction still applied, so the response was an ungrouped total indistinguishable
-   * from a correctly grouped one.
+   * An end date has no column of that name on the enrollment table, where it is {@code
+   * completeddate}, so it cannot be grouped. It used to reach the database and fail there on the
+   * missing column.
    */
   @Test
-  public void aggregateByDataElementDimensionShouldFail() {
+  public void aggregateByEnrollmentEndDateDimensionShouldFail() {
     // Given
     QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("dimension=ou:USER_ORGUNIT")
-            .add("dimension=IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU");
+        new QueryParamsBuilder().add("dimension=IpHINAT79UW.ENDDATE:THIS_YEAR");
 
     // When
     ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
-    assertGroupByNotSupported(response, "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU");
+    assertGroupByNotSupported(response, "IpHINAT79UW.ENDDATE");
   }
 
+  /**
+   * An event status belongs to a program stage, so a program scoped one has no enrollment column to
+   * group on. It used to reach the database and fail there on the missing column.
+   */
   @Test
-  public void aggregateByEnrollmentDateDimensionShouldFail() {
+  public void aggregateByProgramScopedEventStatusDimensionShouldFail() {
     // Given
     QueryParamsBuilder params =
-        new QueryParamsBuilder().add("dimension=IpHINAT79UW.ENROLLMENT_DATE");
+        new QueryParamsBuilder().add("dimension=IpHINAT79UW.EVENT_STATUS:ACTIVE");
 
     // When
     ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
-    assertGroupByNotSupported(response, "IpHINAT79UW.ENROLLMENT_DATE");
-  }
-
-  /** Only the registration org unit is groupable; a stage scoped one has no column to group on. */
-  @Test
-  public void aggregateByStageScopedOrgUnitDimensionShouldFail() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder().add("dimension=IpHINAT79UW.A03MvHHogjR.ou");
-
-    // When
-    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
-
-    // Then
-    assertGroupByNotSupported(response, "IpHINAT79UW.A03MvHHogjR.ou");
+    assertGroupByNotSupported(response, "IpHINAT79UW.EVENT_STATUS");
   }
 
   /**
@@ -139,41 +127,6 @@ public class TrackedEntityAggregateValidationTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("headers[0].name", equalTo("ouname"))
         .body("headers[1].name", equalTo("value"));
-  }
-
-  /**
-   * A dimension carrying items restricts the query. Enrollment and event scoped dimensions have no
-   * column on the tracked entity table, so they restrict without adding a column, exactly as the
-   * {@code filter} parameter does.
-   */
-  @ParameterizedTest
-  @ValueSource(
-      strings = {
-        "A03MvHHogjR.ou:USER_ORGUNIT",
-        "A03MvHHogjR.EVENT_DATE:THIS_YEAR",
-        "A03MvHHogjR.SCHEDULED_DATE:THIS_YEAR",
-        "A03MvHHogjR.EVENT_STATUS:ACTIVE",
-        "A03MvHHogjR.a3kGcGDCuk6:GT:10",
-        "IpHINAT79UW.ENROLLMENT_OU:USER_ORGUNIT",
-        "IpHINAT79UW.ENROLLMENT_DATE:THIS_YEAR",
-        "IpHINAT79UW.INCIDENT_DATE:THIS_YEAR",
-        "IpHINAT79UW.PROGRAM_STATUS:ACTIVE"
-      })
-  public void aggregateByScopedDimensionWithItemsShouldRestrictWithoutAddingAColumn(
-      String dimension) {
-    // Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("dimension=" + dimension);
-
-    // When
-    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
-
-    // Then
-    response
-        .validate()
-        .statusCode(200)
-        .body("headers", hasSize(1))
-        .body("headers[0].name", equalTo("value"))
-        .body("rows", hasSize(1));
   }
 
   /** A groupable dimension with items is both grouped and restricted. */
@@ -236,6 +189,30 @@ public class TrackedEntityAggregateValidationTest extends AnalyticsApiTest {
     assertGroupByNotSupported(response, "pe");
   }
 
+  /**
+   * A program stage dimension is reported under a name that carries no offset, so two offsets of
+   * one stage would answer under one name. Such a request is rejected rather than returning rows
+   * whose two grouping coordinates cannot be told apart.
+   */
+  @Test
+  public void aggregateByTwoOffsetsOfTheSameStageDimensionShouldFail() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=A03MvHHogjR.ou:USER_ORGUNIT")
+            .add("dimension=A03MvHHogjR[1].ou:USER_ORGUNIT");
+
+    // When
+    ApiResponse response = actions.aggregate().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7259"));
+  }
+
   private void assertGroupByNotSupported(ApiResponse response, String dimension) {
     response
         .validate()
@@ -250,6 +227,7 @@ public class TrackedEntityAggregateValidationTest extends AnalyticsApiTest {
                 "Dimension is not supported as a group by in a tracked entity aggregate query: `"
                     + dimension
                     + "`. Supported dimensions are the registration organisation unit, tracked"
-                    + " entity static fields and tracked entity attributes"));
+                    + " entity static fields, tracked entity attributes, and program or program"
+                    + " stage scoped organisation units, dates, statuses and data elements"));
   }
 }
