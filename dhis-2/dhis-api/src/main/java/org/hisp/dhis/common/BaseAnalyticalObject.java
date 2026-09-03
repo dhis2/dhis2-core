@@ -131,8 +131,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   private static final List<String> STATIC_DIMS = List.of(LONGITUDE_DIM_ID, LATITUDE_DIM_ID);
 
-  private static final int TEN_YEARS_OF_DAILY_PERIODS = 10 * 365;
-
   /** Line and axis labels. */
   protected String domainAxisLabel;
 
@@ -1411,7 +1409,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(max = TEN_YEARS_OF_DAILY_PERIODS)
   public List<String> getRawPeriods() {
     return rawPeriods;
   }
