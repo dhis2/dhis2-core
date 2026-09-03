@@ -31,8 +31,10 @@ package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
 import static lombok.AccessLevel.PRIVATE;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -65,19 +67,22 @@ class PeriodBucketColumn {
       return Optional.empty();
     }
 
-    String bucket = null;
+    Set<String> buckets = new LinkedHashSet<>();
 
     for (DimensionParamItem item : items) {
       for (String value : item.getValues()) {
         Optional<String> valueBucket = bucketOf(value);
-        if (valueBucket.isEmpty() || (bucket != null && !bucket.equals(valueBucket.get()))) {
+        if (valueBucket.isEmpty()) {
           return Optional.empty();
         }
-        bucket = valueBucket.get();
+        buckets.add(valueBucket.get());
+        if (buckets.size() > 1) {
+          return Optional.empty();
+        }
       }
     }
 
-    return Optional.ofNullable(bucket);
+    return buckets.stream().findFirst();
   }
 
   /**
