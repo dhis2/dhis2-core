@@ -51,7 +51,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -146,6 +145,10 @@ public class CrudControllerAdvice {
   private static final String GENERIC_ERROR_MESSAGE =
       "An unexpected error has occured. Please contact your system administrator";
 
+  /** Safe to state, unlike the exception message which carries pool sizes and timings. */
+  private static final String NO_CONNECTION_MESSAGE =
+      "The server could not obtain a database connection. Please try again later";
+
   private final List<Class<?>> enumClasses;
 
   public CrudControllerAdvice() {
@@ -227,7 +230,7 @@ public class CrudControllerAdvice {
   /**
    * Reports an exhausted connection pool as 503 so clients retry rather than treat it as a defect.
    * Spring also raises {@link DataAccessResourceFailureException} for failures unrelated to
-   * obtaining a connection, which stay 500. The message is kept generic, see {@link
+   * obtaining a connection, which stay 500 with a message scrubbed by {@link
    * #SENSITIVE_EXCEPTIONS}.
    */
   @ExceptionHandler(DataAccessResourceFailureException.class)
@@ -235,8 +238,7 @@ public class CrudControllerAdvice {
   public WebMessage dataAccessResourceFailureException(DataAccessResourceFailureException ex) {
     log.error(DataAccessResourceFailureException.class.getName(), ex);
     if (failedToObtainConnection(ex)) {
-      return createWebMessage(
-          getExceptionMessage(ex), Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+      return createWebMessage(NO_CONNECTION_MESSAGE, Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
     }
     return error(getExceptionMessage(ex));
   }
@@ -246,29 +248,14 @@ public class CrudControllerAdvice {
    * transaction rather than while running a query. Spring wraps that in a {@link
    * TransactionException}, a separate hierarchy from {@link
    * org.springframework.dao.DataAccessException}, so it needs its own handler. Its message is not
-   * scrubbed by {@link #SENSITIVE_EXCEPTIONS}, hence the generic message here.
+   * scrubbed by {@link #SENSITIVE_EXCEPTIONS}, hence the generic message on the 500 branch.
    */
   @ExceptionHandler(CannotCreateTransactionException.class)
   @ResponseBody
   public WebMessage cannotCreateTransactionException(CannotCreateTransactionException ex) {
     log.error(CannotCreateTransactionException.class.getName(), ex);
     if (failedToObtainConnection(ex)) {
-      return createWebMessage(GENERIC_ERROR_MESSAGE, Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
-    }
-    return error(GENERIC_ERROR_MESSAGE);
-  }
-
-  /**
-   * Tracker exports fan out over {@link java.util.concurrent.CompletableFuture}, so a connection
-   * failure in one of those threads surfaces wrapped in a {@link CompletionException}, which is
-   * neither a Spring data access nor a transaction exception.
-   */
-  @ExceptionHandler(CompletionException.class)
-  @ResponseBody
-  public WebMessage completionException(CompletionException ex) {
-    log.error(CompletionException.class.getName(), ex);
-    if (failedToObtainConnection(ex)) {
-      return createWebMessage(GENERIC_ERROR_MESSAGE, Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+      return createWebMessage(NO_CONNECTION_MESSAGE, Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
     }
     return error(GENERIC_ERROR_MESSAGE);
   }
