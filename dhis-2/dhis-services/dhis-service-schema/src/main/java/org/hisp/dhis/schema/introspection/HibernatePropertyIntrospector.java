@@ -190,9 +190,13 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
       property.setRequired(!column.isNullable());
       property.setMin(0d);
 
+      boolean isCollectionOrCustomType =
+          type instanceof CustomType
+              || (property.getGetterMethod() != null
+                  && Collection.class.isAssignableFrom(property.getGetterMethod().getReturnType()));
+
       // Skip max length for collections.
-      if (!(type instanceof CustomType)
-          || !Collection.class.isAssignableFrom(property.getGetterMethod().getReturnType())) {
+      if (!isCollectionOrCustomType) {
         property.setMax((double) column.getLength());
       }
 
