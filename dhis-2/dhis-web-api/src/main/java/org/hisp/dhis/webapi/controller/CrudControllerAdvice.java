@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -58,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.exception.JDBCConnectionException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -103,11 +105,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
+import org.springframework.transaction.CannotCreateTransactionException;
+import org.springframework.transaction.TransactionException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -217,6 +222,77 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage restClientExceptionHandler(RestClientException ex) {
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  /**
+   * Reports an exhausted connection pool as 503 so clients retry rather than treat it as a defect.
+   * Spring also raises {@link DataAccessResourceFailureException} for failures unrelated to
+   * obtaining a connection, which stay 500. The message is kept generic, see {@link
+   * #SENSITIVE_EXCEPTIONS}.
+   */
+  @ExceptionHandler(DataAccessResourceFailureException.class)
+  @ResponseBody
+  public WebMessage dataAccessResourceFailureException(DataAccessResourceFailureException ex) {
+    log.error(DataAccessResourceFailureException.class.getName(), ex);
+    if (failedToObtainConnection(ex)) {
+      return createWebMessage(
+          getExceptionMessage(ex), Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    return error(getExceptionMessage(ex));
+  }
+
+  /**
+   * Same failure as {@link #dataAccessResourceFailureException}, but raised while starting the
+   * transaction rather than while running a query. Spring wraps that in a {@link
+   * TransactionException}, a separate hierarchy from {@link
+   * org.springframework.dao.DataAccessException}, so it needs its own handler. Its message is not
+   * scrubbed by {@link #SENSITIVE_EXCEPTIONS}, hence the generic message here.
+   */
+  @ExceptionHandler(CannotCreateTransactionException.class)
+  @ResponseBody
+  public WebMessage cannotCreateTransactionException(CannotCreateTransactionException ex) {
+    log.error(CannotCreateTransactionException.class.getName(), ex);
+    if (failedToObtainConnection(ex)) {
+      return createWebMessage(GENERIC_ERROR_MESSAGE, Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    return error(GENERIC_ERROR_MESSAGE);
+  }
+
+  /**
+   * Tracker exports fan out over {@link java.util.concurrent.CompletableFuture}, so a connection
+   * failure in one of those threads surfaces wrapped in a {@link CompletionException}, which is
+   * neither a Spring data access nor a transaction exception.
+   */
+  @ExceptionHandler(CompletionException.class)
+  @ResponseBody
+  public WebMessage completionException(CompletionException ex) {
+    log.error(CompletionException.class.getName(), ex);
+    if (failedToObtainConnection(ex)) {
+      return createWebMessage(GENERIC_ERROR_MESSAGE, Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    return error(GENERIC_ERROR_MESSAGE);
+  }
+
+  /**
+   * Whether the failure was a failure to obtain a database connection, most commonly an exhausted
+   * connection pool.
+   *
+   * <p>Do not narrow this to transient JDBC exceptions or SQL states: {@code hikari} raises {@code
+   * SQLTransientConnectionException} on pool timeout while {@code unpooled} raises a plain {@code
+   * PSQLException} with state 53300, which is neither transient nor non-transient. What they share
+   * is failing at connection acquisition, which both types below capture.
+   */
+  private static boolean failedToObtainConnection(Throwable ex) {
+    for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+      if (cause instanceof CannotGetJdbcConnectionException
+          || cause instanceof JDBCConnectionException) {
+        return true;
+      }
+      if (cause.getCause() == cause) {
+        break;
+      }
+    }
+    return false;
   }
 
   @ExceptionHandler(IllegalQueryException.class)
