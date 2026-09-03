@@ -29,6 +29,14 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query;
 
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
 
 /**
@@ -42,4 +50,30 @@ import org.hisp.dhis.analytics.common.query.Renderable;
 public interface ScopedColumnResolver {
 
   Renderable resolve(String columnName);
+
+  /**
+   * The row-level defaults each condition used before the resolver seam existed, kept verbatim. The
+   * four quote their table and column differently, so they are not unified: changing any of them
+   * would change generated SQL for requests unrelated to aggregation.
+   */
+  static ScopedColumnResolver eventOrgUnit(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    String prefix = doubleQuote(getPrefix(dimensionIdentifier));
+    return columnName -> Field.of(prefix, () -> columnName, "");
+  }
+
+  static ScopedColumnResolver organisationUnit(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return columnName -> Field.ofRenamedDimensionIdentifier(dimensionIdentifier, columnName);
+  }
+
+  static ScopedColumnResolver period(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    String prefix = getPrefix(dimensionIdentifier);
+    return columnName -> Field.of(prefix, () -> columnName, EMPTY);
+  }
+
+  static ScopedColumnResolver status(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    String prefix = doubleQuote(getPrefix(dimensionIdentifier));
+    return columnName -> Field.ofUnquoted(prefix, () -> columnName, StringUtils.EMPTY);
+  }
 }

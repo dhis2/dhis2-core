@@ -57,6 +57,10 @@ class SqlQueryHelper {
   /** Alias the collapsed event row is selected under. */
   static final String COLLAPSED_EVENT_ALIAS = "ev";
 
+  // Row-level endpoint subqueries. These pick an enrollment first and then an event within it,
+  // so they can land on a different event than the aggregate collapse below. Used for display,
+  // sorting and filtering of per-tracked-entity rows; never for grouping.
+
   private static final String ENROLLMENT_ORDER_BY_SUBQUERY =
       """
           (select ${selectedEnrollmentField}
@@ -173,6 +177,11 @@ class SqlQueryHelper {
            where ev.rn = ${programStageOffset}
              and ev.enrollment = %s)"""
           .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
+
+  // Aggregate endpoint subqueries. These collapse across all of a tracked entity's enrollments,
+  // partitioning by trackedentity, so each tracked entity contributes exactly one event and a
+  // count over the grouped query stays a count of tracked entities. Used for grouping, for the
+  // restriction of a grouped dimension, and for ordering by a grouped dimension.
 
   private static final String COLLAPSED_EVENT_SELECT_SUBQUERY =
       """

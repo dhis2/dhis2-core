@@ -50,7 +50,6 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
@@ -81,7 +80,7 @@ public class OrganisationUnitCondition extends BaseRenderable {
     return of(
         dimensionIdentifier,
         queryContext,
-        columnName -> Field.ofRenamedDimensionIdentifier(dimensionIdentifier, columnName));
+        ScopedColumnResolver.organisationUnit(dimensionIdentifier));
   }
 
   public static OrganisationUnitCondition of(
