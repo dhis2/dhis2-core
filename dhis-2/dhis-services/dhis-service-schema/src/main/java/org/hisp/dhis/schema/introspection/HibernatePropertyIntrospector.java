@@ -31,6 +31,7 @@ package org.hisp.dhis.schema.introspection;
 
 import jakarta.persistence.EntityManagerFactory;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -188,7 +189,13 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
       property.setUnique(column.isUnique());
       property.setRequired(!column.isNullable());
       property.setMin(0d);
-      property.setMax((double) column.getLength());
+
+      // Skip max length for collections.
+      if (!(type instanceof CustomType)
+          || !Collection.class.isAssignableFrom(property.getGetterMethod().getReturnType())) {
+        property.setMax((double) column.getLength());
+      }
+
       property.setLength(column.getLength());
 
       if (type instanceof TextType) {
