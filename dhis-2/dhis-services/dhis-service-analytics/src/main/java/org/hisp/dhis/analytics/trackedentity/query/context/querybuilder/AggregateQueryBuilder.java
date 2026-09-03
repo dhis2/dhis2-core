@@ -30,9 +30,12 @@
 package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -40,13 +43,16 @@ import lombok.Getter;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionAliases;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.RenderableDataValue;
+import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilder;
@@ -66,6 +72,12 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * Alias of the collapsed program-stage event table joined when aggregating over an event value.
    */
   private static final String EVENT_VALUE_ALIAS = "ev";
+
+  /** The static columns the tracked entity table carries, by the header name of the dimension. */
+  private static final Set<String> TRACKED_ENTITY_COLUMNS =
+      Arrays.stream(TrackedEntityStaticField.values())
+          .map(TrackedEntityStaticField::getAlias)
+          .collect(toUnmodifiableSet());
 
   @Getter
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
@@ -154,28 +166,71 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
   }
 
   /**
-   * Returns the keys of the dimensions an aggregate query groups by: the dimensions the user
-   * explicitly requested (present in the raw {@code dimension} param) that are also groupable in
-   * aggregate mode (registration org unit or a tracked entity / program attribute). Only {@code
-   * commonRaw} distinguishes explicitly-requested dimensions from those injected upstream for
-   * row-level display; the parsed dimensions merge both. This is the single source of truth for
-   * what the aggregate query groups by, and therefore what may be sorted on.
+   * Returns the keys of the dimensions the query groups by: the ones asked for in the {@code
+   * dimension} param that can also be grouped on, which are the registration org unit, the tracked
+   * entity static fields and the attributes. The raw request is needed because the parsed
+   * dimensions also contain the attributes the mapper adds for row level display, and those must
+   * stay out of the GROUP BY. What is grouped here is also what can be sorted on.
+   *
+   * <p>A dimension can be grouped on only when the tracked entity table has a column for it, which
+   * takes both its scope and its own level into account. A program or stage scoped org unit is the
+   * enrollment or event org unit and lives in the enrollment and event tables; an enrollment or
+   * event level field such as {@code enrollmentdate} has no tracked entity column either, even
+   * without a program or stage prefix. Both can restrict the query but neither can be a group by
+   * key.
    */
   public static Set<String> getGroupedDimensionKeys(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
     Set<String> requestedKeys =
         contextParams.getCommonRaw().getDimension().stream()
-            .map(param -> getDimensionFromParam(param))
+            .map(AggregateQueryBuilder::canonicalDimensionKey)
             .collect(toSet());
 
     return contextParams.getCommonParsed().getDimensionIdentifiers().stream()
+        .filter(DimensionIdentifier::isTeDimension)
         .filter(
-            dimension ->
-                OrgUnitQueryBuilder.isOu(dimension)
-                    || TrackedEntityQueryBuilder.isTrackedEntity(dimension))
+            dimension -> OrgUnitQueryBuilder.isOu(dimension) || hasTrackedEntityColumn(dimension))
         .map(DimensionIdentifier::getKey)
         .filter(requestedKeys::contains)
         .collect(toSet());
+  }
+
+  /**
+   * Whether the dimension has a column on the tracked entity table to group on. A static dimension
+   * has one when it is one of the tracked entity fields the table flattens, so an enrollment or
+   * event level field such as {@code enrollmentdate} or {@code eventstatus} has none even when it
+   * is requested without a program or stage prefix. An attribute always has its own column. A
+   * period dimension has none: the table carries no period column.
+   */
+  private static boolean hasTrackedEntityColumn(DimensionIdentifier<DimensionParam> dimension) {
+    DimensionParam dimensionParam = dimension.getDimension();
+
+    if (dimensionParam.isStaticDimension()) {
+      return TRACKED_ENTITY_COLUMNS.contains(dimensionParam.getStaticDimension().getHeaderName());
+    }
+
+    return TrackedEntityQueryBuilder.isTrackedEntity(dimension)
+        && !dimensionParam.isPeriodDimension();
+  }
+
+  /**
+   * Returns the key a raw {@code dimension} parameter is parsed into, so that a request can be
+   * matched against the parsed dimensions. Two resolutions are applied to the dimension id, in the
+   * order the request parsing applies them: a keyword alias is replaced by the dimension it stands
+   * for, e.g. {@code ENROLLMENT_OU} by {@code ou}, and a static dimension is resolved to its
+   * canonical header name, e.g. {@code LAST_UPDATED} to {@code lastupdated}. Any program and stage
+   * prefix is kept.
+   *
+   * @see DimensionAliases#canonicalize(String)
+   */
+  public static String canonicalDimensionKey(String rawDimension) {
+    String key = getDimensionFromParam(rawDimension);
+    int separator = key.lastIndexOf(DIMENSION_IDENTIFIER_SEP);
+    String prefix = separator < 0 ? "" : key.substring(0, separator + 1);
+    String dimension = DimensionAliases.canonicalize(key.substring(separator + 1));
+
+    return prefix
+        + StaticDimension.of(dimension).map(StaticDimension::getHeaderName).orElse(dimension);
   }
 
   @Override
