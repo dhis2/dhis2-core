@@ -84,7 +84,6 @@ import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -827,7 +826,7 @@ public class DataElement extends BaseMetadataObject
   }
 
   @JsonProperty("dataElementGroups")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataElementGroups", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataElementGroup> getGroups() {
