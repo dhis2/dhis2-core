@@ -50,7 +50,7 @@ import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.period.PeriodTypeStore.PeriodTypeLabels;
+import org.hisp.dhis.period.PeriodTypeStore.Labels;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -65,6 +65,7 @@ public class DefaultPeriodService implements PeriodService {
 
   private final PeriodStore periodStore;
   private final PeriodTypeStore periodTypeStore;
+  private final RelativePeriodStore relativePeriodStore;
   private final I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
@@ -246,21 +247,21 @@ public class DefaultPeriodService implements PeriodService {
   @Override
   @IndirectTransactional
   public boolean updatePeriodTypeLabel(
-      @Nonnull String name, @Nonnull Collection<Translation> translations) {
+      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations) {
     translations.forEach(t -> PERIOD_TYPES_CACHE.remove(t.getLocale()));
-    return periodTypeStore.updatePeriodTypeLabel(name, translations);
+    return periodTypeStore.updateLabel(name, translations);
   }
 
   @Override
   @IndirectTransactional
   public boolean updatePeriodTypeLabel(
-      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale) {
+      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
     if (locale != null) {
       PERIOD_TYPES_CACHE.remove(locale);
     } else {
       PERIOD_TYPES_CACHE.clear();
     }
-    return periodTypeStore.updatePeriodTypeLabel(name, label, locale);
+    return periodTypeStore.updateLabel(name, label, locale);
   }
 
   @Override
@@ -279,28 +280,22 @@ public class DefaultPeriodService implements PeriodService {
 
   @Nonnull
   private PeriodTypes reloadAllPeriodTypes(Locale locale) {
-    Map<String, PeriodTypeLabels> labels = new HashMap<>();
-    periodTypeStore.getAllPeriodTypeLabels().forEach(e -> labels.put(e.name(), e));
+    Map<PeriodTypeEnum, Labels> labelsByType = new HashMap<>();
+    periodTypeStore.getAllLabels().forEach(e -> labelsByType.put(e.name(), e));
 
     I18n i18n = i18nManager.getI18n(locale);
     List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
     List<PeriodTypes.PeriodTypeEntry> entries = new ArrayList<>(types.size());
     for (PeriodType t : types) {
-      String name = t.getName();
-      String label = null;
-      String displayLabel = null;
-      List<Translation> translations = List.of();
-      PeriodTypeLabels l = labels.get(name);
-      if (l != null) {
-        label = l.label();
-        translations = l.translations().translationsList();
-        displayLabel = l.translations().translationValue(locale);
-      }
-      if (displayLabel == null) displayLabel = label;
-      String displayName = displayLabel;
-      String defaultName = null;
-      if (displayName == null) defaultName = i18n.getString(name, name);
-      if (displayName == null) displayName = defaultName;
+      PeriodTypeEnum name = t.getPeriodTypeEnum();
+      PeriodTypeStore.Labels l = labelsByType.get(name);
+      PeriodTypes.Labels labels =
+          PeriodTypes.Labels.of(
+              locale,
+              i18n.getString(name.getName(), name.getName()),
+              l == null ? null : l.label(),
+              l == null ? null : l.translations());
+      Map<RelativePeriodEnum, PeriodTypes.Labels> relativePeriods = Map.of();
 
       PeriodTypes.PeriodTypeEntry e =
           new PeriodTypes.PeriodTypeEntry(
@@ -308,11 +303,8 @@ public class DefaultPeriodService implements PeriodService {
               t.getIso8601Duration(),
               t.getIsoFormat(),
               t.getFrequencyOrder(),
-              defaultName,
-              label,
-              translations,
-              displayLabel,
-              displayName);
+              labels,
+              relativePeriods);
       entries.add(e);
     }
     return new PeriodTypes(locale, entries);

@@ -30,6 +30,8 @@
 package org.hisp.dhis.period;
 
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -57,7 +59,20 @@ public class PeriodPipeline {
 
   @IndirectTransactional
   public void exportAsJson(
-      @Nonnull String name,
+      @Nonnull Set<PeriodTypeEnum> types,
+      @CheckForNull Locale locale,
+      @Nonnull Fields fields,
+      @Nonnull Supplier<OutputStream> out) {
+    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    PeriodTypes res = service.getAllPeriodTypes(locale);
+    List<PeriodTypes.PeriodTypeEntry> entries =
+        res.entries().stream().filter(pt -> types.contains(pt.type())).toList();
+    PeriodOutput.toJson(new PeriodTypes.Output(locale, entries, fields), out.get());
+  }
+
+  @IndirectTransactional
+  public void exportAsJson(
+      @Nonnull PeriodTypeEnum type,
       @CheckForNull Locale locale,
       @Nonnull Fields fields,
       @Nonnull Supplier<OutputStream> out)
@@ -65,10 +80,10 @@ public class PeriodPipeline {
     if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
     PeriodTypes.PeriodTypeEntry entry =
         service.getAllPeriodTypes(locale).entries().stream()
-            .filter(pt -> name.equalsIgnoreCase(pt.name()))
+            .filter(pt -> type == pt.type())
             .findFirst()
             .orElse(null);
-    if (entry == null) throw new NotFoundException(PeriodType.class, name);
+    if (entry == null) throw new NotFoundException(PeriodType.class, type.getName());
     PeriodOutput.toJson(entry, fields, out.get());
   }
 }

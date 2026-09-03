@@ -31,19 +31,57 @@ package org.hisp.dhis.period;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.translation.JsonTranslations;
+import org.hisp.dhis.translation.Translation;
 
-/**
- * @param name of the {@link PeriodType} (key)
- * @param label new value for the translation locale (null to erase)
- * @param locale locale of the given label, null if
- */
-public record PeriodTypeParams(
-    @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
+public interface RelativePeriodStore {
 
-  public PeriodTypeParams {
-    requireNonNull(name);
+  /**
+   * Updates the label of the given relative period.
+   *
+   * @param name of the relative period.
+   * @param label the new label, null or empty to erase
+   * @param locale when null label is the override for the name not associated with a locale,
+   *     otherwise it is a translation for the given locale
+   */
+  boolean updateLabel(
+      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale);
+
+  /**
+   * Replaces the relative period's translation labels with the given ones
+   *
+   * @param name of the type (key)
+   * @param translations labels in different languages
+   * @return true, if a change occurred, false if no row was affected
+   */
+  boolean updateLabel(
+      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations);
+
+  /**
+   * @return the label information for all relative periods
+   */
+  List<Labels> getAllLabels();
+
+  /**
+   * Label information for a relative period that is stored in the DB
+   *
+   * @param name the key
+   * @param label override on the properties based i18n translation
+   * @param translations local specific translations
+   */
+  record Labels(
+      @Nonnull RelativePeriodEnum name,
+      @CheckForNull String label,
+      @Nonnull JsonTranslations translations) {
+
+    public Labels {
+      requireNonNull(name);
+      requireNonNull(translations);
+    }
   }
 }

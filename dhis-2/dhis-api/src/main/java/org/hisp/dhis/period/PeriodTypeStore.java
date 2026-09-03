@@ -46,6 +46,14 @@ import org.hisp.dhis.translation.Translation;
 public interface PeriodTypeStore {
 
   /**
+   * Returns all PeriodTypes.
+   *
+   * @return a list of all PeriodTypes, or an empty list if there are no PeriodTypes.
+   */
+  @Nonnull
+  List<PeriodType> getAll();
+
+  /**
    * Adds a PeriodType.
    *
    * @param periodType the PeriodType to add.
@@ -60,8 +68,8 @@ public interface PeriodTypeStore {
    * @param locale when null label is the override for the name not associated with a locale,
    *     otherwise it is a translation for the given locale
    */
-  boolean updatePeriodTypeLabel(
-      @Nonnull String name, @CheckForNull String label, @CheckForNull Locale locale);
+  boolean updateLabel(
+      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale);
 
   /**
    * Replaces the period type's translation labels with the given ones
@@ -70,21 +78,12 @@ public interface PeriodTypeStore {
    * @param translations labels in different languages
    * @return true, if a change occurred, false if no row was affected
    */
-  boolean updatePeriodTypeLabel(
-      @Nonnull String name, @Nonnull Collection<Translation> translations);
-
-  /**
-   * Returns all PeriodTypes.
-   *
-   * @return a list of all PeriodTypes, or an empty list if there are no PeriodTypes.
-   */
-  @Nonnull
-  List<PeriodType> getAllPeriodTypes();
+  boolean updateLabel(@Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations);
 
   /**
    * @return the label information for all periods
    */
-  List<PeriodTypeLabels> getAllPeriodTypeLabels();
+  List<Labels> getAllLabels();
 
   /**
    * Label information for a period type that is stored in the DB
@@ -93,10 +92,12 @@ public interface PeriodTypeStore {
    * @param label override on the properties based i18n translation
    * @param translations local specific translations
    */
-  record PeriodTypeLabels(
-      @Nonnull String name, @CheckForNull String label, @Nonnull JsonTranslations translations) {
+  record Labels(
+      @Nonnull PeriodTypeEnum name,
+      @CheckForNull String label,
+      @Nonnull JsonTranslations translations) {
 
-    public PeriodTypeLabels {
+    public Labels {
       requireNonNull(name);
       requireNonNull(translations);
     }

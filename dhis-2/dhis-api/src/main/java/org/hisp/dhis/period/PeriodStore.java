@@ -116,15 +116,4 @@ public interface PeriodStore {
    * @return the persisted Period.
    */
   Period reloadForceAddPeriod(Period period);
-
-  // -------------------------------------------------------------------------
-  // RelativePeriods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Deletes a RelativePeriods instance.
-   *
-   * @param relativePeriods the RelativePeriods instance.
-   */
-  void deleteRelativePeriods(RelativePeriods relativePeriods);
 }

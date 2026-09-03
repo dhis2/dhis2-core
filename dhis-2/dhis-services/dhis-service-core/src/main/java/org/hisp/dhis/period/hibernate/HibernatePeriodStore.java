@@ -34,17 +34,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
 import org.hibernate.query.NativeQuery;
-import org.hisp.dhis.hibernate.HibernateAutoTransactionStore;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.RelativePeriods;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -69,9 +69,9 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @Slf4j
-public class HibernatePeriodStore extends HibernateAutoTransactionStore<Period>
-    implements PeriodStore {
+public class HibernatePeriodStore extends HibernateGenericStore<Period> implements PeriodStore {
 
+  private final DataSource dataSource;
   private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
 
   public HibernatePeriodStore(
@@ -79,7 +79,12 @@ public class HibernatePeriodStore extends HibernateAutoTransactionStore<Period>
       DataSource dataSource,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher) {
-    super(entityManager, dataSource, jdbcTemplate, publisher, Period.class, false);
+    super(entityManager, jdbcTemplate, publisher, Period.class, false);
+    this.dataSource = dataSource;
+  }
+
+  private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
+    return runAutoJoinTransaction(dataSource, getSession().getSessionFactory(), query);
   }
 
   @Override
@@ -235,8 +240,4 @@ public class HibernatePeriodStore extends HibernateAutoTransactionStore<Period>
   // RelativePeriods (do not use generic store which is linked to Period)
   // -------------------------------------------------------------------------
 
-  @Override
-  public void deleteRelativePeriods(RelativePeriods relativePeriods) {
-    getSession().delete(relativePeriods);
-  }
 }

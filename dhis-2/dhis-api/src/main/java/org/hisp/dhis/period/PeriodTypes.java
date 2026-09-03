@@ -33,11 +33,13 @@ import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.translation.JsonTranslations;
 import org.hisp.dhis.translation.Translation;
 
 /**
@@ -56,10 +58,23 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
 
   /** A {@link PeriodType} as exposed in the web API with all its display properties joined in. */
   public record PeriodTypeEntry(
-      @JsonProperty @Nonnull @OpenApi.Description("The ID of the period type") String name,
+      @JsonProperty @Nonnull PeriodTypeEnum type,
       @JsonProperty @Nonnull String isoDuration,
       @JsonProperty @Nonnull String isoFormat,
       @JsonProperty int frequencyOrder,
+      @Nonnull Labels labels,
+      @Nonnull Map<RelativePeriodEnum, Labels> relativePeriods) {
+
+    public PeriodTypeEntry {
+      requireNonNull(type);
+      requireNonNull(isoDuration);
+      requireNonNull(isoFormat);
+      requireNonNull(labels);
+      requireNonNull(relativePeriods);
+    }
+  }
+
+  public record Labels(
       @JsonProperty @CheckForNull @OpenApi.Description("The i18n translation of `name`")
           String defaultName,
       @JsonProperty
@@ -79,11 +94,21 @@ public record PeriodTypes(@Nonnull Locale locale, @Nonnull List<PeriodTypeEntry>
               "The name to display in the UI computed from all sources resolved for a specific `locale`")
           String displayName) {
 
-    public PeriodTypeEntry {
-      requireNonNull(name);
-      requireNonNull(isoDuration);
-      requireNonNull(isoFormat);
-      requireNonNull(translations);
+    public static Labels of(
+        @Nonnull Locale locale,
+        @Nonnull String defaultName,
+        @CheckForNull String label,
+        @CheckForNull JsonTranslations translations) {
+      String displayLabel = null;
+      List<Translation> trans = List.of();
+      if (translations != null) {
+        trans = translations.translationsList();
+        displayLabel = translations.translationValue(locale);
+      }
+      if (displayLabel == null) displayLabel = label;
+      String displayName = displayLabel;
+      if (displayName == null) displayName = defaultName;
+      return new Labels(defaultName, label, trans, displayLabel, displayName);
     }
   }
 

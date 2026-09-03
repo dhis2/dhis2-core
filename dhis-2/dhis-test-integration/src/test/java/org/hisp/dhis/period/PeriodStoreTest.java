@@ -56,7 +56,7 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
   @Test
   void testAddPeriod() {
-    List<PeriodType> periodTypes = periodTypeStore.getAllPeriodTypes();
+    List<PeriodType> periodTypes = periodTypeStore.getAll();
     Iterator<PeriodType> it = periodTypes.iterator();
     PeriodType periodTypeA = it.next();
     PeriodType periodTypeB = it.next();
@@ -92,7 +92,7 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetAllPeriods() {
-    List<PeriodType> periodTypes = periodTypeStore.getAllPeriodTypes();
+    List<PeriodType> periodTypes = periodTypeStore.getAll();
     Iterator<PeriodType> it = periodTypes.iterator();
     PeriodType periodTypeA = it.next();
     PeriodType periodTypeB = it.next();

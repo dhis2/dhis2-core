@@ -37,15 +37,19 @@ import static org.hisp.dhis.period.PeriodTypeEnum.TWO_YEARLY;
 import static org.hisp.dhis.period.PeriodTypeEnum.YEARLY;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -53,6 +57,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -64,13 +69,13 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.period.PeriodPipeline;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypes.PeriodTypeEntry;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.ObjectUtils;
@@ -103,6 +108,7 @@ public class ConfigurationController {
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
   @Autowired private PeriodService periodService;
+  @Autowired private PeriodPipeline periodPipeline;
 
   @Autowired private RenderService renderService;
 
@@ -478,17 +484,27 @@ public class ConfigurationController {
   @GetMapping(
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody List<PeriodTypeEntry> getDataOutputPeriodTypes(
-      @RequestParam(required = false) Locale locale) {
-    Set<String> names =
+  public void getDataOutputPeriodTypes(
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(defaultValue = "*") Fields fields,
+      HttpServletResponse response) {
+    Set<PeriodTypeEnum> names =
         configurationService.getConfiguration().getDataOutputPeriodTypes().stream()
-            .map(PeriodType::getName)
+            .map(PeriodType::getPeriodTypeEnum)
             .collect(toSet());
 
-    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
-    return periodService.getAllPeriodTypes(locale).entries().stream()
-        .filter(pt -> names.contains(pt.name()))
-        .toList();
+    periodPipeline.exportAsJson(names, locale, fields, lazyJsonOutputStream(response));
+  }
+
+  private static Supplier<OutputStream> lazyJsonOutputStream(HttpServletResponse response) {
+    return () -> {
+      response.setContentType(CONTENT_TYPE_JSON);
+      try {
+        return response.getOutputStream();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
   }
 
   @OpenApi.Shared(false)

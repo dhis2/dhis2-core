@@ -39,88 +39,42 @@ import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.sql.DataSource;
+import org.hibernate.Session;
 import org.hibernate.StatelessSession;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.period.PeriodTypeStore;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.RelativePeriodStore;
 import org.hisp.dhis.translation.JsonTranslations;
 import org.hisp.dhis.translation.Translation;
 import org.intellij.lang.annotations.Language;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
-    implements PeriodTypeStore {
+public class HibernateRelativePeriodStore implements RelativePeriodStore {
 
+  private final EntityManager entityManager;
   private final DataSource dataSource;
 
-  public HibernatePeriodTypeStore(
-      EntityManager entityManager,
-      DataSource dataSource,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, PeriodType.class, false);
+  public HibernateRelativePeriodStore(EntityManager entityManager, DataSource dataSource) {
+    this.entityManager = entityManager;
     this.dataSource = dataSource;
   }
 
   private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
-    return runAutoJoinTransaction(dataSource, getSession().getSessionFactory(), query);
-  }
-
-  @Nonnull
-  @Override
-  public List<PeriodType> getAll() {
-    return getSession()
-        .createNativeQuery("select * from periodtype order by name asc", PeriodType.class)
-        .list();
-  }
-
-  @Override
-  public void addPeriodType(@Nonnull PeriodType periodType) {
-    String name = periodType.getName();
-
-    String sql1 = "SELECT periodtypeid from periodtype where name = :name";
-    String sql2 =
-        """
-        INSERT INTO periodtype (periodtypeid, name)
-        VALUES (nextval('hibernate_sequence'), :name)""";
-    Object id =
-        runAutoJoinTransaction(
-            session -> {
-              Object pk =
-                  getSingleResult(session.createNativeQuery(sql1).setParameter("name", name));
-              if (pk != null) {
-                return pk;
-              }
-              session
-                  .createNativeQuery(sql2)
-                  // PeriodType, not the store's own Period
-                  .addSynchronizedEntityClass(PeriodType.class)
-                  .setParameter("name", name)
-                  .executeUpdate();
-              return session.createNativeQuery("SELECT lastval()").uniqueResult();
-            });
-    if (id instanceof Number n) {
-      int periodTypeId = n.intValue();
-      periodType.setId(periodTypeId);
-      return;
-    }
-    throw new IllegalStateException("Failed to upsert period type: " + name);
+    return HibernateGenericStore.runAutoJoinTransaction(
+        dataSource, getSession().getSessionFactory(), query);
   }
 
   @Override
   public boolean updateLabel(
-      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
+      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
     if (locale == null) {
       String sql =
           """
-        UPDATE periodtype
+        UPDATE relativeperiod
         SET label = :label
         WHERE name = :name""";
 
@@ -129,7 +83,7 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
               session ->
                   session
                       .createNativeQuery(sql)
-                      .setParameter("name", name.getName())
+                      .setParameter("name", name.name())
                       .setParameter("label", newValue)
                       .executeUpdate())
           > 0;
@@ -137,7 +91,7 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
     // erase potentially existing value
     String sql =
         """
-      UPDATE periodtype
+      UPDATE relativeperiod
       SET translations = (
         SELECT jsonb_agg(elem)
         FROM jsonb_array_elements(translations) AS elem
@@ -149,7 +103,7 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
                 session ->
                     session
                         .createNativeQuery(sql)
-                        .setParameter("name", name.getName())
+                        .setParameter("name", name.name())
                         .setParameter("locale", locale.toString())
                         .executeUpdate())
             > 0;
@@ -157,7 +111,7 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
     if (isBlank(label)) return erased;
     String sql2 =
         """
-      UPDATE periodtype
+      UPDATE relativeperiod
       SET translations = translations ||
         jsonb_build_array(jsonb_build_object('locale',:locale,'property','NAME','value',:value))
       WHERE name = :name""";
@@ -166,7 +120,7 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
                 session ->
                     session
                         .createNativeQuery(sql2)
-                        .setParameter("name", name.getName())
+                        .setParameter("name", name.name())
                         .setParameter("locale", locale.toString())
                         .setParameter("value", label)
                         .executeUpdate())
@@ -176,28 +130,25 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
 
   @Override
   public boolean updateLabel(
-      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations) {
+      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations) {
     List<Translation> keep = translations.stream().filter(t -> isNotBlank(t.getValue())).toList();
     if (keep.isEmpty()) {
       String sql =
           """
-        UPDATE periodtype
+        UPDATE relativeperiod
         SET translations = '[]'
         WHERE name = :name
         """;
       return runAutoJoinTransaction(
               session ->
-                  session
-                      .createNativeQuery(sql)
-                      .setParameter("name", name.getName())
-                      .executeUpdate())
+                  session.createNativeQuery(sql).setParameter("name", name.name()).executeUpdate())
           > 0;
     }
     String sql = createLabelUpdateQuery(keep);
     return runAutoJoinTransaction(
             session -> {
               NativeQuery<?> query =
-                  session.createNativeQuery(sql).setParameter("name", name.getName());
+                  session.createNativeQuery(sql).setParameter("name", name.name());
               int i = 0;
               for (Translation t : keep) {
                 query.setParameter("locale" + i, t.getLocale().toString());
@@ -214,7 +165,7 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
     @Language("sql")
     String sql1 =
         """
-    UPDATE periodtype
+    UPDATE relativeperiod
     SET translations = jsonb_build_array(
       jsonb_build_object('locale',:locale,'property','NAME','value',:value )
     )
@@ -232,20 +183,24 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
 
   @Override
   public List<Labels> getAllLabels() {
-    String sql = "SELECT name, label, translations #>> '{}' FROM periodtype";
+    String sql = "SELECT name, label, translations #>> '{}' FROM relativeperiod";
     return runAutoJoinTransaction(
         session ->
             session.createNativeQuery(sql).stream()
-                .map(HibernatePeriodTypeStore::toLabels)
+                .map(HibernateRelativePeriodStore::toLabels)
                 .toList());
   }
 
   private static Labels toLabels(Object row) {
     if (!(row instanceof Object[] columns))
-      throw new IllegalArgumentException("Period type labels must be an Object[]");
+      throw new IllegalArgumentException("Relative period labels must be an Object[]");
     return new Labels(
-        PeriodTypeEnum.of((String) columns[0]),
+        RelativePeriodEnum.valueOf((String) columns[0]),
         (String) columns[1],
         JsonMixed.of((String) columns[2]).as(JsonTranslations.class));
+  }
+
+  private Session getSession() {
+    return entityManager.unwrap(Session.class);
   }
 }

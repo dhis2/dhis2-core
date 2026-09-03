@@ -248,7 +248,7 @@ public class DefaultPreheatService implements PreheatService {
     handleSharing(params, preheat);
 
     periodTypeStore
-        .getAllPeriodTypes()
+        .getAll()
         .forEach(periodType -> preheat.getPeriodTypeMap().put(periodType.getName(), periodType));
 
     log.info(

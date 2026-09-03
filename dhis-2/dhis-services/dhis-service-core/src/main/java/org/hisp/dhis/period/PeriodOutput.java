@@ -78,21 +78,22 @@ final class PeriodOutput {
   private static void toJson(
       JsonBuilder.JsonObjectBuilder entry, PeriodTypes.PeriodTypeEntry e, Fields fields) {
     boolean hasAll = fields.contains(":all");
-    entry.addString("name", e.name());
-    if (hasAll || fields.contains("defaultName")) entry.addString("defaultName", e.defaultName());
+    entry.addString("name", e.type().getName());
+    PeriodTypes.Labels l = e.labels();
+    if (hasAll || fields.contains("defaultName")) entry.addString("defaultName", l.defaultName());
     if (hasAll || fields.contains("isoDuration")) entry.addString("isoDuration", e.isoDuration());
     if (hasAll || fields.contains("isoFormat")) entry.addString("isoFormat", e.isoFormat());
     if (hasAll || fields.contains("frequencyOrder"))
       entry.addNumber("frequencyOrder", e.frequencyOrder());
-    if (hasAll || fields.contains("label")) entry.addString("label", e.label());
+    if (hasAll || fields.contains("label")) entry.addString("label", l.label());
     if (hasAll || fields.contains("displayLabel"))
-      entry.addString("displayLabel", e.displayLabel());
-    if (hasAll || fields.contains("displayName")) entry.addString("displayName", e.displayName());
-    if ((hasAll || fields.contains("translations")) && !e.translations().isEmpty())
+      entry.addString("displayLabel", l.displayLabel());
+    if (hasAll || fields.contains("displayName")) entry.addString("displayName", l.displayName());
+    if ((hasAll || fields.contains("translations")) && !l.translations().isEmpty())
       entry.addArray(
           "translations",
           translations -> {
-            for (Translation t : e.translations()) {
+            for (Translation t : l.translations()) {
               translations.addObject(
                   translation ->
                       translation

@@ -53,6 +53,7 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.period.PeriodPipeline;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.PeriodTypeParams;
 import org.hisp.dhis.period.PeriodTypes;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -93,13 +94,13 @@ public class PeriodTypeController {
   @RequiresAuthority(anyOf = ALL)
   @PutMapping("/{name}")
   public WebMessage putLabel(
-      @PathVariable("name") String name,
+      @PathVariable("name") PeriodTypeEnum name,
       @RequestParam(required = false) Locale locale,
       @RequestParam(required = false) String value)
       throws NotFoundException {
     if (periodService.updatePeriodTypeLabel(name, value, locale))
       return ok(name + " updated successfully.");
-    throw new NotFoundException(PeriodType.class, name);
+    throw new NotFoundException(PeriodType.class, name.getName());
   }
 
   @RequiresAuthority(anyOf = ALL)
@@ -107,7 +108,7 @@ public class PeriodTypeController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
   public WebMessage replaceTranslations(
-      @PathVariable("name") String name, @RequestBody ReplaceTranslationsParams params)
+      @PathVariable("name") PeriodTypeEnum name, @RequestBody ReplaceTranslationsParams params)
       throws NotFoundException {
 
     List<Translation> translations = params.translations();
@@ -117,7 +118,7 @@ public class PeriodTypeController {
     TranslationsCheck.checkTranslations(translations, report::addErrorReport);
     if (!report.hasErrorReports()) {
       if (periodService.updatePeriodTypeLabel(name, translations)) return null;
-      throw new NotFoundException(PeriodType.class, name);
+      throw new NotFoundException(PeriodType.class, name.getName());
     }
     return objectReport(report);
   }
@@ -126,20 +127,20 @@ public class PeriodTypeController {
   @GetMapping
   public void getPeriodTypes(
       @RequestParam(required = false) Locale locale,
-      @RequestParam(defaultValue = "*") String fields,
+      @RequestParam(defaultValue = "*") Fields fields,
       HttpServletResponse response) {
-    periodPipeline.exportAllAsJson(locale, Fields.of(fields), lazyOutputStream(response));
+    periodPipeline.exportAllAsJson(locale, fields, lazyJsonOutputStream(response));
   }
 
   @OpenApi.Response(PeriodTypes.PeriodTypeEntry.class)
   @GetMapping("/{name}")
   public void getPeriodType(
-      @PathVariable("name") String name,
+      @PathVariable("name") PeriodTypeEnum name,
       @RequestParam(required = false) Locale locale,
-      @RequestParam(defaultValue = "*") String fields,
+      @RequestParam(defaultValue = "*") Fields fields,
       HttpServletResponse response)
       throws NotFoundException {
-    periodPipeline.exportAsJson(name, locale, Fields.of(fields), lazyOutputStream(response));
+    periodPipeline.exportAsJson(name, locale, fields, lazyJsonOutputStream(response));
   }
 
   @GetMapping(
@@ -149,7 +150,7 @@ public class PeriodTypeController {
     return RelativePeriodEnum.values();
   }
 
-  private static Supplier<OutputStream> lazyOutputStream(HttpServletResponse response) {
+  private static Supplier<OutputStream> lazyJsonOutputStream(HttpServletResponse response) {
     return () -> {
       response.setContentType(CONTENT_TYPE_JSON);
       try {
