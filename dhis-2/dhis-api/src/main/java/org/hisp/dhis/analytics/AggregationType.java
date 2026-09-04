@@ -103,4 +103,18 @@ public enum AggregationType {
 
     return null;
   }
+
+  public boolean isMinOrMaxInPeriodAggregationType() {
+    return (MAX_SUM_ORG_UNIT == this || MIN_SUM_ORG_UNIT == this);
+  }
+
+  public boolean isSqlCompatible() {
+    return value.equalsIgnoreCase("sum")
+        || value.equalsIgnoreCase("avg")
+        || value.equalsIgnoreCase("min")
+        || value.equalsIgnoreCase("max")
+        || value.equalsIgnoreCase("count")
+        || value.equalsIgnoreCase("stddev")
+        || value.equalsIgnoreCase("variance");
+  }
 }
