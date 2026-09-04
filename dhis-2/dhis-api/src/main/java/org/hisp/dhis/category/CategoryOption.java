@@ -111,7 +111,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 @Entity
 @Table(name = "categoryoption")
 @Setter
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
 public class CategoryOption extends BaseMetadataObject
     implements DimensionalItemObject, SystemDefaultMetadataObject, Serializable {
@@ -158,21 +158,21 @@ public class CategoryOption extends BaseMetadataObject
       name = "categoryoption_organisationunits",
       joinColumns = @JoinColumn(name = "categoryoptionid"),
       inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @BatchSize(size = 100)
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   @ManyToMany(mappedBy = "categoryOptions")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @BatchSize(size = 100)
   private Set<Category> categories = new HashSet<>();
 
   @ManyToMany(mappedBy = "categoryOptions")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
   @ManyToMany(mappedBy = "members")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryOptionGroup> groups = new HashSet<>();
 
   @Type(type = "jsbObjectSharing")
