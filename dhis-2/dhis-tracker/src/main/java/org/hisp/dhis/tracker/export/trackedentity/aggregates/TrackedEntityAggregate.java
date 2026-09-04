@@ -41,6 +41,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -109,8 +110,17 @@ public class TrackedEntityAggregate {
             getPool(),
             mdc);
 
-    allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, programOwnersAsync).join();
+    try {
+      allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, programOwnersAsync).join();
+    } catch (CompletionException e) {
+      // unwrap so a branch failure keeps its own handling rather than surfacing as a 500
+      if (e.getCause() instanceof RuntimeException cause) {
+        throw cause;
+      }
+      throw e;
+    }
 
+    // these join()s need no unwrapping: allOf above already threw if any branch failed
     Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
     Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
     Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
