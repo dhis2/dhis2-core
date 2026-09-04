@@ -457,18 +457,15 @@ public enum ConfigurationKey {
   /**
    * Maximum number of seconds a tracker export request may spend querying the database before it is
    * canceled and the request fails with 504. The budget is shared by all queries of one request.
-   * {@code 0} disables the timeout. (default: 55)
+   * {@code 0} disables the timeout. (default: 0)
    *
    * <p>Because the underlying JDBC timeout has whole second granularity and the remaining budget is
    * rounded up, a request can take up to one second longer than this value.
    *
-   * <p>55 rather than 60 to stay under the reverse proxy. nginx defaults {@code proxy_read_timeout}
-   * to 60s and exports send nothing until they are done, so both timers measure the same silence:
-   * at 60s each they race. If the proxy wins it returns its own 504, this code never runs and the
-   * query is never cancelled, which is the thing this timeout exists to do. Keep this value below
-   * {@code proxy_read_timeout}, and raise that above this one when allowing longer exports.
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer. If
+   * the proxy times out first it returns its own 504 while the query is never cancelled.
    */
-  TRACKER_EXPORT_TIMEOUT("tracker.export.timeout", "55", false),
+  TRACKER_EXPORT_TIMEOUT("tracker.export.timeout", "0", false),
 
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
