@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.programrule;
 
 import java.util.List;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Collectors;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,10 +37,33 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author markusbekken
  */
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.programrule.ProgramRuleService")
 public class DefaultProgramRuleService implements ProgramRuleService {
+  private static final String DATA_ELEMENTS_KEY = "dataElements";
+
+  private static final String TRACKED_ENTITY_ATTRIBUTES_KEY = "trackedEntityAttributes";
+
   private final ProgramRuleStore programRuleStore;
+
+  /**
+   * {@code getProgramRulesByActionTypes}/{@code getDataElementsPresentInProgramRules}/{@code
+   * getTrackedEntityAttributesPresentInProgramRules}'s results. A program's rules and their actions
+   * change only on rare admin edits, but these queries ran fresh on every tracker import that
+   * touched the program - discovered profiling a tracker import where they showed up as real,
+   * repeated DB cost for an answer that hadn't changed since the previous import.
+   *
+   * <p>Held on a separate bean rather than as fields here: this service has {@code @Transactional}
+   * methods, so Spring registers it behind a proxy - nothing else could autowire the concrete class
+   * to invalidate these caches directly. See {@link ProgramRuleActionCaches} and {@link
+   * ProgramRuleActionCacheInvalidationListener}.
+   */
+  private final ProgramRuleActionCaches caches;
+
+  public DefaultProgramRuleService(
+      ProgramRuleStore programRuleStore, ProgramRuleActionCaches caches) {
+    this.programRuleStore = programRuleStore;
+    this.caches = caches;
+  }
 
   // -------------------------------------------------------------------------
   // ProgramRule implementation
@@ -93,15 +116,25 @@ public class DefaultProgramRuleService implements ProgramRuleService {
   @Override
   @Transactional(readOnly = true)
   public List<String> getDataElementsPresentInProgramRules() {
-    return programRuleStore.getDataElementsPresentInProgramRules(
-        ProgramRuleActionType.SERVER_SUPPORTED_TYPES);
+    return caches
+        .getProgramRuleActionUids()
+        .get(
+            DATA_ELEMENTS_KEY,
+            key ->
+                programRuleStore.getDataElementsPresentInProgramRules(
+                    ProgramRuleActionType.SERVER_SUPPORTED_TYPES));
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<String> getTrackedEntityAttributesPresentInProgramRules() {
-    return programRuleStore.getTrackedEntityAttributesPresentInProgramRules(
-        ProgramRuleActionType.SERVER_SUPPORTED_TYPES);
+    return caches
+        .getProgramRuleActionUids()
+        .get(
+            TRACKED_ENTITY_ATTRIBUTES_KEY,
+            key ->
+                programRuleStore.getTrackedEntityAttributesPresentInProgramRules(
+                    ProgramRuleActionType.SERVER_SUPPORTED_TYPES));
   }
 
   @Override
@@ -114,7 +147,13 @@ public class DefaultProgramRuleService implements ProgramRuleService {
   @Transactional(readOnly = true)
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes) {
-    return programRuleStore.getProgramRulesByActionTypes(program, actionTypes);
+    String key =
+        program.getUid()
+            + ":"
+            + actionTypes.stream().map(Enum::name).sorted().collect(Collectors.joining(","));
+    return caches
+        .getProgramRulesByActionTypes()
+        .get(key, k -> programRuleStore.getProgramRulesByActionTypes(program, actionTypes));
   }
 
   @Override
