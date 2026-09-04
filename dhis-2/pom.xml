@@ -183,7 +183,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.2</jsmpp.version>
     <json-path.version>3.0.0</json-path.version>
-    <jsoup.version>1.23.1</jsoup.version>
+    <jsoup.version>1.23.2</jsoup.version>
 
     <!-- Div. utils -->
     <guava.version>33.7.1-jre</guava.version>
