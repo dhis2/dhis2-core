@@ -31,11 +31,13 @@ package org.hisp.dhis.webapi.controller.option;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -74,6 +76,29 @@ public class OptionSetController extends AbstractCrudController<OptionSet, GetOb
     exportParams.setObjectExportWithDependencies(optionSet);
 
     return ResponseEntity.ok(exportParams);
+  }
+
+  /**
+   * Bulk-initializes the options collections of the listed option sets before serialization, but
+   * only when the requested fields actually include {@code options}. Without this every option set
+   * in the page lazily loads its collection with one query during field filtering (DHIS2-21905).
+   * Field inclusion is decided on the expanded field paths, so presets like {@code *} and nested
+   * {@code options[...]} blocks are handled and requests without options never load them.
+   */
+  @Override
+  protected void postProcessResponseEntities(
+      List<OptionSet> entityList, GetObjectListParams params) {
+    if (entityList.isEmpty() || !includesOptions(params)) {
+      return;
+    }
+    optionService.preloadOptions(entityList);
+  }
+
+  private boolean includesOptions(GetObjectListParams params) {
+    return fieldPathHelper
+        .apply(FieldFilterParser.parse(params.getFieldsJsonList()), OptionSet.class)
+        .stream()
+        .anyMatch(path -> "options".contentEquals(path.getPath().head()));
   }
 
   @Override

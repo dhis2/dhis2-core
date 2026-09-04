@@ -49,6 +49,7 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.cache.HibernateEhcacheConfigFileTest.DhisConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.test.config.PostgresTestConfigOverride;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -94,6 +95,13 @@ class HibernateEhcacheConfigFileTest extends PostgresIntegrationTestBase {
    */
   private static final long EHCACHE_XML_USER_HEAP_ENTRIES = 100_000;
 
+  /**
+   * Heap bound declared explicitly for the {@code org.hisp.dhis.option.OptionSet} entity region in
+   * ehcache.xml. The entity-level cache was lost when OptionSet.hbm.xml was migrated to JPA
+   * annotations (commit fa6a8558f8c0); without it a query-cache hit reloads every OptionSet row.
+   */
+  private static final long EHCACHE_XML_OPTION_SET_HEAP_ENTRIES = 20_000;
+
   @Autowired private EntityManagerFactory entityManagerFactory;
 
   @Test
@@ -124,6 +132,10 @@ class HibernateEhcacheConfigFileTest extends PostgresIntegrationTestBase {
         EHCACHE_XML_USER_HEAP_ENTRIES,
         heapEntries(cacheManager, User.class.getName()),
         "explicitly declared entity regions must carry their own ehcache.xml heap bound");
+    assertEquals(
+        EHCACHE_XML_OPTION_SET_HEAP_ENTRIES,
+        heapEntries(cacheManager, OptionSet.class.getName()),
+        "OptionSet entity state must use its explicit store-by-reference region");
     assertEquals(
         EHCACHE_XML_TIMESTAMPS_HEAP_ENTRIES,
         heapEntries(cacheManager, "default-update-timestamps-region"),

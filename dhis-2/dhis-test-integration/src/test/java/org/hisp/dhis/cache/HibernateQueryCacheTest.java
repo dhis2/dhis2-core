@@ -58,6 +58,13 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = {DhisConfig.class})
 class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
 
+  /**
+   * Dedicated query-cache region for this test. Must not equal the {@link OptionSet} entity region
+   * name ({@code org.hisp.dhis.option.OptionSet}), otherwise query results and entity state would
+   * share one JCache alias and the region statistics would mix both.
+   */
+  private static final String OPTION_SET_QUERY_REGION = OptionSet.class.getName() + ".query-test";
+
   static class DhisConfig {
     @Bean
     public PostgresTestConfigOverride postgresTestConfigOverride() {
@@ -129,9 +136,35 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
         10,
         sessionFactory
             .getStatistics()
-            .getCacheRegionStatistics(OptionSet.class.getName())
+            .getCacheRegionStatistics(OPTION_SET_QUERY_REGION)
             .getHitCount());
     assertTrue(sessionFactory.getStatistics().getQueryCacheHitCount() > queryCacheHitCountBefore);
+  }
+
+  @Test
+  @DisplayName(
+      "OptionSet query-cache hits resolve entity state from L2 across persistence contexts")
+  void queryCacheHitUsesOptionSetEntityCacheAcrossPersistenceContexts() {
+    setUpData();
+    sessionFactory.getCache().evictEntityData(OptionSet.class);
+    sessionFactory.getCache().evictQueryRegion(OPTION_SET_QUERY_REGION);
+    sessionFactory.getStatistics().clear();
+    entityManager.clear();
+
+    createSelectQuery(1);
+    entityManager.clear();
+    createSelectQuery(1);
+
+    Statistics statistics = sessionFactory.getStatistics();
+    assertEquals(1, statistics.getQueryCacheMissCount());
+    assertEquals(1, statistics.getQueryCacheHitCount());
+    assertEquals(
+        1,
+        statistics.getEntityLoadCount(),
+        "the query-cache hit must not reload OptionSet from PostgreSQL");
+    assertTrue(
+        statistics.getSecondLevelCacheHitCount() >= 1,
+        "the second persistence context must resolve OptionSet from entity L2");
   }
 
   private void createSelectQuery(int numberOfQueries) {
@@ -147,7 +180,7 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
     return entityManager
         .createQuery("from OptionSet where code = :code", OptionSet.class)
         .setParameter("code", "OptionSetCodeA")
-        .setHint(QueryHints.HINT_CACHE_REGION, "org.hisp.dhis.option.OptionSet")
+        .setHint(QueryHints.HINT_CACHE_REGION, OPTION_SET_QUERY_REGION)
         .setHint(QueryHints.HINT_CACHEABLE, true);
   }
 }
