@@ -109,10 +109,15 @@ class DataSetMetadataExportServiceQueryCountTest extends IntegrationTestBase {
     // DataElement / DataSetElement loads are batched into a single query, so the select count must
     // not grow with the number of data elements. If it does, the N+1 has been reintroduced (e.g. by
     // iterating DataSet.getDataElements() or DataElement.getCategoryCombos() lazily).
-    assertEquals(
-        baseline,
-        withMoreDataElements,
-        "adding data elements must not increase the number of SQL selects");
+    // The count may legitimately DROP between the two measurements: whatever the first export
+    // loaded can still be served from the second level cache during the second one, so this
+    // asserts the invariant the test name states (no growth) rather than exact equality.
+    assertTrue(
+        withMoreDataElements <= baseline,
+        "adding data elements must not increase the number of SQL selects: "
+            + baseline
+            + " -> "
+            + withMoreDataElements);
   }
 
   @Test
