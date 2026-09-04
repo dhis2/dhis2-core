@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -42,6 +40,13 @@ import org.springframework.stereotype.Component;
 /**
  * This supplier adds to the pre-heat object a List of all Enrollment UIDs that have at least ONE
  * Program Stage Instance that is not logically deleted ('deleted = true').
+ *
+ * <p>Only enrollments present in the import payload are checked: {@link
+ * org.hisp.dhis.tracker.imports.validation.validator.enrollment.SecurityOwnershipValidator} is the
+ * sole reader of this result, and it only exists for {@code Enrollment} tracker objects in the
+ * payload. Sourcing from {@link TrackerPreheat#getEnrollments()} instead would also query for every
+ * synthetic enrollment {@code EnrollmentSupplier} preheats for a program without registration, even
+ * on imports that carry no enrollment at all (e.g. a single event import).
  *
  * @author Luciano Fiandesio
  */
@@ -65,15 +70,18 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    final Map<String, Enrollment> enrollments = preheat.getEnrollments();
-    List<Long> programStageIds =
-        enrollments.values().stream().map(IdentifiableObject::getId).collect(Collectors.toList());
+    List<Long> enrollmentIds =
+        trackerObjects.getEnrollments().stream()
+            .map(e -> preheat.getEnrollment(e.getUid()))
+            .filter(Objects::nonNull)
+            .map(IdentifiableObject::getId)
+            .toList();
 
-    if (!programStageIds.isEmpty()) {
+    if (!enrollmentIds.isEmpty()) {
       List<String> uids = new ArrayList<>();
 
       MapSqlParameterSource parameters = new MapSqlParameterSource();
-      parameters.addValue("ids", programStageIds);
+      parameters.addValue("ids", enrollmentIds);
       jdbcTemplate.query(
           SQL,
           parameters,
