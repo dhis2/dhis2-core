@@ -35,6 +35,7 @@ import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
@@ -86,6 +87,19 @@ public interface UserAccountService {
       throws BadRequestException, IOException;
 
   /**
+   * /** Whether this account should recover an expired password via email token rather than the
+   * old-password self-service path. True only when account recovery is enabled and {@link
+   * UserService#validateRestore(User)} succeeds (valid email, not external auth, email sender
+   * configured including SMTP password). When true, login should return {@code
+   * PASSWORD_EXPIRED_EMAIL_RECOVERY} and the expired-password self-service update must reject the
+   * call.
+   *
+   * @param user account under consideration; {@code null} yields {@code false}
+   * @return {@code true} when email recovery is the required path for this user
+   */
+  boolean canUseEmailPasswordRecovery(User user);
+
+  /**
    * Self-service change of an <b>expired</b> password. The caller is not logged in, so the method
    * is self-guarding: it only proceeds for an expired account whose current password is supplied
    * correctly. It deliberately does not establish a session; once the password is changed the
@@ -96,13 +110,18 @@ public interface UserAccountService {
    * repeated attempts against one account are throttled via the shared account-recovery lockout
    * (mirrors the forgot-password flow).
    *
+   * <p>When {@link #canUseEmailPasswordRecovery(User)} is true for the account, this method rejects
+   * after the password and expiry checks so the stronger email-token recovery path cannot be
+   * bypassed by calling the endpoint directly.
+   *
    * @param username username identifying the account
    * @param oldPassword the current (expired) password
    * @param newPassword new password, subject to the password policy
    * @throws BadRequestException when input is missing, credentials are wrong, the account is not
    *     expired, or the new password is not acceptable
+   * @throws ConflictException when the account must use email recovery instead of this path
    * @throws ForbiddenException when the account is temporarily locked due to too many attempts
    */
   void updateExpiredPassword(String username, String oldPassword, String newPassword)
-      throws BadRequestException, ForbiddenException;
+      throws BadRequestException, ConflictException, ForbiddenException;
 }
