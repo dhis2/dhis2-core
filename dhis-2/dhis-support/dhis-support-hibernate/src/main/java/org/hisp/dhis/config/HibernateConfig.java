@@ -83,9 +83,19 @@ public class HibernateConfig {
     return new PersistenceExceptionTranslationPostProcessor();
   }
 
+  /**
+   * The DataSource must be the same bean instance the JdbcTemplates get. Spring keys transactional
+   * connections by DataSource identity, so without this a {@code @Transactional} method mixing
+   * Hibernate and JdbcTemplate takes a second connection and runs its JDBC statements on
+   * autocommit, outside the transaction.
+   */
   @Bean
-  public JpaTransactionManager jpaTransactionManager(EntityManagerFactory entityManagerFactory) {
-    return new JpaTransactionManager(entityManagerFactory);
+  public JpaTransactionManager jpaTransactionManager(
+      EntityManagerFactory entityManagerFactory,
+      @Qualifier("actualDataSource") DataSource dataSource) {
+    JpaTransactionManager transactionManager = new JpaTransactionManager(entityManagerFactory);
+    transactionManager.setDataSource(dataSource);
+    return transactionManager;
   }
 
   @Bean
