@@ -1,0 +1,11 @@
+{
+  "reports": [
+    {
+      "id": "CchRpt00001",
+      "name": "Cache Test Report",
+      "type": "HTML",
+      "designContent": "<html><body>cache report</body></html>",
+      "cacheStrategy": "NO_CACHE"
+    }
+  ]
+}
