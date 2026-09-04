@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,9 @@ import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.program.ProgramType.WITH_REGISTRATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -147,6 +150,24 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
     assertEnrollmentInPreheat(
         enrollmentWithoutRegistration,
         preheat.getEnrollmentsWithoutRegistration(programWithoutRegistration.getUid()));
+  }
+
+  @Test
+  void verifySupplierDoesNotAccessNotesOfEnrollmentWithoutRegistration() {
+    // On a real (Hibernate-backed) Enrollment, calling getNotes() on an entity that hasn't
+    // had its notes collection initialized yet triggers a lazy-load query. This enrollment is
+    // only ever used by the importer as an FK reference for events, never converted or
+    // persisted, so its notes must never be read during preheat.
+    Enrollment spiedEnrollmentWithoutRegistration = spy(enrollmentWithoutRegistration);
+    when(enrollmentStore.getByPrograms(Lists.newArrayList(programWithoutRegistration)))
+        .thenReturn(List.of(spiedEnrollmentWithoutRegistration));
+    preheat.put(
+        TrackerIdSchemeParam.UID,
+        Lists.newArrayList(programWithRegistration, programWithoutRegistration));
+
+    this.supplier.preheatAdd(params, preheat);
+
+    verify(spiedEnrollmentWithoutRegistration, never()).getNotes();
   }
 
   private void assertEnrollmentInPreheat(Enrollment expected, Enrollment actual) {

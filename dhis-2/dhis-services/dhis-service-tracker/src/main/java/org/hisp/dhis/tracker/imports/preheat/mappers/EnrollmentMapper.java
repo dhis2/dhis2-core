@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,32 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "lastUpdatedByUserInfo")
   @Mapping(target = "status")
   Enrollment map(Enrollment enrollment);
+
+  /**
+   * Same as {@link #map(Enrollment)} but without {@code notes}, which is a lazy collection. Mapping
+   * it would force a query to load it. Use this for enrollments that are only ever read for their
+   * identifiers (e.g. the synthetic enrollment preheated for WITHOUT_REGISTRATION programs), never
+   * converted or persisted.
+   */
+  @Named("mapWithoutNotes")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "user")
+  @Mapping(target = "completedBy")
+  @Mapping(target = "completedDate")
+  @Mapping(target = "program", qualifiedByName = "program")
+  @Mapping(target = "trackedEntity")
+  @Mapping(target = "organisationUnit")
+  @Mapping(target = "created")
+  @Mapping(target = "occurredDate")
+  @Mapping(target = "enrollmentDate")
+  @Mapping(target = "deleted")
+  @Mapping(target = "createdByUserInfo")
+  @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "status")
+  Enrollment mapWithoutNotes(Enrollment enrollment);
 
   @Named("program")
   @BeanMapping(ignoreByDefault = true)
