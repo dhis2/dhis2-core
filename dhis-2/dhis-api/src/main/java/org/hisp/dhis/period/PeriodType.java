@@ -76,29 +76,12 @@ public abstract class PeriodType implements Serializable {
           .withMaximumSize(30000)
           .build();
 
-  protected String label;
-
-  protected transient String displayLabel;
-
   private String getCacheKey(Date date) {
     return getCalendar().name() + getName() + date.getTime();
   }
 
   private String getCacheKey(org.hisp.dhis.calendar.Calendar calendar, Date date) {
     return calendar.name() + getName() + date.getTime();
-  }
-
-  public String getLabel() {
-    return label;
-  }
-
-  public void setLabel(String label) {
-    this.label = label;
-  }
-
-  public String getDisplayLabel() {
-    // TODO: Return actual displayLabel.
-    return label;
   }
 
   /**
@@ -386,6 +369,7 @@ public abstract class PeriodType implements Serializable {
     return toIsoPeriod(dateTimeUnit, dateTimeUnit);
   }
 
+  @Nonnull
   public abstract String getIso8601Duration();
 
   public abstract Period createPeriod(
@@ -569,6 +553,7 @@ public abstract class PeriodType implements Serializable {
    *
    * @return the iso8601 format.
    */
+  @Nonnull
   public abstract String getIsoFormat();
 
   // -------------------------------------------------------------------------

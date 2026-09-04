@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,45 +29,21 @@
  */
 package org.hisp.dhis.period;
 
-import java.util.Calendar;
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.common.Locale;
 
 /**
- * @author Chau Thu Tran
+ * @param name of the {@link PeriodType} (key)
+ * @param label new value for the translation locale (null to erase)
+ * @param locale locale of the given label, null if
  */
-public class FinancialOctoberPeriodType extends FinancialPeriodType {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -1623576547899897811L;
+public record PeriodTypeParams(
+    @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
 
-  private static final String ISO_FORMAT = "yyyyOct";
-
-  private static final String ISO8601_DURATION = "P1Y";
-
-  @Override
-  public int getBaseMonth() {
-    return Calendar.OCTOBER;
-  }
-
-  @Override
-  public PeriodTypeEnum getPeriodTypeEnum() {
-    return PeriodTypeEnum.FINANCIAL_OCT;
-  }
-
-  @Override
-  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
-    return String.format("%dOct", dateTimeUnit.getYear());
-  }
-
-  @Nonnull
-  @Override
-  public String getIsoFormat() {
-    return ISO_FORMAT;
-  }
-
-  @Nonnull
-  @Override
-  public String getIso8601Duration() {
-    return ISO8601_DURATION;
+  public PeriodTypeParams {
+    requireNonNull(name);
   }
 }

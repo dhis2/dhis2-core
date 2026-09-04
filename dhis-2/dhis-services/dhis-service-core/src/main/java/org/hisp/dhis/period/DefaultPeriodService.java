@@ -29,17 +29,29 @@
  */
 package org.hisp.dhis.period;
 
+import static java.lang.System.currentTimeMillis;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.period.PeriodTypeStore.Labels;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +62,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.period.PeriodService")
 public class DefaultPeriodService implements PeriodService {
+
   private final PeriodStore periodStore;
+  private final PeriodTypeStore periodTypeStore;
+  private final RelativePeriodStore relativePeriodStore;
+  private final I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
   // Period
@@ -138,11 +154,6 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
-  public List<PeriodType> loadAllPeriodTypes() {
-    return periodStore.getAllPeriodTypes();
-  }
-
-  @Override
   @Transactional
   public List<Period> getPeriods(Period lastPeriod, int previousPeriods) {
     List<Period> periods = new ArrayList<>(previousPeriods);
@@ -206,6 +217,11 @@ public class DefaultPeriodService implements PeriodService {
   // PeriodType
   // -------------------------------------------------------------------------
 
+  private static final Map<Locale, PeriodTypeCacheEntry> PERIOD_TYPES_CACHE =
+      new ConcurrentHashMap<>();
+
+  private record PeriodTypeCacheEntry(PeriodTypes types, long validUntil) {}
+
   @Override
   @Transactional(readOnly = true)
   public PeriodType getPeriodTypeByName(String name) {
@@ -217,28 +233,81 @@ public class DefaultPeriodService implements PeriodService {
   public PeriodType getPeriodTypeByClass(Class<? extends PeriodType> periodType) {
     PeriodType type = PeriodType.getPeriodTypeByClass(periodType);
     if (type == null) throw new IllegalArgumentException("Unknown period type: " + periodType);
-    periodStore.addPeriodType(type);
+    periodTypeStore.addPeriodType(type);
     return type;
   }
 
   @Override
   @IndirectTransactional
   public PeriodType reloadPeriodType(PeriodType periodType) {
-    periodStore.addPeriodType(periodType);
+    periodTypeStore.addPeriodType(periodType);
     return periodType;
   }
 
   @Override
   @IndirectTransactional
-  public void updatePeriodTypeLabel(String periodTypeName, String label) {
-    PeriodType pType = periodStore.getPeriodTypeByName(periodTypeName);
+  public boolean updatePeriodTypeLabel(
+      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations) {
+    translations.forEach(t -> PERIOD_TYPES_CACHE.remove(t.getLocale()));
+    return periodTypeStore.updateLabel(name, translations);
+  }
 
-    if (pType != null) {
-      pType.setLabel(label);
-      periodStore.updatePeriodType(pType);
+  @Override
+  @IndirectTransactional
+  public boolean updatePeriodTypeLabel(
+      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
+    if (locale != null) {
+      PERIOD_TYPES_CACHE.remove(locale);
     } else {
-      throw new IllegalArgumentException(periodTypeName + " does not exist.");
+      PERIOD_TYPES_CACHE.clear();
     }
+    return periodTypeStore.updateLabel(name, label, locale);
+  }
+
+  @Override
+  @IndirectTransactional
+  public PeriodTypes getAllPeriodTypes(@Nonnull Locale locale) {
+    return PERIOD_TYPES_CACHE.compute(
+            locale,
+            (k, v) -> {
+              if (v != null && v.validUntil > currentTimeMillis()) return v;
+              PeriodTypes types = reloadAllPeriodTypes(k);
+              return new PeriodTypeCacheEntry(
+                  types, currentTimeMillis() + TimeUnit.MINUTES.toMillis(5));
+            })
+        .types;
+  }
+
+  @Nonnull
+  private PeriodTypes reloadAllPeriodTypes(Locale locale) {
+    Map<PeriodTypeEnum, Labels> labelsByType = new HashMap<>();
+    periodTypeStore.getAllLabels().forEach(e -> labelsByType.put(e.name(), e));
+
+    I18n i18n = i18nManager.getI18n(locale);
+    List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
+    List<PeriodTypes.PeriodTypeEntry> entries = new ArrayList<>(types.size());
+    for (PeriodType t : types) {
+      PeriodTypeEnum name = t.getPeriodTypeEnum();
+      PeriodTypeStore.Labels l = labelsByType.get(name);
+      PeriodTypes.Labels labels =
+          PeriodTypes.Labels.of(
+              locale,
+              i18n.getString(name.getName(), name.getName()),
+              l == null ? null : l.label(),
+              l == null ? null : l.translations());
+      Map<RelativePeriodEnum, PeriodTypes.Labels> relativePeriods = Map.of();
+
+      PeriodTypes.PeriodTypeEntry e =
+          new PeriodTypes.PeriodTypeEntry(
+              name,
+              t.getIso8601Duration(),
+              t.getIsoFormat(),
+              t.getFrequencyOrder(),
+              labels,
+              relativePeriods);
+      entries.add(e);
+    }
+    return new PeriodTypes(locale, entries);
   }
 
   // -------------------------------------------------------------------------

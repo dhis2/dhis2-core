@@ -32,6 +32,10 @@ package org.hisp.dhis.period;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.translation.Translation;
 
 /**
  * @author Kristian Nordal
@@ -128,8 +132,6 @@ public interface PeriodService {
    */
   List<Period> reloadPeriods(Collection<Period> periods);
 
-  List<PeriodType> loadAllPeriodTypes();
-
   /**
    * Returns a list of the given number of previous periods in ascending order. The given last
    * period appears last in the returned list.
@@ -189,7 +191,10 @@ public interface PeriodService {
    *
    * @param name the name of the PeriodType to return.
    * @return the PeriodType with the given name, or null if no match.
+   * @deprecated replace with static PeriodType.getPeriodTypeByName in another PR (applies to other
+   *     similar methods as well)
    */
+  @Deprecated(forRemoval = true)
   PeriodType getPeriodTypeByName(String name);
 
   /**
@@ -220,10 +225,30 @@ public interface PeriodService {
   }
 
   /**
+   * @param locale for display labels (falls back to user's DB locale when null)
+   * @return all period types with they display properties resolved for the current user
+   * @since 2.44
+   */
+  PeriodTypes getAllPeriodTypes(@Nonnull Locale locale);
+
+  /**
    * Updates the label of the given period type name.
    *
-   * @param periodTypeName the {@link PeriodType}'s name.
-   * @param label the new label.
+   * @param name the {@link PeriodType}'s name.
+   * @param label the new label, null or empty to erase
+   * @param locale when null label is the override for the name not associated with a locale,
+   *     otherwise it is a translation for the given locale
    */
-  void updatePeriodTypeLabel(String periodTypeName, String label);
+  boolean updatePeriodTypeLabel(
+      @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale);
+
+  /**
+   * Replaces the period type's translation labels with the given ones
+   *
+   * @param name of the type (key)
+   * @param translations labels in different languages
+   * @return true, if a change occurred, false if no row was affected
+   */
+  boolean updatePeriodTypeLabel(
+      @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations);
 }

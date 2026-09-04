@@ -29,80 +29,118 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.stream.Collectors;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Response.Status;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.commons.jackson.domain.JsonRoot;
+import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.common.input.ReplaceTranslationsParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.period.PeriodPipeline;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.PeriodTypeParams;
+import org.hisp.dhis.period.PeriodTypes;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.webdomain.PeriodType;
-import org.springframework.http.ResponseEntity;
+import org.hisp.dhis.translation.Translation;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Document(
-    entity = Period.class,
+    entity = PeriodType.class,
     classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/periodTypes")
 @RequiredArgsConstructor
 public class PeriodTypeController {
-  private final FieldFilterService fieldFilterService;
-
-  private final I18nManager i18nManager;
 
   private final PeriodService periodService;
+  private final PeriodPipeline periodPipeline;
 
-  @OpenApi.Response(
-      status = Status.OK,
-      object = {@OpenApi.Property(name = "periodType", value = PeriodType.class)})
   @RequiresAuthority(anyOf = ALL)
   @PutMapping
-  public WebMessage putPeriodType(@RequestBody PeriodType periodType) {
-    periodService.updatePeriodTypeLabel(periodType.getName(), periodType.getLabel());
-
-    return ok(periodType.getName() + " updated successfully.");
+  public WebMessage putLabel(@RequestBody PeriodTypeParams params) throws NotFoundException {
+    // kept for API backwards compatibility with 43
+    return putLabel(params.name(), params.locale(), params.label());
   }
 
-  @OpenApi.Response(
-      status = Status.OK,
-      object = {
-        @OpenApi.Property(name = "pager", value = Pager.class),
-        @OpenApi.Property(name = "periodTypes", value = PeriodType[].class)
-      })
+  @RequiresAuthority(anyOf = ALL)
+  @PutMapping("/{name}")
+  public WebMessage putLabel(
+      @PathVariable("name") PeriodTypeEnum name,
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(required = false) String value)
+      throws NotFoundException {
+    if (periodService.updatePeriodTypeLabel(name, value, locale))
+      return ok(name + " updated successfully.");
+    throw new NotFoundException(PeriodType.class, name.getName());
+  }
+
+  @RequiresAuthority(anyOf = ALL)
+  @PutMapping("/{name}/translations")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseBody
+  public WebMessage replaceTranslations(
+      @PathVariable("name") PeriodTypeEnum name, @RequestBody ReplaceTranslationsParams params)
+      throws NotFoundException {
+
+    List<Translation> translations = params.translations();
+    if (translations == null) translations = List.of();
+
+    ObjectReport report = new ObjectReport(PeriodType.class, 0);
+    TranslationsCheck.checkTranslations(translations, report::addErrorReport);
+    if (!report.hasErrorReports()) {
+      if (periodService.updatePeriodTypeLabel(name, translations)) return null;
+      throw new NotFoundException(PeriodType.class, name.getName());
+    }
+    return objectReport(report);
+  }
+
+  @OpenApi.Response(PeriodTypes.class)
   @GetMapping
-  public ResponseEntity<JsonRoot> getPeriodTypes(@RequestParam(defaultValue = "*") String fields) {
-    I18n i18n = i18nManager.getI18n();
+  public void getPeriodTypes(
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(defaultValue = "*") Fields fields,
+      HttpServletResponse response) {
+    periodPipeline.exportAllAsJson(locale, fields, lazyJsonOutputStream(response));
+  }
 
-    var periodTypes =
-        periodService.loadAllPeriodTypes().stream()
-            .map(periodType -> new PeriodType(periodType, i18n))
-            .collect(Collectors.toList());
-
-    var params = FieldFilterParams.of(periodTypes, fields);
-    var objectNodes = fieldFilterService.toObjectNodes(params);
-
-    return ResponseEntity.ok(JsonRoot.of("periodTypes", objectNodes));
+  @OpenApi.Response(PeriodTypes.PeriodTypeEntry.class)
+  @GetMapping("/{name}")
+  public void getPeriodType(
+      @PathVariable("name") PeriodTypeEnum name,
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(defaultValue = "*") Fields fields,
+      HttpServletResponse response)
+      throws NotFoundException {
+    periodPipeline.exportAsJson(name, locale, fields, lazyJsonOutputStream(response));
   }
 
   @GetMapping(
@@ -110,5 +148,16 @@ public class PeriodTypeController {
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public RelativePeriodEnum[] getRelativePeriodTypes() {
     return RelativePeriodEnum.values();
+  }
+
+  private static Supplier<OutputStream> lazyJsonOutputStream(HttpServletResponse response) {
+    return () -> {
+      response.setContentType(CONTENT_TYPE_JSON);
+      try {
+        return response.getOutputStream();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
   }
 }
