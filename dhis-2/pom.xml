@@ -162,7 +162,7 @@
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
-    <jfreechart.version>1.0.19</jfreechart.version>
+    <jfreechart.version>1.5.6</jfreechart.version>
     <jfreechart-common.version>1.0.24</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
