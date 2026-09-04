@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
+import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.resultList;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -162,7 +163,7 @@ public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableEnt
       query.setParameter("filterValue", filter.getValue().getFilter());
     }
 
-    List<Object[]> results = query.getResultList();
+    List<Object[]> results = resultList(query);
     List<EventChangeLog> eventChangeLogs =
         results.stream()
             .map(

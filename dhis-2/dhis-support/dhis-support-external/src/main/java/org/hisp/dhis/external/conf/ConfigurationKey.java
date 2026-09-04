@@ -454,6 +454,19 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
+  /**
+   * Maximum number of seconds a tracker export request may spend querying the database before it is
+   * canceled and the request fails with 504. The budget is shared by all queries of one request.
+   * {@code 0} disables the timeout. (default: 0)
+   *
+   * <p>Because the underlying JDBC timeout has whole second granularity and the remaining budget is
+   * rounded up, a request can take up to one second longer than this value.
+   *
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer. If
+   * the proxy times out first it returns its own 504 while the query is never cancelled.
+   */
+  TRACKER_EXPORT_TIMEOUT("tracker.export.timeout", "0", false),
+
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 

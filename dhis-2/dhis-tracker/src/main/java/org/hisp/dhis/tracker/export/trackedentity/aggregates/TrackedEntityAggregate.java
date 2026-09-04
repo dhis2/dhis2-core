@@ -46,6 +46,8 @@ import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.export.timeout.Deadline;
+import org.hisp.dhis.tracker.export.timeout.DeadlineHolder;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
@@ -88,27 +90,39 @@ public class TrackedEntityAggregate {
             : null;
 
     List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
+
+    // do not start four parallel fetches if the id query already spent the budget
+    DeadlineHolder.checkNotExpired();
+
     Map<String, String> mdc = MDC.getCopyOfContextMap();
+    // carried onto each pooled thread like MDC already is. All four close over this one deadline,
+    // so they share the remaining budget rather than each getting a fresh one.
+    Deadline deadline = DeadlineHolder.get();
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
         conditionalAsyncFetch(
             fields.isIncludesEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
             getPool(),
-            mdc);
+            mdc,
+            deadline);
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
         conditionalAsyncFetch(
             fields.isIncludesProgramOwners(),
             () -> trackedEntityStore.getProgramOwners(ids),
             getPool(),
-            mdc);
+            mdc,
+            deadline);
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(withMdc(mdc, () -> trackedEntityStore.getTrackedEntities(ids)), getPool());
+        supplyAsync(
+            withRequestContext(mdc, deadline, () -> trackedEntityStore.getTrackedEntities(ids)),
+            getPool());
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
         conditionalAsyncFetch(
             fields.isIncludesAttributes(),
             () -> trackedEntityStore.getAttributes(ids, programId),
             getPool(),
-            mdc);
+            mdc,
+            deadline);
 
     try {
       allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, programOwnersAsync).join();
@@ -142,24 +156,35 @@ public class TrackedEntityAggregate {
       boolean condition,
       Supplier<Multimap<String, T>> supplier,
       Executor executor,
-      Map<String, String> mdc) {
+      Map<String, String> mdc,
+      Deadline deadline) {
     return condition
-        ? supplyAsync(withMdc(mdc, supplier), executor)
-        : supplyAsync(ArrayListMultimap::create, executor);
+        ? supplyAsync(withRequestContext(mdc, deadline, supplier), executor)
+        : supplyAsync(withRequestContext(mdc, deadline, ArrayListMultimap::create), executor);
   }
 
-  /** Wraps a supplier so that the given MDC context is set on the async thread. */
-  private static <T> Supplier<T> withMdc(Map<String, String> mdc, Supplier<T> supplier) {
+  /**
+   * Sets the calling request's MDC context and export deadline on the pooled thread, clearing the
+   * deadline when the task is done.
+   *
+   * <p>Cleared, not restored to what the thread held before: the pool is private to this class and
+   * every task sets its own deadline, so restoring would only hand the next request the expired
+   * deadline of the previous one and fail it with a 504 it never earned.
+   */
+  static <T> Supplier<T> withRequestContext(
+      Map<String, String> mdc, Deadline deadline, Supplier<T> supplier) {
     return () -> {
-      Map<String, String> previous = MDC.getCopyOfContextMap();
+      Map<String, String> previousMdc = MDC.getCopyOfContextMap();
       if (mdc != null) {
         MDC.setContextMap(mdc);
       }
+      DeadlineHolder.set(deadline);
       try {
         return supplier.get();
       } finally {
-        if (previous != null) {
-          MDC.setContextMap(previous);
+        DeadlineHolder.clear();
+        if (previousMdc != null) {
+          MDC.setContextMap(previousMdc);
         } else {
           MDC.clear();
         }
