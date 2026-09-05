@@ -285,6 +285,9 @@ updates:
       - dependency-name: "io.micrometer:micrometer-registry-prometheus" # updates have breaking changes which we won't backport
         versions:
           - ">= 1.13.0"
+      - dependency-name: "org.hisp.dhis.rules:rule-engine-jvm" # updates have breaking changes which we won't backport
+        versions:
+          - ">= 3.8.1"
   - package-ecosystem: "maven"
     directory: "/dhis-2/dhis-test-e2e"
     schedule:
