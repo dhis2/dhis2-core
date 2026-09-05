@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -68,18 +70,15 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Lars Helge Overland
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AnalyticsTableServiceTest {
-  @Mock private SystemSettingsProvider settingsProvider;
-
-  @Mock private SystemSettings settings;
-
-  @Mock private SqlBuilder sqlBuilder;
-
   @Mock private AnalyticsTableManager tableManager;
 
   @Mock private OrganisationUnitService organisationUnitService;
@@ -87,6 +86,12 @@ class AnalyticsTableServiceTest {
   @Mock private DataElementService dataElementService;
 
   @Mock private ResourceTableService resourceTableService;
+
+  @Mock private SystemSettingsProvider settingsProvider;
+
+  @Mock private SystemSettings settings;
+
+  @Mock private SqlBuilder sqlBuilder;
 
   @InjectMocks private DefaultAnalyticsTableService tableService;
 
@@ -119,9 +124,81 @@ class AnalyticsTableServiceTest {
         new DateTime(2011, 12, 31, 0, 0).toDate());
     AnalyticsTable tB =
         new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, sortKey, Logged.UNLOGGED);
-    List<AnalyticsTablePartition> partitions = tableService.getTablePartitions(List.of(tA, tB));
+    List<AnalyticsTablePartition> partitions =
+        tableService.getTablePartitions(List.of(tA, tB), false);
 
     assertEquals(3, partitions.size());
+  }
+
+  @Test
+  void testGetTablePartitionsUsesRealPartitionForLatestUpdateOnDeclarativePartitioningEngine() {
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder().name("dx").dataType(TEXT).selectExpression("dx").build(),
+            AnalyticsTableColumn.builder()
+                .name("value")
+                .dataType(DOUBLE)
+                .selectExpression("value")
+                .build());
+    List<String> sortKey = List.of("dx");
+
+    Date startDate = new DateTime(2026, 7, 31, 12, 48, 20).toDate();
+    Date endDate = new DateTime(2026, 7, 31, 12, 55, 0).toDate();
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
+
+    List<AnalyticsTablePartition> partitions =
+        tableService.getTablePartitions(List.of(table), true);
+
+    assertEquals(1, partitions.size());
+    AnalyticsTablePartition partition = partitions.get(0);
+    assertTrue(partition.isLatestPartition());
+    assertEquals(startDate, partition.getStartDate());
+    assertEquals(endDate, partition.getEndDate());
+    assertEquals(
+        table.getName(),
+        partition.getName(),
+        "Populate/create target must be the one physical table this engine actually builds,"
+            + " not a year-suffixed name nothing ever creates");
+  }
+
+  @Test
+  void testGetTablePartitionsUsesFakePartitionForRegularUpdateOnDeclarativePartitioningEngine() {
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder().name("dx").dataType(TEXT).selectExpression("dx").build(),
+            AnalyticsTableColumn.builder()
+                .name("value")
+                .dataType(DOUBLE)
+                .selectExpression("value")
+                .build());
+    List<String> sortKey = List.of("dx");
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of(),
+        2010,
+        new DateTime(2010, 1, 1, 0, 0).toDate(),
+        new DateTime(2010, 12, 31, 0, 0).toDate());
+    table.addTablePartition(
+        List.of(),
+        2011,
+        new DateTime(2011, 1, 1, 0, 0).toDate(),
+        new DateTime(2011, 12, 31, 0, 0).toDate());
+
+    List<AnalyticsTablePartition> partitions =
+        tableService.getTablePartitions(List.of(table), false);
+
+    assertEquals(1, partitions.size());
+    assertFalse(partitions.get(0).isLatestPartition());
   }
 
   @Test
@@ -139,6 +216,70 @@ class AnalyticsTableServiceTest {
     when(settings.getDatabaseServerCpus()).thenReturn(8);
 
     assertEquals(8, tableService.getParallelJobs());
+  }
+
+  @Test
+  void testRemoveUpdatedDataSkippedWhenContinuousAnalyticsNotSupported() {
+    AnalyticsTable table = latestPartitionTableFixture();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(false);
+
+    tableService.create(params, JobProgress.noop());
+
+    verify(tableManager, never()).removeUpdatedData(anyList());
+  }
+
+  @Test
+  void testRemoveUpdatedDataRunWhenContinuousAnalyticsSupported() {
+    AnalyticsTable table = latestPartitionTableFixture();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+
+    tableService.create(params, JobProgress.noop());
+
+    verify(tableManager).removeUpdatedData(List.of(table));
+  }
+
+  private AnalyticsTable latestPartitionTableFixture() {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("dx")
+                .dataType(TEXT)
+                .selectExpression("dx")
+                .build());
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of(),
+        AnalyticsTablePartition.LATEST_PARTITION,
+        new DateTime(2020, 1, 1, 0, 0).toDate(),
+        new DateTime(2020, 3, 1, 10, 0).toDate());
+    return table;
   }
 
   @Test

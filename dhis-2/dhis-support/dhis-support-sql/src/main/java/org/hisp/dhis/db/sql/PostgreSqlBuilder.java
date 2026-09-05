@@ -223,6 +223,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsContinuousAnalytics() {
+    return true;
+  }
+
+  @Override
+  public boolean requiresUniqueKeyAnalyticsTables() {
+    return false;
+  }
+
+  @Override
   public boolean supportsPercentileCont() {
     return true;
   }
