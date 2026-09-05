@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -70,6 +69,11 @@ public class TrackedEntityAggregate {
   @Nonnull
   private final EnrollmentAggregate enrollmentAggregate;
 
+  /** Bounded, see {@link AggregateThreadPoolConfig}. Each branch below claims one connection. */
+  @Qualifier(AggregateThreadPoolConfig.AGGREGATE_THREAD_POOL)
+  @Nonnull
+  private final Executor executor;
+
   /**
    * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
    */
@@ -93,21 +97,21 @@ public class TrackedEntityAggregate {
         conditionalAsyncFetch(
             fields.isIncludesEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
-            getPool(),
+            executor,
             mdc);
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
         conditionalAsyncFetch(
             fields.isIncludesProgramOwners(),
             () -> trackedEntityStore.getProgramOwners(ids),
-            getPool(),
+            executor,
             mdc);
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(withMdc(mdc, () -> trackedEntityStore.getTrackedEntities(ids)), getPool());
+        supplyAsync(withMdc(mdc, () -> trackedEntityStore.getTrackedEntities(ids)), executor);
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
         conditionalAsyncFetch(
             fields.isIncludesAttributes(),
             () -> trackedEntityStore.getAttributes(ids, programId),
-            getPool(),
+            executor,
             mdc);
 
     try {
