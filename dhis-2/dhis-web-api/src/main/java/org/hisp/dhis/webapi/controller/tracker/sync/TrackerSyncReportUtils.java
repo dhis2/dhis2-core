@@ -37,7 +37,12 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1114;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4017;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -110,8 +115,105 @@ final class TrackerSyncReportUtils {
     };
   }
 
-  static String formatFailedUids(Set<UID> failedUids) {
-    return failedUids.isEmpty() ? "" : format(" (failed: %s)", failedUids);
+  record FailedItem(UID uid, String errorCode) {}
+
+  private static final int MAX_UIDS_PER_REASON = 5;
+
+  /** Formats failures grouped by error code, so a large batch of failures stays readable */
+  static String formatFailedUids(List<FailedItem> failed) {
+    if (failed.isEmpty()) {
+      return "";
+    }
+
+    Map<String, List<UID>> uidsByErrorCode =
+        failed.stream()
+            .collect(
+                Collectors.groupingBy(
+                    FailedItem::errorCode,
+                    LinkedHashMap::new,
+                    Collectors.collectingAndThen(
+                        Collectors.mapping(
+                            FailedItem::uid, Collectors.toCollection(LinkedHashSet::new)),
+                        ArrayList::new)));
+
+    String reasons =
+        uidsByErrorCode.entrySet().stream()
+            .sorted(
+                Comparator.<Map.Entry<String, List<UID>>>comparingInt(e -> e.getValue().size())
+                    .reversed())
+            .map(e -> formatReasonGroup(e.getKey(), e.getValue()))
+            .collect(Collectors.joining(", "));
+
+    return format(" (failed: %s)", reasons);
+  }
+
+  private static String formatReasonGroup(String errorCode, List<UID> uids) {
+    List<UID> shown =
+        uids.size() > MAX_UIDS_PER_REASON ? uids.subList(0, MAX_UIDS_PER_REASON) : uids;
+    String uidList = shown.stream().map(UID::getValue).collect(Collectors.joining(", "));
+    String more =
+        uids.size() > MAX_UIDS_PER_REASON
+            ? format(", +%d more", uids.size() - MAX_UIDS_PER_REASON)
+            : "";
+    return format("%s x%d [%s%s]", errorCode, uids.size(), uidList, more);
+  }
+
+  /** Like {@link #failedUids}, but keeps the error code behind each failure for logging. */
+  static List<FailedItem> failedItems(ImportReport report, TrackerType type) {
+    List<FailedItem> failed = new ArrayList<>();
+
+    if (report.getValidationReport() != null) {
+      report.getValidationReport().getErrors().stream()
+          .filter(e -> type.name().equals(e.getTrackerType()))
+          .forEach(e -> failed.add(new FailedItem(e.getUid(), e.getErrorCode())));
+    }
+
+    if (report.getPersistenceReport() != null) {
+      TrackerTypeReport typeReport = report.getPersistenceReport().getTypeReportMap().get(type);
+      if (typeReport != null) {
+        typeReport
+            .getEntityReport()
+            .forEach(
+                entity ->
+                    entity
+                        .getErrorReports()
+                        .forEach(
+                            e -> failed.add(new FailedItem(entity.getUid(), e.getErrorCode()))));
+      }
+    }
+
+    return failed;
+  }
+
+  /**
+   * Like {@link #blockingFailedUids}, but keeps the error code behind each failure for logging.
+   * Only meaningful against a DELETE report.
+   */
+  static List<FailedItem> blockingFailedItems(ImportReport report, TrackerType type) {
+    List<FailedItem> blocking = new ArrayList<>();
+
+    if (report.getValidationReport() != null) {
+      report.getValidationReport().getErrors().stream()
+          .filter(e -> type.name().equals(e.getTrackerType()))
+          .filter(e -> !ALREADY_DELETED_CODES.contains(e.getErrorCode()))
+          .forEach(e -> blocking.add(new FailedItem(e.getUid(), e.getErrorCode())));
+    }
+
+    if (report.getPersistenceReport() != null) {
+      TrackerTypeReport typeReport = report.getPersistenceReport().getTypeReportMap().get(type);
+      if (typeReport != null) {
+        typeReport
+            .getEntityReport()
+            .forEach(
+                entity ->
+                    entity.getErrorReports().stream()
+                        .filter(e -> !ALREADY_DELETED_CODES.contains(e.getErrorCode()))
+                        .forEach(
+                            e -> blocking.add(new FailedItem(entity.getUid(), e.getErrorCode()))));
+      }
+    }
+
+    return blocking;
   }
 
   static Set<UID> successfullyProcessedUids(ImportReport report, TrackerType type) {
