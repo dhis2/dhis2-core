@@ -74,25 +74,15 @@ public class HeaderHelper {
     addDimensionHeaders(grid, periods, params.getProgram());
 
     if (params.hasEnrollmentStatuses() && !grid.headerExists(PROGRAM_STATUS.getItem())) {
-      grid.addHeader(
-          new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
+      addMetaHeaders(grid, List.of(PROGRAM_STATUS));
     }
 
     if (params.hasEnrollmentOuDimension()) {
-      grid.addHeader(
-          new GridHeader(
-              ColumnHeader.ENROLLMENT_OU.getItem(),
-              ColumnHeader.ENROLLMENT_OU.getName(),
-              TEXT,
-              false,
-              true));
-      grid.addHeader(
-          new GridHeader(
-              ColumnHeader.ENROLLMENT_OU_NAME.getItem(),
-              ColumnHeader.ENROLLMENT_OU_NAME.getName(),
-              TEXT,
-              false,
-              true));
+      addMetaHeaders(grid, List.of(ColumnHeader.ENROLLMENT_OU, ColumnHeader.ENROLLMENT_OU_NAME));
+    }
+
+    if (params.hasRegistrationOuDimension()) {
+      addMetaHeaders(grid, registrationOuHeaders(params));
     }
 
     DisplayProperty displayProperty = params.getDisplayProperty();
@@ -100,36 +90,59 @@ public class HeaderHelper {
 
     for (QueryItem item : params.getItems()) {
       grid.addHeader(buildGridHeader(item, context));
+      addStageOrgUnitHeaders(grid, item, params);
+    }
+  }
 
-      if (isStageOuDimension(item) && params.hasHeaders()) {
-        String stageUid = item.getProgramStage().getUid();
+  /** Adds a metadata header per given column, all of which share the same shape. */
+  private static void addMetaHeaders(Grid grid, List<ColumnHeader> headers) {
+    for (ColumnHeader header : headers) {
+      grid.addHeader(new GridHeader(header.getItem(), header.getName(), TEXT, false, true));
+    }
+  }
 
-        if (params.getHeaders().contains(stageUid + ".ouname")) {
-          grid.addHeader(
-              new GridHeader(
-                  stageUid + ".ouname",
-                  "Organisation unit name",
-                  "Organisation unit name",
-                  TEXT,
-                  false,
-                  true,
-                  null,
-                  null));
-        }
+  /**
+   * The aggregate grid carries one column per dimension and its base CTE projects only the org unit
+   * uid, so the name column belongs to the query endpoints alone.
+   */
+  private static List<ColumnHeader> registrationOuHeaders(EventQueryParams params) {
+    return params.isAggregatedEnrollments()
+        ? List.of(ColumnHeader.REGISTRATION_OU)
+        : List.of(ColumnHeader.REGISTRATION_OU, ColumnHeader.REGISTRATION_OU_NAME);
+  }
 
-        if (params.getHeaders().contains(stageUid + ".oucode")) {
-          grid.addHeader(
-              new GridHeader(
-                  stageUid + ".oucode",
-                  "Organisation unit code",
-                  "Organisation unit code",
-                  TEXT,
-                  false,
-                  true,
-                  null,
-                  null));
-        }
-      }
+  /** Adds the org unit name and code headers of a stage scoped org unit dimension, if requested. */
+  private static void addStageOrgUnitHeaders(Grid grid, QueryItem item, EventQueryParams params) {
+    if (!isStageOuDimension(item) || !params.hasHeaders()) {
+      return;
+    }
+
+    String stageUid = item.getProgramStage().getUid();
+
+    if (params.getHeaders().contains(stageUid + ".ouname")) {
+      grid.addHeader(
+          new GridHeader(
+              stageUid + ".ouname",
+              "Organisation unit name",
+              "Organisation unit name",
+              TEXT,
+              false,
+              true,
+              null,
+              null));
+    }
+
+    if (params.getHeaders().contains(stageUid + ".oucode")) {
+      grid.addHeader(
+          new GridHeader(
+              stageUid + ".oucode",
+              "Organisation unit code",
+              "Organisation unit code",
+              TEXT,
+              false,
+              true,
+              null,
+              null));
     }
   }
 
@@ -193,12 +206,7 @@ public class HeaderHelper {
   }
 
   private static String toDateFieldDisplayName(String dateField) {
-    String[] parts = dateField.toLowerCase().split("_");
-    if (parts.length == 0) {
-      return dateField;
-    }
-    parts[0] = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
-    return String.join(" ", parts);
+    return MetadataItemsHandler.toDateFieldDisplayName(dateField);
   }
 
   private static GridHeader buildGridHeader(QueryItem item, HeaderBuildContext context) {

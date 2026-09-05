@@ -179,6 +179,43 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
+  void testRegistrationOuItemsSurviveCopyConstructor() {
+    EventQueryParams original =
+        new EventQueryParams.Builder()
+            .withRegistrationOuDimension(List.of(ouA))
+            .withRegistrationOuFilter(List.of(ouB))
+            .build();
+
+    EventQueryParams copy = new EventQueryParams.Builder(original).build();
+
+    assertTrue(copy.hasRegistrationOuDimension());
+    assertTrue(copy.hasRegistrationOuFilter());
+    assertTrue(copy.hasRegistrationOuRestriction());
+    assertEquals(List.of(ouA), copy.getRegistrationOuDimensionItems());
+    assertEquals(List.of(ouB), copy.getRegistrationOuFilterItems());
+    assertEquals(List.of(ouA, ouB), copy.getAllRegistrationOuItems());
+  }
+
+  @Test
+  void testRegistrationOuIsIndependentOfEnrollmentOu() {
+    EventQueryParams params =
+        new EventQueryParams.Builder().withRegistrationOuDimension(List.of(ouA)).build();
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertFalse(params.hasEnrollmentOuDimension());
+    assertFalse(params.hasEnrollmentOu());
+  }
+
+  @Test
+  void testBareRegistrationOuDimensionCarriesNoItems() {
+    EventQueryParams params =
+        new EventQueryParams.Builder().withRegistrationOuDimension(List.of()).build();
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertFalse(params.hasRegistrationOuRestriction());
+  }
+
+  @Test
   void testHasDimensionValue() {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()

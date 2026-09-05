@@ -115,7 +115,16 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    */
   private void decideAccessDataViewOrganisationUnits(DataQueryParams params, UserDetails user)
       throws IllegalQueryException {
-    decideAccessDataViewOrganisationUnits(params.getAllTypedOrganisationUnits(), user);
+    List<OrganisationUnit> queryOrgUnits = new ArrayList<>(params.getAllTypedOrganisationUnits());
+
+    // Registration OU items are held outside the ou dimension and so are invisible to
+    // getAllTypedOrganisationUnits. Without adding them here they would escape the data view scope
+    // check entirely.
+    if (params instanceof EventQueryParams eventParams) {
+      queryOrgUnits.addAll(eventParams.getAllRegistrationOuItems());
+    }
+
+    decideAccessDataViewOrganisationUnits(queryOrgUnits, user);
   }
 
   /**

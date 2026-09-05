@@ -77,6 +77,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlConstants;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -123,6 +124,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private static final String SCHEDULED_DATE_DIMENSION = "SCHEDULED_DATE";
 
   private static final String ENROLLMENT_OU_DIMENSION = "ENROLLMENT_OU";
+  private static final String REGISTRATION_OU_DIMENSION = RegistrationOuSqlConstants.DIMENSION_NAME;
   private static final String LEVEL_PREFIX = "LEVEL-";
 
   private final ProgramService programService;
@@ -718,6 +720,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
           continue;
         }
+        if (REGISTRATION_OU_DIMENSION.equals(input.dimensionId())) {
+          requireRegistrationProgram(pr);
+          params.withRegistrationOuFilter(
+              resolveRegistrationOuItems(input.items(), request, userOrgUnits, idScheme));
+          continue;
+        }
         if (isProgramStatusDimension(input.dimensionId())) {
           if (isAggregateRequest(request)) {
             requireNonEmptyStatusFilter(input.items(), input.rawDimension());
@@ -766,6 +774,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getDimension())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuDimension(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
+        if (REGISTRATION_OU_DIMENSION.equals(input.dimensionId())) {
+          resolveRegistrationOuDimension(
+              params, request, userOrgUnits, input.items(), idScheme, pr);
           continue;
         }
         if (isProgramStatusDimension(input.dimensionId())) {
@@ -863,7 +876,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     String dimensionId = getDimensionFromParam(rawDimension);
     List<String> items = getDimensionItemsFromParam(rawDimension);
 
-    if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)) {
+    if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)
+        || REGISTRATION_OU_DIMENSION.equals(dimensionId)) {
       normalizedInputs.add(
           new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
       return;
@@ -903,7 +917,32 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     peTracker.insertMergedInto(normalizedInputs);
+    rejectRepeatedOrgUnitDimensions(normalizedInputs);
     return normalizedInputs;
+  }
+
+  /**
+   * Rejects a request naming ENROLLMENT_OU or REGISTRATION_OU more than once. Both are held outside
+   * {@code params.dimensions} and so are invisible to {@link
+   * org.hisp.dhis.analytics.DataQueryParams#getDuplicateDimensions()}, which is what raises E7201
+   * for an ordinary dimension. Without this check the last occurrence processed would silently win,
+   * and which one that is follows hash order rather than the order the caller wrote them in.
+   *
+   * <p>Several org units in one dimension ({@code REGISTRATION_OU:uidA;uidB}) is a single
+   * occurrence and stays valid, as does the same dimension used once as a dimension and once as a
+   * filter, since those are normalized separately.
+   */
+  private void rejectRepeatedOrgUnitDimensions(List<NormalizedDimensionInput> normalizedInputs) {
+    for (String dimensionId : List.of(ENROLLMENT_OU_DIMENSION, REGISTRATION_OU_DIMENSION)) {
+      long occurrences =
+          normalizedInputs.stream()
+              .filter(input -> dimensionId.equals(input.dimensionId()))
+              .count();
+
+      if (occurrences > 1) {
+        throwIllegalQueryEx(ErrorCode.E7201, dimensionId);
+      }
+    }
   }
 
   private record NormalizedDimensionInput(
@@ -1207,6 +1246,57 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return new EnrollmentOuResolution(uidItems, levels);
   }
 
+  /**
+   * Resolves REGISTRATION_OU items through the standard "ou" dimension pipeline, so that every
+   * keyword form (USER_ORGUNIT and its variants, LEVEL-n, OU_GROUP-uid) expands to concrete org
+   * units already carrying their hierarchy level.
+   */
+  private List<OrganisationUnit> resolveRegistrationOuItems(
+      List<String> items,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      IdScheme idScheme) {
+    if (items == null || items.isEmpty()) {
+      return List.of();
+    }
+
+    DimensionalObject ouDimension =
+        dataQueryService.getDimension("ou", items, request, userOrgUnits, true, idScheme);
+
+    if (ouDimension == null) {
+      return List.of();
+    }
+
+    return ouDimension.getItems().stream()
+        .filter(OrganisationUnit.class::isInstance)
+        .map(OrganisationUnit.class::cast)
+        .toList();
+  }
+
+  private void resolveRegistrationOuDimension(
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      List<String> items,
+      IdScheme idScheme,
+      Program program) {
+    requireRegistrationProgram(program);
+
+    if ((items == null || items.isEmpty()) && isAggregateRequest(request)) {
+      throwIllegalQueryEx(ErrorCode.E7260, REGISTRATION_OU_DIMENSION);
+    }
+
+    params.withRegistrationOuDimension(
+        resolveRegistrationOuItems(items, request, userOrgUnits, idScheme));
+  }
+
+  /** Registration org unit is a property of a tracked entity, so it needs a tracker program. */
+  private void requireRegistrationProgram(Program program) {
+    if (program != null && !program.isRegistration()) {
+      throwIllegalQueryEx(ErrorCode.E7259, REGISTRATION_OU_DIMENSION);
+    }
+  }
+
   private record EnrollmentOuResolution(
       List<DimensionalItemObject> uidItems, Set<Integer> levels) {}
 
@@ -1229,6 +1319,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         ColumnHeader.SCHEDULED_DATE.getItem(), EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
     ORG_UNIT_NAME(ColumnHeader.ORG_UNIT_NAME.getItem()),
     ORG_UNIT_NAME_HIERARCHY(ColumnHeader.ORG_UNIT_NAME_HIERARCHY.getItem()),
+    // Projected under their own aliases only when REGISTRATION_OU is a dimension, so the query
+    // validator rejects sorting on them otherwise.
+    REGISTRATION_OU(ColumnHeader.REGISTRATION_OU.getItem()),
+    REGISTRATION_OU_NAME(ColumnHeader.REGISTRATION_OU_NAME.getItem()),
     ORG_UNIT_CODE(ColumnHeader.ORG_UNIT_CODE.getItem()),
     PROGRAM_STATUS(
         ColumnHeader.PROGRAM_STATUS.getItem(),

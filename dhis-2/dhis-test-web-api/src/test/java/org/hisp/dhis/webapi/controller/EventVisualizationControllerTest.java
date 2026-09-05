@@ -1111,6 +1111,40 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testPostForRegistrationOu() {
+    // Given
+    String registrationOuDimension = "registrationOu";
+    String registrationOuBody =
+        "{'dimension': '"
+            + registrationOuDimension
+            + "',"
+            + "'items': [{'id': 'USER_ORGUNIT'}],"
+            + "'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}}";
+
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'rows': ["
+            + registrationOuBody
+            + "]}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response =
+        GET("/eventVisualizations/" + uid + "?fields=*,rows[:all,items[:all],program[id]]")
+            .content();
+
+    assertThat(response.get("simpleDimensions").toString(), containsString("ROW"));
+    assertThat(response.get("simpleDimensions").toString(), containsString("USER_ORGUNIT"));
+    assertThat(response.get("rows").toString(), containsString(registrationOuDimension));
+    assertThat(response.get("rows").toString(), containsString(mockProgram.getUid()));
+  }
+
+  @Test
   void testManyPeriodsCanBeSavedIntoEventVisualization() {
     // Setup test data
     DataElement dataElementA = createDataElement('Y');
