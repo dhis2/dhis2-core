@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,19 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
             .setParameter("code", code)
             .list();
     return options.isEmpty() ? Optional.empty() : Optional.of(options.get(0));
+  }
+
+  @Override
+  public List<Option> findOptionsNameAndCode(@Nonnull UID optionSet) {
+    String hql =
+        "select new org.hisp.dhis.option.Option(option.name, option.code) "
+            + "from OptionSet as optionset join optionset.options as option "
+            + "where optionset.uid = :optionSetId order by option.sortOrder";
+
+    Query<Option> query = getQuery(hql);
+    query.setParameter("optionSetId", optionSet.getValue());
+
+    return query.list();
   }
 
   @Override
