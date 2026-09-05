@@ -234,6 +234,38 @@ Run export only (skip import, DB must be seeded): `-DtestMode=export`
 
 See `TrackerTest.java` javadoc for all available profiles and parameters.
 
+## Single Event Tests
+
+The `tracker` package also contains `SingleEventTest.java`, a separate simulation for
+single-event-program imports -- event programs without tracked entities, imported one event per
+HTTP request. This is intentionally decoupled from `TrackerTest`'s shared
+`importEntitiesPerRequest`/`importUsers` configuration: single-event programs are imported one
+event at a time from many independent sessions in production, a fundamentally different traffic
+shape than tracked-entity programs batching a patient's enrollments and events together per
+request. Forcing single-event behavior out of `TrackerTest`'s shared knobs either crashes the
+whole simulation (a tracked-entity program's line-batching floors to zero) or inflates the other
+programs' own concurrency alongside it.
+
+Currently exercises one program:
+
+* **Inpatient morbidity and mortality** (`eBAyeGv0exc`) -- event program; exercises the
+  ~14,000-option ICD-10 diagnosis option set (`eUZ79clX7y1`, data element `K6uUAvq500H`)
+
+The import payload is a single event template embedded directly in `SingleEventTest.java` -- no
+Synthea generation or S3 fetch needed, since the goal is exercising the option set, not per-patient
+data variety. Overriding `-Dprogram`/`-DprogramStage` is the extension point for testing a
+different single-event program without adding a new scenario.
+
+### Running
+
+```sh
+mvn gatling:test \
+  -Dgatling.simulationClass=org.hisp.dhis.test.tracker.SingleEventTest \
+  -Dprofile=smoke
+```
+
+See `SingleEventTest.java` javadoc for all available profiles and parameters.
+
 ## Raw Tests (JSON-driven)
 
 The `raw` package (`org.hisp.dhis.test.raw`) contains JSON-driven performance tests ported from
