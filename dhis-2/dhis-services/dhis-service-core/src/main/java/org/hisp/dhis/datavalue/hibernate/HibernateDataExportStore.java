@@ -332,6 +332,7 @@ public class HibernateDataExportStore implements DataExportStore {
     return createQuery(sql)
         .setParameter("ds", dataSets)
         .useEqualsOverInForParameters("ds")
+        .eraseNullParameterLines()
         .stream(String.class)
         .map(UID::of)
         .findFirst()

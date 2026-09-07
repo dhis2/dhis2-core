@@ -56,8 +56,8 @@ public interface DataExportStore {
    *
    * <p>In that case the only valid attribute option combo is the default one, so it can be applied
    * as an explicit filter. This allows the export query to skip the (expensive) per-row attribute
-   * option combo data-sharing check that would otherwise scan the entire {@code categoryoptioncombo}
-   * table.
+   * option combo data-sharing check that would otherwise scan the entire {@code
+   * categoryoptioncombo} table.
    *
    * @param dataSets the data sets that scope the export
    * @return the UID of the default {@link org.hisp.dhis.category.CategoryOptionCombo} when every
