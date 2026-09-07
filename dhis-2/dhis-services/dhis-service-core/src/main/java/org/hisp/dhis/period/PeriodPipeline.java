@@ -67,7 +67,7 @@ public class PeriodPipeline {
     PeriodTypes res = service.getAllPeriodTypes(locale);
     List<PeriodTypes.PeriodTypeEntry> entries =
         res.entries().stream().filter(pt -> types.contains(pt.type())).toList();
-    PeriodOutput.toJson(new PeriodTypes.Output(locale, entries, fields), out.get());
+    PeriodOutput.toJsonArray(new PeriodTypes.Output(locale, entries, fields), out.get());
   }
 
   @IndirectTransactional

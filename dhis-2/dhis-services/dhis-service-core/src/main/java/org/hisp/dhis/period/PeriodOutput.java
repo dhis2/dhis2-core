@@ -66,6 +66,22 @@ final class PeriodOutput {
     }
   }
 
+  static void toJsonArray(@Nonnull PeriodTypes.Output types, @Nonnull OutputStream json) {
+    Fields fields = types.fields();
+    try (json) {
+      JsonBuilder.streamArray(
+          MINIMIZED,
+          json,
+          arr -> {
+            for (PeriodTypes.PeriodTypeEntry e : types.entries()) {
+              arr.addObject(entry -> toJson(entry, e, fields));
+            }
+          });
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
   static void toJson(
       @Nonnull PeriodTypes.PeriodTypeEntry e, @Nonnull Fields fields, @Nonnull OutputStream json) {
     try (json) {
