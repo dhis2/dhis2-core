@@ -34,12 +34,19 @@ import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportStore;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.SystemUser;
@@ -47,6 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -114,5 +122,51 @@ class DefaultDataExportServiceTest {
     DataExportParams.Input params = validFiltersBuilder().lastUpdatedDuration(" ").build();
 
     assertDoesNotThrow(() -> service().exportValues(params));
+  }
+
+  @Test
+  void testExportValues_DefaultCcDataSet_AppliesDefaultAocFilter() throws Exception {
+    // Every requested data set uses the default attribute category combo, so the only valid
+    // attribute option combo is the default one. It must be applied as an explicit AOC filter
+    // so the export query can skip the per-row AOC data-sharing check.
+    UID defaultAoc = UID.generate();
+    when(store.getDefaultAttributeOptionComboForDataSets(any())).thenReturn(defaultAoc);
+    when(store.exportValues(any())).thenReturn(Stream.<DataExportValue>empty());
+
+    service().exportValues(validFiltersBuilder().build());
+
+    ArgumentCaptor<DataExportParams> captor = ArgumentCaptor.forClass(DataExportParams.class);
+    verify(store).exportValues(captor.capture());
+    assertEquals(List.of(defaultAoc), captor.getValue().getAttributeOptionCombos());
+  }
+
+  @Test
+  void testExportValues_NonDefaultCcDataSet_NoAocFilter() throws Exception {
+    // A requested data set uses a non-default attribute category combo, so the default AOC
+    // fast path must not apply and no AOC filter is added.
+    when(store.getDefaultAttributeOptionComboForDataSets(any())).thenReturn(null);
+    when(store.exportValues(any())).thenReturn(Stream.<DataExportValue>empty());
+
+    service().exportValues(validFiltersBuilder().build());
+
+    ArgumentCaptor<DataExportParams> captor = ArgumentCaptor.forClass(DataExportParams.class);
+    verify(store).exportValues(captor.capture());
+    assertEquals(List.of(), captor.getValue().getAttributeOptionCombos());
+  }
+
+  @Test
+  void testExportValues_ExplicitAocGiven_DefaultCcFastPathSkipped() throws Exception {
+    // An explicit attributeOptionCombo filter wins and the default-CC resolution must not run.
+    UID explicitAoc = UID.generate();
+    when(store.exportValues(any())).thenReturn(Stream.<DataExportValue>empty());
+
+    service()
+        .exportValues(
+            validFiltersBuilder().attributeOptionCombo(Set.of(explicitAoc.getValue())).build());
+
+    ArgumentCaptor<DataExportParams> captor = ArgumentCaptor.forClass(DataExportParams.class);
+    verify(store).exportValues(captor.capture());
+    assertEquals(List.of(explicitAoc), captor.getValue().getAttributeOptionCombos());
+    verify(store, never()).getDefaultAttributeOptionComboForDataSets(any());
   }
 }
