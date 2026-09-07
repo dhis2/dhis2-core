@@ -359,15 +359,17 @@ public class DefaultDataExportService implements DataExportService {
     if (ouIn == null) ouIn = anyIn;
     if (degIn == null) degIn = anyIn;
 
+    List<UID> dataSets = decodeIds(DS, dsIn, params.getDataSet());
+
     return DataExportParams.builder()
-        .dataSets(decodeIds(DS, dsIn, params.getDataSet()))
+        .dataSets(dataSets)
         .dataElementGroups(decodeIds(DEG, degIn, params.getDataElementGroup()))
         .dataElements(decodeIds(DE, deIn, params.getDataElement()))
         .organisationUnits(decodeIds(OU, ouIn, params.getOrgUnit()))
         .organisationUnitGroups(decodeIds(OUG, anyIn, params.getOrgUnitGroup()))
         .orgUnitLevel(params.getLevel())
         .categoryOptionCombos(decodeIds(COC, anyIn, params.getCategoryOptionCombo()))
-        .attributeOptionCombos(resolveAttributeOptionCombos(anyIn, params))
+        .attributeOptionCombos(resolveAttributeOptionCombos(anyIn, params, dataSets))
         .periods(decodePeriods(params.getPeriod()))
         .startDate(params.getStartDate())
         .endDate(params.getEndDate())
@@ -383,15 +385,25 @@ public class DefaultDataExportService implements DataExportService {
 
   @Nonnull
   private List<UID> resolveAttributeOptionCombos(
-      IdentifiableProperty anyIn, DataExportParams.Input params) {
+      IdentifiableProperty anyIn, DataExportParams.Input params, List<UID> dataSets) {
     List<UID> attributeOptionCombos = decodeIds(COC, anyIn, params.getAttributeOptionCombo());
-    if (!attributeOptionCombos.isEmpty() || params.getAttributeOptions() == null) {
+    if (!attributeOptionCombos.isEmpty()) {
       return attributeOptionCombos;
     }
-    UID aoc =
-        store.getAttributeOptionCombo(
-            params.getAttributeCombo(), params.getAttributeOptions().stream());
-    return aoc == null ? attributeOptionCombos : List.of(aoc);
+    if (params.getAttributeOptions() != null) {
+      UID aoc =
+          store.getAttributeOptionCombo(
+              params.getAttributeCombo(), params.getAttributeOptions().stream());
+      return aoc == null ? attributeOptionCombos : List.of(aoc);
+    }
+    // Fast path: when the export is scoped to data set(s) that all use the default attribute
+    // category combo, the only valid attribute option combo is the default one. Applying it as an
+    // explicit filter lets the export query skip the per-row AOC data-sharing check.
+    if (!dataSets.isEmpty()) {
+      UID defaultAoc = store.getDefaultAttributeOptionComboForDataSets(dataSets.stream());
+      if (defaultAoc != null) return List.of(defaultAoc);
+    }
+    return attributeOptionCombos;
   }
 
   private List<Order> resolveOrders(DataExportParams.Input params) {

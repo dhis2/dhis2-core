@@ -50,6 +50,24 @@ public interface DataExportStore {
   UID getAttributeOptionCombo(
       @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions);
 
+  /**
+   * Resolves the default attribute option combo for an export that is scoped to data set(s), but
+   * only when every given data set uses the default attribute category combo.
+   *
+   * <p>In that case the only valid attribute option combo is the default one, so it can be applied
+   * as an explicit filter. This allows the export query to skip the (expensive) per-row attribute
+   * option combo data-sharing check that would otherwise scan the entire {@code categoryoptioncombo}
+   * table.
+   *
+   * @param dataSets the data sets that scope the export
+   * @return the UID of the default {@link org.hisp.dhis.category.CategoryOptionCombo} when every
+   *     given data set uses the default attribute {@link org.hisp.dhis.category.CategoryCombo};
+   *     {@code null} when any given data set uses a non-default attribute category combo, or when
+   *     none of the given data sets exist
+   */
+  @CheckForNull
+  UID getDefaultAttributeOptionComboForDataSets(@Nonnull Stream<UID> dataSets);
+
   /*
   Export
    */
