@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,6 @@ import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.period.PeriodTypeStore.Labels;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -265,6 +265,24 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
+  public boolean updateRelativePeriodLabel(
+      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations) {
+    translations.forEach(t -> PERIOD_TYPES_CACHE.remove(t.getLocale()));
+    return relativePeriodStore.updateLabel(name, translations);
+  }
+
+  @Override
+  public boolean updateRelativePeriodLabel(
+      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
+    if (locale != null) {
+      PERIOD_TYPES_CACHE.remove(locale);
+    } else {
+      PERIOD_TYPES_CACHE.clear();
+    }
+    return relativePeriodStore.updateLabel(name, label, locale);
+  }
+
+  @Override
   @IndirectTransactional
   public PeriodTypes getAllPeriodTypes(@Nonnull Locale locale) {
     return PERIOD_TYPES_CACHE.compute(
@@ -280,22 +298,43 @@ public class DefaultPeriodService implements PeriodService {
 
   @Nonnull
   private PeriodTypes reloadAllPeriodTypes(Locale locale) {
-    Map<PeriodTypeEnum, Labels> labelsByType = new HashMap<>();
-    periodTypeStore.getAllLabels().forEach(e -> labelsByType.put(e.name(), e));
-
     I18n i18n = i18nManager.getI18n(locale);
+
+    Map<PeriodTypeEnum, PeriodTypeStore.Labels> typeLabels = new EnumMap<>(PeriodTypeEnum.class);
+    periodTypeStore.getAllLabels().forEach(e -> typeLabels.put(e.name(), e));
+    Map<RelativePeriodEnum, RelativePeriodStore.Labels> relativeLabels =
+        new EnumMap<>(RelativePeriodEnum.class);
+    relativePeriodStore.getAllLabels().forEach(e -> relativeLabels.put(e.name(), e));
+    Map<RelativePeriodEnum, PeriodTypes.Labels> allRelativeLabels =
+        new EnumMap<>(RelativePeriodEnum.class);
+    for (RelativePeriodEnum e : RelativePeriodEnum.values()) {
+      RelativePeriodStore.Labels l = relativeLabels.get(e);
+      PeriodTypes.Labels labels =
+          PeriodTypes.Labels.of(
+              locale,
+              i18n.getString(e.name(), e.name()),
+              l == null ? null : l.label(),
+              l == null ? null : l.translations());
+      allRelativeLabels.put(e, labels);
+    }
+
     List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
     List<PeriodTypes.PeriodTypeEntry> entries = new ArrayList<>(types.size());
     for (PeriodType t : types) {
       PeriodTypeEnum name = t.getPeriodTypeEnum();
-      PeriodTypeStore.Labels l = labelsByType.get(name);
+      PeriodTypeStore.Labels l = typeLabels.get(name);
       PeriodTypes.Labels labels =
           PeriodTypes.Labels.of(
               locale,
               i18n.getString(name.getName(), name.getName()),
               l == null ? null : l.label(),
               l == null ? null : l.translations());
-      Map<RelativePeriodEnum, PeriodTypes.Labels> relativePeriods = Map.of();
+
+      Map<RelativePeriodEnum, PeriodTypes.Labels> relativePeriods =
+          new EnumMap<>(RelativePeriodEnum.class);
+      Stream.of(RelativePeriodEnum.values())
+          .filter(rp -> name == rp.value())
+          .forEach(rp -> relativePeriods.put(rp, allRelativeLabels.get(rp)));
 
       PeriodTypes.PeriodTypeEntry e =
           new PeriodTypes.PeriodTypeEntry(

@@ -251,4 +251,25 @@ public interface PeriodService {
    */
   boolean updatePeriodTypeLabel(
       @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations);
+
+  /**
+   * Updates the label of the given relative period.
+   *
+   * @param name the {@link RelativePeriodEnum}'s name.
+   * @param label the new label, null or empty to erase
+   * @param locale when null label is the override for the name not associated with a locale,
+   *     otherwise it is a translation for the given locale
+   */
+  boolean updateRelativePeriodLabel(
+      @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale);
+
+  /**
+   * Replaces the relative period's translation labels with the given ones
+   *
+   * @param name of the type (key)
+   * @param translations labels in different languages
+   * @return true, if a change occurred, false if no row was affected
+   */
+  boolean updateRelativePeriodLabel(
+      @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations);
 }
