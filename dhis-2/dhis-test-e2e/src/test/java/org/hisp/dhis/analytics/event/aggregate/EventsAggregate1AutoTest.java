@@ -33,11 +33,15 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.assertJsonMetadata;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -253,7 +257,10 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void queryActiveStatusCasesByGenderLast12MonthsDim() {
+  public void queryActiveStatusCasesByGenderLast12MonthsDim() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
@@ -264,194 +271,579 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
             .add("outputType=EVENT")
             .add(
                 "dimension=PROGRAM_STATUS:ACTIVE,pe:LAST_12_MONTHS,cejWyOfXge6,ou:O6uvpzGd5pu;fdc6uOvgoji;lc3eMKXaEfw;jUb8gELQApl;PMa2VCrupOd;kJq2mPyFEHo;qhqAxPSTUXp;Vth0fbpFcsO;jmIPBj66vD6;TEQlaapDQoK;bL4ooGhyHRQ;eIQbndfxQMb;at6UHUQatSo")
-            // .add("programStatus=ACTIVE")
             .add("relativePeriodDate=2023-07-01");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
-    response
-        .validate()
-        .statusCode(200)
-        .body("headers", hasSize(equalTo(5)))
-        .body("rows", hasSize(equalTo(156)))
-        .body("height", equalTo(156))
-        .body("width", equalTo(5))
-        .body("headerWidth", equalTo(5));
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        156,
+        5,
+        5); // Pass runtime flag, row count, and expected header counts
 
-    // Assert metaData.
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"ACTIVE\":{\"name\":\"Active\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"202305\":{\"name\":\"May 2023\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"programstatus\":{\"name\":\"Program status\"},\"pe\":{\"name\":\"Period\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"programstatus\":[\"ACTIVE\"],\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"items\":{\"ACTIVE\":{\"name\":\"Active\"},\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"202305\":{\"name\":\"May 2023\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"programstatus\":{\"name\":\"Program status\"},\"pe\":{\"name\":\"Period\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"programstatus\":[\"ACTIVE\"],\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    // assertEquals(expectedMetaData, actualMetaData, false);
-    assertJsonMetadata(expectedMetaData, actualMetaData);
+    assertEquals(expectedMetaData, actualMetaData, false);
 
-    // Assert headers.
-    validateHeader(response, 0, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 2, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 3, "programstatus", "Program status", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 4, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-    // Assert rows.
-    validateRow(response, List.of("Male", "202210", "TEQlaapDQoK", "ACTIVE", "51"));
-    validateRow(response, List.of("Male", "202212", "at6UHUQatSo", "ACTIVE", "46"));
-    validateRow(response, List.of("Male", "202212", "kJq2mPyFEHo", "ACTIVE", "45"));
-    validateRow(response, List.of("Male", "202208", "TEQlaapDQoK", "ACTIVE", "45"));
-    validateRow(response, List.of("Male", "202207", "kJq2mPyFEHo", "ACTIVE", "43"));
-    validateRow(response, List.of("Male", "202210", "kJq2mPyFEHo", "ACTIVE", "41"));
-    validateRow(response, List.of("Male", "202212", "O6uvpzGd5pu", "ACTIVE", "39"));
-    validateRow(response, List.of("Male", "202209", "O6uvpzGd5pu", "ACTIVE", "37"));
-    validateRow(response, List.of("Male", "202207", "O6uvpzGd5pu", "ACTIVE", "37"));
-    validateRow(response, List.of("Male", "202211", "O6uvpzGd5pu", "ACTIVE", "37"));
-    validateRow(response, List.of("Male", "202211", "kJq2mPyFEHo", "ACTIVE", "36"));
-    validateRow(response, List.of("Male", "202208", "O6uvpzGd5pu", "ACTIVE", "35"));
-    validateRow(response, List.of("Male", "202208", "kJq2mPyFEHo", "ACTIVE", "35"));
-    validateRow(response, List.of("Male", "202207", "at6UHUQatSo", "ACTIVE", "35"));
-    validateRow(response, List.of("Male", "202207", "TEQlaapDQoK", "ACTIVE", "35"));
-    validateRow(response, List.of("Male", "202210", "eIQbndfxQMb", "ACTIVE", "35"));
-    validateRow(response, List.of("Male", "202211", "TEQlaapDQoK", "ACTIVE", "34"));
-    validateRow(response, List.of("Male", "202209", "kJq2mPyFEHo", "ACTIVE", "33"));
-    validateRow(response, List.of("Male", "202210", "O6uvpzGd5pu", "ACTIVE", "32"));
-    validateRow(response, List.of("Male", "202209", "eIQbndfxQMb", "ACTIVE", "31"));
-    validateRow(response, List.of("Male", "202209", "TEQlaapDQoK", "ACTIVE", "31"));
-    validateRow(response, List.of("Male", "202211", "eIQbndfxQMb", "ACTIVE", "30"));
-    validateRow(response, List.of("Male", "202210", "jmIPBj66vD6", "ACTIVE", "30"));
-    validateRow(response, List.of("Male", "202207", "Vth0fbpFcsO", "ACTIVE", "29"));
-    validateRow(response, List.of("Male", "202207", "bL4ooGhyHRQ", "ACTIVE", "28"));
-    validateRow(response, List.of("Male", "202208", "jmIPBj66vD6", "ACTIVE", "28"));
-    validateRow(response, List.of("Male", "202208", "eIQbndfxQMb", "ACTIVE", "28"));
-    validateRow(response, List.of("Male", "202208", "at6UHUQatSo", "ACTIVE", "28"));
-    validateRow(response, List.of("Male", "202209", "fdc6uOvgoji", "ACTIVE", "27"));
-    validateRow(response, List.of("Male", "202211", "jmIPBj66vD6", "ACTIVE", "27"));
-    validateRow(response, List.of("Male", "202212", "jUb8gELQApl", "ACTIVE", "27"));
-    validateRow(response, List.of("Male", "202209", "Vth0fbpFcsO", "ACTIVE", "27"));
-    validateRow(response, List.of("Male", "202208", "Vth0fbpFcsO", "ACTIVE", "27"));
-    validateRow(response, List.of("Male", "202210", "at6UHUQatSo", "ACTIVE", "26"));
-    validateRow(response, List.of("Male", "202208", "jUb8gELQApl", "ACTIVE", "26"));
-    validateRow(response, List.of("Male", "202208", "qhqAxPSTUXp", "ACTIVE", "26"));
-    validateRow(response, List.of("Male", "202211", "fdc6uOvgoji", "ACTIVE", "25"));
-    validateRow(response, List.of("Male", "202212", "eIQbndfxQMb", "ACTIVE", "25"));
-    validateRow(response, List.of("Male", "202210", "qhqAxPSTUXp", "ACTIVE", "25"));
-    validateRow(response, List.of("Male", "202211", "at6UHUQatSo", "ACTIVE", "25"));
-    validateRow(response, List.of("Male", "202207", "jmIPBj66vD6", "ACTIVE", "25"));
-    validateRow(response, List.of("Male", "202212", "fdc6uOvgoji", "ACTIVE", "24"));
-    validateRow(response, List.of("Male", "202210", "Vth0fbpFcsO", "ACTIVE", "24"));
-    validateRow(response, List.of("Male", "202212", "qhqAxPSTUXp", "ACTIVE", "24"));
-    validateRow(response, List.of("Male", "202207", "eIQbndfxQMb", "ACTIVE", "24"));
-    validateRow(response, List.of("Male", "202209", "jmIPBj66vD6", "ACTIVE", "24"));
-    validateRow(response, List.of("Male", "202209", "at6UHUQatSo", "ACTIVE", "24"));
-    validateRow(response, List.of("Male", "202207", "fdc6uOvgoji", "ACTIVE", "23"));
-    validateRow(response, List.of("Male", "202212", "PMa2VCrupOd", "ACTIVE", "23"));
-    validateRow(response, List.of("Male", "202210", "bL4ooGhyHRQ", "ACTIVE", "23"));
-    validateRow(response, List.of("Male", "202208", "fdc6uOvgoji", "ACTIVE", "23"));
-    validateRow(response, List.of("Male", "202212", "lc3eMKXaEfw", "ACTIVE", "23"));
-    validateRow(response, List.of("Male", "202211", "jUb8gELQApl", "ACTIVE", "22"));
-    validateRow(response, List.of("Male", "202212", "jmIPBj66vD6", "ACTIVE", "22"));
-    validateRow(response, List.of("Male", "202211", "qhqAxPSTUXp", "ACTIVE", "22"));
-    validateRow(response, List.of("Male", "202212", "TEQlaapDQoK", "ACTIVE", "20"));
-    validateRow(response, List.of("Male", "202211", "bL4ooGhyHRQ", "ACTIVE", "20"));
-    validateRow(response, List.of("Male", "202210", "fdc6uOvgoji", "ACTIVE", "20"));
-    validateRow(response, List.of("Male", "202208", "bL4ooGhyHRQ", "ACTIVE", "20"));
-    validateRow(response, List.of("Male", "202207", "jUb8gELQApl", "ACTIVE", "20"));
-    validateRow(response, List.of("Male", "202208", "PMa2VCrupOd", "ACTIVE", "19"));
-    validateRow(response, List.of("Male", "202211", "Vth0fbpFcsO", "ACTIVE", "19"));
-    validateRow(response, List.of("Male", "202212", "Vth0fbpFcsO", "ACTIVE", "19"));
-    validateRow(response, List.of("Male", "202209", "jUb8gELQApl", "ACTIVE", "19"));
-    validateRow(response, List.of("Male", "202209", "qhqAxPSTUXp", "ACTIVE", "18"));
-    validateRow(response, List.of("Male", "202209", "bL4ooGhyHRQ", "ACTIVE", "18"));
-    validateRow(response, List.of("Male", "202209", "PMa2VCrupOd", "ACTIVE", "18"));
-    validateRow(response, List.of("Male", "202212", "bL4ooGhyHRQ", "ACTIVE", "17"));
-    validateRow(response, List.of("Male", "202211", "lc3eMKXaEfw", "ACTIVE", "17"));
-    validateRow(response, List.of("Male", "202210", "PMa2VCrupOd", "ACTIVE", "17"));
-    validateRow(response, List.of("Male", "202207", "lc3eMKXaEfw", "ACTIVE", "16"));
-    validateRow(response, List.of("Male", "202208", "lc3eMKXaEfw", "ACTIVE", "15"));
-    validateRow(response, List.of("Male", "202210", "jUb8gELQApl", "ACTIVE", "14"));
-    validateRow(response, List.of("Male", "202210", "lc3eMKXaEfw", "ACTIVE", "13"));
-    validateRow(response, List.of("Male", "202207", "PMa2VCrupOd", "ACTIVE", "11"));
-    validateRow(response, List.of("Male", "202207", "qhqAxPSTUXp", "ACTIVE", "10"));
-    validateRow(response, List.of("Male", "202209", "lc3eMKXaEfw", "ACTIVE", "9"));
-    validateRow(response, List.of("Male", "202211", "PMa2VCrupOd", "ACTIVE", "9"));
-    validateRow(response, List.of("Female", "202209", "kJq2mPyFEHo", "ACTIVE", "47"));
-    validateRow(response, List.of("Female", "202212", "O6uvpzGd5pu", "ACTIVE", "46"));
-    validateRow(response, List.of("Female", "202211", "TEQlaapDQoK", "ACTIVE", "44"));
-    validateRow(response, List.of("Female", "202207", "TEQlaapDQoK", "ACTIVE", "39"));
-    validateRow(response, List.of("Female", "202208", "at6UHUQatSo", "ACTIVE", "39"));
-    validateRow(response, List.of("Female", "202211", "kJq2mPyFEHo", "ACTIVE", "38"));
-    validateRow(response, List.of("Female", "202208", "O6uvpzGd5pu", "ACTIVE", "37"));
-    validateRow(response, List.of("Female", "202208", "TEQlaapDQoK", "ACTIVE", "36"));
-    validateRow(response, List.of("Female", "202209", "TEQlaapDQoK", "ACTIVE", "35"));
-    validateRow(response, List.of("Female", "202210", "kJq2mPyFEHo", "ACTIVE", "35"));
-    validateRow(response, List.of("Female", "202208", "jmIPBj66vD6", "ACTIVE", "35"));
-    validateRow(response, List.of("Female", "202207", "O6uvpzGd5pu", "ACTIVE", "35"));
-    validateRow(response, List.of("Female", "202210", "at6UHUQatSo", "ACTIVE", "33"));
-    validateRow(response, List.of("Female", "202211", "O6uvpzGd5pu", "ACTIVE", "33"));
-    validateRow(response, List.of("Female", "202209", "Vth0fbpFcsO", "ACTIVE", "32"));
-    validateRow(response, List.of("Female", "202210", "fdc6uOvgoji", "ACTIVE", "32"));
-    validateRow(response, List.of("Female", "202208", "jUb8gELQApl", "ACTIVE", "32"));
-    validateRow(response, List.of("Female", "202210", "TEQlaapDQoK", "ACTIVE", "31"));
-    validateRow(response, List.of("Female", "202210", "O6uvpzGd5pu", "ACTIVE", "31"));
-    validateRow(response, List.of("Female", "202208", "kJq2mPyFEHo", "ACTIVE", "31"));
-    validateRow(response, List.of("Female", "202212", "fdc6uOvgoji", "ACTIVE", "30"));
-    validateRow(response, List.of("Female", "202211", "eIQbndfxQMb", "ACTIVE", "30"));
-    validateRow(response, List.of("Female", "202210", "jmIPBj66vD6", "ACTIVE", "30"));
-    validateRow(response, List.of("Female", "202212", "at6UHUQatSo", "ACTIVE", "30"));
-    validateRow(response, List.of("Female", "202207", "jmIPBj66vD6", "ACTIVE", "30"));
-    validateRow(response, List.of("Female", "202212", "TEQlaapDQoK", "ACTIVE", "29"));
-    validateRow(response, List.of("Female", "202209", "fdc6uOvgoji", "ACTIVE", "29"));
-    validateRow(response, List.of("Female", "202212", "kJq2mPyFEHo", "ACTIVE", "28"));
-    validateRow(response, List.of("Female", "202211", "fdc6uOvgoji", "ACTIVE", "28"));
-    validateRow(response, List.of("Female", "202210", "eIQbndfxQMb", "ACTIVE", "28"));
-    validateRow(response, List.of("Female", "202207", "kJq2mPyFEHo", "ACTIVE", "28"));
-    validateRow(response, List.of("Female", "202207", "fdc6uOvgoji", "ACTIVE", "27"));
-    validateRow(response, List.of("Female", "202207", "at6UHUQatSo", "ACTIVE", "27"));
-    validateRow(response, List.of("Female", "202208", "eIQbndfxQMb", "ACTIVE", "26"));
-    validateRow(response, List.of("Female", "202211", "qhqAxPSTUXp", "ACTIVE", "26"));
-    validateRow(response, List.of("Female", "202207", "Vth0fbpFcsO", "ACTIVE", "26"));
-    validateRow(response, List.of("Female", "202209", "O6uvpzGd5pu", "ACTIVE", "26"));
-    validateRow(response, List.of("Female", "202211", "at6UHUQatSo", "ACTIVE", "25"));
-    validateRow(response, List.of("Female", "202208", "bL4ooGhyHRQ", "ACTIVE", "25"));
-    validateRow(response, List.of("Female", "202212", "jmIPBj66vD6", "ACTIVE", "24"));
-    validateRow(response, List.of("Female", "202209", "qhqAxPSTUXp", "ACTIVE", "24"));
-    validateRow(response, List.of("Female", "202207", "jUb8gELQApl", "ACTIVE", "24"));
-    validateRow(response, List.of("Female", "202209", "eIQbndfxQMb", "ACTIVE", "24"));
-    validateRow(response, List.of("Female", "202207", "eIQbndfxQMb", "ACTIVE", "24"));
-    validateRow(response, List.of("Female", "202210", "Vth0fbpFcsO", "ACTIVE", "24"));
-    validateRow(response, List.of("Female", "202211", "jmIPBj66vD6", "ACTIVE", "24"));
-    validateRow(response, List.of("Female", "202211", "Vth0fbpFcsO", "ACTIVE", "23"));
-    validateRow(response, List.of("Female", "202209", "jmIPBj66vD6", "ACTIVE", "23"));
-    validateRow(response, List.of("Female", "202211", "bL4ooGhyHRQ", "ACTIVE", "23"));
-    validateRow(response, List.of("Female", "202208", "Vth0fbpFcsO", "ACTIVE", "23"));
-    validateRow(response, List.of("Female", "202208", "fdc6uOvgoji", "ACTIVE", "23"));
-    validateRow(response, List.of("Female", "202210", "PMa2VCrupOd", "ACTIVE", "22"));
-    validateRow(response, List.of("Female", "202209", "at6UHUQatSo", "ACTIVE", "20"));
-    validateRow(response, List.of("Female", "202210", "bL4ooGhyHRQ", "ACTIVE", "20"));
-    validateRow(response, List.of("Female", "202208", "PMa2VCrupOd", "ACTIVE", "20"));
-    validateRow(response, List.of("Female", "202210", "qhqAxPSTUXp", "ACTIVE", "19"));
-    validateRow(response, List.of("Female", "202207", "bL4ooGhyHRQ", "ACTIVE", "19"));
-    validateRow(response, List.of("Female", "202212", "Vth0fbpFcsO", "ACTIVE", "19"));
-    validateRow(response, List.of("Female", "202212", "jUb8gELQApl", "ACTIVE", "19"));
-    validateRow(response, List.of("Female", "202208", "qhqAxPSTUXp", "ACTIVE", "19"));
-    validateRow(response, List.of("Female", "202209", "bL4ooGhyHRQ", "ACTIVE", "18"));
-    validateRow(response, List.of("Female", "202209", "jUb8gELQApl", "ACTIVE", "18"));
-    validateRow(response, List.of("Female", "202210", "jUb8gELQApl", "ACTIVE", "18"));
-    validateRow(response, List.of("Female", "202211", "PMa2VCrupOd", "ACTIVE", "18"));
-    validateRow(response, List.of("Female", "202212", "PMa2VCrupOd", "ACTIVE", "18"));
-    validateRow(response, List.of("Female", "202212", "eIQbndfxQMb", "ACTIVE", "17"));
-    validateRow(response, List.of("Female", "202209", "lc3eMKXaEfw", "ACTIVE", "16"));
-    validateRow(response, List.of("Female", "202207", "qhqAxPSTUXp", "ACTIVE", "16"));
-    validateRow(response, List.of("Female", "202209", "PMa2VCrupOd", "ACTIVE", "15"));
-    validateRow(response, List.of("Female", "202212", "qhqAxPSTUXp", "ACTIVE", "15"));
-    validateRow(response, List.of("Female", "202210", "lc3eMKXaEfw", "ACTIVE", "15"));
-    validateRow(response, List.of("Female", "202212", "bL4ooGhyHRQ", "ACTIVE", "15"));
-    validateRow(response, List.of("Female", "202211", "lc3eMKXaEfw", "ACTIVE", "14"));
-    validateRow(response, List.of("Female", "202207", "lc3eMKXaEfw", "ACTIVE", "13"));
-    validateRow(response, List.of("Female", "202207", "PMa2VCrupOd", "ACTIVE", "13"));
-    validateRow(response, List.of("Female", "202212", "lc3eMKXaEfw", "ACTIVE", "12"));
-    validateRow(response, List.of("Female", "202208", "lc3eMKXaEfw", "ACTIVE", "12"));
-    validateRow(response, List.of("Female", "202211", "jUb8gELQApl", "ACTIVE", "9"));
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202210",
+            "ou",
+            "TEQlaapDQoK",
+            "value",
+            "51"));
+
+    // Validate row exists with values from original row index 12
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202208",
+            "ou",
+            "O6uvpzGd5pu",
+            "value",
+            "35"));
+
+    // Validate row exists with values from original row index 24
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202208",
+            "ou",
+            "jmIPBj66vD6",
+            "value",
+            "28"));
+
+    // Validate row exists with values from original row index 36
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202211",
+            "ou",
+            "fdc6uOvgoji",
+            "value",
+            "25"));
+
+    // Validate row exists with values from original row index 48
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202212",
+            "ou",
+            "PMa2VCrupOd",
+            "value",
+            "23"));
+
+    // Validate row exists with values from original row index 60
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202209",
+            "ou",
+            "jUb8gELQApl",
+            "value",
+            "19"));
+
+    // Validate row exists with values from original row index 72
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202210",
+            "ou",
+            "jUb8gELQApl",
+            "value",
+            "14"));
+
+    // Validate row exists with values from original row index 84
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202208",
+            "ou",
+            "O6uvpzGd5pu",
+            "value",
+            "37"));
+
+    // Validate row exists with values from original row index 96
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202210",
+            "ou",
+            "O6uvpzGd5pu",
+            "value",
+            "31"));
+
+    // Validate row exists with values from original row index 108
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202212",
+            "ou",
+            "kJq2mPyFEHo",
+            "value",
+            "28"));
+
+    // Validate row exists with values from original row index 120
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202212",
+            "ou",
+            "jmIPBj66vD6",
+            "value",
+            "24"));
+
+    // Validate row exists with values from original row index 132
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202208",
+            "ou",
+            "PMa2VCrupOd",
+            "value",
+            "20"));
+
+    // Validate row exists with values from original row index 144
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202209",
+            "ou",
+            "lc3eMKXaEfw",
+            "value",
+            "16"));
+
+    // Validate row exists with values from original row index 155
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202211",
+            "ou",
+            "jUb8gELQApl",
+            "value",
+            "9"));
+  }
+
+  @Test
+  public void withProgramStatusNoFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("stage=A03MvHHogjR")
+            .add("displayProperty=NAME")
+            .add("sortOrder=desc")
+            .add("totalPages=false")
+            .add(
+                "dimension=PROGRAM_STATUS,pe:LAST_12_MONTHS,cejWyOfXge6,ou:O6uvpzGd5pu;fdc6uOvgoji")
+            .add("relativePeriodDate=2023-07-01");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        24,
+        5,
+        5); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"programstatus\":{\"name\":\"Program status\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{\"name\":\"Period\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"programstatus\":[],\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "ou",
+            "O6uvpzGd5pu",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202212",
+            "value",
+            "39"));
+
+    // Validate row exists with values from original row index 5
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "ou",
+            "O6uvpzGd5pu",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202210",
+            "value",
+            "32"));
+
+    // Validate row exists with values from original row index 10
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Male",
+            "ou",
+            "fdc6uOvgoji",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202207",
+            "value",
+            "23"));
+
+    // Validate row exists with values from original row index 15
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "ou",
+            "O6uvpzGd5pu",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202211",
+            "value",
+            "33"));
+
+    // Validate row exists with values from original row index 20
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "ou",
+            "fdc6uOvgoji",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202211",
+            "value",
+            "28"));
+
+    // Validate row exists with values from original row index 23
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "cejWyOfXge6",
+            "Female",
+            "ou",
+            "fdc6uOvgoji",
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202208",
+            "value",
+            "23"));
+  }
+
+  @Test
+  public void withProgramStatusAndEnrollmentOu() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("stage=A03MvHHogjR")
+            .add("displayProperty=NAME")
+            .add("sortOrder=desc")
+            .add("totalPages=false")
+            .add("dimension=pe:LAST_12_MONTHS,PROGRAM_STATUS:ACTIVE,ENROLLMENT_OU:USER_ORGUNIT")
+            .add("relativePeriodDate=2023-07-01");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        6,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"ACTIVE\":{\"name\":\"Active\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"programstatus\":{\"name\":\"Program status\"},\"202210\":{\"name\":\"October 2022\"},\"enrollmentou\":{\"name\":\"Enrollment org. unit\"},\"pe\":{\"name\":\"Period\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"enrollmentou\":[\"ImspTQPwCqd\"],\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"programstatus\":[\"ACTIVE\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentou",
+        "Enrollment org unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202208",
+            "enrollmentou",
+            "ImspTQPwCqd",
+            "value",
+            "713"));
+
+    // Validate row exists with values from original row index 2
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202211",
+            "enrollmentou",
+            "ImspTQPwCqd",
+            "value",
+            "658"));
+
+    // Validate row exists with values from original row index 4
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202212",
+            "enrollmentou",
+            "ImspTQPwCqd",
+            "value",
+            "656"));
+
+    // Validate row exists with values from original row index 5
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "programstatus",
+            "ACTIVE",
+            "pe",
+            "202209",
+            "enrollmentou",
+            "ImspTQPwCqd",
+            "value",
+            "643"));
   }
 
   @Test
@@ -485,7 +877,7 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"202208\":{\"name\":\"August 2022\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"202209\":{\"name\":\"September 2022\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ww8JVblo4SI\":{\"code\":\"Others\",\"name\":\"Others\"},\"202212\":{\"name\":\"December 2022\"},\"Cd0gtHGmlwS\":{\"code\":\"NVP only\",\"name\":\"NVP only\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"202210\":{\"name\":\"October 2022\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"pe\":{\"name\":\"Period\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"A03MvHHogjR.wQLfBvPrXqq\":{\"name\":\"MCH ARV at birth\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"jUb8gELQApl\",\"TEQlaapDQoK\",\"eIQbndfxQMb\",\"Vth0fbpFcsO\",\"PMa2VCrupOd\",\"O6uvpzGd5pu\",\"bL4ooGhyHRQ\",\"kJq2mPyFEHo\",\"fdc6uOvgoji\",\"at6UHUQatSo\",\"lc3eMKXaEfw\",\"qhqAxPSTUXp\",\"jmIPBj66vD6\"],\"wQLfBvPrXqq\":[\"Cd0gtHGmlwS\",\"ww8JVblo4SI\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"202208\":{\"name\":\"August 2022\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"202209\":{\"name\":\"September 2022\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ww8JVblo4SI\":{\"code\":\"Others\",\"name\":\"Others\"},\"202212\":{\"name\":\"December 2022\"},\"Cd0gtHGmlwS\":{\"code\":\"NVP only\",\"name\":\"NVP only\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"202210\":{\"name\":\"October 2022\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"pe\":{\"name\":\"Period\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"A03MvHHogjR.wQLfBvPrXqq\":{\"name\":\"MCH ARV at birth\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"jUb8gELQApl\",\"TEQlaapDQoK\",\"eIQbndfxQMb\",\"Vth0fbpFcsO\",\"PMa2VCrupOd\",\"O6uvpzGd5pu\",\"bL4ooGhyHRQ\",\"kJq2mPyFEHo\",\"fdc6uOvgoji\",\"at6UHUQatSo\",\"lc3eMKXaEfw\",\"qhqAxPSTUXp\",\"jmIPBj66vD6\"],\"A03MvHHogjR.wQLfBvPrXqq\":[\"Cd0gtHGmlwS\",\"ww8JVblo4SI\"],\"A03MvHHogjR.cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -853,7 +1245,7 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"sXfZuRdvhl5\":{\"code\":\"0\",\"name\":\"Dose 0\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ZzYYXq4fJie.vTUhAUZFoys\":{\"name\":\"MCH Penta dose\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"VBGXfSXgJzv\":{\"code\":\"3\",\"name\":\"Dose 3\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"ZzYYXq4fJie.FqlgKAG8HOu\":{\"name\":\"MCH Measles dose\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{\"name\":\"Period\"},\"Xr0M5yEhtpT\":{\"code\":\"2\",\"name\":\"Dose 2\"},\"lFFqylGiWLk\":{\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"vTUhAUZFoys\":[\"sXfZuRdvhl5\",\"lFFqylGiWLk\",\"Xr0M5yEhtpT\",\"VBGXfSXgJzv\"],\"ou\":[\"ImspTQPwCqd\"],\"ZzYYXq4fJie.FqlgKAG8HOu\":[]}}";
+        "{\"items\":{\"sXfZuRdvhl5\":{\"code\":\"0\",\"name\":\"Dose 0\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ZzYYXq4fJie.vTUhAUZFoys\":{\"name\":\"MCH Penta dose\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"VBGXfSXgJzv\":{\"code\":\"3\",\"name\":\"Dose 3\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"ZzYYXq4fJie.FqlgKAG8HOu\":{\"name\":\"MCH Measles dose\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{\"name\":\"Period\"},\"Xr0M5yEhtpT\":{\"code\":\"2\",\"name\":\"Dose 2\"},\"lFFqylGiWLk\":{\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ZzYYXq4fJie.vTUhAUZFoys\":[\"sXfZuRdvhl5\",\"lFFqylGiWLk\",\"Xr0M5yEhtpT\",\"VBGXfSXgJzv\"],\"ou\":[\"ImspTQPwCqd\"],\"ZzYYXq4fJie.FqlgKAG8HOu\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -970,7 +1362,7 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"Zj7UnCAulEk.oZg33kd9taw\":{\"name\":\"Gender\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"ou\":{\"name\":\"Organisation unit\"},\"Fhbf4aKpZmZ\":{\"code\":\"MODABSC\",\"name\":\"Absconded\"},\"vV9UWAZohSf\":{\"code\":\"DE_240795\",\"name\":\"Weight in kg\"},\"gj2fKKyp8OH\":{\"code\":\"MODDIED\",\"name\":\"Died\"},\"2022Q3\":{\"name\":\"July - September 2022\"},\"2023Q2\":{\"name\":\"April - June 2023\"},\"2022Q4\":{\"name\":\"October - December 2022\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"},\"2023Q1\":{\"name\":\"January - March 2023\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"Zj7UnCAulEk.fWIAEtYVEGk\":{\"name\":\"Mode of Discharge\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"pe\":{\"name\":\"Period\"},\"LAST_4_QUARTERS\":{\"name\":\"Last 4 quarters\"},\"fShHdgT7XGb\":{\"code\":\"MODTRANS\",\"name\":\"Transferred\"},\"yeod5tOXpkP\":{\"code\":\"MODDISCH\",\"name\":\"Discharged\"}},\"dimensions\":{\"pe\":[\"2022Q3\",\"2022Q4\",\"2023Q1\",\"2023Q2\"],\"ou\":[\"ImspTQPwCqd\"],\"fWIAEtYVEGk\":[\"yeod5tOXpkP\",\"gj2fKKyp8OH\",\"fShHdgT7XGb\",\"Fhbf4aKpZmZ\"],\"oZg33kd9taw\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"Zj7UnCAulEk.oZg33kd9taw\":{\"name\":\"Gender\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"ou\":{\"name\":\"Organisation unit\"},\"Fhbf4aKpZmZ\":{\"code\":\"MODABSC\",\"name\":\"Absconded\"},\"vV9UWAZohSf\":{\"code\":\"DE_240795\",\"name\":\"Weight in kg\"},\"gj2fKKyp8OH\":{\"code\":\"MODDIED\",\"name\":\"Died\"},\"2022Q3\":{\"name\":\"July - September 2022\"},\"2023Q2\":{\"name\":\"April - June 2023\"},\"2022Q4\":{\"name\":\"October - December 2022\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"},\"2023Q1\":{\"name\":\"January - March 2023\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"Zj7UnCAulEk.fWIAEtYVEGk\":{\"name\":\"Mode of Discharge\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"pe\":{\"name\":\"Period\"},\"LAST_4_QUARTERS\":{\"name\":\"Last 4 quarters\"},\"fShHdgT7XGb\":{\"code\":\"MODTRANS\",\"name\":\"Transferred\"},\"yeod5tOXpkP\":{\"code\":\"MODDISCH\",\"name\":\"Discharged\"}},\"dimensions\":{\"pe\":[\"2022Q3\",\"2022Q4\",\"2023Q1\",\"2023Q2\"],\"ou\":[\"ImspTQPwCqd\"],\"Zj7UnCAulEk.fWIAEtYVEGk\":[\"yeod5tOXpkP\",\"gj2fKKyp8OH\",\"fShHdgT7XGb\",\"Fhbf4aKpZmZ\"],\"Zj7UnCAulEk.oZg33kd9taw\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

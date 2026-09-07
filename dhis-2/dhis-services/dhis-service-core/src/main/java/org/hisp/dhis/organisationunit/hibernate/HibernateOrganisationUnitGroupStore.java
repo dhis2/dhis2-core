@@ -30,7 +30,9 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -78,5 +80,29 @@ public class HibernateOrganisationUnitGroupStore
         .setParameter("groups", groups)
         .setMaxResults(1)
         .uniqueResult();
+  }
+
+  @Override
+  public Map<String, Integer> getOrganisationUnitGroupMemberCounts(Set<String> uids) {
+    Map<String, Integer> counts = new HashMap<>();
+
+    if (uids == null || uids.isEmpty()) {
+      return counts;
+    }
+
+    // size(g.members) translates to a count subquery; the members collection is never initialised.
+    List<Object[]> rows =
+        getSession()
+            .createQuery(
+                "select g.uid, size(g.members) from OrganisationUnitGroup g where g.uid in :uids",
+                Object[].class)
+            .setParameter("uids", uids)
+            .list();
+
+    for (Object[] row : rows) {
+      counts.put((String) row[0], ((Number) row[1]).intValue());
+    }
+
+    return counts;
   }
 }

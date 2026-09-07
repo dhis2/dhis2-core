@@ -32,24 +32,38 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
 import static org.hisp.dhis.feedback.ErrorCode.E4051;
 import static org.hisp.dhis.feedback.ErrorCode.E4052;
+import static org.hisp.dhis.feedback.ErrorCode.E4059;
+import static org.hisp.dhis.feedback.ErrorCode.E4089;
+import static org.hisp.dhis.feedback.ErrorCode.E4090;
+import static org.hisp.dhis.feedback.ErrorCode.E4091;
+import static org.hisp.dhis.feedback.ErrorCode.E4092;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -83,32 +97,40 @@ class ProgramRuleVariableObjectBundleHookTest {
     when(entityManager.unwrap(Session.class)).thenReturn(session);
     when(session.createQuery(anyString(), classArgumentCaptor.capture())).thenReturn(query);
     when(program.getUid()).thenReturn("uid");
+    // Common defaults; individual tests override what they need.
+    lenient().when(programRuleVariable.getProgram()).thenReturn(program);
+    lenient().when(programRuleVariable.getName()).thenReturn("someVar");
+    lenient().when(objectBundle.getImportMode()).thenReturn(ImportStrategy.CREATE);
+    lenient().when(query.getResultList()).thenReturn(Collections.emptyList());
   }
 
   @Test
   void shouldFailInsertAlreadyExisting() {
-    when(programRuleVariable.getProgram()).thenReturn(program);
-    when(objectBundle.getImportMode()).thenReturn(ImportStrategy.CREATE);
     when(query.getResultList()).thenReturn(Collections.singletonList(new ProgramRuleVariable()));
-
     when(programRuleVariable.getName()).thenReturn("word");
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(ValueType.TEXT);
+
     List<ErrorReport> errorReports =
         programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
     assertEquals(1, errorReports.size());
     assertTrue(errorReports.stream().anyMatch(e -> e.getErrorCode().equals(E4051)));
   }
 
   @Test
   void shouldNotFailUpdateExistingSameUid() {
-    when(programRuleVariable.getProgram()).thenReturn(program);
     when(objectBundle.getImportMode()).thenReturn(ImportStrategy.CREATE_AND_UPDATE);
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(ValueType.TEXT);
 
     ProgramRuleVariable existingProgramRuleVariable = new ProgramRuleVariable();
     existingProgramRuleVariable.setName("word");
     existingProgramRuleVariable.setUid("uid1");
 
     when(query.getResultList()).thenReturn(Collections.singletonList(existingProgramRuleVariable));
-
     when(programRuleVariable.getName()).thenReturn("word");
     when(programRuleVariable.getUid()).thenReturn("uid1");
 
@@ -120,8 +142,10 @@ class ProgramRuleVariableObjectBundleHookTest {
 
   @Test
   void shouldNotFailUpdateExistingMoreThanOneSameUid() {
-    when(programRuleVariable.getProgram()).thenReturn(program);
     when(objectBundle.getImportMode()).thenReturn(ImportStrategy.CREATE_AND_UPDATE);
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(ValueType.TEXT);
 
     ProgramRuleVariable existingProgramRuleVariable = new ProgramRuleVariable();
     existingProgramRuleVariable.setName("word");
@@ -133,7 +157,6 @@ class ProgramRuleVariableObjectBundleHookTest {
 
     when(query.getResultList())
         .thenReturn(List.of(existingProgramRuleVariable, anotherExistingProgramRuleVariable));
-
     when(programRuleVariable.getName()).thenReturn("word");
     when(programRuleVariable.getUid()).thenReturn("uid1");
 
@@ -145,15 +168,16 @@ class ProgramRuleVariableObjectBundleHookTest {
 
   @Test
   void shouldFailUpdateExistingDifferentUid() {
-    when(programRuleVariable.getProgram()).thenReturn(program);
     when(objectBundle.getImportMode()).thenReturn(ImportStrategy.CREATE_AND_UPDATE);
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(ValueType.TEXT);
 
     ProgramRuleVariable existingProgramRuleVariable = new ProgramRuleVariable();
     existingProgramRuleVariable.setName("word");
     existingProgramRuleVariable.setUid("uid1");
 
     when(query.getResultList()).thenReturn(Collections.singletonList(existingProgramRuleVariable));
-
     when(programRuleVariable.getName()).thenReturn("word");
     when(programRuleVariable.getUid()).thenReturn("uid2");
 
@@ -166,11 +190,12 @@ class ProgramRuleVariableObjectBundleHookTest {
 
   @Test
   void shouldFailValidationInvalidCountAndInvalidName() {
-    when(programRuleVariable.getProgram()).thenReturn(program);
-    when(objectBundle.getImportMode()).thenReturn(ImportStrategy.CREATE);
     when(query.getResultList()).thenReturn(Collections.singletonList(new ProgramRuleVariable()));
     when(programRuleVariable.getName())
         .thenReturn("Word " + PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS.get(0) + " Word");
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(ValueType.TEXT);
 
     List<ErrorReport> errorReports =
         programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
@@ -182,8 +207,10 @@ class ProgramRuleVariableObjectBundleHookTest {
 
   @Test
   void shouldFailValidationInvalidName() {
-    when(programRuleVariable.getProgram()).thenReturn(program);
     when(objectBundle.getImportMode()).thenReturn(ImportStrategy.CREATE_AND_UPDATE);
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(ValueType.TEXT);
     List<ErrorReport> errorReports;
 
     for (String invalidKeyWord : PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS) {
@@ -209,9 +236,11 @@ class ProgramRuleVariableObjectBundleHookTest {
 
   @Test
   void shouldPassValidationWithValidName() {
-    when(programRuleVariable.getProgram()).thenReturn(program);
-    when(programRuleVariable.getName()).thenReturn("WordAndWord");
     when(objectBundle.getImportMode()).thenReturn(ImportStrategy.CREATE_AND_UPDATE);
+    when(programRuleVariable.getName()).thenReturn("WordAndWord");
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(ValueType.TEXT);
 
     List<ErrorReport> errorReports =
         programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
@@ -222,5 +251,137 @@ class ProgramRuleVariableObjectBundleHookTest {
     List<ErrorReport> errorReports1 =
         programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
     assertEquals(0, errorReports1.size());
+  }
+
+  static Stream<ProgramRuleVariableSourceType> dataElementSourceTypes() {
+    return ProgramRuleVariableSourceType.getDataTypes().stream();
+  }
+
+  @ParameterizedTest
+  @MethodSource("dataElementSourceTypes")
+  void shouldFailForAllDataElementSourceTypesWhenDataElementIsNull(
+      ProgramRuleVariableSourceType sourceType) {
+    when(programRuleVariable.getSourceType()).thenReturn(sourceType);
+    when(programRuleVariable.getDataElement()).thenReturn(null);
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertTrue(errorReports.stream().anyMatch(e -> e.getErrorCode().equals(E4059)));
+  }
+
+  @Test
+  void shouldPassWhenDataElementSourceTypeHasDataElement() {
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT);
+    when(programRuleVariable.getDataElement()).thenReturn(new DataElement());
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(0, errorReports.size());
+  }
+
+  @Test
+  void shouldFailWhenTeAttributeSourceTypeHasNoAttribute() {
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.TEI_ATTRIBUTE);
+    when(programRuleVariable.getAttribute()).thenReturn(null);
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(1, errorReports.size());
+    assertTrue(errorReports.stream().anyMatch(e -> e.getErrorCode().equals(E4089)));
+  }
+
+  @Test
+  void shouldPassWhenTeAttributeSourceTypeHasAttribute() {
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.TEI_ATTRIBUTE);
+    when(programRuleVariable.getAttribute()).thenReturn(new TrackedEntityAttribute());
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(0, errorReports.size());
+  }
+
+  @Test
+  void shouldPassWhenCalculatedValueSourceTypeHasValueType() {
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(ValueType.TEXT);
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(0, errorReports.size());
+  }
+
+  @Test
+  void shouldFailWhenSourceTypeIsMissing() {
+    when(programRuleVariable.getSourceType()).thenReturn(null);
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(1, errorReports.size());
+    assertTrue(errorReports.stream().anyMatch(e -> e.getErrorCode().equals(E4090)));
+  }
+
+  @Test
+  void shouldFailWhenProgramStageMissingForProgramStageDataElementSourceType() {
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE);
+    when(programRuleVariable.getDataElement()).thenReturn(new DataElement());
+    when(programRuleVariable.getProgramStage()).thenReturn(null);
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(1, errorReports.size());
+    assertTrue(errorReports.stream().anyMatch(e -> e.getErrorCode().equals(E4091)));
+  }
+
+  @Test
+  void shouldPassWhenDataElementAndProgramStagePresentForProgramStageSourceType() {
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE);
+    when(programRuleVariable.getDataElement()).thenReturn(new DataElement());
+    when(programRuleVariable.getProgramStage()).thenReturn(new ProgramStage());
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(0, errorReports.size());
+  }
+
+  @Test
+  void shouldFailWhenCalculatedValueHasNoValueType() {
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    when(programRuleVariable.getValueType()).thenReturn(null);
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(1, errorReports.size());
+    assertTrue(errorReports.stream().anyMatch(e -> e.getErrorCode().equals(E4092)));
+  }
+
+  @Test
+  void shouldFailWhenBothDataElementAndProgramStageMissingForProgramStageSourceType() {
+    when(programRuleVariable.getSourceType())
+        .thenReturn(ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE);
+    when(programRuleVariable.getDataElement()).thenReturn(null);
+    when(programRuleVariable.getProgramStage()).thenReturn(null);
+
+    List<ErrorReport> errorReports =
+        programRuleVariableObjectBundleHook.validate(programRuleVariable, objectBundle);
+
+    assertEquals(2, errorReports.size());
+    assertTrue(errorReports.stream().anyMatch(e -> e.getErrorCode().equals(E4059)));
+    assertTrue(errorReports.stream().anyMatch(e -> e.getErrorCode().equals(E4091)));
   }
 }

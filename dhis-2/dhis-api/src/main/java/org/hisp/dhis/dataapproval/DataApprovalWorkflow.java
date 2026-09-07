@@ -39,6 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -70,6 +71,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -102,12 +104,12 @@ public class DataApprovalWorkflow extends BaseMetadataObject
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
   /** The period type for approving data with this workflow. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "periodtypeid", nullable = false)
   private PeriodType periodType;
 
   /** The category combination for approving data with this workflow. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "categorycomboid", nullable = false)
   private CategoryCombo categoryCombo;
 
@@ -294,9 +296,11 @@ public class DataApprovalWorkflow extends BaseMetadataObject
     this.name = name;
   }
 
-  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return getName();
+    return translations.getTranslation("NAME", name);
   }
 
   @Override

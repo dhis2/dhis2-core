@@ -50,13 +50,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.dataelement.DataElementService")
 public class DefaultDataElementService implements DataElementService {
+
   private final DataElementStore dataElementStore;
-
   private final IdentifiableObjectStore<OptionSet> optionSetStore;
-
   private final IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
-
   private final GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
+  private final DataElementOperandStore dataElementOperandStore;
 
   // -------------------------------------------------------------------------
   // DataElement
@@ -260,5 +259,11 @@ public class DefaultDataElementService implements DataElementService {
   @Transactional(readOnly = true)
   public DataElementGroupSet getDataElementGroupSet(String uid) {
     return dataElementGroupSetStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataElementOperand> getAllDataElementOperands() {
+    return dataElementOperandStore.getAll();
   }
 }

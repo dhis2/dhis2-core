@@ -400,6 +400,10 @@ public class RelativePeriods implements Serializable {
 
     List<PeriodDimension> periods = new ArrayList<>();
 
+    if (weeklyStart == null) {
+      weeklyStart = AnalyticsWeeklyStartKey.getDefault();
+    }
+
     if (isThisFinancialPeriod()) {
       if (financialYearStart == null) {
         financialYearStart = AnalyticsFinancialYearStartKey.getDefault();
@@ -504,10 +508,6 @@ public class RelativePeriods implements Serializable {
     }
 
     if (isThisWeek()) {
-      if (weeklyStart == null) {
-        weeklyStart = AnalyticsWeeklyStartKey.getDefault();
-      }
-
       periods.add(
           getRelativePeriod(
               weeklyStart.getCalendarPeriodType(), LAST_WEEK, dateField, dynamicNames, format));
@@ -516,7 +516,7 @@ public class RelativePeriods implements Serializable {
     if (isLastWeek()) {
       periods.add(
           getRelativePeriod(
-              new WeeklyPeriodType(),
+              weeklyStart.getCalendarPeriodType(),
               LAST_WEEK,
               dateField.withDate(new DateTime(dateField.date()).minusWeeks(1).toDate()),
               dynamicNames,
@@ -605,7 +605,11 @@ public class RelativePeriods implements Serializable {
     if (isWeeksThisYear()) {
       periods.addAll(
           getRelativePeriodList(
-              new WeeklyPeriodType(), WEEKS_THIS_YEAR, dateField.date(), dynamicNames, format));
+              weeklyStart.getCalendarPeriodType(),
+              WEEKS_THIS_YEAR,
+              dateField.date(),
+              dynamicNames,
+              format));
     }
 
     if (isMonthsThisYear()) {
@@ -704,7 +708,7 @@ public class RelativePeriods implements Serializable {
     if (isLast4Weeks()) {
       periods.addAll(
           getRollingRelativePeriodList(
-                  new WeeklyPeriodType(),
+                  weeklyStart.getCalendarPeriodType(),
                   WEEKS_LAST_52,
                   new DateTime(dateField.date()).minusWeeks(1).toDate(),
                   dynamicNames,
@@ -726,7 +730,7 @@ public class RelativePeriods implements Serializable {
     if (isLast12Weeks()) {
       periods.addAll(
           getRollingRelativePeriodList(
-                  new WeeklyPeriodType(),
+                  weeklyStart.getCalendarPeriodType(),
                   WEEKS_LAST_52,
                   new DateTime(dateField.date()).minusWeeks(1).toDate(),
                   dynamicNames,
@@ -737,7 +741,7 @@ public class RelativePeriods implements Serializable {
     if (isLast52Weeks()) {
       periods.addAll(
           getRollingRelativePeriodList(
-              new WeeklyPeriodType(),
+              weeklyStart.getCalendarPeriodType(),
               WEEKS_LAST_52,
               new DateTime(dateField.date()).minusWeeks(1).toDate(),
               dynamicNames,

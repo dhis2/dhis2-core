@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,8 @@ package org.hisp.dhis.configuration;
 
 import java.util.Iterator;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.UserDetails;
@@ -43,11 +44,21 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.configuration.ConfigurationService")
 public class DefaultConfigurationService implements ConfigurationService {
-  @Qualifier("org.hisp.dhis.configuration.ConfigurationStore")
+  private static final String CORS_WHITELIST_CACHE_KEY = "CORS_WHITELIST";
+
   private final GenericStore<Configuration> configurationStore;
+
+  private final Cache<Set<String>> corsWhitelistCache;
+
+  public DefaultConfigurationService(
+      @Qualifier("org.hisp.dhis.configuration.ConfigurationStore")
+          GenericStore<Configuration> configurationStore,
+      CacheProvider cacheProvider) {
+    this.configurationStore = configurationStore;
+    this.corsWhitelistCache = cacheProvider.createCorsWhitelistCache();
+  }
 
   // -------------------------------------------------------------------------
   // ConfigurationService implementation
@@ -76,10 +87,27 @@ public class DefaultConfigurationService implements ConfigurationService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean isCorsWhitelisted(String origin) {
-    Set<String> corsWhitelist = getConfiguration().getCorsWhitelist();
+  public Set<String> getCorsWhitelist() {
+    return corsWhitelistCache.get(
+        CORS_WHITELIST_CACHE_KEY, key -> Set.copyOf(getConfiguration().getCorsWhitelist()));
+  }
 
-    for (String cors : corsWhitelist) {
+  @Override
+  @Transactional
+  public void setCorsWhitelist(Set<String> corsWhitelist) {
+    if (corsWhitelist == null) {
+      throw new IllegalArgumentException("corsWhitelist must not be null");
+    }
+    Configuration configuration = getConfiguration();
+    configuration.setCorsWhitelist(corsWhitelist);
+    setConfiguration(configuration);
+    corsWhitelistCache.invalidate(CORS_WHITELIST_CACHE_KEY);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isCorsWhitelisted(String origin) {
+    for (String cors : getCorsWhitelist()) {
       String regex = TextUtils.createRegexFromGlob(cors);
 
       if (origin.matches(regex)) {

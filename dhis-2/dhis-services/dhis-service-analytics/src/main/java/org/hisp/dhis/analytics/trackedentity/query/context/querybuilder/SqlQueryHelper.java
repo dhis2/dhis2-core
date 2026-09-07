@@ -41,7 +41,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.LeftJoin;
 import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OffsetHelper.Offset;
 
 /**
@@ -167,6 +169,52 @@ class SqlQueryHelper {
            where ev.rn = ${programStageOffset}
              and ev.enrollment = %s)"""
           .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
+
+  private static final String EVENT_VALUE_COLLAPSE_TABLE =
+      """
+          (select trackedentity, eventdatavalues
+           from (select trackedentity, eventdatavalues,
+                        row_number() over (partition by trackedentity order by occurreddate ${direction}) as rn
+                 from analytics_te_event_${trackedEntityTypeUid}
+                 where programstage = '${programStageUid}'
+                   and jsonb_exists(eventdatavalues, '${dataElementUid}')
+                   and status != 'SCHEDULE') e
+           where rn = ${offset}) ${alias}""";
+
+  /**
+   * Builds the LEFT JOIN that collapses each tracked entity's events for the given program stage to
+   * a single chosen row (per the offset), so a program-stage data element value can be aggregated
+   * at tracked-entity grain without fan-out. The derived table exposes {@code trackedentity} and
+   * {@code eventdatavalues} under the given alias, joined on the tracked entity.
+   *
+   * <p>The contract is deliberately tracked-entity-grained: the collapse partitions by {@code
+   * trackedentity} across <em>all</em> of the TE's events for the stage, regardless of enrollment.
+   * A TE with the stage under multiple enrollments therefore contributes the single event chosen by
+   * {@code occurreddate} across enrollments — not one per enrollment. Ties on {@code occurreddate}
+   * resolve nondeterministically, matching the row-level query's offset behaviour.
+   *
+   * @param eventValue the resolved program-stage data element value.
+   * @param trackedEntityTypeUid the lowercased tracked entity type table suffix.
+   * @param alias the alias of the collapsed event table.
+   * @return the {@link LeftJoin} attaching the collapsed events at tracked-entity grain.
+   */
+  static LeftJoin buildEventValueLeftJoin(
+      EventValue eventValue, String trackedEntityTypeUid, String alias) {
+    Offset offset = OffsetHelper.getOffset(eventValue.offset());
+    String table =
+        replace(
+            EVENT_VALUE_COLLAPSE_TABLE,
+            Map.of(
+                "direction", offset.direction(),
+                "trackedEntityTypeUid", trackedEntityTypeUid,
+                "programStageUid", eventValue.programStage().getUid(),
+                "dataElementUid", eventValue.dataElement().getUid(),
+                "offset", offset.offset(),
+                "alias", alias));
+
+    return LeftJoin.of(
+        () -> table, () -> alias + ".trackedentity = " + TRACKED_ENTITY_ALIAS + ".trackedentity");
+  }
 
   /**
    * Builds the order by sub-query for the given dimension identifier and field.

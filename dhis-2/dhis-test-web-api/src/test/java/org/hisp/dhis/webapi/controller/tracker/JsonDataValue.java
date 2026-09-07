@@ -37,7 +37,7 @@ public interface JsonDataValue extends JsonObject {
     return getString("dataElement").string();
   }
 
-  default String getValue() {
+  default String value() {
     return getString("value").string();
   }
 
@@ -47,10 +47,6 @@ public interface JsonDataValue extends JsonObject {
 
   default String getUpdatedAt() {
     return getString("updatedAt").string();
-  }
-
-  default String getStoredBy() {
-    return getString("storedBy").string();
   }
 
   default boolean getProvidedElsewhere() {

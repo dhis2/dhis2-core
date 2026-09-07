@@ -42,13 +42,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
+import org.hisp.dhis.test.e2e.dependsOn.Resource;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
 
 /** Groups e2e tests for "/analytics" aggregate endpoint. */
 public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
@@ -60,7 +61,6 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  @EnabledIf(value = "isPostgres", disabledReason = "subExpressions are only supported in Postgres")
   public void subExpressionIndicator() throws JSONException {
 
     // Given
@@ -135,6 +135,43 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @DependsOn(
+      files = {"ind-subexpression-no-offset.json"},
+      delete = true)
+  public void subExpressionIndicatorWithPeriodAndOrgUnitAsFilter(List<Resource> dependencies) {
+    String indicatorUid = dependencies.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:Rp268JB6Ne4;cDw53Ej8rju;iPcreOldeV9;jjtzkzrmG7s,pe:2021")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:" + indicatorUid);
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(2));
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
+    validateRow(response, List.of(indicatorUid, "3.0"));
+  }
+
+  @Test
   public void weeklyStartingOnMonday() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
@@ -161,7 +198,7 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"HS9zqaBdOQ4\":{\"name\":\"IDSR Plague\"},\"THIS_WEEK\":{\"name\":\"This week\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2022W5\":{\"name\":\"Week 5 2022-01-31 - 2022-02-06\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"HllvX50cXC0\":{\"name\":\"default\"}},\"dimensions\":{\"dx\":[\"HS9zqaBdOQ4\"],\"pe\":[\"2022W5\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"HllvX50cXC0\"]}}";
+        "{\"items\":{\"HS9zqaBdOQ4\":{\"name\":\"IDSR Plague\"},\"THIS_WEEK\":{\"name\":\"This week\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2022W5\":{\"name\":\"Week 5 - 2022-01-31 - 2022-02-06\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"HllvX50cXC0\":{\"name\":\"default\"}},\"dimensions\":{\"dx\":[\"HS9zqaBdOQ4\"],\"pe\":[\"2022W5\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"HllvX50cXC0\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

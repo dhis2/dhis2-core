@@ -114,6 +114,46 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
     assertTrue(actualAuthorities.contains("SCOPE_email"));
   }
 
+  /**
+   * The Spring {@code OAuth2AuthorizationConsent} domain object has no name field; the DHIS2 entity
+   * derives {@code name} from {@code principalName} to satisfy the NOT NULL constraint required by
+   * {@code BaseIdentifiableObject}.
+   */
+  @Test
+  void testSaveDerivesNameFromPrincipalName() {
+    OAuth2AuthorizationConsent consent =
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), "principal-derived")
+            .authority(new SimpleGrantedAuthority("SCOPE_profile"))
+            .build();
+
+    authorizationConsentService.save(consent);
+
+    Dhis2OAuth2AuthorizationConsent entity =
+        authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
+            registeredClient.getId(), "principal-derived");
+    assertNotNull(entity);
+    assertEquals("principal-derived", entity.getName());
+  }
+
+  @Test
+  void testSaveTruncatesLongPrincipalNameToNameColumnLength() {
+    // principal_name is varchar(255); name is varchar(230). Verify truncation.
+    String longPrincipal = "p".repeat(255);
+    OAuth2AuthorizationConsent consent =
+        OAuth2AuthorizationConsent.withId(registeredClient.getId(), longPrincipal)
+            .authority(new SimpleGrantedAuthority("SCOPE_profile"))
+            .build();
+
+    authorizationConsentService.save(consent);
+
+    Dhis2OAuth2AuthorizationConsent entity =
+        authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
+            registeredClient.getId(), longPrincipal);
+    assertNotNull(entity);
+    assertEquals(230, entity.getName().length());
+    assertEquals(longPrincipal, entity.getPrincipalName());
+  }
+
   @Test
   void testRemoveAuthorizationConsent() {
     // Given

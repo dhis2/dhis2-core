@@ -1,21 +1,28 @@
 # syntax=docker/dockerfile:1
 # Dockerfile to build and restore the DB dump at build time (not runtime)
 # This significantly speeds up container startup for performance tests.
+ARG DB_DIR
 ARG DB_TYPE
 ARG DB_VERSION
 
 FROM amazon/aws-cli:latest AS downloader
+ARG DB_DIR
 ARG DB_TYPE
 ARG DB_VERSION
 WORKDIR /tmp
 
-RUN S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz" && \
+RUN if [ -n "$DB_DIR" ]; then \
+      S3_PATH="s3://databases.dhis2.org/${DB_DIR}/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"; \
+    else \
+      S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"; \
+    fi && \
     echo "Downloading from: $S3_PATH" && \
     aws s3 cp --no-sign-request "$S3_PATH" dump.sql.gz
 
 FROM ghcr.io/baosystems/postgis:14-3.5 AS builder
 
-# Ensure build cache is invalidated when DB_TYPE or DB_VERSION changes so dump is restored
+# Ensure build cache is invalidated when DB_DIR, DB_TYPE or DB_VERSION changes so dump is restored
+ARG DB_DIR
 ARG DB_TYPE
 ARG DB_VERSION
 

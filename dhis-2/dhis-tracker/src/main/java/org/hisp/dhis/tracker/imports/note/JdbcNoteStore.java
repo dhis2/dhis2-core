@@ -115,10 +115,9 @@ public class JdbcNoteStore {
   private long saveNote(@Nonnull Note note, @Nonnull UserDetails user) {
     String sql =
         """
-            INSERT INTO public.note(noteid, notetext, creator, lastupdatedby, uid, created)
+            INSERT INTO public.note(noteid, notetext, lastupdatedby, uid, created)
             VALUES (nextVal('note_sequence'),
                     :text,
-                    :creator,
                     (select userinfoid from userinfo where uid = :lastUpdatedBy),
                     :uid,
                     :created)
@@ -127,7 +126,6 @@ public class JdbcNoteStore {
 
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("text", note.getValue());
-    params.addValue("creator", note.getStoredBy());
     params.addValue("lastUpdatedBy", user.getUid());
     params.addValue("uid", note.getNote().getValue());
     params.addValue("created", new Date());

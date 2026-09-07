@@ -1649,4 +1649,25 @@ class ExpressionServiceTest extends PostgresIntegrationTestBase {
         validity("greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", PREDICTOR_EXPRESSION));
     assertEquals(EXPRESSION_IS_NOT_WELL_FORMED, validity("1*", PREDICTOR_EXPRESSION));
   }
+
+  @Test
+  void testSubstituteIndicatorExpressionsResolvesOrgUnitGroupCounts() {
+    // Equivalence guard for the OUG{} count fix: substituteIndicatorExpressions must produce the
+    // same exploded expression as the previous group.getMembers().size() implementation, while
+    // resolving the count with a count query instead of initialising the members collection.
+    Indicator indicator = createIndicator('Z', indicatorTypeB);
+    indicator.setNumerator("OUG{" + orgUnitGroupA.getUid() + "}");
+    indicator.setDenominator("OUG{" + orgUnitGroupB.getUid() + "}");
+
+    expressionService.substituteIndicatorExpressions(List.of(indicator));
+
+    // The substituted count must equal what group.getMembers().size() returned before the change.
+    assertEquals(
+        String.valueOf(orgUnitGroupA.getMembers().size()), indicator.getExplodedNumerator());
+    assertEquals(
+        String.valueOf(orgUnitGroupB.getMembers().size()), indicator.getExplodedDenominator());
+    // orgUnitGroupA has 5 members, orgUnitGroupB has 3 (see setUp).
+    assertEquals("5", indicator.getExplodedNumerator());
+    assertEquals("3", indicator.getExplodedDenominator());
+  }
 }

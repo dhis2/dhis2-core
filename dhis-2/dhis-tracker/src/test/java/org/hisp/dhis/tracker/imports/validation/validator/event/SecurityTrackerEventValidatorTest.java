@@ -30,20 +30,25 @@
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1095;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1096;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1104;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1105;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -55,10 +60,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.acl.DefaultTrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -75,6 +82,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -102,6 +110,10 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
   @Mock private AclService aclService;
 
   @Mock private TrackerOwnershipManager ownershipAccessManager;
+
+  @Mock private TrackerProgramService trackerProgramService;
+
+  private TrackerAccessManager trackerAccessManager;
 
   private final UserDetails user = UserDetails.fromUser(makeUser("A"));
 
@@ -146,7 +158,12 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
-    validator = new SecurityTrackerEventValidator(aclService, ownershipAccessManager);
+    trackerAccessManager =
+        spy(
+            new DefaultTrackerAccessManager(
+                aclService, ownershipAccessManager, trackerProgramService));
+
+    validator = new SecurityTrackerEventValidator(trackerAccessManager);
 
     when(bundle.getPreheat()).thenReturn(preheat);
   }
@@ -197,6 +214,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
@@ -204,6 +222,10 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -233,9 +255,12 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -265,9 +290,10 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -289,6 +315,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
@@ -298,9 +325,9 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
 
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(false);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -330,10 +357,13 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
+    lenient()
+        .when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(false);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -355,6 +385,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
@@ -364,9 +395,10 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
 
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(false);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(false);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -396,10 +428,14 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
+    lenient()
+        .when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(false);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(false);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -421,6 +457,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
@@ -430,9 +467,9 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
 
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
-    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(false);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -462,10 +499,13 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
+    lenient()
+        .when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
-    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(false);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -500,10 +540,10 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
         .thenReturn(categoryOptionCombo);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
-    when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(false);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -514,8 +554,8 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
   @EnumSource(
       value = TrackerImportStrategy.class,
       mode = EnumSource.Mode.INCLUDE,
-      names = {"UPDATE", "DELETE"})
-  void shouldFailValidationWhenUserDoNotHaveWriteAccessToCategoryOptionForUpdateAndDeleteStrategy(
+      names = {"UPDATE"})
+  void shouldFailValidationWhenUserDoNotHaveWriteAccessToCategoryOptionForUpdateStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
@@ -535,12 +575,15 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
+    lenient()
+        .when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
 
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
-    when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(false);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1099);
@@ -569,15 +612,21 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
 
+    preheatEvent.setAttributeOptionCombo(categoryOptionCombo);
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
+    lenient()
+        .when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
+    lenient()
+        .when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
 
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -599,6 +648,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
             .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
             .build();
 
+    UserDetails userDetails = setUpUserWithOrgUnit();
     when(bundle.getStrategy(event)).thenReturn(strategy);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
     TrackerEvent preheatEvent = getEvent();
@@ -608,12 +658,11 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
         .thenReturn(organisationUnit);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
-
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -637,28 +686,19 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
             .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
             .build();
 
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(event.getEnrollment())
-            .trackedEntity(UID.generate())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
     when(bundle.getStrategy(event)).thenReturn(strategy);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
     TrackerEvent preheatEvent = getEvent();
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(null);
-    when(bundle.findEnrollmentByUid(event.getEnrollment())).thenReturn(Optional.of(enrollment));
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
     UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
@@ -689,26 +729,17 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     preheatEvent.setOrganisationUnit(captureScopeOrgUnit);
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getProgramOwner())
-        .thenReturn(
-            Collections.singletonMap(
-                TE_ID,
-                Collections.singletonMap(
-                    PROGRAM_ID,
-                    new TrackedEntityProgramOwnerOrgUnit(
-                        TE_ID.getValue(), PROGRAM_ID, organisationUnit))));
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(captureScopeOrgUnit)))
+        .thenReturn(captureScopeOrgUnit);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
 
-    when(ownershipAccessManager.hasAccess(userDetails, TE_ID.getValue(), organisationUnit, program))
-        .thenReturn(false);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1102);
 
-    when(ownershipAccessManager.hasAccess(userDetails, TE_ID.getValue(), organisationUnit, program))
-        .thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     reporter = new Reporter(idSchemes);
     validator.validate(reporter, bundle, event);
@@ -737,10 +768,12 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     preheatEvent.setEnrollment(enrollment);
 
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
-
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -767,10 +800,12 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     preheatEvent.setEnrollment(enrollment);
 
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
-
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -792,6 +827,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .status(EventStatus.SCHEDULE)
+            .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
             .build();
 
     when(bundle.getPreheat()).thenReturn(preheat);
@@ -800,13 +836,14 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, E1000);
+    assertHasError(reporter, event, E1105);
   }
 
   @ParameterizedTest
@@ -835,9 +872,12 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -872,6 +912,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -879,7 +920,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void shouldFailValidationWhenUpdatingCompletedEventAndUserHasNoAuthorityToUncompleteEvent() {
+  void shouldPassDatabaseAocToCanUpdateWhenPayloadOmitsAoc() {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
@@ -889,21 +930,101 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-    Enrollment enrollment = getEnrollment(enrollmentUid);
-    TrackerEvent preheatEvent = getEvent();
-    preheatEvent.setEnrollment(enrollment);
-    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
-
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('B');
+    TrackerEvent dbEvent = getEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(dbEvent);
+    doReturn(List.of())
+        .when(trackerAccessManager)
+        .canUpdate(
+            any(UserDetails.class),
+            any(TrackerEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class));
 
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, E1083);
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
+    verify(trackerAccessManager)
+        .canUpdate(
+            any(UserDetails.class),
+            any(TrackerEvent.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(dbAoc, aocCaptor.getValue());
+  }
+
+  @Test
+  void shouldPassPayloadAocToCanUpdateWhenPayloadSpecifiesAoc() {
+    CategoryOptionCombo payloadAoc = createCategoryOptionCombo('C');
+    MetadataIdentifier aocId = MetadataIdentifier.ofUid(payloadAoc.getUid());
+    UID enrollmentUid = UID.generate();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(UID.generate())
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(aocId)
+            .build();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('B');
+    TrackerEvent dbEvent = getEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(dbEvent);
+    when(preheat.getCategoryOptionCombo(aocId)).thenReturn(payloadAoc);
+    doReturn(List.of())
+        .when(trackerAccessManager)
+        .canUpdate(
+            any(UserDetails.class),
+            any(TrackerEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class));
+
+    validator.validate(reporter, bundle, event);
+
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
+    verify(trackerAccessManager)
+        .canUpdate(
+            any(UserDetails.class),
+            any(TrackerEvent.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(payloadAoc, aocCaptor.getValue());
+  }
+
+  @Test
+  void shouldPassDatabaseAocToCanDeleteRegardlessOfPayloadAoc() {
+    CategoryOptionCombo payloadAoc = createCategoryOptionCombo('C');
+    MetadataIdentifier aocId = MetadataIdentifier.ofUid(payloadAoc.getUid());
+    UID enrollmentUid = UID.generate();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(UID.generate())
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(aocId)
+            .build();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.DELETE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('B');
+    TrackerEvent dbEvent = getEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(dbEvent);
+    doReturn(List.of())
+        .when(trackerAccessManager)
+        .canDelete(any(UserDetails.class), any(TrackerEvent.class));
+
+    validator.validate(reporter, bundle, event);
+
+    ArgumentCaptor<TrackerEvent> captor = ArgumentCaptor.forClass(TrackerEvent.class);
+    verify(trackerAccessManager).canDelete(any(UserDetails.class), captor.capture());
+    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
   }
 
   private TrackedEntity teWithNoEnrollments() {
@@ -935,6 +1056,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(getEnrollment(UID.generate()));
     event.setStatus(EventStatus.COMPLETED);
+    event.setAttributeOptionCombo(createCategoryOptionCombo('Z'));
     return event;
   }
 }

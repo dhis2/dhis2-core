@@ -29,13 +29,22 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -138,5 +147,96 @@ class EventPeriodUtilsTest {
   void hasPeriodDimension_absent_returnsFalse() {
     EventQueryParams params = new EventQueryParams.Builder().build();
     assertFalse(EventPeriodUtils.hasPeriodDimension(params));
+  }
+
+  @Test
+  @DisplayName("sanitizeTimeFiltersForStageDateItems returns same params when no stage date item")
+  void sanitizeTimeFiltersForStageDateItems_noStageDateItem_returnsSameParams() {
+    Date startDate = new Date(1000L);
+    Date endDate = new Date(2000L);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().withStartDate(startDate).withEndDate(endDate).build();
+
+    EventQueryParams sanitized = EventPeriodUtils.sanitizeTimeFiltersForStageDateItems(params);
+
+    assertSame(params, sanitized);
+  }
+
+  @Test
+  @DisplayName(
+      "sanitizeTimeFiltersForStageDateItems clears start and end dates for default time field")
+  void sanitizeTimeFiltersForStageDateItems_defaultTimeField_clearsStartAndEndDates() {
+    Date startDate = new Date(1000L);
+    Date endDate = new Date(2000L);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withStartDate(startDate)
+            .withEndDate(endDate)
+            .addItem(stageEventDateItem())
+            .build();
+
+    EventQueryParams sanitized = EventPeriodUtils.sanitizeTimeFiltersForStageDateItems(params);
+
+    assertNull(sanitized.getStartDate());
+    assertNull(sanitized.getEndDate());
+  }
+
+  @Test
+  @DisplayName(
+      "sanitizeTimeFiltersForStageDateItems preserves start and end dates for LAST_UPDATED")
+  void sanitizeTimeFiltersForStageDateItems_lastUpdated_preservesStartAndEndDates() {
+    Date startDate = new Date(1000L);
+    Date endDate = new Date(2000L);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withStartDate(startDate)
+            .withEndDate(endDate)
+            .withTimeField(TimeField.LAST_UPDATED.name())
+            .addItem(stageEventDateItem())
+            .build();
+
+    EventQueryParams sanitized = EventPeriodUtils.sanitizeTimeFiltersForStageDateItems(params);
+
+    assertSame(params, sanitized);
+  }
+
+  @Test
+  @DisplayName(
+      "sanitizeTimeFiltersForStageDateItems preserves start and end dates for SCHEDULED_DATE")
+  void sanitizeTimeFiltersForStageDateItems_scheduledDate_preservesStartAndEndDates() {
+    Date startDate = new Date(1000L);
+    Date endDate = new Date(2000L);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withStartDate(startDate)
+            .withEndDate(endDate)
+            .withTimeField(TimeField.SCHEDULED_DATE.name())
+            .addItem(stageEventDateItem())
+            .build();
+
+    EventQueryParams sanitized = EventPeriodUtils.sanitizeTimeFiltersForStageDateItems(params);
+
+    assertSame(params, sanitized);
+  }
+
+  private static QueryItem stageEventDateItem() {
+    Program program = createProgram('A');
+    ProgramStage programStage = createProgramStage('A', program);
+
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            program,
+            null,
+            ValueType.DATE,
+            org.hisp.dhis.analytics.AggregationType.NONE,
+            null);
+    queryItem.setProgramStage(programStage);
+
+    return queryItem;
   }
 }

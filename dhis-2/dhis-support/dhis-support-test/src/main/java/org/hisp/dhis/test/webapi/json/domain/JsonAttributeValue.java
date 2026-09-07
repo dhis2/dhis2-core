@@ -37,7 +37,7 @@ import org.hisp.dhis.jsontree.JsonObject;
  * @author Jan Bernitt
  */
 public interface JsonAttributeValue extends JsonObject {
-  default String getValue() {
+  default String value() {
     return getString("value").string();
   }
 

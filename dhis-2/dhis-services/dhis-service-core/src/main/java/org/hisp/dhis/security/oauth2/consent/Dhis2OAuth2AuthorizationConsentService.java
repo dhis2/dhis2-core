@@ -31,19 +31,41 @@ package org.hisp.dhis.security.oauth2.consent;
 
 import java.util.List;
 
+/**
+ * DHIS2 service for persisting per-(user, client) OAuth2 consent grants. Backs Spring Authorization
+ * Server's {@link
+ * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService}.
+ *
+ * <p>Identity is the composite {@code (registeredClientId, principalName)}; each row holds the set
+ * of authorities (scopes) the user granted that client. Clients registered via DCR bypass the
+ * consent screen (they are saved with {@code requireAuthorizationConsent=false}) and therefore do
+ * not create rows here.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public interface Dhis2OAuth2AuthorizationConsentService {
+  /** Persist the consent or update the existing row with the same composite identity. */
   void save(
       org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
           authorizationConsent);
 
+  /** Delete the consent row matching the given Spring-AS consent's composite identity. */
   void remove(
       org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
           authorizationConsent);
 
+  /**
+   * Look up a consent by its composite identity. Returns {@code null} if none.
+   *
+   * @param registeredClientId the client's DHIS2 UID
+   * @param principalName the consenting user's principal name
+   */
   org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent findById(
       String registeredClientId, String principalName);
 
+  /** Return all persisted consent rows. */
   List<Dhis2OAuth2AuthorizationConsent> getAll();
 
+  /** Delete the given persisted consent entity. */
   void delete(Dhis2OAuth2AuthorizationConsent consent);
 }

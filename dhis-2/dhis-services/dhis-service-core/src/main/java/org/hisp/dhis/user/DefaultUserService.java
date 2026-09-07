@@ -644,19 +644,8 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public int getActiveUsersCount(int days) {
-    Calendar cal = PeriodType.createCalendarInstance();
-    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
-
-    return getActiveUsersCount(cal.getTime());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getActiveUsersCount(Date since) {
-    UserQueryParams params = new UserQueryParams();
-    params.setLastLogin(since);
-    return getUserCount(params);
+  public List<Integer> getActiveUsersCounts(List<Date> sinceDates) {
+    return userStore.getActiveUserCounts(sinceDates);
   }
 
   @Override
@@ -899,6 +888,28 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  @CheckForNull
+  public UserDetails createUserDetailsByUsername(@Nonnull String username) {
+    User user = userStore.getUserByUsername(username);
+    if (user == null) {
+      return null;
+    }
+    return createUserDetails(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  @CheckForNull
+  public UserDetails createUserDetailsByOpenId(@Nonnull String openId) {
+    User user = userStore.getUserByOpenId(openId);
+    if (user == null) {
+      return null;
+    }
+    return createUserDetails(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public UserDetails createUserDetails(User user) {
     if (user == null) {
       return null;
@@ -927,13 +938,23 @@ public class DefaultUserService implements UserService {
     List<String> dataViewOrganisationUnitsUidsByUser =
         organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
 
+    // Resolve managed-group primary keys in a single SQL query instead of letting
+    // UserDetails.createUserDetails walk User.getManagedGroups() (one lazy-load query per group).
+    Set<Long> userGroupPrimaryKeys =
+        user.getGroups() == null
+            ? Set.of()
+            : user.getGroups().stream().map(UserGroup::getId).collect(Collectors.toSet());
+    Set<Long> managedGroupLongIds = userGroupService.getManagedGroupIds(userGroupPrimaryKeys);
+
     return UserDetails.createUserDetails(
         user,
         accountNonLocked,
         credentialsNonExpired,
         new HashSet<>(organisationUnitsUidsByUser),
         new HashSet<>(searchOrganisationUnitsUidsByUser),
-        new HashSet<>(dataViewOrganisationUnitsUidsByUser));
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser),
+        true,
+        managedGroupLongIds);
   }
 
   @Override
@@ -995,22 +1016,75 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<SessionInformation> listAllSessions() {
+    return getAllSessionPrincipals().stream()
+        .flatMap(principal -> sessionRegistry.getAllSessions(principal, true).stream())
+        .toList();
+  }
+
+  @Override
   public void invalidateAllSessions() {
-    for (Object allPrincipal : sessionRegistry.getAllPrincipals()) {
-      for (SessionInformation allSession : sessionRegistry.getAllSessions(allPrincipal, true)) {
-        sessionRegistry.removeSessionInformation(allSession.getSessionId());
+    for (Object principal : getAllSessionPrincipals()) {
+      for (SessionInformation session : sessionRegistry.getAllSessions(principal, true)) {
+        sessionRegistry.removeSessionInformation(session.getSessionId());
       }
     }
   }
 
   @Override
   public void invalidateUserSessions(String username) {
-    User user = getUserByUsername(username);
-    UserDetails userDetails = createUserDetails(user);
-    if (userDetails != null) {
-      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
-      allSessions.forEach(SessionInformation::expireNow);
+    if (username == null) {
+      return;
     }
+    List<SessionInformation> sessions =
+        sessionRegistry.getAllSessions(sessionLookupPrincipal(username), false);
+    sessions.forEach(SessionInformation::expireNow);
+  }
+
+  /**
+   * Returns every principal currently known to the session registry. Tries {@link
+   * SessionRegistry#getAllPrincipals()} first; when that is unsupported (Redis-backed Spring
+   * Session registry), falls back to looking up sessions by username for every user in the system.
+   */
+  private List<Object> getAllSessionPrincipals() {
+    try {
+      return List.copyOf(sessionRegistry.getAllPrincipals());
+    } catch (UnsupportedOperationException ex) {
+      return userStore.getAllUsernames().stream()
+          .map(username -> (Object) sessionLookupPrincipal(username))
+          .toList();
+    }
+  }
+
+  /**
+   * Creates a minimal principal used only to look up sessions in the {@link SessionRegistry}. The
+   * in-memory registry matches principals by {@link UserDetailsImpl} equality, which includes the
+   * username only, and the Redis-backed registry resolves principals by name (username). Building
+   * this instead of loading the full user avoids one user fetch plus full {@code UserDetails}
+   * hydration (groups, roles, org units) per invalidated user.
+   */
+  private static UserDetails sessionLookupPrincipal(String username) {
+    return UserDetailsImpl.builder()
+        .username(username)
+        .authorities(List.of())
+        .allAuthorities(Set.of())
+        .allRestrictions(Set.of())
+        .userGroupIds(Set.of())
+        .userOrgUnitIds(Set.of())
+        .userDataOrgUnitIds(Set.of())
+        .userSearchOrgUnitIds(Set.of())
+        .userEffectiveSearchOrgUnitIds(Set.of())
+        .userRoleIds(Set.of())
+        .managedGroupLongIds(Set.of())
+        .userRoleLongIds(Set.of())
+        .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getUsernamesByUserRole(@Nonnull UID roleUid) {
+    return userStore.getUsernamesByUserRole(roleUid);
   }
 
   @Override

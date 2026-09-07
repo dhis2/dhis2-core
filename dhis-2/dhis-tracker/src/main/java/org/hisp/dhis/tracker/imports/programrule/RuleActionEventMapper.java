@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
@@ -64,25 +63,40 @@ class RuleActionEventMapper {
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> eventValidationEffects, TrackerBundle bundle) {
-    return eventValidationEffects.keySet().stream()
-        .filter(e -> bundle.findEventByUid(e).isPresent())
-        .collect(
-            Collectors.toMap(
-                e -> bundle.findEventByUid(e).get(),
-                e ->
-                    mapRuleEffects(
-                        bundle.findEventByUid(e).get(), eventValidationEffects.get(e), bundle)));
+    // Use entrySet() so findEventByUid is called once per entry instead of three times,
+    // avoiding two redundant Optional allocations per event.
+    return eventValidationEffects.entrySet().stream()
+        .flatMap(
+            entry ->
+                bundle
+                    .findEventByUid(entry.getKey())
+                    .map(event -> Map.entry(event, mapRuleEffects(event, entry.getValue(), bundle)))
+                    .stream())
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private List<RuleActionExecutor<Event>> mapRuleEffects(
       Event event, List<ValidationEffect> ruleValidationEffects, TrackerBundle bundle) {
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
 
+    // needsToValidateDataValues depends only on event+programStage, not on individual effects;
+    // hoist the check to avoid evaluating it once per effect and short-circuit early.
+    if (!needsToValidateDataValues(event, programStage)) {
+      return List.of();
+    }
+
+    // Data elements of the stage, projected by ProgramStageDataElementsSupplier. Rules refer to
+    // data elements by uid, so the uid set is the one to probe.
+    Set<String> stageDataElementUids =
+        bundle.getPreheat().getProgramStageDataElements(programStage).memberUids().stream()
+            .map(UID::getValue)
+            .collect(Collectors.toSet());
+
     return ruleValidationEffects.stream()
-        .filter(executor -> needsToValidateDataValues(event, programStage))
         .map(effect -> buildEventRuleActionExecutor(effect, event.getDataValues()))
         .filter(
-            executor -> isDataElementPartOfProgramStage(executor.getDataElementUid(), programStage))
+            executor ->
+                isDataElementPartOfProgramStage(executor.getDataElementUid(), stageDataElementUids))
         .toList();
   }
 
@@ -108,13 +122,8 @@ class RuleActionEventMapper {
     };
   }
 
-  private boolean isDataElementPartOfProgramStage(UID dataElementUid, ProgramStage programStage) {
-    if (dataElementUid == null) {
-      return true;
-    }
-
-    return programStage.getDataElements().stream()
-        .map(IdentifiableObject::getUid)
-        .anyMatch(de -> de.equals(dataElementUid.getValue()));
+  private boolean isDataElementPartOfProgramStage(
+      UID dataElementUid, Set<String> stageDataElementUids) {
+    return dataElementUid == null || stageDataElementUids.contains(dataElementUid.getValue());
   }
 }

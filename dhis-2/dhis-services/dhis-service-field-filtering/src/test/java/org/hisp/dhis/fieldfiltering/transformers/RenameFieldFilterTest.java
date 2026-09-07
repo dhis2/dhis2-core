@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collections;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ class RenameFieldFilterTest {
     FieldPathTransformer fieldPathTransformer =
         new FieldPathTransformer("rename", Collections.singletonList("aaa"));
     RenameFieldTransformer transformer = new RenameFieldTransformer(fieldPathTransformer);
-    transformer.apply("a", objectNode.get("a"), objectNode);
+    transformer.apply(PropertyPath.of("a"), objectNode.get("a"), objectNode);
     assertNull(objectNode.get("a"));
     assertNotNull(objectNode.get("aaa"));
   }

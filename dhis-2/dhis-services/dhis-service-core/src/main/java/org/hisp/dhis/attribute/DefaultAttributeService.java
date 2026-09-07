@@ -31,9 +31,9 @@ package org.hisp.dhis.attribute;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -118,8 +118,8 @@ public class DefaultAttributeService implements AttributeService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Attribute> getAttributesByIds(Collection<String> ids) {
-    return attributeStore.getByUid(ids);
+  public List<Attribute> getAttributesByIds(Stream<UID> ids) {
+    return attributeStore.getByUid(ids.map(UID::getValue).toList());
   }
 
   // -------------------------------------------------------------------------

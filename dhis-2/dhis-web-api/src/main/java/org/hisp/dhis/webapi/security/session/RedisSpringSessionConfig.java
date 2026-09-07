@@ -65,7 +65,7 @@ public class RedisSpringSessionConfig {
   @Bean
   public RedisIndexedSessionRepository sessionRepository(
       @Autowired LettuceConnectionFactory lettuceConnectionFactory) {
-    RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
+    RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
     redisTemplate.setConnectionFactory(lettuceConnectionFactory);
     redisTemplate.setKeySerializer(new StringRedisSerializer());
     redisTemplate.setHashKeySerializer(new StringRedisSerializer());
@@ -84,6 +84,12 @@ public class RedisSpringSessionConfig {
   public SpringSessionBackedSessionRegistry sessionRegistry(
       RedisIndexedSessionRepository sessionRepository) {
     return new SpringSessionBackedSessionRegistry<>(sessionRepository);
+  }
+
+  @Bean
+  public SessionCreationTimeProvider sessionCreationTimeProvider(
+      RedisIndexedSessionRepository sessionRepository) {
+    return new RedisSessionCreationTimeProvider(sessionRepository);
   }
 
   @Bean

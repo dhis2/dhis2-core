@@ -447,19 +447,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getAllSorted(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllOrderedName();
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getAllByAttributes(
       @Nonnull Class<T> type, @Nonnull Collection<UID> attributes) {
     if (!hasAttributeValues(type) || attributes.isEmpty()) return List.of();

@@ -43,7 +43,7 @@ import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -59,7 +59,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/api/mapViews")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class MapViewController extends AbstractCrudController<MapView, GetObjectListParams> {
+public class MapViewController
+    extends AbstractFullReadOnlyController<MapView, GetObjectListParams> {
   @Autowired private MappingService mappingService;
 
   @Autowired private OrganisationUnitService organisationUnitService;

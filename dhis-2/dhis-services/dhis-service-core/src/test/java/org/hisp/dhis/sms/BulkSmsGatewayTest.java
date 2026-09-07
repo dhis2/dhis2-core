@@ -104,6 +104,8 @@ class BulkSmsGatewayTest extends TestBase {
 
   @BeforeEach
   public void initTest() {
+    bulkSmsGateway.setRestTemplate(restTemplate);
+
     smsGatewayConfig = new BulkSmsGatewayConfig();
     smsGatewayConfig.setDefault(true);
     smsGatewayConfig.setUsername("username");

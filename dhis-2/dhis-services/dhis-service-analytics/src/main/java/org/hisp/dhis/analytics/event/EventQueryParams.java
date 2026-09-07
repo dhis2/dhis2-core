@@ -48,7 +48,9 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import com.google.common.base.MoreObjects;
@@ -79,6 +81,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfo;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
@@ -139,6 +142,8 @@ public class EventQueryParams extends DataQueryParams {
   public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
   public static final String TRACKER_COORDINATE_FIELD = "TRACKER";
+
+  public record GeometrySource(String coordinateField, String source) {}
 
   /** The query items. */
   private List<QueryItem> items = new ArrayList<>();
@@ -224,6 +229,9 @@ public class EventQueryParams extends DataQueryParams {
    * fields.
    */
   private List<String> coordinateFields;
+
+  /** The ordered source labels for resolved coordinate fields. */
+  private List<GeometrySource> geometrySources = List.of();
 
   /** Bounding box for events to include in clustering. */
   private String bbox;
@@ -338,6 +346,7 @@ public class EventQueryParams extends DataQueryParams {
     params.aggregateData = this.aggregateData;
     params.clusterSize = this.clusterSize;
     params.coordinateFields = this.coordinateFields;
+    params.geometrySources = new ArrayList<>(this.geometrySources);
     params.bbox = this.bbox;
     params.includeClusterPoints = this.includeClusterPoints;
     params.enrollmentStatus = new LinkedHashSet<>(this.enrollmentStatus);
@@ -629,6 +638,7 @@ public class EventQueryParams extends DataQueryParams {
         .addIgnoreNull("aggregateData", aggregateData)
         .addIgnoreNull("clusterSize", clusterSize)
         .addIgnoreNull("coordinateFields", coordinateFields)
+        .addIgnoreNull("geometrySources", geometrySources.isEmpty() ? null : geometrySources)
         .addIgnoreNull("bbox", bbox)
         .addIgnoreNull("includeClusterPoints", includeClusterPoints)
         .addIgnoreNull("enrollmentStatus", enrollmentStatus)
@@ -1295,6 +1305,14 @@ public class EventQueryParams extends DataQueryParams {
     return hasEnrollmentOuDimension() || hasEnrollmentOuFilter();
   }
 
+  /** Returns the first sort item that reads an enrollment org unit column, if any. */
+  public Optional<String> getEnrollmentOuSortColumn() {
+    return Stream.concat(asc.stream(), desc.stream())
+        .map(QueryItem::getItemId)
+        .filter(OrgUnitSqlConstants.RESULT_ALIASES::contains)
+        .findFirst();
+  }
+
   public List<DimensionalItemObject> getEnrollmentOuDimensionItems() {
     return enrollmentOuDimensionItems;
   }
@@ -1348,12 +1366,12 @@ public class EventQueryParams extends DataQueryParams {
 
   /** Returns true when the request is incoming from analytics enrollments/aggregate end point. */
   public boolean isAggregatedEnrollments() {
-    return endpointAction == EndpointAction.AGGREGATE && endpointItem == EndpointItem.ENROLLMENT;
+    return endpointAction == EndpointAction.AGGREGATE && endpointItem == ENROLLMENT;
   }
 
-  /** Returns true when the request is incoming from analytics events/query end point. */
-  public boolean isQueryEvents() {
-    return endpointAction == QUERY && endpointItem == EndpointItem.EVENT;
+  /** Returns true when the request is incoming from analytics events/aggregate end point. */
+  public boolean isAggregatedEvents() {
+    return endpointAction == AGGREGATE && endpointItem == EndpointItem.EVENT;
   }
 
   @Override
@@ -1481,12 +1499,24 @@ public class EventQueryParams extends DataQueryParams {
     return endpointAction == QUERY;
   }
 
+  public boolean isEnrollmentAggregateQuery() {
+    return endpointAction == AGGREGATE && endpointItem == ENROLLMENT;
+  }
+
   public Long getClusterSize() {
     return clusterSize;
   }
 
   public List<String> getCoordinateFields() {
     return coordinateFields;
+  }
+
+  public List<GeometrySource> getGeometrySources() {
+    return geometrySources;
+  }
+
+  public boolean hasGeometrySources() {
+    return isNotEmpty(geometrySources);
   }
 
   public String getBbox() {
@@ -1608,6 +1638,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder removeItems() {
       this.params.items.clear();
+      return this;
+    }
+
+    public Builder removeItemFilters() {
+      this.params.itemFilters.clear();
       return this;
     }
 
@@ -1798,6 +1833,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withCoordinateFields(List<String> coordinateFields) {
       this.params.coordinateFields = coordinateFields;
+      return this;
+    }
+
+    public Builder withGeometrySources(List<GeometrySource> geometrySources) {
+      this.params.geometrySources = geometrySources == null ? List.of() : geometrySources;
       return this;
     }
 

@@ -74,10 +74,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
+@Transactional
 class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTestBase {
   private static final String ACCESS_NONE = "--------";
 
@@ -630,6 +632,9 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     settingsService.put("keyIgnoreAnalyticsApprovalYearThreshold", 0);
     settingsService.put("keyAcceptanceRequiredForApproval", true);
     settingsService.clearCurrentSettings();
+
+    // flush so the raw-SQL data-approval reads see the setup metadata
+    entityManager.flush();
   }
 
   @AfterEach
@@ -738,6 +743,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     setUser(user);
     try {
       dataApprovalService.approveData(Arrays.asList(da));
+      entityManager.flush();
       return true;
     } catch (DataApprovalException ex) {
       return false;
@@ -766,6 +772,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     setUser(user);
     try {
       dataApprovalService.unapproveData(Arrays.asList(da));
+      entityManager.flush();
       return true;
     } catch (DataApprovalException ex) {
       return false;
@@ -794,6 +801,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     setUser(user);
     try {
       dataApprovalService.acceptData(Arrays.asList(da));
+      entityManager.flush();
       return true;
     } catch (DataApprovalException ex) {
       return false;
@@ -822,6 +830,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     setUser(user);
     try {
       dataApprovalService.unacceptData(Arrays.asList(da));
+      entityManager.flush();
       return true;
     } catch (DataApprovalException ex) {
       return false;

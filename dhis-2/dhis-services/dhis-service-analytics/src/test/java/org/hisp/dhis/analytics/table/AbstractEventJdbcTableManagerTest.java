@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.ValueType;
@@ -157,5 +158,122 @@ class AbstractEventJdbcTableManagerTest {
             ValueType.GEOJSON, "eventdatavalues #>> '{C6bh7GevJfH, value}'");
 
     assertEquals(expected, actual);
+  }
+
+  // ---------------------------------------------------------------------------
+  // collectColumnJoinClauses
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void testCollectColumnJoinClauses_emptyColumnList() {
+    assertEquals("", AbstractEventJdbcTableManager.collectColumnJoinClauses(List.of()));
+  }
+
+  @Test
+  void testCollectColumnJoinClauses_noColumnDeclaresJoinClause() {
+    AnalyticsTableColumn col =
+        AnalyticsTableColumn.builder()
+            .name("foo")
+            .dataType(DataType.TEXT)
+            .selectExpression("ev.foo")
+            .build();
+
+    assertEquals("", AbstractEventJdbcTableManager.collectColumnJoinClauses(List.of(col)));
+  }
+
+  @Test
+  void testCollectColumnJoinClauses_singleClause() {
+    String join = "left join organisationunit ou_x on ou_x.uid = ev.foo";
+    AnalyticsTableColumn col =
+        AnalyticsTableColumn.builder()
+            .name("foo_name")
+            .dataType(DataType.TEXT)
+            .selectExpression("ou_x.name as foo_name")
+            .joinClause(join)
+            .build();
+
+    assertEquals(join, AbstractEventJdbcTableManager.collectColumnJoinClauses(List.of(col)));
+  }
+
+  @Test
+  void testCollectColumnJoinClauses_distinctClausesJoinedWithSpace() {
+    AnalyticsTableColumn a =
+        AnalyticsTableColumn.builder()
+            .name("a_name")
+            .dataType(DataType.TEXT)
+            .selectExpression("ou_a.name as a_name")
+            .joinClause("left join organisationunit ou_a on ou_a.uid = ev.a")
+            .build();
+    AnalyticsTableColumn b =
+        AnalyticsTableColumn.builder()
+            .name("b_name")
+            .dataType(DataType.TEXT)
+            .selectExpression("ou_b.name as b_name")
+            .joinClause("left join organisationunit ou_b on ou_b.uid = ev.b")
+            .build();
+
+    String expected =
+        "left join organisationunit ou_a on ou_a.uid = ev.a "
+            + "left join organisationunit ou_b on ou_b.uid = ev.b";
+
+    assertEquals(expected, AbstractEventJdbcTableManager.collectColumnJoinClauses(List.of(a, b)));
+  }
+
+  @Test
+  void testCollectColumnJoinClauses_deduplicatesIdenticalClauses() {
+    String join = "left join organisationunit ou_x on ou_x.uid = ev.foo";
+    AnalyticsTableColumn first =
+        AnalyticsTableColumn.builder()
+            .name("foo_name")
+            .dataType(DataType.TEXT)
+            .selectExpression("ou_x.name as foo_name")
+            .joinClause(join)
+            .build();
+    AnalyticsTableColumn second =
+        AnalyticsTableColumn.builder()
+            .name("foo_geometry")
+            .dataType(DataType.TEXT)
+            .selectExpression("ou_x.geometry as foo_geometry")
+            .joinClause(join)
+            .build();
+
+    assertEquals(
+        join, AbstractEventJdbcTableManager.collectColumnJoinClauses(List.of(first, second)));
+  }
+
+  @Test
+  void testCollectColumnJoinClauses_filtersNullAndBlankClauses() {
+    AnalyticsTableColumn nullClause =
+        AnalyticsTableColumn.builder()
+            .name("a")
+            .dataType(DataType.TEXT)
+            .selectExpression("ev.a")
+            .build();
+    AnalyticsTableColumn emptyClause =
+        AnalyticsTableColumn.builder()
+            .name("b")
+            .dataType(DataType.TEXT)
+            .selectExpression("ev.b")
+            .joinClause("")
+            .build();
+    AnalyticsTableColumn whitespaceClause =
+        AnalyticsTableColumn.builder()
+            .name("c")
+            .dataType(DataType.TEXT)
+            .selectExpression("ev.c")
+            .joinClause("   ")
+            .build();
+    AnalyticsTableColumn realClause =
+        AnalyticsTableColumn.builder()
+            .name("d_name")
+            .dataType(DataType.TEXT)
+            .selectExpression("ou_d.name as d_name")
+            .joinClause("left join organisationunit ou_d on ou_d.uid = ev.d")
+            .build();
+
+    assertEquals(
+        "left join organisationunit ou_d on ou_d.uid = ev.d",
+        AbstractEventJdbcTableManager.collectColumnJoinClauses(
+            List.of(nullClause, emptyClause, whitespaceClause, realClause)));
   }
 }

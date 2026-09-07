@@ -35,12 +35,10 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -83,25 +81,8 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
       return false;
     }
 
-    if (COL_NAME_TRACKED_ENTITY_GEOMETRY.equals(coordinateField)) {
-      return isRegistration;
-    }
-
-    if (COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST.contains(coordinateField)) {
-      return true;
-    }
-
-    DataElement dataElement = dataElementService.getDataElement(coordinateField);
-
-    TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute(coordinateField);
-
-    if (dataElement != null || attribute != null) {
-      return true;
-    }
-
-    throwIllegalQueryEx(ErrorCode.E7232, coordinateField);
-
-    return false;
+    resolveAndValidateFallbackColumn(isRegistration, coordinateField);
+    return true;
   }
 
   @Override
@@ -112,11 +93,8 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
     List<String> fallbackCoordinateFields = new ArrayList<>();
 
     if (fallbackCoordinateField != null) {
-      if (!isFallbackCoordinateFieldValid(pr.isRegistration(), fallbackCoordinateField)) {
-        throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7232, fallbackCoordinateField));
-      }
-
-      fallbackCoordinateFields.add(fallbackCoordinateField);
+      fallbackCoordinateFields.add(
+          resolveAndValidateFallbackColumn(pr.isRegistration(), fallbackCoordinateField));
     } else if (defaultCoordinateFallback) {
       List<String> items =
           new ArrayList<>(
@@ -128,6 +106,54 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
     }
 
     return fallbackCoordinateFields;
+  }
+
+  /**
+   * Validates a fallback coordinate field and resolves it to the analytics table column to use in
+   * SQL. Built-in geometry fields are returned unchanged, coordinate DE/TEA fields are returned
+   * unchanged, and organisation unit DE/TEA fields are resolved to their generated geometry column.
+   *
+   * @param isRegistration true when the program has registration.
+   * @param fallbackCoordinateField the requested fallback coordinate field.
+   * @return the analytics table column name to use for the fallback field, or {@code null} when the
+   *     fallback field is {@code null}.
+   * @throws org.hisp.dhis.common.IllegalQueryException if the field is unknown, is not valid for
+   *     the program type, or has an unsupported value type.
+   */
+  private String resolveAndValidateFallbackColumn(
+      boolean isRegistration, String fallbackCoordinateField) {
+    if (fallbackCoordinateField == null) {
+      return null;
+    }
+
+    if (COL_NAME_TRACKED_ENTITY_GEOMETRY.equals(fallbackCoordinateField)) {
+      if (!isRegistration) {
+        throwIllegalQueryEx(ErrorCode.E7232, fallbackCoordinateField);
+      }
+
+      return fallbackCoordinateField;
+    }
+
+    if (COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST.contains(fallbackCoordinateField)) {
+      return fallbackCoordinateField;
+    }
+
+    DataElement dataElement = dataElementService.getDataElement(fallbackCoordinateField);
+    if (dataElement != null) {
+      return validateCoordinateField(
+          dataElement.getValueType(), fallbackCoordinateField, ErrorCode.E7219);
+    }
+
+    TrackedEntityAttribute attribute =
+        attributeService.getTrackedEntityAttribute(fallbackCoordinateField);
+    if (attribute != null) {
+      return validateCoordinateField(
+          attribute.getValueType(), fallbackCoordinateField, ErrorCode.E7220);
+    }
+
+    throwIllegalQueryEx(ErrorCode.E7232, fallbackCoordinateField);
+
+    return null;
   }
 
   @Override

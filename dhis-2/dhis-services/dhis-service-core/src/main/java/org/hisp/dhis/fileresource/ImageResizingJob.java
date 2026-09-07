@@ -80,9 +80,7 @@ public class ImageResizingJob implements Job {
   }
 
   private void storeImageFiles(FileResource image) {
-    String key = image.getStorageKey();
-
-    if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey())) {
+    if (!fileResourceContentStore.fileResourceContentExists(image.asBlobKey())) {
       throw new IllegalStateException(
           "The referenced file could not be found for FileResource: " + image.getUid());
     }
@@ -90,7 +88,7 @@ public class ImageResizingJob implements Job {
     File tmpFile = new File(UUID.randomUUID().toString());
 
     try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile)) {
-      fileResourceContentStore.copyContent(key, fileOutputStream);
+      fileResourceContentStore.copyContent(image.asBlobKey(), fileOutputStream);
 
       String storageKey =
           fileResourceContentStore.saveFileResourceContent(

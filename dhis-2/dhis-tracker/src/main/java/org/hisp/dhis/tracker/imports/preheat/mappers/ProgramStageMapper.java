@@ -43,6 +43,7 @@ import org.mapstruct.factory.Mappers;
       AttributeValuesMapper.class,
       SharingMapper.class,
       ProgramStageDataElementMapper.class,
+      ProgramNotificationTemplateMapper.class,
     })
 public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   ProgramStageMapper INSTANCE = Mappers.getMapper(ProgramStageMapper.class);
@@ -57,11 +58,14 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "program", qualifiedByName = "program")
   @Mapping(target = "repeatable")
   @Mapping(target = "referral")
-  @Mapping(target = "programStageDataElements")
+  // programStageDataElements is deliberately not mapped, as it initialized one DataElement entity
+  // per element. Read TrackerPreheat#getProgramStageDataElements instead.
   @Mapping(target = "enableUserAssignment")
   @Mapping(target = "validationStrategy")
   @Mapping(target = "featureType")
   @Mapping(target = "sharing")
+  @Mapping(target = "notificationTemplates")
+  @Mapping(target = "blockEntryForm")
   ProgramStage map(ProgramStage programStage);
 
   @Named("program")

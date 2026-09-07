@@ -29,13 +29,13 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +55,10 @@ import org.springframework.transaction.annotation.Transactional;
 class UserGroupServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
+
+  @Autowired private UserGroupStore userGroupStore;
+
+  @Autowired private org.hisp.dhis.common.IdentifiableObjectManager manager;
 
   private User user1;
 
@@ -134,20 +138,17 @@ class UserGroupServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetAllUserGroups() {
-    List<UserGroup> userGroups = new ArrayList<>();
     Set<User> members = new HashSet<>();
     members.add(user1);
     members.add(user3);
     UserGroup userGroupA = createUserGroup('A', members);
-    userGroups.add(userGroupA);
     userGroupService.addUserGroup(userGroupA);
     members = new HashSet<>();
     members.add(user1);
     members.add(user2);
     UserGroup userGroupB = createUserGroup('B', members);
-    userGroups.add(userGroupB);
     userGroupService.addUserGroup(userGroupB);
-    assertEquals(userGroupService.getAllUserGroups(), userGroups);
+    assertContainsOnly(List.of(userGroupA, userGroupB), userGroupService.getAllUserGroups());
   }
 
   @Test
@@ -180,6 +181,29 @@ class UserGroupServiceTest extends PostgresIntegrationTestBase {
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet());
     userGroupService.addUserGroup(userGroup);
     assertEquals("UserGroupA", userGroupService.getDisplayName(userGroup.getUid()));
+  }
+
+  @Test
+  void testGetManagedGroupIds() {
+    UserGroup managed1 = createUserGroup('M', new HashSet<>());
+    UserGroup managed2 = createUserGroup('N', new HashSet<>());
+    userGroupService.addUserGroup(managed1);
+    userGroupService.addUserGroup(managed2);
+
+    UserGroup managingGroup = createUserGroup('G', new HashSet<>());
+    managingGroup.addManagedGroup(managed1);
+    managingGroup.addManagedGroup(managed2);
+    userGroupService.addUserGroup(managingGroup);
+    manager.flush();
+
+    Set<Long> managedIds = userGroupStore.getManagedGroupIds(Set.of(managingGroup.getId()));
+
+    assertContainsOnly(Set.of(managed1.getId(), managed2.getId()), managedIds);
+  }
+
+  @Test
+  void testGetManagedGroupIdsEmptyInputReturnsEmpty() {
+    assertTrue(userGroupStore.getManagedGroupIds(Set.of()).isEmpty());
   }
 
   @Test

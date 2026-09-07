@@ -166,7 +166,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .trackedEntityType(MetadataIdentifier.ofUid(trackerEntityType))
             .createdAtClient(NOW.toInstant())
             .updatedAtClient(NOW.toInstant())
-            .storedBy(creatingUser.getUsername())
             .inactive(true)
             .build();
 
@@ -185,7 +184,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .trackedEntityType(MetadataIdentifier.ofUid(trackerEntityType))
             .createdAtClient(NOW.toInstant())
             .updatedAtClient(NOW.toInstant())
-            .storedBy(creatingUser.getUsername())
             .inactive(true)
             .build();
 
@@ -208,8 +206,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .enrolledAt(NOW.toInstant())
             .occurredAt(YESTERDAY.toInstant())
             .status(ACTIVE)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -234,8 +231,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(ACTIVE)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -262,8 +258,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(EnrollmentStatus.COMPLETED)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -290,8 +285,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(EnrollmentStatus.CANCELLED)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -318,8 +312,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(ACTIVE)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -344,7 +337,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .storedBy(creatingUser.getUsername())
             .build();
 
     TrackerEvent result = TrackerObjectsMapper.map(preheat, event, creatingUser);
@@ -367,7 +359,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
 
     TrackerEvent result = TrackerObjectsMapper.map(preheat, event, updatingUser);
@@ -393,7 +385,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
 
     TrackerEvent result = TrackerObjectsMapper.map(preheat, event, updatingUser);
@@ -424,7 +416,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .assignedUser(user)
             .build();
 
@@ -455,7 +447,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .assignedUser(user)
             .attributeOptionCombo(MetadataIdentifier.ofUid(COC_UID))
             .build();
@@ -536,7 +528,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
         DateUtils.fromInstant(trackedEntity.getCreatedAtClient()), actual.getCreatedAtClient());
     assertEquals(
         DateUtils.fromInstant(trackedEntity.getUpdatedAtClient()), actual.getLastUpdatedAtClient());
-    assertEquals(createdBy.getUsername(), actual.getStoredBy());
     assertEquals(trackedEntity.isPotentialDuplicate(), actual.isPotentialDuplicate());
     assertEquals(trackedEntity.isInactive(), actual.isInactive());
     assertEquals(trackedEntity.getGeometry(), actual.getGeometry());
@@ -558,7 +549,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
     assertEquals(
         DateUtils.fromInstant(enrollment.getUpdatedAtClient()), actual.getLastUpdatedAtClient());
     assertEquals(DateUtils.fromInstant(enrollment.getEnrolledAt()), actual.getEnrollmentDate());
-    assertEquals(createdBy.getUsername(), actual.getStoredBy());
     assertEquals(enrollment.getStatus(), actual.getStatus());
     assertEquals(enrollment.getGeometry(), actual.getGeometry());
     assertEquals(enrollment.isFollowUp(), actual.getFollowup());
@@ -581,7 +571,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
         DateUtils.fromInstant(event.getUpdatedAtClient()), actual.getLastUpdatedAtClient());
     assertEquals(DateUtils.fromInstant(event.getScheduledAt()), actual.getScheduledDate());
     assertEquals(DateUtils.fromInstant(event.getOccurredAt()), actual.getOccurredDate());
-    assertEquals(createdBy.getUsername(), actual.getStoredBy());
     assertEquals(event.getStatus(), actual.getStatus());
     assertEquals(event.getGeometry(), actual.getGeometry());
     assertNotes(event.getNotes(), actual.getNotes(), updatedBy);
@@ -635,7 +624,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
               .orElse(null);
       assertNotNull(dbNote);
       assertEquals(note.getValue(), dbNote.getNoteText());
-      assertEquals(note.getStoredBy(), dbNote.getCreator());
       assertEquals(updatedBy.getUid(), dbNote.getLastUpdatedBy().getUid());
     }
   }
@@ -647,7 +635,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
     dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(creatingUser));
 
     dbTrackedEntity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(updatingUser));
-    dbTrackedEntity.setStoredBy(creatingUser.getUsername());
     dbTrackedEntity.setLastUpdated(NOW);
     dbTrackedEntity.setDeleted(false);
     dbTrackedEntity.setPotentialDuplicate(false);
@@ -673,7 +660,6 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
     dbEnrollment.setEnrollmentDate(NOW);
     dbEnrollment.setOccurredDate(YESTERDAY);
     dbEnrollment.setStatus(status);
-    dbEnrollment.setStoredBy(creatingUser.getUsername());
     return dbEnrollment;
   }
 
@@ -691,19 +677,16 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
     dbEvent.setScheduledDate(NOW);
     dbEvent.setOccurredDate(YESTERDAY);
     dbEvent.setStatus(status);
-    dbEvent.setStoredBy(creatingUser.getUsername());
     dbEvent.setAttributeOptionCombo(defaultCategoryOptionCombo);
     dbEvent.setOccurredDate(today);
-    dbEvent.setStoredBy(creatingUser.getUsername());
     return dbEvent;
   }
 
-  private List<org.hisp.dhis.tracker.imports.domain.Note> notes(UserDetails user) {
+  private List<org.hisp.dhis.tracker.imports.domain.Note> notes() {
     return List.of(
         org.hisp.dhis.tracker.imports.domain.Note.builder()
             .note(NOTE_UID)
             .value("This is a note")
-            .storedBy(user.getUsername())
             .build());
   }
 }

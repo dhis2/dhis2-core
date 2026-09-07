@@ -56,7 +56,7 @@ class CategoryOptionControllerTest extends H2ControllerIntegrationTestBase {
   void getAllCatOptionsIncludingDefaultsTest() {
     TestCategoryMetadata categoryMetadata = setupCategoryMetadata("dco1");
     JsonArray categoryOptions =
-        GET("/categoryOptions").content(HttpStatus.OK).getArray("categoryOptions");
+        GET("/categoryOptions?gist=false").content(HttpStatus.OK).getArray("categoryOptions");
 
     Set<String> coNames = new HashSet<>(categoryMetadata.getCoNames());
     coNames.add("default");

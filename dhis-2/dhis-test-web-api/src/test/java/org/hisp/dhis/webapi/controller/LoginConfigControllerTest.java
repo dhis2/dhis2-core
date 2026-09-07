@@ -203,7 +203,7 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     JsonObject response = GET("/loginConfig").content();
     assertEquals(
         "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", response.getString("recaptchaSite").string());
-    POST("/systemSettings/recaptchaSite", "test_recaptcha_stie").content(HttpStatus.OK);
+    POST("/systemSettings/recaptchaSite", "'test_recaptcha_stie'").content(HttpStatus.OK);
     response = GET("/loginConfig").content();
     assertEquals("test_recaptcha_stie", response.getString("recaptchaSite").string());
   }

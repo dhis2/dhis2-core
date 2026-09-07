@@ -31,8 +31,8 @@ package org.hisp.dhis.db.init;
 
 import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

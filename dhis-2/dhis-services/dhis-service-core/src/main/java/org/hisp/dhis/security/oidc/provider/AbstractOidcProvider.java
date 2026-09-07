@@ -30,14 +30,42 @@
 package org.hisp.dhis.security.oidc.provider;
 
 /**
+ * Abstract base for all built-in DHIS2 OIDC provider builders. Shared constants and configuration
+ * keys declared here are consumed by the concrete built-in providers, {@link GoogleProvider},
+ * {@link AzureAdProvider}, {@link Wso2Provider} and {@link Dhis2InternalOidcProvider}. Providers
+ * declared with an arbitrary, non-reserved id (for example {@code oidc.provider.keycloak.*}) are
+ * handled by {@link GenericOidcProviderBuilder} instead, which also extends this class to reuse the
+ * same config-key vocabulary.
+ *
+ * <p>Every configured OIDC provider whose registration is visible on the login page renders as a
+ * sign-in button on the DHIS2 web login page when {@code oidc.oauth2.login.enabled=on}. The
+ * internal DHIS2-as-IdP provider ({@link Dhis2InternalOidcProvider}) is registered when the
+ * embedded authorization server is enabled and is deliberately not shown on the login page.
+ *
+ * <p>The public string constants below fall into two groups: defaults used when a given
+ * configuration value is absent, and the canonical property-key suffixes used to look up values
+ * inside {@code oidc.provider.<id>.*} blocks. The keystore related constants carry the values used
+ * by providers that authenticate with {@code private_key_jwt}.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public abstract class AbstractOidcProvider {
+  /**
+   * Default Spring Security redirect URI template applied to every provider when no explicit {@code
+   * redirect_url} is configured. The {@code baseUrl} and {@code registrationId} placeholders are
+   * resolved by Spring Security at runtime.
+   */
   public static final String DEFAULT_REDIRECT_TEMPLATE_URL =
       "{baseUrl}/oauth2/code/{registrationId}";
 
+  /**
+   * Default ID-token / user-info claim used to look up the local DHIS2 user when no explicit {@code
+   * mapping_claim} is configured. The internal DHIS2-as-IdP provider overrides this with {@code
+   * username}.
+   */
   public static final String DEFAULT_MAPPING_CLAIM = "email";
 
+  /** Default OAuth2 / OIDC scope requested by every built-in provider. */
   public static final String DEFAULT_SCOPE = "openid";
 
   public static final String PROVIDER_ID = "provider_id";

@@ -60,10 +60,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
+@Transactional
 class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
@@ -127,6 +129,8 @@ class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     CategoryCombo ccA = categoryService.getDefaultCategoryCombo();
     dwA = new DataApprovalWorkflow("DataApprovalWorkflowA", monthly, ccA, Sets.newHashSet(dlA));
     idObjectManager.save(dwA);
+    // flush so the raw-SQL count/merge queries see the setup metadata
+    entityManager.flush();
   }
 
   @Test
@@ -194,5 +198,7 @@ class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   private void addDataApprovals(DataApproval... dataApprovals) {
     Stream.of(dataApprovals).forEach(dataApprovalService::addDataApproval);
+    // flush so the raw-SQL data-approval count/merge queries see the session writes
+    entityManager.flush();
   }
 }

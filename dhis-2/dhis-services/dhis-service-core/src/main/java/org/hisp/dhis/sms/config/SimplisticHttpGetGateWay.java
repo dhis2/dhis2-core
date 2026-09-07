@@ -55,15 +55,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component("org.hisp.dhis.sms.config.SimplisticHttpGetGateWay")
 public class SimplisticHttpGetGateWay extends SmsGateway {
-  private final RestTemplate restTemplate;
-
   @Qualifier("tripleDesStringEncryptor")
   private final PBEStringEncryptor pbeStringEncryptor;
 
@@ -102,10 +99,10 @@ public class SimplisticHttpGetGateWay extends SmsGateway {
 
       if (genericConfig.isSendUrlParameters()) {
         uriBuilder =
-            UriComponentsBuilder.fromHttpUrl(
+            UriComponentsBuilder.fromUriString(
                 config.getUrlTemplate() + "?" + requestEntity.getBody());
       } else {
-        uriBuilder = UriComponentsBuilder.fromHttpUrl(config.getUrlTemplate());
+        uriBuilder = UriComponentsBuilder.fromUriString(config.getUrlTemplate());
       }
 
       uri = uriBuilder.build().encode().toUri();

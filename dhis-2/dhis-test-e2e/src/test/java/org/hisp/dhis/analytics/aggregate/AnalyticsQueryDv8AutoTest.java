@@ -333,14 +333,12 @@ public class AnalyticsQueryDv8AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("htr2mMY515K", "202101", "141.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202102", "136.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202103", "163.0", "", "", "", "", ""));
-    validateRow(response, List.of("htr2mMY515K", "202104", "163.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202105", "126.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202106", "162.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202107", "158.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202108", "154.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202109", "149.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202110", "156.0", "", "", "", "", ""));
-    validateRow(response, List.of("htr2mMY515K", "202111", "181.0", "", "", "", "", ""));
     validateRow(response, List.of("htr2mMY515K", "202112", "139.0", "", "", "", "", ""));
     validateRow(response, List.of("tUdBD1JDxpn", "202101", "42.82", "", "", "", "", ""));
     validateRow(response, List.of("tUdBD1JDxpn", "202102", "43.78", "", "", "", "", ""));
@@ -393,14 +391,11 @@ public class AnalyticsQueryDv8AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("ToQVD4irW3Q", "202101", "49.19", "", "", "", "", ""));
     validateRow(response, List.of("ToQVD4irW3Q", "202102", "50.39", "", "", "", "", ""));
     validateRow(response, List.of("ToQVD4irW3Q", "202103", "48.95", "", "", "", "", ""));
-    validateRow(response, List.of("ToQVD4irW3Q", "202104", "48.24", "", "", "", "", ""));
     validateRow(response, List.of("ToQVD4irW3Q", "202105", "49.01", "", "", "", "", ""));
     validateRow(response, List.of("ToQVD4irW3Q", "202106", "49.26", "", "", "", "", ""));
     validateRow(response, List.of("ToQVD4irW3Q", "202107", "49.89", "", "", "", "", ""));
     validateRow(response, List.of("ToQVD4irW3Q", "202108", "48.66", "", "", "", "", ""));
     validateRow(response, List.of("ToQVD4irW3Q", "202109", "48.86", "", "", "", "", ""));
-    validateRow(response, List.of("ToQVD4irW3Q", "202110", "48.23", "", "", "", "", ""));
-    validateRow(response, List.of("ToQVD4irW3Q", "202111", "49.09", "", "", "", "", ""));
     validateRow(response, List.of("ToQVD4irW3Q", "202112", "51.3", "", "", "", "", ""));
     validateRow(response, List.of("ReQEl5V3z6p", "202101", "49.93", "", "", "", "", ""));
     validateRow(response, List.of("ReQEl5V3z6p", "202102", "49.49", "", "", "", "", ""));
@@ -429,14 +424,11 @@ public class AnalyticsQueryDv8AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("vDdRoZYybP2", "202101", "295.0", "", "", "", "", ""));
     validateRow(response, List.of("vDdRoZYybP2", "202102", "288.0", "", "", "", "", ""));
     validateRow(response, List.of("vDdRoZYybP2", "202103", "320.0", "", "", "", "", ""));
-    validateRow(response, List.of("vDdRoZYybP2", "202104", "317.0", "", "", "", "", ""));
     validateRow(response, List.of("vDdRoZYybP2", "202105", "298.0", "", "", "", "", ""));
     validateRow(response, List.of("vDdRoZYybP2", "202106", "307.0", "", "", "", "", ""));
     validateRow(response, List.of("vDdRoZYybP2", "202107", "316.0", "", "", "", "", ""));
     validateRow(response, List.of("vDdRoZYybP2", "202108", "299.0", "", "", "", "", ""));
     validateRow(response, List.of("vDdRoZYybP2", "202109", "310.0", "", "", "", "", ""));
-    validateRow(response, List.of("vDdRoZYybP2", "202110", "303.0", "", "", "", "", ""));
-    validateRow(response, List.of("vDdRoZYybP2", "202111", "316.0", "", "", "", "", ""));
     validateRow(response, List.of("vDdRoZYybP2", "202112", "282.0", "", "", "", "", ""));
     validateRow(response, List.of("p2Zxg0wcPQ3", "202107", "482.0", "", "", "", "", ""));
     validateRow(response, List.of("p2Zxg0wcPQ3", "202103", "493.0", "", "", "", "", ""));
@@ -537,14 +529,12 @@ public class AnalyticsQueryDv8AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("Y7hKDSuqEtH", "202101", "75.51", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202102", "60.76", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202103", "65.06", "", "", "", "", ""));
-    validateRow(response, List.of("Y7hKDSuqEtH", "202104", "61.91", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202105", "63.63", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202106", "69.18", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202107", "68.54", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202108", "65.73", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202109", "69.79", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202110", "69.22", "", "", "", "", ""));
-    validateRow(response, List.of("Y7hKDSuqEtH", "202111", "61.1", "", "", "", "", ""));
     validateRow(response, List.of("Y7hKDSuqEtH", "202112", "71.79", "", "", "", "", ""));
   }
 

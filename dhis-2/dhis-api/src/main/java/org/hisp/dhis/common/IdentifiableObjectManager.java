@@ -185,6 +185,7 @@ public interface IdentifiableObjectManager {
   <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query);
 
   @Nonnull
+  @UsageTestOnly
   <T extends IdentifiableObject> List<T> getAll(@Nonnull Class<T> type);
 
   @Nonnull
@@ -192,9 +193,6 @@ public interface IdentifiableObjectManager {
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getDataReadAll(@Nonnull Class<T> type);
-
-  @Nonnull
-  <T extends IdentifiableObject> List<T> getAllSorted(@Nonnull Class<T> type);
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getAllByAttributes(

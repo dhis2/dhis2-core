@@ -96,12 +96,23 @@ class StageDatePeriodBucketSqlRendererTest {
   void shouldRenderPostgresCorrelatedSubquery() {
     DefaultStageDatePeriodBucketSqlRenderer subject =
         new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder());
-    QueryItem item = createItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
 
-    String expression = subject.renderPeriodBucketExpression(item, "monthly");
+    String expression = subject.renderPeriodBucketExpression("ax.\"occurreddate\"", "monthly");
 
     assertTrue(expression.contains("analytics_rs_dateperiodstructure"));
     assertTrue(expression.contains("cast(ax.\"occurreddate\" as date)"));
+    assertTrue(expression.contains("\"monthly\""));
+  }
+
+  @Test
+  void shouldRenderPostgresSubqueryOverProvidedColumn() {
+    DefaultStageDatePeriodBucketSqlRenderer subject =
+        new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder());
+
+    String expression =
+        subject.renderPeriodBucketExpression("latest_events_abc.ev_occurreddate", "monthly");
+
+    assertTrue(expression.contains("cast(latest_events_abc.ev_occurreddate as date)"));
     assertTrue(expression.contains("\"monthly\""));
   }
 
@@ -110,9 +121,8 @@ class StageDatePeriodBucketSqlRendererTest {
     DefaultStageDatePeriodBucketSqlRenderer subject =
         new DefaultStageDatePeriodBucketSqlRenderer(
             new DorisAnalyticsSqlBuilder("internal", "doris-jdbc.jar"));
-    QueryItem item = createItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
 
-    String expression = subject.renderPeriodBucketExpression(item, "yearly");
+    String expression = subject.renderPeriodBucketExpression("ax.`occurreddate`", "yearly");
 
     assertEquals("date_format(cast(ax.`occurreddate` as date), '%Y')", expression);
   }
@@ -121,9 +131,8 @@ class StageDatePeriodBucketSqlRendererTest {
   void shouldRenderClickHouseExpressionFromScheduledDateColumn() {
     DefaultStageDatePeriodBucketSqlRenderer subject =
         new DefaultStageDatePeriodBucketSqlRenderer(new ClickHouseAnalyticsSqlBuilder("default"));
-    QueryItem item = createItem(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
 
-    String expression = subject.renderPeriodBucketExpression(item, "monthly");
+    String expression = subject.renderPeriodBucketExpression("ax.\"scheduleddate\"", "monthly");
 
     assertEquals("formatDateTime(toDate(ax.\"scheduleddate\"), '%Y%m')", expression);
   }
@@ -141,9 +150,8 @@ class StageDatePeriodBucketSqlRendererTest {
 
     DefaultStageDatePeriodBucketSqlRenderer subject =
         new DefaultStageDatePeriodBucketSqlRenderer(builder);
-    QueryItem item = createItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
 
-    String expression = subject.renderPeriodBucketExpression(item, "monthly");
+    String expression = subject.renderPeriodBucketExpression("ax.\"occurreddate\"", "monthly");
 
     assertEquals("custom_bucket_expr", expression);
   }

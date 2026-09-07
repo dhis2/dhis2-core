@@ -29,7 +29,10 @@
  */
 package org.hisp.dhis.test.webapi.json.domain;
 
+import static org.hisp.dhis.jsontree.JsonSelector.AT;
+
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
@@ -68,5 +71,22 @@ public interface JsonWebMessage extends JsonObject {
 
   default JsonObject getResponse() {
     return getObject("response");
+  }
+
+  default JsonErrorReport findErrorReport(ErrorCode code) {
+    return queryFirst(
+            AT.find(
+                JsonNodeType.OBJECT, obj -> obj.as(JsonErrorReport.class).getErrorCode() == code))
+        .orElseThrow()
+        .as(JsonErrorReport.class);
+  }
+
+  default JsonImportConflict findImportConflict(ErrorCode code) {
+    return queryFirst(
+            AT.find(
+                JsonNodeType.OBJECT,
+                obj -> obj.as(JsonImportConflict.class).getErrorCode() == code))
+        .orElseThrow()
+        .as(JsonImportConflict.class);
   }
 }

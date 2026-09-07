@@ -35,10 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -49,6 +53,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class MapControllerTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private IdentifiableObjectManager manager;
+
   @Test
   void testPutJsonObject() {
     String mapId = assertStatus(HttpStatus.CREATED, POST("/maps/", "{'name':'My map'}"));
@@ -59,9 +66,9 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
     // object.
     String mandatoryProperties =
         "'lastUpdated':'"
-            + map.get("lastUpdated").node().value()
+            + map.get("lastUpdated").string()
             + "', 'created':'"
-            + map.get("created").node().value()
+            + map.get("created").string()
             + "'";
 
     assertStatus(
@@ -70,7 +77,7 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
 
     map = GET("/maps/{uid}", mapId).content();
 
-    assertEquals("My updated map", map.get("name").node().value());
+    assertEquals("My updated map", map.get("name").string());
   }
 
   @Test
@@ -181,5 +188,80 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
                     \"layer\": \"thematic1\",
                     \"renderingStrategy\": \"SINGLE\" } ]}
                     """));
+  }
+
+  @Test
+  void testPostMapViewWithPeriods() {
+    IndicatorType indicatorType = createIndicatorType('A');
+    manager.save(indicatorType);
+
+    Indicator stubIndicator = createIndicator('A', indicatorType);
+    manager.save(stubIndicator);
+
+    String mapUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/maps/",
+                """
+                {
+                    "name": "Any name",
+                    "mapViews": [
+                        {
+                            "columns": [
+                                {
+                                    "dimension": "dx",
+                                    "items": [
+                                        {
+                                            "id": "${ind}",
+                                            "name": "ANC 1 Coverage",
+                                            "dimensionItemType": "INDICATOR"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "filters": [
+                                {
+                                    "dimension": "pe",
+                                    "items": [
+                                        {
+                                            "id": "202601"
+                                        },
+                                        {
+                                            "id": "LAST_12_MONTHS"
+                                        },
+                                        {
+                                            "id": "THIS_MONTH"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "layer": "thematic",
+                            "name": "ANC 1 Coverage",
+                            "periodType": "PREDEFINED_PERIODS",
+                            "renderingStrategy": "SINGLE",
+                            "rows": [
+                                {
+                                    "dimension": "ou",
+                                    "items": [
+                                        {
+                                            "id": "LEVEL-wjP19dkFeIk"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+                                    """
+                    .replace("${ind}", stubIndicator.getUid())));
+
+    JsonObject map =
+        GET("/maps/{uid}?fields=mapViews[rawPeriods,filters[items]]", mapUid).content();
+    assertNotNull(map.getArray("mapViews"));
+    assertEquals(1, map.getArray("mapViews").size());
+    JsonObject mapView = map.getArray("mapViews").get(0).as(JsonObject.class);
+    assertEquals(3, mapView.getArray("filters").getObject(0).getArray("items").size());
+    assertEquals(3, mapView.getArray("rawPeriods").size());
   }
 }

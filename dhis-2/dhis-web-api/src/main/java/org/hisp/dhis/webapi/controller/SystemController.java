@@ -274,7 +274,7 @@ public class SystemController {
       value = "/info",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody ResponseEntity<ObjectNode> getSystemInfo(
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       HttpServletRequest request,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser) {
@@ -300,14 +300,6 @@ public class SystemController {
   @GetMapping(value = "/objectCounts")
   public @ResponseBody ObjectCount getObjectCounts() {
     return new ObjectCount(statisticsProvider.getObjectCounts());
-  }
-
-  @GetMapping("/ping")
-  @ResponseStatus(HttpStatus.OK)
-  public @ResponseBody String ping(HttpServletResponse response) {
-    setNoStore(response);
-
-    return "pong";
   }
 
   @GetMapping(value = "/flags", produces = APPLICATION_JSON_VALUE)

@@ -29,9 +29,8 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import java.util.Collections;
 import java.util.List;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.hisp.dhis.user.UserDetails;
 
@@ -39,40 +38,27 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Olav Hansen
  */
 @Data
-@Builder
+@AllArgsConstructor
 public class FieldFilterParams<T> {
   /** Objects to apply filters on. */
   private final List<T> objects;
 
-  private final String filters;
-
-  private UserDetails user;
+  private final String fields;
 
   /** Do not include sharing properties (user, sharing, publicAccess, etc). */
   private final boolean skipSharing;
 
-  public static <O> FieldFilterParams<O> of(List<O> objects, List<String> filters) {
-    return FieldFilterParams.<O>builder().objects(objects).filters(filters).build();
+  private UserDetails user;
+
+  public static <T> FieldFilterParams<T> of(T object, String fields) {
+    return of(List.of(object), fields);
   }
 
-  public static <O> FieldFilterParams<O> of(O object, List<String> filters) {
-    return FieldFilterParams.<O>builder()
-        .objects(Collections.singletonList(object))
-        .filters(filters)
-        .build();
+  public static <T> FieldFilterParams<T> of(List<T> objects, String fields) {
+    return of(objects, fields, false);
   }
 
-  public static class FieldFilterParamsBuilder<T> {
-    private String filters = "*";
-
-    public FieldFilterParamsBuilder<T> filters(String filters) {
-      this.filters = filters;
-      return this;
-    }
-
-    public FieldFilterParamsBuilder<T> filters(List<String> filters) {
-      this.filters = String.join(",", filters);
-      return this;
-    }
+  public static <T> FieldFilterParams<T> of(List<T> objects, String fields, boolean skipSharing) {
+    return new FieldFilterParams<>(objects, fields, skipSharing, null);
   }
 }

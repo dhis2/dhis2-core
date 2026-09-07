@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Transactional
-abstract class AbstractGistControllerTest extends H2ControllerIntegrationTestBase {
+abstract class AbstractGistControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired protected OrganisationUnitService organisationUnitService;
 
   protected String userGroupId;

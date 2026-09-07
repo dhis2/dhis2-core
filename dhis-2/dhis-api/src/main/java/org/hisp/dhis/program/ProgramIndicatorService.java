@@ -214,6 +214,47 @@ public interface ProgramIndicatorService {
       String tableAlias);
 
   /**
+   * Same as {@link #getAnalyticsSql(String, DataType, ProgramIndicator, Date, Date, String)} but
+   * leaves the {@code d2:relationshipCount} placeholder unexpanded so callers can apply a
+   * dialect-specific expansion (e.g. a {@code LEFT JOIN} on engines that do not support correlated
+   * subqueries).
+   *
+   * @param expression the expression.
+   * @param dataType the data type to return.
+   * @param programIndicator the program indicator to evaluate.
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @param tableAlias use this table alias for expression returning a inner query
+   * @return the SQL string with {@code __D2RELCNT__(uid='...')__} placeholders intact.
+   */
+  String getAnalyticsSqlDeferRelationshipCount(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate,
+      String tableAlias);
+
+  /**
+   * Gets the analytics SQL clause of an expression. The SQL does not substitute null values.
+   *
+   * @param expression the expression.
+   * @param dataType the data type to return.
+   * @param programIndicator the program indicator to evaluate.
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @param tableAlias use this table alias for expression returning a inner query
+   * @return the SQL string.
+   */
+  String getAnalyticsSqlAllowingNulls(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate,
+      String tableAlias);
+
+  /**
    * Returns a SQL clause which matches any value for the data elements and attributes in the given
    * expression.
    *

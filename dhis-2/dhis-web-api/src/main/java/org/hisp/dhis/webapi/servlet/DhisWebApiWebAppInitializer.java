@@ -148,8 +148,29 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter(
+            "LegacyDhisWebLoginRedirectFilter",
+            new DelegatingFilterProxy("legacyDhisWebLoginRedirectFilter"))
+        .addMappingForUrlPatterns(null, false, "/dhis-web-login", "/dhis-web-login/*");
+
+    // CORS for the security-ignored loginConfig endpoint (DHIS2-21909): the path is excluded
+    // from the Spring Security filter chain, so the security-level CorsFilter never runs for
+    // it. Must be registered before springSecurityFilterChain; scoped to /api/**/loginConfig
+    // by the path gate in LoginConfigCorsFilter#shouldNotFilter.
+    context
+        .addFilter("loginConfigCorsFilter", new DelegatingFilterProxy("loginConfigCorsFilter"))
+        .addMappingForUrlPatterns(null, false, "/api/*");
+
+    context
+        .addFilter(
             "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+    FilterRegistration.Dynamic etagFilter =
+        context.addFilter(
+            "excludableShallowEtagHeaderFilter",
+            new DelegatingFilterProxy("excludableShallowEtagHeaderFilter"));
+    etagFilter.setAsyncSupported(true);
+    etagFilter.addMappingForUrlPatterns(null, true, "/api/*");
 
     context
         .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))
@@ -157,13 +178,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter("sessionIdFilter", new DelegatingFilterProxy("sessionIdFilter"))
-        .addMappingForUrlPatterns(null, true, "/*");
-
-    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
-      headers using ContextUtils.setNoStore(response).
-    */
-    context
-        .addFilter("AppHtmlNoCacheFilter", new DelegatingFilterProxy("appHtmlNoCacheFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     context

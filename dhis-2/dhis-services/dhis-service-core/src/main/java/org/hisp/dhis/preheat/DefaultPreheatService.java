@@ -391,7 +391,8 @@ public class DefaultPreheatService implements PreheatService {
             object
                 .getAttributeValues()
                 .forEach(
-                    (attributeId, value) -> {
+                    (key, value) -> {
+                      String attributeId = key.toString();
                       Set<String> uids = preheat.getUniqueAttributes().get(klass);
                       if (uids != null && uids.contains(attributeId)) {
                         Map<String, Map<String, String>> values =
@@ -399,7 +400,7 @@ public class DefaultPreheatService implements PreheatService {
                         if (!values.containsKey(attributeId)) {
                           values.put(attributeId, new HashMap<>());
                         }
-                        values.get(attributeId).put(value, object.getUid());
+                        values.get(attributeId).put(value.toString(), object.getUid());
                       }
                     }));
   }
@@ -487,7 +488,7 @@ public class DefaultPreheatService implements PreheatService {
                   (attributeId, value) ->
                       map.get(PreheatIdentifier.UID)
                           .computeIfAbsent(Attribute.class, k -> new HashSet<>())
-                          .add(attributeId));
+                          .add(attributeId.toString()));
           identifiableObject
               .getSharing()
               .getUserGroups()

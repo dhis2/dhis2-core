@@ -152,7 +152,7 @@ public class ValidationHelper {
             "rows",
             describedAs(
                 "Row count mismatch (expected %0, rows: %1)",
-                hasSize(expectedRowCount), expectedRowCount, rows))
+                hasSize(expectedRowCount), expectedRowCount, rows.size()))
         .body(
             "height",
             describedAs(

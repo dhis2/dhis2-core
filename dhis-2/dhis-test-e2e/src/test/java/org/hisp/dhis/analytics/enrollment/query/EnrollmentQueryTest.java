@@ -89,8 +89,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        17,
-        14); // Pass runtime flag, row count, and expected header counts
+        18,
+        15); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -127,8 +127,6 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,

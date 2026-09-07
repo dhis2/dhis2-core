@@ -219,7 +219,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
-            .filter(tea -> !tea.isConfidentialBool() && !tea.isSkipAnalytics())
+            .filter(tea -> !tea.getSkipAnalytics())
             .toList();
 
     params.addExtraParam(
@@ -334,7 +334,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
         ((List<TrackedEntityAttribute>)
                 params.getExtraParam(
                     trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
-            .stream().filter(tea -> !tea.isSkipAnalytics()).toList();
+            .stream().filter(tea -> !tea.getSkipAnalytics()).toList();
 
     if (isNotEmpty(attributes)) {
       attributes.forEach(
@@ -422,11 +422,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
                     .name("coordinates")
                     .dataType(TEXT)
                     .selectExpression("te.coordinates")
-                    .build(),
-                AnalyticsTableColumn.builder()
-                    .name("storedby")
-                    .dataType(VARCHAR_255)
-                    .selectExpression("te.storedby")
                     .build(),
                 AnalyticsTableColumn.builder()
                     .name("potentialduplicate")

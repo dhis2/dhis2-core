@@ -106,9 +106,13 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Label for Follow Up", program.getFollowUpLabel().string());
     assertEquals("Label for Org Unit", program.getOrUnitLabel().string());
     assertEquals("Label for Relationship", program.getRelationshipLabel().string());
+    assertEquals("Label for Relationships", program.getRelationshipsLabel().string());
     assertEquals("Label for Note", program.getNoteLabel().string());
+    assertEquals("Label for Notes", program.getNotesLabel().string());
     assertEquals(
         "Label for Tracked Entity Attribute", program.getTrackedEntityAttributeLabel().string());
+    assertEquals(
+        "Label for Tracked Entity Attributes", program.getTrackedEntityAttributesLabel().string());
     assertEquals("Label for Program Stage", program.getProgramStageLabel().string());
     assertEquals("Label for Program Stages", program.getProgramStagesLabel().string());
     assertEquals("Label for Event", program.getEventLabel().string());
@@ -443,23 +447,29 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testDeleteWithMapView() {
-    String mapViewJson =
+
+    String mapJson =
         """
         {
-          "name": "test mapview",
-          "id": "mVIVRd23Jm9",
-          "organisationUnitLevels": [],
-          "maps": [],
-          "layer": "event",
-          "program": {
-            "id": "PrZMWi7rBga"
-          },
-          "programStage": {
-            "id": "PSzMWi7rBga"
-          }
+          "name": "test map",
+          "id": "mAPVRd23Jm9",
+          "mapViews": [
+            {
+              "name": "test mapview",
+              "id": "mVIVRd23Jm9",
+              "organisationUnitLevels": [],
+              "layer": "event",
+              "program": {
+                "id": "PrZMWi7rBga"
+              },
+              "programStage": {
+                "id": "PSzMWi7rBga"
+              }
+            }
+          ]
         }
         """;
-    POST("/mapViews", mapViewJson).content(HttpStatus.CREATED);
+    POST("/maps", mapJson).content(HttpStatus.CREATED);
 
     assertStatus(HttpStatus.OK, DELETE("/programs/%s".formatted(PROGRAM_UID)));
     assertStatus(HttpStatus.NOT_FOUND, GET("/programs/%s".formatted(PROGRAM_UID)));

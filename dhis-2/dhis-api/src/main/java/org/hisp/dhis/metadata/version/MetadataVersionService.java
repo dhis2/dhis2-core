@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.metadata.version;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -128,12 +130,27 @@ public interface MetadataVersionService {
   boolean saveVersion(VersionType versionType);
 
   /**
-   * Gets the Version data - the actual JSON snapshot given the version name.
+   * Streams the metadata snapshot for the given version name directly to the output stream.
    *
-   * @param versionName
-   * @return JSON data for the version snapshot
+   * <p>Scans the stored JSONB wrapper directly without materialising a full Java String copy of the
+   * metadata field, which is a more memory-efficient path for large snapshots.
+   *
+   * @param versionName the version name
+   * @param out the output stream to write the snapshot to
+   * @return true if the snapshot was found and written, false if no snapshot exists
+   * @throws IOException if writing to the output stream fails
    */
-  String getVersionData(String versionName);
+  boolean streamVersionData(String versionName, OutputStream out) throws IOException;
+
+  /**
+   * Returns whether a metadata snapshot exists for the given version name. Cheap pre-flight check
+   * intended to be called before opening any response output stream — see {@link
+   * MetadataVersionStore#metadataVersionSnapshotExists} for the rationale.
+   *
+   * @param versionName the version name
+   * @return true if a snapshot is stored for that version
+   */
+  boolean snapshotExists(String versionName);
 
   /**
    * Creates an entry in the DataStore given the MetadataVersion details.

@@ -47,9 +47,16 @@ public interface StageOrgUnitSqlService {
    * @param item the stage org unit query item
    * @param params query parameters
    * @param isGroupByClause true when the expression is for GROUP BY
+   * @param valueColumnTableAlias optional table alias to qualify the {@code uidlevelN} column with;
+   *     pass {@code null} for an unqualified column. Required when an enrollment-OU join is in the
+   *     same query so the {@code uidlevelN} column reference is unambiguous.
    * @return stage org unit SQL column and alias information
    */
-  ColumnAndAlias selectColumn(QueryItem item, EventQueryParams params, boolean isGroupByClause);
+  ColumnAndAlias selectColumn(
+      QueryItem item,
+      EventQueryParams params,
+      boolean isGroupByClause,
+      String valueColumnTableAlias);
 
   /**
    * Creates the WHERE clause fragment for a stage org unit item.

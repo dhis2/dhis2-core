@@ -143,6 +143,10 @@ public class GeoFeatureService {
             .displayProperty(parameters.getDisplayProperty())
             .relativePeriodDate(parameters.getRelativePeriodDate())
             .userOrgUnit(parameters.getUserOrgUnit())
+            // geoFeatures only renders org units that have geometry, so resolve the org unit
+            // dimension to geometry-bearing units only. Skipped in geoJsonAttribute mode, where
+            // coordinates come from an attribute and the geometry column may be null.
+            .geometryOnly(geoJsonAttribute == null)
             .build();
 
     DataQueryParams params = dataQueryService.getFromRequest(dataQueryRequest);

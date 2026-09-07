@@ -134,7 +134,7 @@ class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrat
   @Test
   void testGetJobRunErrors_ObjectProgressErrors() {
     JsonArray errors = GET("/jobConfigurations/{uid}/progress/errors", jobId).content();
-    assertEquals(JsonNodeType.ARRAY, errors.node().getType());
+    assertEquals(JsonNodeType.ARRAY, errors.type());
     assertEquals(1, errors.size());
   }
 
@@ -180,7 +180,7 @@ class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrat
     String expected =
         """
       {"trackedEntities":[{"trackedEntity":"sHH8mh1Fn0z","trackedEntityType":{"idScheme":"UID","identifier":"nEenWmSyUEp"},"orgUnit":{"idScheme":"UID","identifier":"DiszpKrYNg7"},"inactive":false,"potentialDuplicate":false,"attributes":[]}],"enrollments":[],"events":[],"relationships":[]}""";
-    assertEquals(expected, trackerImportError.getObject("input").node().getDeclaration());
+    assertEquals(expected, trackerImportError.getObject("input").toJson());
   }
 
   private String createAndRunImportWithErrors() throws InterruptedException {

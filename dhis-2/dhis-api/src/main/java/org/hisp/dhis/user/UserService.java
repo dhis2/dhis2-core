@@ -329,19 +329,13 @@ public interface UserService {
   void setLastLogin(String username);
 
   /**
-   * Returns the number of active users since the given number of days.
+   * Returns the number of users whose last login is on or after each of the given dates. All counts
+   * are computed in a single query.
    *
-   * @param days the number of days.
+   * @param sinceDates the last login cutoff dates.
+   * @return the user counts in the same order as the given dates.
    */
-  int getActiveUsersCount(int days);
-
-  /**
-   * Returns the number of active users since the given date.
-   *
-   * @param since the date to check for active users.
-   * @return the number of active users since the given date.
-   */
-  int getActiveUsersCount(Date since);
+  List<Integer> getActiveUsersCounts(List<Date> sinceDates);
 
   /**
    * Checks if the user account is not expired.
@@ -492,6 +486,26 @@ public interface UserService {
   UserDetails createUserDetailsSafe(@Nonnull String userUid);
 
   /**
+   * Creates {@link UserDetails} for the user with the given username. The user lookup and details
+   * creation happen within a single transaction, ensuring lazy collections are accessible.
+   *
+   * @param username the username to look up
+   * @return the {@link UserDetails} or {@code null} if no user with the given username exists
+   */
+  @CheckForNull
+  UserDetails createUserDetailsByUsername(@Nonnull String username);
+
+  /**
+   * Creates {@link UserDetails} for the user with the given OpenID. The user lookup and details
+   * creation happen within a single transaction, ensuring lazy collections are accessible.
+   *
+   * @param openId the OpenID to look up
+   * @return the {@link UserDetails} or {@code null} if no user with the given OpenID exists
+   */
+  @CheckForNull
+  UserDetails createUserDetailsByOpenId(@Nonnull String openId);
+
+  /**
    * It creates a CurrentUserDetailsImpl object from a User object. It also fetches the users locked
    * and credentials expired status.
    *
@@ -553,7 +567,19 @@ public interface UserService {
   List<SessionInformation> listSessions(UserDetails principal);
 
   /**
-   * Invalidate all sessions for all users WARNING: This does not work when using Redis sessions.
+   * Lists every session known to the session registry, including expired sessions.
+   *
+   * <p>Works for both the in-memory registry and the Redis-backed registry. Under Redis, principals
+   * are resolved from usernames rather than {@code SessionRegistry#getAllPrincipals()}, which is
+   * unsupported there.
+   *
+   * @return all session information entries
+   */
+  List<SessionInformation> listAllSessions();
+
+  /**
+   * Invalidate all sessions for all users. Works for both in-memory and Redis-backed session
+   * registries.
    */
   void invalidateAllSessions();
 
@@ -563,6 +589,14 @@ public interface UserService {
    * @param username the username of the user account.
    */
   void invalidateUserSessions(String username);
+
+  /**
+   * Returns the usernames of all users that are members of the user role with the given UID.
+   *
+   * @param roleUid the UID of the user role.
+   * @return a list of usernames.
+   */
+  List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
 
   /**
    * Register a account recovery attempt for the given user account.

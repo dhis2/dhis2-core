@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.REGISTRATION_OU_COL;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.DEFAULT;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ENROLLMENT;
+import static org.hisp.dhis.analytics.OrgUnitFieldType.EVENT;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.OWNER_AT_END;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.OWNER_AT_START;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.REGISTRATION;
@@ -54,6 +55,7 @@ class OrgUnitFieldTypeTest {
   @Test
   void testGetEventColumn() {
     assertEquals(DEFAULT_ORG_UNIT_COL, DEFAULT.getEventColumn());
+    assertEquals(DEFAULT_ORG_UNIT_COL, EVENT.getEventColumn());
     assertNull(ATTRIBUTE.getEventColumn());
     assertEquals(REGISTRATION_OU_COL, REGISTRATION.getEventColumn());
     assertEquals(ENROLLMENT_OU_COL, ENROLLMENT.getEventColumn());
@@ -64,6 +66,7 @@ class OrgUnitFieldTypeTest {
   @Test
   void testGetEnrollmentColumn() {
     assertEquals(DEFAULT_ORG_UNIT_COL, DEFAULT.getEnrollmentColumn());
+    assertEquals(DEFAULT_ORG_UNIT_COL, EVENT.getEnrollmentColumn());
     assertNull(ATTRIBUTE.getEnrollmentColumn());
     assertEquals(REGISTRATION_OU_COL, REGISTRATION.getEnrollmentColumn());
     assertEquals(DEFAULT_ORG_UNIT_COL, ENROLLMENT.getEnrollmentColumn());
@@ -74,6 +77,7 @@ class OrgUnitFieldTypeTest {
   @Test
   void testIsOwnership() {
     assertFalse(DEFAULT.isOwnership());
+    assertFalse(EVENT.isOwnership());
     assertFalse(ATTRIBUTE.isOwnership());
     assertFalse(REGISTRATION.isOwnership());
     assertFalse(ENROLLMENT.isOwnership());

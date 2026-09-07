@@ -209,6 +209,49 @@ class HeaderParamsHandlerTest {
   }
 
   @Test
+  void testHandleWithHeaderOnlyStageScopedDataElementShortHeader() {
+    // Given
+    String stageUid = "A03MvHHogjR";
+    String programUid = "IpHINAT79UW";
+    String dataElementUid = "bx6fsa0t90x";
+    String shortHeader = stageUid + "." + dataElementUid;
+    Program program = new Program("program");
+    program.setUid(programUid);
+    ProgramStage stage = new ProgramStage("stage", program);
+    stage.setUid(stageUid);
+    DataElement dataElement = new DataElement("data element");
+    dataElement.setUid(dataElementUid);
+    dataElement.setValueType(ValueType.TEXT);
+    QueryItem queryItem = new QueryItem(dataElement, null, ValueType.TEXT, null, null);
+    DimensionIdentifier<DimensionParam> dataElementHeader =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program),
+            ElementWithOffset.of(stage),
+            DimensionParam.ofObject(
+                queryItem, DimensionParamType.HEADERS, IdScheme.UID, List.of()));
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setHeaders(new LinkedHashSet<>(List.of(shortHeader)));
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonRaw(requestParams)
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .parsedHeaders(new LinkedHashSet<>(List.of(dataElementHeader)))
+                    .build())
+            .build();
+    List<Field> fields = List.of(ofUnquoted("ev", of("anyName"), dataElementHeader.getKey()));
+    Grid grid = new ListGrid();
+
+    // When
+    headerParamsHandler.handle(grid, contextParams, fields);
+
+    // Then
+    assertEquals(1, grid.getHeaders().size());
+    assertEquals(shortHeader, grid.getHeaders().get(0).getName());
+  }
+
+  @Test
   void testHandleWithStageScopedDataElementFullHeader() {
     // Given
     String stageUid = "A03MvHHogjR";

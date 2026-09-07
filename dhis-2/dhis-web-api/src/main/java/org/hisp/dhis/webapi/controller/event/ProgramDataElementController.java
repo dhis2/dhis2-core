@@ -104,8 +104,8 @@ public class ProgramDataElementController {
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    List<String> fields = params.getFields();
-    if (fields == null || fields.isEmpty()) fields = List.of("*");
+    String fields = params.getFields();
+    if (fields == null || fields.isEmpty()) fields = "*";
     rootNode.addChild(
         fieldFilterService.toCollectionNode(
             ProgramDataElementDimensionItem.class, new FieldFilterParams(pageItems, fields)));

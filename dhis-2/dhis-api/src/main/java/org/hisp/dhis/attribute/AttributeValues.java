@@ -31,15 +31,13 @@ package org.hisp.dhis.attribute;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.jsontree.Text;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -56,7 +54,7 @@ import org.intellij.lang.annotations.Language;
  * @since 2.42
  */
 public sealed interface AttributeValues
-    extends Iterable<Map.Entry<String, String>>, Serializable, JsonBuilder.JsonEncodable
+    extends Iterable<Map.Entry<Text, Text>>, Serializable, JsonBuilder.JsonEncodable
     permits LazyAttributeValues {
 
   /**
@@ -68,7 +66,7 @@ public sealed interface AttributeValues
   }
 
   @Nonnull
-  static AttributeValues of(@Nonnull Map<String, String> values) {
+  static AttributeValues of(@Nonnull Map<CharSequence, CharSequence> values) {
     return LazyAttributeValues.of(values);
   }
 
@@ -99,26 +97,29 @@ public sealed interface AttributeValues
   int size();
 
   @Nonnull
-  Set<String> keys();
+  Stream<UID> keys();
 
   @Nonnull
-  Set<String> values();
+  Stream<Text> values();
 
   /**
    * @param attributeId the attribute to read
    * @return the value or null if the attribute is not contained (undefined)
    */
   @CheckForNull
-  String get(String attributeId);
+  default String get(@CheckForNull CharSequence attributeId) {
+    Text res = getText(attributeId);
+    return res == null ? null : res.toString();
+  }
 
-  default boolean contains(String attributeId) {
+  @CheckForNull
+  Text getText(@CheckForNull CharSequence attributeId);
+
+  default boolean contains(@CheckForNull CharSequence attributeId) {
     return get(attributeId) != null;
   }
 
-  void forEach(BiConsumer<String, String> action);
-
-  @Nonnull
-  Stream<Map.Entry<String, String>> stream();
+  void forEach(BiConsumer<Text, Text> action);
 
   /**
    * JSON of the shape
@@ -160,39 +161,12 @@ public sealed interface AttributeValues
    * @return a new set with the attribute value added or changed to the provided value
    */
   @Nonnull
-  AttributeValues added(@Nonnull String attributeId, @CheckForNull String value);
+  AttributeValues added(@Nonnull CharSequence attributeId, @CheckForNull CharSequence value);
 
   /**
-   * @param uid the attribute to remove
+   * @param attributeId the attribute to remove
    * @return a new set with the attribute removed
    */
   @Nonnull
-  AttributeValues removed(@Nonnull String uid);
-
-  /**
-   * @param attributeIdMatches filter for keys
-   * @return a new set with all attributes removed that had a matching attribute ID (match true)
-   */
-  @Nonnull
-  AttributeValues removedAll(Predicate<String> attributeIdMatches);
-
-  /**
-   * @param mapper mapping function for values
-   * @return a new set with same keys but all values transformed by the mapper function
-   */
-  @Nonnull
-  AttributeValues mapValues(@Nonnull UnaryOperator<String> mapper);
-
-  /**
-   * @param mapper mapping function for keys
-   * @return a new set with same values but all keys transformed by the mapper function
-   */
-  @Nonnull
-  AttributeValues mapKeys(@Nonnull UnaryOperator<String> mapper);
-
-  default Map<String, String> toMap() {
-    return isEmpty()
-        ? Map.of()
-        : stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
+  AttributeValues removed(@Nonnull CharSequence attributeId);
 }

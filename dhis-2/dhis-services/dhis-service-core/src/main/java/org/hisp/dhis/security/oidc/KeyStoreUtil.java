@@ -41,6 +41,18 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 
 /**
+ * Utility for loading RSA keys from a PKCS12 or JKS keystore on disk. Used on two sides of DHIS2's
+ * OAuth2/OIDC stack:
+ *
+ * <ul>
+ *   <li>On the Relying Party side, to load the per-provider signing key used to build {@code
+ *       private_key_jwt} client assertions when authenticating to an external IdP's token endpoint
+ *       ({@code oidc.provider.<id>.keystore_path}, {@code keystore_password}, {@code key_alias},
+ *       {@code key_password}).
+ *   <li>On the authorization-server side, to load the signing key DHIS2 uses to mint its own tokens
+ *       ({@code oauth2.server.jwt.keystore.*}).
+ * </ul>
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class KeyStoreUtil {
@@ -48,6 +60,17 @@ public class KeyStoreUtil {
     throw new IllegalArgumentException("This class should not be instantiated");
   }
 
+  /**
+   * Loads a keystore from disk using the JVM's default keystore type.
+   *
+   * @param keystorePath filesystem path to the keystore file
+   * @param keystorePassword password used to open the keystore
+   * @return the loaded {@link KeyStore}
+   * @throws KeyStoreException if the keystore type is not available
+   * @throws IOException if the file cannot be read
+   * @throws NoSuchAlgorithmException if the integrity algorithm is unavailable
+   * @throws CertificateException if any certificate in the keystore cannot be loaded
+   */
   public static KeyStore readKeyStore(String keystorePath, String keystorePassword)
       throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
     KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -58,6 +81,17 @@ public class KeyStoreUtil {
     return keyStore;
   }
 
+  /**
+   * Loads an RSA public key (and its key pair) from the given alias in a keystore as a Nimbus
+   * {@link RSAKey}.
+   *
+   * @param keyStore the keystore to read from
+   * @param alias the entry alias
+   * @param pin the password protecting the private key entry
+   * @return the loaded {@link RSAKey}
+   * @throws KeyStoreException if the entry cannot be read
+   * @throws JOSEException if the stored public key is not an RSA key
+   */
   public static RSAKey loadRSAPublicKey(
       final KeyStore keyStore, final String alias, final char[] pin)
       throws KeyStoreException, JOSEException {

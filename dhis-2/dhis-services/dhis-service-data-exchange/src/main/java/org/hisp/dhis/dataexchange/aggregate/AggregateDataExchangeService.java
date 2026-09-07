@@ -252,8 +252,8 @@ public class AggregateDataExchangeService {
       validatePeriods(params.getPeriodsIds());
       Grid dataValues = analyticsService.getAggregatedDataValuesGrid(params);
       return exchange.getTarget().getType() == TargetType.INTERNAL
-          ? pushToInternal(exchange, params, dataValues)
-          : pushToExternal(exchange, params, dataValues);
+          ? pushToInternal(exchange, source, params, dataValues)
+          : pushToExternal(exchange, source, params, dataValues);
     } catch (HttpClientErrorException ex) {
       String message =
           format("Data import to target instance failed with status: '%s'", ex.getStatusCode());
@@ -281,9 +281,12 @@ public class AggregateDataExchangeService {
 
   /** Imports the given {@link DataValueSet} to this instance of DHIS 2. */
   private ImportSummary pushToInternal(
-      AggregateDataExchange exchange, DataQueryParams params, Grid dataValues) {
+      AggregateDataExchange exchange,
+      SourceRequest source,
+      DataQueryParams params,
+      Grid dataValues) {
     TargetRequest request = exchange.getTarget().getRequest();
-    DataEntryGroup.Input group = toDataEntryGroup(dataValues);
+    DataEntryGroup.Input group = toDataEntryGroup(dataValues, source.getDataSet());
     DataEntryGroup.Ids ids = request.getEntryIds();
     group = group.withIds(ids);
     group =
@@ -304,8 +307,11 @@ public class AggregateDataExchangeService {
    * are specified by the target API of the given {@link AggregateDataExchange}.
    */
   private ImportSummary pushToExternal(
-      AggregateDataExchange exchange, DataQueryParams params, Grid dataValues) {
-    DataExportGroup.Output group = toDataExportGroup(dataValues);
+      AggregateDataExchange exchange,
+      SourceRequest source,
+      DataQueryParams params,
+      Grid dataValues) {
+    DataExportGroup.Output group = toDataExportGroup(dataValues, source.getDataSet());
     TargetRequest request = exchange.getTarget().getRequest();
     DataExportGroup.Ids ids = request.getExportIds();
     group = group.withIds(ids);
@@ -555,7 +561,7 @@ public class AggregateDataExchangeService {
         .allMatch(AggregateDataExchange.ALLOWED_DX_ITEM_TYPES::contains);
   }
 
-  public static DataEntryGroup.Input toDataEntryGroup(Grid grid) {
+  public static DataEntryGroup.Input toDataEntryGroup(Grid grid, @CheckForNull String dataSet) {
 
     int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
     int peInx = grid.getIndexOfHeader(PERIOD_DIM_ID);
@@ -583,10 +589,10 @@ public class AggregateDataExchangeService {
       values.add(dv);
     }
 
-    return new DataEntryGroup.Input(values);
+    return new DataEntryGroup.Input(dataSet, values);
   }
 
-  public static DataExportGroup.Output toDataExportGroup(Grid grid) {
+  public static DataExportGroup.Output toDataExportGroup(Grid grid, @CheckForNull String dataSet) {
 
     int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
     int peInx = grid.getIndexOfHeader(PERIOD_DIM_ID);
@@ -617,7 +623,7 @@ public class AggregateDataExchangeService {
                 });
 
     DataExportGroup.Ids ids = new DataExportGroup.Ids();
-    return new DataExportGroup.Output(ids, null, null, null, null, null, null, values);
+    return new DataExportGroup.Output(ids, dataSet, null, null, null, null, null, values);
   }
 
   interface ElementFactory<T> {

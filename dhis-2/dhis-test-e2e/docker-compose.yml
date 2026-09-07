@@ -63,3 +63,11 @@ services:
     ports:
       - "4444"
       - "7900"
+
+# Fixed subnet so the test container can have a deterministic IP: the impersonation
+# feature's IP allowlist (switch_user_allow_listed_ips) is an exact string match.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24

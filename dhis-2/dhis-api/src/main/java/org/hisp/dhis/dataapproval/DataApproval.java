@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -91,27 +92,27 @@ public class DataApproval implements Serializable {
   private long id;
 
   /** The approval level for which this approval is defined (required). */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "dataapprovallevelid", nullable = false)
   private DataApprovalLevel dataApprovalLevel;
 
   /** The workflow for the values being approved (required). */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "workflowid", nullable = false)
   private DataApprovalWorkflow workflow;
 
   /** The Period of the approval (required). */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "periodid", nullable = false)
   private Period period;
 
   /** The OrganisationUnit of the approval (required). */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "organisationunitid", nullable = false)
   private OrganisationUnit organisationUnit;
 
   /** The attribute category option combo being approved (required). */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "attributeoptioncomboid")
   private CategoryOptionCombo attributeOptionCombo;
 
@@ -124,7 +125,7 @@ public class DataApproval implements Serializable {
   private Date created;
 
   /** The User who made this approval (required). */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "creator", nullable = false)
   private User creator;
 
@@ -133,7 +134,7 @@ public class DataApproval implements Serializable {
   private Date lastUpdated;
 
   /** The User who made the last change to the {@link #accepted} status of this approval */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 

@@ -107,6 +107,16 @@ class DorisSqlBuilderTest {
     assertEquals("json", sqlBuilder.dataTypeJson());
   }
 
+  @Test
+  void testDataTypeVarchar() {
+    // PostgreSQL varchar(n) limits characters, Doris varchar(n) limits bytes, so the length
+    // must be widened to accommodate multi-byte UTF-8 characters (e.g. Burmese, Chinese, Thai).
+    assertEquals("varchar(200)", sqlBuilder.dataTypeVarchar(50));
+    assertEquals("varchar(1020)", sqlBuilder.dataTypeVarchar(255));
+    // Capped at the Doris varchar byte limit.
+    assertEquals("varchar(65533)", sqlBuilder.dataTypeVarchar(20000));
+  }
+
   // Index types
 
   @Test
@@ -156,7 +166,7 @@ class DorisSqlBuilderTest {
     String expected =
         """
         create table `immunization` (`id` bigint not null,`data` char(11) not null,\
-        `period` varchar(50) not null,`created` datetime(3) null,`user` json null,\
+        `period` varchar(200) not null,`created` datetime(3) null,`user` json null,\
         `value` double null) \
         engine = olap \
         unique key (`id`) \
@@ -174,7 +184,7 @@ class DorisSqlBuilderTest {
     String expected =
         """
         create table `vaccination` (`id` int not null,\
-        `facility_type` varchar(255) null,`bcg_doses` double null) \
+        `facility_type` varchar(1020) null,`bcg_doses` double null) \
         engine = olap \
         duplicate key (`id`) \
         distributed by hash(`id`) \
@@ -207,7 +217,7 @@ class DorisSqlBuilderTest {
     String expected =
         """
         create table `immunization` (`id` bigint not null,`data` char(11) not null,\
-        `period` varchar(50) not null,`value` double null) \
+        `period` varchar(200) not null,`value` double null) \
         engine = olap \
         duplicate key (`id`) \
         distributed by hash(`id`) \

@@ -30,6 +30,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -104,6 +106,86 @@ class DataSetMetadataControllerTest extends PostgresControllerIntegrationTestBas
     // then
     assertEquals(1, dataSets.size());
     assertEquals(expectedDisplayOptions, actualDisplayOptions);
+  }
+
+  @Test
+  @DisplayName(
+      "All distinct data elements are returned with their category combo and option set intact")
+  void dataEntryMetadataReturnsDistinctDataElements() {
+    POST("/metadata", Path.of("dataset/dataentry_metadata_query_coverage.json"))
+        .content(HttpStatus.OK);
+
+    JsonObject metadata = GET("/dataEntry/metadata").content();
+    JsonArray dataElements = metadata.getArray("dataElements");
+
+    // deA is a member of both data sets but must be de-duplicated to a single entry
+    assertEquals(3, dataElements.size(), "expected the 3 distinct data elements");
+
+    JsonObject deA = byId(dataElements, "deA00000001");
+    JsonObject deB = byId(dataElements, "deB00000001");
+    JsonObject deC = byId(dataElements, "deC00000001");
+    assertNotNull(deA, "deA should be present");
+    assertNotNull(deB, "deB should be present");
+    assertNotNull(deC, "deC should be present");
+
+    // the data element category combo is preserved
+    assertEquals("ccSex000001", deA.getObject("categoryCombo").getString("id").string());
+    assertEquals("ccSex000001", deC.getObject("categoryCombo").getString("id").string());
+
+    // the option set is still resolved (it is not part of the batched fetch, loaded separately)
+    assertEquals("osColor0001", deB.getObject("optionSet").getString("id").string());
+    assertTrue(
+        containsId(metadata.getArray("optionSets"), "osColor0001"),
+        "the data element option set should be exported");
+  }
+
+  @Test
+  @DisplayName(
+      "Data set element category combo overrides and all derived category combos are returned")
+  void dataEntryMetadataReturnsCategoryComboOverrides() {
+    POST("/metadata", Path.of("dataset/dataentry_metadata_query_coverage.json"))
+        .content(HttpStatus.OK);
+
+    JsonObject metadata = GET("/dataEntry/metadata").content();
+
+    // ccSex is reached via DataElement.categoryCombo, ccAge only via the data set element override
+    // on deB (DataElement.dataSetElements) - both paths are eagerly fetched, both must appear
+    JsonArray categoryCombos = metadata.getArray("categoryCombos");
+    assertTrue(containsId(categoryCombos, "ccSex000001"), "sex combo (from data element) expected");
+    assertTrue(containsId(categoryCombos, "ccAge000001"), "age combo (from override) expected");
+
+    // the override is reflected on the data set element itself
+    JsonObject dsOne = byId(metadata.getArray("dataSets"), "dsOne000001");
+    assertNotNull(dsOne);
+    assertEquals(
+        "ccAge000001",
+        dataSetElement(dsOne, "deB00000001").getObject("categoryCombo").getString("id").string(),
+        "deB data set element should carry its category combo override");
+
+    // the shared data element deA appears in both data sets' data set elements
+    assertNotNull(dataSetElement(dsOne, "deA00000001"), "deA expected in DS One");
+    JsonObject dsTwo = byId(metadata.getArray("dataSets"), "dsTwo000001");
+    assertNotNull(dataSetElement(dsTwo, "deA00000001"), "deA expected in DS Two");
+    assertNotNull(dataSetElement(dsTwo, "deC00000001"), "deC expected in DS Two");
+  }
+
+  private static JsonObject byId(JsonArray array, String id) {
+    return array.asList(JsonObject.class).stream()
+        .filter(o -> id.equals(o.getString("id").string()))
+        .findFirst()
+        .orElse(null);
+  }
+
+  private static boolean containsId(JsonArray array, String id) {
+    return array.asList(JsonObject.class).stream()
+        .anyMatch(o -> id.equals(o.getString("id").string()));
+  }
+
+  private static JsonObject dataSetElement(JsonObject dataSet, String dataElementId) {
+    return dataSet.getArray("dataSetElements").asList(JsonObject.class).stream()
+        .filter(dse -> dataElementId.equals(dse.getObject("dataElement").getString("id").string()))
+        .findFirst()
+        .orElse(null);
   }
 
   private static Stream<Arguments> defaultCatComboData() {

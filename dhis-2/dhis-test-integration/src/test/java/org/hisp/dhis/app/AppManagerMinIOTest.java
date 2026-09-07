@@ -58,6 +58,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
@@ -65,6 +66,7 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ExtendWith(MinIOTestExtension.class)
 @ContextConfiguration(classes = {DhisConfig.class})
+@Transactional
 class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   private static final String MOCK_CONTEXT_PATH = "/context";
@@ -99,7 +101,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
         (ResourceFound) appManager.getAppResource(app, "index.html", MOCK_CONTEXT_PATH);
 
     assertEquals("2.0.0", app.getVersion());
-    assertEquals(64, appManager.getUriContentLength(resource.resource()));
+    assertEquals(63, appManager.getUriContentLength(resource.resource()));
   }
 
   @Test

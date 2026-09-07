@@ -47,11 +47,13 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@Transactional
 class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataStatisticsEventStore dataStatisticsEventStore;
 
@@ -95,6 +97,9 @@ class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
 
     // Add one dashboard.
     assertTrue(dashboardService.saveDashboard(dashboard) != 0);
+
+    // flush so the raw-SQL statistics-store reads see the session writes
+    entityManager.flush();
   }
 
   @Test

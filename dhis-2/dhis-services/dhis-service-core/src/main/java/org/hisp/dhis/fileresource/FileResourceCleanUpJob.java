@@ -118,16 +118,12 @@ public class FileResourceCleanUpJob implements Job {
 
     List<UnassignedFileResource> deletedFileResources = new ArrayList<>();
 
-    // DV FRs
-    if (!FileResourceRetentionStrategy.FOREVER.equals(retentionStrategy)) {
-      List<FileResource> dvUnassigned =
-          fileResourceService.getExpiredDataValueFileResources(retentionStrategy);
-      deleteFrs(
-          progress,
-          "Deleting unassigned DataValue file resources",
-          dvUnassigned,
-          deletedFileResources);
-    }
+    // HOTFIX [DHIS2-21427]: DATA_VALUE-domain cleanup is disabled. The
+    // DATA_VALUE_TRIM job's SQL in HibernateDataValueTrimStore only scans the
+    // aggregate `datavalue` table, so file resources referenced from
+    // trackerevent.eventdatavalues / TEAVs are wrongly flipped to
+    // isassigned=false and would be deleted here. Restore once the trim SQL
+    // is widened to scan event JSONB and TEAVs.
 
     // Job Data FRs
     List<FileResource> jobDataUnassigned =

@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
@@ -56,6 +59,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   public static final String NAMED_COLLECTION = "pg_dhis";
 
   private static final String QUOTE = "\"";
+
+  private static final Pattern DATE_LITERAL_PATTERN = Pattern.compile("'\\d{4}-\\d{2}-\\d{2}'");
+
+  private static final Pattern DATETIME_LITERAL_PATTERN =
+      Pattern.compile("'\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?'");
 
   private final String databaseName;
 
@@ -255,6 +263,21 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return "coalesce(" + expression + ", " + defaultValue + ")";
   }
 
+  /**
+   * ClickHouse <code>concat</code> propagates <code>NULL</code>, so a single null argument yields a
+   * null result. Non-literal arguments are coalesced to an empty string to honour the {@link
+   * SqlBuilder#safeConcat} contract that null values are treated as empty strings, matching
+   * PostgreSQL.
+   */
+  @Override
+  public String safeConcat(String... columns) {
+    return "concat("
+        + Arrays.stream(columns)
+            .map(column -> isSingleQuoted(column) ? column : coalesce(column, "''"))
+            .collect(Collectors.joining(", "))
+        + ")";
+  }
+
   @Override
   public String jsonExtract(String json, String property) {
     return String.format("JSONExtractString(%s, '%s')", json, property);
@@ -276,15 +299,41 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     };
   }
 
+  /**
+   * Years, months and weeks use ClickHouse <code>age</code> (available since v23.1) rather than
+   * <code>dateDiff</code>. ClickHouse <code>dateDiff</code> counts boundary crossings (e.g. <code>
+   * dateDiff('year', '2023-12-31', '2024-01-01')</code> is 1), whereas PostgreSQL, the reference
+   * implementation, counts completed units via <code>age()</code>. Using <code>age</code> keeps
+   * these units consistent with PostgreSQL. Days and minutes stay on <code>dateDiff</code> because
+   * PostgreSQL computes them with date subtraction and elapsed time, which already match <code>
+   * dateDiff</code> for those units.
+   */
   @Override
   public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
+    startDate = normalizeDateDiffOperand(startDate, dateUnit);
+    endDate = normalizeDateDiffOperand(endDate, dateUnit);
+
     return switch (dateUnit) {
       case DAYS -> String.format("dateDiff('day', %s, %s)", startDate, endDate);
       case MINUTES -> String.format("dateDiff('minute', %s, %s)", startDate, endDate);
-      case MONTHS -> String.format("dateDiff('month', %s, %s)", startDate, endDate);
-      case YEARS -> String.format("dateDiff('year', %s, %s)", startDate, endDate);
-      case WEEKS -> String.format("dateDiff('week', %s, %s)", startDate, endDate);
+      case MONTHS -> String.format("age('month', %s, %s)", startDate, endDate);
+      case YEARS -> String.format("age('year', %s, %s)", startDate, endDate);
+      case WEEKS -> String.format("age('week', %s, %s)", startDate, endDate);
     };
+  }
+
+  private String normalizeDateDiffOperand(String operand, DateUnit dateUnit) {
+    if (DATE_LITERAL_PATTERN.matcher(operand).matches()) {
+      return dateUnit == DateUnit.MINUTES
+          ? String.format("toDateTime(%s)", operand)
+          : String.format("toDate32(%s)", operand);
+    }
+
+    if (DATETIME_LITERAL_PATTERN.matcher(operand).matches()) {
+      return String.format("toDateTime64(%s, 3)", operand);
+    }
+
+    return operand;
   }
 
   @Override

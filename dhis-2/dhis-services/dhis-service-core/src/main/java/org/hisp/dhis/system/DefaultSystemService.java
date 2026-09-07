@@ -36,13 +36,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -63,6 +67,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,6 +87,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   private final DhisConfigurationProvider dhisConfig;
   private final CalendarService calendarService;
   private final SystemSettingsProvider settingsProvider;
+  private final Environment environment;
 
   /** Variable holding fixed system info state. */
   private SystemInfo systemInfo = null;
@@ -89,6 +95,19 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   @Override
   public void afterPropertiesSet() {
     systemInfo = getStableSystemInfo();
+
+    if (systemInfo.getRevision() == null || systemInfo.getRevision().isBlank()) {
+      if (SystemUtils.isTestRun(environment.getActiveProfiles())) {
+        log.warn("build.revision is missing (expected in test context). Using placeholder.");
+        systemInfo = systemInfo.toBuilder().revision("test-build").version("test").build();
+      } else {
+        throw new IllegalStateException(
+            "FATAL: build.revision is missing. "
+                + "The server cannot start without a known build revision. "
+                + "Ensure the project was built with Maven (mvn package) "
+                + "so that build.properties is generated.");
+      }
+    }
 
     List<String> info =
         List.of(
@@ -136,6 +155,11 @@ public class DefaultSystemService implements SystemService, InitializingBean {
             getPrettyInterval(lastAnalyticsTablePartitionSuccess, now))
         .lastAnalyticsTablePartitionRuntime(
             settings.getLastSuccessfulLatestAnalyticsPartitionRuntime())
+        .lastAnalyticsTableSuccessByType(
+            getLastSuccessfulUpdateByType(settings::getLastSuccessfulAnalyticsTablesUpdate))
+        .lastAnalyticsTablePartitionSuccessByType(
+            getLastSuccessfulUpdateByType(
+                settings::getLastSuccessfulLatestAnalyticsPartitionUpdate))
         .lastSystemMonitoringSuccess(settings.getLastSuccessfulSystemMonitoringPush())
         .systemName(settings.getApplicationTitle())
         .instanceBaseUrl(dhisConfig.getServerBaseUrl())
@@ -146,6 +170,22 @@ public class DefaultSystemService implements SystemService, InitializingBean {
             getLastMetadataVersionSyncAttempt(
                 settings.getLastMetaDataSyncSuccess(), settings.getMetadataLastFailedTime()))
         .build();
+  }
+
+  /**
+   * Maps {@code getter} over every {@link AnalyticsTableType} that supports a latest partition (see
+   * {@link AnalyticsTableType#isLatestPartition()}) &mdash; the only types that have a per-type
+   * update-timestamp setting registered (DHIS2-21992).
+   */
+  static Map<AnalyticsTableType, Date> getLastSuccessfulUpdateByType(
+      Function<AnalyticsTableType, Date> getter) {
+    Map<AnalyticsTableType, Date> updates = new EnumMap<>(AnalyticsTableType.class);
+    for (AnalyticsTableType type : AnalyticsTableType.values()) {
+      if (type.isLatestPartition()) {
+        updates.put(type, getter.apply(type));
+      }
+    }
+    return updates;
   }
 
   @Override

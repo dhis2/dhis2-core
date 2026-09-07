@@ -31,11 +31,11 @@ package org.hisp.dhis.setting;
 
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
@@ -88,7 +88,7 @@ public class DefaultSystemSettingsTranslationService implements SystemSettingsTr
         datastore.deleteEntry(e);
         return;
       }
-      e.setValue(translations.node().removeMembers(Set.of(locale)).getDeclaration());
+      e.setValue(translations.node().removeMembers(Set.of(locale)).getDeclaration().toString());
       datastore.saveOrUpdateEntry(e);
     } else {
       if (e == null) {
@@ -101,7 +101,8 @@ public class DefaultSystemSettingsTranslationService implements SystemSettingsTr
             translations
                 .node()
                 .addMembers(obj -> obj.addString(locale, translation))
-                .getDeclaration());
+                .getDeclaration()
+                .toString());
         datastore.saveOrUpdateEntry(e);
       }
     }

@@ -53,11 +53,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test class configured for use cases when DHIS2 is configured to use local file system storage
  * (default)
  */
+@Transactional
 class AppManagerTest extends PostgresIntegrationTestBase {
 
   private static final String MOCK_CONTEXT_PATH = "/context";

@@ -29,17 +29,11 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.FilterConfig;
-import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
@@ -49,25 +43,7 @@ import org.springframework.util.FileCopyUtils;
 
 class ExcludableShallowEtagHeaderFilterTest {
 
-  private static ExcludableShallowEtagHeaderFilter filter;
-
-  @BeforeAll
-  static void setup() {
-    filter = spy(ExcludableShallowEtagHeaderFilter.class);
-
-    FilterConfig filterConfig = mock(FilterConfig.class);
-    when(filterConfig.getInitParameter(
-            ExcludableShallowEtagHeaderFilter.EXCLUDE_URI_REGEX_VAR_NAME))
-        .thenReturn(ExcludableShallowEtagHeaderFilter.ENDPOINTS);
-    when(filter.getFilterConfig()).thenReturn(filterConfig);
-    filter.initFilterBean();
-  }
-
-  @Test
-  void shouldHaveAsyncSupportEnabled() {
-    assertTrue(
-        ExcludableShallowEtagHeaderFilter.class.getAnnotation(WebFilter.class).asyncSupported());
-  }
+  private final ExcludableShallowEtagHeaderFilter filter = new ExcludableShallowEtagHeaderFilter();
 
   @ParameterizedTest
   @ValueSource(

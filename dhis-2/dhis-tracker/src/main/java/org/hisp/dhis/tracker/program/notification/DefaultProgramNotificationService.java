@@ -39,9 +39,9 @@ import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Root;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -73,6 +73,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.tracker.imports.notification.GroupMemberInfo;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -154,7 +155,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
   public void sendScheduledNotificationsForDay(Date notificationDate, JobProgress progress) {
     progress.startingStage("Fetching and filtering scheduled templates ");
     List<ProgramNotificationTemplate> scheduledTemplates =
-        progress.runStage(List.of(), this::getScheduledTemplates);
+        progress.runStage(List.of(), notificationTemplateService::getScheduledTemplates);
 
     progress.startingStage(
         "Processing ProgramStageNotification messages",
@@ -293,45 +294,39 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   private ProgramNotificationTemplate getApplicableTemplate(
       ProgramNotificationInstance programNotificationInstance) {
-    return Optional.of(programNotificationInstance)
-        .map(ProgramNotificationInstance::getProgramNotificationTemplateSnapshot)
-        .map(NotificationTemplateMapper::toProgramNotificationTemplate)
-        .orElseGet(() -> this.getDatabaseTemplate(programNotificationInstance));
+    // Prefer the live template so edits made after the notification was scheduled (e.g. removing a
+    // delivery channel) take effect. The frozen jsonb snapshot is only a fallback for when the
+    // template has since been deleted, so the notification can still be sent.
+    ProgramNotificationTemplate databaseTemplate = getDatabaseTemplate(programNotificationInstance);
+    if (databaseTemplate != null) {
+      return databaseTemplate;
+    }
+    return getSnapshotTemplate(programNotificationInstance);
   }
 
   private ProgramNotificationTemplate getDatabaseTemplate(
       ProgramNotificationInstance programNotificationInstance) {
-    log.warn("Couldn't use template from jsonb column, using the one from database if possible");
-    if (Objects.nonNull(programNotificationInstance.getProgramNotificationTemplateId())) {
-      ProgramNotificationTemplate programNotificationTemplate =
-          notificationTemplateService.get(
-              programNotificationInstance.getProgramNotificationTemplateId());
-      if (Objects.isNull(programNotificationTemplate)) {
-        log.warn(
-            "Unable to load program notification template from database, because it might have been deleted.");
-      }
-      return programNotificationTemplate;
+    if (Objects.isNull(programNotificationInstance.getProgramNotificationTemplateId())) {
+      return null;
     }
-    return null;
+    return notificationTemplateService.get(
+        programNotificationInstance.getProgramNotificationTemplateId());
   }
 
-  @Override
-  @Transactional
-  public void sendTrackerEventCompletionNotifications(long eventId) {
-    sendTrackerEventNotifications(manager.get(TrackerEvent.class, eventId));
-  }
-
-  @Override
-  @Transactional
-  public void sendSingleEventCompletionNotifications(long eventId) {
-    sendSingleEventNotifications(manager.get(SingleEvent.class, eventId));
-  }
-
-  @Override
-  @Transactional
-  public void sendEnrollmentCompletionNotifications(long enrollment) {
-    sendEnrollmentNotifications(
-        manager.get(Enrollment.class, enrollment), NotificationTrigger.COMPLETION);
+  private ProgramNotificationTemplate getSnapshotTemplate(
+      ProgramNotificationInstance programNotificationInstance) {
+    ProgramNotificationTemplate snapshotTemplate =
+        Optional.of(programNotificationInstance)
+            .map(ProgramNotificationInstance::getProgramNotificationTemplateSnapshot)
+            .map(NotificationTemplateMapper::toProgramNotificationTemplate)
+            .orElse(null);
+    if (snapshotTemplate == null) {
+      log.warn(
+          "Unable to resolve a program notification template for instance with id: {}. The template "
+              + "may have been deleted and no snapshot is available.",
+          programNotificationInstance.getId());
+    }
+    return snapshotTemplate;
   }
 
   @Override
@@ -343,29 +338,47 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   @Override
   @Transactional
-  public void sendProgramRuleTriggeredNotifications(
-      ProgramNotificationTemplate template, Enrollment enrollment) {
-    MessageBatch messageBatch =
-        createEnrollmentMessageBatch(template, Collections.singletonList(enrollment));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template,
+      Enrollment enrollment,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(enrollment, template));
+    } else {
+      batch.dhisMessages.add(createDhisMessage(enrollment, template, groupMembers));
+    }
+    sendAll(batch);
   }
 
   @Override
   @Transactional
-  public void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, TrackerEvent event) {
-    MessageBatch messageBatch =
-        createTrackerEventMessageBatch(template, Collections.singletonList(event));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template,
+      TrackerEvent event,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(event, template));
+    } else {
+      batch.dhisMessages.add(createDhisMessage(event, template, groupMembers));
+    }
+    sendAll(batch);
   }
 
   @Override
   @Transactional
-  public void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, SingleEvent event) {
-    MessageBatch messageBatch =
-        createSingleEventMessageBatch(template, Collections.singletonList(event));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template,
+      SingleEvent event,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(event, template));
+    } else {
+      batch.dhisMessages.add(createSingleEventDhisMessage(event, template));
+    }
+    sendAll(batch);
   }
 
   @Override
@@ -471,46 +484,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
     }
 
     return null;
-  }
-
-  private List<ProgramNotificationTemplate> getScheduledTemplates() {
-    return manager.getAll(ProgramNotificationTemplate.class).stream()
-        .filter(n -> n.getNotificationTrigger().isScheduled())
-        .collect(toList());
-  }
-
-  private void sendTrackerEventNotifications(TrackerEvent event) {
-    if (event == null) {
-      return;
-    }
-
-    Set<ProgramNotificationTemplate> templates = resolveTemplates(event);
-
-    if (templates.isEmpty()) {
-      return;
-    }
-
-    for (ProgramNotificationTemplate template : templates) {
-      MessageBatch batch = createTrackerEventMessageBatch(template, Lists.newArrayList(event));
-      sendAll(batch);
-    }
-  }
-
-  private void sendSingleEventNotifications(SingleEvent event) {
-    if (event == null) {
-      return;
-    }
-
-    Set<ProgramNotificationTemplate> templates = resolveTemplates(event);
-
-    if (templates.isEmpty()) {
-      return;
-    }
-
-    for (ProgramNotificationTemplate template : templates) {
-      MessageBatch batch = createSingleEventMessageBatch(template, List.of(event));
-      sendAll(batch);
-    }
   }
 
   private void sendEnrollmentNotifications(Enrollment enrollment, NotificationTrigger trigger) {
@@ -729,6 +702,9 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       } else if (template.getDeliveryChannels().contains(DeliveryChannel.EMAIL)) {
         recipients.getEmailAddresses().addAll(recipientList);
       }
+    } else if (template.getNotificationRecipient()
+        == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT) {
+      recipients.setOrganisationUnit(event.getOrganisationUnit());
     }
     return recipients;
   }
@@ -756,7 +732,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
                           .getRecipientProgramAttribute()
                           .getUid()
                           .equals(av.getAttribute().getUid()))
-              .map(TrackedEntityAttributeValue::getPlainValue)
+              .map(TrackedEntityAttributeValue::getValue)
               .toList();
 
       if (template.getDeliveryChannels().contains(DeliveryChannel.SMS)) {
@@ -773,18 +749,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       Enrollment enrollment, final NotificationTrigger trigger) {
     return enrollment.getProgram().getNotificationTemplates().stream()
         .filter(t -> t.getNotificationTrigger() == trigger)
-        .collect(Collectors.toSet());
-  }
-
-  private Set<ProgramNotificationTemplate> resolveTemplates(TrackerEvent event) {
-    return event.getProgramStage().getNotificationTemplates().stream()
-        .filter(t -> t.getNotificationTrigger() == NotificationTrigger.COMPLETION)
-        .collect(Collectors.toSet());
-  }
-
-  private Set<ProgramNotificationTemplate> resolveTemplates(SingleEvent event) {
-    return event.getProgramStage().getNotificationTemplates().stream()
-        .filter(t -> t.getNotificationTrigger() == NotificationTrigger.COMPLETION)
         .collect(Collectors.toSet());
   }
 
@@ -817,6 +781,99 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
         resolveDhisMessageRecipients(template, enrollment.getOrganisationUnit());
 
     return dhisMessage;
+  }
+
+  private DhisMessage createDhisMessage(
+      Enrollment enrollment,
+      ProgramNotificationTemplate template,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    DhisMessage dhisMessage = new DhisMessage();
+    dhisMessage.message = programNotificationRenderer.render(enrollment, template);
+    dhisMessage.recipients =
+        resolveDhisMessageRecipients(template, enrollment.getOrganisationUnit(), groupMembers);
+    return dhisMessage;
+  }
+
+  private DhisMessage createDhisMessage(
+      TrackerEvent event,
+      ProgramNotificationTemplate template,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    DhisMessage dhisMessage = new DhisMessage();
+    dhisMessage.message = programStageNotificationRenderer.render(event, template);
+    dhisMessage.recipients =
+        resolveDhisMessageRecipients(template, event.getOrganisationUnit(), groupMembers);
+    return dhisMessage;
+  }
+
+  private Set<User> resolveDhisMessageRecipients(
+      ProgramNotificationTemplate template,
+      OrganisationUnit orgUnit,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    if (template.getNotificationRecipient() == ProgramNotificationRecipient.USER_GROUP) {
+      return resolveUserGroupRecipients(template, orgUnit, groupMembers);
+    }
+    return resolveDhisMessageRecipients(template, orgUnit);
+  }
+
+  private Set<User> resolveUserGroupRecipients(
+      ProgramNotificationTemplate template,
+      OrganisationUnit orgUnit,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    if (template.getRecipientUserGroup() == null) {
+      return Set.of();
+    }
+
+    Set<GroupMemberInfo> members =
+        groupMembers.getOrDefault(template.getRecipientUserGroup().getId(), Set.of());
+
+    Set<GroupMemberInfo> filtered = filterByOrgUnit(template, orgUnit, members);
+
+    return filtered.stream()
+        .map(GroupMemberInfo::userId)
+        .distinct()
+        .map(id -> entityManager.getReference(User.class, id))
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Filters group members by org unit based on template settings. The entity's org unit path (e.g.
+   * {@code /rootUid/parentUid/selfUid}) is used for hierarchy checks.
+   *
+   * <ul>
+   *   <li>{@code notifyUsersInHierarchyOnly}: keep members whose org unit appears anywhere in the
+   *       entity's path (the entity's org unit or any of its ancestors)
+   *   <li>{@code notifyParentOrganisationUnitOnly}: keep only members whose org unit matches the
+   *       entity's parent org unit (second-to-last UID in the path)
+   *   <li>neither flag set: keep all members
+   * </ul>
+   */
+  static Set<GroupMemberInfo> filterByOrgUnit(
+      ProgramNotificationTemplate template,
+      OrganisationUnit orgUnit,
+      Set<GroupMemberInfo> members) {
+    if (BooleanUtils.toBoolean(template.getNotifyUsersInHierarchyOnly())) {
+      Set<String> hierarchyUids = Set.of(orgUnit.getStoredPath().split("/"));
+      return members.stream()
+          .filter(m -> m.orgUnitUid() != null && hierarchyUids.contains(m.orgUnitUid()))
+          .collect(Collectors.toSet());
+    }
+
+    if (BooleanUtils.toBoolean(template.getNotifyParentOrganisationUnitOnly())) {
+      String parentUid = extractParentUidFromPath(orgUnit.getStoredPath());
+      return members.stream()
+          .filter(m -> Objects.equals(parentUid, m.orgUnitUid()))
+          .collect(Collectors.toSet());
+    }
+
+    return members;
+  }
+
+  static String extractParentUidFromPath(String path) {
+    if (path == null) return null;
+    // "/rootUid" splits to ["", "rootUid"] (length 2, no parent)
+    // "/parentUid/selfUid" splits to ["", "parentUid", "selfUid"] (length 3, parent at index 1)
+    String[] parts = path.split("/");
+    return parts.length >= 3 ? parts[parts.length - 2] : null;
   }
 
   private void sendDhisMessages(Set<DhisMessage> messages) {

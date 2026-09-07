@@ -31,8 +31,10 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Date;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
@@ -44,8 +46,24 @@ class ContextUtilsTest {
     User user = new User();
     user.setUid("kYt56BgfED2");
 
-    assertEquals(
-        "7c9d6fd16b668638ca0e722aa2451054", ContextUtils.getEtag(date, UserDetails.fromUser(user)));
+    // Expected hash is timezone-dependent via TestBase#getDate (Joda LocalDateTime -> Date).
+    // Assert against the same formula ContextUtils uses so the test is TZ-stable.
+    String expected =
+        HashUtils.hashMD5(String.format("%d-%s", date.getTime(), user.getUid()).getBytes());
+    assertEquals(expected, ContextUtils.getEtag(date, UserDetails.fromUser(user)));
+  }
+
+  @Test
+  void testGetEtagDistinguishesSubSecondChanges() {
+    User user = new User();
+    user.setUid("kYt56BgfED2");
+    UserDetails userDetails = UserDetails.fromUser(user);
+
+    Date date = getDate(2022, 03, 10);
+    Date oneMilliLater = new Date(date.getTime() + 1);
+
+    assertNotEquals(
+        ContextUtils.getEtag(date, userDetails), ContextUtils.getEtag(oneMilliLater, userDetails));
   }
 
   @Test

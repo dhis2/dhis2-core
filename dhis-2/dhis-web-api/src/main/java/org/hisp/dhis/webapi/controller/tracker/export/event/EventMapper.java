@@ -82,7 +82,6 @@ public interface EventMapper {
           entry("programStage", "programStage.uid"),
           entry("scheduledAt", "scheduledDate"),
           entry("status", "status"),
-          entry("storedBy", "storedBy"),
           entry("trackedEntity", "enrollment.trackedEntity.uid"),
           entry("updatedAt", "lastUpdated"),
           entry("updatedAtClient", "lastUpdatedAtClient"),

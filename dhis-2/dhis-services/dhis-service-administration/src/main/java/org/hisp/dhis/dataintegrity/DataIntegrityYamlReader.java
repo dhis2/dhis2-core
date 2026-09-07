@@ -34,12 +34,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.jsonschema.JsonSchemaValidator;
 import org.springframework.core.io.AbstractFileResolvingResource;
@@ -126,7 +125,7 @@ class DataIntegrityYamlReader {
    * <ol>
    *   <li>resolving the file path
    *   <li>converting file to {@link JsonNode}
-   *   <li>validate JsonNode against {@link JsonSchema}
+   *   <li>validate JsonNode against {@link Schema}
    *   <li>Then either
    *       <ol>
    *         <li>add {@link DataIntegrityCheck} to map if no validation errors or
@@ -167,8 +166,7 @@ class DataIntegrityYamlReader {
       try (InputStream is = resource.getInputStream()) {
 
         JsonNode jsonNode = yaml.readValue(is, JsonNode.class);
-        Set<ValidationMessage> validationMessages =
-            JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
+        List<Error> validationMessages = JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
 
         if (validationMessages.isEmpty()) {
           CheckYamlFile yamlFile = yaml.convertValue(jsonNode, CheckYamlFile.class);

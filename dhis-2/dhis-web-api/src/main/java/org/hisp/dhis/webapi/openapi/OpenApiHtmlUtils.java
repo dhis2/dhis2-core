@@ -35,6 +35,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.jsontree.Text;
 
 /**
  * A OpenAPI specific utility for generating HTML.
@@ -81,61 +82,81 @@ final class OpenApiHtmlUtils {
    * are not escaped again, so they keep working as HTML entities.
    *
    * @param text "unsafe" text that should be inserted into HTML as "plain" text
-   * @return the equivalent HTML text
+   * @param to the target to append the escaped text to
    */
-  @Nonnull
-  public static String escapeHtml(@CheckForNull String text) {
-    if (text == null) return "";
-    if (text.isBlank()) return text;
-    if (text.indexOf('&') < 0) return escapeHtmlFast(text);
-    char[] chars = text.toCharArray();
-    int len = chars.length;
-    StringBuilder escaped = new StringBuilder(nextDivisibleBy64(len));
+  public static void appendEscaped(@CheckForNull Text text, StringBuilder to) {
+    if (text == null || text.isEmpty()) return;
+    if (text.indexOf('&') < 0) {
+      appendEscapedFast(text, to);
+      return;
+    }
+    int len = text.length();
     for (int i = 0; i < len; i++) {
-      char c = chars[i];
+      char c = text.charAt(i);
       switch (c) {
-        case '<' -> escaped.append("&lt;");
-        case '>' -> escaped.append("&gt;");
-        case '"' -> escaped.append("&quot;");
-        case '\'' -> escaped.append("&#039;");
+        case '<' -> to.append("&lt;");
+        case '>' -> to.append("&gt;");
+        case '"' -> to.append("&quot;");
+        case '\'' -> to.append("&#039;");
         case '&' -> {
-          int j = findEndOfHtmlEntity(chars, i);
+          int j = findEndOfHtmlEntity(text, i);
           if (j < 0) {
-            escaped.append("&amp;");
+            to.append("&amp;");
           } else {
             // this is a HTML entity, keep it
-            escaped.append(chars, i, j - i);
+            to.append(text, i, j);
             i = j - 1; // as i is increased at the end of the loop
           }
         }
-        default -> escaped.append((char) c);
+        default -> to.append(c);
       }
     }
-    return escaped.toString();
   }
 
-  private static int findEndOfHtmlEntity(char[] chars, int i) {
-    int len = chars.length;
+  /**
+   * Escapes by replacing characters in a stream writing to a new buffer. This does not preserve use
+   * HTML entities so should only be used when no "&" is in the input should those be preserved.
+   *
+   * @param text unescaped text
+   * @param to the target to append to
+   */
+  private static void appendEscapedFast(Text text, StringBuilder to) {
+    int len = text.length();
+    for (int i = 0; i < len; i++) {
+      char c = text.charAt(i);
+      switch (c) {
+        case '<' -> to.append("&lt;");
+        case '>' -> to.append("&gt;");
+        case '"' -> to.append("&quot;");
+        case '\'' -> to.append("&#039;");
+        case '&' -> to.append("&amp;");
+        default -> to.append(c);
+      }
+    }
+  }
+
+  private static int findEndOfHtmlEntity(Text text, int i) {
+    int len = text.length();
     if (i + 3 >= len) return -1; // can't be
     int j = i + 1;
     // scan for HTML entity to preserve it
-    if (chars[j] == '#') {
+    if (text.charAt(j) == '#') {
       j++; // skip beyond the #
       int k = min(j + 6, len);
-      if (chars[j] == 'x') {
+      if (text.charAt(j) == 'x') {
         // &#x[0-9A-Fa-f]{1,5};
         j++; // skip the x
-        while (j < k && isHexDigit(chars[j])) j++;
+        while (j < k && isHexDigit(text.charAt(j))) j++;
       } else {
         // &#[0-9]{1,5};
-        while (j < k && isDigit(chars[j])) j++;
+        while (j < k && isDigit(text.charAt(j))) j++;
       }
     } else {
       // &[a-zA-Z]{1,24};
       int k = min(j + 31, len); // maximum name length is 24
-      while (j < k && isLetter(chars[j])) j++;
+      while (j < k && isLetter(text.charAt(j))) j++;
     }
-    if (j < chars.length && chars[j] == ';' && j - i > 3) return j + 1;
+    if (j < len && text.charAt(j) == ';' && j - i > 3) return j + 1;
     return -1;
   }
 
@@ -149,39 +170,5 @@ final class OpenApiHtmlUtils {
 
   private static boolean isHexDigit(char c) {
     return isDigit(c) || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F';
-  }
-
-  /**
-   * Escapes by replacing characters in a stream writing to a new buffer. This does not preserve use
-   * HTML entities so should only be used when no "&" is in the input should those be preserved.
-   *
-   * @param str unescaped text
-   * @return HTML escaped text
-   */
-  @Nonnull
-  private static String escapeHtmlFast(String str) {
-    StringBuilder escaped = new StringBuilder(nextDivisibleBy64(str.length()));
-    str.chars()
-        .forEach(
-            c -> {
-              switch (c) {
-                case '<' -> escaped.append("&lt;");
-                case '>' -> escaped.append("&gt;");
-                case '"' -> escaped.append("&quot;");
-                case '\'' -> escaped.append("&#039;");
-                case '&' -> escaped.append("&amp;");
-                default -> escaped.append((char) c);
-              }
-            });
-    return escaped.toString();
-  }
-
-  /**
-   * When escaping we want some room for potential occurrence of escaped characters as the escaped
-   * string is longer. It makes sense to allocate a buffer in 64 size steps, so we use the next
-   * length divisible by 64.
-   */
-  private static int nextDivisibleBy64(int n) {
-    return n + (64 - (n % 64));
   }
 }

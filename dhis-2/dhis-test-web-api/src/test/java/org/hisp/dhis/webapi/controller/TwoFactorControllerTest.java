@@ -72,7 +72,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
@@ -526,6 +525,6 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
             "One or more errors occurred, please see full details in import report.",
             PUT("/users/" + user.getUid(), jsonUserString).content(HttpStatus.CONFLICT));
 
-    msg.getResponse().find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3052);
+    assertTrue(msg.findErrorReport(ErrorCode.E3052).exists());
   }
 }

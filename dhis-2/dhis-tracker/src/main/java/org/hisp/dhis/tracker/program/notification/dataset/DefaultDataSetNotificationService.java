@@ -373,16 +373,12 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
       recipients = resolveExternalRecipients(template, registration);
     }
 
-    ProgramMessage programMessage =
-        ProgramMessage.builder()
-            .subject(message.getSubject())
-            .text(message.getMessage())
-            .recipients(recipients)
-            .build();
-
-    programMessage.setDeliveryChannels(template.getDeliveryChannels());
-
-    return programMessage;
+    return ProgramMessage.builder()
+        .subject(message.getSubject())
+        .text(message.getMessage())
+        .recipients(recipients)
+        .deliveryChannels(new HashSet<>(template.getDeliveryChannels()))
+        .build();
   }
 
   private DhisMessage createDhisMessage(

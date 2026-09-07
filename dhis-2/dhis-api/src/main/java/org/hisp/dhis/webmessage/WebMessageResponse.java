@@ -46,6 +46,6 @@ public interface WebMessageResponse {
 
   @JsonProperty
   default String getResponseType() {
-    return getResponseClassType().getSimpleName();
+    return getResponseClassType().getSimpleName().replaceFirst("WebMessageResponse", "");
   }
 }

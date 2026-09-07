@@ -35,7 +35,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {ProgramStageMapper.class, OrganisationUnitMapper.class, EnrollmentMapper.class})
+@Mapper(
+    uses = {
+      ProgramStageMapper.class,
+      OrganisationUnitMapper.class,
+      EnrollmentMapper.class,
+      CategoryOptionComboMapper.class
+    })
 public interface SingleEventMapper extends PreheatMapper<SingleEvent> {
   SingleEventMapper INSTANCE = Mappers.getMapper(SingleEventMapper.class);
 
@@ -43,11 +49,10 @@ public interface SingleEventMapper extends PreheatMapper<SingleEvent> {
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")
   @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "user")
   @Mapping(target = "programStage")
   @Mapping(target = "status")
   @Mapping(target = "organisationUnit")
+  @Mapping(target = "attributeOptionCombo")
   @Mapping(target = "created")
   @Mapping(target = "eventDataValues")
   @Mapping(target = "notes")

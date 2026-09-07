@@ -57,16 +57,6 @@ public class TrackedEntityAttributeActions extends RestApiActions {
     return this.post(ob).validateStatus(201).extractUid();
   }
 
-  public String create(String valueType, Boolean unique, Boolean confidential) {
-    JsonObject ob =
-        new JsonObjectBuilder(build(valueType))
-            .addProperty("confidential", String.valueOf(confidential))
-            .addProperty("unique", String.valueOf(unique))
-            .build();
-
-    return this.post(ob).validateStatus(201).extractUid();
-  }
-
   public String createOptionSetAttribute(String optionSet) {
     JsonObject ob =
         new JsonObjectBuilder(build("TEXT"))

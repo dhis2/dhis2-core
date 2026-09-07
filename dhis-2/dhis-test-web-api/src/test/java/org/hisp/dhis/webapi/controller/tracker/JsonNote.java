@@ -37,7 +37,7 @@ public interface JsonNote extends JsonObject {
     return getString("note").string();
   }
 
-  default String getValue() {
+  default String value() {
     return getString("value").string();
   }
 

@@ -44,6 +44,24 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
+ * Spring {@link AuthenticationEntryPoint} used by the OAuth2 resource-server filter chain to signal
+ * authentication failure for JWT bearer token requests.
+ *
+ * <p>On an unauthenticated or failed JWT request this entry point delegates to Spring Security's
+ * {@link BearerTokenAuthenticationEntryPoint}, which writes an RFC 6750 compliant {@code
+ * WWW-Authenticate: Bearer} challenge to the response. The exact challenge depends on the cause:
+ *
+ * <ul>
+ *   <li>No credentials: a plain {@code Bearer realm="DHIS2"} challenge with HTTP 401.
+ *   <li>Invalid or expired token (for example {@code org.springframework.security.oauth2.server
+ *       .resource.InvalidBearerTokenException}): {@code error="invalid_token"} with HTTP 401.
+ *   <li>Missing or insufficient scopes: {@code error="insufficient_scope"} with HTTP 403.
+ * </ul>
+ *
+ * <p>After emitting the WWW-Authenticate challenge, the entry point also forwards the {@link
+ * AuthenticationException} to the Spring MVC {@code HandlerExceptionResolver} so that DHIS2's
+ * global exception advice can log and translate the failure consistently with other API errors.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
@@ -52,6 +70,10 @@ public class DhisBearerJwtTokenAuthenticationEntryPoint
     implements AuthenticationEntryPoint, ApplicationContextAware {
   private ApplicationContext applicationContext;
 
+  /**
+   * Set by the Spring container to supply the {@link ApplicationContext} from which the {@code
+   * HandlerExceptionResolver} bean is looked up at request time.
+   */
   @Override
   public void setApplicationContext(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
@@ -60,6 +82,18 @@ public class DhisBearerJwtTokenAuthenticationEntryPoint
   private BearerTokenAuthenticationEntryPoint entryPoint =
       new BearerTokenAuthenticationEntryPoint();
 
+  /**
+   * Commence the authentication failure response: write the RFC 6750 {@code WWW-Authenticate:
+   * Bearer} challenge (with {@code invalid_token} or {@code insufficient_scope} error codes as
+   * applicable) and then forward the exception to the Spring MVC {@code HandlerExceptionResolver}
+   * so DHIS2's global exception handling can render a consistent error payload.
+   *
+   * @param request the current HTTP request
+   * @param response the HTTP response to which the challenge is written
+   * @param authException the authentication failure that triggered this entry point
+   * @throws IOException if writing to the response fails
+   * @throws ServletException if the delegate entry point fails
+   */
   @Override
   public void commence(
       HttpServletRequest request,

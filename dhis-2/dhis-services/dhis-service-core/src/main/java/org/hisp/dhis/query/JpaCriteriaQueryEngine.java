@@ -33,6 +33,7 @@ import static org.hisp.dhis.query.JpaQueryUtils.isPropertyTypeText;
 import static org.hisp.dhis.query.JpaQueryUtils.stringPredicateIgnoreCase;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -43,11 +44,11 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -77,14 +78,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JpaCriteriaQueryEngine implements QueryEngine {
 
-  private static final String DISPLAY_PREFIX = "display";
-
   private final SchemaService schemaService;
   private final List<IdentifiableObjectStore<?>> hibernateGenericStores;
   private final QueryCacheManager queryCacheManager;
   private final EntityManager entityManager;
   private final UserSettingsService userSettingsService;
-  private final Map<Class<?>, IdentifiableObjectStore<?>> stores = new HashMap<>();
+  private final Map<Class<?>, IdentifiableObjectStore<?>> stores = new ConcurrentHashMap<>();
 
   @Override
   public <T extends IdentifiableObject> List<T> query(Query<T> query) {
@@ -229,11 +228,11 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       CriteriaBuilder builder, Root<T> root, Schema schema, Property property, Order order) {
     String propertyName = order.getProperty();
 
-    if (propertyName.startsWith(DISPLAY_PREFIX)) {
+    if (propertyName.startsWith("display")) {
       return handleDisplayProperty(builder, root, schema, property, order);
     }
 
-    if (isTranslatable(property)) {
+    if (property.canBeTranslated()) {
       return getTranslatableOrderJsonBPredicate(builder, root, property, order);
     }
 
@@ -242,10 +241,10 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
   private <T extends IdentifiableObject> jakarta.persistence.criteria.Order handleDisplayProperty(
       CriteriaBuilder builder, Root<T> root, Schema schema, Property property, Order order) {
-    String basePropertyName = getBasePropertyName(order.getProperty());
+    String basePropertyName = Property.resolveTranslationBasePropertyName(order.getProperty());
     Property baseProperty = schema.getProperty(basePropertyName);
 
-    if (baseProperty != null && isTranslatable(baseProperty)) {
+    if (baseProperty != null && baseProperty.canBeTranslated()) {
       return getTranslatableOrderJsonBPredicate(builder, root, baseProperty, order);
     }
 
@@ -254,10 +253,6 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     }
 
     return getRegularOrder(builder, root, property, order);
-  }
-
-  private boolean isTranslatable(Property property) {
-    return property.isTranslatable() && property.getTranslationKey() != null;
   }
 
   private <T extends IdentifiableObject> jakarta.persistence.criteria.Order getRegularOrder(
@@ -302,7 +297,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             builder.literal(translationKey),
             builder.literal(locale.toString()));
 
-    String basePropertyName = getBasePropertyName(property.getName());
+    String basePropertyName = Property.resolveTranslationBasePropertyName(property.getName());
     Expression<String> baseValue = root.get(basePropertyName);
 
     Expression<String> coalescedValue = builder.coalesce(translatedValue, baseValue);
@@ -314,25 +309,19 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   /**
-   * Maps display property names to their base property names by removing the "display" prefix.
+   * Eagerly populates the store lookup once, at bean initialization. This runs single-threaded as
+   * part of the Spring lifecycle, so concurrent callers of {@link #getStore} only ever read a
+   * fully-populated map.
    *
-   * @param displayPropertyName the display property name (e.g., "displayName")
-   * @return the base property name (e.g., "name")
+   * <p>Previously the map was filled lazily on the first {@link #query} call with an unsynchronized
+   * check-then-act over a plain {@code HashMap}. Under concurrent first use (e.g. parallel tracker
+   * imports hitting a freshly-started instance) multiple threads could populate it at once and
+   * corrupt the map, after which {@code getStore} returned {@code null} for classes that were
+   * actually present and {@link #query} silently returned an empty result without querying the
+   * database.
    */
-  private String getBasePropertyName(String displayPropertyName) {
-    if (displayPropertyName.startsWith(DISPLAY_PREFIX)
-        && displayPropertyName.length() > DISPLAY_PREFIX.length()) {
-      String basePropertyName = displayPropertyName.substring(DISPLAY_PREFIX.length());
-      return basePropertyName.substring(0, 1).toLowerCase() + basePropertyName.substring(1);
-    }
-    return displayPropertyName;
-  }
-
+  @PostConstruct
   private void initStoreMap() {
-    if (!stores.isEmpty()) {
-      return;
-    }
-
     for (IdentifiableObjectStore<?> store : hibernateGenericStores) {
       stores.put(store.getClazz(), store);
     }
@@ -340,7 +329,6 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
   @SuppressWarnings("unchecked")
   private <E extends IdentifiableObject> InternalHibernateGenericStore<E> getStore(Class<E> klass) {
-    initStoreMap();
     return (InternalHibernateGenericStore<E>) stores.get(klass);
   }
 
@@ -384,8 +372,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       String filterPath = filter.getPath();
       // Map display properties to their base properties
       PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
-      if (path == null && filterPath.startsWith(DISPLAY_PREFIX)) {
-        filterPath = getBasePropertyName(filterPath);
+      if (path == null && filterPath.startsWith("display")) {
+        filterPath = Property.resolveTranslationBasePropertyName(filterPath);
         filter = new Filter(filterPath, filter.getOperator());
         path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
       }

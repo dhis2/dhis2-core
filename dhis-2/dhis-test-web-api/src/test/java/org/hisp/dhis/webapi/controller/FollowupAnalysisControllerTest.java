@@ -99,7 +99,7 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest {
     assertEquals("default", value.getCocName());
     assertEquals(categoryOptionComboId, value.getAoc());
     assertEquals("default", value.getAocName());
-    assertEquals("5", value.getValue());
+    assertEquals("5", value.value());
     assertEquals(getAdminUser().getUsername(), value.getStoredBy());
     assertEquals("Needs_check", value.getComment());
     assertEquals("March 2021", value.getPeName());

@@ -194,6 +194,46 @@ class AggregateDataExchangeObjectBundleHookTest {
   }
 
   @Test
+  void testMixedAbsolutePeriodTypes() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setPe(List.of("202201", "2022Q1"));
+
+    assertErrorCode(ErrorCode.E6306, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testMixedRelativePeriodTypes() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setPe(List.of("LAST_12_MONTHS", "LAST_4_QUARTERS"));
+
+    assertErrorCode(ErrorCode.E6306, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testMixedAbsoluteAndRelativePeriodTypes() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange
+        .getSource()
+        .getRequests()
+        .get(0)
+        .setPe(List.of("LAST_12_MONTHS", "202201", "LAST_QUARTER", "LAST_2_SIXMONTHS"));
+
+    assertErrorCode(ErrorCode.E6306, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testSameRelativePeriodTypesValid() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange
+        .getSource()
+        .getRequests()
+        .get(0)
+        .setPe(List.of("LAST_12_MONTHS", "LAST_6_MONTHS", "LAST_3_MONTHS"));
+
+    assertIsEmpty(objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
   void testMissingTargetApiAuthentication() {
     Api api = new Api();
     api.setUrl("https://play.dhis2.org/demo");

@@ -82,7 +82,7 @@ public class AnalyticsQueryDv13AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"2021SunW52\":{\"name\":\"W52 2021-12-26 - 2022-01-01\"},\"fbfJHSPpUQD\":{\"name\":\"ANC 1st visit\"}},\"dimensions\":{\"dx\":[\"fbfJHSPpUQD\"],\"pe\":[\"2021SunW52\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"2021SunW52\":{\"name\":\"W52 - 2021-12-26 - 2022-01-01\"},\"fbfJHSPpUQD\":{\"name\":\"ANC 1st visit\"}},\"dimensions\":{\"dx\":[\"fbfJHSPpUQD\"],\"pe\":[\"2021SunW52\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -130,7 +130,7 @@ public class AnalyticsQueryDv13AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"2021SunW52\":{\"name\":\"Week 52 2021-12-26 - 2022-01-01\"},\"fbfJHSPpUQD\":{\"name\":\"ANC 1st visit\"}},\"dimensions\":{\"dx\":[\"fbfJHSPpUQD\"],\"pe\":[\"2021SunW52\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"2021SunW52\":{\"name\":\"Week 52 - 2021-12-26 - 2022-01-01\"},\"fbfJHSPpUQD\":{\"name\":\"ANC 1st visit\"}},\"dimensions\":{\"dx\":[\"fbfJHSPpUQD\"],\"pe\":[\"2021SunW52\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

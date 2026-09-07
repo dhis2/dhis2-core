@@ -31,6 +31,7 @@ package org.hisp.dhis.db.sql;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import org.hisp.dhis.period.PeriodTypeEnum;
 
 /**
  * Interface for resolving specific SQL queries for analytics, that requires custom logic that can't
@@ -73,5 +74,62 @@ public interface AnalyticsSqlBuilder extends SqlBuilder {
   default Optional<String> renderStageDatePeriodBucket(
       String stageDateColumn, String periodBucketColumn) {
     return Optional.empty();
+  }
+
+  /**
+   * Renders a database-specific DATE expression for the start date of the given period bucket.
+   *
+   * <p>Analytics database implementations are expected to support every period bucket used by the
+   * event/enrollment aggregate query path. Returning an empty value indicates an unsupported
+   * builder/period combination and should fail fast in callers.
+   *
+   * @param dateColumn the SQL column/expression containing the source date or timestamp
+   * @param periodType the requested period type
+   * @return database-specific DATE expression if supported
+   */
+  default Optional<String> renderDateFieldPeriodBucketDate(
+      String dateColumn, PeriodTypeEnum periodType) {
+    return Optional.empty();
+  }
+
+  /**
+   * Indicates whether period identifier lookups against {@code analytics_rs_dateperiodstructure}
+   * must be rendered as joins rather than correlated scalar subqueries.
+   *
+   * @return {@code true} when lookup-table joins must be used
+   */
+  default boolean useJoinForDatePeriodStructureLookup() {
+    return false;
+  }
+
+  /**
+   * Returns an SQL expression casting {@code expression} to {@code DATE}, propagating {@code NULL}
+   * inputs to {@code NULL} results.
+   *
+   * <p>The default uses ANSI {@code cast(... as date)}, which Postgres and Doris already make
+   * NULL-safe. Engines that throw on {@code NULL} input (e.g. ClickHouse {@code toDate}) must
+   * override to return their NULL-tolerant equivalent.
+   *
+   * @param expression the source SQL expression
+   * @return an SQL fragment that casts {@code expression} to a date and yields {@code NULL} when
+   *     the input is {@code NULL}
+   */
+  default String castAsDate(String expression) {
+    return "cast(" + expression + " as date)";
+  }
+
+  /**
+   * Returns an SQL expression that yields {@code NULL} when {@code column} holds an empty string,
+   * and the column value otherwise. This normalises empty text to {@code NULL} so that grouping
+   * treats absent and empty text values the same way across analytics databases.
+   *
+   * <p>The default returns the column unchanged. Engines that store empty strings where other
+   * engines store {@code NULL} (ClickHouse) override this to wrap the column in a {@code nullif}.
+   *
+   * @param column the text SQL column or expression.
+   * @return a NULL-normalising SQL fragment.
+   */
+  default String nullIfEmpty(String column) {
+    return column;
   }
 }

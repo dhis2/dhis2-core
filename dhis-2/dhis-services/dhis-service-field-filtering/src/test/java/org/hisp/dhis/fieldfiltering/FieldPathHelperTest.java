@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
+import org.hisp.dhis.common.PropertyPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -48,14 +49,20 @@ class FieldPathHelperTest {
   @MethodSource("fieldShouldNotBeExcluded")
   @DisplayName("Field should not be excluded")
   void fieldShouldNotBeExcludedTest(String fullFieldPath, String fullExclusionPath) {
-    assertFalse(FieldPathHelper.fieldShouldBeExcluded(fullFieldPath, fullExclusionPath));
+    assertFalse(
+        FieldPathHelper.fieldShouldBeExcluded(
+            PropertyPath.of(fullFieldPath), PropertyPath.of("!" + fullExclusionPath)),
+        () -> "%s should not exclude %s".formatted(fullExclusionPath, fullFieldPath));
   }
 
   @ParameterizedTest
   @MethodSource("fieldShouldBeExcluded")
   @DisplayName("Field should be excluded")
   void fieldShouldBeExcludedTest(String fullFieldPath, String fullExclusionPath) {
-    assertTrue(FieldPathHelper.fieldShouldBeExcluded(fullFieldPath, fullExclusionPath));
+    assertTrue(
+        FieldPathHelper.fieldShouldBeExcluded(
+            PropertyPath.of(fullFieldPath), PropertyPath.of("!" + fullExclusionPath)),
+        () -> "%s should exclude %s".formatted(fullExclusionPath, fullFieldPath));
   }
 
   private static Stream<Arguments> fieldShouldNotBeExcluded() {
@@ -63,9 +70,6 @@ class FieldPathHelperTest {
         arguments("username", "user"),
         arguments("task", "user"),
         arguments("userRoles", "user"),
-        arguments("", "user"),
-        arguments(null, "user"),
-        arguments("", null),
         arguments("test", "user"),
         arguments("user.name.last", "user.names"),
         arguments("organisationUnits", "organisationUnits.translations"),

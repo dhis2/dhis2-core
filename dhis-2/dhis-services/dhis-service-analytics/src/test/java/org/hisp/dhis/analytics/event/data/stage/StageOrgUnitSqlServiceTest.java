@@ -58,7 +58,7 @@ class StageOrgUnitSqlServiceTest {
     DefaultStageOrgUnitSqlService subject =
         new DefaultStageOrgUnitSqlService(resolver, new PostgreSqlAnalyticsSqlBuilder());
 
-    ColumnAndAlias column = subject.selectColumn(item, params, false);
+    ColumnAndAlias column = subject.selectColumn(item, params, false, null);
 
     assertEquals("\"uidlevel4\"", column.getColumn());
     assertEquals("ou", column.getAlias());
@@ -75,7 +75,7 @@ class StageOrgUnitSqlServiceTest {
     DefaultStageOrgUnitSqlService subject =
         new DefaultStageOrgUnitSqlService(resolver, new PostgreSqlAnalyticsSqlBuilder());
 
-    ColumnAndAlias column = subject.selectColumn(item, params, true);
+    ColumnAndAlias column = subject.selectColumn(item, params, true, null);
 
     assertEquals("\"uidlevel5\"", column.getColumn());
     assertEquals("\"uidlevel5\"", column.asSql());
@@ -118,6 +118,45 @@ class StageOrgUnitSqlServiceTest {
     assertEquals("", subject.whereClause(item, params, AnalyticsType.EVENT));
   }
 
+  @Test
+  void shouldQualifySingleLevelStageOuValueColumnWhenAliasIsProvided() {
+    AliasAwareResolver resolver = new AliasAwareResolver();
+    resolver.orgUnitsByLevel = Map.of(1, List.of(orgUnit("ouL1AAAAAAA")));
+
+    OrganisationUnitResolver.StageOuCteContext context =
+        resolver.buildStageOuCteContext(
+            createStageOuItem(), new EventQueryParams.Builder().build(), "enrl");
+
+    assertEquals("enrl.\"uidlevel1\"", context.valueColumn());
+  }
+
+  @Test
+  void shouldQualifyFallbackStageOuValueColumnWhenAliasIsProvided() {
+    AliasAwareResolver resolver = new AliasAwareResolver();
+
+    OrganisationUnitResolver.StageOuCteContext context =
+        resolver.buildStageOuCteContext(
+            createStageOuItem(), new EventQueryParams.Builder().build(), "enrl");
+
+    assertEquals("enrl.\"ou\"", context.valueColumn());
+  }
+
+  @Test
+  void shouldQualifyMultiLevelStageOuCaseExpressionWhenAliasIsProvided() {
+    AliasAwareResolver resolver = new AliasAwareResolver();
+    resolver.orgUnitsByLevel =
+        Map.of(2, List.of(orgUnit("ouL2AAAAAAA")), 3, List.of(orgUnit("ouL3BBBBBBB")));
+
+    OrganisationUnitResolver.StageOuCteContext context =
+        resolver.buildStageOuCteContext(
+            createStageOuItem(), new EventQueryParams.Builder().build(), "enrl");
+
+    assertEquals(
+        "case when enrl.\"uidlevel3\" in ('ouL3BBBBBBB') THEN enrl.\"uidlevel3\""
+            + " when enrl.\"uidlevel2\" in ('ouL2AAAAAAA') THEN enrl.\"uidlevel2\" end",
+        context.valueColumn());
+  }
+
   private QueryItem createStageOuItem() {
     DataElement dataElement = new DataElement();
     dataElement.setUid("ou");
@@ -126,6 +165,12 @@ class StageOrgUnitSqlServiceTest {
     programStage.setUid("s1234567890");
     item.setProgramStage(programStage);
     return item;
+  }
+
+  private OrganisationUnit orgUnit(String uid) {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(uid);
+    return orgUnit;
   }
 
   private static class TestResolver extends OrganisationUnitResolver {
@@ -143,8 +188,23 @@ class StageOrgUnitSqlServiceTest {
     }
 
     @Override
-    public StageOuCteContext buildStageOuCteContext(QueryItem item, EventQueryParams params) {
+    public StageOuCteContext buildStageOuCteContext(
+        QueryItem item, EventQueryParams params, String tableAlias) {
       return stageOuCteContext;
+    }
+  }
+
+  private static class AliasAwareResolver extends OrganisationUnitResolver {
+    private Map<Integer, List<OrganisationUnit>> orgUnitsByLevel = Map.of();
+
+    private AliasAwareResolver() {
+      super(null, null, null, new PostgreSqlAnalyticsSqlBuilder());
+    }
+
+    @Override
+    public Map<Integer, List<OrganisationUnit>> resolveOrgUnitsGroupedByLevel(
+        EventQueryParams params, QueryItem item) {
+      return orgUnitsByLevel;
     }
   }
 }

@@ -76,7 +76,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class ApiVersionFilter extends OncePerRequestFilter {
 
   private static final String API_VERSION_REGEX =
-      "^(?<api>/api/)(?<apiversion>2[8-9]|3\\d|4[0-3])/(?<endpoint>.*)";
+      "^(?<api>/api/)(?<apiversion>2[8-9]|3\\d|4[0-4])/(?<endpoint>.*)";
 
   private static final Pattern API_VERSION_PATTERN = Pattern.compile(API_VERSION_REGEX);
 

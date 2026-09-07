@@ -1082,4 +1082,98 @@ class RelativePeriodsTest {
         new Period(new WeeklySundayPeriodType(), getDate(2001, 4, 1), getDate(2001, 4, 7)),
         relatives.get(0));
   }
+
+  @Test
+  void testThisWeekStartingOnMonday() {
+    List<Period> relatives =
+        new RelativePeriods()
+                .setThisWeek(true)
+                .getRelativePeriods(
+                    getDate(2001, 4, 1), null, false, FINANCIAL_YEAR_OCTOBER, WEEKLY)
+                .stream()
+                .map(PeriodDimension::getPeriod)
+                .toList();
+    assertEquals(1, relatives.size());
+    assertEquals(
+        new Period(new WeeklyPeriodType(), getDate(2001, 4, 1), getDate(2001, 4, 7)),
+        relatives.get(0));
+  }
+
+  @Test
+  void testLastWeekStartingOnThursday() {
+    List<Period> relatives =
+        new RelativePeriods()
+                .setLastWeek(true)
+                .getRelativePeriods(
+                    getDate(2001, 4, 1), null, false, FINANCIAL_YEAR_OCTOBER, WEEKLY_THURSDAY)
+                .stream()
+                .map(PeriodDimension::getPeriod)
+                .toList();
+    assertEquals(1, relatives.size());
+    assertEquals(new WeeklyThursdayPeriodType(), relatives.get(0).getPeriodType());
+    assertEquals("2001ThuW12", relatives.get(0).getIsoDate());
+  }
+
+  @Test
+  void testLast4WeeksStartingOnSunday() {
+    List<Period> relatives =
+        new RelativePeriods()
+                .setLast4Weeks(true)
+                .getRelativePeriods(
+                    getDate(2001, 4, 1), null, false, FINANCIAL_YEAR_OCTOBER, WEEKLY_SUNDAY)
+                .stream()
+                .map(PeriodDimension::getPeriod)
+                .toList();
+    assertEquals(4, relatives.size());
+    assertEquals(new WeeklySundayPeriodType(), relatives.get(0).getPeriodType());
+    assertEquals("2001SunW10", relatives.get(0).getIsoDate());
+  }
+
+  @Test
+  void testLast12WeeksStartingOnFriday() {
+    List<Period> relatives =
+        new RelativePeriods()
+                .setLast12Weeks(true)
+                .getRelativePeriods(
+                    getDate(2001, 4, 1), null, false, FINANCIAL_YEAR_OCTOBER, WEEKLY_FRIDAY)
+                .stream()
+                .map(PeriodDimension::getPeriod)
+                .toList();
+    assertEquals(12, relatives.size());
+    assertEquals(new WeeklyFridayPeriodType(), relatives.get(0).getPeriodType());
+    assertEquals("2001FriW2", relatives.get(0).getIsoDate());
+    assertEquals("2001FriW13", relatives.get(11).getIsoDate());
+  }
+
+  @Test
+  void testLast52WeeksStartingOnSaturday() {
+    List<Period> relatives =
+        new RelativePeriods()
+                .setLast52Weeks(true)
+                .getRelativePeriods(
+                    getDate(2001, 4, 1), null, false, FINANCIAL_YEAR_OCTOBER, WEEKLY_SATURDAY)
+                .stream()
+                .map(PeriodDimension::getPeriod)
+                .toList();
+    assertEquals(52, relatives.size());
+    assertEquals(new WeeklySaturdayPeriodType(), relatives.get(0).getPeriodType());
+    assertEquals("2000SatW14", relatives.get(0).getIsoDate());
+    assertEquals("2000SatW25", relatives.get(11).getIsoDate());
+  }
+
+  @Test
+  void testWeeksThisYearStartingOnWednesday() {
+    List<Period> relatives =
+        new RelativePeriods()
+                .setWeeksThisYear(true)
+                .getRelativePeriods(
+                    getDate(2001, 6, 1), null, false, FINANCIAL_YEAR_OCTOBER, WEEKLY_WEDNESDAY)
+                .stream()
+                .map(PeriodDimension::getPeriod)
+                .toList();
+    assertEquals(52, relatives.size());
+    assertEquals(new WeeklyWednesdayPeriodType(), relatives.get(0).getPeriodType());
+    assertEquals("2001WedW1", relatives.get(0).getIsoDate());
+    assertEquals("2001WedW12", relatives.get(11).getIsoDate());
+  }
 }

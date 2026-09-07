@@ -85,7 +85,6 @@ public class TrackerObjectsMapper {
       dbTrackedEntity.setUid(trackedEntity.getTrackedEntity().getValue());
       dbTrackedEntity.setCreated(now);
       dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-      dbTrackedEntity.setStoredBy(trackedEntity.getStoredBy());
     }
 
     dbTrackedEntity.setLastUpdated(now);
@@ -119,7 +118,6 @@ public class TrackerObjectsMapper {
       dbEnrollment = new Enrollment();
       dbEnrollment.setUid(enrollment.getEnrollment().getValue());
       dbEnrollment.setCreated(now);
-      dbEnrollment.setStoredBy(enrollment.getStoredBy());
       dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
 
@@ -196,7 +194,6 @@ public class TrackerObjectsMapper {
       dbEvent = new TrackerEvent();
       dbEvent.setUid(event.getEvent().getValue());
       dbEvent.setCreated(now);
-      dbEvent.setStoredBy(event.getStoredBy());
       dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
     dbEvent.setLastUpdated(now);
@@ -268,7 +265,6 @@ public class TrackerObjectsMapper {
       dbEvent = new SingleEvent();
       dbEvent.setUid(event.getEvent().getValue());
       dbEvent.setCreated(now);
-      dbEvent.setStoredBy(event.getStoredBy());
       dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
     dbEvent.setLastUpdated(now);
@@ -398,7 +394,6 @@ public class TrackerObjectsMapper {
     dbNote.setUid(note.getNote().getValue());
     dbNote.setCreated(now);
     dbNote.setLastUpdatedBy(user);
-    dbNote.setCreator(note.getStoredBy());
     dbNote.setNoteText(note.getValue());
 
     return dbNote;
@@ -418,7 +413,6 @@ public class TrackerObjectsMapper {
     event.setCreatedBy(singleEvent.getCreatedBy());
     event.setCreatedAtClient(singleEvent.getCreatedAtClient());
     event.setCreatedByUserInfo(singleEvent.getCreatedByUserInfo());
-    event.setStoredBy(singleEvent.getStoredBy());
     event.setLastUpdated(singleEvent.getLastUpdated());
     event.setLastUpdatedBy(singleEvent.getLastUpdatedBy());
     event.setLastUpdatedAtClient(singleEvent.getLastUpdatedAtClient());

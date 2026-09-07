@@ -29,10 +29,11 @@
  */
 package org.hisp.dhis.attribute;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -83,7 +84,7 @@ public interface AttributeService {
    */
   List<Attribute> getAllAttributes();
 
-  List<Attribute> getAttributesByIds(Collection<String> ids);
+  List<Attribute> getAttributesByIds(Stream<UID> ids);
 
   // -------------------------------------------------------------------------
   // AttributeValue

@@ -90,6 +90,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DefaultQueryItemLocator implements QueryItemLocator {
+  private static final String EVENT_DATE_DIMENSION = "EVENT_DATE";
+
   private final ProgramStageService programStageService;
 
   private final DataElementService dataElementService;
@@ -232,15 +234,23 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
     }
 
     if (CREATED.equals(dim)) {
-      if (EventOutputType.ENROLLMENT == type) {
-        return Optional.empty();
-      }
-      return Optional.of(
-          newDateQueryItem(program, legendSet, EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
+      return Optional.of(newDateQueryItem(program, legendSet, getCreatedDateColumn(type)));
     }
 
     if (COMPLETED.equals(dim)) {
       return Optional.of(newDateQueryItem(program, legendSet, getCompletedDateColumn(type)));
+    }
+
+    if (EVENT_DATE_DIMENSION.equals(dim)) {
+      return Optional.of(
+          newDateQueryItem(program, legendSet, EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    }
+
+    if (org.hisp.dhis.common.DimensionConstants.SCHEDULED_DATE.equals(dim)) {
+      if (EventOutputType.ENROLLMENT == type) {
+        return Optional.empty();
+      }
+      return Optional.of(newDateQueryItem(program, legendSet, getScheduledDateColumn()));
     }
 
     return Optional.empty();
@@ -464,7 +474,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
     if (EventOutputType.ENROLLMENT == type) {
       return EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
     }
-    return EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME;
+    return EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
   }
 
   private String getLastUpdatedColumn(EventOutputType type) {
@@ -474,10 +484,21 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
     return EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME;
   }
 
+  private String getCreatedDateColumn(EventOutputType type) {
+    if (EventOutputType.ENROLLMENT == type) {
+      return EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME;
+    }
+    return EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME;
+  }
+
   private String getCompletedDateColumn(EventOutputType type) {
     if (EventOutputType.ENROLLMENT == type) {
       return EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME;
     }
     return EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME;
+  }
+
+  private String getScheduledDateColumn() {
+    return EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
   }
 }

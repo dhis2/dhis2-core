@@ -40,7 +40,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/** Hibernate implementation of the OAuth2AuthorizationStore. */
+/**
+ * Hibernate-backed store for {@link Dhis2OAuth2Authorization}. Backs {@link
+ * Dhis2OAuth2AuthorizationServiceImpl} and exposes token-value lookups across the {@code state},
+ * {@code authorization_code}, {@code access_token}, {@code refresh_token}, {@code oidc_id_token},
+ * {@code user_code}, and {@code device_code} columns.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Repository
 public class HibernateDhis2OAuth2AuthorizationStore
     extends HibernateIdentifiableObjectStore<Dhis2OAuth2Authorization>
@@ -54,6 +61,7 @@ public class HibernateDhis2OAuth2AuthorizationStore
     super(entityManager, jdbcTemplate, publisher, Dhis2OAuth2Authorization.class, aclService, true);
   }
 
+  /** Look up the authorization holding the given {@code state} value. */
   @Override
   @CheckForNull
   public Dhis2OAuth2Authorization getByState(@Nonnull String state) {
@@ -62,6 +70,7 @@ public class HibernateDhis2OAuth2AuthorizationStore
         builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("state"), state)));
   }
 
+  /** Look up the authorization holding the given authorization-code value. */
   @Override
   @CheckForNull
   public Dhis2OAuth2Authorization getByAuthorizationCode(@Nonnull String authorizationCode) {
@@ -73,6 +82,7 @@ public class HibernateDhis2OAuth2AuthorizationStore
                 root -> builder.equal(root.get("authorizationCodeValue"), authorizationCode)));
   }
 
+  /** Look up the authorization holding the given access-token value. */
   @Override
   @CheckForNull
   public Dhis2OAuth2Authorization getByAccessToken(@Nonnull String accessToken) {
@@ -83,6 +93,7 @@ public class HibernateDhis2OAuth2AuthorizationStore
             .addPredicate(root -> builder.equal(root.get("accessTokenValue"), accessToken)));
   }
 
+  /** Look up the authorization holding the given refresh-token value. */
   @Override
   @CheckForNull
   public Dhis2OAuth2Authorization getByRefreshToken(@Nonnull String refreshToken) {
@@ -93,6 +104,7 @@ public class HibernateDhis2OAuth2AuthorizationStore
             .addPredicate(root -> builder.equal(root.get("refreshTokenValue"), refreshToken)));
   }
 
+  /** Look up the authorization holding the given OIDC ID-token value. */
   @Override
   @CheckForNull
   public Dhis2OAuth2Authorization getByOidcIdToken(@Nonnull String idToken) {
@@ -103,6 +115,7 @@ public class HibernateDhis2OAuth2AuthorizationStore
             .addPredicate(root -> builder.equal(root.get("oidcIdTokenValue"), idToken)));
   }
 
+  /** Look up the authorization holding the given device-flow user-code value. */
   @Override
   @CheckForNull
   public Dhis2OAuth2Authorization getByUserCode(@Nonnull String userCode) {
@@ -113,6 +126,7 @@ public class HibernateDhis2OAuth2AuthorizationStore
             .addPredicate(root -> builder.equal(root.get("userCodeValue"), userCode)));
   }
 
+  /** Look up the authorization holding the given device-flow device-code value. */
   @Override
   @CheckForNull
   public Dhis2OAuth2Authorization getByDeviceCode(@Nonnull String deviceCode) {
@@ -123,6 +137,11 @@ public class HibernateDhis2OAuth2AuthorizationStore
             .addPredicate(root -> builder.equal(root.get("deviceCodeValue"), deviceCode)));
   }
 
+  /**
+   * Look up an authorization by matching the token value against all token columns ({@code state},
+   * {@code authorization_code}, {@code access_token}, {@code refresh_token}, {@code oidc_id_token},
+   * {@code user_code}, {@code device_code}).
+   */
   @Override
   @CheckForNull
   public Dhis2OAuth2Authorization getByToken(@Nonnull String token) {
@@ -142,6 +161,7 @@ public class HibernateDhis2OAuth2AuthorizationStore
                         builder.equal(root.get("deviceCodeValue"), token))));
   }
 
+  /** Hard-delete the authorization row with the given UID. */
   @Override
   public void deleteByUID(@Nonnull String uid) {
     Query<Dhis2OAuth2Authorization> query =

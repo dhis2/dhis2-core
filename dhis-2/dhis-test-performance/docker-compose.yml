@@ -8,7 +8,8 @@ services:
       # JAVA_TOOL_OPTIONS: Standard JVM environment variable, works with all image types
       JAVA_TOOL_OPTIONS:
         "-Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml \
-        -Xmx10000m -Xms10000m"
+        -Xmx10000m -Xms10000m \
+        -Xlog:async -Xlog:gc*,safepoint:file=/tmp/gc.log:time,uptime,level,tags"
     volumes:
       - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
       - ./docker/${DHIS_CONF_FILE:-dhis.conf}:/opt/dhis2/dhis.conf:ro
@@ -45,6 +46,7 @@ services:
       dockerfile: Dockerfile.postgres
       args:
         POSTGRES_BASE_IMAGE: ghcr.io/baosystems/postgis:14-3.5
+        DB_DIR: "${DB_DIR:-}"
         DB_TYPE: "${DB_TYPE:-sierra-leone}"
         DB_VERSION: "${DB_VERSION:-dev}"
     image: localhost/dhis2-postgres:14-3.5-${DB_TYPE:-sierra-leone}-${DB_VERSION:-dev}

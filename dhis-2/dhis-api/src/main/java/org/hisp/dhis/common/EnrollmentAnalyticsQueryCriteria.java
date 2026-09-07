@@ -125,6 +125,9 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
 
   private SortOrder sortOrder;
 
+  /** The max limit of records to return. */
+  private Integer limit;
+
   private boolean totalPages;
 
   /** flag to enable enhanced OR conditions on queryItem dimensions/filters */

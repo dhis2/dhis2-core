@@ -36,13 +36,11 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -58,8 +56,8 @@ import org.hisp.dhis.system.util.AnnotationUtils;
 @Slf4j
 @RequiredArgsConstructor
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter {
-  private final List<FieldPath> fieldPaths;
-  private final boolean skipSharing;
+  private final Set<String> includePaths;
+  private final Set<String> skipPaths;
   private final boolean excludeDefaults;
 
   /** Cache that contains true/false for classes that should always be expanded. */
@@ -78,40 +76,23 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   protected boolean include(final PropertyWriter writer, final JsonGenerator jgen, Object object) {
     PathContext ctx = getPath(writer, jgen);
 
-    if (ctx.getCurrentValue() == null) {
+    if (ctx.currentValue() == null) {
       return false;
     }
 
     if (log.isDebugEnabled()) {
-      log.debug(ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath());
+      log.debug(ctx.currentValue().getClass().getSimpleName() + ": " + ctx.fullPath());
     }
 
     if (excludeDefaults && object instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault()) {
       return false;
     }
 
-    if (skipSharing
-        && Strings.CS.equalsAny(
-            ctx.getFullPath(),
-            "user",
-            "publicAccess",
-            "userGroupAccesses",
-            "userAccesses",
-            "sharing")) {
-      return false;
-    }
+    if (skipPaths.contains(ctx.fullPath())) return false;
 
-    if (ctx.isAlwaysExpand()) {
-      return true;
-    }
+    if (ctx.alwaysExpand()) return true;
 
-    for (FieldPath fieldPath : fieldPaths) {
-      if (fieldPath.toFullPath().equals(ctx.getFullPath())) {
-        return true;
-      }
-    }
-
-    return false;
+    return includePaths.contains(ctx.fullPath());
   }
 
   private PathContext getPath(PropertyWriter writer, JsonGenerator jgen) {
@@ -172,14 +153,9 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   }
 }
 
-/** Simple container class used by getPath to handle Maps. */
-@Data
-@RequiredArgsConstructor
-class PathContext {
-  private final String fullPath;
-
-  private final Object currentValue;
-
-  /** true if special type we do not support field filtering on. */
-  private final boolean alwaysExpand;
-}
+/**
+ * Simple container class used by getPath to handle Maps.
+ *
+ * @param alwaysExpand true if special type we do not support field filtering on.
+ */
+record PathContext(String fullPath, Object currentValue, boolean alwaysExpand) {}

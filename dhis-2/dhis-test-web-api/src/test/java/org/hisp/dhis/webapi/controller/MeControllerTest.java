@@ -37,6 +37,7 @@ import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,6 +65,8 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonMeDto;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,6 +137,54 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     // with no authorities
     switchToNewUser("Kalle");
     assertFalse(GET("/me/authorities/missing").content(HttpStatus.OK).booleanValue());
+  }
+
+  /**
+   * Contract pins for the {@code /api/me} response shape. These assert the CURRENT contract that
+   * clients rely on; changing any of them must be a deliberate, reviewed decision.
+   */
+  @Test
+  void testGetCurrentUser_ContractShape() {
+    JsonObject me = GET("/me").content(HttpStatus.OK);
+
+    assertEquals("userA", me.getString("username").string());
+    // PIN: "name" is the display name (first name + surname), NOT the username
+    assertEquals(userA.getFirstName() + " " + userA.getSurname(), me.getString("name").string());
+    assertNotEquals(me.getString("username").string(), me.getString("name").string());
+    assertTrue(me.getArray("authorities").stringValues().contains("ALL"));
+    assertTrue(me.getObject("settings").exists());
+    // impersonation fields only appear while impersonating / when the feature is enabled
+    assertFalse(me.get("impersonation").exists());
+    assertFalse(me.get("canImpersonate").exists());
+  }
+
+  @Test
+  void testGetAuthorities_ExactSetForLimitedUser() {
+    switchToNewUser("contract", "F_PERFORM_MAINTENANCE");
+    assertEquals(
+        singletonList("F_PERFORM_MAINTENANCE"),
+        GET("/me/authorities").content(HttpStatus.OK).stringValues());
+    assertEquals(
+        singletonList("F_PERFORM_MAINTENANCE"),
+        GET("/me?fields=authorities")
+            .content(HttpStatus.OK)
+            .getArray("authorities")
+            .stringValues());
+  }
+
+  @Test
+  void testHasAuthority_NonSuperuserExactMatch() {
+    switchToNewUser("contract", "F_PERFORM_MAINTENANCE");
+    assertTrue(
+        GET("/me/authorization/F_PERFORM_MAINTENANCE").content(HttpStatus.OK).booleanValue());
+    assertFalse(GET("/me/authorization/F_DOES_NOT_EXIST").content(HttpStatus.OK).booleanValue());
+  }
+
+  @Test
+  void testHasAuthority_SuperuserImplicitlyHasAnyAuthority() {
+    // PIN: userA holds ALL; isAuthorized() implicitly grants ANY authority for superusers
+    assertTrue(
+        GET("/me/authorization/F_PERFORM_MAINTENANCE").content(HttpStatus.OK).booleanValue());
   }
 
   @Test
@@ -321,7 +372,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     userService.updateUser(userByUsername);
 
     assertEquals(
-        "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).getValue());
+        "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).value());
   }
 
   @Test
@@ -416,5 +467,33 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     // Verify avatar is removed
     User userAfterRemoval = userService.getUserByUsername(currentUsername);
     assertNull(userAfterRemoval.getAvatar());
+  }
+
+  /**
+   * DHIS2-21908: /api/me must tolerate users who belong to membership groups that manage other
+   * groups. Building UserDetails via {@code userService.createUserDetails} batch-resolves managed
+   * group PKs; the legacy {@code UserDetails.fromUser} path N+1s on usergroupmanaged.
+   */
+  @Test
+  void testGetCurrentUser_WithManagedUserGroups() {
+    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    UserGroup managed = createUserGroup('Y', Set.of());
+    manager.save(managed);
+
+    UserGroup managing = createUserGroup('X', Set.of(user));
+    managing.addManagedGroup(managed);
+    manager.save(managing);
+
+    user.getGroups().add(managing);
+    userService.updateUser(user);
+
+    JsonMeDto me = GET("/me?fields=id").content().as(JsonMeDto.class);
+    assertEquals(user.getUid(), me.getId());
+
+    // Same choke point MeController now uses for UserDetails construction.
+    User reloaded = userService.getUser(user.getUid());
+    UserDetails details = userService.createUserDetails(reloaded);
+    assertTrue(details.getManagedGroupLongIds().contains(managed.getId()));
   }
 }

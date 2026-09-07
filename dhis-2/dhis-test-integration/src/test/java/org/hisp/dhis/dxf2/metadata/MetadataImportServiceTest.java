@@ -906,6 +906,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("#ddeeff", mapView.getNoDataColor());
     assertEquals("#aabbcc", mapView.getOrganisationUnitColor());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
+    assertEquals(List.of("dx"), mapView.getColumnDimensions());
+    assertEquals(List.of("pe"), mapView.getFilterDimensions());
     metadata =
         renderService.fromMetadata(
             new ClassPathResource("dxf2/map_update.json").getInputStream(), RenderFormat.JSON);
@@ -922,6 +924,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("#ddeeff", mapView.getNoDataColor());
     assertEquals("#aabbcc", mapView.getOrganisationUnitColor());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
+    assertEquals(List.of("dx"), mapView.getColumnDimensions());
+    assertEquals(List.of("pe"), mapView.getFilterDimensions());
   }
 
   /**
@@ -1136,7 +1140,6 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
-
     assertEquals(Status.OK, report.getStatus());
 
     metadata =
@@ -1145,7 +1148,6 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     params = createParams(ImportStrategy.CREATE);
     report = importService.importMetadata(params, new MetadataObjects(metadata));
-
     assertEquals(Status.OK, report.getStatus());
 
     EventVisualization visualization = manager.get(EventVisualization.class, "gyYXi0rXAIc");

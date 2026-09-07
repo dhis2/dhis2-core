@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
@@ -786,6 +787,12 @@ class DataQueryParamsTest extends TestBase {
             List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
 
     assertEquals(getDate(2000, 1, 1), params.getEarliestStartDate());
+    assertEquals(
+        1,
+        params.getQueryKey().keyComponents.stream()
+            .filter(v -> v.startsWith("timeDateRanges:lastupdatedlastupdatedlastupdated["))
+            .collect(toSet())
+            .size());
   }
 
   @Test
@@ -804,6 +811,12 @@ class DataQueryParamsTest extends TestBase {
             List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
 
     assertEquals(getDate(1999, 1, 1), params.getEarliestStartDate());
+    assertEquals(
+        1,
+        params.getQueryKey().keyComponents.stream()
+            .filter(v -> v.startsWith("timeDateRanges:lastupdatedlastupdatedlastupdated["))
+            .collect(toSet())
+            .size());
   }
 
   @Test
@@ -822,6 +835,12 @@ class DataQueryParamsTest extends TestBase {
             List.of(new DateRange(getDate(1999, 1, 1), getDate(2001, 3, 1))));
 
     assertEquals(getDate(1999, 1, 1), params.getEarliestStartDate());
+    assertEquals(
+        1,
+        params.getQueryKey().keyComponents.stream()
+            .filter(v -> v.startsWith("timeDateRanges:lastupdatedlastupdatedlastupdated["))
+            .collect(toSet())
+            .size());
   }
 
   @Test
@@ -840,6 +859,12 @@ class DataQueryParamsTest extends TestBase {
             List.of(new DateRange(getDate(2001, 1, 1), getDate(2001, 3, 1))));
 
     assertEquals(getDate(2020, 1, 1), params.getLatestEndDate());
+    assertEquals(
+        1,
+        params.getQueryKey().keyComponents.stream()
+            .filter(v -> v.startsWith("timeDateRanges:lastupdatedlastupdatedlastupdated["))
+            .collect(toSet())
+            .size());
   }
 
   @Test
@@ -858,6 +883,12 @@ class DataQueryParamsTest extends TestBase {
             List.of(new DateRange(getDate(2001, 1, 1), getDate(2010, 3, 1))));
 
     assertEquals(getDate(2020, 1, 31), params.getLatestEndDate());
+    assertEquals(
+        1,
+        params.getQueryKey().keyComponents.stream()
+            .filter(v -> v.startsWith("timeDateRanges:lastupdatedlastupdatedlastupdated["))
+            .collect(toSet())
+            .size());
   }
 
   @Test
@@ -876,6 +907,60 @@ class DataQueryParamsTest extends TestBase {
             List.of(new DateRange(getDate(2020, 1, 1), getDate(2020, 3, 1))));
 
     assertEquals(getDate(2020, 3, 1), params.getLatestEndDate());
+    assertEquals(
+        1,
+        params.getQueryKey().keyComponents.stream()
+            .filter(v -> v.startsWith("timeDateRanges:lastupdatedlastupdatedlastupdated["))
+            .collect(toSet())
+            .size());
+  }
+
+  @Test
+  void incidentDateEndDateWhenTimeRange() {
+    EventQueryParams params =
+        EventQueryParams.fromDataQueryParams(
+            DataQueryParams.newBuilder()
+                .withEndDate(getDate(2000, 1, 1))
+                .withPeriods(createPeriodDimensions("201701", "201702"))
+                .build());
+
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.INCIDENT_DATE,
+            List.of(new DateRange(getDate(2020, 1, 1), getDate(2020, 3, 1))));
+
+    assertEquals(getDate(2020, 3, 1), params.getLatestEndDate());
+    assertEquals(
+        1,
+        params.getQueryKey().keyComponents.stream()
+            .filter(v -> v.startsWith("timeDateRanges:occurreddateoccurreddateoccurreddate["))
+            .collect(toSet())
+            .size());
+  }
+
+  @Test
+  void enrollmentDateDateEndDateWhenTimeRange() {
+    EventQueryParams params =
+        EventQueryParams.fromDataQueryParams(
+            DataQueryParams.newBuilder()
+                .withEndDate(getDate(2000, 1, 1))
+                .withPeriods(createPeriodDimensions("201701", "201702"))
+                .build());
+
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.ENROLLMENT_DATE,
+            List.of(new DateRange(getDate(2020, 1, 1), getDate(2020, 3, 1))));
+
+    assertEquals(getDate(2020, 3, 1), params.getLatestEndDate());
+    assertEquals(
+        1,
+        params.getQueryKey().keyComponents.stream()
+            .filter(v -> v.startsWith("timeDateRanges:enrollmentdateenrollmentdateenrollmentdate["))
+            .collect(toSet())
+            .size());
   }
 
   @Test

@@ -396,7 +396,7 @@ public enum ConfigurationKey {
    */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
-  /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
+  /** Sets up Spring Framework core {@code RetryTemplate} backoff delay. (default: 30000) */
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
@@ -584,6 +584,13 @@ public enum ConfigurationKey {
   /** CPU monitoring. (default: off) */
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
 
+  /**
+   * JMX monitoring: expose selected statistics (user statistics) and HikariCP connection pool
+   * MBeans, for monitoring tools that consume JMX rather than Prometheus, such as Glowroot.
+   * (default: off)
+   */
+  MONITORING_JMX_ENABLED("monitoring.jmx.enabled", Constants.OFF, false),
+
   /** AppHub base URL. (default: https://apps.dhis2.org). */
   APPHUB_BASE_URL("apphub.base.url", "https://apps.dhis2.org", false),
 
@@ -750,7 +757,7 @@ public enum ConfigurationKey {
       "localhost,127.0.0.1,[0:0:0:0:0:0:0:1],0:0:0:0:0:0:0:1",
       false),
 
-  /** Maximun size for files uploaded as fileResources. */
+  /** Maximum size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
   /** CSRF feature. Enable or disable the feature. (sensitive) */
@@ -802,6 +809,14 @@ public enum ConfigurationKey {
   OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
       "oauth2.server.jwt.keystore.generate-if-missing", "true", false),
 
+  /**
+   * Refresh token time-to-live in seconds for clients registered through OIDC Dynamic Client
+   * Registration (e.g. Android devices). Refresh tokens are rotated on every use, so this is a
+   * sliding window: each refresh issues a new refresh token valid for this duration. (default: 30
+   * days)
+   */
+  OAUTH2_SERVER_DCR_REFRESH_TOKEN_TTL("oauth2.server.dcr.refresh-token-ttl", "2592000", false),
+
   /** Ehcache monitoring. (default: off) */
   MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
 
@@ -816,7 +831,43 @@ public enum ConfigurationKey {
   OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
   OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
   OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
-  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false);
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false),
+
+  /** Whether static resource caching is enabled. (default: true) */
+  STATIC_CACHE_ENABLED("dhis2.static.cache.enabled", Constants.ON, false),
+
+  /**
+   * Default max-age in seconds for static resources (JS, CSS, images, fonts). (default: 3600
+   * seconds = 1 hour)
+   */
+  STATIC_CACHE_DEFAULT_MAX_AGE_SECONDS("dhis2.static.cache.default_max_age", "3600", false),
+
+  /**
+   * Max-age in seconds for HTML entry points (index.html, plugin.html). (default: 300 seconds = 5
+   * minutes)
+   */
+  STATIC_CACHE_HTML_MAX_AGE_SECONDS("dhis2.static.cache.html_max_age", "300", false),
+
+  /**
+   * Max-age in seconds for immutable/hashed static resources. (default: 31536000 seconds = 1 year)
+   */
+  STATIC_CACHE_IMMUTABLE_MAX_AGE_SECONDS("dhis2.static.cache.immutable_max_age", "31536000", false),
+
+  /**
+   * Comma-separated Ant-style patterns for paths that should always get no-cache headers. (default:
+   * common HTML entry points and manifests)
+   */
+  STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS(
+      "dhis2.static.cache.always_no_cache_patterns",
+      "**/*.html,**/index.*,**/manifest.*,**/config.*,**/plugin.html",
+      false),
+
+  /** Force no-store on all static resources (dev mode). (default: off) */
+  STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE(
+      "dhis2.static.cache.dev_mode_force_no_cache", Constants.OFF, false),
+
+  /** Whether HTML cache-busting rewrite is enabled. (default: on) */
+  STATIC_CACHE_HTML_REWRITE_ENABLED("dhis2.static.cache.html_rewrite_enabled", Constants.ON, false);
 
   private final String key;
 

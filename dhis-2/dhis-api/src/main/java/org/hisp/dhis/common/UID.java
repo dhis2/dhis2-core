@@ -89,6 +89,10 @@ public final class UID implements Serializable {
     return new UID(value);
   }
 
+  public static UID of(@Nonnull CharSequence value) {
+    return of(value.toString());
+  }
+
   @CheckForNull
   public static UID ofNullable(@CheckForNull String value) {
     return value == null ? null : of(value);

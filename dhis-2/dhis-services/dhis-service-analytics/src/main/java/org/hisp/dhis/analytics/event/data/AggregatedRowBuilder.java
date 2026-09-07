@@ -37,6 +37,7 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -190,9 +191,14 @@ class AggregatedRowBuilder {
    * dimension value using the dimension name as the column identifier.
    */
   private void addDimensionData() {
-    for (DimensionalObject dimension : params.getDimensions()) {
+    for (DimensionalObject dimension :
+        PeriodDimensionSplitter.expandPeriodDimensions(params.getDimensions())) {
+      // Period dimensions can carry the display-cased name from PeriodTypeEnum.getName()
+      // (e.g. "Quarterly"), but the SQL emission lowercases period column references.
+      // Match that here so case-sensitive JDBC drivers (ClickHouse) can resolve the column.
       String dimensionValue =
-          extractStringValue(dimension.getDimensionName(), dimension.getValueType());
+          extractStringValue(
+              dimension.getDimensionName().toLowerCase(Locale.ROOT), dimension.getValueType());
       row.add(dimensionValue);
     }
 
@@ -200,7 +206,7 @@ class AggregatedRowBuilder {
       row.add(extractStringValue(OrgUnitRowAccess.enrollmentOuResultColumn(), ValueType.TEXT));
     }
 
-    if (params.hasEnrollmentStatuses()) {
+    if (params.hasEnrollmentStatuses() && params.isAggregatedEvents()) {
       row.add(rowSet.getString(ENROLLMENT_STATUS_COLUMN_NAME));
     }
   }

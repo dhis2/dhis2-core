@@ -47,6 +47,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -86,7 +87,14 @@ public abstract class SmsGateway {
           .put(HttpStatus.INTERNAL_SERVER_ERROR, GatewayResponse.RESULT_CODE_504)
           .build();
 
-  @Autowired private RestTemplate restTemplate;
+  @lombok.Setter protected RestTemplate restTemplate = createSmsRestTemplate();
+
+  private static RestTemplate createSmsRestTemplate() {
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(java.time.Duration.ofSeconds(30));
+    factory.setReadTimeout(java.time.Duration.ofSeconds(60));
+    return new RestTemplate(factory);
+  }
 
   @Autowired
   @Qualifier("tripleDesStringEncryptor")

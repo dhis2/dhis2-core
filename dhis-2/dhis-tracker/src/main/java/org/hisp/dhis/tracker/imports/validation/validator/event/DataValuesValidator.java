@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,16 +38,12 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -60,10 +56,7 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Enrico Colasante
  */
-@RequiredArgsConstructor
 class DataValuesValidator implements Validator<Event> {
-
-  private final OptionService optionService;
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
@@ -91,11 +84,8 @@ class DataValuesValidator implements Validator<Event> {
 
   private void validateMandatoryDataValues(
       Reporter reporter, TrackerBundle bundle, Event event, ProgramStage programStage) {
-    final List<MetadataIdentifier> mandatoryDataElements =
-        programStage.getProgramStageDataElements().stream()
-            .filter(ProgramStageDataElement::isCompulsory)
-            .map(de -> bundle.getPreheat().getIdSchemes().toMetadataIdentifier(de.getDataElement()))
-            .toList();
+    final Set<MetadataIdentifier> mandatoryDataElements =
+        bundle.getPreheat().getProgramStageDataElements(programStage).compulsory();
 
     validateMandatoryDataValue(bundle, event, programStage, mandatoryDataElements)
         .forEach(de -> reporter.addError(event, E1303, de));
@@ -117,7 +107,7 @@ class DataValuesValidator implements Validator<Event> {
     }
 
     if (dataElement.hasOptionSet()) {
-      validateOptionSet(reporter, event, dataElement, dataValue.getValue(), optionService);
+      validateOptionSet(reporter, bundle.getPreheat(), event, dataElement, dataValue.getValue());
     }
     validateValueType(reporter, bundle, event, dataValue.getValue(), dataElement);
   }
@@ -126,9 +116,7 @@ class DataValuesValidator implements Validator<Event> {
       Reporter reporter, TrackerBundle bundle, Event event, ProgramStage programStage) {
     TrackerPreheat preheat = bundle.getPreheat();
     final Set<MetadataIdentifier> dataElements =
-        programStage.getProgramStageDataElements().stream()
-            .map(de -> preheat.getIdSchemes().toMetadataIdentifier(de.getDataElement()))
-            .collect(Collectors.toSet());
+        preheat.getProgramStageDataElements(programStage).members();
 
     Set<MetadataIdentifier> payloadDataElements =
         event.getDataValues().stream().map(DataValue::getDataElement).collect(Collectors.toSet());

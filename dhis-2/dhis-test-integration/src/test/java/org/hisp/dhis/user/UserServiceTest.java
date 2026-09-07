@@ -194,6 +194,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(userA);
     idObjectManager.save(dataElement);
+    entityManager.flush();
 
     assertThrows(DeleteNotAllowedException.class, () -> userService.deleteUser(userA));
   }
@@ -208,6 +209,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
     dataElement.setDescription("Updated");
     idObjectManager.update(dataElement);
+    entityManager.flush();
 
     assertThrows(DeleteNotAllowedException.class, () -> userService.deleteUser(userA));
   }
@@ -346,6 +348,32 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     List<User> users2 = userService.getUsers(params);
     assertEquals(5, users2.size());
     assertContainsOnly(List.of(currentUser, userA, userB, userC, userD), users2);
+  }
+
+  @Test
+  void testCreateUserDetailsResolvesManagedGroupLongIds() {
+    User user = addUser("Z");
+    UserGroup managed = createUserGroup('Y', new HashSet<>());
+    userGroupService.addUserGroup(managed);
+    UserGroup managing = createUserGroup('X', newHashSet(user));
+    managing.addManagedGroup(managed);
+    user.getGroups().add(managing);
+    userGroupService.addUserGroup(managing);
+    userService.updateUser(user);
+    idObjectManager.flush();
+
+    UserDetails details = userService.createUserDetails(user);
+
+    assertContainsOnly(Set.of(managed.getId()), details.getManagedGroupLongIds());
+  }
+
+  @Test
+  void testCreateUserDetailsWithNoGroupsReturnsEmptyManagedGroupLongIds() {
+    User user = addUser("W");
+
+    UserDetails details = userService.createUserDetails(user);
+
+    assertIsEmpty(details.getManagedGroupLongIds());
   }
 
   @Test

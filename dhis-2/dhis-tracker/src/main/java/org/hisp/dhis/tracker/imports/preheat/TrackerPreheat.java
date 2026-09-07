@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -65,6 +66,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -135,6 +137,42 @@ public class TrackerPreheat {
   private Pair<String, Set<MetadataIdentifier>> toCategoryOptionComboCacheKey(
       CategoryCombo categoryCombo, Set<MetadataIdentifier> categoryOptions) {
     return Pair.of(categoryCombo.getUid(), categoryOptions);
+  }
+
+  /**
+   * Set of (option set id, option code) pairs confirmed to exist, populated by {@code
+   * OptionValueSupplier}. Only pairs actually referenced by the import payload are present here —
+   * this is not the full set of options for any given option set.
+   *
+   * <p>Preheated {@link org.hisp.dhis.option.OptionSet} instances deliberately carry no populated
+   * {@code options} collection (see {@code OptionSetMapper} for why). {@link
+   * #isValidOptionCode(Long, String)} and {@link #addValidOptionCode(Long, String)} are the
+   * supported way to check option code validity against preheated data. Do not call {@code
+   * OptionSet#getOptions()} on a preheated option set expecting real data — it is always empty.
+   */
+  private final Set<Pair<Long, String>> validOptionCodes = new HashSet<>();
+
+  /**
+   * Option sets {@code OptionValueSupplier} attempted to resolve. Lets callers tell "this code was
+   * checked against the database and does not exist" apart from "this option set was never resolved
+   * at all", which would be an internal bug rather than user error.
+   */
+  private final Set<Long> resolvedOptionSets = new HashSet<>();
+
+  public void addValidOptionCode(Long optionSetId, String code) {
+    this.validOptionCodes.add(Pair.of(optionSetId, code));
+  }
+
+  public boolean isValidOptionCode(Long optionSetId, String code) {
+    return this.validOptionCodes.contains(Pair.of(optionSetId, code));
+  }
+
+  public void addResolvedOptionSet(Long optionSetId) {
+    this.resolvedOptionSets.add(optionSetId);
+  }
+
+  public boolean isOptionSetResolved(Long optionSetId) {
+    return this.resolvedOptionSets.contains(optionSetId);
   }
 
   /**
@@ -274,6 +312,28 @@ public class TrackerPreheat {
    * payload.
    */
   @Getter @Setter private Map<String, List<String>> programWithOrgUnitsMap;
+
+  /**
+   * Projected data elements of a program stage, keyed by program stage uid. Set by {@link
+   * org.hisp.dhis.tracker.imports.preheat.supplier.ProgramStageDataElementsSupplier}, which
+   * documents what is projected and why.
+   */
+  private final Map<UID, ProgramStageDataElements> programStageDataElements = new HashMap<>();
+
+  public void putProgramStageDataElements(
+      @Nonnull UID programStage, @Nonnull ProgramStageDataElements dataElements) {
+    programStageDataElements.put(programStage, dataElements);
+  }
+
+  /**
+   * Returns the projected data elements of the given program stage, never null. An unknown stage
+   * yields empty sets, matching the previous behaviour of a stage with no data elements.
+   */
+  @Nonnull
+  public ProgramStageDataElements getProgramStageDataElements(@Nonnull ProgramStage programStage) {
+    return programStageDataElements.getOrDefault(
+        UID.of(programStage), ProgramStageDataElements.EMPTY);
+  }
 
   public TrackerPreheat() {}
 
@@ -642,6 +702,32 @@ public class TrackerPreheat {
       case EVENT -> getTrackerEvent(uid) != null || getSingleEvent(uid) != null;
       case RELATIONSHIP -> getRelationship(uid) != null;
     };
+  }
+
+  private final Map<String, Set<MetadataIdentifier>> mandatoryProgramAttributes = new HashMap<>();
+
+  private final Map<String, Set<MetadataIdentifier>> mandatoryTetAttributes = new HashMap<>();
+
+  public Set<MetadataIdentifier> getMandatoryProgramAttributes(Program program) {
+    return mandatoryProgramAttributes.computeIfAbsent(
+        program.getUid(),
+        uid ->
+            program.getProgramAttributes().stream()
+                .filter(pa -> Boolean.TRUE.equals(pa.isMandatory()))
+                .map(pa -> idSchemes.toMetadataIdentifier(pa.getAttribute()))
+                .collect(Collectors.toUnmodifiableSet()));
+  }
+
+  public Set<MetadataIdentifier> getMandatoryTrackedEntityTypeAttributes(
+      TrackedEntityType trackedEntityType) {
+    return mandatoryTetAttributes.computeIfAbsent(
+        trackedEntityType.getUid(),
+        uid ->
+            trackedEntityType.getTrackedEntityTypeAttributes().stream()
+                .filter(a -> Boolean.TRUE.equals(a.isMandatory()))
+                .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
+                .map(idSchemes::toMetadataIdentifier)
+                .collect(Collectors.toUnmodifiableSet()));
   }
 
   @Override

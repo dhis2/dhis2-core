@@ -29,22 +29,30 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -57,27 +65,61 @@ public class EnrollmentPersister
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   public EnrollmentPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
-    super(reservedValueService, trackedEntityChangeLogService);
-
+      DataSource dataSource,
+      FileResourceStore fileResourceStore,
+      ObjectMapper objectMapper,
+      TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
+    super(dataSource, fileResourceStore, objectMapper);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
   @Override
+  protected String sequenceName() {
+    return "enrollment_sequence";
+  }
+
+  @Override
+  protected void assignId(Enrollment entity, long id) {
+    entity.setId(id);
+  }
+
+  @Override
+  protected void stageInsert(Enrollment entity, EntityWriteBatch batch) {
+    batch.stageInsert(entity);
+  }
+
+  @Override
+  protected void stageUpdate(Enrollment entity, EntityWriteBatch batch) {
+    batch.stageUpdate(entity);
+  }
+
+  @Override
   protected void updateAttributes(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch,
+      Map<Long, Map<MetadataIdentifier, TrackedEntityAttributeValue>> existingAttributeValues) {
     handleTrackedEntityAttributeValues(
-        entityManager,
         preheat,
         enrollment.getAttributes(),
         enrollmentToPersist.getTrackedEntity(),
-        user);
+        user,
+        changeLogs,
+        batch,
+        existingAttributeValues);
+  }
+
+  @Override
+  protected Set<String> trackedEntityUidsForAttributeLoad(
+      List<org.hisp.dhis.tracker.imports.domain.Enrollment> dtos) {
+    return dtos.stream()
+        .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
+        .filter(java.util.Objects::nonNull)
+        .map(UID::getValue)
+        .collect(Collectors.toSet());
   }
 
   @Override
@@ -90,44 +132,37 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, Enrollment enrollment, List<NotificationTrigger> triggers) {
-
-    return TrackerNotificationDataBundle.builder()
-        .klass(Enrollment.class)
-        .enrollmentNotifications(bundle.getEnrollmentNotifications().get(enrollment.getUID()))
-        .object(enrollment.getUid())
-        .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUser().getUsername())
-        .enrollment(enrollment)
-        .program(enrollment.getProgram())
-        .triggers(triggers)
-        .build();
+  protected boolean isBeingCompleted(
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Enrollment entity,
+      boolean isNew) {
+    if (entity.getStatus() != EnrollmentStatus.COMPLETED) {
+      return false;
+    }
+    if (isNew) {
+      return true;
+    }
+    Enrollment persisted = preheat.getEnrollment(entity.getUID());
+    return persisted != null && persisted.getStatus() != EnrollmentStatus.COMPLETED;
   }
 
   @Override
-  protected List<NotificationTrigger> determineNotificationTriggers(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
-    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUID());
-    List<NotificationTrigger> triggers = new ArrayList<>();
-
-    if (persistedEnrollment == null) {
-      // New enrollment
-      triggers.add(NotificationTrigger.ENROLLMENT);
-
-      // New enrollment that is completed
-      if (entity.getStatus() == EnrollmentStatus.COMPLETED) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    } else {
-      // Existing enrollment that has changed to completed
-      if (persistedEnrollment.getStatus() != entity.getStatus()
-          && entity.getStatus() == EnrollmentStatus.COMPLETED) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
+  protected EntityNotifications collectNotifications(
+      TrackerBundle bundle, Enrollment enrollment, boolean isNew, boolean completedInThisImport) {
+    EnumSet<NotificationTrigger> applicableTriggers = EnumSet.noneOf(NotificationTrigger.class);
+    if (isNew) {
+      applicableTriggers.add(NotificationTrigger.ENROLLMENT);
     }
+    if (completedInThisImport) {
+      applicableTriggers.add(NotificationTrigger.COMPLETION);
+    }
+    Set<ProgramNotificationTemplate> matchedTemplates =
+        filterTemplates(enrollment.getProgram().getNotificationTemplates(), applicableTriggers);
+    List<Notification> ruleEngineNotifications =
+        bundle.getEnrollmentNotifications().getOrDefault(enrollment.getUID(), List.of());
 
-    return triggers;
+    Set<Notification> notifications = mergeNotifications(matchedTemplates, ruleEngineNotifications);
+    return notifications.isEmpty() ? null : new EntityNotifications(enrollment, notifications);
   }
 
   @Override
@@ -150,34 +185,51 @@ public class EnrollmentPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
-      Enrollment entity) {
-    if (isNew(bundle, trackerDto)
-        && (bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
-            || bundle
-                    .getPreheat()
-                    .getProgramOwner()
-                    .get(entity.getTrackedEntity().getUID())
-                    .get(entity.getProgram().getUid())
-                == null)) {
-      trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
-          entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
+      Enrollment entity,
+      EntityWriteBatch batch) {
+    if ((bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
+        || bundle
+                .getPreheat()
+                .getProgramOwner()
+                .get(entity.getTrackedEntity().getUID())
+                .get(entity.getProgram().getUid())
+            == null)) {
+      // Mirrors DefaultTrackedEntityProgramOwnerService.createTrackedEntityProgramOwner, but stages
+      // the row into the write batch instead of a per-enrollment Hibernate save (see
+      // AbstractTrackerPersister#persistOwnership and TrackedEntityProgramOwnerWriter).
+      TrackedEntityProgramOwner owner =
+          new TrackedEntityProgramOwner(
+              entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
+      owner.updateDates();
+      owner.setCreatedBy(CurrentUserUtil.getCurrentUsername());
+      batch.stageOwnershipInsert(owner);
+      // The store's save()/update() invalidate the program-owner cache; since we bypass the store,
+      // invalidate it here so a stale "no owner / registering org unit" entry cached before this
+      // import does not survive the newly created ownership.
+      trackedEntityProgramOwnerService.invalidateOwnershipCache(
+          entity.getTrackedEntity(), entity.getProgram());
     }
   }
 
   @Override
   protected void updateDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment payloadEntity,
       Enrollment currentEntity,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    // DO NOTHING - ENROLLMENTS HAVE NO DATA VALUES
   }
 
   @Override
   protected Set<UID> getUpdatedTrackedEntities(Enrollment entity) {
     return Set.of(entity.getTrackedEntity().getUID());
+  }
+
+  @Override
+  protected Set<UID> getUpdatedSingleEvents(Enrollment entity) {
+    return Set.of();
   }
 
   @Override

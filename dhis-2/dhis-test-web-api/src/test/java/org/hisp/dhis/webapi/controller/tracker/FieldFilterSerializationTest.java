@@ -157,7 +157,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         // input was correct.
         // "relationships[unknownfield]",
         "relationships[!unknownfield]",
-        "relationships[f rom[trackedEntity[ org Unit ]",
+        // space in property names is no longer supported
+        // "relationships[f rom[trackedEntity[ org Unit ]",
         "relationships[from[trackedEntity[ :simple ]",
         // transformations
         "dataValues~isEmpty",
@@ -301,7 +302,6 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                             .build())
                     .build()))
         .scheduledAt(DATE)
-        .storedBy("fred")
         .followUp(true)
         .createdAt(DATE)
         .attributeOptionCombo(UID.generate().getValue())
@@ -315,16 +315,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                 .build())
         .dataValues(
             Set.of(
-                DataValue.builder()
-                    .dataElement(UID.generate().getValue())
-                    .value("14")
-                    .storedBy("alice")
-                    .build(),
-                DataValue.builder()
-                    .dataElement(UID.generate().getValue())
-                    .value("78")
-                    .storedBy("bob")
-                    .build()))
+                DataValue.builder().dataElement(UID.generate().getValue()).value("14").build(),
+                DataValue.builder().dataElement(UID.generate().getValue()).value("78").build()))
         .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
         .build();
   }

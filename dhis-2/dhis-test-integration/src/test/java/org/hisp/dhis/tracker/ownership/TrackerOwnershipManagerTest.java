@@ -201,23 +201,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldHaveAccessWhenProgramProtectedAndUserInCaptureScope() {
     assertTrue(trackerOwnershipManager.hasAccess(userDetailsA, trackedEntityA1, programA));
-    assertTrue(
-        trackerOwnershipManager.hasAccess(
-            userDetailsA,
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programA));
   }
 
   @Test
   void shouldNotHaveAccessWhenProgramProtectedAndUserNotInSearchScopeNorHasTemporaryAccess() {
     assertFalse(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityA1, programA));
-    assertFalse(
-        trackerOwnershipManager.hasAccess(
-            UserDetails.fromUser(userB),
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programA));
 
     injectSecurityContextUser(userB);
     NotFoundException exception =
@@ -237,12 +225,6 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     userService.updateUser(userB);
     assertFalse(
         trackerOwnershipManager.hasAccess(UserDetails.fromUser(userB), trackedEntityA1, programA));
-    assertFalse(
-        trackerOwnershipManager.hasAccess(
-            UserDetails.fromUser(userB),
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programA));
 
     injectSecurityContextUser(userB);
     NotFoundException exception =
@@ -259,12 +241,6 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldHaveAccessWhenProgramClosedAndUserInCaptureScope() {
     assertTrue(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityB1, programB));
-    assertTrue(
-        trackerOwnershipManager.hasAccess(
-            userDetailsB,
-            trackedEntityB1.getUid(),
-            trackedEntityB1.getOrganisationUnit(),
-            programB));
   }
 
   @Test

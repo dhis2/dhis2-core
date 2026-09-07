@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
@@ -413,8 +414,21 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 "startTime", toLongDate(params.getStartTime()),
                 "deletedClause", sqlBuilder.isFalse("dv", "deleted"))));
 
+    sql.append(getStartEndDatesCondition(respectStartEndDates));
+
+    if (whereClause != null) {
+      sql.append(" and " + whereClause + " ");
+    }
+
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}' {}", tableName, valueTypes);
+  }
+
+  String getStartEndDatesCondition(boolean respectStartEndDates) {
+    StringBuilder condition = new StringBuilder("");
+
     if (respectStartEndDates) {
-      sql.append(
+      condition.append(SPACE);
+      condition.append(
           """
           and (aon.startdate is null or aon.startdate <= ps.startdate) \
           and (aon.enddate is null or aon.enddate >= ps.enddate) \
@@ -422,11 +436,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
           and (con.enddate is null or con.enddate >= ps.enddate)\s""");
     }
 
-    if (whereClause != null) {
-      sql.append(" and " + whereClause + " ");
-    }
-
-    invokeTimeAndLog(sql.toString(), "Populating table: '{}' {}", tableName, valueTypes);
+    return condition.toString();
   }
 
   /**
@@ -750,7 +760,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    *
    * @return sql statement fraction of statistic basic values for the outlier identification.
    */
-  private String getOutliersJoinStatement() {
+  String getOutliersJoinStatement() {
+    // Outlier stats are only meaningful for numeric data elements; text/date/boolean values
+    // (e.g. LONG_TEXT) must never be fed into the double precision stats below.
+    String numericValueTypes =
+        quotedCommaDelimitedString(ObjectUtils.asStringList(ValueType.NUMERIC_TYPES));
     // spotless:off
     return "left join (select t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, t3.attributeoptioncomboid, " +
         // median of absolute deviations "mad" (median(xi - median(xi)))
@@ -782,8 +796,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         "percentile_cont(0.5) " +
         "within group (order by dv1.value::double precision) as percentile_middle_value " +
         "from datavalue dv1 " +
-        // Only numeric values (value is varchar or string) can be used for stats calculation.
-        "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' " +
+        "inner join dataelement de1 on dv1.dataelementid = de1.dataelementid " +
+        // Only numeric data elements with a parseable numeric value can be used for stats
+        // calculation; text-typed values (e.g. LONG_TEXT) must be excluded regardless of
+        // whether their content happens to look numeric.
+        "where de1.valuetype in (" + numericValueTypes + ") " +
+        "and dv1.value ~ " + NUMERIC_REGEXP + " " +
         "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, " +
         "dv1.attributeoptioncomboid) t1 " +
         "join " +
@@ -796,8 +814,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         "dv1.attributeoptioncomboid as attributeoptioncomboid, " +
         "dv1.value, dv1.periodid " +
         "from datavalue dv1 " +
-        // Only numeric values (varchars) can be used for stats calculation.
-        "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' " +
+        "inner join dataelement de1 on dv1.dataelementid = de1.dataelementid " +
+        // Only numeric data elements with a parseable numeric value can be used for stats
+        // calculation; text-typed values (e.g. LONG_TEXT) must be excluded regardless of
+        // whether their content happens to look numeric.
+        "where de1.valuetype in (" + numericValueTypes + ") " +
+        "and dv1.value ~ " + NUMERIC_REGEXP + " " +
         "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, " +
         "dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 " +
         "on t1.sourceid = t2.sourceid " +

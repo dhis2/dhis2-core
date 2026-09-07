@@ -46,6 +46,21 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 /**
+ * DHIS2 extension of Spring Security's {@link OidcUserService} that runs after a successful
+ * authorization-code exchange against an OIDC Identity Provider. It reads the claim configured by
+ * {@code mapping_claim} on the provider (default {@code email} for external providers, {@code
+ * username} for the internal DHIS2 provider) from the ID token and userinfo response, then resolves
+ * that value to a local DHIS2 user via {@code UserService.getUserByOpenId}.
+ *
+ * <p>The matched DHIS2 user must have the "External authentication only (OpenID or LDAP)" flag set
+ * ({@code isExternalAuth()}), must not be disabled, and must not have an expired account; otherwise
+ * authentication fails with an {@link OAuth2AuthenticationException}. The lookup supports the
+ * linked-accounts feature: when a single IdP claim value maps to multiple DHIS2 users, {@code
+ * getUserByOpenId} returns the most recently signed-in account.
+ *
+ * <p>On success the method returns a {@link DhisOidcUser} wrapping the DHIS2 {@code UserDetails}
+ * together with the raw OIDC claims and the validated ID token.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
@@ -55,6 +70,16 @@ public class DhisOidcUserService extends OidcUserService {
 
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
 
+  /**
+   * Delegates to {@link OidcUserService#loadUser(OidcUserRequest)} to fetch the OIDC user and then
+   * maps the provider's {@code mapping_claim} value to a local DHIS2 user. Throws {@link
+   * OAuth2AuthenticationException} if the claim is missing, no matching DHIS2 user exists, the
+   * DHIS2 user is not flagged for external authentication, or the account is disabled or expired.
+   *
+   * @param userRequest the OIDC user request produced after the code-for-token exchange
+   * @return a {@link DhisOidcUser} bound to the resolved DHIS2 user
+   * @throws OAuth2AuthenticationException if the claim cannot be mapped to a valid DHIS2 user
+   */
   @Override
   public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
     OidcUser oidcUser = super.loadUser(userRequest);
