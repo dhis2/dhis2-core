@@ -176,9 +176,14 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     atA.setCategoryOptionComboAttribute(true);
     idObjectManager.save(atA);
     dsA = createDataSet('A');
+    // dsA/dsB carry attribute category combo ccA: every data value below is stored with an
+    // attribute option combo (cocA/cocB) that belongs to ccA, which is only valid if the data
+    // sets use ccA as their attribute category combo (enforced on import, E8023).
+    dsA.setCategoryCombo(ccA);
     dsA.addDataSetElement(deA);
     dsA.addDataSetElement(deB);
     dsB = createDataSet('B');
+    dsB.setCategoryCombo(ccA);
     dsB.addDataSetElement(deA);
     dataSetService.addDataSet(dsA);
     dataSetService.addDataSet(dsB);
