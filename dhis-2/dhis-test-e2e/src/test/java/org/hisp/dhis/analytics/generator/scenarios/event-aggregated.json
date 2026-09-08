@@ -251,6 +251,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "optionSetDimensionPreservesNoValueFilterOrder",
+      "query": "/api/analytics/events/aggregate/eBAyeGv0exc.json?displayProperty=NAME&totalPages=false&includeMetadataDetails=true&dimension=Zj7UnCAulEk.ou:USER_ORGUNIT,Zj7UnCAulEk.fWIAEtYVEGk:IN:MODDISCH;D2__NOVALUE;MODDIED&eventDate=2021",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
