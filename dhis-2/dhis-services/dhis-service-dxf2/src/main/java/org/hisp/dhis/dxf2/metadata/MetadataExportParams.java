@@ -85,11 +85,10 @@ public class MetadataExportParams {
   private boolean skipSharing;
 
   /**
-   * Indicates whether the audit fields {@code created}, {@code lastUpdated}, {@code createdBy} and
-   * {@code lastUpdatedBy} should be excluded from the export, at every level of the exported object
-   * graph.
+   * Indicates whether {@code created}, {@code lastUpdated}, {@code createdBy} and {@code
+   * lastUpdatedBy} should be excluded from the export, at every level of the exported object graph.
    */
-  private boolean skipAuditFields;
+  private boolean skipCreatedAndLastUpdated;
 
   /**
    * The object to be exported with dependencies. It will be handled by {@link
@@ -205,12 +204,12 @@ public class MetadataExportParams {
     return this.skipSharing;
   }
 
-  public void setSkipAuditFields(boolean skipAuditFields) {
-    this.skipAuditFields = skipAuditFields;
+  public void setSkipCreatedAndLastUpdated(boolean skipCreatedAndLastUpdated) {
+    this.skipCreatedAndLastUpdated = skipCreatedAndLastUpdated;
   }
 
-  public boolean isSkipAuditFields() {
-    return this.skipAuditFields;
+  public boolean isSkipCreatedAndLastUpdated() {
+    return this.skipCreatedAndLastUpdated;
   }
 
   public boolean isExportWithDependencies() {

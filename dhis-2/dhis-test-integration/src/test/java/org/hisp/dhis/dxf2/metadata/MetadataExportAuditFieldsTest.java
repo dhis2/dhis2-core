@@ -56,7 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests that the audit fields {@code created}, {@code lastUpdated}, {@code createdBy} and {@code
- * lastUpdatedBy} can be excluded from every metadata export path via {@code skipAuditFields}.
+ * lastUpdatedBy} can be excluded from every metadata export path via {@code
+ * skipCreatedAndLastUpdated}.
  *
  * <p>The fixture is a nested metadata graph -- {@code Program -> ProgramStage ->
  * ProgramStageDataElement} -- because {@link ProgramStage#getProgramStageDataElements()} holds
@@ -177,42 +178,42 @@ class MetadataExportAuditFieldsTest extends PostgresIntegrationTestBase {
         List.of(), rootLevel(paths), "root-level audit fields should be removed by !field syntax");
     assertFalse(
         nested(paths).isEmpty(),
-        "nested audit fields survive a root-anchored exclusion, which is why skipAuditFields "
+        "nested audit fields survive a root-anchored exclusion, which is why skipCreatedAndLastUpdated "
             + "cannot be implemented via defaultFields alone");
   }
 
   // -------------------------------------------------------------------------
-  // The feature: skipAuditFields removes them everywhere
+  // The feature: skipCreatedAndLastUpdated removes them everywhere
   // -------------------------------------------------------------------------
 
   @Test
-  void skipAuditFieldsRemovesAuditFieldsFromMetadataExport() throws IOException {
+  void skipCreatedAndLastUpdatedRemovesAuditFieldsFromMetadataExport() throws IOException {
     MetadataExportParams params = params();
-    params.setSkipAuditFields(true);
+    params.setSkipCreatedAndLastUpdated(true);
 
     List<String> paths = auditFieldPaths(export(params));
 
-    assertEquals(List.of(), paths, "no audit field should survive skipAuditFields");
+    assertEquals(List.of(), paths, "no audit field should survive skipCreatedAndLastUpdated");
   }
 
   @Test
-  void skipAuditFieldsRemovesAuditFieldsFromDependencyExport() throws IOException {
+  void skipCreatedAndLastUpdatedRemovesAuditFieldsFromDependencyExport() throws IOException {
     MetadataExportParams params = params();
-    params.setSkipAuditFields(true);
+    params.setSkipCreatedAndLastUpdated(true);
 
     List<String> paths = auditFieldPaths(exportWithDependencies(params));
 
     assertEquals(
         List.of(),
         paths,
-        "no audit field should survive skipAuditFields on the dependency export, which hard-codes "
+        "no audit field should survive skipCreatedAndLastUpdated on the dependency export, which hard-codes "
             + "\":owner\" and never consults defaultFields");
   }
 
   @Test
-  void skipAuditFieldsKeepsNonAuditFields() throws IOException {
+  void skipCreatedAndLastUpdatedKeepsNonAuditFields() throws IOException {
     MetadataExportParams params = params();
-    params.setSkipAuditFields(true);
+    params.setSkipCreatedAndLastUpdated(true);
 
     JsonNode root = export(params);
     JsonNode programStage = root.get("programStages").get(0);

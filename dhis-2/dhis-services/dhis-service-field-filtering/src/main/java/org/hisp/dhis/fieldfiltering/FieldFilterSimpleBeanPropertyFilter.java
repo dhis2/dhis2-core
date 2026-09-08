@@ -47,7 +47,7 @@ import org.hisp.dhis.system.util.AnnotationUtils;
 
 /**
  * PropertyFilter that supports filtering using FieldPaths, also supports skipping of all fields
- * related to sharing.
+ * related to sharing, and of created/lastUpdated fields.
  *
  * <p>The filter _must_ be set on the ObjectMapper before serialising an object.
  *
@@ -58,7 +58,17 @@ import org.hisp.dhis.system.util.AnnotationUtils;
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter {
   private final Set<String> includePaths;
   private final Set<String> skipPaths;
+  private final boolean skipCreatedAndLastUpdated;
   private final boolean excludeDefaults;
+
+  /**
+   * Matched on the property name alone so that these are skipped at every depth of the object
+   * graph. A {@code fields} exclusion such as {@code !created} cannot do this because exclusion
+   * paths are anchored at the root, leaving the same properties on embedded objects (for example
+   * {@code programStages[].programStageDataElements[]}) in place.
+   */
+  private static final Set<String> CREATED_AND_LAST_UPDATED_FIELDS =
+      Set.of("created", "lastUpdated", "createdBy", "lastUpdatedBy");
 
   /** Cache that contains true/false for classes that should always be expanded. */
   private static final Map<Class<?>, Boolean> ALWAYS_EXPAND_CACHE = new ConcurrentHashMap<>();
@@ -74,6 +84,10 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   }
 
   protected boolean include(final PropertyWriter writer, final JsonGenerator jgen, Object object) {
+    if (skipCreatedAndLastUpdated && CREATED_AND_LAST_UPDATED_FIELDS.contains(writer.getName())) {
+      return false;
+    }
+
     PathContext ctx = getPath(writer, jgen);
 
     if (ctx.currentValue() == null) {

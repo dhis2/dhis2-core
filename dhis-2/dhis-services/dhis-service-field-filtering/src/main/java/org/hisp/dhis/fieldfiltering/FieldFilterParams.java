@@ -48,6 +48,9 @@ public class FieldFilterParams<T> {
   /** Do not include sharing properties (user, sharing, publicAccess, etc). */
   private final boolean skipSharing;
 
+  /** Do not include created, lastUpdated, createdBy or lastUpdatedBy. */
+  private final boolean skipCreatedAndLastUpdated;
+
   private UserDetails user;
 
   public static <T> FieldFilterParams<T> of(T object, String fields) {
@@ -59,6 +62,11 @@ public class FieldFilterParams<T> {
   }
 
   public static <T> FieldFilterParams<T> of(List<T> objects, String fields, boolean skipSharing) {
-    return new FieldFilterParams<>(objects, fields, skipSharing, null);
+    return of(objects, fields, skipSharing, false);
+  }
+
+  public static <T> FieldFilterParams<T> of(
+      List<T> objects, String fields, boolean skipSharing, boolean skipCreatedAndLastUpdated) {
+    return new FieldFilterParams<>(objects, fields, skipSharing, skipCreatedAndLastUpdated, null);
   }
 }

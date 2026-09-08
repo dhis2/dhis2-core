@@ -259,7 +259,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
           FieldFilterParams.of(
               new ArrayList<>(entry.getValue()),
               String.join(",", params.getFields(entry.getKey())),
-              params.getSkipSharing());
+              params.getSkipSharing(),
+              params.isSkipCreatedAndLastUpdated());
 
       List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(fieldFilterParams);
 
@@ -309,6 +310,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
                 objects,
                 String.join(",", params.getFields(klass)),
                 params.getSkipSharing(),
+                params.isSkipCreatedAndLastUpdated(),
                 CurrentUserUtil.getCurrentUserDetails());
 
         String plural = schemaService.getSchema(klass).getPlural();
@@ -344,7 +346,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
         List<ObjectNode> objectNodes =
             fieldFilterService.toObjectNodes(
                 FieldFilterParams.of(
-                    new ArrayList<>(metadata.get(klass)), ":owner", params.getSkipSharing()));
+                    new ArrayList<>(metadata.get(klass)),
+                    ":owner",
+                    params.getSkipSharing(),
+                    params.isSkipCreatedAndLastUpdated()));
 
         if (!objectNodes.isEmpty()) {
           String plural = schemaService.getSchema(klass).getPlural();
@@ -377,7 +382,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(
               FieldFilterParams.of(
-                  new ArrayList<>(metadata.get(klass)), ":owner", params.getSkipSharing()));
+                  new ArrayList<>(metadata.get(klass)),
+                  ":owner",
+                  params.getSkipSharing(),
+                  params.isSkipCreatedAndLastUpdated()));
 
       if (!objectNodes.isEmpty()) {
         String plural = schemaService.getSchema(klass).getPlural();
@@ -445,6 +453,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
     if (parameters.containsKey("skipSharing")) {
       params.setSkipSharing(Boolean.parseBoolean(parameters.get("skipSharing").get(0)));
       parameters.remove("skipSharing");
+    }
+
+    if (parameters.containsKey("skipCreatedAndLastUpdated")) {
+      params.setSkipCreatedAndLastUpdated(
+          Boolean.parseBoolean(parameters.get("skipCreatedAndLastUpdated").get(0)));
+      parameters.remove("skipCreatedAndLastUpdated");
     }
 
     if (parameters.containsKey("defaults")) {
