@@ -39,6 +39,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.storage.BlobKey;
+import org.hisp.dhis.storage.BlobReadOptions;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -138,5 +139,11 @@ public interface FileResourceContentStore {
    * @param key the key used to store a resource
    * @return content stream
    */
-  InputStream openStream(BlobKey key) throws IOException, NoSuchElementException;
+  default InputStream openStream(BlobKey key) throws IOException, NoSuchElementException {
+    return openStream(key, BlobReadOptions.none());
+  }
+
+  /** {@link #openStream(BlobKey)} bounded by {@code options}. */
+  InputStream openStream(BlobKey key, BlobReadOptions options)
+      throws IOException, NoSuchElementException;
 }

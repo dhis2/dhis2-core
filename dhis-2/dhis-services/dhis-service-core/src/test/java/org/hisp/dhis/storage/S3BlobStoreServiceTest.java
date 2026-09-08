@@ -39,13 +39,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Error;
@@ -152,6 +156,46 @@ class S3BlobStoreServiceTest {
 
     assertEquals(List.of("apps/a", "apps/b/c"), keys);
     assertTrue(keys.stream().noneMatch(k -> k.endsWith("/")));
+  }
+
+  @Test
+  void openStream_passesTheTimeoutOnToTheRequest() {
+    S3Client s3 = mock(S3Client.class);
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+
+    svc.openStream(BlobKey.of("apps/a"), BlobReadOptions.timeout(Duration.ofSeconds(7)));
+
+    assertEquals(
+        Optional.of(Duration.ofSeconds(7)),
+        capturedRequest(s3).overrideConfiguration().flatMap(o -> o.apiCallTimeout()),
+        "the caller's remaining budget must bound the fetch");
+  }
+
+  @Test
+  void openStream_withoutATimeoutLeavesTheRequestUnbounded() {
+    S3Client s3 = mock(S3Client.class);
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+
+    svc.openStream(BlobKey.of("apps/a"));
+
+    assertEquals(
+        Optional.empty(),
+        capturedRequest(s3).overrideConfiguration().flatMap(o -> o.apiCallTimeout()),
+        "callers that pass no options must keep the client configuration");
+  }
+
+  /**
+   * The service calls the {@code Consumer<Builder>} overload, so what Mockito records is the lambda
+   * rather than a request. Applying it to a builder yields the request the SDK would have built.
+   */
+  @SuppressWarnings("unchecked")
+  private static GetObjectRequest capturedRequest(S3Client s3) {
+    ArgumentCaptor<Consumer<GetObjectRequest.Builder>> captor =
+        ArgumentCaptor.forClass(Consumer.class);
+    verify(s3).getObject(captor.capture());
+    GetObjectRequest.Builder builder = GetObjectRequest.builder();
+    captor.getValue().accept(builder);
+    return builder.build();
   }
 
   private static ListObjectsV2Response page(

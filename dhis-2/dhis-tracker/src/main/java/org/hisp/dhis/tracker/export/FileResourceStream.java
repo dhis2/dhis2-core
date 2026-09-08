@@ -39,6 +39,10 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.storage.BlobReadOptions;
+import org.hisp.dhis.tracker.export.timeout.Deadline;
+import org.hisp.dhis.tracker.export.timeout.DeadlineExceededException;
+import org.hisp.dhis.tracker.export.timeout.DeadlineHolder;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -59,6 +63,23 @@ public record FileResourceStream(
 
   public record Content(long length, InputStream stream) {}
 
+  /**
+   * Bounds the store fetch by what is left of this request's budget, so a wedged file store cannot
+   * hold a request whose queries were already bounded. Unbounded when no deadline is set, which is
+   * every caller outside a tracker export.
+   *
+   * @throws DeadlineExceededException if the budget is spent, so we fail fast rather than start a
+   *     fetch that cannot finish in time
+   */
+  private static BlobReadOptions readOptions() {
+    Deadline deadline = DeadlineHolder.get();
+    if (deadline == null) {
+      return BlobReadOptions.none();
+    }
+    DeadlineHolder.checkNotExpired();
+    return BlobReadOptions.timeout(deadline.remaining());
+  }
+
   @Nonnull
   public static FileResourceStream of(
       @Nonnull FileResourceService fileResourceService, @Nonnull FileResource fileResource) {
@@ -70,7 +91,7 @@ public record FileResourceStream(
           try {
             return new Content(
                 fileResource.getContentLength(),
-                fileResourceService.openContentStream(fileResource));
+                fileResourceService.openContentStream(fileResource, readOptions()));
           } catch (NoSuchElementException e) {
             // Note: we are assuming that the file resource is not available yet. The same approach
             // is taken in other file endpoints or code relying on the storageStatus = PENDING.

@@ -43,6 +43,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.storage.BlobReadOptions;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -170,6 +171,10 @@ public interface FileResourceService {
 
   /** Opens a stream to the file resource content. */
   InputStream openContentStream(FileResource fileResource)
+      throws IOException, NoSuchElementException;
+
+  /** {@link #openContentStream(FileResource)} bounded by {@code options}. */
+  InputStream openContentStream(FileResource fileResource, BlobReadOptions options)
       throws IOException, NoSuchElementException;
 
   /**

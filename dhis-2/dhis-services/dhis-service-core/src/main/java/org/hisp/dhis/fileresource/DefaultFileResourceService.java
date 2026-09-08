@@ -59,6 +59,7 @@ import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.storage.BlobKey;
+import org.hisp.dhis.storage.BlobReadOptions;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
@@ -336,7 +337,13 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   public InputStream openContentStream(FileResource fileResource)
       throws IOException, NoSuchElementException {
-    return fileResourceContentStore.openStream(fileResource.asBlobKey());
+    return openContentStream(fileResource, BlobReadOptions.none());
+  }
+
+  @Override
+  public InputStream openContentStream(FileResource fileResource, BlobReadOptions options)
+      throws IOException, NoSuchElementException {
+    return fileResourceContentStore.openStream(fileResource.asBlobKey(), options);
   }
 
   @Override

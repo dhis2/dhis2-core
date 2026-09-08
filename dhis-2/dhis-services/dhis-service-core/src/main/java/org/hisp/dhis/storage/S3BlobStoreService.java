@@ -52,6 +52,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -197,10 +198,14 @@ public class S3BlobStoreService implements BlobStoreService {
   }
 
   @Override
-  public boolean blobExists(BlobKey key) {
+  public boolean blobExists(BlobKey key, BlobReadOptions options) {
     if (key == null) return false;
     try {
-      s3.headObject(b -> b.bucket(container.value()).key(key.value()));
+      s3.headObject(
+          b ->
+              b.bucket(container.value())
+                  .key(key.value())
+                  .overrideConfiguration(override(options)));
       return true;
     } catch (NoSuchKeyException e) {
       return false;
@@ -209,22 +214,50 @@ public class S3BlobStoreService implements BlobStoreService {
 
   @Override
   @CheckForNull
-  public InputStream openStream(BlobKey key) {
+  public InputStream openStream(BlobKey key, BlobReadOptions options) {
     try {
-      return s3.getObject(b -> b.bucket(container.value()).key(key.value()));
+      return s3.getObject(
+          b ->
+              b.bucket(container.value())
+                  .key(key.value())
+                  .overrideConfiguration(override(options)));
     } catch (NoSuchKeyException e) {
       return null;
     }
   }
 
   @Override
-  public long contentLength(BlobKey key) {
+  public long contentLength(BlobKey key, BlobReadOptions options) {
     try {
-      HeadObjectResponse head = s3.headObject(b -> b.bucket(container.value()).key(key.value()));
+      HeadObjectResponse head =
+          s3.headObject(
+              b ->
+                  b.bucket(container.value())
+                      .key(key.value())
+                      .overrideConfiguration(override(options)));
       return head.contentLength();
     } catch (NoSuchKeyException e) {
       return 0L;
     }
+  }
+
+  /**
+   * Turns {@link BlobReadOptions} into a per-request override, which takes precedence over the
+   * client configuration.
+   *
+   * <p>{@code apiCallTimeout} covers the whole call including retries, unlike {@code
+   * apiCallAttemptTimeout} which bounds one attempt. The SDK retries by default and {@code
+   * AWS_RETRY_MODE} can change how often, so per attempt would give an unpredictable ceiling.
+   *
+   * <p>The timer also runs while the body is read, so a slow client can have its download cut short
+   * after the response status is committed.
+   */
+  private static AwsRequestOverrideConfiguration override(BlobReadOptions options) {
+    AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+    if (options.timeout() != null) {
+      builder.apiCallTimeout(options.timeout());
+    }
+    return builder.build();
   }
 
   @Override
