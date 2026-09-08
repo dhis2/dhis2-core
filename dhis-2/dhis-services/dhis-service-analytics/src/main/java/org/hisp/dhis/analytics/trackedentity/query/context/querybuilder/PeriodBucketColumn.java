@@ -39,6 +39,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 
@@ -70,6 +71,9 @@ class PeriodBucketColumn {
     Set<String> buckets = new LinkedHashSet<>();
 
     for (DimensionParamItem item : items) {
+      if (item.getOperator().getQueryOperator() != QueryOperator.EQ) {
+        return Optional.empty();
+      }
       for (String value : item.getValues()) {
         Optional<String> valueBucket = bucketOf(value);
         if (valueBucket.isEmpty()) {

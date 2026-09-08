@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrFullName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelOrgUnitObject;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.joinedWithPrefixesIfNeeded;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
@@ -59,7 +60,6 @@ import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
@@ -204,19 +204,14 @@ public class TrackedEntityFields {
    */
   public static Set<GridHeader> getAggregateGridHeaders(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
-    CommonParsedParams commonParsed = contextParams.getCommonParsed();
-
     // Aggregate select fields are built via Field.ofDimensionIdentifier, which carries neither a
     // field alias nor a dimension identifier key, so they cannot be matched back to a dimension by
     // Field.getDimensionIdentifier() the way the per-TEI path does. Headers are therefore built
     // directly from the dimensions the query groups by, so that there is exactly one header per
     // grouped column. Each header is named by the name the query aliases its column to, so that
     // the grid can read every row by header name.
-    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
-
     Set<GridHeader> headers = new LinkedHashSet<>();
-    commonParsed.getDimensionIdentifiers().stream()
-        .filter(dimIdentifier -> groupedKeys.contains(dimIdentifier.getKey()))
+    AggregateQueryBuilder.getGroupedDimensions(contextParams).stream()
         .forEach(
             dimIdentifier -> {
               GridHeader header = getHeaderForDimensionParam(dimIdentifier, contextParams);
@@ -340,7 +335,7 @@ public class TrackedEntityFields {
               + dimIdentifier.getDimension().getStaticDimension().getHeaderName());
     }
 
-    if (isEventLevelOuDimensionalObject(dimIdentifier)) {
+    if (isEventLevelOrgUnitObject(dimIdentifier)) {
       return Optional.of(stageUid + DIMENSION_IDENTIFIER_SEP + "ou");
     }
 
@@ -368,19 +363,6 @@ public class TrackedEntityFields {
         header.isMeta(),
         header.getOptionSetObject(),
         header.getLegendSetObject());
-  }
-
-  /**
-   * Checks if the dimension identifier is a stage-specific OU dimension that has a
-   * DimensionalObject (i.e., went through org unit resolution rather than being treated as a static
-   * dimension).
-   */
-  private static boolean isEventLevelOuDimensionalObject(
-      DimensionIdentifier<DimensionParam> dimIdentifier) {
-    return dimIdentifier.isEventDimension()
-        && dimIdentifier.getDimension().isDimensionalObject()
-        && dimIdentifier.getDimension().getDimensionParamObjectType()
-            == DimensionParamObjectType.ORGANISATION_UNIT;
   }
 
   private static boolean isEventLevelDataElementDimension(

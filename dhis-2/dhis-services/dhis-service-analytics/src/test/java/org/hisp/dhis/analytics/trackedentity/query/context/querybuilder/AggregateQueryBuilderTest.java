@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
@@ -46,7 +47,9 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDime
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.RootConditionRenderer;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
+import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
@@ -65,6 +68,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /** Tests the grouping of event scoped dimensions by {@link AggregateQueryBuilder}. */
 class AggregateQueryBuilderTest {
@@ -655,6 +660,158 @@ class AggregateQueryBuilderTest {
             .build();
 
     assertTrue(builder.getSortingFilters().stream().allMatch(f -> f.test(scoped)));
+  }
+
+  @Test
+  void filterOnGroupedDateDoesNotAddAGroupOrChangeItsBucket() {
+    DimensionIdentifier<DimensionParam> date =
+        eventScopedDimension(StaticDimension.EVENT_DATE, "2021").withDefaultGroupId();
+    DimensionIdentifier<DimensionParam> filter =
+        DimensionIdentifier.of(
+                date.getProgram(),
+                date.getProgramStage(),
+                DimensionParam.ofObject(
+                    "EVENT_DATE", DimensionParamType.FILTERS, UID, List.of("GE:2021-07-01")))
+            .withDefaultGroupId();
+    var ctx =
+        contextParams(date).toBuilder()
+            .commonParsed(
+                CommonParsedParams.builder().dimensionIdentifiers(List.of(filter, date)).build())
+            .build();
+    var query =
+        builder.buildSqlQuery(
+            QueryContext.of(ctx, new SqlParameterManager()),
+            List.of(),
+            List.of(filter, date),
+            List.of());
+
+    assertEquals(1, query.getGroupByFields().size());
+    assertEquals(2, query.getSelectFields().size());
+    assertTrue(query.getGroupByFields().get(0).render().contains("\"yearly\""));
+    assertEquals(2, query.getGroupableConditions().size());
+    assertFalse(
+        RootConditionRenderer.of(query.getGroupableConditions()).render().contains(" or "),
+        "dimension and filter restrictions must intersect");
+  }
+
+  @Test
+  void groupedStageAndValueReadTheSameJoinedEventEvenWhenItsValueIsMissing() {
+    var dimension = eventScopedDimension(StaticDimension.OU);
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(DATA_ELEMENT_UID);
+    dataElement.setValueType(ValueType.NUMBER);
+    var ctx = contextParams(dimension);
+    ctx =
+        ctx.toBuilder()
+            .typedParsed(
+                ctx.getTypedParsed().toBuilder()
+                    .eventValue(
+                        new EventValue(dimension.getProgramStage().getElement(), dataElement, 0))
+                    .aggregationType(AggregationType.AVERAGE)
+                    .build())
+            .build();
+    var query =
+        builder.buildSqlQuery(
+            QueryContext.of(ctx, new SqlParameterManager()),
+            List.of(),
+            List.of(dimension),
+            List.of());
+
+    assertEquals(1, query.getLeftJoins().size());
+    assertFalse(query.getLeftJoins().get(0).render().contains("jsonb_exists"));
+    assertEquals("ev.\"ou\"", query.getGroupByFields().get(0).render());
+    assertTrue(query.getSelectFields().get(1).render().contains("ev.\"eventdatavalues\""));
+  }
+
+  /**
+   * A snapshot cannot choose which tied event wins. Instead, verify that all coordinates, the
+   * restriction, the sort and the value reference one joined selection, with no independent
+   * subquery that could choose a different tied row.
+   */
+  @Test
+  void matchingGroupedFieldsRestrictionsAndSortingShareOneEventSelection() {
+    var ou = eventScopedDimension(StaticDimension.OU);
+    var status = eventScopedDimension(StaticDimension.EVENT_STATUS, "ACTIVE");
+    var date = eventScopedDimension(StaticDimension.EVENT_DATE);
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(DATA_ELEMENT_UID);
+    dataElement.setValueType(ValueType.NUMBER);
+    var valueDimension =
+        DimensionIdentifier.of(
+            ou.getProgram(),
+            ou.getProgramStage(),
+            DimensionParam.ofObject(
+                new QueryItem(dataElement), DimensionParamType.DIMENSIONS, UID, List.of()));
+    var dimensions = List.of(ou, status, date, valueDimension);
+    var ctx = contextParams(ou);
+    ctx =
+        ctx.toBuilder()
+            .typedParsed(
+                ctx.getTypedParsed().toBuilder()
+                    .eventValue(new EventValue(ou.getProgramStage().getElement(), dataElement, 0))
+                    .aggregationType(AggregationType.AVERAGE)
+                    .build())
+            .commonRaw(
+                new CommonRequestParams()
+                    .withDimension(
+                        Set.of(
+                            ou.getKey(), status.getKey(), date.getKey(), valueDimension.getKey())))
+            .commonParsed(CommonParsedParams.builder().dimensionIdentifiers(dimensions).build())
+            .build();
+    var sort =
+        AnalyticsSortingParams.builder()
+            .index(0)
+            .orderBy(status)
+            .sortDirection(SortDirection.ASC)
+            .build();
+
+    var query =
+        builder.buildSqlQuery(
+            QueryContext.of(ctx, new SqlParameterManager()), List.of(), dimensions, List.of(sort));
+
+    assertEquals(1, query.getLeftJoins().size());
+    var groups = query.getGroupByFields().stream().map(Field::render).toList();
+    assertEquals(4, groups.size());
+    assertEquals(
+        List.of("ev.\"ou\"", "ev.\"status\"", "ev.\"occurreddate\""), groups.subList(0, 3));
+    assertTrue(groups.get(3).contains("ev.\"eventdatavalues\""));
+    assertTrue(groups.stream().noneMatch(expression -> expression.contains("select")));
+    assertEquals(5, query.getSelectFields().size());
+    assertTrue(query.getSelectFields().get(4).render().contains("ev.\"eventdatavalues\""));
+    assertEquals(
+        "ev.\"status\" in (:1)", RootConditionRenderer.of(query.getGroupableConditions()).render());
+    assertEquals(1, query.getOrderClauses().size());
+    assertTrue(query.getOrderClauses().get(0).getRenderable().render().contains("ev.\"status\""));
+    assertFalse(query.getOrderClauses().get(0).getRenderable().render().contains("select"));
+  }
+
+  @ParameterizedTest
+  @CsvSource({"0,0,true", "-1,-1,true", "1,1,true", "0,-1,false", "1,0,false"})
+  void eventValueSharingRespectsEffectiveOffset(
+      int groupedOffset, int valueOffset, boolean shared) {
+    var dimension = eventScopedDimensionWithOffset(StaticDimension.OU, groupedOffset);
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(DATA_ELEMENT_UID);
+    dataElement.setValueType(ValueType.NUMBER);
+    var ctx = contextParams(dimension);
+    ctx =
+        ctx.toBuilder()
+            .typedParsed(
+                ctx.getTypedParsed().toBuilder()
+                    .eventValue(
+                        new EventValue(
+                            dimension.getProgramStage().getElement(), dataElement, valueOffset))
+                    .aggregationType(AggregationType.COUNT)
+                    .build())
+            .build();
+    var query =
+        builder.buildSqlQuery(
+            QueryContext.of(ctx, new SqlParameterManager()),
+            List.of(),
+            List.of(dimension),
+            List.of());
+    assertEquals(!shared, query.getLeftJoins().get(0).render().contains("jsonb_exists"));
+    assertEquals(shared, query.getGroupByFields().get(0).render().equals("ev.\"ou\""));
   }
 
   private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> rawContextParams(

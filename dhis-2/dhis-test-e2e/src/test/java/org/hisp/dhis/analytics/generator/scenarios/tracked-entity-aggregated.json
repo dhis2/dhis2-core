@@ -321,6 +321,153 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "aggregateScopedLatestMissingValueAverage",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01.ou&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedLatestMissingValueCount",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01.ou&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=COUNT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedMissingGroupedDataElement",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01.r21967De001",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedYearWithIndependentDateFilter",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&dimension=r21967Stg01.EVENT_DATE:2021&filter=r21967Stg01.EVENT_DATE:GE:2021-07-01&asc=r21967Stg01.EVENT_DATE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedComparisonKeepsRawTimestamps",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&dimension=r21967Stg01.EVENT_DATE:GE:2021-07-01;LT:2021-07-02",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedLatestEventAcrossEnrollments",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01[0].ou",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedPreviousEventAcrossEnrollments",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01[-1].ou",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedFirstEventAcrossEnrollments",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01[1].ou",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedPreviousEventWithMatchingValue",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01[-1].ou&value=r21967Prg01.r21967Stg01[-1].r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedFirstEventWithMatchingValue",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01[1].ou&value=r21967Prg01.r21967Stg01[1].r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedMatchingOrgUnitFilterAndValue",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001,r21967Stg01.ou:DiszpKrYNg8&dimension=r21967Stg01.ou&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedOrgUnitFilterExcludesOtherSelectedEvent",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&dimension=r21967Stg01.ou,r21967Stg01.EVENT_DATE:2021&filter=r21967Stg01.ou:QII5GqfDfO3&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedDifferentValueStage",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01.ou&value=r21967Prg01.r21967Stg02.r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedDifferentValueOffset",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01.ou&value=r21967Prg01.r21967Stg01[1].r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedDateBucketAndFullOrgUnitAliasWithValue",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01.EVENT_DATE:2021,r21967Prg01.r21967Stg01.ou&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedValueOnlySelectionCompatibility",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedMissingEventNullGroup",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te006&dimension=r21967Stg01.ou&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=COUNT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedBeyondAvailableEventOffset",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01[-5].ou&value=r21967Prg01.r21967Stg01[-5].r21967De001&aggregationType=COUNT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedSelectedEventCoordinatesAndMissingValue",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te001&dimension=r21967Stg01.ou,r21967Stg01.EVENT_STATUS,r21967Stg01.r21967De001&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=AVERAGE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedTiedEventsCountOnce",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&filter=trackedentity:EQ:r21967Te007&dimension=r21967Stg01.EVENT_DATE&value=r21967Prg01.r21967Stg01.r21967De001&aggregationType=COUNT",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateScopedGroupedDatesDoNotMultiplyTrackedEntities",
+      "query": "/api/analytics/trackedEntities/aggregate/r21967Tet01.json?program=r21967Prg01&paging=false&dimension=r21967Stg01.EVENT_DATE",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

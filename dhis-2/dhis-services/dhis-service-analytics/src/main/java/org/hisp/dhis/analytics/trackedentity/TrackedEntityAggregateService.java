@@ -224,10 +224,7 @@ public class TrackedEntityAggregateService {
 
     CommonParsedParams scoped =
         commonParsed.toBuilder()
-            .dimensionIdentifiers(
-                commonParsed.getDimensionIdentifiers().stream()
-                    .filter(dimension -> groupedKeys.contains(dimension.getKey()))
-                    .toList())
+            .dimensionIdentifiers(AggregateQueryBuilder.getGroupedDimensions(contextParams))
             .parsedHeaders(
                 commonParsed.getParsedHeaders().stream()
                     .filter(dimension -> groupedKeys.contains(dimension.getKey()))
@@ -243,9 +240,10 @@ public class TrackedEntityAggregateService {
    * AggregateQueryBuilder#getGroupedDimensionKeys} decides what is grouped.
    *
    * <p>A dimension is a request for a column whether or not it carries items, so the items make no
-   * difference here: {@code A03MvHHogjR.ou} and {@code A03MvHHogjR.ou:USER_ORGUNIT} are both
-   * rejected. Restricting the query without adding a column is what the {@code filter} parameter is
-   * for, which is why filters are not validated against the grouped set.
+   * difference here: {@code programUid.ENDDATE} and {@code programUid.ENDDATE:THIS_YEAR} are both
+   * rejected because that dimension cannot be grouped. Restricting the query without adding a
+   * column is what the {@code filter} parameter is for, which is why filters are not validated
+   * against the grouped set.
    */
   private void validateDimensions(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
@@ -269,15 +267,10 @@ public class TrackedEntityAggregateService {
    */
   private void validateDistinctGroupedNames(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
-    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
     Map<String, String> dimensionsByName = new LinkedHashMap<>();
 
     for (DimensionIdentifier<DimensionParam> dimension :
-        contextParams.getCommonParsed().getDimensionIdentifiers()) {
-      if (!groupedKeys.contains(dimension.getKey())) {
-        continue;
-      }
-
+        AggregateQueryBuilder.getGroupedDimensions(contextParams)) {
       String name = AggregateQueryBuilder.groupedDimensionName(dimension);
       String existing = dimensionsByName.putIfAbsent(name, dimension.getKey());
 
@@ -356,10 +349,7 @@ public class TrackedEntityAggregateService {
    */
   private Set<String> groupedOrgUnitHeaders(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
-    Set<String> groupedKeys = AggregateQueryBuilder.getGroupedDimensionKeys(contextParams);
-
-    return contextParams.getCommonParsed().getDimensionIdentifiers().stream()
-        .filter(dimension -> groupedKeys.contains(dimension.getKey()))
+    return AggregateQueryBuilder.getGroupedDimensions(contextParams).stream()
         .filter(AggregateQueryBuilder::isOrgUnitUid)
         .map(AggregateQueryBuilder::groupedDimensionName)
         .collect(toCollection(LinkedHashSet::new));
