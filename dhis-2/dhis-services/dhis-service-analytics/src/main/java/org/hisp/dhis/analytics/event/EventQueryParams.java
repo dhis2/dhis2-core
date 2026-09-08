@@ -638,6 +638,15 @@ public class EventQueryParams extends DataQueryParams {
     asc.forEach(e -> e.getItem().getUid());
     desc.forEach(e -> e.getItem().getUid());
 
+    // Registration OU selections are stored outside the generic dimensions and filters.
+    if (hasRegistrationOu()) {
+      key.add("registrationOuDimensionRequested", registrationOuDimensionRequested);
+      registrationOuDimensionItems.forEach(
+          ou -> key.add("registrationOuDimension", ou.getUid() + ":" + ou.getLevel()));
+      registrationOuFilterItems.forEach(
+          ou -> key.add("registrationOuFilter", ou.getUid() + ":" + ou.getLevel()));
+    }
+
     return key.addIgnoreNull("value", value, () -> value.getUid())
         .addIgnoreNull("requestValue", requestValue)
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())

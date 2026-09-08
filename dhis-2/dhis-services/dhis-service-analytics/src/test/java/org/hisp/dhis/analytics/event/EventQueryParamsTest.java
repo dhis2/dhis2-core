@@ -80,6 +80,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Lars Helge Overland
@@ -310,6 +311,74 @@ class EventQueryParamsTest extends TestBase {
     assertNotNull(paramsB.getKey());
     assertEquals(40, paramsB.getKey().length());
     assertNotEquals(paramsA.getKey(), paramsB.getKey());
+  }
+
+  @Test
+  void testRegistrationOuSelectionsHaveDistinctKeys() {
+    List<EventQueryParams> queries =
+        List.of(
+            new EventQueryParams.Builder().build(),
+            new EventQueryParams.Builder().withRegistrationOuDimension(List.of()).build(),
+            new EventQueryParams.Builder().withRegistrationOuDimension(List.of(ouA)).build(),
+            new EventQueryParams.Builder().withRegistrationOuDimension(List.of(ouB)).build(),
+            new EventQueryParams.Builder().withRegistrationOuFilter(List.of(ouA)).build(),
+            new EventQueryParams.Builder().withRegistrationOuFilter(List.of(ouB)).build(),
+            new EventQueryParams.Builder()
+                .withRegistrationOuDimension(List.of(ouA))
+                .withRegistrationOuFilter(List.of(ouB))
+                .build(),
+            new EventQueryParams.Builder()
+                .withRegistrationOuDimension(List.of(ouB))
+                .withRegistrationOuFilter(List.of(ouA))
+                .build());
+
+    assertEquals(queries.size(), queries.stream().map(EventQueryParams::getKey).distinct().count());
+    for (EventQueryParams query : queries) {
+      assertEquals(query.getKey(), new EventQueryParams.Builder(query).build().getKey());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void testRegistrationOuKeyPreservesItemOrder(boolean dimension) {
+    EventQueryParams first = registrationOuKeyParams(dimension, List.of(ouA, ouB));
+    EventQueryParams reversed = registrationOuKeyParams(dimension, List.of(ouB, ouA));
+
+    assertNotEquals(first.getKey(), reversed.getKey());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void testRegistrationOuKeyUsesUidAndLevel(boolean dimension) {
+    OrganisationUnit sameOu = createOrganisationUnit('A');
+    sameOu.setName("Another display name");
+    EventQueryParams first = registrationOuKeyParams(dimension, List.of(ouA));
+    EventQueryParams sameSelection = registrationOuKeyParams(dimension, List.of(sameOu));
+
+    assertEquals(first.getKey(), sameSelection.getKey());
+
+    // Moving the same OU down a level changes which uidlevel column the SQL uses.
+    sameOu.setPath("/" + ouB.getUid() + "/" + sameOu.getUid());
+    assertNotEquals(first.getKey(), sameSelection.getKey());
+  }
+
+  @Test
+  void testEmptyRegistrationOuFilterDoesNotChangeKey() {
+    EventQueryParams params =
+        new EventQueryParams.Builder().withOrganisationUnits(List.of(ouA)).build();
+
+    assertEquals(
+        params.getKey(),
+        new EventQueryParams.Builder(params).withRegistrationOuFilter(List.of()).build().getKey());
+  }
+
+  private EventQueryParams registrationOuKeyParams(
+      boolean dimension, List<OrganisationUnit> items) {
+    EventQueryParams.Builder builder = new EventQueryParams.Builder();
+    return (dimension
+            ? builder.withRegistrationOuDimension(items)
+            : builder.withRegistrationOuFilter(items))
+        .build();
   }
 
   @Test
