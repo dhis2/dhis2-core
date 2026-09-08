@@ -44,7 +44,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,18 +75,23 @@ import org.hisp.dhis.cache.LocalCache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class EventAggregateServiceTest {
 
@@ -338,6 +345,125 @@ class EventAggregateServiceTest {
 
     verify(manager, times(4)).getAggregatedEventData(any(), any(), anyInt());
     verify(metadata, times(4)).addMetadata(any(), any(), anyList());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void shouldExportRegistrationOuAsRowsOrColumns(boolean registrationRows) {
+    OrganisationUnit bo = createOrganisationUnit('A');
+    bo.setName("Bo");
+    OrganisationUnit bombali = createOrganisationUnit('B');
+    bombali.setName("Bombali");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(List.of(PeriodDimension.of("2022")), "yearly")
+            .withRegistrationOuDimension(List.of(bo, bombali))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("pe"))
+        .addHeader(new GridHeader("registrationou"))
+        .addHeader(new GridHeader("value"));
+    grid.addRow().addValue("2022").addValue(bo.getUid()).addValue(1d);
+    grid.addRow().addValue("2022").addValue(bombali.getUid()).addValue(2d);
+
+    Grid result =
+        exportGrid(
+            params,
+            grid,
+            List.of(registrationRows ? "pe" : "registrationou"),
+            List.of(registrationRows ? "registrationou" : "pe"));
+
+    assertEquals(
+        registrationRows
+            ? List.of("registrationou", "2022")
+            : List.of("pe", "registrationou Bo", "registrationou Bombali"),
+        result.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(
+        registrationRows
+            ? List.of(List.of("Bo", 1d), List.of("Bombali", 2d))
+            : List.of(List.of("2022", 1d, 2d)),
+        result.getRows());
+  }
+
+  @Test
+  void shouldExportRegistrationOuAlongsideEventOu() {
+    OrganisationUnit registrationOu = createOrganisationUnit('A');
+    registrationOu.setName("Bo");
+    OrganisationUnit eventOu = createOrganisationUnit('B');
+    eventOu.setName("Bombali");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(List.of(PeriodDimension.of("2022")), "yearly")
+            .withOrganisationUnits(List.of(eventOu))
+            .withRegistrationOuDimension(List.of(registrationOu))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("pe"))
+        .addHeader(new GridHeader("ou"))
+        .addHeader(new GridHeader("registrationou"))
+        .addHeader(new GridHeader("value"));
+    grid.addRow()
+        .addValue("2022")
+        .addValue(eventOu.getUid())
+        .addValue(registrationOu.getUid())
+        .addValue(1d);
+
+    Grid result = exportGrid(params, grid, List.of("pe"), List.of("ou", "registrationou"));
+
+    assertEquals(
+        List.of("ou", "registrationou", "2022"),
+        result.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(List.of(List.of("Bombali", "Bo", 1d)), result.getRows());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void shouldExportOrdinaryDimensionsWithOrWithoutRegistrationOuFilter(boolean registrationFilter) {
+    OrganisationUnit eventOu = createOrganisationUnit('B');
+    eventOu.setName("Bombali");
+    EventQueryParams.Builder builder =
+        new EventQueryParams.Builder()
+            .withPeriods(List.of(PeriodDimension.of("2022")), "yearly")
+            .withOrganisationUnits(List.of(eventOu))
+            .withDisplayProperty(DisplayProperty.NAME);
+    if (registrationFilter) {
+      builder.withRegistrationOuFilter(List.of(createOrganisationUnit('A')));
+    }
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("pe"))
+        .addHeader(new GridHeader("ou"))
+        .addHeader(new GridHeader("value"));
+    grid.addRow().addValue("2022").addValue(eventOu.getUid()).addValue(1d);
+
+    Grid result = exportGrid(builder.build(), grid, List.of("pe"), List.of("ou"));
+
+    assertEquals(
+        List.of("ou", "2022"), result.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(List.of(List.of("Bombali", 1d)), result.getRows());
+  }
+
+  private Grid exportGrid(
+      EventQueryParams params, Grid grid, List<String> columns, List<String> rows) {
+    EventAggregateService exportService =
+        spy(
+            new EventAggregateService(
+                mock(DataElementService.class),
+                mock(TrackedEntityAttributeService.class),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null));
+    grid.getMetaData().put(AnalyticsMetaDataKey.ITEMS.getKey(), Map.of());
+    doReturn(grid).when(exportService).getAggregatedData(params);
+
+    return exportService.getAggregatedData(params, new ArrayList<>(columns), new ArrayList<>(rows));
   }
 
   private GridHeader invokeAddDimensionHeaders(EventQueryParams params) throws Exception {

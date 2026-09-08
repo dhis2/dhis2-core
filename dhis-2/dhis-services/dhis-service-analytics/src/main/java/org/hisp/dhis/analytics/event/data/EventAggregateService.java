@@ -452,7 +452,11 @@ public class EventAggregateService {
       Map<String, List<EventAnalyticsDimensionalItem>> table,
       String dimension) {
     List<EventAnalyticsDimensionalItem> objects =
-        params.getEventReportDimensionalItemArrayExploded(dimension);
+        ColumnHeader.REGISTRATION_OU.getItem().equals(dimension)
+            ? params.getRegistrationOuDimensionItems().stream()
+                .map(ou -> new EventAnalyticsDimensionalItem(ou, dimension))
+                .collect(java.util.stream.Collectors.toList())
+            : params.getEventReportDimensionalItemArrayExploded(dimension);
 
     if (objects.isEmpty()) {
       ValueTypedDimensionalItemObject eventDimensionalItemObject =
