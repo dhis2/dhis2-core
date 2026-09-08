@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.query;
 
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -447,7 +448,7 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
         expectPostgis,
         1,
         24,
-        21); // Pass runtime flag, row count, and expected header counts
+        20); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -555,16 +556,17 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
       validateHeaderPropertiesByName(
           response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     }
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "enrollmentgeometry",
-        "Enrollment geometry",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
     if (expectPostgis) {
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentgeometry",
+          "Enrollment geometry",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+
       validateHeaderPropertiesByName(
           response,
           actualHeaders,
@@ -689,7 +691,7 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
         expectPostgis,
         1,
         24,
-        21); // Pass runtime flag, row count, and expected header counts
+        20); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -796,16 +798,17 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
     if (expectPostgis) {
       validateHeaderPropertiesByName(
           response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentgeometry",
+          "Enrollment geometry",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
     }
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "enrollmentgeometry",
-        "Enrollment geometry",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
     if (expectPostgis) {
       validateHeaderPropertiesByName(
           response,
@@ -932,7 +935,7 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
         expectPostgis,
         6,
         24,
-        21); // Pass runtime flag, row count, and expected header counts
+        20); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1040,16 +1043,17 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
       validateHeaderPropertiesByName(
           response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     }
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "enrollmentgeometry",
-        "Enrollment geometry",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
     if (expectPostgis) {
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentgeometry",
+          "Enrollment geometry",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+
       validateHeaderPropertiesByName(
           response,
           actualHeaders,
@@ -1137,45 +1141,61 @@ public class EventsQuery8AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "psi", "regOuEvt001");
-    validateRowValueByName(response, actualHeaders, 0, "registrationouname", "Nduvuibu MCHP");
-    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 0, "tei", "regOuTei001");
-    validateRowValueByName(response, actualHeaders, 0, "pi", "regOuEnr001");
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Sienga CHP");
-    validateRowValueByName(response, actualHeaders, 0, "programstatus", "ACTIVE");
+    // 7. Match sampled events without assuming an order for this unsorted query.
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "psi", "regOuEvt001",
+            "registrationou", "OU_8388",
+            "registrationouname", "Nduvuibu MCHP",
+            "enrollmentdate", "2022-03-01 00:00:00.0",
+            "incidentdate", "2022-03-01 00:00:00.0",
+            "tei", "regOuTei001",
+            "pi", "regOuEnr001",
+            "ouname", "Sienga CHP",
+            "programstatus", "ACTIVE"));
 
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "psi", "regOuEvt003");
-    validateRowValueByName(response, actualHeaders, 2, "registrationouname", "Tambiama CHC");
-    validateRowValueByName(response, actualHeaders, 2, "enrollmentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 2, "incidentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 2, "tei", "regOuTei003");
-    validateRowValueByName(response, actualHeaders, 2, "pi", "regOuEnr003");
-    validateRowValueByName(response, actualHeaders, 2, "ouname", "Nduvuibu MCHP");
-    validateRowValueByName(response, actualHeaders, 2, "programstatus", "ACTIVE");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "psi", "regOuEvt003",
+            "registrationou", "OU_193280",
+            "registrationouname", "Tambiama CHC",
+            "enrollmentdate", "2022-03-01 00:00:00.0",
+            "incidentdate", "2022-03-01 00:00:00.0",
+            "tei", "regOuTei003",
+            "pi", "regOuEnr003",
+            "ouname", "Nduvuibu MCHP",
+            "programstatus", "ACTIVE"));
 
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "psi", "regOuEvt005");
-    validateRowValueByName(response, actualHeaders, 4, "registrationouname", "Sienga CHP");
-    validateRowValueByName(response, actualHeaders, 4, "enrollmentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 4, "incidentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 4, "tei", "regOuTei005");
-    validateRowValueByName(response, actualHeaders, 4, "pi", "regOuEnr005");
-    validateRowValueByName(response, actualHeaders, 4, "ouname", "Tambiama CHC");
-    validateRowValueByName(response, actualHeaders, 4, "programstatus", "ACTIVE");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "psi", "regOuEvt005",
+            "registrationou", "OU_204921",
+            "registrationouname", "Sienga CHP",
+            "enrollmentdate", "2022-03-01 00:00:00.0",
+            "incidentdate", "2022-03-01 00:00:00.0",
+            "tei", "regOuTei005",
+            "pi", "regOuEnr005",
+            "ouname", "Tambiama CHC",
+            "programstatus", "ACTIVE"));
 
-    // Validate selected values for row index 5
-    validateRowValueByName(response, actualHeaders, 5, "psi", "regOuEvt006");
-    validateRowValueByName(response, actualHeaders, 5, "registrationouname", "Sienga CHP");
-    validateRowValueByName(response, actualHeaders, 5, "enrollmentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 5, "incidentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 5, "tei", "regOuTei006");
-    validateRowValueByName(response, actualHeaders, 5, "pi", "regOuEnr006");
-    validateRowValueByName(response, actualHeaders, 5, "ouname", "Tambiama CHC");
-    validateRowValueByName(response, actualHeaders, 5, "programstatus", "ACTIVE");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "psi", "regOuEvt006",
+            "registrationou", "OU_204921",
+            "registrationouname", "Sienga CHP",
+            "enrollmentdate", "2022-03-01 00:00:00.0",
+            "incidentdate", "2022-03-01 00:00:00.0",
+            "tei", "regOuTei006",
+            "pi", "regOuEnr006",
+            "ouname", "Tambiama CHC",
+            "programstatus", "ACTIVE"));
   }
 }
