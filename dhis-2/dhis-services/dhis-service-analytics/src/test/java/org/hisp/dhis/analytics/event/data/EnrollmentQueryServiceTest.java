@@ -66,7 +66,7 @@ class EnrollmentQueryServiceTest {
             securityManager(params),
             eventQueryValidator(),
             new MetadataItemsHandler(null, null, null, null),
-            new SchemeIdHandler(null),
+            new SchemeIdHandler(null, null),
             sqlBuilder());
 
     Grid grid = assertDoesNotThrow(() -> service.getEnrollments(params));

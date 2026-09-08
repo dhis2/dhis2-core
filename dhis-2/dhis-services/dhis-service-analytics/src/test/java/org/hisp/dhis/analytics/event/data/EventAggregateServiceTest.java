@@ -64,6 +64,7 @@ import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -78,19 +79,23 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class EventAggregateServiceTest {
@@ -444,6 +449,52 @@ class EventAggregateServiceTest {
     assertEquals(List.of(List.of("Bombali", 1d)), result.getRows());
   }
 
+  @ParameterizedTest
+  @CsvSource({"CODE,true", "CODE,false", "NAME,true", "NAME,false", "UID,true", "UID,false"})
+  void shouldMatchExportValuesAfterOutputIdConversion(String scheme, boolean registrationRows) {
+    OrganisationUnit registrationOu = createOrganisationUnit('A');
+    registrationOu.setName("Bo");
+    registrationOu.setCode("OU_264");
+    OrganisationUnit eventOu = createOrganisationUnit('B');
+    eventOu.setName("Kailahun");
+    eventOu.setCode("EVENT_OU");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(List.of(PeriodDimension.of("2022")), "yearly")
+            .withOrganisationUnits(List.of(eventOu))
+            .withRegistrationOuDimension(List.of(registrationOu))
+            .withOutputIdScheme(IdScheme.from(scheme))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("pe", "Period", ValueType.TEXT, false, true))
+        .addHeader(new GridHeader("ou", "Organisation unit", ValueType.TEXT, false, true))
+        .addHeader(
+            new GridHeader("registrationou", "Registration org unit", ValueType.TEXT, false, true))
+        .addHeader(new GridHeader("value"));
+    grid.addRow()
+        .addValue("2022")
+        .addValue(eventOu.getUid())
+        .addValue(registrationOu.getUid())
+        .addValue(1d);
+    schemeHandler().applyScheme(grid, params);
+
+    Grid result =
+        exportGrid(
+            params,
+            grid,
+            List.of(registrationRows ? "pe" : "registrationou"),
+            List.of("ou", registrationRows ? "registrationou" : "pe"));
+
+    assertEquals(
+        List.of(List.of("Kailahun", registrationRows ? "Bo" : "2022", 1d)), result.getRows());
+  }
+
+  private SchemeIdHandler schemeHandler() {
+    return new SchemeIdHandler(
+        new SchemeIdResponseMapper(mock(I18nManager.class)), mock(OrganisationUnitService.class));
+  }
+
   private Grid exportGrid(
       EventQueryParams params, Grid grid, List<String> columns, List<String> rows) {
     EventAggregateService exportService =
@@ -459,7 +510,7 @@ class EventAggregateServiceTest {
                 null,
                 null,
                 null,
-                null));
+                schemeHandler()));
     grid.getMetaData().put(AnalyticsMetaDataKey.ITEMS.getKey(), Map.of());
     doReturn(grid).when(exportService).getAggregatedData(params);
 
