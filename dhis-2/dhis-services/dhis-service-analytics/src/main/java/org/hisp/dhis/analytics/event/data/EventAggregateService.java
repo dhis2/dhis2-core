@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -654,6 +655,10 @@ public class EventAggregateService {
     // The value map is a pure function of the input grid, which is not modified below. Build it
     // once here instead of once per row permutation.
     Map<String, Object> valueMap = getAggregatedEventDataMapping(grid);
+    Map<String, String> schemeMap =
+        params.hasCustomIdSchemeSet() && !params.isSkipMeta()
+            ? schemeIdHandler.getSchemeIdResponseMap(params)
+            : Map.of();
 
     for (Map<String, EventAnalyticsDimensionalItem> rowCombination : rowPermutations) {
       outputGrid.addRow();
@@ -668,14 +673,16 @@ public class EventAggregateService {
         boolean finalFillDisplayList = fillDisplayList;
         rowCombination.forEach(
             (key, value) -> {
-              idList.add(value.toString());
+              idList.add(firstNonNull(schemeMap.get(value.toString()), value.toString()));
 
               if (finalFillDisplayList) {
                 displayObjects.put(value.getParentUid(), value);
               }
             });
 
-        columnCombination.forEach((key, value) -> idList.add(value.toString()));
+        columnCombination.forEach(
+            (key, value) ->
+                idList.add(firstNonNull(schemeMap.get(value.toString()), value.toString())));
 
         ids.add(idList);
         fillDisplayList = false;

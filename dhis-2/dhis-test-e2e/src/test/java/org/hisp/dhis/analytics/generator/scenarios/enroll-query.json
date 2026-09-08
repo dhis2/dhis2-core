@@ -237,6 +237,27 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "registrationOuOutputCode",
+      "query": "/api/analytics/enrollments/query/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu&outputIdScheme=CODE&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuOutputName",
+      "query": "/api/analytics/enrollments/query/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu&outputIdScheme=NAME&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuBareOutputCode",
+      "query": "/api/analytics/enrollments/query/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU&filter=ou:ImspTQPwCqd&outputIdScheme=CODE&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

@@ -29,25 +29,35 @@
  */
 package org.hisp.dhis.analytics.tracker;
 
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.analytics.common.ColumnHeader.REGISTRATION_OU;
 import static org.hisp.dhis.common.IdScheme.ID;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class SchemeIdHandler {
   private final SchemeIdResponseMapper schemeIdResponseMapper;
+  private final OrganisationUnitService organisationUnitService;
 
   /**
    * @param grid the {@link Grid}.
@@ -60,23 +70,84 @@ public class SchemeIdHandler {
     }
 
     if (!params.isSkipMeta()) {
-      SchemeInfo schemeInfo = new SchemeInfo(schemeSettings(params), schemeData(params));
+      Settings settings = schemeSettings(params);
+      SchemeInfo schemeInfo =
+          new SchemeInfo(settings, schemeData(params, registrationOuItems(params, grid, settings)));
       schemeIdResponseMapper.applyCustomIdScheme(schemeInfo, grid);
     }
   }
 
-  private Data schemeData(EventQueryParams params) {
+  /** Returns the mapping for resolved request items, used to match aggregate export cells. */
+  public Map<String, String> getSchemeIdResponseMap(EventQueryParams params) {
+    return schemeIdResponseMapper.getSchemeIdResponseMap(
+        new SchemeInfo(
+            schemeSettings(params),
+            schemeData(params, new LinkedHashSet<>(params.getAllRegistrationOuItems()))));
+  }
+
+  private Data schemeData(EventQueryParams params, Set<OrganisationUnit> registrationOus) {
+    Set<DimensionalItemObject> dimensionalItems =
+        new LinkedHashSet<>(params.getAllDimensionItems());
+    dimensionalItems.addAll(registrationOus);
+    Set<DimensionalItemObject> organisationUnits =
+        new LinkedHashSet<>(params.getOrganisationUnits());
+    organisationUnits.addAll(registrationOus);
+
     return Data.builder()
         .dataElements(params.getAllDataElements())
-        .dimensionalItemObjects(new LinkedHashSet<>(params.getAllDimensionItems()))
+        .dimensionalItemObjects(dimensionalItems)
         .dataElementOperands(params.getDataElementOperands())
         .options(params.getItemOptions())
-        .organizationUnits(params.getOrganisationUnits())
+        .organizationUnits(List.copyOf(organisationUnits))
         .program(params.getProgram())
         .programStage(params.getProgramStage())
         .indicators(params.getIndicators())
         .programIndicators(params.getProgramIndicators())
         .build();
+  }
+
+  private Set<OrganisationUnit> registrationOuItems(
+      EventQueryParams params, Grid grid, Settings settings) {
+    Set<OrganisationUnit> registrationOus = new LinkedHashSet<>(params.getAllRegistrationOuItems());
+    IdScheme scheme =
+        firstNonNull(
+            settings.getOutputOrgUnitIdScheme(),
+            settings.getOutputIdScheme(),
+            settings.getDataIdScheme(),
+            UID);
+    int column = grid.getIndexOfHeader(REGISTRATION_OU.getItem());
+    if (!params.hasRegistrationOuDimension()
+        || column < 0
+        || !settings.hasCustomIdSchemeSet()
+        || UID.equals(scheme)
+        || scheme.isNull()) {
+      return registrationOus;
+    }
+
+    Map<String, OrganisationUnit> resolved = new LinkedHashMap<>();
+    params.getAllDimensionItems().stream()
+        .filter(OrganisationUnit.class::isInstance)
+        .map(OrganisationUnit.class::cast)
+        .forEach(ou -> resolved.put(ou.getUid(), ou));
+    registrationOus.forEach(ou -> resolved.put(ou.getUid(), ou));
+
+    // Query results contain actual registration facilities, not necessarily the requested
+    // ancestors.
+    Set<String> missing = new LinkedHashSet<>();
+    for (Object value : grid.getColumn(column)) {
+      if (value instanceof String uid) {
+        OrganisationUnit ou = resolved.get(uid);
+        if (ou != null) {
+          registrationOus.add(ou);
+        } else {
+          missing.add(uid);
+        }
+      }
+    }
+    if (!missing.isEmpty()) {
+      registrationOus.addAll(organisationUnitService.getOrganisationUnitsByUid(missing));
+    }
+    return registrationOus;
   }
 
   Settings schemeSettings(EventQueryParams params) {
