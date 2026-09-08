@@ -1915,4 +1915,1348 @@ public class TrackedEntityAggregate8AutoTest extends AnalyticsApiTest {
     validateRowExists(
         response, actualHeaders, Map.of("A03MvHHogjR.UXz7xuGCEhU", "2538", "value", "1"));
   }
+
+  @Test
+  public void aggregateScopedLatestMissingValueAverage() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.ou")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"DiszpKrYNg8\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "DiszpKrYNg8", "value", ""));
+  }
+
+  @Test
+  public void aggregateScopedLatestMissingValueCount() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=COUNT")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.ou")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"DiszpKrYNg8\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "DiszpKrYNg8", "value", "0"));
+  }
+
+  @Test
+  public void aggregateScopedMissingGroupedDataElement() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Prg01.r21967Stg01.r21967De001\":{\"name\":\"TE aggregate regression weight\"},\"r21967De001\":{\"name\":\"TE aggregate regression weight\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"},\"r21967Stg01.r21967De001\":{\"name\":\"TE aggregate regression weight\"}},\"dimensions\":{\"r21967De001\":[],\"pe\":[],\"r21967Stg01.r21967De001\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.r21967De001",
+        "TE aggregate regression weight, TE aggregate scoped regression, Grouped visits",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("r21967Stg01.r21967De001", "", "value", "1"));
+  }
+
+  @Test
+  public void aggregateScopedYearWithIndependentDateFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=r21967Stg01.EVENT_DATE:GE:2021-07-01")
+            .add("asc=r21967Stg01.EVENT_DATE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.EVENT_DATE:2021");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.eventdate\":{\"name\":\"Event Date, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.eventdate\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.eventdate",
+        "Event Date, TE aggregate scoped regression, Grouped visits",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.eventdate", "2021", "value", "3"));
+  }
+
+  @Test
+  public void aggregateScopedComparisonKeepsRawTimestamps() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.EVENT_DATE:GE:2021-07-01;LT:2021-07-02");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        2,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.eventdate\":{\"name\":\"Event Date, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.eventdate\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.eventdate",
+        "Event Date, TE aggregate scoped regression, Grouped visits",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("r21967Stg01.eventdate", "2021-07-01 10:00:00.0", "value", "1"));
+
+    // Validate row exists with values from original row index 1
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("r21967Stg01.eventdate", "2021-07-01 18:00:00.0", "value", "1"));
+  }
+
+  @Test
+  public void aggregateScopedLatestEventAcrossEnrollments() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01[0].ou");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"DiszpKrYNg8\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "DiszpKrYNg8", "value", "1"));
+  }
+
+  @Test
+  public void aggregateScopedPreviousEventAcrossEnrollments() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01[-1].ou");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (-1), Grouped visits (-1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression (-1), Grouped visits (-1)",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "QII5GqfDfO3", "value", "1"));
+  }
+
+  @Test
+  public void aggregateScopedFirstEventAcrossEnrollments() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01[1].ou");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (1), Grouped visits (1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression (1), Grouped visits (1)",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "QII5GqfDfO3", "value", "1"));
+  }
+
+  @Test
+  public void aggregateScopedPreviousEventWithMatchingValue() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01[-1].ou")
+            .add("value=r21967Prg01.r21967Stg01[-1].r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (-1), Grouped visits (-1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression (-1), Grouped visits (-1)",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "QII5GqfDfO3", "value", "10"));
+  }
+
+  @Test
+  public void aggregateScopedFirstEventWithMatchingValue() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01[1].ou")
+            .add("value=r21967Prg01.r21967Stg01[1].r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (1), Grouped visits (1)\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression (1), Grouped visits (1)",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "QII5GqfDfO3", "value", "10"));
+  }
+
+  @Test
+  public void aggregateScopedMatchingOrgUnitFilterAndValue() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001,r21967Stg01.ou:DiszpKrYNg8")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.ou")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"DiszpKrYNg8\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "DiszpKrYNg8", "value", ""));
+  }
+
+  @Test
+  public void aggregateScopedOrgUnitFilterExcludesOtherSelectedEvent() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=r21967Stg01.ou:QII5GqfDfO3")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.ou,r21967Stg01.EVENT_DATE:2021")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"QII5GqfDfO3\":{\"name\":\"Ngiehun Kongo CHP\"},\"r21967Stg01.eventdate\":{\"name\":\"Event Date, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"QII5GqfDfO3\"],\"r21967Stg01.eventdate\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.eventdate",
+        "Event Date, TE aggregate scoped regression, Grouped visits",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("r21967Stg01.ou", "QII5GqfDfO3", "r21967Stg01.eventdate", "2021", "value", "30"));
+  }
+
+  @Test
+  public void aggregateScopedDifferentValueStage() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.ou")
+            .add("value=r21967Prg01.r21967Stg02.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"DiszpKrYNg8\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "DiszpKrYNg8", "value", "99"));
+  }
+
+  @Test
+  public void aggregateScopedDifferentValueOffset() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.ou")
+            .add("value=r21967Prg01.r21967Stg01[1].r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"DiszpKrYNg8\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response, actualHeaders, Map.of("r21967Stg01.ou", "DiszpKrYNg8", "value", "10"));
+  }
+
+  @Test
+  public void aggregateScopedDateBucketAndFullOrgUnitAliasWithValue() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.EVENT_DATE:2021,r21967Prg01.r21967Stg01.ou")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"r21967Stg01.eventdate\":{\"name\":\"Event Date, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[\"DiszpKrYNg8\"],\"r21967Stg01.eventdate\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.eventdate",
+        "Event Date, TE aggregate scoped regression, Grouped visits",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("r21967Stg01.eventdate", "2021", "r21967Stg01.ou", "DiszpKrYNg8", "value", ""));
+  }
+
+  @Test
+  public void aggregateScopedValueOnlySelectionCompatibility() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        1,
+        1); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg02\":{\"name\":\"Independent visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("value", "10"));
+  }
+
+  @Test
+  public void aggregateScopedMissingEventNullGroup() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te006")
+            .add("aggregationType=COUNT")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.ou")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("r21967Stg01.ou", "", "value", "0"));
+  }
+
+  @Test
+  public void aggregateScopedBeyondAvailableEventOffset() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=COUNT")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01[-5].ou")
+            .add("value=r21967Prg01.r21967Stg01[-5].r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression (-5), Grouped visits (-5)\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.ou\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression (-5), Grouped visits (-5)",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("r21967Stg01.ou", "", "value", "0"));
+  }
+
+  @Test
+  public void aggregateScopedSelectedEventCoordinatesAndMissingValue() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te001")
+            .add("aggregationType=AVERAGE")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.ou,r21967Stg01.EVENT_STATUS,r21967Stg01.r21967De001")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"DiszpKrYNg8\":{\"name\":\"Ngelehun CHC\"},\"r21967Stg01.eventstatus\":{\"name\":\"Event Status, TE aggregate scoped regression, Grouped visits\"},\"r21967De001\":{\"name\":\"TE aggregate regression weight\"},\"r21967Prg01.r21967Stg01.r21967De001\":{\"name\":\"TE aggregate regression weight\"},\"r21967Stg01.ou\":{\"name\":\"Organisation unit, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"},\"r21967Stg01.r21967De001\":{\"name\":\"TE aggregate regression weight\"}},\"dimensions\":{\"r21967Stg01.eventstatus\":[],\"r21967De001\":[],\"pe\":[],\"r21967Stg01.ou\":[\"DiszpKrYNg8\"],\"r21967Stg01.r21967De001\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.ou",
+        "Organisation unit, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.eventstatus",
+        "Event Status, TE aggregate scoped regression, Grouped visits",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.r21967De001",
+        "TE aggregate regression weight, TE aggregate scoped regression, Grouped visits",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "r21967Stg01.ou",
+            "DiszpKrYNg8",
+            "r21967Stg01.eventstatus",
+            "ACTIVE",
+            "r21967Stg01.r21967De001",
+            "",
+            "value",
+            ""));
+  }
+
+  @Test
+  public void aggregateScopedTiedEventsCountOnce() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=trackedentity:EQ:r21967Te007")
+            .add("aggregationType=COUNT")
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.EVENT_DATE")
+            .add("value=r21967Prg01.r21967Stg01.r21967De001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.eventdate\":{\"name\":\"Event Date, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.eventdate\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.eventdate",
+        "Event Date, TE aggregate scoped regression, Grouped visits",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("r21967Stg01.eventdate", "2020-01-01 00:00:00.0", "value", "1"));
+  }
+
+  @Test
+  public void aggregateScopedGroupedDatesDoNotMultiplyTrackedEntities() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("paging=false")
+            .add("program=r21967Prg01")
+            .add("dimension=r21967Stg01.EVENT_DATE");
+
+    // When
+    ApiResponse response = actions.aggregate().get("r21967Tet01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        7,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"r21967Stg01\":{\"name\":\"Grouped visits\"},\"r21967Stg01.eventdate\":{\"name\":\"Event Date, TE aggregate scoped regression, Grouped visits\"},\"r21967Prg01\":{\"name\":\"TE aggregate scoped regression\"}},\"dimensions\":{\"pe\":[],\"r21967Stg01.eventdate\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "r21967Stg01.eventdate",
+        "Event Date, TE aggregate scoped regression, Grouped visits",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("r21967Stg01.eventdate", "2020-01-01 00:00:00.0", "value", "1"));
+
+    // Validate row exists with values from original row index 3
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("r21967Stg01.eventdate", "2021-07-01 18:00:00.0", "value", "1"));
+
+    // Validate row exists with values from original row index 6
+    validateRowExists(response, actualHeaders, Map.of("r21967Stg01.eventdate", "", "value", "1"));
+  }
 }

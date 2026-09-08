@@ -42,6 +42,8 @@ import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class PeriodBucketColumnTest {
 
@@ -70,6 +72,12 @@ class PeriodBucketColumnTest {
   @Test
   void doesNotResolveBucketForADateRange() {
     assertFalse(PeriodBucketColumn.of(eventDate("2026-01-01_2026-12-31")).isPresent());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"GE", "GT", "LE", "LT", "NE"})
+  void comparisonsDoNotSelectAPeriodBucket(String operator) {
+    assertFalse(PeriodBucketColumn.of(eventDate(operator + ":2021-07-01")).isPresent());
   }
 
   private DimensionIdentifier<DimensionParam> eventDate(String... items) {

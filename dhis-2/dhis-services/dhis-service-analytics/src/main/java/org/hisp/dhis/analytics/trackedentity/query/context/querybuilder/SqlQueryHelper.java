@@ -204,6 +204,15 @@ class SqlQueryHelper {
                    and status != 'SCHEDULE') e
            where rn = ${offset}) ${alias}""";
 
+  private static final String GROUPED_EVENT_VALUE_COLLAPSE_TABLE =
+      """
+          (select *
+           from (select *, row_number() over (partition by trackedentity order by occurreddate ${direction}) as rn
+                 from analytics_te_event_${trackedEntityTypeUid}
+                 where programstage = '${programStageUid}'
+                   and status != 'SCHEDULE') e
+           where rn = ${offset}) ${alias}""";
+
   /**
    * Builds the LEFT JOIN that collapses each tracked entity's events for the given program stage to
    * a single chosen row (per the offset), so a program-stage data element value can be aggregated
@@ -223,10 +232,26 @@ class SqlQueryHelper {
    */
   static LeftJoin buildEventValueLeftJoin(
       EventValue eventValue, String trackedEntityTypeUid, String alias) {
+    return buildEventValueLeftJoin(
+        eventValue, trackedEntityTypeUid, alias, EVENT_VALUE_COLLAPSE_TABLE);
+  }
+
+  /**
+   * Shares the offset-selected event with grouped dimensions. Value presence must not change group
+   * membership: a missing value contributes null instead of being read from an older event.
+   */
+  static LeftJoin buildGroupedEventValueLeftJoin(
+      EventValue eventValue, String trackedEntityTypeUid, String alias) {
+    return buildEventValueLeftJoin(
+        eventValue, trackedEntityTypeUid, alias, GROUPED_EVENT_VALUE_COLLAPSE_TABLE);
+  }
+
+  private static LeftJoin buildEventValueLeftJoin(
+      EventValue eventValue, String trackedEntityTypeUid, String alias, String template) {
     Offset offset = OffsetHelper.getOffset(eventValue.offset());
     String table =
         replace(
-            EVENT_VALUE_COLLAPSE_TABLE,
+            template,
             Map.of(
                 "direction", offset.direction(),
                 "trackedEntityTypeUid", trackedEntityTypeUid,

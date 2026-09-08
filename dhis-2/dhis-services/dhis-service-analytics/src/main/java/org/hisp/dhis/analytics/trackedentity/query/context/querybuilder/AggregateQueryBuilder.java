@@ -56,7 +56,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ContextParams;
@@ -190,35 +189,47 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
 
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    Set<String> groupedKeys = getGroupedDimensionKeys(queryContext.getContextParams());
-
-    // Only dimensions explicitly requested by the user (present in the raw request's
-    // `dimension` param) become select columns and group-by keys. `acceptedDimensions` also
-    // carries dimensions injected upstream for row-level display purposes, which must not
-    // affect grouping. The same alias-free field is used for both select and group-by: an
-    // "as <alias>" suffix is invalid inside a GROUP BY, and the column name already identifies
-    // the dimension item.
-    // The expression of each grouped dimension is built once here and reused by its select column,
-    // its group by key and any order clause on it. A sorting parameter carries no items of its own,
-    // so it cannot rebuild an identical expression: a bucketed date would order by the raw date
-    // while the query grouped by the bucket, which is invalid grouped SQL.
-    Map<String, Renderable> groupedExpressions = new LinkedHashMap<>();
-
-    acceptedDimensions.stream()
-        .filter(dimension -> groupedKeys.contains(dimension.getKey()))
-        .forEach(
-            dimension ->
-                groupedExpressions.put(
-                    dimension.getKey(), addGroupedDimension(queryContext, builder, dimension)));
-
-    // A program-stage data element value is aggregated from the collapsed event row, joined at
-    // tracked-entity grain so the GROUP BY counts tracked entities, not events.
+    List<DimensionIdentifier<DimensionParam>> groupedDimensions =
+        getGroupedDimensions(queryContext.getContextParams());
     EventValue eventValue = queryContext.getContextParams().getTypedParsed().getEventValue();
+    EventValue sharedValue =
+        groupedDimensions.stream().anyMatch(dimension -> matchesEventValue(dimension, eventValue))
+            ? eventValue
+            : null;
+
     if (eventValue != null) {
       builder.leftJoin(
-          SqlQueryHelper.buildEventValueLeftJoin(
-              eventValue, queryContext.getTetTableSuffix(), EVENT_VALUE_ALIAS));
+          sharedValue == null
+              ? SqlQueryHelper.buildEventValueLeftJoin(
+                  eventValue, queryContext.getTetTableSuffix(), EVENT_VALUE_ALIAS)
+              : SqlQueryHelper.buildGroupedEventValueLeftJoin(
+                  eventValue, queryContext.getTetTableSuffix(), EVENT_VALUE_ALIAS));
     }
+
+    // Only dimension entries define the grouping and its period granularity. Filters may have
+    // the same key, but must not replace that expression or contribute a second column.
+    Map<String, Renderable> groupedExpressions = new LinkedHashMap<>();
+    groupedDimensions.forEach(
+        dimension ->
+            groupedExpressions.put(
+                dimension.getKey(), addGroupedDimension(builder, dimension, sharedValue)));
+
+    // Keep restrictions separate from projection. A filter on a grouped dimension reads the
+    // same selected row, but its conditions must intersect the dimension's own restrictions.
+    acceptedDimensions.stream()
+        .filter(dimension -> groupedExpressions.containsKey(dimension.getKey()))
+        .filter(dimension -> groupableScopedColumn(dimension).isPresent())
+        .filter(SqlQueryBuilders::hasRestrictions)
+        .forEach(
+            dimension ->
+                builder.groupableCondition(
+                    GroupableCondition.of(
+                        dimension.getDimension().getType() + ":" + dimension.getGroupId(),
+                        scopedRestriction(
+                            queryContext,
+                            dimension,
+                            groupableScopedColumn(dimension).orElseThrow(),
+                            sharedValue))));
 
     acceptedSortingParams.stream()
         .filter(sortingParam -> groupedExpressions.containsKey(sortingParam.getOrderBy().getKey()))
@@ -246,9 +257,9 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * bare expression, since an alias is not a valid group by key.
    */
   private Renderable addGroupedDimension(
-      QueryContext queryContext,
       RenderableSqlQuery.RenderableSqlQueryBuilder builder,
-      DimensionIdentifier<DimensionParam> dimension) {
+      DimensionIdentifier<DimensionParam> dimension,
+      EventValue sharedValue) {
     Optional<GroupableColumn> scopedColumn = groupableScopedColumn(dimension);
 
     if (scopedColumn.isEmpty()) {
@@ -258,16 +269,10 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
       return field;
     }
 
-    Renderable expression = groupedScopedExpression(dimension, scopedColumn.get());
+    Renderable expression = groupedScopedExpression(dimension, scopedColumn.get(), sharedValue);
     builder.selectField(Field.ofUnquoted(expression, groupedDimensionName(dimension)));
     builder.groupByField(Field.ofUnquoted(expression, ""));
 
-    if (SqlQueryBuilders.hasRestrictions(dimension)) {
-      builder.groupableCondition(
-          GroupableCondition.of(
-              dimension.getGroupId(),
-              scopedRestriction(queryContext, dimension, scopedColumn.get())));
-    }
     return expression;
   }
 
@@ -283,8 +288,9 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
   private Renderable scopedRestriction(
       QueryContext queryContext,
       DimensionIdentifier<DimensionParam> dimension,
-      GroupableColumn column) {
-    ScopedColumnResolver columnResolver = name -> scopedExpression(dimension, name);
+      GroupableColumn column,
+      EventValue sharedValue) {
+    ScopedColumnResolver columnResolver = name -> scopedExpression(dimension, name, sharedValue);
 
     if (isOrgUnitUid(dimension)) {
       return dimension.isEventDimension()
@@ -296,7 +302,7 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
       return DataElementCondition.of(
           queryContext,
           dimension,
-          valueTypeMapping -> dataElementExpression(dimension, valueTypeMapping));
+          valueTypeMapping -> dataElementExpression(dimension, valueTypeMapping, sharedValue));
     }
 
     if (column.dateBucketed()) {
@@ -347,8 +353,10 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * how the enrollment aggregate endpoint answers the same request.
    */
   private Renderable groupedScopedExpression(
-      DimensionIdentifier<DimensionParam> dimension, GroupableColumn column) {
-    Renderable scopedExpression = scopedExpression(dimension, column.column());
+      DimensionIdentifier<DimensionParam> dimension,
+      GroupableColumn column,
+      EventValue sharedValue) {
+    Renderable scopedExpression = scopedExpression(dimension, column.column(), sharedValue);
 
     if (!column.dateBucketed()) {
       return scopedExpression;
@@ -369,19 +377,25 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * each tracked entity. The enrollment expression is the one the row level endpoint already sorts
    * and filters on, so a grouped enrollment dimension agrees with a sort on the same dimension.
    *
-   * <p>Every grouped field of a program stage reads the same event, so a grouped row always
-   * describes one real event. That event is the one {@code value=} aggregates over, which is why
-   * scheduled events are excluded: a scheduled event carries no data values, so letting one win the
-   * offset would empty the aggregated value.
+   * <p>When {@code value=} matches a grouped stage and effective offset, every grouped field in
+   * that scope reads the joined event used by the value aggregation. Other scopes retain their
+   * scalar selections and the existing timestamp tie-break behavior. Event selection excludes
+   * scheduled events and does not require a grouped data element to be present.
    *
    * <p>The consequence is that {@code EVENT_STATUS} never groups a tracked entity under {@code
    * SCHEDULE}, since a scheduled event is never the chosen row.
    */
   private static Renderable scopedExpression(
-      DimensionIdentifier<DimensionParam> dimension, String column) {
+      DimensionIdentifier<DimensionParam> dimension, String column, EventValue sharedValue) {
     if (isGroupableDataElement(dimension)) {
       return dataElementExpression(
-          dimension, ValueTypeMapping.fromValueType(dimension.getDimension().getValueType()));
+          dimension,
+          ValueTypeMapping.fromValueType(dimension.getDimension().getValueType()),
+          sharedValue);
+    }
+
+    if (matchesEventValue(dimension, sharedValue)) {
+      return Field.of(EVENT_VALUE_ALIAS, () -> column, "");
     }
 
     return dimension.isEventDimension()
@@ -394,13 +408,33 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * each tracked entity.
    */
   private static Renderable dataElementExpression(
-      DimensionIdentifier<DimensionParam> dimension, ValueTypeMapping valueTypeMapping) {
+      DimensionIdentifier<DimensionParam> dimension,
+      ValueTypeMapping valueTypeMapping,
+      EventValue sharedValue) {
+    if (matchesEventValue(dimension, sharedValue)) {
+      return RenderableDataValue.of(
+          EVENT_VALUE_ALIAS, dimension.getDimension().getUid(), valueTypeMapping);
+    }
     return SqlQueryHelper.buildCollapsedEventValueSubquery(
         dimension,
         RenderableDataValue.of(
             SqlQueryHelper.COLLAPSED_EVENT_ALIAS,
             dimension.getDimension().getUid(),
             valueTypeMapping));
+  }
+
+  /** Event collapse ignores enrollment offsets and selects an occurrence across enrollments. */
+  private static boolean matchesEventValue(
+      DimensionIdentifier<DimensionParam> dimension, EventValue eventValue) {
+    return eventValue != null
+        && dimension.isEventDimension()
+        && dimension
+            .getProgramStage()
+            .getElement()
+            .getUid()
+            .equals(eventValue.programStage().getUid())
+        && OffsetHelper.getOffset(dimension.getProgramStage().getOffsetWithDefault())
+            .equals(OffsetHelper.getOffset(eventValue.offset()));
   }
 
   /**
@@ -505,15 +539,16 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * dimensions also contain the attributes the mapper adds for row level display, and those must
    * stay out of the GROUP BY. What is grouped here is also what can be sorted on.
    *
-   * <p>A scoped dimension is read from the enrollment or event table rather than from a tracked
-   * entity column, so its group by key is the collapsed subquery that picks one row per tracked
-   * entity. A dimension neither the tracked entity table nor that collapse can produce, such as an
-   * unscoped {@code enrollmentdate} or a program scoped event status, is rejected rather than
-   * silently applied as a restriction.
+   * <p>A scoped dimension is read from the selected enrollment or event, using a scalar subquery or
+   * the shared event-value join. A dimension neither the tracked entity table nor that selection
+   * can produce, such as an unscoped {@code enrollmentdate} or a program scoped event status, is
+   * rejected rather than silently applied as a restriction.
    */
   public static Set<String> getGroupedDimensionKeys(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
-    return groupedDimensions(contextParams).map(DimensionIdentifier::getKey).collect(toSet());
+    return getGroupedDimensions(contextParams).stream()
+        .map(DimensionIdentifier::getKey)
+        .collect(toSet());
   }
 
   /**
@@ -526,7 +561,7 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
     Set<String> requestedKeys = requestedKeys(contextParams);
 
-    return groupedDimensions(contextParams)
+    return getGroupedDimensions(contextParams).stream()
         .flatMap(dimension -> requestKeysOf(dimension).stream())
         .filter(requestedKeys::contains)
         .collect(toSet());
@@ -536,13 +571,16 @@ public class AggregateQueryBuilder implements SqlQueryBuilder {
    * Returns the parsed dimensions the query groups by: those asked for in the {@code dimension}
    * param that can also be grouped on.
    */
-  private static Stream<DimensionIdentifier<DimensionParam>> groupedDimensions(
+  public static List<DimensionIdentifier<DimensionParam>> getGroupedDimensions(
       ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
     Set<String> requestedKeys = requestedKeys(contextParams);
-
-    return contextParams.getCommonParsed().getDimensionIdentifiers().stream()
+    Map<String, DimensionIdentifier<DimensionParam>> dimensions = new LinkedHashMap<>();
+    contextParams.getCommonParsed().getDimensionIdentifiers().stream()
+        .filter(dimension -> dimension.getDimension().isDimension())
         .filter(AggregateQueryBuilder::isGroupable)
-        .filter(dimension -> requestedKeys.stream().anyMatch(requestKeysOf(dimension)::contains));
+        .filter(dimension -> requestedKeys.stream().anyMatch(requestKeysOf(dimension)::contains))
+        .forEach(dimension -> dimensions.putIfAbsent(dimension.getKey(), dimension));
+    return List.copyOf(dimensions.values());
   }
 
   /**

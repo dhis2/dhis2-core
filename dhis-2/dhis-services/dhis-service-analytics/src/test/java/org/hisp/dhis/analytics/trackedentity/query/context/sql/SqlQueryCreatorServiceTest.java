@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
@@ -54,7 +55,10 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.processing.CommonRequestParamsParser;
+import org.hisp.dhis.analytics.common.processing.DimensionIdentifierConverter;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
@@ -83,7 +87,10 @@ import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -359,6 +366,59 @@ class SqlQueryCreatorServiceTest extends TestBase {
     assertFalse(
         sql.contains("partition by enrollment"),
         "an aggregate query must not carry an enrollment partitioned subquery, but was: " + sql);
+  }
+
+  @Test
+  void parsedDimensionAndFilterShareOneGroupButKeepSeparateRestrictions() {
+    var tet = createTrackedEntityType('A');
+    Program program = createProgram('A');
+    program.setUid("IpHINAT79UW");
+    program.setTrackedEntityType(tet);
+    ProgramStage stage = createProgramStage('A', program);
+    stage.setUid("A03MvHHogjR");
+    program.getProgramStages().add(stage);
+    ProgramService programs = mock(ProgramService.class);
+    when(programs.getPrograms(Set.of(program.getUid()))).thenReturn(List.of(program));
+    SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
+    when(settingsProvider.getCurrentSettings()).thenReturn(mock(SystemSettings.class));
+    var parser =
+        new CommonRequestParamsParser(
+            settingsProvider,
+            mock(DataQueryService.class),
+            mock(EventDataQueryService.class),
+            programs,
+            new DimensionIdentifierConverter());
+    var raw =
+        new CommonRequestParams()
+            .withProgram(Set.of(program.getUid()))
+            .withDimension(Set.of("A03MvHHogjR.EVENT_DATE:2021"))
+            .withFilter(Set.of("A03MvHHogjR.EVENT_DATE:GE:2021-07-01"));
+    var parsed = parser.parse(raw);
+    var ctx =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(
+                TrackedEntityQueryParams.builder().trackedEntityType(tet).aggregate(true).build())
+            .commonRaw(raw)
+            .commonParsed(parsed)
+            .build();
+    List<SqlQueryBuilder> builders = new ArrayList<>(queryBuilders);
+    builders.add(new EventAttributeQueryBuilder());
+    builders.add(
+        new AggregateQueryBuilder(
+            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    String sql =
+        new SqlQueryCreatorService(builders)
+            .getSqlQueryCreator(ctx)
+            .createForSelect()
+            .getStatement();
+
+    assertEquals(1, StringUtils.countMatches(sql, "as \"A03MvHHogjR.eventdate\""));
+    assertFalse(sql.contains("\"daily\""));
+    assertFalse(
+        sql.contains(" or "), "independent dimension and filter restrictions must intersect");
+    assertFalse(sql.contains("exists("), "grouped filters must not fall back to row-level events");
+    assertEquals(1, AggregateQueryBuilder.getGroupedDimensions(ctx).size());
+    assertTrue(AggregateQueryBuilder.getGroupedDimensions(ctx).get(0).getDimension().isDimension());
   }
 
   @Test
