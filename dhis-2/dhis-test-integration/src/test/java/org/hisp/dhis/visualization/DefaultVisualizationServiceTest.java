@@ -32,9 +32,16 @@ package org.hisp.dhis.visualization;
 import static org.hisp.dhis.visualization.Icon.IconType.DATA_ITEM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class DefaultVisualizationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private VisualizationService visualizationService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Test
   void testPostWithIconsObject() {
@@ -66,5 +74,49 @@ class DefaultVisualizationServiceTest extends PostgresIntegrationTestBase {
     Visualization visualization = createVisualization('X');
     visualization.setName(name);
     return visualization;
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA migration verification (DataElementGroupSetDimension HBM -> annotations)
+  // -------------------------------------------------------------------------
+
+  @Test
+  @DisplayName(
+      "JPA: DataElementGroupSetDimension (dimension + ordered items) round-trips through the "
+          + "still-HBM-mapped Visualization owner")
+  void testJpaDataElementGroupSetDimensionRoundTrip() {
+    DataElementGroup degA = createDataElementGroup('A');
+    DataElementGroup degB = createDataElementGroup('B');
+    DataElementGroup degC = createDataElementGroup('C');
+    manager.save(degA);
+    manager.save(degB);
+    manager.save(degC);
+
+    DataElementGroupSet degs = createDataElementGroupSet('S');
+    manager.save(degs);
+
+    DataElementGroupSetDimension dimension = new DataElementGroupSetDimension();
+    dimension.setDimension(degs);
+    dimension.setItems(List.of(degC, degA, degB));
+
+    Visualization visualization = createVisualization('V');
+    visualization.addDataElementGroupSetDimension(dimension);
+
+    long id = visualizationService.save(visualization);
+
+    clearSession(); // force reload from DB
+
+    Visualization reloaded = visualizationService.getVisualization(id);
+    assertNotNull(reloaded);
+    assertEquals(1, reloaded.getDataElementGroupSetDimensions().size());
+
+    DataElementGroupSetDimension reloadedDimension =
+        reloaded.getDataElementGroupSetDimensions().get(0);
+    assertEquals(degs.getUid(), reloadedDimension.getDimension().getUid());
+
+    // @OrderColumn must preserve insertion order, not just membership.
+    List<String> itemUids =
+        reloadedDimension.getItems().stream().map(DataElementGroup::getUid).toList();
+    assertEquals(List.of(degC.getUid(), degA.getUid(), degB.getUid()), itemUids);
   }
 }
