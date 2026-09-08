@@ -288,6 +288,13 @@
       }
     },
     {
+      "name": "optionSetDimensionPreservesNoValueFilterOrder",
+      "query": "/api/analytics/events/aggregate/eBAyeGv0exc.json?displayProperty=NAME&totalPages=false&includeMetadataDetails=true&dimension=Zj7UnCAulEk.ou:USER_ORGUNIT,Zj7UnCAulEk.fWIAEtYVEGk:IN:MODDISCH;D2__NOVALUE;MODDIED&eventDate=2021",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "registrationOuTableLayoutSingleDistrict",
       "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu&tableLayout=true&rows=registrationou&columns=pe&displayProperty=NAME&totalPages=false",
       "version": {
