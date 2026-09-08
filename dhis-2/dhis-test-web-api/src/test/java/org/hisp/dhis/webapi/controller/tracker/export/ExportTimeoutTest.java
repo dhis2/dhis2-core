@@ -217,6 +217,51 @@ class ExportTimeoutTest extends PostgresControllerIntegrationTestBase {
   }
 
   /**
+   * A Hibernate query reached with under a second of budget left must still be bounded.
+   *
+   * <p>Hibernate takes its timeout in whole seconds, so a sub second remainder has to round up to 1
+   * rather than down to 0, which JDBC reads as no timeout at all. Slowing the tracked entity lookup
+   * that {@code RelationshipOperationParamsMapper} runs first leaves exactly that remainder for the
+   * relationship query behind it.
+   *
+   * <p>Asserting on elapsed time rather than only on the 504: an unbounded relationship query still
+   * ends in a 504, since the budget is already spent by the time it returns, but it runs its sleep
+   * out in full first. That is the failure this guards, so the status alone would not catch it.
+   */
+  @Test
+  void shouldBoundAHibernateQueryReachedWithLessThanASecondOfBudgetLeft() {
+    Duration justUnderTheBudget = BUDGET.minusMillis(400);
+    SlowQueryDataSourceProxy.sleepBefore("from trackedentity", justUnderTheBudget);
+    SlowQueryDataSourceProxy.sleepBefore("from relationship", BUDGET.multipliedBy(3));
+
+    long startNanos = System.nanoTime();
+    HttpStatus status;
+    try {
+      status = GET("/tracker/relationships?trackedEntity={te}", "QS6w44flWAf").status();
+    } finally {
+      SlowQueryDataSourceProxy.disarm();
+    }
+    Duration elapsed = Duration.ofNanos(System.nanoTime() - startNanos);
+
+    assertEquals(HttpStatus.GATEWAY_TIMEOUT, status);
+    assertTrue(
+        SlowQueryDataSourceProxy.matches() > 1,
+        "only one statement was slowed down, so the relationship query did not run with a sub"
+            + " second remainder");
+    assertTrue(
+        elapsed.compareTo(BUDGET.multipliedBy(2)) < 0,
+        "request took "
+            + elapsed
+            + ", so the relationship query ran unbounded rather than being cancelled with the "
+            + "remainder of the budget of "
+            + BUDGET);
+    assertEquals(
+        0,
+        countBackendsRunningSleep(),
+        "a PostgreSQL backend is still running the cancelled query");
+  }
+
+  /**
    * Issues the request and disarms the proxy the moment it returns, so no sleep can bleed into the
    * assertions or the per-test teardown.
    */

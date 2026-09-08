@@ -33,7 +33,6 @@ import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
 import java.util.function.Supplier;
-import org.hibernate.annotations.QueryHints;
 
 /**
  * Bounds tracker export queries that go through Hibernate by the remaining budget of the request on
@@ -79,8 +78,11 @@ public final class DeadlineQueries {
       return query;
     }
     DeadlineHolder.checkNotExpired();
-    // this hint is in milliseconds
-    query.setHint(QueryHints.TIMEOUT_JAKARTA_JPA, (int) deadline.remaining().toMillis());
+    // Not the jakarta.persistence.query.timeout hint: it takes milliseconds and Hibernate converts
+    // them with Math.round, so a remainder below 500ms becomes 0, which means no timeout at all.
+    // setTimeout takes the seconds we computed. It needs the unwrap, which is honest about being
+    // Hibernate specific rather than relying on a hint another provider would silently ignore.
+    query.unwrap(org.hibernate.query.Query.class).setTimeout(deadline.remainingSecondsCeil());
     return query;
   }
 
