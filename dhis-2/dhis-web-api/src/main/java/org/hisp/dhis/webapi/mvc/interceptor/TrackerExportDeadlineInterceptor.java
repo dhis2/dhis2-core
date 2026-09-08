@@ -44,9 +44,14 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * Gives every tracker export request a {@link Deadline} so its queries are bounded by {@code
  * tracker.export.timeout}.
  *
- * <p>Scoped by {@link #PATH_PATTERNS} and GET so no other product ever gets a deadline. Both are
- * needed: the paths exclude {@code /api/tracker/ownership} and the import job endpoints, GET
- * excludes the note POSTs which live in {@code TrackerImportController} under the same prefixes.
+ * <p>Scoped by {@link #PATH_PATTERNS} and to reads so no other product ever gets a deadline. Both
+ * are needed: the paths exclude {@code /api/tracker/ownership} and the import job endpoints, the
+ * methods exclude the note POSTs which live in {@code TrackerImportController} under the same
+ * prefixes.
+ *
+ * <p>HEAD as well as GET. Spring dispatches HEAD to the same {@code @GetMapping} handlers, so it
+ * runs the whole export and only drops the body on the way out, which costs exactly as much as the
+ * GET.
  *
  * <p>Cleared in {@link #afterCompletion} whatever the outcome, since Tomcat reuses worker threads.
  */
@@ -69,7 +74,8 @@ public class TrackerExportDeadlineInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(
       HttpServletRequest request, HttpServletResponse response, Object handler) {
-    if (!HttpMethod.GET.matches(request.getMethod())) {
+    if (!HttpMethod.GET.matches(request.getMethod())
+        && !HttpMethod.HEAD.matches(request.getMethod())) {
       return true;
     }
 

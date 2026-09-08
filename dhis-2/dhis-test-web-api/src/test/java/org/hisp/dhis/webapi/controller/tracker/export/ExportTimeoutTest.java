@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.config.PostgresTestConfigOverride;
 import org.hisp.dhis.test.config.SlowQueryDataSourceProxy;
@@ -51,6 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -131,12 +133,23 @@ class ExportTimeoutTest extends PostgresControllerIntegrationTestBase {
    */
   private static final String AGGREGATE_QUERY = "te.uid as te_uid";
 
-  @Test
-  void shouldReturnGatewayTimeoutAndCancelTheQueryWhenTheBudgetIsExceeded() {
+  /**
+   * HEAD as well as GET: Spring dispatches it to the same {@code @GetMapping} handler, so it runs
+   * the whole export and only drops the body on the way out. Unbounded, it would be a cheap request
+   * that costs a full export and that nothing cancels.
+   */
+  @EnumSource(names = {"GET", "HEAD"})
+  @ParameterizedTest
+  void shouldReturnGatewayTimeoutAndCancelTheQueryWhenTheBudgetIsExceeded(HttpMethod method) {
     // sleep well past the budget so the deadline must fire on the id query
     SlowQueryDataSourceProxy.sleepBefore(ID_QUERY, BUDGET.multipliedBy(3));
 
-    HttpStatus status = getTrackedEntities("/tracker/trackedEntities?program={program}");
+    HttpStatus status;
+    try {
+      status = perform(method, "/api/tracker/trackedEntities?program=BFcipDERJnf").status();
+    } finally {
+      SlowQueryDataSourceProxy.disarm();
+    }
 
     assertEquals(HttpStatus.GATEWAY_TIMEOUT, status);
     assertTrue(
