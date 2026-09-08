@@ -260,19 +260,20 @@ class PersistablesFilter {
 
   private <T extends TrackerDto> Predicate<T> parentConditions(
       List<Function<T, TrackerDto>> parents) {
-    final Predicate<TrackerDto> parentCondition =
-        parent -> isMarked(parent) || this.preheat.exists(parent);
-
     return parents.stream()
         .map(
             p ->
                 (Predicate<T>)
                     t ->
-                        parentCondition.test(
+                        isPersistableParent(
                             p.apply(t))) // children of invalid parents can only be persisted under
         // certain conditions
         .reduce(Predicate::and)
         .orElse(t -> true); // predicate always returning true for entities without parents
+  }
+
+  private boolean isPersistableParent(TrackerDto parent) {
+    return isMarked(parent) || this.preheat.exists(parent);
   }
 
   /**
@@ -288,7 +289,7 @@ class PersistablesFilter {
     List<Error> errors =
         parents.stream()
             .map(p -> p.apply(entity))
-            .filter(this::isNotValid) // remove valid parents
+            .filter(p -> !isPersistableParent(p))
             .map(p -> error(ValidationCode.E5000, entity, p))
             .toList();
     this.result.errors.addAll(errors);
