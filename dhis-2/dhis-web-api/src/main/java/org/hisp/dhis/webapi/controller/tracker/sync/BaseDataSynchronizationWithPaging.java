@@ -36,7 +36,8 @@ import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPD
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.alreadyDeletedOrSucceededUids;
-import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedItems;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedItems;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.formatFailedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.sendTrackerRequest;
@@ -72,6 +73,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
+import org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.FailedItem;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.springframework.web.client.RestTemplate;
 
@@ -100,6 +102,12 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntity>
     implements DataSynchronizationWithPaging {
+
+  /**
+   * Synthetic error code used in place of a real one when an entity is excluded from sync only
+   * because one of its children failed, not because of any error of its own.
+   */
+  static final String CHILD_FAILED_ERROR_CODE = "CHILD_FAILED";
 
   private final RenderService renderService;
   private final RestTemplate restTemplate;
@@ -379,7 +387,7 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     // An entity whose own delete came back "already deleted" achieved its goal, so it is treated
     // as synced here too.
     Set<UID> syncedTopLevelUids = alreadyDeletedOrSucceededUids(report, getTrackerType());
-    Set<UID> failedTopLevelUids = blockingFailedUids(report, getTrackerType());
+    List<FailedItem> failedTopLevelItems = blockingFailedItems(report, getTrackerType());
 
     Set<UID> blockingFailedChildUids = new HashSet<>();
     StringBuilder childSummary = new StringBuilder();
@@ -387,12 +395,12 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
       TrackerType childType = entry.getKey();
       int total = entry.getValue();
       Set<UID> syncedChild = alreadyDeletedOrSucceededUids(report, childType);
-      Set<UID> failedChild = blockingFailedUids(report, childType);
-      blockingFailedChildUids.addAll(failedChild);
+      List<FailedItem> failedChildItems = blockingFailedItems(report, childType);
+      failedChildItems.forEach(item -> blockingFailedChildUids.add(item.uid()));
       childSummary.append(
           format(
               ", %s=%d/%d synced%s",
-              childType, syncedChild.size(), total, formatFailedUids(failedChild)));
+              childType, syncedChild.size(), total, formatFailedUids(failedChildItems)));
     }
 
     log.info(
@@ -401,7 +409,7 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
         getTrackerType(),
         syncedTopLevelUids.size(),
         deletedTopLevelDtos.size(),
-        formatFailedUids(failedTopLevelUids),
+        formatFailedUids(failedTopLevelItems),
         childSummary);
 
     return new DeleteSyncResult(syncedTopLevelUids, blockingFailedChildUids);
@@ -426,20 +434,36 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     Set<UID> succeededTopLevelUids = successfullyProcessedUids(report, getTrackerType());
     Set<UID> syncedUids = filterByFailedChildren(succeededTopLevelUids, entities, report);
 
-    Set<UID> failedTopLevelUids =
-        entities.stream()
-            .map(this::getUid)
-            .filter(uid -> !syncedUids.contains(uid))
-            .collect(Collectors.toCollection(HashSet::new));
-
     log.info(
         "{} create/update sync: {}/{} synced{}",
         getEntityName(),
         syncedUids.size(),
         entities.size(),
-        formatFailedUids(failedTopLevelUids));
+        formatFailedUids(explainUnsyncedEntities(succeededTopLevelUids, syncedUids, report)));
 
     return syncedUids;
+  }
+
+  /**
+   * Adds the default error code {@link #CHILD_FAILED_ERROR_CODE} to all top entities that are
+   * successfully processed but are not synchronized and don't have an error code yet.
+   *
+   * @return the list of (entity, errorCode) pairs
+   */
+  List<FailedItem> explainUnsyncedEntities(
+      Set<UID> succeededTopLevelUids, Set<UID> syncedUids, ImportReport report) {
+    List<FailedItem> failures = new ArrayList<>(failedItems(report, getTrackerType()));
+    Set<UID> explainedUids =
+        failures.stream().map(FailedItem::uid).collect(Collectors.toCollection(HashSet::new));
+
+    for (UID uid : succeededTopLevelUids) {
+      if (!syncedUids.contains(uid) && !explainedUids.contains(uid)) {
+        explainedUids.add(uid);
+        failures.add(new FailedItem(uid, CHILD_FAILED_ERROR_CODE));
+      }
+    }
+
+    return failures;
   }
 
   private Set<UID> filterByFailedChildren(
