@@ -64,7 +64,7 @@ import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.FavoritableOperations;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -158,7 +158,7 @@ public class EventChartController extends AbstractCrudController<EventChart, Get
         filename,
         attachment);
 
-    ChartUtilities.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
+    ChartUtils.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
   }
 
   // --------------------------------------------------------------------------
