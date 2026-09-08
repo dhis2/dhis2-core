@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.organisationunit.OrganisationUnitLevel" table="orgunitlevel">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="orgunitlevelid">
       <generator class="native" />

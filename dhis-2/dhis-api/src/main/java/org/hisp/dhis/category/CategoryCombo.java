@@ -124,11 +124,11 @@ public class CategoryCombo extends BaseMetadataObject
               foreignKey = @ForeignKey(name = "fk_categorycombo_categoryid")))
   @OrderColumn(name = "sort_order")
   @ListIndexBase(1)
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<Category> categories = new ArrayList<>();
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "categoryCombo")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
   @Column(name = "datadimensiontype", nullable = false)

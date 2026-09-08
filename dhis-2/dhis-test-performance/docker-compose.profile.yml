@@ -26,12 +26,16 @@ services:
         condition: service_completed_successfully
 
   async-profiler-setup:
-    image: busybox
+    # curlimages/curl (same image the web-healthcheck service uses) rather than busybox:
+    # busybox wget has no real TLS support and current busybox:latest fails instantly on the
+    # GitHub releases redirect chain, killing the whole run before it starts.
+    image: curlimages/curl:latest
+    user: "0"
     command: |
       sh -c '
         if [ ! -f /opt/async-profiler/bin/asprof ]; then
           echo "Downloading async-profiler..."
-          wget -O /tmp/async-profiler.tar.gz https://github.com/async-profiler/async-profiler/releases/download/v4.3/async-profiler-4.3-linux-x64.tar.gz &&
+          curl -fsSL -o /tmp/async-profiler.tar.gz https://github.com/async-profiler/async-profiler/releases/download/v4.3/async-profiler-4.3-linux-x64.tar.gz &&
           mkdir -p /opt/async-profiler/bin /opt/async-profiler/lib &&
           tar -xzf /tmp/async-profiler.tar.gz -C /tmp &&
           cp /tmp/async-profiler-4.3-linux-x64/bin/* /opt/async-profiler/bin/ &&

@@ -298,6 +298,23 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-jcache</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <classifier>jakarta</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
       <scope>test</scope>
@@ -402,7 +419,13 @@
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-jdbc</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-system</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:json-tree</ignoredNonTestScopedDependency>
+            <!-- javax.cache API arrives transitively at compile scope; used directly only in
+                 the second level cache effect tests. -->
+            <ignoredNonTestScopedDependency>javax.cache:cache-api</ignoredNonTestScopedDependency>
           </ignoredNonTestScopedDependencies>
+          <ignoredUsedUndeclaredDependencies>
+            <ignoredUsedUndeclaredDependency>javax.cache:cache-api:jar</ignoredUsedUndeclaredDependency>
+          </ignoredUsedUndeclaredDependencies>
           <!-- If code from the following modules is accessed in tests they'll have to move up to ignoredNonTestScopedDependency -->
           <ignoredUnusedDeclaredDependencies>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
