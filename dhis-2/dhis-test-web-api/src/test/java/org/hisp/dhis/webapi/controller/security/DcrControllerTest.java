@@ -209,6 +209,21 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
   }
 
   @Test
+  @DisplayName("Test DCR registration with client-supplied scopes is rejected")
+  void testRegisterClientWithScopesRejected() throws Exception {
+    // Given an initial access token (iat) and a valid registration that includes nonempty scope
+    String initialAccessToken = createClientAndIat();
+    KeyPair keyPair = createKeys();
+
+    // When registering with client-supplied scope, then SAS 1.5.8 rejects it
+    mvc.perform(
+            getGetClientRegPost(
+                initialAccessToken, keyPair, "[\"client_credentials\"]", "openid profile username"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("invalid_scope"));
+  }
+
+  @Test
   @DisplayName("Test DCR-registered client refresh token settings")
   void testDcrRegisteredClientRefreshTokenSettings() throws Exception {
     // Given an initial access token (iat)
@@ -509,6 +524,16 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
 
   private static MockHttpServletRequestBuilder getGetClientRegPost(
       String iat, KeyPair keyPair, String grantTypesJson) {
+    return getGetClientRegPost(iat, keyPair, grantTypesJson, null);
+  }
+
+  /**
+   * Builds a DCR request without scopes by default. A supplied scope is used to verify rejection;
+   * authorize and token requests still send scope.
+   */
+  private static MockHttpServletRequestBuilder getGetClientRegPost(
+      String iat, KeyPair keyPair, String grantTypesJson, String scope) {
+    String scopeJson = scope == null ? "" : "\"scope\": \"" + scope + "\",";
     return post("/connect/register")
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + iat)
         .contentType(MediaType.APPLICATION_JSON)
@@ -522,17 +547,16 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
                    "response_types": ["code"],
                    "token_endpoint_auth_method": "private_key_jwt",
                    "token_endpoint_auth_signing_alg": "RS256",
-                   "scope": "openid profile username",
+                   %s
                    "jwks_uri": "https://dhis2.org/jwks.json",
                    "jwks": %s
                  }
                 """,
                 grantTypesJson,
+                scopeJson,
                 keyPair
                     .jwkSet())); // Inline JWKS , note jwks_uri is also set but should be ignored,
     // validation will fail if not set, only jwks is used
-    // NOTE: Scope is defined here BUT this is only because we use client_credentials grant
-    // when using /authorize first in the real world, you define scope in there.
   }
 
   private String createClientAndIat() {
