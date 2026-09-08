@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_OU;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.REGISTRATION_OU;
+import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
@@ -75,7 +76,6 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.NoValueDimensions;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -98,7 +98,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -626,32 +625,6 @@ public class MetadataItemsHandler {
     if (!metadataItemMap.containsKey(key)) {
       metadataItemMap.put(key, new MetadataItem(getDateFieldLabel(dateField, params.getProgram())));
     }
-  }
-
-  /**
-   * Returns the display label for a date field, using the program's custom label if available, or
-   * falling back to the default display name.
-   */
-  private static String getDateFieldLabel(String dateField, Program program) {
-    return switch (dateField) {
-      case "ENROLLMENT_DATE" ->
-          LabelMapper.getEnrollmentDateLabel(program, toDateFieldDisplayName(dateField));
-      case "INCIDENT_DATE" ->
-          LabelMapper.getIncidentDateLabel(program, toDateFieldDisplayName(dateField));
-      default -> toDateFieldDisplayName(dateField);
-    };
-  }
-
-  /**
-   * Converts a dateField name (e.g. "ENROLLMENT_DATE") to a display name (e.g. "Enrollment date").
-   */
-  static String toDateFieldDisplayName(String dateField) {
-    String[] parts = dateField.toLowerCase().split("_");
-    if (parts.length == 0) {
-      return dateField;
-    }
-    parts[0] = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
-    return String.join(" ", parts);
   }
 
   /**
