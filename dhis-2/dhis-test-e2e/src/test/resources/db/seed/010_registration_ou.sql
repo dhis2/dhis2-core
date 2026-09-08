@@ -1,52 +1,16 @@
--- Fixture for REGISTRATION_OU analytics coverage (DHIS2-21980).
--- Creates a dedicated tracker program whose tracked entities are registered, enrolled and served in
--- three different districts, so registration OU, enrollment OU and event OU can never be confused.
+-- REGISTRATION_OU fixture (DHIS2-21980): six entities, each with one enrollment and event.
+-- A separate program keeps existing test counts unchanged. Different district counts
+-- expose queries that mix up registration, enrollment and event org units:
 --
--- Why a dedicated program: analytics event and enrollment requests are program-scoped, so a new
--- program gets its own analytics_event_/analytics_enrollment_ tables and cannot perturb the exact
--- counts the existing suites assert on. Nothing here mutates a pre-existing row.
+-- Entities   Registration   Enrollment   Event
+-- 001        Bo             Bombali      Kailahun
+-- 002-003    Bombali        Kailahun     Bo
+-- 004-006    Kailahun       Bo           Bombali
 --
--- Every row is CLONED from an existing demo row and then overridden, rather than built column by
--- column. Two reasons. Several columns are nullable in the schema but map to Java primitives (for
--- example Program.completeEventsExpiryDays), so a hand-built row loads fine in SQL and then fails
--- to hydrate. And cloning tracks whatever shape the dump actually has, so this survives the
--- difference between the 2.39.6 e2e dump and a current schema.
---
--- Latin square. Counts per district differ for every dimension, so reading the wrong column
--- produces a wrong NUMBER rather than merely a wrong label:
---
---   tracked entities   registration OU        enrollment OU          event OU (1 event each)
---   T1                 Bo                     Bombali                Kailahun
---   T2, T3             Bombali                Kailahun               Bo
---   T4, T5, T6         Kailahun               Bo                     Bombali
---
---   events/aggregate      REGISTRATION_OU  Bo=1  Bombali=2  Kailahun=3
---                         ou (event OU)    Bo=2  Bombali=3  Kailahun=1
---   enrollments/aggregate REGISTRATION_OU  Bo=1  Bombali=2  Kailahun=3
---                         ou (enrolment)   Bo=3  Bombali=1  Kailahun=2
---
--- Org units are reused from the Sierra Leone demo, so the hierarchy and
--- analytics_rs_orgunitstructure already resolve them:
---   Bo       O6uvpzGd5pu -> Nduvuibu MCHP aBfyTU5Wgds
---   Bombali  fdc6uOvgoji -> Tambiama CHC  agEKP19IUKI
---   Kailahun jUb8gELQApl -> Sienga CHP    a1E6QWBTEwX
---
--- ETL constraints this fixture must satisfy (JdbcEventAnalyticsTableManager /
--- JdbcEnrollmentAnalyticsTableManager):
---   * ev.lastupdated < export start time, and en.lastupdated <= export start time -- hence the fixed
---     2022 timestamps rather than now(), which would race the export that runs seconds later.
---   * event occurreddate not null, and enrollment occurreddate not null -- an enrollment without an
---     occurreddate never reaches analytics_enrollment_*.
---   * event status in (COMPLETED, ACTIVE, SCHEDULE); deleted false on event, enrollment and entity.
---   * dates must exist in analytics_rs_dateperiodstructure -- the demo dump spans 1975..2051.
---
--- Surrogate ids come from a 9,1xx,xxx block, far above the dump's maxima, and the sequence is bumped
--- past the block at the end so later API-created objects cannot collide. The whole file is guarded
--- on the program uid, so re-running it is a no-op.
+-- Clone demo rows to retain required defaults across schema versions.
+-- Fixed 2022 dates keep the records eligible for analytics export.
 
--- ---------------------------------------------------------------------------
--- Tracked entity type, cloned from an existing type
--- ---------------------------------------------------------------------------
+-- Tracked entity type.
 
 create temporary table seed_regou_tet as
 select * from trackedentitytype where uid = 'UinS6TQnkUi';
@@ -64,9 +28,7 @@ insert into trackedentitytype
 select * from seed_regou_tet
 where not exists (select 1 from program where uid = 'regOuProg01');
 
--- ---------------------------------------------------------------------------
--- Program, cloned from Child Programme (a WITH_REGISTRATION program)
--- ---------------------------------------------------------------------------
+-- Program, based on Child Programme.
 
 create temporary table seed_regou_program as
 select * from program where uid = 'IpHINAT79UW';
@@ -87,9 +49,7 @@ insert into program
 select * from seed_regou_program
 where not exists (select 1 from program where uid = 'regOuProg01');
 
--- ---------------------------------------------------------------------------
--- Program stage, cloned from the Birth stage
--- ---------------------------------------------------------------------------
+-- Program stage, based on Birth.
 
 create temporary table seed_regou_stage as
 select * from programstage where uid = 'A03MvHHogjR';
@@ -107,7 +67,7 @@ insert into programstage
 select * from seed_regou_stage
 where not exists (select 1 from programstage where uid = 'regOuStge01');
 
--- The program is offered at the three facilities the fixture uses.
+-- Assign the program to the three facilities.
 insert into program_organisationunits (programid, organisationunitid)
 select 9100002, ou.organisationunitid
 from organisationunit ou
@@ -117,9 +77,7 @@ where ou.uid in ('aBfyTU5Wgds', 'agEKP19IUKI', 'a1E6QWBTEwX')
                   where po.programid = 9100002
                     and po.organisationunitid = ou.organisationunitid);
 
--- ---------------------------------------------------------------------------
--- Tracked entities. The registration org unit is trackedentity.organisationunitid.
--- ---------------------------------------------------------------------------
+-- Registration org units.
 
 create temporary table seed_regou_te as
 select t.*, v.new_id, v.new_uid, v.ou_uid
@@ -147,9 +105,7 @@ insert into trackedentity
 select * from seed_regou_te
 where not exists (select 1 from trackedentity where uid = 'regOuTei001');
 
--- ---------------------------------------------------------------------------
--- Enrollments. enrollment.organisationunitid is the enrollment org unit, rotated one district on.
--- ---------------------------------------------------------------------------
+-- Enrollments in a different district from registration.
 
 create temporary table seed_regou_enrollment as
 select e.*, v.new_id, v.new_uid, v.te_id, v.ou_uid
@@ -181,9 +137,7 @@ insert into enrollment
 select * from seed_regou_enrollment
 where not exists (select 1 from enrollment where uid = 'regOuEnr001');
 
--- ---------------------------------------------------------------------------
--- Events. trackerevent.organisationunitid is the event org unit, rotated one district further.
--- ---------------------------------------------------------------------------
+-- Events in the third district.
 
 create temporary table seed_regou_event as
 select e.*, v.new_id, v.new_uid, v.en_id, v.ou_uid
@@ -215,9 +169,7 @@ insert into trackerevent
 select * from seed_regou_event
 where not exists (select 1 from trackerevent where uid = 'regOuEvt001');
 
--- ---------------------------------------------------------------------------
--- Keep the id generator clear of the fixture block, and clean up the templates.
--- ---------------------------------------------------------------------------
+-- Reserve the fixture IDs and remove temporary tables.
 
 select setval('hibernate_sequence',
               greatest((select last_value from hibernate_sequence), 9200000));

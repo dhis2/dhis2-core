@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.enrollment.query;
 
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -1013,41 +1014,57 @@ public class EnrollmentsQuery8AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name at specific indices (sorted results).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "pi", "regOuEnr001");
-    validateRowValueByName(response, actualHeaders, 0, "registrationouname", "Nduvuibu MCHP");
-    validateRowValueByName(response, actualHeaders, 0, "tei", "regOuTei001");
-    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Tambiama CHC");
-    validateRowValueByName(response, actualHeaders, 0, "programstatus", "ACTIVE");
+    // 7. Match sampled enrollments without assuming an order for this unsorted query.
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi", "regOuEnr001",
+            "registrationou", "OU_8388",
+            "registrationouname", "Nduvuibu MCHP",
+            "tei", "regOuTei001",
+            "enrollmentdate", "2022-03-01 00:00:00.0",
+            "incidentdate", "2022-03-01 00:00:00.0",
+            "ouname", "Tambiama CHC",
+            "programstatus", "ACTIVE"));
 
-    // Validate selected values for row index 2
-    validateRowValueByName(response, actualHeaders, 2, "pi", "regOuEnr003");
-    validateRowValueByName(response, actualHeaders, 2, "registrationouname", "Tambiama CHC");
-    validateRowValueByName(response, actualHeaders, 2, "tei", "regOuTei003");
-    validateRowValueByName(response, actualHeaders, 2, "enrollmentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 2, "incidentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 2, "ouname", "Sienga CHP");
-    validateRowValueByName(response, actualHeaders, 2, "programstatus", "ACTIVE");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi", "regOuEnr003",
+            "registrationou", "OU_193280",
+            "registrationouname", "Tambiama CHC",
+            "tei", "regOuTei003",
+            "enrollmentdate", "2022-03-01 00:00:00.0",
+            "incidentdate", "2022-03-01 00:00:00.0",
+            "ouname", "Sienga CHP",
+            "programstatus", "ACTIVE"));
 
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "pi", "regOuEnr005");
-    validateRowValueByName(response, actualHeaders, 4, "registrationouname", "Sienga CHP");
-    validateRowValueByName(response, actualHeaders, 4, "tei", "regOuTei005");
-    validateRowValueByName(response, actualHeaders, 4, "enrollmentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 4, "incidentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 4, "ouname", "Nduvuibu MCHP");
-    validateRowValueByName(response, actualHeaders, 4, "programstatus", "ACTIVE");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi", "regOuEnr005",
+            "registrationou", "OU_204921",
+            "registrationouname", "Sienga CHP",
+            "tei", "regOuTei005",
+            "enrollmentdate", "2022-03-01 00:00:00.0",
+            "incidentdate", "2022-03-01 00:00:00.0",
+            "ouname", "Nduvuibu MCHP",
+            "programstatus", "ACTIVE"));
 
-    // Validate selected values for row index 5
-    validateRowValueByName(response, actualHeaders, 5, "pi", "regOuEnr006");
-    validateRowValueByName(response, actualHeaders, 5, "registrationouname", "Sienga CHP");
-    validateRowValueByName(response, actualHeaders, 5, "tei", "regOuTei006");
-    validateRowValueByName(response, actualHeaders, 5, "enrollmentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 5, "incidentdate", "2022-03-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 5, "ouname", "Nduvuibu MCHP");
-    validateRowValueByName(response, actualHeaders, 5, "programstatus", "ACTIVE");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "pi", "regOuEnr006",
+            "registrationou", "OU_204921",
+            "registrationouname", "Sienga CHP",
+            "tei", "regOuTei006",
+            "enrollmentdate", "2022-03-01 00:00:00.0",
+            "incidentdate", "2022-03-01 00:00:00.0",
+            "ouname", "Nduvuibu MCHP",
+            "programstatus", "ACTIVE"));
   }
 }
