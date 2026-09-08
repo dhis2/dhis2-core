@@ -456,7 +456,7 @@ public class EventAggregateService {
         ColumnHeader.REGISTRATION_OU.getItem().equals(dimension)
             ? params.getRegistrationOuDimensionItems().stream()
                 .map(ou -> new EventAnalyticsDimensionalItem(ou, dimension))
-                .collect(java.util.stream.Collectors.toList())
+                .toList()
             : params.getEventReportDimensionalItemArrayExploded(dimension);
 
     if (objects.isEmpty()) {
