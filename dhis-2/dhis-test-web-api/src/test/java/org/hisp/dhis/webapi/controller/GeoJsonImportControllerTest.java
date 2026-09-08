@@ -563,7 +563,10 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
 
   private void assertGeometryAttributeIsNotNull(String attributeId, String uid) {
     JsonObject unit =
-        GET("/organisationUnits/{uid}/gist?fields=geometry,{attr}~rename(geo2)", uid, attributeId)
+        GET(
+                "/organisationUnits/{uid}/gist?fields=geometry,{attr}~rename(geo2)~attribute(true)",
+                uid,
+                attributeId)
             .content();
     JsonObject geometry = unit.getObject("geo2");
     assertTrue(geometry.exists() && geometry.isObject(), uid + " has no geometry");

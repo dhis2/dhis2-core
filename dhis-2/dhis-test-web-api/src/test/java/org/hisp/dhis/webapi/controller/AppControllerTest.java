@@ -55,7 +55,7 @@ import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.JCloudsAppStorageService;
+import org.hisp.dhis.appmanager.BlobStoreAppStorageService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -95,7 +95,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Autowired private AppManager appManager;
-  @Autowired private JCloudsAppStorageService jCloudsAppStorageService;
+  @Autowired private BlobStoreAppStorageService blobStoreAppStorageService;
 
   static {
     try {
@@ -166,14 +166,14 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   void testInstallMultipleSameKey() throws IOException {
     // Clean up first
     Map<String, Pair<App, BundledAppInfo>> installedApps =
-        jCloudsAppStorageService.discoverInstalledApps();
+        blobStoreAppStorageService.discoverInstalledApps();
     installedApps.values().forEach(p -> appManager.deleteApp(p.getLeft(), true));
 
     appManager.installApp(new ClassPathResource("app/app_ver1.zip").getFile());
     appManager.installApp(new ClassPathResource("app/app_ver3.zip").getFile());
     appManager.installApp(new ClassPathResource("app/app_ver2.zip").getFile());
 
-    installedApps = jCloudsAppStorageService.discoverInstalledApps();
+    installedApps = blobStoreAppStorageService.discoverInstalledApps();
 
     assertEquals(1, installedApps.size());
     assertEquals("2.0.0", installedApps.values().stream().findFirst().get().getLeft().getVersion());

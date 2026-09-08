@@ -32,19 +32,19 @@ package org.hisp.dhis.common;
 import java.util.concurrent.Future;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
- * A mere DHIS2 front for springs {@link AsyncListenableTaskExecutor}.
+ * A mere DHIS2 front for Spring's {@link AsyncTaskExecutor}.
  *
  * @author Jan Bernitt
  */
 @RequiredArgsConstructor
 @Service
-public class DefaultAsyncTaskExecutor implements AsyncTaskExecutor {
+public class DefaultAsyncTaskExecutor implements org.hisp.dhis.common.AsyncTaskExecutor {
   @Qualifier("taskScheduler")
-  private final AsyncListenableTaskExecutor jobExecutor;
+  private final AsyncTaskExecutor jobExecutor;
 
   @Override
   public void executeTask(Runnable job) {
@@ -53,6 +53,6 @@ public class DefaultAsyncTaskExecutor implements AsyncTaskExecutor {
 
   @Override
   public Future<?> executeTaskWithCancelation(Runnable task) {
-    return jobExecutor.submitListenable(task);
+    return jobExecutor.submitCompletable(task);
   }
 }

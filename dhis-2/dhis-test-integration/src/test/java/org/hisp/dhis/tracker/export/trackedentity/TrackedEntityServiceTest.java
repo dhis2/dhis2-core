@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -67,6 +66,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -799,6 +799,30 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnOnlyReadableAttributesWhenUserCannotReadSomeAttributes()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    // Remove metadata read access to attribute C for the current user; A and B stay readable. The
+    // export must return only the attribute values the user is allowed to read.
+    injectSecurityContextUser(superuser);
+    teaC.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(teaC);
+    injectSecurityContextUser(user);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .orgUnitMode(SELECTED)
+            .program(programA)
+            .fields(TrackedEntityFields.builder().includeAttributes().build())
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        Set.of("A", "B"), attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
+  }
+
+  @Test
   void shouldReturnEnrollmentsFromSpecifiedProgramWhenRequestingSingleTrackedEntity()
       throws ForbiddenException, NotFoundException {
     Enrollment enrollmentProgramB = createEnrollment(programB, trackedEntityA, orgUnitA);
@@ -1473,9 +1497,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> checkDate(currentTime, trackedEntity.getCreated()),
         () -> checkDate(currentTime, trackedEntity.getCreatedAtClient()),
         () -> checkDate(currentTime, trackedEntity.getLastUpdatedAtClient()),
-        () -> checkDate(currentTime, trackedEntity.getLastUpdated()),
-        // get stored by is always null
-        () -> assertNull(trackedEntity.getStoredBy()));
+        () -> checkDate(currentTime, trackedEntity.getLastUpdated()));
   }
 
   @Test
@@ -1514,8 +1536,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> checkDate(currentTime, enrollment.getLastUpdated()),
         () -> checkDate(currentTime, enrollment.getLastUpdatedAtClient()),
         () -> checkDate(currentTime, enrollment.getEnrollmentDate()),
-        () -> checkDate(currentTime, enrollment.getOccurredDate()),
-        () -> assertNull(enrollment.getStoredBy()));
+        () -> checkDate(currentTime, enrollment.getOccurredDate()));
   }
 
   @Test
@@ -1663,7 +1684,35 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     Relationship actual = relOpt.get().getRelationship();
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
-        () -> assertEquals(trackedEntityB.getUid(), actual.getTo().getTrackedEntity().getUid()));
+        () -> assertEquals(trackedEntityB.getUid(), actual.getTo().getTrackedEntity().getUid()),
+        () -> assertFalse(actual.isDeleted()));
+  }
+
+  @Test
+  void shouldReturnRelationshipDeletedTrueWhenSoftDeleted()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    manager.delete(relationshipA);
+
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeRelationships(RelationshipFields.all()).build();
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .orgUnitMode(SELECTED)
+            .trackedEntities(trackedEntityA)
+            .fields(fields)
+            .includeDeleted(true)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    Optional<RelationshipItem> relOpt =
+        trackedEntity.getRelationshipItems().stream()
+            .filter(i -> i.getRelationship().getUid().equals(relationshipA.getUid()))
+            .findFirst();
+    assertTrue(relOpt.isPresent());
+    assertTrue(relOpt.get().getRelationship().isDeleted());
   }
 
   @Test
@@ -2229,6 +2278,28 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         Set.of(tetavA, tetavB),
         trackedEntity.getTrackedEntityAttributeValues(),
         TrackedEntityAttributeValue::getValue);
+  }
+
+  @Test
+  void shouldReturnAttributeSkipSynchronizationFlagReflectingItsCurrentMetadataValue()
+      throws ForbiddenException, NotFoundException {
+    injectAdminIntoSecurityContext();
+    teaA.setSkipSynchronization(true);
+    manager.update(teaA);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    Map<String, Boolean> skipSynchronizationByAttribute =
+        trackedEntity.getTrackedEntityAttributeValues().stream()
+            .collect(
+                Collectors.toMap(
+                    tav -> tav.getAttribute().getUid(),
+                    tav -> tav.getAttribute().getSkipSynchronization()));
+
+    assertEquals(Boolean.TRUE, skipSynchronizationByAttribute.get(teaA.getUid()));
+    assertEquals(Boolean.FALSE, skipSynchronizationByAttribute.get(teaB.getUid()));
   }
 
   @Test

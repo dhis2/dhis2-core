@@ -157,6 +157,31 @@ Available properties:
 | `patchUserCount` | `6` | Users included after the PATCH replace |
 | `putUserCount` | `9` | Users included after the PUT full replace |
 
+### OrganisationUnitUsersFieldFilterPerformanceTest
+
+Regression guard for DHIS2-21867: `GET /api/organisationUnits/{uid}?fields=id,name,users[id,name,userRoles[id,name]]`
+used to force an N+1 lazy-load storm (250,054 JDBC queries / ~70s on the platform-perf DB's root org
+unit) because `FieldPathHelper.visitFieldPath` walked into every requested sub-path under a
+`@PropertyTransformer` property, invoking `getUserRoles()` on every member user while looking for
+`access`/`sharing` segments a transformer-backed subtree can never contain. Fixed in #24514.
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.OrganisationUnitUsersFieldFilterPerformanceTest \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+Available properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `configFile` | — | Path to a `.properties` file |
+| `baseUrl` | `http://localhost:8080` | DHIS2 base URL |
+| `username` | `admin` | API username |
+| `password` | `district` | API password |
+| `orgUnitUid` | `VCCdfC9pvMA` | Org unit UID (platform-perf root org unit, ~250k users) |
+| `fields` | `id,name,users[id,name,userRoles[id,name]]` | `fields` query param (the DHIS2-21867 repro) |
+| `iterations` | `3` | Requests to run |
+
 ## Tracker Tests
 
 The `tracker` package (`org.hisp.dhis.test.tracker`) tests the Tracker API using three Sierra Leone
@@ -308,3 +333,11 @@ docker builder prune -a
 ```
 
 Use `-a` to remove all cache layers, not just unused ones.
+
+## Recording Traffic
+
+Gatling Recorder captures HTTP requests as you interact with DHIS2 and generates a simulation that
+replays them. Use it to capture production workflows and replay them in a testing environment, for
+example to evaluate performance after a DHIS2 upgrade or to conduct load testing.
+
+See [Recording DHIS2 Traffic with Gatling Recorder](RECORDING.md) for the full guide.

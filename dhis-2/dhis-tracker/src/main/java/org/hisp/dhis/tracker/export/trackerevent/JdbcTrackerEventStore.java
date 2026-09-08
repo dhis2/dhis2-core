@@ -142,7 +142,6 @@ class JdbcTrackerEventStore {
           entry("enrollment.followUp", "en_followup"),
           entry("status", "ev_status"),
           entry("scheduledDate", "ev_scheduleddate"),
-          entry("storedBy", "ev_storedby"),
           entry("lastUpdatedBy", "ev_lastupdatedbyuserinfo"),
           entry("createdBy", "ev_createdbyuserinfo"),
           entry("created", "ev_created"),
@@ -298,8 +297,6 @@ class JdbcTrackerEventStore {
               }
               coc.setCategoryOptions(options);
               event.setAttributeOptionCombo(coc);
-
-              event.setStoredBy(resultSet.getString("ev_storedby"));
               event.setScheduledDate(resultSet.getTimestamp("ev_scheduleddate"));
               event.setOccurredDate(resultSet.getTimestamp("ev_occurreddate"));
               event.setCreated(resultSet.getTimestamp("ev_created"));
@@ -399,7 +396,6 @@ class JdbcTrackerEventStore {
     eventDataValue.setValue(dataValueJson.getString("value").string(""));
     eventDataValue.setProvidedElsewhere(
         dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
-    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
 
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     if (dataValueJson.has("createdByUserInfo")) {
@@ -719,7 +715,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             ev.eventid as ev_id, ev.status as ev_status,
             ev.occurreddate as ev_occurreddate, ev.scheduleddate as ev_scheduleddate,
             ev.eventdatavalues as ev_eventdatavalues,
-            ev.completedby as ev_completedby, ev.storedby as ev_storedby,
+            ev.completedby as ev_completedby,
             ev.created as ev_created, ev.createdatclient as ev_createdatclient,
             ev.createdbyuserinfo as ev_createdbyuserinfo,
             ev.lastupdated as ev_lastupdated, ev.lastupdatedatclient as ev_lastupdatedatclient,

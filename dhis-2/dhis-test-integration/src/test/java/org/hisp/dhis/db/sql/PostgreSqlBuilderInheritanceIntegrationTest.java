@@ -41,7 +41,9 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class PostgreSqlBuilderInheritanceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private JdbcTemplate jdbcTemplate;
 

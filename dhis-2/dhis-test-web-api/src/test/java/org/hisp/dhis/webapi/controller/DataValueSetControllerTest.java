@@ -320,4 +320,29 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
         "At least one data element, data set or data element group must be specified",
         msg.getMessage());
   }
+
+  @Test
+  @DisplayName("lastUpdatedDuration alone satisfies the period filter requirement")
+  void testGetDataValueSetJson_LastUpdatedDurationOnly() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                + " 'code':'OU1'}"));
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+
+    JsonObject ds =
+        GET(
+                "/dataValueSets/?inputOrgUnitIdScheme=code&orgUnit={ou}&dataSet={ds}&lastUpdatedDuration=10000d",
+                "OU1",
+                dsId)
+            .content(HttpStatus.OK);
+    assertTrue(ds.isObject());
+  }
 }

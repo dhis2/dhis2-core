@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionAliases;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
@@ -114,13 +115,19 @@ public class HeaderParamsHandler {
    * programUid.stageUid.dimension <-> stageUid.dimension.
    */
   private Optional<GridHeader> findMatchingHeader(List<GridHeader> gridHeaders, String header) {
-    GridHeader requested = new GridHeader(header);
+    // Match on the canonical form of keyword aliases (e.g. programId.enrollmentouname ->
+    // programId.ouname) while leaving the originally requested spelling to flow through to the
+    // returned header name via withRequestedNameIfNeeded.
+    String canonicalHeader = DimensionAliases.canonicalizeHeader(header);
+    GridHeader requested = new GridHeader(canonicalHeader);
 
     if (gridHeaders.contains(requested)) {
       return Optional.of(gridHeaders.get(gridHeaders.indexOf(requested)));
     }
 
-    return gridHeaders.stream().filter(h -> isStageScopedAlias(h.getName(), header)).findFirst();
+    return gridHeaders.stream()
+        .filter(h -> isStageScopedAlias(h.getName(), canonicalHeader))
+        .findFirst();
   }
 
   private boolean isStageScopedAlias(String existingHeaderName, String requestedHeaderName) {

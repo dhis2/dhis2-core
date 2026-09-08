@@ -51,10 +51,12 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSaveTooBigFileSize() {
+    // DATA_VALUE has no domain-specific size cap, so the generic 10MB limit applied inside
+    // FileResourceUtils.saveFileResource is the one that fires.
     byte[] bytes = new byte[10_000_001];
-    MockMultipartFile image =
-        new MockMultipartFile("file", "OU_profile_image.png", "image/png", bytes);
-    HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    MockMultipartFile data =
+        new MockMultipartFile("file", "big.bin", "application/octet-stream", bytes);
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=DATA_VALUE", data);
     JsonString errorMessage = response.content(HttpStatus.CONFLICT).getString("message");
     assertEquals(
         "File size can't be bigger than 10000000, current file size 10000001",

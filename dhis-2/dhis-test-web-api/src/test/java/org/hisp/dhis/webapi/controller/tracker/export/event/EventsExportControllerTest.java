@@ -206,7 +206,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());
-    dv.setStoredBy("user");
     dv.setValue(DATA_ELEMENT_VALUE);
 
     createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RBG), orgUnit, EVENT_RBG);
@@ -302,7 +301,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(dv.getValue(), dataValue.value());
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
-    assertHasMember(dataValue, "storedBy");
   }
 
   @ParameterizedTest
@@ -1207,7 +1205,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private EventDataValue createDataValue(String value) {
     EventDataValue dvMultiText = new EventDataValue();
     dvMultiText.setDataElement(deMultiText.getUid());
-    dvMultiText.setStoredBy("user");
     dvMultiText.setValue(value);
     return dvMultiText;
   }

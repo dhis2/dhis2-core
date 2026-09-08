@@ -29,17 +29,21 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.springframework.context.annotation.Scope;
-import org.springframework.retry.RetryContext;
 import org.springframework.stereotype.Component;
 
 /**
- * Defines retry mechanism for metadata sync scheduling
+ * Holds per-run state for metadata sync retries (attributes + last failure).
+ *
+ * <p>Spring Framework 7 core retry no longer provides a mutable {@code RetryContext} attribute map,
+ * so this class owns that state itself.
  *
  * @author aamerm
  */
@@ -47,22 +51,46 @@ import org.springframework.stereotype.Component;
 @Component("metadataRetryContext")
 @Scope("prototype")
 public class MetadataRetryContext {
-  private RetryContext retryContext;
+  private final Map<String, Object> attributes = new HashMap<>();
 
-  public RetryContext getRetryContext() {
-    return retryContext;
+  private int attempt;
+
+  private Throwable lastThrowable;
+
+  /** Clears attributes/attempt state before a new retry loop. */
+  public void reset() {
+    attributes.clear();
+    attempt = 0;
+    lastThrowable = null;
   }
 
-  public void setRetryContext(RetryContext retryContext) {
-    this.retryContext = retryContext;
-    log.info("Now trying. Current count: " + (retryContext.getRetryCount() + 1));
+  /** Called at the start of each attempt inside {@code RetryTemplate.execute}. */
+  public void beginAttempt() {
+    attempt++;
+    log.info("Now trying. Current count: " + attempt);
+  }
+
+  public int getAttempt() {
+    return attempt;
+  }
+
+  public Object getAttribute(String key) {
+    return attributes.get(key);
+  }
+
+  public Throwable getLastThrowable() {
+    return lastThrowable;
+  }
+
+  public void setLastThrowable(Throwable lastThrowable) {
+    this.lastThrowable = lastThrowable;
   }
 
   public void updateRetryContext(String stepKey, String message, MetadataVersion version) {
-    retryContext.setAttribute(stepKey, message);
+    attributes.put(stepKey, message);
 
     if (version != null) {
-      retryContext.setAttribute(MetadataSyncJob.VERSION_KEY, version);
+      attributes.put(MetadataSyncJob.VERSION_KEY, version);
     }
   }
 
@@ -85,7 +113,7 @@ public class MetadataRetryContext {
     if (Status.ERROR == status) {
       StringBuilder report = new StringBuilder();
       importReport.forEachErrorReport(errorReport -> report.append(errorReport.toString() + "\n"));
-      retryContext.setAttribute(MetadataSyncJob.METADATA_SYNC_REPORT, report.toString());
+      attributes.put(MetadataSyncJob.METADATA_SYNC_REPORT, report.toString());
     }
   }
 }

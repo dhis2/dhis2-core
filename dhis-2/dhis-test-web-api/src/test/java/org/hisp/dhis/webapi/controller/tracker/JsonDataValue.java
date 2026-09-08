@@ -49,10 +49,6 @@ public interface JsonDataValue extends JsonObject {
     return getString("updatedAt").string();
   }
 
-  default String getStoredBy() {
-    return getString("storedBy").string();
-  }
-
   default boolean getProvidedElsewhere() {
     return getBoolean("providedElsewhere").bool();
   }

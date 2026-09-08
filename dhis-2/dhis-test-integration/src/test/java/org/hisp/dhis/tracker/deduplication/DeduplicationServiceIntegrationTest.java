@@ -51,7 +51,9 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 

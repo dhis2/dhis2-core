@@ -121,6 +121,7 @@ import org.hisp.dhis.schema.descriptors.LegendDefinitionsSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.LegendSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.MapViewSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
@@ -251,6 +252,7 @@ public class DefaultSchemaService implements SchemaService {
     register(new LegendSetSchemaDescriptor());
     register(new ExternalMapLayerSchemaDescriptor());
     register(new MapSchemaDescriptor());
+    register(new MapViewSchemaDescriptor());
     register(new MessageConversationSchemaDescriptor());
     register(new MetadataVersionSchemaDescriptor());
     register(new OptionSchemaDescriptor());

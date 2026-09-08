@@ -1037,7 +1037,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "TEXT",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -1071,7 +1070,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "DATE",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -1105,7 +1103,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "INTEGER",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -1139,7 +1136,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "TEXT",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -1171,7 +1167,6 @@
       "programScope": false,
       "displayInListNoProgram": false,
       "displayOnVisitSchedule": false,
-      "confidential": false,
       "shortName": "Address",
       "created": "2019-03-29T09:12:14.409",
       "legendSets": [],
@@ -1212,7 +1207,6 @@
       "legendSets": [],
       "created": "2019-03-29T09:12:01.065",
       "shortName": "Name",
-      "confidential": false,
       "displayInListNoProgram": false,
       "displayOnVisitSchedule": false,
       "id": "fmBIpOStKkF",
@@ -1241,7 +1235,6 @@
       "programScope": false,
       "displayInListNoProgram": false,
       "displayOnVisitSchedule": false,
-      "confidential": false,
       "shortName": "name",
       "created": "2019-03-29T09:12:14.409",
       "legendSets": [],

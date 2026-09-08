@@ -723,7 +723,6 @@ class AnalyticsUtilsTest extends TestBase {
     pi.setDecimals(0);
     DataElement de = new DataElement();
     de.setUid(CodeGenerator.generateUid());
-    de.setDimensionItemType(DimensionItemType.DATA_ELEMENT);
     de.setValueType(ValueType.TEXT);
     assertEquals(5, AnalyticsUtils.getIntegerOrValue(5d, pi));
     assertEquals("Male", AnalyticsUtils.getIntegerOrValue("Male", de));

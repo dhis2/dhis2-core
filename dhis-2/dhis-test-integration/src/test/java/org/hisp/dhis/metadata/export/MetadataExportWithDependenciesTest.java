@@ -155,7 +155,7 @@ class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
     MetadataExportParams exportParams = new MetadataExportParams();
     exportParams.addClass(org.hisp.dhis.mapping.Map.class);
     exportParams.addClass(MapView.class);
-    ObjectNode exported = metadataExportService.getMetadataAsObjectNode(exportParams);
+    ObjectNode exported = metadataExportService.exportMetadataVersion(exportParams);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
@@ -164,5 +164,26 @@ class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
     org.hisp.dhis.mapping.Map exportMap =
         (org.hisp.dhis.mapping.Map) metadata.get(org.hisp.dhis.mapping.Map.class).get(0);
     assertNotNull(exportMap.getMapViews());
+  }
+
+  @Test
+  @DisplayName(
+      "exportMetadataVersion never includes embedded objects at root level such as MapView")
+  void exportMetadataVersionExcludesEmbeddedObjects() throws IOException {
+    MapView mapView = createMapView("A");
+    org.hisp.dhis.mapping.Map map = new org.hisp.dhis.mapping.Map();
+    map.setName("MapA");
+    map.setMapViews(List.of(mapView));
+    map.setAutoFields();
+    manager.save(map);
+
+    ObjectNode exported = metadataExportService.exportMetadataVersion(new MetadataExportParams());
+
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ByteArrayInputStream(jsonMapper.writeValueAsBytes(exported)), RenderFormat.JSON);
+
+    assertNull(metadata.get(MapView.class));
+    assertNotNull(metadata.get(org.hisp.dhis.mapping.Map.class));
   }
 }

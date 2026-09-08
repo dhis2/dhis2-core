@@ -40,11 +40,11 @@ import java.util.Objects;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.OptionSet;
@@ -303,7 +303,7 @@ public class DataElementOperand extends BaseDimensionalItemObject
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;
@@ -314,7 +314,7 @@ public class DataElementOperand extends BaseDimensionalItemObject
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public CategoryOptionCombo getCategoryOptionCombo() {
     return categoryOptionCombo;
@@ -325,7 +325,7 @@ public class DataElementOperand extends BaseDimensionalItemObject
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public CategoryOptionCombo getAttributeOptionCombo() {
     return attributeOptionCombo;

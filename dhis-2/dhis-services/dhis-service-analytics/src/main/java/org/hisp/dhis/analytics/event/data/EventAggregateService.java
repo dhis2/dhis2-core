@@ -49,8 +49,10 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.addValues;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.generateEventDataPermutations;
+import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.getAggregatedEventDataMapping;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getOrgUnitLabel;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
@@ -249,16 +251,6 @@ public class EventAggregateService {
     if (!params.isSkipData() || params.analyzeOnly()) {
       addHeaders(params, grid);
       addData(grid, params, maxLimit);
-
-      // Sort grid, done again due to potential multiple partitions
-      if (params.hasSortOrder() && grid.getHeight() > 0) {
-        grid.sortGrid(1, params.getSortOrderAsInt());
-      }
-
-      // Limit grid
-      if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
-        grid.limitGrid(params.getLimit());
-      }
     }
 
     addPaging(params, UNLIMITED_PAGING, grid);
@@ -292,6 +284,16 @@ public class EventAggregateService {
     }
 
     timer.getTime("Got aggregated events");
+
+    // Sort grid, done again due to potential multiple partitions.
+    if (params.hasSortOrder() && grid.getHeight() > 0 && grid.getIndexOfHeader("value") != -1) {
+      grid.sortGrid(grid.getIndexOfHeader("value") + 1, params.getSortOrderAsInt());
+    }
+
+    // Limit grid.
+    if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
+      grid.limitGrid(params.getLimit());
+    }
 
     if (maxLimit > 0 && grid.getHeight() > maxLimit) {
       throwIllegalQueryEx(E7128, maxLimit);
@@ -343,13 +345,10 @@ public class EventAggregateService {
     }
 
     if (params.hasEnrollmentOuDimension()) {
+      String ouLabel = getOrgUnitLabel(params.getProgram(), ColumnHeader.ENROLLMENT_OU.getName());
+
       grid.addHeader(
-          new GridHeader(
-              ColumnHeader.ENROLLMENT_OU.getItem(),
-              ColumnHeader.ENROLLMENT_OU.getName(),
-              TEXT,
-              false,
-              true));
+          new GridHeader(ColumnHeader.ENROLLMENT_OU.getItem(), ouLabel, TEXT, false, true));
     }
 
     if (params.hasEnrollmentStatuses()) {
@@ -363,9 +362,15 @@ public class EventAggregateService {
   }
 
   private String getDimensionHeaderColumn(DimensionalObject dimension, EventQueryParams params) {
+    String defaultColumn = dimension.getDisplayProperty(params.getDisplayProperty());
+
+    if (ORGUNIT_DIM_ID.equals(dimension.getDimension())) {
+      return getOrgUnitLabel(params.getProgram(), defaultColumn);
+    }
+
     return getStaticDateField(dimension)
         .map(dateField -> getDateFieldLabel(dateField, params.getProgram()))
-        .orElse(dimension.getDisplayProperty(params.getDisplayProperty()));
+        .orElse(defaultColumn);
   }
 
   private Optional<String> getStaticDateField(DimensionalObject dimension) {
@@ -632,6 +637,10 @@ public class EventAggregateService {
           outputGrid.addHeader(new GridHeader(display, display, NUMBER, false, false));
         });
 
+    // The value map is a pure function of the input grid, which is not modified below. Build it
+    // once here instead of once per row permutation.
+    Map<String, Object> valueMap = getAggregatedEventDataMapping(grid);
+
     for (Map<String, EventAnalyticsDimensionalItem> rowCombination : rowPermutations) {
       outputGrid.addRow();
       List<List<String>> ids = new ArrayList<>();
@@ -659,7 +668,7 @@ public class EventAggregateService {
       }
 
       addValuesInOutputGrid(rowDimensions, outputGrid, displayObjects, params);
-      addValues(ids, grid, outputGrid);
+      addValues(ids, valueMap, outputGrid);
     }
 
     return getGridWithRows(grid, outputGrid);
@@ -680,19 +689,19 @@ public class EventAggregateService {
    * empty.
    *
    * @param rowDimensions the list of row dimensions.
-   * @param grid the {@link Grid}.
+   * @param outputGrid the output {@link Grid}.
    * @param displayObjects the map of display objects.
    * @param params the {@link EventQueryParams}.
    */
   private static void addValuesInOutputGrid(
       List<String> rowDimensions,
-      Grid grid,
+      Grid outputGrid,
       Map<String, EventAnalyticsDimensionalItem> displayObjects,
       EventQueryParams params) {
     if (!displayObjects.isEmpty()) {
       rowDimensions.forEach(
           dimension ->
-              grid.addValue(
+              outputGrid.addValue(
                   displayObjects.get(dimension).getDisplayProperty(params.getDisplayProperty())));
     }
   }

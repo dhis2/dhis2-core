@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -97,6 +98,12 @@ public class DefaultDataSetService implements DataSetService {
   @Transactional(readOnly = true)
   public DataSet getDataSet(String uid) {
     return dataSetStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataElement> getDataElementsByDataSet(Collection<DataSet> dataSets) {
+    return dataSetStore.getDataElementsByDataSet(dataSets);
   }
 
   @Override

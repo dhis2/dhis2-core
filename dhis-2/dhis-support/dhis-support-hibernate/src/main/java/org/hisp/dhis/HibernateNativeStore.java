@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.hibernate.StatelessSession;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
@@ -101,8 +102,22 @@ public abstract class HibernateNativeStore<T> {
    * current class of the store. Use this to avoid all Hibernate second level caches from being
    * invalidated.
    *
-   * <p>Be aware that it is only correct to use this if and only if the only table touched by the
-   * native query is the one table belonging to the store.
+   * <p>Every native write triggers a cache cleanup driven only by its declared query spaces (the
+   * tables it affects). Declare none and Hibernate reads that as "unknown" and evicts
+   * <em>every</em> entity and collection region, so always declare, even when this entity is not
+   * cached.
+   *
+   * <p>Correct only when the sole table this statement <em>writes</em> is the store's own; tables
+   * merely read by a join or subquery need no declaration. Otherwise call {@code
+   * addSynchronizedEntityClass} directly, once per entity written.
+   *
+   * <p>Beware collection tables. An entity's query spaces are its own table(s) only, never the
+   * tables of the collections it owns, so declaring the owner does <em>not</em> evict its cached
+   * collections. Hibernate resolves collection regions through {@code
+   * getCollectionRolesByEntityParticipant}, which is keyed by the collection's <em>element</em>
+   * entity. So for a write against a join or child table, declare the entity on the far side of the
+   * association: {@code categories_categoryoptions} needs {@code CategoryOption}, not {@code
+   * Category}.
    *
    * @param sql the SQL query to execute
    * @return the {@link NativeQuery} instance
@@ -110,6 +125,17 @@ public abstract class HibernateNativeStore<T> {
   @SuppressWarnings("rawtypes")
   protected NativeQuery nativeSynchronizedQuery(@Language("SQL") String sql) {
     return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
+  }
+
+  /**
+   * Same as {@link #nativeSynchronizedQuery(String)} but on a {@link StatelessSession}, which is a
+   * different session from the store's own. Pass the session that opened the surrounding
+   * transaction, otherwise the query runs outside it.
+   */
+  @SuppressWarnings("rawtypes")
+  protected NativeQuery nativeSynchronizedQuery(
+      StatelessSession session, @Language("SQL") String sql) {
+    return session.createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
   }
 
   /**

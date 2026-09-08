@@ -83,6 +83,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   int getUserCount();
 
+  /**
+   * Returns the number of users whose last login is on or after each of the given dates. All counts
+   * are computed in a single query.
+   *
+   * @param sinceDates the last login cutoff dates.
+   * @return the user counts in the same order as the given dates.
+   */
+  List<Integer> getActiveUserCounts(List<Date> sinceDates);
+
   List<User> getExpiringUsers(UserQueryParams userQueryParams);
 
   /**
@@ -164,6 +173,21 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return the User.
    */
   List<User> getUserByUsernames(Collection<String> usernames);
+
+  /**
+   * Retrieves the usernames of all users that are members of the user role with the given UID.
+   *
+   * @param roleUid the UID of the user role.
+   * @return a list of usernames.
+   */
+  List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
+
+  /**
+   * Returns all usernames in the system.
+   *
+   * @return a list of all usernames
+   */
+  List<String> getAllUsernames();
 
   /**
    * Retrieves the most recently-used enabled User associated with the given open ID.

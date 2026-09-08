@@ -99,6 +99,13 @@ public class HibernateTrackedEntityChangeLogStore {
       throw new UnsupportedOperationException("pageTotal is not supported");
     }
 
+    // The caller passes the set of attributes the user is allowed to read. An empty set means the
+    // user cannot read any attribute of this tracked entity, so no change logs must be returned.
+    // Applying no filter here would leak every change log, hence the explicit short-circuit.
+    if (attributes.isEmpty()) {
+      return new Page<>(List.of(), pageParams);
+    }
+
     String hql =
         """
         select \
@@ -134,12 +141,10 @@ public class HibernateTrackedEntityChangeLogStore {
           """;
     }
 
-    if (!attributes.isEmpty()) {
-      hql +=
-          """
-          and tea.uid in (:attributes) \
-          """;
-    }
+    hql +=
+        """
+        and tea.uid in (:attributes) \
+        """;
 
     Pair<String, QueryFilter> filter = operationParams.getFilter();
     if (filter != null) {
@@ -162,10 +167,8 @@ public class HibernateTrackedEntityChangeLogStore {
       query.setParameter("program", program.getValue());
     }
 
-    if (!attributes.isEmpty()) {
-      query.setParameter(
-          "attributes", attributes.stream().map(UID::getValue).collect(Collectors.toSet()));
-    }
+    query.setParameter(
+        "attributes", attributes.stream().map(UID::getValue).collect(Collectors.toSet()));
 
     query.setFirstResult(pageParams.getOffset());
     query.setMaxResults(

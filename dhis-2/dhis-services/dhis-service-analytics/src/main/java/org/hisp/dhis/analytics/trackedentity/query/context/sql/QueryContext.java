@@ -59,4 +59,9 @@ public class QueryContext {
     TrackedEntityQueryParams trackedEntityQueryParams = contextParams.getTypedParsed();
     return trackedEntityQueryParams.getTrackedEntityType().getUid().toLowerCase();
   }
+
+  /** Whether the query runs in aggregate (grouped) mode. */
+  public boolean isAggregate() {
+    return contextParams.getTypedParsed().isAggregate();
+  }
 }

@@ -82,9 +82,10 @@ class TrackedEntityStore {
   // language=SQL
   private static final String GET_TE_ATTRIBUTES_WITHOUT_PROGRAM =
       """
-      select te.uid as te_uid, teav.created, teav.lastupdated, teav.storedby, teav.value,
+      select te.uid as te_uid, teav.created, teav.lastupdated, teav.updatedby, teav.value,
              tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
-             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype
+             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype,
+             tea.skipsynchronization as tea_skipsynchronization
       from trackedentityattributevalue teav
       join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
       join trackedentity te on teav.trackedentityid = te.trackedentityid
@@ -96,9 +97,10 @@ class TrackedEntityStore {
   // language=SQL
   private static final String GET_TE_ATTRIBUTES_WITH_PROGRAM =
       """
-      select te.uid as te_uid, teav.created, teav.lastupdated, teav.storedby, teav.value,
+      select te.uid as te_uid, teav.created, teav.lastupdated, teav.updatedby, teav.value,
              tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
-             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype
+             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype,
+             tea.skipsynchronization as tea_skipsynchronization
       from trackedentityattributevalue teav
       join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
       join trackedentity te on teav.trackedentityid = te.trackedentityid
@@ -203,7 +205,7 @@ class TrackedEntityStore {
     attributeValue.setCreated(rs.getTimestamp("created"));
     attributeValue.setLastUpdated(rs.getTimestamp("lastupdated"));
     attributeValue.setValue(rs.getString("value"));
-    attributeValue.setStoredBy(rs.getString("storedby"));
+    attributeValue.setUpdatedBy(rs.getString("updatedby"));
 
     TrackedEntityAttribute attribute = new TrackedEntityAttribute();
     attribute.setUid(rs.getString("tea_uid"));
@@ -211,6 +213,7 @@ class TrackedEntityStore {
     attribute.setName(rs.getString("tea_name"));
     attribute.setAttributeValues(AttributeValues.of(rs.getString("tea_attributevalues")));
     attribute.setValueType(ValueType.fromString(rs.getString("tea_valuetype")));
+    attribute.setSkipSynchronization(rs.getBoolean("tea_skipsynchronization"));
     attributeValue.setAttribute(attribute);
 
     return attributeValue;

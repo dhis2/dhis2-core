@@ -35,12 +35,12 @@ import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLI
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.operators.NotEqualOperator;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
@@ -144,11 +144,13 @@ public class OAuth2ClientController
    * to read it, and the UI only discovers client uids via this list.
    *
    * @param params the incoming list parameters (unmodified)
-   * @param query the underlying query to which the clientId exclusion filter is added
    */
+  @Nonnull
   @Override
-  protected void modifyGetObjectList(GetObjectListParams params, Query<Dhis2OAuth2Client> query) {
-    query.add(new Filter("clientId", new NotEqualOperator<>(SYSTEM_REGISTRAR_CLIENTID)));
+  protected List<Filter> getAdditionalFilters(GetObjectListParams params) throws ConflictException {
+    List<Filter> filters = super.getAdditionalFilters(params);
+    filters.add(new Filter("clientId", new NotEqualOperator<>(SYSTEM_REGISTRAR_CLIENTID)));
+    return filters;
   }
 
   /**

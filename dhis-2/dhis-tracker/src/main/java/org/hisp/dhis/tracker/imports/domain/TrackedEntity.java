@@ -67,8 +67,6 @@ public class TrackedEntity implements TrackerDto, Serializable {
 
   @JsonProperty private Geometry geometry;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
   @Override

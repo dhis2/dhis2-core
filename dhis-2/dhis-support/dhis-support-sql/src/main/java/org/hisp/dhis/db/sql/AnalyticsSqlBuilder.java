@@ -101,4 +101,35 @@ public interface AnalyticsSqlBuilder extends SqlBuilder {
   default boolean useJoinForDatePeriodStructureLookup() {
     return false;
   }
+
+  /**
+   * Returns an SQL expression casting {@code expression} to {@code DATE}, propagating {@code NULL}
+   * inputs to {@code NULL} results.
+   *
+   * <p>The default uses ANSI {@code cast(... as date)}, which Postgres and Doris already make
+   * NULL-safe. Engines that throw on {@code NULL} input (e.g. ClickHouse {@code toDate}) must
+   * override to return their NULL-tolerant equivalent.
+   *
+   * @param expression the source SQL expression
+   * @return an SQL fragment that casts {@code expression} to a date and yields {@code NULL} when
+   *     the input is {@code NULL}
+   */
+  default String castAsDate(String expression) {
+    return "cast(" + expression + " as date)";
+  }
+
+  /**
+   * Returns an SQL expression that yields {@code NULL} when {@code column} holds an empty string,
+   * and the column value otherwise. This normalises empty text to {@code NULL} so that grouping
+   * treats absent and empty text values the same way across analytics databases.
+   *
+   * <p>The default returns the column unchanged. Engines that store empty strings where other
+   * engines store {@code NULL} (ClickHouse) override this to wrap the column in a {@code nullif}.
+   *
+   * @param column the text SQL column or expression.
+   * @return a NULL-normalising SQL fragment.
+   */
+  default String nullIfEmpty(String column) {
+    return column;
+  }
 }

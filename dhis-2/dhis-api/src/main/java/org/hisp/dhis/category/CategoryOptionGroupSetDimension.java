@@ -36,9 +36,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalEmbeddedObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -64,7 +64,7 @@ public class CategoryOptionGroupSetDimension implements DimensionalEmbeddedObjec
   }
 
   @JsonProperty("categoryOptionGroupSet")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.REFERENCE, required = Property.Value.TRUE)
   public CategoryOptionGroupSet getDimension() {

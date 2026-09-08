@@ -128,11 +128,6 @@ public final class EnrollmentAnalyticsColumn {
                     "en.lastupdated"))
             .build(),
         AnalyticsTableColumn.builder()
-            .name(EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME)
-            .dataType(VARCHAR_255)
-            .selectExpression("en.storedby")
-            .build(),
-        AnalyticsTableColumn.builder()
             .name(EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
             .dataType(VARCHAR_50)
             .selectExpression("en.status")
@@ -164,6 +159,12 @@ public final class EnrollmentAnalyticsColumn {
             .dataType(CHARACTER_11)
             .nullable(NOT_NULL)
             .selectExpression("coalesce(registrationou.uid,ou.uid)")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.AO_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("acs.categoryoptioncombouid")
             .build());
   }
 

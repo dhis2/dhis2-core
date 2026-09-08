@@ -57,7 +57,7 @@ public class TextPatternValidationUtils {
     return Pattern.compile(builder.toString()).matcher(value).matches();
   }
 
-  public static long getTotalValuesPotential(TextPatternSegment generatedSegment) {
+  public static long getTotalPotentialValues(TextPatternSegment generatedSegment) {
     long res = 1;
     if (generatedSegment != null) {
       if (TextPatternMethod.SEQUENTIAL.equals(generatedSegment.getMethod())) {

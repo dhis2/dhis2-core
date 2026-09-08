@@ -25,14 +25,14 @@
     </class>
 
     <sql-query name="getRandomGeneratedValuesNotAvailableNamedQuery">
-        <![CDATA[ SELECT value
+        <![CDATA[ SELECT LOWER(value)
         FROM
         trackedentityattributevalue teav
         WHERE
         teav.trackedentityattributeid = :teaId
         and LOWER(teav.value) in (:values)
         UNION
-        SELECT value FROM reservedvalue rv
+        SELECT LOWER(value) FROM reservedvalue rv
         WHERE
         rv.ownerObject = :ownerObject
         and rv.ownerUid = :ownerUid

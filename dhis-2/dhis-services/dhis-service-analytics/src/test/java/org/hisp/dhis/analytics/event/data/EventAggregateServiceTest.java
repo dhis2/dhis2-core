@@ -30,7 +30,9 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createLegend;
@@ -89,6 +91,17 @@ class EventAggregateServiceTest {
 
     assertEquals("incidentdate", header.getName());
     assertEquals("Incident date custom", header.getColumn());
+  }
+
+  @Test
+  void shouldUseCustomOrgUnitLabelForOuDimensionHeader() throws Exception {
+    Program program = new Program();
+    program.setOrgUnitLabel("Facility");
+
+    GridHeader header = invokeAddDimensionHeaders(orgUnitDimensionParams(program));
+
+    assertEquals("ou", header.getName());
+    assertEquals("Facility", header.getColumn());
   }
 
   @Test
@@ -246,6 +259,17 @@ class EventAggregateServiceTest {
 
     return new EventQueryParams.Builder()
         .addDimension(periodDimension)
+        .withProgram(program)
+        .build();
+  }
+
+  private EventQueryParams orgUnitDimensionParams(Program program) {
+    BaseDimensionalObject orgUnitDimension =
+        new BaseDimensionalObject(
+            ORGUNIT_DIM_ID, ORGANISATION_UNIT, "Organisation unit", List.of());
+
+    return new EventQueryParams.Builder()
+        .addDimension(orgUnitDimension)
         .withProgram(program)
         .build();
   }

@@ -35,10 +35,14 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.test.TestBase.createCategory;
+import static org.hisp.dhis.test.TestBase.createCategoryCombo;
+import static org.hisp.dhis.test.TestBase.createCategoryOption;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,6 +57,8 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -117,7 +123,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     subject =
         new JdbcEnrollmentAnalyticsTableManager(
@@ -168,5 +174,41 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     String ouQuery = format("%s.value", quote(tea.getUid()));
 
     assertThat(sql.getValue(), containsString(ouQuery));
+  }
+
+  @Test
+  void verifyAttributeOptionCombosWhenPopulatingEnrollmentAnalyticsTable() {
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+
+    Category category = createCategory('A', createCategoryOption('A'));
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    categoryCombo.setCategories(List.of(category));
+
+    Program p1 = createProgram('A');
+    p1.setCategoryCombo(categoryCombo);
+
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(p1));
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().lastYears(2).startTime(START_TIME).build();
+
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
+
+    subject.populateTable(params, partition);
+    verify(jdbcTemplate).execute(sql.capture());
+
+    String aocQuery = format("acs.%s", quote(category.getUid()));
+
+    assertTrue(sql.getValue().contains(aocQuery));
+    assertTrue(sql.getValue().contains("acs.categoryoptioncombouid"));
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "inner join analytics_rs_categorystructure acs on en.attributeoptioncomboid=acs.categoryoptioncomboid"));
   }
 }

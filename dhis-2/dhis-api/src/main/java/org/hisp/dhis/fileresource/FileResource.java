@@ -201,7 +201,7 @@ public class FileResource extends BaseIdentifiableObject {
    * rather than {@link String}.
    */
   public BlobKey asBlobKey() {
-    return new BlobKey(storageKey);
+    return BlobKey.of(storageKey);
   }
 
   public void setStorageKey(String storageKey) {

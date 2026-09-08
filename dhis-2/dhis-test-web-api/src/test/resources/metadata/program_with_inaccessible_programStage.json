@@ -193,7 +193,6 @@
       "displayInListNoProgram": false,
       "unique": false,
       "inherit": false,
-      "confidential": false,
       "shortName": "TrackedEntityAttributeA",
       "displayOnVisitSchedule": false,
       "name": "TrackedEntityAttributeA",

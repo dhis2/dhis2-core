@@ -39,6 +39,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Iterables;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -1238,7 +1239,17 @@ public class ListGrid implements Grid, Serializable {
       Comparable<Object> value1 = (Comparable<Object>) list1.get(columnIndex);
       Comparable<Object> value2 = (Comparable<Object>) list2.get(columnIndex);
 
-      return order > 0 ? value2.compareTo(value1) : value1.compareTo(value2);
+      try {
+        // If it's a number we have to sort it as number, otherwise we have issues with values
+        // starting with "1".
+        BigDecimal v1 = new BigDecimal(String.valueOf(value1));
+        BigDecimal v2 = new BigDecimal(String.valueOf(value2));
+
+        return order > 0 ? v2.compareTo(v1) : v1.compareTo(v2);
+      } catch (NumberFormatException e) {
+        // Otherwise we sort it as simple text.
+        return order > 0 ? value2.compareTo(value1) : value1.compareTo(value2);
+      }
     }
   }
 }

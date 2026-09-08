@@ -35,9 +35,10 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
- * Provider-agnostic abstraction over a blob/object store. Implementations exist for JClouds
- * (current) and will be added for other backends (e.g. MinIO SDK + NIO filesystem) when JClouds is
- * replaced.
+ * Provider-agnostic abstraction over a blob/object store. Implementations: {@link
+ * S3BlobStoreService} (AWS SDK v2, for {@code s3} / {@code aws-s3}), {@link
+ * FileSystemBlobStoreService} (NIO, for {@code filesystem}), and {@link TransientBlobStoreService}
+ * (in-memory, for {@code transient}). Selection is performed at startup by {@link BlobStoreConfig}.
  *
  * <p>All methods operate against a single container/bucket configured at startup. Keys are
  * path-like strings (e.g. {@code apps/my-app/index.html}).
@@ -80,7 +81,10 @@ public interface BlobStoreService {
   /**
    * Stores a streaming payload under the given key.
    *
-   * <p>The caller is responsible for closing {@code content} after this method returns.
+   * <p>The caller is responsible for closing {@code content} after this method returns. The
+   * supplied stream is consumed exactly once and need not support {@code mark/reset};
+   * implementations buffer internally if their backend requires re-reads (e.g. SDK retries on the
+   * S3 backend).
    *
    * @param key identifies the blob within the container; acts as a path-like object-store key (e.g.
    *     {@code apps/my-app/index.html})
@@ -111,10 +115,6 @@ public interface BlobStoreService {
    * Recursively deletes all blobs whose key starts with {@code prefix}. On filesystem backends this
    * maps to a directory delete; on object-store backends it performs per-key deletion.
    */
-  // TODO(DHIS2-20648) The replacement implementation must honour this recursively for ALL
-  // backends. The current jclouds-transient and jclouds-S3 paths are non-recursive (callers
-  // work around it in JCloudsAppStorageService#deleteApp); see BlobStoreServiceContractTest's
-  // supportsRecursiveDirectoryDelete capability hook — drop the false overrides once fixed.
   void deleteDirectory(BlobKeyPrefix prefix);
 
   /**
@@ -128,10 +128,31 @@ public interface BlobStoreService {
    * iterable if no matching blobs exist. Returned keys identify real blobs only — synthetic
    * directory marker entries (values ending with {@code /}) must not be returned.
    */
-  // TODO(DHIS2-20648) The replacement implementation must filter directory markers. The current
-  // jclouds-filesystem provider emits them; see BlobStoreServiceContractTest's
-  // listKeysIncludesDirectoryMarkers capability hook — drop the true override once fixed.
   Iterable<BlobKey> listKeys(BlobKeyPrefix prefix);
+
+  /**
+   * Returns {@code true} if a directory exists at {@code prefix} — either because a real blob is
+   * stored under it, or because it was explicitly materialised via {@link
+   * #createDirectory(BlobKeyPrefix)}. Used by the app serving path to decide whether a request for
+   * {@code /someDir} should redirect to {@code /someDir/} or fall through to a 404.
+   *
+   * <p>Filesystem backends report directory existence directly. Object-store backends emulate
+   * directories: any object whose key starts with {@code prefix + "/"} causes this method to return
+   * {@code true}.
+   */
+  boolean directoryExists(BlobKeyPrefix prefix);
+
+  /**
+   * Records the existence of a (possibly empty) directory at {@code prefix}. Idempotent — calling
+   * this for an already-existing or non-empty directory is a no-op.
+   *
+   * <p>Filesystem backends create a real directory on disk. Object-store backends, which have no
+   * native directory concept, write a zero-byte placeholder object at {@code prefix + "/"} (the
+   * de-facto S3 convention) so that subsequent {@link #directoryExists(BlobKeyPrefix)} calls return
+   * {@code true} even when no real blobs have been stored beneath the prefix. The placeholder is
+   * never returned from {@link #listKeys(BlobKeyPrefix)}.
+   */
+  void createDirectory(BlobKeyPrefix prefix);
 
   /**
    * Returns a pre-signed GET URI valid for {@code expirationSeconds} seconds, or {@code null} if

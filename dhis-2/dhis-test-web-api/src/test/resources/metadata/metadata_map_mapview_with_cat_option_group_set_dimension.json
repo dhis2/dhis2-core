@@ -1,0 +1,55 @@
+{
+  "maps": [
+    {
+      "name": "Donor thematic map",
+      "mapViews": [
+        {
+          "name": "DANIDA funded",
+          "categoryOptionGroupSetDimensions": [
+            {
+              "categoryOptionGroupSet": {
+                "id": "C5jldMd8OHv"
+              },
+              "categoryOptionGroups": [
+                {
+                  "id": "CYxK4wmcPqA"
+                }
+              ]
+            }
+          ],
+          "layer": "thematic",
+          "id": "CAy9rtc7qV4"
+        }
+      ],
+      "id": "C7x2WOLhCA8"
+    }
+  ],
+  "categoryOptionGroups": [
+    {
+      "name": "DANIDA",
+      "id": "CYxK4wmcPqA",
+      "shortName": "DANIDA",
+      "dataDimensionType": "DISAGGREGATION",
+      "groupSets": [
+        {
+          "id": "C5jldMd8OHv"
+        }
+      ]
+    }
+  ],
+  "categoryOptionGroupSets": [
+    {
+      "name": "Donor",
+      "id": "C5jldMd8OHv",
+      "shortName": "Donor",
+      "description": "Donor",
+      "dataDimensionType": "DISAGGREGATION",
+      "dataDimension": true,
+      "categoryOptionGroups": [
+        {
+          "id": "CYxK4wmcPqA"
+        }
+      ]
+    }
+  ]
+}

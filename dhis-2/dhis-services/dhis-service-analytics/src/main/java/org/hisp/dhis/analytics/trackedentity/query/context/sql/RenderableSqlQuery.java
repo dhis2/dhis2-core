@@ -73,6 +73,8 @@ public class RenderableSqlQuery implements Renderable {
 
   private static final String ORDER_BY = "ORDER_BY";
 
+  private static final String GROUP_BY = "GROUP_BY";
+
   private static final String WHERE = "WHERE";
 
   private static final String FROM = "FROM";
@@ -82,6 +84,8 @@ public class RenderableSqlQuery implements Renderable {
   private final boolean countRequested;
 
   @Singular private final List<Field> selectFields;
+
+  @Singular private final List<Field> groupByFields;
 
   private final Table mainTable;
 
@@ -114,10 +118,16 @@ public class RenderableSqlQuery implements Renderable {
   }
 
   private String renderSqlQuery() {
-    return renderParts(select(), from(), where(), order(), limitOffset());
+    return renderParts(select(), from(), where(), groupBy(), order(), limitOffset());
   }
 
   private String renderSqlCountQuery() {
+    String groupBy = groupBy();
+    if (groupBy != null) {
+      return "select count(*) from ("
+          + renderParts(select(), from(), where(), groupBy)
+          + ") subquery";
+    }
     return renderParts(COUNT_1.render(), from(), where());
   }
 
@@ -144,6 +154,25 @@ public class RenderableSqlQuery implements Renderable {
 
   private String select() {
     return getIfPresentOrElse(SELECT, () -> Select.of(nonVirtualSelectFields()).render());
+  }
+
+  private String groupBy() {
+    return getIfPresentOrElse(GROUP_BY, this::renderGroupBy);
+  }
+
+  private String renderGroupBy() {
+    List<Field> fields = nonVirtualGroupByFields();
+    if (fields.isEmpty()) {
+      return null;
+    }
+    return fields.stream().map(Field::render).collect(Collectors.joining(", ", "group by ", ""));
+  }
+
+  private List<Field> nonVirtualGroupByFields() {
+    return groupByFields.stream()
+        .filter(Predicate.not(Field::isVirtual))
+        .filter(distinctByRendered())
+        .toList();
   }
 
   private List<Field> nonVirtualSelectFields() {

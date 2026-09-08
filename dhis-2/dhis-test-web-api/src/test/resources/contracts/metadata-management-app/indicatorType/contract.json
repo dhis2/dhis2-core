@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "jsonSchema": "contracts/metadata-management-app/indicatorType/json-schema.json",
+  "name": "indicatorType",
+  "requestUrl": "/indicatorTypes/{id}",
+  "responseStatus": 200
+}

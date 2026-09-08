@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.analytics.tracker;
 
+import static org.hisp.dhis.common.IdScheme.ID;
 import static org.hisp.dhis.common.IdScheme.NAME;
+import static org.hisp.dhis.common.IdScheme.UID;
 
 import java.util.LinkedHashSet;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +41,7 @@ import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -76,14 +79,29 @@ public class SchemeIdHandler {
         .build();
   }
 
-  private Settings schemeSettings(EventQueryParams params) {
+  Settings schemeSettings(EventQueryParams params) {
     return Settings.builder()
-        .dataIdScheme(params.getDataIdScheme())
-        .outputDataElementIdScheme(params.getOutputDataElementIdScheme())
-        .outputDataItemIdScheme(params.getOutputDataItemIdScheme())
-        .outputIdScheme(params.getOutputIdScheme())
-        .outputOrgUnitIdScheme(params.getOutputOrgUnitIdScheme())
+        .dataIdScheme(getValidScheme(params.getDataIdScheme()))
+        .outputDataElementIdScheme(getValidScheme(params.getOutputDataElementIdScheme()))
+        .outputDataItemIdScheme(getValidScheme(params.getOutputDataItemIdScheme()))
+        .outputIdScheme(getValidScheme(params.getOutputIdScheme()))
+        .outputOrgUnitIdScheme(getValidScheme(params.getOutputOrgUnitIdScheme()))
         .outputFormat(params.getOutputFormat())
         .build();
+  }
+
+  /**
+   * It returns a valid IdScheme, switching ID by UID if applicable. IDs cannot be exposed to users
+   * as they are internal PKs at database level.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @return the {@link IdScheme}.
+   */
+  public static IdScheme getValidScheme(IdScheme idScheme) {
+    if (idScheme == ID) {
+      return UID;
+    }
+
+    return idScheme;
   }
 }

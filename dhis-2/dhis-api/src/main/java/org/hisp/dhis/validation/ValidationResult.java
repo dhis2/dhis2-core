@@ -40,6 +40,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -275,7 +276,7 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public CategoryOptionCombo getAttributeOptionCombo() {
     return attributeOptionCombo;

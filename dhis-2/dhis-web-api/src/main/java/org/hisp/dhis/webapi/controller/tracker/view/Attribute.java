@@ -62,7 +62,7 @@ public class Attribute {
 
   @JsonProperty private Instant updatedAt;
 
-  @JsonProperty private String storedBy;
+  @JsonProperty private String updatedBy;
 
   @JsonProperty private ValueType valueType;
 

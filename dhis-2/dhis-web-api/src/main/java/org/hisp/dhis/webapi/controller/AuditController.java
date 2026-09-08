@@ -34,7 +34,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
@@ -64,7 +63,6 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -152,9 +150,9 @@ public class AuditController {
 
   @GetMapping("dataValue")
   public RootNode getAggregateDataValueChangelog(DataValueChangelogQueryParams params) {
-    List<String> fields = params.fields();
+    String fields = params.fields();
 
-    if (fields.isEmpty()) fields = FieldPreset.ALL.getFields();
+    if (fields.isEmpty()) fields = "*";
 
     List<DataValueChangelog> entries = dataValueChangelogService.getChangelogEntries(params);
     Pager pager = params.paged().toPager(params, dataValueChangelogService::countEntries);
@@ -173,6 +171,7 @@ public class AuditController {
 
   @GetMapping("dataApproval")
   public RootNode getDataApprovalAudit(
+      @RequestParam(required = false) String fields,
       @OpenApi.Param({UID[].class, DataApprovalLevel.class}) @RequestParam(required = false)
           List<String> dal,
       @OpenApi.Param({UID[].class, DataApprovalWorkflow.class}) @RequestParam(required = false)
@@ -187,11 +186,8 @@ public class AuditController {
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
       @RequestParam(required = false, defaultValue = "1") int page) {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
+    if (fields == null || fields.isEmpty()) fields = "*";
 
     DataApprovalAuditQueryParams params =
         new DataApprovalAuditQueryParams()
@@ -230,6 +226,7 @@ public class AuditController {
 
   @GetMapping("trackedEntity")
   public RootNode getTrackedEntityAudit(
+      @RequestParam(required = false) String fields,
       @OpenApi.Param({UID[].class, TrackedEntity.class}) @RequestParam(required = false)
           Set<UID> trackedEntities,
       @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
@@ -240,11 +237,7 @@ public class AuditController {
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
       @RequestParam(required = false, defaultValue = "1") int page) {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
+    if (fields == null || fields.isEmpty()) fields = "*";
 
     List<AuditOperationType> auditOperationTypes = emptyIfNull(auditType);
 

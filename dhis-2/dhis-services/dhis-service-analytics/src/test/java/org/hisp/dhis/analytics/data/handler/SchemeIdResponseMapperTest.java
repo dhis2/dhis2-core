@@ -48,7 +48,6 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -374,11 +373,10 @@ class SchemeIdResponseMapperTest {
 
     assertThat(responseMap.get(orgUnitUid), is(equalTo(organisationUnit.getUid())));
     assertThat(responseMap.get(periodIsoDate), is(equalTo(period.getUid())));
-    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
-    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementA.getUid()), is(dataElementA.getUid()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(dataElementB.getUid()));
     assertThat(responseMap.get(dataElement.getUid()), is(dataElement.getUid()));
-    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
-    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(categoryOptionComboC.getUid()));
   }
 
   @Test
@@ -721,7 +719,7 @@ class SchemeIdResponseMapperTest {
 
     // Uid is the default, so conversion is not needed. The map will not contain any conversion on
     // this case.
-    assertNull(responseMap.get(program.getUid()));
+    assertEquals(program.getUid(), responseMap.get(program.getUid()));
   }
 
   @Test

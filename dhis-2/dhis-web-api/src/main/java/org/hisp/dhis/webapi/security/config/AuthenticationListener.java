@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
+import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetails;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.user.SystemUser;
@@ -49,6 +52,8 @@ import org.springframework.security.oauth2.server.authorization.oidc.authenticat
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * @author Henning Håkonsen
@@ -57,9 +62,29 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthenticationListener {
 
+  /** Name of the login counter in the meter registry, also read by {@code UserStatisticsMBean}. */
+  public static final String LOGIN_COUNTER_NAME = "dhis2_user_logins_total";
+
+  public static final String LOGIN_METHOD_FORM = "form";
+
+  public static final String LOGIN_METHOD_BASIC = "basic";
+
+  public static final String LOGIN_METHOD_OIDC = "oidc";
+
+  public static final String LOGIN_METHOD_API_TOKEN = "apitoken";
+
+  /**
+   * Prometheus scrapes this endpoint on a timer with fresh credentials each time (no session
+   * reuse), so counting it would make the login counter track scrape frequency rather than actual
+   * logins.
+   */
+  private static final String METRICS_SCRAPE_PATH = "/api/metrics";
+
   @Autowired private UserService userService;
 
   @Autowired private DhisConfigurationProvider config;
+
+  @Autowired private MeterRegistry meterRegistry;
 
   @EventListener
   public void handleAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
@@ -98,6 +123,14 @@ public class AuthenticationListener {
     Authentication auth = event.getAuthentication();
     String username = event.getAuthentication().getName();
 
+    // The form login endpoint (AuthenticationController) publishes both an
+    // InteractiveAuthenticationSuccessEvent and, via the AuthenticationManager, an
+    // AuthenticationSuccessEvent for the same login. Only count the latter to avoid double
+    // counting; mirrors the same exclusion in AuthenticationLoggerListener.
+    if (!(event instanceof InteractiveAuthenticationSuccessEvent) && !isMetricsScrapeRequest()) {
+      meterRegistry.counter(LOGIN_COUNTER_NAME, "method", resolveAuthMethod(auth)).increment();
+    }
+
     Object details = auth.getDetails();
 
     if (details != null
@@ -129,6 +162,46 @@ public class AuthenticationListener {
     }
 
     registerSuccessfulLogin(username);
+  }
+
+  /**
+   * Categorizes the authentication into a low-cardinality method tag for metrics. "basic" and
+   * "apitoken" re-authenticate on every request that lacks an existing session (no session reuse
+   * for either), unlike the other methods which are tied to a single interactive login. "form"
+   * covers /api/auth/login, which itself covers username/password, LDAP and 2FA, since they all
+   * authenticate via the same endpoint and details type.
+   */
+  private static String resolveAuthMethod(Authentication auth) {
+    if (OAuth2LoginAuthenticationToken.class.isAssignableFrom(auth.getClass())
+        || OidcUserInfoAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
+      return LOGIN_METHOD_OIDC;
+    }
+    if (ApiTokenAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
+      return LOGIN_METHOD_API_TOKEN;
+    }
+    if (auth.getDetails() instanceof HttpBasicWebAuthenticationDetails) {
+      return LOGIN_METHOD_BASIC;
+    }
+    return LOGIN_METHOD_FORM;
+  }
+
+  /**
+   * Best-effort check for whether the current request is a scrape of our own metrics endpoint.
+   * Fails open (returns false, i.e. still counts) if the request context is unavailable, so a
+   * missing RequestContextHolder binding never blocks the login counter or auth flow itself.
+   */
+  private static boolean isMetricsScrapeRequest() {
+    try {
+      ServletRequestAttributes attributes =
+          (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+      if (attributes == null) {
+        return false;
+      }
+      String uri = attributes.getRequest().getRequestURI();
+      return uri != null && uri.endsWith(METRICS_SCRAPE_PATH);
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private void registerSuccessfulLogin(String username) {

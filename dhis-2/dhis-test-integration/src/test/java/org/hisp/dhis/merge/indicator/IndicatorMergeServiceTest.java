@@ -62,10 +62,12 @@ import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author david mackessy
  */
+@Transactional
 class IndicatorMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MergeService indicatorMergeService;
   @Autowired private IdentifiableObjectManager manager;

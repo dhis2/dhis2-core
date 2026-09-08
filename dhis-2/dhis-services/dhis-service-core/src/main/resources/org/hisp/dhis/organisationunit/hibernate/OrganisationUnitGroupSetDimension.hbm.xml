@@ -6,7 +6,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension" table="orgunitgroupsetdimension">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="orgunitgroupsetdimensionid">
       <generator class="native" />
@@ -16,7 +16,7 @@
       foreign-key="fk_dimension_orgunitgroupsetid" />
     
     <list name="items" table="orgunitgroupsetdimension_items">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="orgunitgroupsetdimensionid" foreign-key="fk_dimension_items_orgunitgroupsetdimensionid" />
       <list-index column="sort_order" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroup" column="orgunitgroupid"

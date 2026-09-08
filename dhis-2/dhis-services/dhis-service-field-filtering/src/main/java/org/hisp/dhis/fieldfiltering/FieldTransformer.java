@@ -30,6 +30,7 @@
 package org.hisp.dhis.fieldfiltering;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.common.PropertyPath;
 import org.springframework.core.Ordered;
 
 /**
@@ -40,18 +41,7 @@ import org.springframework.core.Ordered;
  */
 @FunctionalInterface
 public interface FieldTransformer extends Ordered {
-  JsonNode apply(String path, JsonNode value, JsonNode parent);
-
-  default String getFieldName(String path) {
-    int idx = path.lastIndexOf('.');
-    String key = path;
-
-    if (idx > -1) {
-      key = path.substring(idx + 1);
-    }
-
-    return key;
-  }
+  JsonNode apply(PropertyPath path, JsonNode value, JsonNode parent);
 
   default int getOrder() {
     return Ordered.HIGHEST_PRECEDENCE;

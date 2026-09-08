@@ -81,6 +81,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfo;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
@@ -141,6 +142,8 @@ public class EventQueryParams extends DataQueryParams {
   public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
   public static final String TRACKER_COORDINATE_FIELD = "TRACKER";
+
+  public record GeometrySource(String coordinateField, String source) {}
 
   /** The query items. */
   private List<QueryItem> items = new ArrayList<>();
@@ -226,6 +229,9 @@ public class EventQueryParams extends DataQueryParams {
    * fields.
    */
   private List<String> coordinateFields;
+
+  /** The ordered source labels for resolved coordinate fields. */
+  private List<GeometrySource> geometrySources = List.of();
 
   /** Bounding box for events to include in clustering. */
   private String bbox;
@@ -340,6 +346,7 @@ public class EventQueryParams extends DataQueryParams {
     params.aggregateData = this.aggregateData;
     params.clusterSize = this.clusterSize;
     params.coordinateFields = this.coordinateFields;
+    params.geometrySources = new ArrayList<>(this.geometrySources);
     params.bbox = this.bbox;
     params.includeClusterPoints = this.includeClusterPoints;
     params.enrollmentStatus = new LinkedHashSet<>(this.enrollmentStatus);
@@ -631,6 +638,7 @@ public class EventQueryParams extends DataQueryParams {
         .addIgnoreNull("aggregateData", aggregateData)
         .addIgnoreNull("clusterSize", clusterSize)
         .addIgnoreNull("coordinateFields", coordinateFields)
+        .addIgnoreNull("geometrySources", geometrySources.isEmpty() ? null : geometrySources)
         .addIgnoreNull("bbox", bbox)
         .addIgnoreNull("includeClusterPoints", includeClusterPoints)
         .addIgnoreNull("enrollmentStatus", enrollmentStatus)
@@ -1297,6 +1305,14 @@ public class EventQueryParams extends DataQueryParams {
     return hasEnrollmentOuDimension() || hasEnrollmentOuFilter();
   }
 
+  /** Returns the first sort item that reads an enrollment org unit column, if any. */
+  public Optional<String> getEnrollmentOuSortColumn() {
+    return Stream.concat(asc.stream(), desc.stream())
+        .map(QueryItem::getItemId)
+        .filter(OrgUnitSqlConstants.RESULT_ALIASES::contains)
+        .findFirst();
+  }
+
   public List<DimensionalItemObject> getEnrollmentOuDimensionItems() {
     return enrollmentOuDimensionItems;
   }
@@ -1493,6 +1509,14 @@ public class EventQueryParams extends DataQueryParams {
 
   public List<String> getCoordinateFields() {
     return coordinateFields;
+  }
+
+  public List<GeometrySource> getGeometrySources() {
+    return geometrySources;
+  }
+
+  public boolean hasGeometrySources() {
+    return isNotEmpty(geometrySources);
   }
 
   public String getBbox() {
@@ -1809,6 +1833,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withCoordinateFields(List<String> coordinateFields) {
       this.params.coordinateFields = coordinateFields;
+      return this;
+    }
+
+    public Builder withGeometrySources(List<GeometrySource> geometrySources) {
+      this.params.geometrySources = geometrySources == null ? List.of() : geometrySources;
       return this;
     }
 

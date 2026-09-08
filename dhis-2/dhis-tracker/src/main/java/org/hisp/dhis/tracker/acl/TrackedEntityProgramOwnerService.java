@@ -72,4 +72,11 @@ public interface TrackedEntityProgramOwnerService {
    */
   void createTrackedEntityProgramOwner(
       TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
+
+  /**
+   * Invalidates the cached ownership org unit for the te-program combination. Used by write paths
+   * that persist ownership without going through this service's {@code create*} methods (e.g. the
+   * JDBC tracker-import write batch in {@code EntityWriteBatch}).
+   */
+  void invalidateOwnershipCache(TrackedEntity trackedEntity, Program program);
 }

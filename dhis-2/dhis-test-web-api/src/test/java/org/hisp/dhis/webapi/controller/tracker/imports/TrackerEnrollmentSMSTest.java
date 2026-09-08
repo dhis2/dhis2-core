@@ -170,7 +170,6 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     trackedEntityType = trackedEntityTypeAccessible();
 
     teaA = createTrackedEntityAttribute('A', ValueType.TEXT);
-    teaA.setConfidential(false);
     teaA.getSharing().setOwner(user);
     teaA.getSharing().addUserAccess(fullAccess(user));
     manager.save(teaA, false);
@@ -179,14 +178,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     teaB = createTrackedEntityAttribute('B', ValueType.TEXT);
     teaB.getSharing().setOwner(user);
     teaB.getSharing().addUserAccess(fullAccess(user));
-    teaB.setConfidential(false);
     manager.save(teaB, false);
 
     // this TEA will only be a program attribute
     teaC = createTrackedEntityAttribute('C', ValueType.TEXT);
     teaC.getSharing().setOwner(user);
     teaC.getSharing().addUserAccess(fullAccess(user));
-    teaC.setConfidential(false);
     manager.save(teaC, false);
 
     trackedEntityType

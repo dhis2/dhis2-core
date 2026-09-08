@@ -145,7 +145,7 @@ class OptionControllerTest extends H2ControllerIntegrationTestBase {
         set.getOptions().toList(JsonIdentifiableObject::getDescription));
 
     JsonList<JsonOption> options =
-        GET("/options/gist?headless=true&filter=optionSet.id:eq:{id}", id)
+        GET("/options/gist?headless=true&translate=false&filter=optionSet.id:eq:{id}", id)
             .content()
             .asList(JsonOption.class);
     assertEquals(2, options.size());

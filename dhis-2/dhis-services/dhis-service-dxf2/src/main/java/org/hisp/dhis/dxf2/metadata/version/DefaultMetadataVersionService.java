@@ -317,7 +317,7 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
       }
 
       os = new ByteArrayOutputStream(1024);
-      ObjectNode metadata = metadataExportService.getMetadataAsObjectNode(exportParams);
+      ObjectNode metadata = metadataExportService.exportMetadataVersion(exportParams);
       renderService.toJson(os, metadata);
     } catch (Exception ex) // We have to catch the "Exception" object as no
     // specific exception on the contract.

@@ -1,0 +1,516 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.appmanager;
+
+import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.datastore.DatastoreNamespace;
+import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
+import org.hisp.dhis.storage.BlobKey;
+import org.hisp.dhis.storage.BlobKeyPrefix;
+import org.hisp.dhis.storage.BlobStoreService;
+import org.hisp.dhis.util.ZipBombException;
+import org.hisp.dhis.util.ZipFileUtils;
+import org.hisp.dhis.util.ZipSlipException;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
+
+/**
+ * @author Stian Sandvold
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class BlobStoreAppStorageService implements AppStorageService {
+
+  private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";
+  public static final String MANIFEST_WEBAPP_FILENAME = "manifest.webapp";
+
+  /**
+   * Max concurrent file uploads to blob storage across <em>all</em> apps installing at once. Apps
+   * may install in parallel (see {@code DefaultAppManager}); this is a single shared pool so the
+   * total number of in-flight uploads (and buffered file payloads) stays bounded regardless of how
+   * many apps install concurrently.
+   *
+   * <p>Note this value also bounds transient memory: the S3 backend buffers each non-resetable zip
+   * entry stream fully in memory, so worst case is this many file payloads on the heap at once.
+   * Benchmarks against AWS S3 showed no install-time gain from 64 over 32, so 32 is used to halve
+   * the worst-case memory footprint.
+   */
+  private static final int APP_UPLOAD_PARALLELISM = 32;
+
+  private final BlobStoreService blobStore;
+  private final LocationManager locationManager;
+  private final ObjectMapper jsonMapper;
+  private final FileResourceContentStore fileResourceContentStore;
+
+  /**
+   * Shared, lazily-populated pool for concurrent file uploads. Core threads time out when idle so
+   * the pool holds no threads outside of (re)install activity, e.g. after startup.
+   */
+  private final ExecutorService uploadExecutor = newUploadExecutor();
+
+  private static ExecutorService newUploadExecutor() {
+    ThreadPoolExecutor executor =
+        new ThreadPoolExecutor(
+            APP_UPLOAD_PARALLELISM,
+            APP_UPLOAD_PARALLELISM,
+            60L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            new ThreadFactoryBuilder().setNameFormat("app-upload-%d").setDaemon(true).build());
+    executor.allowCoreThreadTimeOut(true);
+    return executor;
+  }
+
+  @Override
+  @Nonnull
+  public Map<String, Pair<App, BundledAppInfo>> discoverInstalledApps() {
+    Map<String, Pair<App, BundledAppInfo>> apps = new HashMap<>();
+    discoverInstalledApps((app, appInfo) -> apps.put(app.getKey(), Pair.of(app, appInfo)));
+    logDiscoveredApps(apps);
+    return apps;
+  }
+
+  private void discoverInstalledApps(BiConsumer<App, BundledAppInfo> handler) {
+    for (BlobKeyPrefix folder : blobStore.listFolders(BlobKeyPrefix.APPS)) {
+      BlobKey manifestKey = folder.resolve(MANIFEST_WEBAPP_FILENAME);
+      InputStream manifestStream = blobStore.openStream(manifestKey);
+      if (manifestStream == null) {
+        log.error(
+            "Could not find manifest file in app folder '{}', with key '{}' skipping app.",
+            folder,
+            manifestKey);
+        continue;
+      }
+      handleAppManifest(handler, folder, manifestStream);
+    }
+  }
+
+  private void handleAppManifest(
+      BiConsumer<App, BundledAppInfo> handler, BlobKeyPrefix folder, InputStream manifestStream) {
+    try (InputStream inputStream = manifestStream) {
+      App app = App.MAPPER.readValue(inputStream, App.class);
+      app.setFolderName(folder.value());
+      app.setManifestTranslations(
+          readAppManifestTranslations(
+              blobStore.openStream(
+                  folder.resolve(AppStorageService.MANIFEST_TRANSLATION_FILENAME))));
+
+      app.setCacheConfig(
+          readAppCacheConfig(
+              blobStore.openStream(folder.resolve(AppStorageService.CACHE_CONFIG_FILENAME))));
+
+      InputStream bundledAppInfoStream =
+          blobStore.openStream(folder.resolve(BUNDLED_APP_INFO_FILENAME));
+      if (bundledAppInfoStream != null) {
+        try (InputStream bis = bundledAppInfoStream) {
+          handler.accept(app, App.MAPPER.readValue(bis, BundledAppInfo.class));
+        }
+      } else {
+        handler.accept(app, null);
+      }
+    } catch (IOException ex) {
+      log.error("Could not read manifest file of '{}'", folder, ex);
+    }
+  }
+
+  private List<AppManifestTranslation> readAppManifestTranslations(
+      @CheckForNull InputStream translationsStream) {
+    if (translationsStream == null) {
+      return Collections.emptyList();
+    }
+    try (InputStream inputStream = translationsStream) {
+      return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+    } catch (IOException e) {
+      log.error(
+          "An error occurred trying to read the app manifest translations '{}'",
+          e.getLocalizedMessage());
+      return Collections.emptyList();
+    }
+  }
+
+  private AppCacheConfig readAppCacheConfig(@CheckForNull InputStream cacheConfigStream) {
+    if (cacheConfigStream == null) {
+      return null;
+    }
+    try (InputStream inputStream = cacheConfigStream) {
+      return App.MAPPER.readValue(inputStream, AppCacheConfig.class);
+    } catch (IOException e) {
+      log.warn("Failed to read {}: {}", AppStorageService.CACHE_CONFIG_FILENAME, e.getMessage());
+      return null;
+    }
+  }
+
+  private boolean validateApp(App app, Cache<App> appCache) {
+    validateAppNamespaceNotAlreadyInUse(app, appCache);
+    validateAppAdditionalNamespacesAreWellDefined(app);
+    return app.getAppState().ok();
+  }
+
+  private void validateAppNamespaceNotAlreadyInUse(App app, Cache<App> appCache) {
+    if (!app.getAppState().ok()) return;
+    AppDhis dhis = app.getActivities().getDhis();
+    String namespace = dhis.getNamespace();
+    Set<String> namespaces = new HashSet<>();
+    if (namespace != null && !namespace.isEmpty()) namespaces.add(namespace);
+    List<DatastoreNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces != null)
+      additionalNamespaces.forEach(ns -> namespaces.add(ns.getNamespace()));
+
+    if (namespaces.isEmpty()) return;
+    for (String ns : namespaces) {
+      Optional<App> other =
+          appCache.getAll().filter(a -> a.getNamespaces().contains(ns)).findFirst();
+      if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
+        log.error(
+            "Failed to install app '{}': Namespace '{}' already taken.", app.getName(), namespace);
+        app.setAppState(AppStatus.NAMESPACE_TAKEN);
+        return;
+      }
+    }
+  }
+
+  private void validateAppAdditionalNamespacesAreWellDefined(App app) {
+    if (!app.getAppState().ok()) return;
+    List<DatastoreNamespace> additionalNamespaces =
+        app.getActivities().getDhis().getAdditionalNamespaces();
+    if (additionalNamespaces != null) {
+      for (DatastoreNamespace ns : additionalNamespaces) {
+        if (ns.getNamespace() == null
+            || ns.getNamespace().isEmpty()
+            || ns.getAllAuthorities().isEmpty()) {
+          log.error(
+              "Failed to install app '{}': Required property is undefined, namespace '{}', authorities '{}'.",
+              app.getName(),
+              ns.getNamespace(),
+              ns.getAllAuthorities());
+          app.setAppState(AppStatus.NAMESPACE_INVALID);
+          return;
+        }
+      }
+    }
+  }
+
+  @Override
+  @Nonnull
+  public App installApp(
+      @Nonnull File file,
+      @Nonnull Cache<App> appCache,
+      @CheckForNull BundledAppInfo bundledAppInfo,
+      boolean removeExisting) {
+    App app;
+    AppFolderName folder;
+    String topLevelFolder;
+    try {
+      topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
+      app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
+      folder = AppFolderName.ofKey(app.getKey());
+      app.setFolderName(folder.path());
+    } catch (IOException e) {
+      log.error("Failed to install app: Failure during reading manifest from zip file", e);
+      app = new App();
+      app.setAppState(AppStatus.MISSING_MANIFEST);
+      return app;
+    }
+
+    if (bundledAppInfo != null) {
+      try {
+        writeBundledAppInfo(bundledAppInfo, folder);
+      } catch (IOException e) {
+        log.error("Failed to install app: Failure during writing bundled app info");
+        app.setAppState(AppStatus.FAILED_TO_WRITE_BUNDLED_APP_INFO);
+        return app;
+      }
+    }
+
+    if (!validateApp(app, appCache)) {
+      log.error("Failed to install app: App validation failed");
+      return app;
+    }
+
+    try {
+      ZipFileUtils.validateZip(file, folder.path(), topLevelFolder);
+      unzipFile(file, folder, topLevelFolder);
+
+      if (removeExisting) {
+        removeOtherAppsWithSameKey(app);
+      }
+
+      app.setAppState(AppStatus.OK);
+      logInstallSuccess(app, folder.path());
+      return app;
+
+    } catch (IOException e) {
+      log.error("Failed to install app: IO Failure during unzipping", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (ZipBombException e) {
+      log.error("Failed to install app: Possible ZipBomb detected", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (ZipSlipException e) {
+      log.error("Failed to install app: Possible ZipSlip detected", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    }
+
+    if (!app.getAppState().ok()) {
+      deleteApp(app);
+    }
+
+    return app;
+  }
+
+  private void unzipFile(File file, AppFolderName folder, String topLevelFolder)
+      throws IOException, ZipSlipException {
+    try (ZipFile zipFile = new ZipFile(file)) {
+      List<ZipEntry> fileEntries = new ArrayList<>();
+      List<String> filePaths = new ArrayList<>();
+      Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      while (entries.hasMoreElements()) {
+        ZipEntry zipEntry = entries.nextElement();
+        String filePath = getFilePath(folder.path(), topLevelFolder, zipEntry);
+        // If it's the root folder, skip
+        if (filePath == null) continue;
+        if (zipEntry.isDirectory()) {
+          // Materialise empty directories so the /api/apps/<app>/<dir> → /<dir>/ redirect
+          // contract holds even when the zip contains a directory with no files inside.
+          blobStore.createDirectory(BlobKeyPrefix.of(filePath));
+          continue;
+        }
+        fileEntries.add(zipEntry);
+        filePaths.add(filePath);
+      }
+      uploadEntriesInParallel(zipFile, fileEntries, filePaths);
+    }
+  }
+
+  /**
+   * Uploads the given zip file entries to blob storage concurrently via the shared {@link
+   * #uploadExecutor}. App zips contain many small files and each upload is dominated by per-request
+   * latency (network round-trip on object stores), so uploading them in parallel rather than
+   * one-at-a-time substantially reduces install time. The pool is shared across concurrently
+   * installing apps so total in-flight uploads stay bounded; this call only waits on its own files.
+   */
+  private void uploadEntriesInParallel(
+      ZipFile zipFile, List<ZipEntry> fileEntries, List<String> filePaths) throws IOException {
+    if (fileEntries.isEmpty()) return;
+
+    try {
+      CompletableFuture<?>[] futures = new CompletableFuture<?>[fileEntries.size()];
+      for (int i = 0; i < fileEntries.size(); i++) {
+        ZipEntry zipEntry = fileEntries.get(i);
+        String filePath = filePaths.get(i);
+        futures[i] =
+            CompletableFuture.runAsync(
+                () -> uploadZipEntry(zipFile, zipEntry, filePath), uploadExecutor);
+      }
+      CompletableFuture.allOf(futures).join();
+    } catch (CompletionException e) {
+      Throwable cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof UncheckedIOException uioe) throw uioe.getCause();
+      if (cause instanceof IOException ioe) throw ioe;
+      if (cause instanceof RuntimeException re) throw re;
+      throw new IOException("Failed to upload app files", cause);
+    }
+  }
+
+  private void uploadZipEntry(ZipFile zipFile, ZipEntry zipEntry, String filePath) {
+    try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+      blobStore.putBlob(BlobKey.of(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private void writeBundledAppInfo(BundledAppInfo bundledAppInfo, AppFolderName folder)
+      throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);
+    byte[] bundledAppInfoBytes = baos.toByteArray();
+    try (InputStream is = new ByteArrayInputStream(bundledAppInfoBytes)) {
+      blobStore.putBlob(
+          folder.resolve(BUNDLED_APP_INFO_FILENAME),
+          is,
+          bundledAppInfoBytes.length,
+          null,
+          null,
+          null);
+    }
+  }
+
+  /**
+   * Removes all other apps with the same key as the one we are installing.
+   *
+   * @param newApp the manifest of the app we are trying to install
+   */
+  private void removeOtherAppsWithSameKey(@Nonnull App newApp) {
+    discoverInstalledApps(
+        (a, bai) -> {
+          if (newApp.getKey().equals(a.getKey()) && !newApp.appFolder().equals(a.appFolder()))
+            deleteApp(a);
+        });
+  }
+
+  @Override
+  public void deleteApp(@Nonnull App app) {
+    // Delete the manifest file first in case the system crashes during deletion
+    // so the app cannot be re-discovered in a partially-deleted state.
+    AppFolderName folder = app.appFolder();
+    blobStore.deleteBlob(folder.resolve(MANIFEST_WEBAPP_FILENAME));
+
+    blobStore.deleteDirectory(folder.asPrefix());
+    log.info("Deleted app {}", app.getName());
+  }
+
+  @Override
+  @Nonnull
+  public ResourceResult getAppResource(@CheckForNull App app, @Nonnull String resource)
+      throws IOException {
+    if (app == null) {
+      log.warn(
+          "Can't look up resource {}. The specified app was not found in blob storage.", resource);
+      return new ResourceNotFound(resource);
+    }
+    if (resource.isBlank()) {
+      return new Redirect("/");
+    }
+
+    BlobKey key = app.appFolder().resolve(useIndexHtmlIfDirCall(resource));
+
+    log.debug("Checking if blob exists {} for App {}", key, app.getName());
+    if (blobStore.blobExists(key)) {
+      return new ResourceFound(getResource(key));
+    }
+    if (blobStore.directoryExists(BlobKeyPrefix.of(key.value()))) {
+      return new Redirect(resource + "/");
+    }
+    log.debug("ResourceNotFound {} for App {}", key, app.getName());
+    return new ResourceNotFound(resource);
+  }
+
+  private Resource getResource(@Nonnull BlobKey key) throws IOException {
+    if (blobStore.isFilesystem()) {
+      return new FileSystemResource(
+          locationManager.getFileForReading(blobStore.container().resolve(key)));
+    }
+    URI uri = fileResourceContentStore.getSignedGetContentUri(key);
+    if (uri != null) {
+      return new UrlResource(uri);
+    }
+    // When backend supports neither filesystem access nor signed URLs (e.g. transient): buffer
+    // the blob bytes so Spring can serve them directly.
+    try (InputStream in = blobStore.openStream(key)) {
+      if (in == null) throw new IOException("Blob not found: " + key);
+      return new ByteArrayResource(in.readAllBytes());
+    }
+  }
+
+  /**
+   * The server is expected to return the 'index.html' for calls made to resources ending in '/'<br>
+   *
+   * <p>Examples: <br>
+   * <li>'' -> ''
+   * <li>'index.html' ->'index.html'
+   * <li>'subDir/index.html' ->'subDir/index.html'
+   * <li>'baseDir/' ->'baseDir/index.html'
+   * <li>'baseDir/subDir/' ->'baseDir/subDir/index.html'
+   * <li>'subDir' ->'subDir'
+   * <li>'static/js/138.af8b0ff6.chunk.js' ->'static/js/138.af8b0ff6.chunk.js'
+   *
+   * @param resource app resource
+   * @return potentially-updated app resource
+   */
+  private String useIndexHtmlIfDirCall(@Nonnull String resource) {
+    if (resource.endsWith("/")) {
+      log.debug("Resource ends with '/', appending 'index.html' to {}", resource);
+      return resource + "index.html";
+    }
+    return resource;
+  }
+
+  private static void logInstallSuccess(App app, String appFolder) {
+    String namespace = app.getActivities().getDhis().getNamespace();
+    log.info(
+        "New app {} installed, Install path: {}, Namespace reserved: {}",
+        app.getName(),
+        appFolder,
+        (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
+  }
+
+  private static void logDiscoveredApps(Map<String, Pair<App, BundledAppInfo>> apps) {
+    if (apps.isEmpty()) {
+      log.info("No apps found during blob store discovery");
+    } else {
+      apps.values()
+          .forEach(
+              pair -> log.info("Discovered app '{}' from blob storage ", pair.getLeft().getName()));
+    }
+  }
+}

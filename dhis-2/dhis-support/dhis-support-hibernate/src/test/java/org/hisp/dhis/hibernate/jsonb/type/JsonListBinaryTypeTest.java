@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import java.util.ArrayList;
 import java.util.List;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.translation.Translation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,10 +59,10 @@ class JsonListBinaryTypeTest {
   @BeforeEach
   void setUp() {
     translation1 = new Translation();
-    translation1.setLocale("en");
+    translation1.setLocale(Locale.of("en"));
     translation1.setValue("English Test 1");
     translation2 = new Translation();
-    translation2.setLocale("no");
+    translation2.setLocale(Locale.of("no"));
     translation2.setValue("Norwegian Test 1");
     translations = new ArrayList<>();
     translations.add(translation1);

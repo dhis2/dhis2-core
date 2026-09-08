@@ -31,7 +31,6 @@ package org.hisp.dhis.reservedvalue;
 
 import static java.util.Calendar.DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -233,21 +232,6 @@ class ReservedValueServiceIntegrationTest extends PostgresIntegrationTestBase {
     List<ReservedValue> result = reservedValueService.reserve(simpleStringPattern, 1, map, future);
     assertEquals(1, result.size());
     assertEquals("TEST-OS", result.get(0).getValue());
-  }
-
-  @Test
-  void testUseReservationWhenReserved()
-      throws TextPatternGenerationException, ReserveValueException {
-    reservedValueService.reserve(simpleTextPattern, 1, new HashMap<>(), future);
-    assertTrue(reservedValueService.useReservedValue(simpleTextPattern.getTextPattern(), "FOOBAR"));
-    assertEquals(0, reservedValueStore.getCount());
-  }
-
-  @Test
-  void testUseReservationWhenNotReserved() {
-    assertFalse(
-        reservedValueService.useReservedValue(simpleTextPattern.getTextPattern(), "FOOBAR"));
-    assertEquals(0, reservedValueStore.getCount());
   }
 
   private static TrackedEntityAttribute createTextPattern(

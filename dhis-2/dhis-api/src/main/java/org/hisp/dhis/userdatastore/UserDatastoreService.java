@@ -73,6 +73,10 @@ public interface UserDatastoreService {
    * replaced with the value but the value is appended to the array. The head of the array is *
    * dropped if the size of the array is equal or larger than the roll size.
    *
+   * <p>The update only affects the entry owned by the given user so that entries of other users
+   * sharing the same namespace and key are not modified.
+   *
+   * @param userId the id of the user owning the entry to update
    * @param ns namespace to update
    * @param key key to update
    * @param value the new JSON value, null to remove the entry or clear the property at the provided
@@ -82,6 +86,7 @@ public interface UserDatastoreService {
    *     rolling (dropping the array head element when its size
    */
   void updateEntry(
+      long userId,
       @Nonnull String ns,
       @Nonnull String key,
       @CheckForNull String value,

@@ -33,10 +33,13 @@ import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_OU;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
@@ -55,6 +58,7 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -68,6 +72,7 @@ import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.common.NoValueDimensions;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
@@ -204,11 +209,43 @@ public class MetadataItemsHandler {
    * @return a map of dimension items.
    */
   private Map<String, List<String>> buildDimensionItems(Grid grid, EventQueryParams params) {
+    Map<String, List<String>> dimensionItems;
+
     if (params.isComingFromQuery()) {
       Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, params.getItems());
-      return getDimensionItems(params, Optional.of(optionsPresentInGrid));
+      dimensionItems = getDimensionItems(params, Optional.of(optionsPresentInGrid));
+    } else {
+      dimensionItems = getDimensionItems(params, empty());
     }
-    return getDimensionItems(params, empty());
+
+    addNoValueToDimensions(dimensionItems, params);
+
+    return dimensionItems;
+  }
+
+  /**
+   * Appends the no-value keyword to the dimension item list of every option-set dimension whose
+   * filter explicitly contains the keyword (filter-scoped). The keyword is added to the dimensions
+   * only; rows and {@code metaData.items} are unaffected.
+   *
+   * @param dimensionItems the dimension items map.
+   * @param params the {@link EventQueryParams}.
+   */
+  private void addNoValueToDimensions(
+      Map<String, List<String>> dimensionItems, EventQueryParams params) {
+    for (QueryItem item : params.getItemsAndItemFilters()) {
+      if (!item.hasOptionSet() || !isFilteredByNoValue(item)) {
+        continue;
+      }
+
+      NoValueDimensions.append(dimensionItems, getItemUid(item));
+    }
+  }
+
+  /** Indicates whether any of the item's filters contains the reserved no-value keyword. */
+  private boolean isFilteredByNoValue(QueryItem item) {
+    return item.getFilters().stream()
+        .anyMatch(filter -> QueryFilter.getFilterItems(filter.getFilter()).contains(NO_VALUE));
   }
 
   /**
@@ -395,15 +432,20 @@ public class MetadataItemsHandler {
         .filter(Objects::nonNull)
         .forEach(
             item -> {
-              String key = getItemIdWithProgramStageIdPrefix(item);
               if (item.hasCustomHeader()) {
                 // For custom headers, only include the label (name), not the underlying item
                 // details
-                metadataItemMap.put(key, new MetadataItem(item.getCustomHeader().label()));
+                metadataItemMap.put(
+                    getItemIdWithProgramStageIdPrefix(item),
+                    new MetadataItem(item.getCustomHeader().label()));
               } else {
                 String name = item.getItem().getDisplayName();
-                metadataItemMap.put(
-                    key, new MetadataItem(name, includeDetails ? item.getItem() : null));
+                MetadataItem metadataItem =
+                    new MetadataItem(name, includeDetails ? item.getItem() : null);
+
+                metadataItemMap.put(getItemIdWithProgramStageIdPrefix(item), metadataItem);
+                // Done for backwards compatibility.
+                metadataItemMap.put(item.getItemId(), metadataItem);
               }
 
               addResolvedOrgUnitMetadata(metadataItemMap, params, includeDetails, item);
@@ -413,7 +455,9 @@ public class MetadataItemsHandler {
   /**
    * Adds metadata entries for organisation units resolved from query item filters (including
    * keywords like USER_ORGUNIT). This is needed for aggregate endpoints where query items are used
-   * as dimensions (e.g. stage.ou).
+   * as dimensions (e.g. stage.ou). For stage.ou dimensions, levels and groups are expanded to their
+   * member org units so each dimension item gets a metadata entry, while explicit org units
+   * combined with levels/groups act as boundaries and are excluded.
    */
   private void addResolvedOrgUnitMetadata(
       Map<String, MetadataItem> metadataItemMap,
@@ -425,7 +469,9 @@ public class MetadataItemsHandler {
     }
 
     List<String> resolvedOrgUnits =
-        organisationUnitResolver.resolveOrgUnitsForMetadata(params, item);
+        isStageOuDimension(item)
+            ? organisationUnitResolver.resolveOrgUnits(params, item)
+            : organisationUnitResolver.resolveOrgUnitsForMetadata(params, item);
     for (String uid : resolvedOrgUnits) {
       DimensionalItemObject itemObject =
           organisationUnitResolver.loadOrgUnitDimensionalItem(uid, IdScheme.UID);
@@ -435,6 +481,34 @@ public class MetadataItemsHandler {
             new QueryItem(itemObject),
             includeDetails,
             params.getDisplayProperty());
+      }
+    }
+
+    addLevelAndGroupMetadata(metadataItemMap, params, includeDetails, item);
+  }
+
+  /**
+   * Adds metadata entries for LEVEL- and OU_GROUP- selectors present in the filters of the given
+   * org unit query item, keyed by the level/group UID (e.g. "tTUf91fCytl": {"name": "Chiefdom"}).
+   */
+  private void addLevelAndGroupMetadata(
+      Map<String, MetadataItem> metadataItemMap,
+      EventQueryParams params,
+      boolean includeDetails,
+      QueryItem item) {
+    for (QueryFilter filter : item.getFilters()) {
+      for (String filterValue : QueryFilter.getFilterItems(filter.getFilter())) {
+        if (isLevelOrGroup(filterValue)) {
+          DimensionalItemObject itemObject =
+              organisationUnitResolver.loadOrgUnitDimensionalItem(filterValue, IdScheme.UID);
+          if (itemObject != null) {
+            addItemToMetadata(
+                metadataItemMap,
+                new QueryItem(itemObject),
+                includeDetails,
+                params.getDisplayProperty());
+          }
+        }
       }
     }
   }
@@ -1004,7 +1078,13 @@ public class MetadataItemsHandler {
 
     for (QueryFilter filter : filters) {
       String[] filterValues = trimToEmpty(filter.getFilter()).split(OPTION_SEP);
+      boolean hasLevelsOrGroups = Arrays.stream(filterValues).anyMatch(this::isLevelOrGroup);
       for (String filterValue : filterValues) {
+        // When levels / groups are present, plain org units act as boundaries for the
+        // expansion and are not dimension items
+        if (hasLevelsOrGroups && !isLevelOrGroup(filterValue)) {
+          continue;
+        }
         DimensionalItemObject itemObject =
             organisationUnitResolver.loadOrgUnitDimensionalItem(filterValue, IdScheme.UID);
         if (itemObject != null) {
@@ -1016,5 +1096,9 @@ public class MetadataItemsHandler {
         }
       }
     }
+  }
+
+  private boolean isLevelOrGroup(String filterValue) {
+    return filterValue.startsWith(KEY_LEVEL) || filterValue.startsWith(KEY_ORGUNIT_GROUP);
   }
 }

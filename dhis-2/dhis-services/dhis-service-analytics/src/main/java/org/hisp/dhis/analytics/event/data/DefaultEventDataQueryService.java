@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDC
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_OU_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
@@ -56,6 +57,7 @@ import static org.hisp.dhis.common.EventDataQueryRequest.getStageInValue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -73,6 +75,7 @@ import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -170,7 +173,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
     }
 
-    List<String> coordinateFields = getCoordinateFields(request);
+    CoordinateFieldResolution coordinateFieldResolution = getCoordinateFieldResolution(request);
+    List<String> coordinateFields = coordinateFieldResolution.coordinateFields();
 
     Set<EnrollmentStatus> enrollmentStatuses = new LinkedHashSet<>();
     if (request.getEnrollmentStatus() != null) {
@@ -219,6 +223,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withTimeField(request.getTimeField())
             .withOrgUnitField(new OrgUnitField(request.getOrgUnitField()))
             .withCoordinateFields(coordinateFields)
+            .withGeometrySources(coordinateFieldResolution.geometrySources())
             .withHeaders(request.getHeaders())
             .withPage(request.getPage())
             .withPageSize(request.getPageSize())
@@ -338,6 +343,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    */
   @Override
   public List<String> getCoordinateFields(EventDataQueryRequest request) {
+    return getCoordinateFieldResolution(request).coordinateFields();
+  }
+
+  private CoordinateFieldResolution getCoordinateFieldResolution(EventDataQueryRequest request) {
     final String program = request.getProgram();
     // TODO Remove when all web apps stop using old names of coordinate fields
     final String coordinateField = mapCoordinateField(request.getCoordinateField());
@@ -345,6 +354,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     final String fallbackCoordinateField = mapCoordinateField(request.getFallbackCoordinateField());
 
     List<String> coordinateFields = new ArrayList<>();
+    boolean fallbackActive =
+        request.getFallbackCoordinateField() != null || defaultCoordinateFallback;
 
     if (coordinateField == null) {
       coordinateFields.add(StringUtils.EMPTY);
@@ -392,8 +403,41 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         eventCoordinateService.getFallbackCoordinateFields(
             program, fallbackCoordinateField, defaultCoordinateFallback));
 
-    return coordinateFields.stream().distinct().collect(Collectors.toList());
+    List<String> distinctCoordinateFields = coordinateFields.stream().distinct().toList();
+
+    return new CoordinateFieldResolution(
+        distinctCoordinateFields,
+        fallbackActive ? getGeometrySources(distinctCoordinateFields) : List.of());
   }
+
+  private List<EventQueryParams.GeometrySource> getGeometrySources(List<String> coordinateFields) {
+    LinkedHashMap<String, String> geometrySources = new LinkedHashMap<>();
+
+    for (String coordinateField : coordinateFields) {
+      addGeometrySource(geometrySources, coordinateField);
+    }
+
+    return geometrySources.entrySet().stream()
+        .map(entry -> new EventQueryParams.GeometrySource(entry.getKey(), entry.getValue()))
+        .toList();
+  }
+
+  private void addGeometrySource(LinkedHashMap<String, String> geometrySources, String field) {
+    geometrySources.putIfAbsent(field, getGeometrySource(field));
+  }
+
+  private String getGeometrySource(String field) {
+    return switch (field) {
+      case COL_NAME_EVENT_GEOMETRY -> "psigeometry";
+      case COL_NAME_ENROLLMENT_GEOMETRY -> "pigeometry";
+      case COL_NAME_TRACKED_ENTITY_GEOMETRY -> "teigeometry";
+      case COL_NAME_OU_GEOMETRY -> COL_NAME_OU_GEOMETRY;
+      default -> StringUtils.removeEnd(field, "_geom");
+    };
+  }
+
+  private record CoordinateFieldResolution(
+      List<String> coordinateFields, List<EventQueryParams.GeometrySource> geometrySources) {}
 
   @Override
   public QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type) {
@@ -935,7 +979,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       Program program,
       EventOutputType type,
       RequestTypeAware.EndpointItem endpointItem) {
-    if (isSortable(item)) {
+    if (isSortable(item, endpointItem)) {
       return new QueryItem(
           new BaseDimensionalItemObject(translateItemIfNecessary(item, endpointItem)));
     }
@@ -1221,6 +1265,17 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     static boolean isSortable(String itemName) {
       return Arrays.stream(values()).map(SortableItems::getItemName).anyMatch(itemName::equals);
+    }
+
+    /**
+     * Enrollment org unit columns are projected by the ENROLLMENT_OU join, which only the event
+     * endpoint builds, so they are sortable there alone.
+     */
+    static boolean isSortable(String itemName, RequestTypeAware.EndpointItem endpointItem) {
+      if (OrgUnitSqlConstants.RESULT_ALIASES.contains(itemName)) {
+        return endpointItem == RequestTypeAware.EndpointItem.EVENT;
+      }
+      return isSortable(itemName);
     }
 
     static String translateItemIfNecessary(String item, RequestTypeAware.EndpointItem type) {

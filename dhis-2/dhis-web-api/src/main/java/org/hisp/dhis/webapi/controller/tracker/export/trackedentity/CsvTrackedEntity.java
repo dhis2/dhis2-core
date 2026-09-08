@@ -48,7 +48,6 @@ import org.hisp.dhis.common.UID;
   "geometry",
   "latitude",
   "longitude",
-  "storedBy",
   "createdBy",
   "updatedBy"
 })
@@ -94,8 +93,6 @@ class CsvTrackedEntity {
 
   private Double latitude;
 
-  private String storedBy;
-
   private String createdBy;
 
   private String updatedBy;
@@ -114,7 +111,6 @@ class CsvTrackedEntity {
     this.geometry = entity.getGeometry();
     this.longitude = entity.getLongitude();
     this.latitude = entity.getLatitude();
-    this.storedBy = entity.getStoredBy();
     this.createdBy = entity.getCreatedBy();
     this.updatedBy = entity.getUpdatedBy();
   }

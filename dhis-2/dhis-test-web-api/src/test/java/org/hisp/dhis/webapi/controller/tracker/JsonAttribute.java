@@ -44,4 +44,8 @@ public interface JsonAttribute extends JsonObject {
   default String value() {
     return getString("value").string();
   }
+
+  default String updatedBy() {
+    return getString("updatedBy").string();
+  }
 }

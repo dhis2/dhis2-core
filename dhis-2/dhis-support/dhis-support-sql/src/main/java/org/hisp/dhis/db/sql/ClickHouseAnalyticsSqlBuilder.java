@@ -133,6 +133,27 @@ public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
     return Optional.ofNullable(expression).map(ClickHouseAnalyticsSqlBuilder::collapseWhitespace);
   }
 
+  @Override
+  public boolean useJoinForDatePeriodStructureLookup() {
+    return true;
+  }
+
+  @Override
+  public String castAsDate(String expression) {
+    // toDateOrNull accepts only String input (not Date / DateTime / DateTime64),
+    // so wrap with toString to make the cast type-agnostic and NULL-safe.
+    return "toDateOrNull(toString(" + expression + "))";
+  }
+
+  /**
+   * ClickHouse analytics tables store empty strings where Postgres stores NULL for absent text
+   * values, so grouping would otherwise split empty and NULL into separate buckets.
+   */
+  @Override
+  public String nullIfEmpty(String column) {
+    return "nullif(" + column + ", '')";
+  }
+
   private String castToDate(String expression) {
     return "toDate(" + expression + ")";
   }

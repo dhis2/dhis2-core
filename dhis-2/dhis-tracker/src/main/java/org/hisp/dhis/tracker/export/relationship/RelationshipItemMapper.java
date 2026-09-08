@@ -94,6 +94,7 @@ public interface RelationshipItemMapper {
     result.setCreated(relationship.getCreated());
     result.setCreatedAtClient(relationship.getCreatedAtClient());
     result.setLastUpdated(relationship.getLastUpdated());
+    result.setDeleted(relationship.isDeleted());
     result.setFrom(
         mapRelationshipItemWithoutRelationship(fields.getFromFields(), relationship.getFrom()));
     result.setTo(
@@ -199,7 +200,6 @@ public interface RelationshipItemMapper {
     result.setStatus(enrollment.getStatus());
     result.setDeleted(enrollment.isDeleted());
     result.setGeometry(enrollment.getGeometry());
-    result.setStoredBy(enrollment.getStoredBy());
     if (fields.isIncludesTrackedEntity() || fields.isIncludesAttributes()) {
       result.setTrackedEntity(mapTrackedEntityForEnrollment(enrollment.getTrackedEntity()));
     }
@@ -254,7 +254,6 @@ public interface RelationshipItemMapper {
   @Mapping(target = "status")
   @Mapping(target = "eventDataValues")
   @Mapping(target = "notes")
-  @Mapping(target = "storedBy")
   @Mapping(target = "deleted")
   @Mapping(target = "completedBy")
   @Mapping(target = "assignedUser")
@@ -277,7 +276,6 @@ public interface RelationshipItemMapper {
   @Mapping(target = "status")
   @Mapping(target = "eventDataValues")
   @Mapping(target = "notes")
-  @Mapping(target = "storedBy")
   @Mapping(target = "deleted")
   @Mapping(target = "completedBy")
   @Mapping(target = "assignedUser")

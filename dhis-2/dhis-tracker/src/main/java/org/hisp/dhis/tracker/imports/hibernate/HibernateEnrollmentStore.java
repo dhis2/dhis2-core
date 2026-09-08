@@ -49,7 +49,9 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
+    // cacheable=false: enrollments are written via raw JDBC in the importer, which bypasses
+    // Hibernate's query-cache invalidation -- cached results would go stale across imports.
+    super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, false);
   }
 
   @Override

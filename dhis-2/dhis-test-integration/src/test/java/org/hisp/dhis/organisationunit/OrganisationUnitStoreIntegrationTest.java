@@ -200,6 +200,34 @@ class OrganisationUnitStoreIntegrationTest extends PostgresIntegrationTestBase {
     assertFalse(organisationUnits.contains(ou3));
   }
 
+  @Test
+  void getOrganisationUnitsWithGeometryOnlyExcludesNullGeometryUnits() throws IOException {
+    OrganisationUnit withGeometryA =
+        createOrganisationUnit(
+            'A', GeoUtils.getGeometryFromCoordinatesAndType(POINT, "[10.0, 10.0]"));
+    OrganisationUnit withGeometryB =
+        createOrganisationUnit(
+            'B', GeoUtils.getGeometryFromCoordinatesAndType(POINT, "[11.0, 11.0]"));
+    OrganisationUnit withoutGeometry = createOrganisationUnit('C');
+    manager.save(withGeometryA);
+    manager.save(withGeometryB);
+    manager.save(withoutGeometry);
+
+    OrganisationUnitQueryParams geometryOnly = new OrganisationUnitQueryParams();
+    geometryOnly.setGeometryOnly(true);
+    List<OrganisationUnit> filtered = organisationUnitStore.getOrganisationUnits(geometryOnly);
+
+    assertTrue(filtered.contains(withGeometryA), "unit with geometry should be returned");
+    assertTrue(filtered.contains(withGeometryB), "unit with geometry should be returned");
+    assertFalse(filtered.contains(withoutGeometry), "unit without geometry should be filtered out");
+
+    OrganisationUnitQueryParams unfiltered = new OrganisationUnitQueryParams();
+    List<OrganisationUnit> all = organisationUnitStore.getOrganisationUnits(unfiltered);
+    assertTrue(
+        all.contains(withoutGeometry),
+        "null-geometry unit must still be returned when geometryOnly is off");
+  }
+
   private List<OrganisationUnit> getOUsFromPointToDistance(Geometry point, long distance) {
     double[] box = GeoUtils.getBoxShape(point.getCoordinate().x, point.getCoordinate().y, distance);
     return organisationUnitStore.getWithinCoordinateArea(box);

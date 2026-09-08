@@ -76,9 +76,9 @@ public abstract class DeliveryChannelStrategy {
     for (TrackedEntityAttributeValue value : attributeValues) {
       if (value != null
           && value.getAttribute().getValueType().equals(type)
-          && value.getPlainValue() != null
-          && !value.getPlainValue().trim().isEmpty()) {
-        return value.getPlainValue();
+          && value.getValue() != null
+          && !value.getValue().trim().isEmpty()) {
+        return value.getValue();
       }
     }
 

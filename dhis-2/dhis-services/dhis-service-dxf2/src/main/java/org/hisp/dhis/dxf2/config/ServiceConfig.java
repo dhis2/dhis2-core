@@ -36,6 +36,7 @@ import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import com.google.common.base.Functions;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -67,9 +68,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 
 /**
  * @author Luciano Fiandesio
@@ -98,18 +98,25 @@ public class ServiceConfig {
 
   @Bean
   public RetryTemplate retryTemplate() {
-    ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+    // spring-retry SimpleRetryPolicy(maxAttempts) counted total attempts (incl. first).
+    // Spring Framework 7 RetryPolicy.maxRetries counts retries after the first attempt.
+    int configuredMaxAttempts = Integer.parseInt((String) maxAttempts.getObject());
+    long maxRetries = Math.max(0L, configuredMaxAttempts - 1L);
+    long initialDelayMs = Long.parseLong((String) initialInterval.getObject());
 
-    backOffPolicy.setInitialInterval(Long.parseLong((String) initialInterval.getObject()));
+    // The builder constructs an ExponentialBackOff internally; a custom BackOff instance
+    // must not be combined with maxRetries/delay/multiplier/maxDelay (throws at build()).
+    // Multiplier 2.0 and max delay 30s match the spring-retry ExponentialBackOffPolicy
+    // defaults the previous implementation relied on.
+    RetryPolicy retryPolicy =
+        RetryPolicy.builder()
+            .maxRetries(maxRetries)
+            .delay(Duration.ofMillis(initialDelayMs))
+            .multiplier(2.0)
+            .maxDelay(Duration.ofSeconds(30))
+            .build();
 
-    SimpleRetryPolicy simpleRetryPolicy =
-        new SimpleRetryPolicy(Integer.parseInt((String) maxAttempts.getObject()));
-
-    RetryTemplate retryTemplate = new RetryTemplate();
-    retryTemplate.setBackOffPolicy(backOffPolicy);
-    retryTemplate.setRetryPolicy(simpleRetryPolicy);
-
-    return retryTemplate;
+    return new RetryTemplate(retryPolicy);
   }
 
   @Bean
