@@ -40,6 +40,14 @@ import static org.hisp.dhis.test.TestBase.createLegendSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -47,10 +55,22 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
+import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.LocalCache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
@@ -60,6 +80,7 @@ import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -211,6 +232,112 @@ class EventAggregateServiceTest {
     assertEquals("pe", headers.get(0).getName());
     assertEquals(ColumnHeader.REGISTRATION_OU.getItem(), headers.get(1).getName());
     assertEquals(VALUE_ID, headers.get(2).getName());
+  }
+
+  @Test
+  void shouldCacheRegistrationOuSelectionsAndOutputShapesIndependently() {
+    AnalyticsCacheSettings cacheSettings = mock(AnalyticsCacheSettings.class);
+    when(cacheSettings.isCachingEnabled()).thenReturn(true);
+    when(cacheSettings.fixedExpirationTimeOrDefault()).thenReturn(60L);
+    CacheProvider cacheProvider = mock(CacheProvider.class);
+    SimpleCacheBuilder<Grid> cacheBuilder = new SimpleCacheBuilder<>();
+    cacheBuilder.expireAfterWrite(1L, TimeUnit.MINUTES);
+    when(cacheProvider.<Grid>createAnalyticsCache()).thenReturn(new LocalCache<>(cacheBuilder));
+    AnalyticsCache cache = new AnalyticsCache(cacheProvider, cacheSettings);
+
+    EventAnalyticsManager manager = mock(EventAnalyticsManager.class);
+    EventQueryPlanner planner = mock(EventQueryPlanner.class);
+    AnalyticsSecurityManager security = mock(AnalyticsSecurityManager.class);
+    MetadataItemsHandler metadata = mock(MetadataItemsHandler.class);
+    when(security.withUserConstraints(any(EventQueryParams.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(planner.planAggregateQuery(any()))
+        .thenAnswer(invocation -> List.of(invocation.getArgument(0, EventQueryParams.class)));
+
+    OrganisationUnit bo = createOrganisationUnit('A');
+    bo.setUid("O6uvpzGd5pu");
+    bo.setName("Bo");
+    OrganisationUnit bombali = createOrganisationUnit('B');
+    bombali.setUid("fdc6uOvgoji");
+    bombali.setName("Bombali");
+    Map<String, String> counts = Map.of(bo.getUid(), "1", bombali.getUid(), "2");
+
+    when(manager.getAggregatedEventData(any(), any(), anyInt()))
+        .thenAnswer(
+            invocation -> {
+              EventQueryParams params = invocation.getArgument(0);
+              Grid grid = invocation.getArgument(1);
+              OrganisationUnit ou = params.getAllRegistrationOuItems().get(0);
+              grid.addRow().addValue("2022");
+              if (params.hasRegistrationOuDimension()) {
+                grid.addValue(ou.getUid());
+              }
+              grid.addValue(counts.get(ou.getUid()));
+              return grid;
+            });
+    doAnswer(
+            invocation -> {
+              Grid grid = invocation.getArgument(0);
+              EventQueryParams params = invocation.getArgument(1);
+              OrganisationUnit ou = params.getAllRegistrationOuItems().get(0);
+              grid.getMetaData()
+                  .put(AnalyticsMetaDataKey.ITEMS.getKey(), Map.of(ou.getUid(), ou.getName()));
+              return null;
+            })
+        .when(metadata)
+        .addMetadata(any(), any(), anyList());
+
+    EventAggregateService cachedService =
+        new EventAggregateService(
+            null,
+            null,
+            manager,
+            null,
+            null,
+            planner,
+            cache,
+            security,
+            mock(EventQueryValidator.class),
+            metadata,
+            mock(SchemeIdHandler.class));
+
+    List<EventQueryParams> requests = new ArrayList<>();
+    for (boolean dimension : List.of(true, false)) {
+      for (OrganisationUnit ou : List.of(bo, bombali)) {
+        EventQueryParams.Builder builder =
+            new EventQueryParams.Builder()
+                .withPeriods(List.of(PeriodDimension.of("2022")), "yearly");
+        requests.add(
+            (dimension
+                    ? builder.withRegistrationOuDimension(List.of(ou))
+                    : builder.withRegistrationOuFilter(List.of(ou)))
+                .build());
+      }
+    }
+
+    // Fetch each distinct response, then repeat the requests to exercise cache hits.
+    for (int pass = 0; pass < 2; pass++) {
+      for (EventQueryParams request : requests) {
+        Grid grid = cachedService.getAggregatedData(new EventQueryParams.Builder(request).build());
+        OrganisationUnit ou = request.getAllRegistrationOuItems().get(0);
+        boolean dimension = request.hasRegistrationOuDimension();
+        assertEquals(
+            dimension ? List.of("pe", "registrationou", "value") : List.of("pe", "value"),
+            grid.getHeaders().stream().map(GridHeader::getName).toList());
+        assertEquals(
+            List.of(
+                dimension
+                    ? List.of("2022", ou.getUid(), counts.get(ou.getUid()))
+                    : List.of("2022", counts.get(ou.getUid()))),
+            grid.getRows());
+        assertEquals(
+            Map.of(ou.getUid(), ou.getName()),
+            grid.getMetaData().get(AnalyticsMetaDataKey.ITEMS.getKey()));
+      }
+    }
+
+    verify(manager, times(4)).getAggregatedEventData(any(), any(), anyInt());
+    verify(metadata, times(4)).addMetadata(any(), any(), anyList());
   }
 
   private GridHeader invokeAddDimensionHeaders(EventQueryParams params) throws Exception {
