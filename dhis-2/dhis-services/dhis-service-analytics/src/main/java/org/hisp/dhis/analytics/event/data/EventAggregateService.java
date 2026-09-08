@@ -51,8 +51,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.addValues;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.generateEventDataPermutations;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.getAggregatedEventDataMapping;
-import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
-import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getOrgUnitLabel;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
@@ -112,7 +111,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.Timer;
@@ -408,23 +406,6 @@ public class EventAggregateService {
 
   private String toDateFieldKey(String dateField) {
     return dateField.toLowerCase().replace("_", "");
-  }
-
-  private String getDateFieldLabel(String dateField, Program program) {
-    return switch (dateField) {
-      case "ENROLLMENT_DATE" -> getEnrollmentDateLabel(program, toDateFieldDisplayName(dateField));
-      case "INCIDENT_DATE" -> getIncidentDateLabel(program, toDateFieldDisplayName(dateField));
-      default -> toDateFieldDisplayName(dateField);
-    };
-  }
-
-  private String toDateFieldDisplayName(String dateField) {
-    String[] parts = dateField.toLowerCase().split("_");
-    if (parts.length == 0) {
-      return dateField;
-    }
-    parts[0] = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
-    return String.join(" ", parts);
   }
 
   private void addValueHeader(Grid grid) {

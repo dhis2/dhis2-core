@@ -34,8 +34,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
-import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
-import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
@@ -195,18 +194,6 @@ public class HeaderHelper {
 
   private static String toDateFieldKey(String dateField) {
     return dateField.toLowerCase().replace("_", "");
-  }
-
-  private static String getDateFieldLabel(String dateField, Program program) {
-    return switch (dateField) {
-      case "ENROLLMENT_DATE" -> getEnrollmentDateLabel(program, toDateFieldDisplayName(dateField));
-      case "INCIDENT_DATE" -> getIncidentDateLabel(program, toDateFieldDisplayName(dateField));
-      default -> toDateFieldDisplayName(dateField);
-    };
-  }
-
-  private static String toDateFieldDisplayName(String dateField) {
-    return MetadataItemsHandler.toDateFieldDisplayName(dateField);
   }
 
   private static GridHeader buildGridHeader(QueryItem item, HeaderBuildContext context) {
