@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -36,9 +36,22 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.util.Date;
+import lombok.Setter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
@@ -48,18 +61,32 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Stian Sandvold
  */
+@Entity
+@Table(name = "datainputperiod")
+@Setter
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0)
 public class DataInputPeriod implements EmbeddedObject {
   /** The database internal identifier for this Object. */
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "datainputperiodid")
   private int id;
 
   /** Period data must belong to */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "periodid",
+      nullable = false,
+      foreignKey = @ForeignKey(name = "fk_datainputperiod_period"))
   private Period period;
 
   /** Opening date of which data can be entered */
+  @Column(name = "openingdate")
   private Date openingDate;
 
   /** Closing date of which data can no longer be entered */
+  @Column(name = "closingdate")
   private Date closingDate;
 
   public DataInputPeriod() {}
@@ -103,10 +130,6 @@ public class DataInputPeriod implements EmbeddedObject {
     return id;
   }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
   @JsonProperty
   @JsonSerialize(using = JacksonPeriodSerializer.class)
   @JsonDeserialize(using = JacksonPeriodDeserializer.class)
@@ -115,28 +138,16 @@ public class DataInputPeriod implements EmbeddedObject {
     return period;
   }
 
-  public void setPeriod(Period period) {
-    this.period = period;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(localName = "openingDate", namespace = DxfNamespaces.DXF_2_0)
   public Date getOpeningDate() {
     return openingDate;
   }
 
-  public void setOpeningDate(Date openingDate) {
-    this.openingDate = openingDate;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(localName = "closingDate", namespace = DxfNamespaces.DXF_2_0)
   public Date getClosingDate() {
     return closingDate;
-  }
-
-  public void setClosingDate(Date closingDate) {
-    this.closingDate = closingDate;
   }
 
   @Override

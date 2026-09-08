@@ -767,8 +767,30 @@ public class DataSet extends BaseMetadataObject
     return dataSetElements;
   }
 
+  /**
+   * Assigns the {@code dataSetElements} field directly (never clear-and-repopulate the existing
+   * collection instance) — Hibernate's own {@code PojoEntityTuplizer} calls this setter
+   * internally, via reflection, to install its tracked {@code PersistentSet} wrapper during
+   * {@code session.save()}/{@code flush()}. A setter that mutates the pre-existing collection
+   * in place instead of accepting the new reference leaves the entity's field pointing at the
+   * old (un-wrapped) collection while Hibernate's persistence context believes the new wrapper
+   * was installed, which throws {@code "A collection with cascade=all-delete-orphan was no
+   * longer referenced by the owning entity instance"} on the next flush.
+   *
+   * <p>Since {@code dataSetElements} is the inverse ({@code mappedBy}) side of the relationship,
+   * each incoming element's owning {@code dataSet} reference is also pointed back at this
+   * instance — Hibernate persists the foreign key from {@link DataSetElement#getDataSet()}, not
+   * from collection membership alone, so without this a data set element added via this setter
+   * (e.g. during metadata import) would be inserted with a null {@code datasetid} and never
+   * actually resolve as belonging to this data set.
+   */
   public void setDataSetElements(Set<DataSetElement> dataSetElements) {
     this.dataSetElements = dataSetElements;
+    if (dataSetElements != null) {
+      for (DataSetElement element : dataSetElements) {
+        element.setDataSet(this);
+      }
+    }
   }
 
   @JsonProperty
