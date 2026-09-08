@@ -455,9 +455,11 @@ public enum ConfigurationKey {
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
   /**
-   * Maximum number of seconds a tracker export request may spend querying the database before it is
-   * canceled and the request fails with 504. The budget is shared by all queries of one request.
-   * {@code 0} disables the timeout. (default: 0)
+   * Maximum number of seconds a tracker export request may spend running queries before they are
+   * canceled and the request fails with 504. The budget is shared by all queries of one request but
+   * covers only the time they run, not the wait for a connection, which the pool bounds separately
+   * via {@code connection.pool.timeout} and answers with a 503. {@code 0} disables the timeout.
+   * (default: 0)
    *
    * <p>Because the underlying JDBC timeout has whole second granularity and the remaining budget is
    * rounded up, a request can take up to one second longer than this value.
