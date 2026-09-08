@@ -248,7 +248,7 @@ public class DefaultPeriodService implements PeriodService {
   @IndirectTransactional
   public boolean updatePeriodTypeLabel(
       @Nonnull PeriodTypeEnum name, @Nonnull Collection<Translation> translations) {
-    translations.forEach(t -> PERIOD_TYPES_CACHE.remove(t.getLocale()));
+    PERIOD_TYPES_CACHE.clear();
     return periodTypeStore.updateLabel(name, translations);
   }
 
@@ -256,29 +256,21 @@ public class DefaultPeriodService implements PeriodService {
   @IndirectTransactional
   public boolean updatePeriodTypeLabel(
       @Nonnull PeriodTypeEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
-    if (locale != null) {
-      PERIOD_TYPES_CACHE.remove(locale);
-    } else {
-      PERIOD_TYPES_CACHE.clear();
-    }
+    PERIOD_TYPES_CACHE.clear();
     return periodTypeStore.updateLabel(name, label, locale);
   }
 
   @Override
   public boolean updateRelativePeriodLabel(
       @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations) {
-    translations.forEach(t -> PERIOD_TYPES_CACHE.remove(t.getLocale()));
+    PERIOD_TYPES_CACHE.clear();
     return relativePeriodStore.updateLabel(name, translations);
   }
 
   @Override
   public boolean updateRelativePeriodLabel(
       @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
-    if (locale != null) {
-      PERIOD_TYPES_CACHE.remove(locale);
-    } else {
-      PERIOD_TYPES_CACHE.clear();
-    }
+    PERIOD_TYPES_CACHE.clear();
     return relativePeriodStore.updateLabel(name, label, locale);
   }
 

@@ -98,12 +98,7 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
               if (pk != null) {
                 return pk;
               }
-              session
-                  .createNativeQuery(sql2)
-                  // PeriodType, not the store's own Period
-                  .addSynchronizedEntityClass(PeriodType.class)
-                  .setParameter("name", name)
-                  .executeUpdate();
+              session.createNativeQuery(sql2).setParameter("name", name).executeUpdate();
               return session.createNativeQuery("SELECT lastval()").uniqueResult();
             });
     if (id instanceof Number n) {
@@ -138,11 +133,11 @@ public class HibernatePeriodTypeStore extends HibernateGenericStore<PeriodType>
     String sql =
         """
       UPDATE periodtype
-      SET translations = (
+      SET translations = COALESCE((
         SELECT jsonb_agg(elem)
         FROM jsonb_array_elements(translations) AS elem
         WHERE elem->>'locale' <> :locale
-      )
+      ), cast('[]' as jsonb))
       WHERE name = :name""";
     boolean erased =
         runAutoJoinTransaction(

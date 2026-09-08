@@ -41,6 +41,8 @@ import org.hisp.dhis.translation.Translation;
 
 public interface RelativePeriodStore {
 
+  void addRelativePeriod(RelativePeriodEnum name);
+
   /**
    * Updates the label of the given relative period.
    *

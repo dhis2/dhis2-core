@@ -39,6 +39,7 @@ import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.period.PeriodTypeStore;
+import org.hisp.dhis.period.RelativePeriodStore;
 import org.hisp.dhis.scheduling.JobScheduler;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.startup.ConfigurationPopulator;
@@ -58,8 +59,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class StartupConfig {
   @Bean("org.hisp.dhis.period.PeriodTypePopulator")
-  public PeriodTypePopulator periodTypePopulator(PeriodTypeStore periodTypeStore) {
-    PeriodTypePopulator populator = new PeriodTypePopulator(periodTypeStore);
+  public PeriodTypePopulator periodTypePopulator(
+      PeriodTypeStore periodTypeStore, RelativePeriodStore relativePeriodStore) {
+    PeriodTypePopulator populator = new PeriodTypePopulator(periodTypeStore, relativePeriodStore);
     populator.setName("PeriodTypePopulator");
     populator.setRunlevel(3);
     return populator;

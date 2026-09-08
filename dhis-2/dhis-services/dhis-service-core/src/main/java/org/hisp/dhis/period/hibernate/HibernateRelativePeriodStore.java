@@ -69,6 +69,18 @@ public class HibernateRelativePeriodStore implements RelativePeriodStore {
   }
 
   @Override
+  public void addRelativePeriod(RelativePeriodEnum name) {
+    String sql =
+        """
+        INSERT INTO relativeperiod (name)
+        VALUES (:name)
+        ON CONFLICT (name) DO NOTHING""";
+    runAutoJoinTransaction(
+        session ->
+            session.createNativeQuery(sql).setParameter("name", name.name()).executeUpdate());
+  }
+
+  @Override
   public boolean updateLabel(
       @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
     if (locale == null) {
@@ -92,11 +104,11 @@ public class HibernateRelativePeriodStore implements RelativePeriodStore {
     String sql =
         """
       UPDATE relativeperiod
-      SET translations = (
+      SET translations = COALESCE((
         SELECT jsonb_agg(elem)
         FROM jsonb_array_elements(translations) AS elem
         WHERE elem->>'locale' <> :locale
-      )
+      ), cast('[]' as jsonb))
       WHERE name = :name""";
     boolean erased =
         runAutoJoinTransaction(
