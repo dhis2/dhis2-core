@@ -268,6 +268,10 @@
             <ignoredUnusedDeclaredDependency>org.ehcache:ehcache</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
+          <ignoredNonTestScopedDependencies combine.children="append">
+            <!-- Required at runtime by Hibernate/Ehcache, even though only tests use it directly. -->
+            <ignoredNonTestScopedDependency>javax.cache:cache-api</ignoredNonTestScopedDependency>
+          </ignoredNonTestScopedDependencies>
         </configuration>
       </plugin>
     </plugins>
