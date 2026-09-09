@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.common.adapter;
 
+import java.util.Set;
+
 /**
  * This class defines metadata model property's names of {@link
  * org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help supporting type-safe
@@ -36,8 +38,19 @@ package org.hisp.dhis.common.adapter;
  * auto generated class
  */
 public class BaseIdentifiableObject_ {
+  public static final String CREATED = "created";
+  public static final String LAST_UPDATED = "lastUpdated";
   public static final String CREATED_BY = "createdBy";
   public static final String LAST_UPDATED_BY = "lastUpdatedBy";
+
+  /**
+   * The change-tracking properties declared by {@link org.hisp.dhis.common.IdentifiableObject}, as
+   * a group. Any type that is not an {@code IdentifiableObject} may declare a property of the same
+   * name holding unrelated payload, so callers filtering on these names must also check the owning
+   * object.
+   */
+  public static final Set<String> CREATED_AND_LAST_UPDATED =
+      Set.of(CREATED, LAST_UPDATED, CREATED_BY, LAST_UPDATED_BY);
 
   public static final String TRANSLATIONS = "translations";
 

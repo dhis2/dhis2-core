@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import static org.hisp.dhis.common.adapter.BaseIdentifiableObject_.CREATED_AND_LAST_UPDATED;
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -41,6 +43,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -61,15 +64,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   private final boolean skipCreatedAndLastUpdated;
   private final boolean excludeDefaults;
 
-  /**
-   * Matched on the property name alone so that these are skipped at every depth of the object
-   * graph. A {@code fields} exclusion such as {@code !created} cannot do this because exclusion
-   * paths are anchored at the root, leaving the same properties on embedded objects (for example
-   * {@code programStages[].programStageDataElements[]}) in place.
-   */
-  private static final Set<String> CREATED_AND_LAST_UPDATED_FIELDS =
-      Set.of("created", "lastUpdated", "createdBy", "lastUpdatedBy");
-
   /** Cache that contains true/false for classes that should always be expanded. */
   private static final Map<Class<?>, Boolean> ALWAYS_EXPAND_CACHE = new ConcurrentHashMap<>();
 
@@ -84,10 +78,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   }
 
   protected boolean include(final PropertyWriter writer, final JsonGenerator jgen, Object object) {
-    if (skipCreatedAndLastUpdated && CREATED_AND_LAST_UPDATED_FIELDS.contains(writer.getName())) {
-      return false;
-    }
-
     PathContext ctx = getPath(writer, jgen);
 
     if (ctx.currentValue() == null) {
@@ -106,7 +96,28 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     if (ctx.alwaysExpand()) return true;
 
+    if (skipCreatedAndLastUpdated && isCreatedOrLastUpdatedProperty(writer, object)) return false;
+
     return includePaths.contains(ctx.fullPath());
+  }
+
+  /**
+   * Only {@link IdentifiableObject} declares {@code created}/{@code lastUpdated}/{@code
+   * createdBy}/{@code lastUpdatedBy} as change metadata. Other types may expose a property of the
+   * same name carrying real payload -- {@link org.hisp.dhis.interpretation.Mention#getCreated()} is
+   * the time of the mention itself -- so the owning object is checked as well as the name.
+   *
+   * <p>Matching by name is what makes the skip reach every depth of the object graph: a {@code
+   * fields} exclusion such as {@code !created} cannot, because exclusion paths are anchored at the
+   * root and so leave the copies carried by embedded objects in place.
+   *
+   * <p>Called after the {@code alwaysExpand} check in {@link #include(PropertyWriter,
+   * JsonGenerator, Object)}, so that subtrees this filter deliberately does not reason about (maps,
+   * {@link org.hisp.dhis.scheduling.JobParameters}, {@code @JsonTypeInfo} types) stay untouched.
+   */
+  private static boolean isCreatedOrLastUpdatedProperty(PropertyWriter writer, Object object) {
+    return object instanceof IdentifiableObject
+        && CREATED_AND_LAST_UPDATED.contains(writer.getName());
   }
 
   private PathContext getPath(PropertyWriter writer, JsonGenerator jgen) {

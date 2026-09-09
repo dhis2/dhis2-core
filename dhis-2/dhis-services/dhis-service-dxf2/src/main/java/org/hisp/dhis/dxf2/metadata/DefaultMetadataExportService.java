@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -344,12 +345,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
       for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
         List<ObjectNode> objectNodes =
-            fieldFilterService.toObjectNodes(
-                FieldFilterParams.of(
-                    new ArrayList<>(metadata.get(klass)),
-                    ":owner",
-                    params.getSkipSharing(),
-                    params.isSkipCreatedAndLastUpdated()));
+            fieldFilterService.toObjectNodes(dependencyExportFields(metadata.get(klass), params));
 
         if (!objectNodes.isEmpty()) {
           String plural = schemaService.getSchema(klass).getPlural();
@@ -380,12 +376,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
     for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
       List<ObjectNode> objectNodes =
-          fieldFilterService.toObjectNodes(
-              FieldFilterParams.of(
-                  new ArrayList<>(metadata.get(klass)),
-                  ":owner",
-                  params.getSkipSharing(),
-                  params.isSkipCreatedAndLastUpdated()));
+          fieldFilterService.toObjectNodes(dependencyExportFields(metadata.get(klass), params));
 
       if (!objectNodes.isEmpty()) {
         String plural = schemaService.getSchema(klass).getPlural();
@@ -529,6 +520,19 @@ public class DefaultMetadataExportService implements MetadataExportService {
     }
 
     return params;
+  }
+
+  /**
+   * Field filter params shared by both dependency exports. These always export the owner fields --
+   * a dependency export has no {@code fields} parameter -- so only the skip flags vary.
+   */
+  private FieldFilterParams<IdentifiableObject> dependencyExportFields(
+      Collection<IdentifiableObject> objects, MetadataExportParams params) {
+    return FieldFilterParams.of(
+        new ArrayList<>(objects),
+        ":owner",
+        params.getSkipSharing(),
+        params.isSkipCreatedAndLastUpdated());
   }
 
   @Override

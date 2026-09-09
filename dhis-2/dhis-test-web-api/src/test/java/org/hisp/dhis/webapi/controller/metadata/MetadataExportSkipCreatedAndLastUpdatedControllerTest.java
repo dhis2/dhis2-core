@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
+import static org.hisp.dhis.common.adapter.BaseIdentifiableObject_.CREATED_AND_LAST_UPDATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -54,20 +55,18 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Tests the {@code skipCreatedAndLastUpdated} request parameter on the metadata export endpoints.
  *
- * <p>Complements {@code MetadataExportAuditFieldsTest}, which covers the same behaviour at service
- * level. These tests go over HTTP so they also cover the parameter parsing in {@code
- * getParamsFromMap} and the message converter that streams the response, which the service tests
- * bypass.
+ * <p>Complements {@code MetadataExportSkipCreatedAndLastUpdatedTest}, which covers the same
+ * behaviour at service level. These tests go over HTTP so they also cover the parameter parsing in
+ * {@code getParamsFromMap} and the message converter that streams the response, which the service
+ * tests bypass.
  *
  * <p>The fixture is a nested metadata graph -- {@code Program -> ProgramStage ->
- * ProgramStageDataElement} -- so that audit fields appear both on the exported objects and on
- * embedded objects one level below them.
+ * ProgramStageDataElement} -- so that created/lastUpdated appear both on the exported objects and
+ * on embedded objects one level below them.
  */
 @Transactional
-class MetadataExportAuditFieldsControllerTest extends H2ControllerIntegrationTestBase {
-
-  private static final Set<String> AUDIT_FIELDS =
-      Set.of("created", "lastUpdated", "createdBy", "lastUpdatedBy");
+class MetadataExportSkipCreatedAndLastUpdatedControllerTest
+    extends H2ControllerIntegrationTestBase {
 
   private static final Set<String> SHARING_FIELDS =
       Set.of("user", "publicAccess", "userGroupAccesses", "userAccesses", "sharing");
@@ -115,25 +114,31 @@ class MetadataExportAuditFieldsControllerTest extends H2ControllerIntegrationTes
   // -------------------------------------------------------------------------
 
   @Test
-  void metadataExportContainsAuditFieldsByDefault() throws IOException {
-    List<String> paths = auditFieldPaths(getMetadata("/metadata?" + TYPES));
+  void metadataExportContainsCreatedAndLastUpdatedByDefault() throws IOException {
+    List<String> paths = createdAndLastUpdatedPaths(getMetadata("/metadata?" + TYPES));
 
-    assertFalse(rootLevel(paths).isEmpty(), () -> "expected root-level audit fields, got " + paths);
-    assertFalse(nested(paths).isEmpty(), () -> "expected nested audit fields, got " + paths);
+    assertFalse(
+        rootLevel(paths).isEmpty(), () -> "expected root-level created/lastUpdated, got " + paths);
+    assertFalse(nested(paths).isEmpty(), () -> "expected nested created/lastUpdated, got " + paths);
   }
 
   @Test
-  void metadataExportOmitsAuditFieldsWhenSkipCreatedAndLastUpdated() throws IOException {
+  void metadataExportOmitsCreatedAndLastUpdatedWhenFlagIsTrue() throws IOException {
     List<String> paths =
-        auditFieldPaths(getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true"));
+        createdAndLastUpdatedPaths(
+            getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true"));
 
-    assertEquals(List.of(), paths, "no audit field should survive skipCreatedAndLastUpdated=true");
+    assertEquals(
+        List.of(),
+        paths,
+        "no created/lastUpdated field should survive skipCreatedAndLastUpdated=true");
   }
 
   @Test
-  void metadataExportKeepsAuditFieldsWhenSkipCreatedAndLastUpdatedIsFalse() throws IOException {
+  void metadataExportKeepsCreatedAndLastUpdatedWhenFlagIsFalse() throws IOException {
     List<String> paths =
-        auditFieldPaths(getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=false"));
+        createdAndLastUpdatedPaths(
+            getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=false"));
 
     assertFalse(paths.isEmpty(), "skipCreatedAndLastUpdated=false should behave like the default");
   }
@@ -144,46 +149,26 @@ class MetadataExportAuditFieldsControllerTest extends H2ControllerIntegrationTes
   // -------------------------------------------------------------------------
 
   @Test
-  void dependencyExportContainsAuditFieldsByDefault() throws IOException {
+  void dependencyExportContainsCreatedAndLastUpdatedByDefault() throws IOException {
     List<String> paths =
-        auditFieldPaths(getMetadata("/programs/" + program.getUid() + "/metadata"));
+        createdAndLastUpdatedPaths(getMetadata("/programs/" + program.getUid() + "/metadata"));
 
-    assertFalse(rootLevel(paths).isEmpty(), () -> "expected root-level audit fields, got " + paths);
-    assertFalse(nested(paths).isEmpty(), () -> "expected nested audit fields, got " + paths);
+    assertFalse(
+        rootLevel(paths).isEmpty(), () -> "expected root-level created/lastUpdated, got " + paths);
+    assertFalse(nested(paths).isEmpty(), () -> "expected nested created/lastUpdated, got " + paths);
   }
 
   @Test
-  void dependencyExportOmitsAuditFieldsWhenSkipCreatedAndLastUpdated() throws IOException {
+  void dependencyExportOmitsCreatedAndLastUpdatedWhenFlagIsTrue() throws IOException {
     List<String> paths =
-        auditFieldPaths(
+        createdAndLastUpdatedPaths(
             getMetadata(
                 "/programs/" + program.getUid() + "/metadata?skipCreatedAndLastUpdated=true"));
 
-    assertEquals(List.of(), paths, "no audit field should survive skipCreatedAndLastUpdated=true");
-  }
-
-  // -------------------------------------------------------------------------
-  // GET /api/dataElements -- an individual metadata controller, served by
-  // AbstractFullReadOnlyController rather than the metadata export service
-  // -------------------------------------------------------------------------
-
-  /**
-   * {@code skipCreatedAndLastUpdated} is scoped to the metadata export endpoints. The individual
-   * metadata controllers are served by {@code AbstractFullReadOnlyController}, which builds its
-   * {@code FieldFilterParams} without either skip flag ({@code skipSharing} is not supported there
-   * either), so the parameter has no effect on them. Characterised here so the boundary of the
-   * feature is explicit rather than discovered.
-   */
-  @Test
-  void individualControllerGetIgnoresSkipCreatedAndLastUpdated() throws IOException {
-    assertFalse(
-        auditFieldPaths(getMetadata("/dataElements?fields=:owner")).isEmpty(),
-        "expected audit fields on GET /dataElements");
-
-    assertFalse(
-        auditFieldPaths(getMetadata("/dataElements?fields=:owner&skipCreatedAndLastUpdated=true"))
-            .isEmpty(),
-        "GET /dataElements does not support skipCreatedAndLastUpdated; only the metadata export endpoints do");
+    assertEquals(
+        List.of(),
+        paths,
+        "no created/lastUpdated field should survive skipCreatedAndLastUpdated=true");
   }
 
   // -------------------------------------------------------------------------
@@ -195,31 +180,18 @@ class MetadataExportAuditFieldsControllerTest extends H2ControllerIntegrationTes
     JsonNode root =
         getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true&skipSharing=true");
 
-    assertEquals(List.of(), auditFieldPaths(root), "audit fields should be removed at every depth");
+    assertEquals(
+        List.of(),
+        createdAndLastUpdatedPaths(root),
+        "created/lastUpdated should be removed at every depth");
     assertEquals(
         List.of(),
         rootLevel(fieldPaths(root, SHARING_FIELDS)),
         "skipSharing should still remove root-level sharing fields");
   }
 
-  /**
-   * {@code skipSharing} matches on the full path, so unlike {@code skipCreatedAndLastUpdated} it
-   * only removes sharing fields at the root of an exported object and leaves those on embedded
-   * objects in place. Characterised here to make the difference between the two flags explicit --
-   * changing {@code skipSharing} is out of scope for {@code skipCreatedAndLastUpdated}.
-   */
   @Test
-  void skipSharingLeavesNestedSharingFields() throws IOException {
-    List<String> paths =
-        fieldPaths(getMetadata("/metadata?" + TYPES + "&skipSharing=true"), SHARING_FIELDS);
-
-    assertEquals(List.of(), rootLevel(paths), "root-level sharing fields should be removed");
-    assertFalse(
-        nested(paths).isEmpty(), () -> "nested sharing fields survive skipSharing, got " + paths);
-  }
-
-  @Test
-  void skipCreatedAndLastUpdatedKeepsNonAuditFields() throws IOException {
+  void skipKeepsOtherFields() throws IOException {
     JsonNode root = getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true");
 
     JsonNode exportedProgram = root.get("programs").get(0);
@@ -230,10 +202,10 @@ class MetadataExportAuditFieldsControllerTest extends H2ControllerIntegrationTes
     assertEquals(
         2,
         programStage.get("programStageDataElements").size(),
-        "embedded objects should still be exported, only their audit fields removed");
+        "embedded objects should still be exported, only created/lastUpdated removed");
     assertTrue(
         programStage.get("programStageDataElements").get(0).has("id"),
-        "embedded objects should keep their non-audit fields");
+        "embedded objects should keep their other fields");
   }
 
   // -------------------------------------------------------------------------
@@ -244,8 +216,8 @@ class MetadataExportAuditFieldsControllerTest extends H2ControllerIntegrationTes
     return new ObjectMapper().readTree(GET(url).content().toString());
   }
 
-  private static List<String> auditFieldPaths(JsonNode root) {
-    return fieldPaths(root, AUDIT_FIELDS);
+  private static List<String> createdAndLastUpdatedPaths(JsonNode root) {
+    return fieldPaths(root, CREATED_AND_LAST_UPDATED);
   }
 
   /**

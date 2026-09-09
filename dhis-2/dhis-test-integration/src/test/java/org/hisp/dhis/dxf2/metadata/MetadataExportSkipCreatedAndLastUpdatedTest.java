@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.common.adapter.BaseIdentifiableObject_.CREATED_AND_LAST_UPDATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,33 +46,28 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests that the audit fields {@code created}, {@code lastUpdated}, {@code createdBy} and {@code
- * lastUpdatedBy} can be excluded from every metadata export path via {@code
- * skipCreatedAndLastUpdated}.
+ * Tests that {@code created}, {@code lastUpdated}, {@code createdBy} and {@code lastUpdatedBy} can
+ * be excluded from every metadata export path via {@code skipCreatedAndLastUpdated}.
  *
  * <p>The fixture is a nested metadata graph -- {@code Program -> ProgramStage ->
  * ProgramStageDataElement} -- because {@link ProgramStage#getProgramStageDataElements()} holds
- * {@code EmbeddedObject}s that are serialised inline and carry their own audit fields. Audit fields
+ * {@code EmbeddedObject}s that are serialised inline and carry their own copies of them. They
  * therefore appear at two different depths, which the tests below assert on separately.
  */
 @Transactional
-class MetadataExportAuditFieldsTest extends PostgresIntegrationTestBase {
-
-  private static final Set<String> AUDIT_FIELDS =
-      Set.of("created", "lastUpdated", "createdBy", "lastUpdatedBy");
-
-  private static final List<String> AUDIT_FIELD_EXCLUSIONS =
-      List.of(":owner", "!created", "!lastUpdated", "!createdBy", "!lastUpdatedBy");
+class MetadataExportSkipCreatedAndLastUpdatedTest extends PostgresIntegrationTestBase {
 
   @Autowired private MetadataExportService metadataExportService;
 
@@ -99,7 +95,7 @@ class MetadataExportAuditFieldsTest extends PostgresIntegrationTestBase {
     programStage.setProgram(program);
     programStage.setCreatedBy(user);
     programStage.setLastUpdatedBy(user);
-    // the embedded objects are what produce audit fields at a nested depth
+    // the embedded objects are what produce these properties at a nested depth
     programStage
         .getProgramStageDataElements()
         .forEach(
@@ -132,54 +128,37 @@ class MetadataExportAuditFieldsTest extends PostgresIntegrationTestBase {
   }
 
   // -------------------------------------------------------------------------
-  // Baseline: the audit fields are present today, at both depths
+  // Baseline: the properties are present today, at both depths
   // -------------------------------------------------------------------------
 
   @Test
-  void auditFieldsArePresentAtRootAndNestedDepthByDefault() throws IOException {
-    List<String> paths = auditFieldPaths(export(params()));
+  void createdAndLastUpdatedArePresentAtRootAndNestedDepthByDefault() throws IOException {
+    List<String> paths = createdAndLastUpdatedPaths(export(params()));
 
-    assertFalse(paths.isEmpty(), "expected audit fields in a default export");
+    assertFalse(paths.isEmpty(), "expected created/lastUpdated in a default export");
     assertFalse(
-        rootLevel(paths).isEmpty(), () -> "expected root-level audit fields, found " + paths);
+        rootLevel(paths).isEmpty(),
+        () -> "expected root-level created/lastUpdated, found " + paths);
     assertFalse(
         nested(paths).isEmpty(),
-        () -> "expected nested audit fields on programStageDataElements, found " + paths);
+        () -> "expected nested created/lastUpdated on programStageDataElements, found " + paths);
     assertTrue(
-        AUDIT_FIELDS.stream().allMatch(f -> paths.stream().anyMatch(p -> p.endsWith("." + f))),
-        () -> "expected all four audit fields to occur somewhere, found " + paths);
+        CREATED_AND_LAST_UPDATED.stream()
+            .allMatch(f -> paths.stream().anyMatch(p -> p.endsWith("." + f))),
+        () -> "expected all four properties to occur somewhere, found " + paths);
   }
 
   @Test
-  void auditFieldsArePresentAtRootAndNestedDepthInDependencyExportByDefault() throws IOException {
-    List<String> paths = auditFieldPaths(exportWithDependencies(params()));
+  void createdAndLastUpdatedArePresentInDependencyExportByDefault() throws IOException {
+    List<String> paths = createdAndLastUpdatedPaths(exportWithDependencies(params()));
 
-    assertFalse(paths.isEmpty(), "expected audit fields in a default dependency export");
+    assertFalse(paths.isEmpty(), "expected created/lastUpdated in a default dependency export");
     assertFalse(
-        rootLevel(paths).isEmpty(), () -> "expected root-level audit fields, found " + paths);
-    assertFalse(
-        nested(paths).isEmpty(),
-        () -> "expected nested audit fields on programStageDataElements, found " + paths);
-  }
-
-  /**
-   * Characterises why a {@code fields} based exclusion is not sufficient: exclusion paths are
-   * anchored at the root, so {@code !created} removes {@code programStages[0].created} but leaves
-   * {@code programStages[0].programStageDataElements[0].created} untouched.
-   */
-  @Test
-  void rootAnchoredFieldsExclusionLeavesNestedAuditFields() throws IOException {
-    MetadataExportParams params = params();
-    params.setDefaultFields(new ArrayList<>(AUDIT_FIELD_EXCLUSIONS));
-
-    List<String> paths = auditFieldPaths(export(params));
-
-    assertEquals(
-        List.of(), rootLevel(paths), "root-level audit fields should be removed by !field syntax");
+        rootLevel(paths).isEmpty(),
+        () -> "expected root-level created/lastUpdated, found " + paths);
     assertFalse(
         nested(paths).isEmpty(),
-        "nested audit fields survive a root-anchored exclusion, which is why skipCreatedAndLastUpdated "
-            + "cannot be implemented via defaultFields alone");
+        () -> "expected nested created/lastUpdated on programStageDataElements, found " + paths);
   }
 
   // -------------------------------------------------------------------------
@@ -187,31 +166,32 @@ class MetadataExportAuditFieldsTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
 
   @Test
-  void skipCreatedAndLastUpdatedRemovesAuditFieldsFromMetadataExport() throws IOException {
+  void skipRemovesCreatedAndLastUpdatedFromMetadataExport() throws IOException {
     MetadataExportParams params = params();
     params.setSkipCreatedAndLastUpdated(true);
 
-    List<String> paths = auditFieldPaths(export(params));
+    List<String> paths = createdAndLastUpdatedPaths(export(params));
 
-    assertEquals(List.of(), paths, "no audit field should survive skipCreatedAndLastUpdated");
+    assertEquals(
+        List.of(), paths, "no created/lastUpdated field should survive skipCreatedAndLastUpdated");
   }
 
   @Test
-  void skipCreatedAndLastUpdatedRemovesAuditFieldsFromDependencyExport() throws IOException {
+  void skipRemovesCreatedAndLastUpdatedFromDependencyExport() throws IOException {
     MetadataExportParams params = params();
     params.setSkipCreatedAndLastUpdated(true);
 
-    List<String> paths = auditFieldPaths(exportWithDependencies(params));
+    List<String> paths = createdAndLastUpdatedPaths(exportWithDependencies(params));
 
     assertEquals(
         List.of(),
         paths,
-        "no audit field should survive skipCreatedAndLastUpdated on the dependency export, which hard-codes "
+        "no created/lastUpdated field should survive skipCreatedAndLastUpdated on the dependency export, which hard-codes "
             + "\":owner\" and never consults defaultFields");
   }
 
   @Test
-  void skipCreatedAndLastUpdatedKeepsNonAuditFields() throws IOException {
+  void skipKeepsOtherFields() throws IOException {
     MetadataExportParams params = params();
     params.setSkipCreatedAndLastUpdated(true);
 
@@ -223,7 +203,42 @@ class MetadataExportAuditFieldsTest extends PostgresIntegrationTestBase {
     assertEquals(
         2,
         programStage.get("programStageDataElements").size(),
-        "embedded objects should still be exported, only their audit fields removed");
+        "embedded objects should still be exported, only created/lastUpdated removed");
+  }
+
+  /**
+   * {@code Mention} is not an {@link org.hisp.dhis.common.IdentifiableObject} and its {@code
+   * created} holds the time of the mention itself. A property that merely shares a name with one of
+   * the four must therefore survive the flag.
+   */
+  @Test
+  void skipCreatedAndLastUpdatedKeepsSameNamedPropertyOnNonIdentifiableObject() throws IOException {
+    User mentioned = makeUser("B");
+    manager.save(mentioned);
+
+    Visualization visualization = createVisualization('A');
+    manager.save(visualization, false);
+
+    Interpretation interpretation =
+        new Interpretation(visualization, null, "see @" + mentioned.getUsername());
+    interpretation.setMentionsFromUsers(Set.of(mentioned));
+    manager.save(interpretation, false);
+
+    MetadataExportParams params = new MetadataExportParams();
+    params.setClasses(Sets.newHashSet(Interpretation.class));
+    params.setSkipCreatedAndLastUpdated(true);
+
+    JsonNode exported = export(params).get("interpretations").get(0);
+
+    assertFalse(
+        exported.has("created"),
+        "the interpretation's own created is change metadata and should be removed");
+
+    JsonNode mention = exported.get("mentions").get(0);
+    assertTrue(
+        mention.has("created"),
+        "Mention.created is payload rather than change metadata and must survive the flag");
+    assertEquals(mentioned.getUsername(), mention.get("username").asText());
   }
 
   // -------------------------------------------------------------------------
@@ -231,36 +246,37 @@ class MetadataExportAuditFieldsTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
 
   /**
-   * Collects the dotted path of every audit field occurrence in an export, e.g. {@code
+   * Collects the dotted path of every occurrence of the four properties in an export, e.g. {@code
    * programStages[0].created} and {@code
-   * programStages[0].programStageDataElements[0].lastUpdatedBy}. Recursion stops at an audit field
-   * so a {@code createdBy} user object is reported once rather than once per nested property.
+   * programStages[0].programStageDataElements[0].lastUpdatedBy}. Recursion stops at a match so a
+   * {@code createdBy} user object is reported once rather than once per nested property.
    */
-  private static List<String> auditFieldPaths(JsonNode root) {
+  private static List<String> createdAndLastUpdatedPaths(JsonNode root) {
     List<String> found = new ArrayList<>();
     for (Iterator<Map.Entry<String, JsonNode>> it = root.fields(); it.hasNext(); ) {
       Map.Entry<String, JsonNode> type = it.next();
       if (!"system".equals(type.getKey())) {
-        collectAuditFieldPaths(type.getValue(), type.getKey(), found);
+        collectCreatedAndLastUpdatedPaths(type.getValue(), type.getKey(), found);
       }
     }
     return found.stream().sorted().toList();
   }
 
-  private static void collectAuditFieldPaths(JsonNode node, String path, List<String> found) {
+  private static void collectCreatedAndLastUpdatedPaths(
+      JsonNode node, String path, List<String> found) {
     if (node.isObject()) {
       for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext(); ) {
         Map.Entry<String, JsonNode> field = it.next();
         String childPath = path + "." + field.getKey();
-        if (AUDIT_FIELDS.contains(field.getKey())) {
+        if (CREATED_AND_LAST_UPDATED.contains(field.getKey())) {
           found.add(childPath);
         } else {
-          collectAuditFieldPaths(field.getValue(), childPath, found);
+          collectCreatedAndLastUpdatedPaths(field.getValue(), childPath, found);
         }
       }
     } else if (node.isArray()) {
       for (int i = 0; i < node.size(); i++) {
-        collectAuditFieldPaths(node.get(i), path + "[" + i + "]", found);
+        collectCreatedAndLastUpdatedPaths(node.get(i), path + "[" + i + "]", found);
       }
     }
   }

@@ -186,8 +186,7 @@ public class FieldFilterService {
     return toObjectNodes(objects, paths, user, isSkipSharing, false);
   }
 
-  @Transactional(readOnly = true)
-  public <T> List<ObjectNode> toObjectNodes(
+  private <T> List<ObjectNode> toObjectNodes(
       List<T> objects,
       List<FieldPath> paths,
       UserDetails user,
