@@ -205,24 +205,6 @@ public abstract class PeriodType implements Serializable {
   }
 
   /**
-   * Get period type according to natural order order.
-   *
-   * @param index the index of the period type with base 1
-   * @return period type according to index order or null if no match TODO: Consider manual
-   *     ordering, since relying on natural order might create problems if new periods are
-   *     introduced.
-   */
-  public static PeriodType getByIndex(int index) {
-    index -= 1;
-
-    if (index < 0 || index > PERIOD_TYPES.size() - 1) {
-      return null;
-    }
-
-    return PERIOD_TYPES.get(index);
-  }
-
-  /**
    * Returns a list of periods for each of the available period types defined by {@link
    * PeriodType#PERIOD_TYPES} in matching order relative to the given period.
    *
