@@ -79,9 +79,9 @@ public final class OAuth2Constants {
 
   /**
    * Server-side default scopes assigned to DCR-registered clients when the registration omits
-   * scopes. Spring Authorization Server 7 forbids client-supplied {@code scope} on DCR requests, so
-   * these are the only scopes a DCR client gets. Matches the Android reference client's authorize
-   * scopes; deliberately excludes {@code email} (PR-H decision D3).
+   * scopes. Spring Authorization Server 1.5.8 forbids client-supplied {@code scope} on DCR
+   * requests, so these are the only scopes a DCR client gets. Matches the Android reference
+   * client's authorize scopes; deliberately excludes {@code email} (PR-H decision D3).
    */
   public static final List<String> DCR_DEFAULT_SCOPES =
       List.of(SCOPE_OPENID, SCOPE_PROFILE, SCOPE_USERNAME);
