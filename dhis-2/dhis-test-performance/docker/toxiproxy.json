@@ -1,0 +1,8 @@
+[
+  {
+    "name": "dhis2_minio",
+    "listen": "[::]:18081",
+    "upstream": "minio:9000",
+    "enabled": true
+  }
+]

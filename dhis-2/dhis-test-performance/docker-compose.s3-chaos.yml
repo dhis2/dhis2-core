@@ -1,0 +1,66 @@
+# Overlay that puts a MinIO object store behind a toxiproxy, so the tracker file and image
+# endpoints can be made slow or unreachable on demand. Used to manually verify that
+# tracker.export.timeout bounds the object store fetch (DHIS2-21390).
+#
+# Not part of a normal performance run. See README.md, "Testing the S3 timeout manually".
+#
+#   docker compose -f docker-compose.yml -f docker-compose.s3-chaos.yml up -d
+services:
+  web:
+    volumes:
+      - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
+      - ./docker/dhis-s3-chaos.conf:/opt/dhis2/dhis.conf:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      minio-create-user:
+        condition: service_completed_successfully
+
+  # DHIS2 reaches MinIO only through this, so a toxic here is a toxic on every object store call.
+  # The database stays on a direct connection: this is about bounding the file fetch, not the
+  # queries ahead of it.
+  proxy:
+    image: ghcr.io/shopify/toxiproxy
+    command: --config /toxiproxy.json
+    volumes:
+      - ./docker/toxiproxy.json:/toxiproxy.json:ro
+    ports:
+      - "127.0.0.1:8474:8474" # toxiproxy API
+
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9090"
+    ports:
+      - "127.0.0.1:9000:9000" # MinIO API, bypasses the proxy
+      - "127.0.0.1:9090:9090" # MinIO console
+    volumes:
+      - minio:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      MINIO_ROOT_USER: &minio_root_user root
+      MINIO_ROOT_PASSWORD: &minio_password dhisdhis
+
+  # DHIS2 creates the bucket itself; this only creates the unprivileged user it connects as.
+  minio-create-user:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: *minio_root_user
+      MINIO_ROOT_PASSWORD: *minio_password
+      MINIO_USER: dhis
+      MINIO_PASSWORD: *minio_password
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set minio1 http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD || exit 1
+        mc admin user add minio1 $$MINIO_USER $$MINIO_PASSWORD || true
+        mc admin policy attach minio1 readwrite --user $$MINIO_USER || true
+        mc admin user info minio1 $$MINIO_USER"
+
+volumes:
+  minio:
