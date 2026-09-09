@@ -55,6 +55,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
@@ -790,9 +791,9 @@ public class CrudControllerAdvice {
 
   private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport {
     private final Class<T> enumClass;
-    private final Function<String, Object> fromText;
+    private final @CheckForNull Function<String, Object> fromText;
 
-    private ConvertEnum(Class<T> enumClass, Function<String, Object> fromText) {
+    private ConvertEnum(Class<T> enumClass, @CheckForNull Function<String, Object> fromText) {
       this.enumClass = enumClass;
       this.fromText = fromText;
     }
@@ -801,7 +802,7 @@ public class CrudControllerAdvice {
     @SuppressWarnings("unchecked")
     public void setAsText(String text) {
       Enum<T> enumValue = EnumUtils.getEnumIgnoreCase(enumClass, text);
-      if (enumValue == null) enumValue = (Enum<T>) fromText.apply(text);
+      if (enumValue == null && fromText != null) enumValue = (Enum<T>) fromText.apply(text);
       if (enumValue == null) {
         throw new IllegalArgumentException(
             MessageFormat.format(" Cannot convert {0} to {1}", text, enumClass));
