@@ -41,12 +41,9 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 public class PeriodTypePopulator extends TransactionContextStartupRoutine {
 
   private final PeriodTypeStore periodTypeStore;
-  private final RelativePeriodStore relativePeriodStore;
 
   @Override
   public void executeInTransaction() {
     PeriodType.getAvailablePeriodTypes().forEach(periodTypeStore::addPeriodType);
-    for (RelativePeriodEnum rp : RelativePeriodEnum.values())
-      relativePeriodStore.addRelativePeriod(rp);
   }
 }

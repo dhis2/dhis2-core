@@ -68,8 +68,11 @@ public class HibernateRelativePeriodStore implements RelativePeriodStore {
         dataSource, getSession().getSessionFactory(), query);
   }
 
-  @Override
-  public void addRelativePeriod(RelativePeriodEnum name) {
+  /**
+   * Creation of the row if it does not yet exist. The updates do this lazily to avoid issues with
+   * H2 testing.
+   */
+  private void addRelativePeriod(RelativePeriodEnum name) {
     String sql =
         """
         INSERT INTO relativeperiod (name)
@@ -83,6 +86,7 @@ public class HibernateRelativePeriodStore implements RelativePeriodStore {
   @Override
   public boolean updateLabel(
       @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
+    addRelativePeriod(name);
     if (locale == null) {
       String sql =
           """
@@ -143,6 +147,7 @@ public class HibernateRelativePeriodStore implements RelativePeriodStore {
   @Override
   public boolean updateLabel(
       @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations) {
+    addRelativePeriod(name);
     List<Translation> keep = translations.stream().filter(t -> isNotBlank(t.getValue())).toList();
     if (keep.isEmpty()) {
       String sql =
