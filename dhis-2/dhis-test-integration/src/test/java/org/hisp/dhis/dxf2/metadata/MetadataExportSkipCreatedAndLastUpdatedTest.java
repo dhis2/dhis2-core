@@ -39,11 +39,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -133,32 +132,27 @@ class MetadataExportSkipCreatedAndLastUpdatedTest extends PostgresIntegrationTes
 
   @Test
   void createdAndLastUpdatedArePresentAtRootAndNestedDepthByDefault() throws IOException {
-    List<String> paths = createdAndLastUpdatedPaths(export(params()));
+    JsonNode root = export(params());
+    JsonNode programStage = root.get("programStages").get(0);
 
-    assertFalse(paths.isEmpty(), "expected created/lastUpdated in a default export");
-    assertFalse(
-        rootLevel(paths).isEmpty(),
-        () -> "expected root-level created/lastUpdated, found " + paths);
-    assertFalse(
-        nested(paths).isEmpty(),
-        () -> "expected nested created/lastUpdated on programStageDataElements, found " + paths);
+    assertTrue(programStage.has("created"), "expected created on the exported object");
     assertTrue(
-        CREATED_AND_LAST_UPDATED.stream()
-            .allMatch(f -> paths.stream().anyMatch(p -> p.endsWith("." + f))),
-        () -> "expected all four properties to occur somewhere, found " + paths);
+        programStage.get("programStageDataElements").get(0).has("created"),
+        "expected created on the embedded object one level down");
+    assertEquals(
+        CREATED_AND_LAST_UPDATED,
+        remaining(root).keySet(),
+        "expected all four properties to occur somewhere in a default export");
   }
 
   @Test
   void createdAndLastUpdatedArePresentInDependencyExportByDefault() throws IOException {
-    List<String> paths = createdAndLastUpdatedPaths(exportWithDependencies(params()));
+    JsonNode programStage = exportWithDependencies(params()).get("programStages").get(0);
 
-    assertFalse(paths.isEmpty(), "expected created/lastUpdated in a default dependency export");
-    assertFalse(
-        rootLevel(paths).isEmpty(),
-        () -> "expected root-level created/lastUpdated, found " + paths);
-    assertFalse(
-        nested(paths).isEmpty(),
-        () -> "expected nested created/lastUpdated on programStageDataElements, found " + paths);
+    assertTrue(programStage.has("created"), "expected created on the exported object");
+    assertTrue(
+        programStage.get("programStageDataElements").get(0).has("created"),
+        "expected created on the embedded object one level down");
   }
 
   // -------------------------------------------------------------------------
@@ -170,10 +164,10 @@ class MetadataExportSkipCreatedAndLastUpdatedTest extends PostgresIntegrationTes
     MetadataExportParams params = params();
     params.setSkipCreatedAndLastUpdated(true);
 
-    List<String> paths = createdAndLastUpdatedPaths(export(params));
-
     assertEquals(
-        List.of(), paths, "no created/lastUpdated field should survive skipCreatedAndLastUpdated");
+        Map.of(),
+        remaining(export(params)),
+        "no created/lastUpdated field should survive skipCreatedAndLastUpdated");
   }
 
   @Test
@@ -181,13 +175,11 @@ class MetadataExportSkipCreatedAndLastUpdatedTest extends PostgresIntegrationTes
     MetadataExportParams params = params();
     params.setSkipCreatedAndLastUpdated(true);
 
-    List<String> paths = createdAndLastUpdatedPaths(exportWithDependencies(params));
-
     assertEquals(
-        List.of(),
-        paths,
-        "no created/lastUpdated field should survive skipCreatedAndLastUpdated on the dependency export, which hard-codes "
-            + "\":owner\" and never consults defaultFields");
+        Map.of(),
+        remaining(exportWithDependencies(params)),
+        "the dependency export hard-codes \":owner\" and never consults defaultFields, so the flag "
+            + "is the only thing that can remove these");
   }
 
   @Test
@@ -246,48 +238,20 @@ class MetadataExportSkipCreatedAndLastUpdatedTest extends PostgresIntegrationTes
   // -------------------------------------------------------------------------
 
   /**
-   * Collects the dotted path of every occurrence of the four properties in an export, e.g. {@code
-   * programStages[0].created} and {@code
-   * programStages[0].programStageDataElements[0].lastUpdatedBy}. Recursion stops at a match so a
-   * {@code createdBy} user object is reported once rather than once per nested property.
+   * The properties still present anywhere in an export, each mapped to the ids of the objects
+   * declaring them. {@link JsonNode#findParents(String)} descends to any depth and does not look
+   * inside a match, so embedded objects are covered and a {@code createdBy} user object is reported
+   * once.
    */
-  private static List<String> createdAndLastUpdatedPaths(JsonNode root) {
-    List<String> found = new ArrayList<>();
-    for (Iterator<Map.Entry<String, JsonNode>> it = root.fields(); it.hasNext(); ) {
-      Map.Entry<String, JsonNode> type = it.next();
-      if (!"system".equals(type.getKey())) {
-        collectCreatedAndLastUpdatedPaths(type.getValue(), type.getKey(), found);
+  private static Map<String, List<String>> remaining(JsonNode root) {
+    Map<String, List<String>> found = new TreeMap<>();
+    for (String name : CREATED_AND_LAST_UPDATED) {
+      List<String> owners =
+          root.findParents(name).stream().map(o -> o.path("id").asText("?")).toList();
+      if (!owners.isEmpty()) {
+        found.put(name, owners);
       }
     }
-    return found.stream().sorted().toList();
-  }
-
-  private static void collectCreatedAndLastUpdatedPaths(
-      JsonNode node, String path, List<String> found) {
-    if (node.isObject()) {
-      for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext(); ) {
-        Map.Entry<String, JsonNode> field = it.next();
-        String childPath = path + "." + field.getKey();
-        if (CREATED_AND_LAST_UPDATED.contains(field.getKey())) {
-          found.add(childPath);
-        } else {
-          collectCreatedAndLastUpdatedPaths(field.getValue(), childPath, found);
-        }
-      }
-    } else if (node.isArray()) {
-      for (int i = 0; i < node.size(); i++) {
-        collectCreatedAndLastUpdatedPaths(node.get(i), path + "[" + i + "]", found);
-      }
-    }
-  }
-
-  /** e.g. {@code programStages[0].created} -- one property below the exported type. */
-  private static List<String> rootLevel(List<String> paths) {
-    return paths.stream().filter(p -> p.chars().filter(c -> c == '.').count() == 1).toList();
-  }
-
-  /** e.g. {@code programStages[0].programStageDataElements[0].created}. */
-  private static List<String> nested(List<String> paths) {
-    return paths.stream().filter(p -> p.chars().filter(c -> c == '.').count() > 1).toList();
+    return found;
   }
 }

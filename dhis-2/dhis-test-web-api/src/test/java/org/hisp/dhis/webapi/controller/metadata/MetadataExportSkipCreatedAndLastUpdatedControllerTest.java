@@ -38,11 +38,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -67,9 +65,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class MetadataExportSkipCreatedAndLastUpdatedControllerTest
     extends H2ControllerIntegrationTestBase {
-
-  private static final Set<String> SHARING_FIELDS =
-      Set.of("user", "publicAccess", "userGroupAccesses", "userAccesses", "sharing");
 
   /** Selects only the types the fixture creates, to keep the exports small. */
   private static final String TYPES = "programs=true&programStages=true&dataElements=true";
@@ -115,32 +110,28 @@ class MetadataExportSkipCreatedAndLastUpdatedControllerTest
 
   @Test
   void metadataExportContainsCreatedAndLastUpdatedByDefault() throws IOException {
-    List<String> paths = createdAndLastUpdatedPaths(getMetadata("/metadata?" + TYPES));
+    JsonNode programStage = getMetadata("/metadata?" + TYPES).get("programStages").get(0);
 
-    assertFalse(
-        rootLevel(paths).isEmpty(), () -> "expected root-level created/lastUpdated, got " + paths);
-    assertFalse(nested(paths).isEmpty(), () -> "expected nested created/lastUpdated, got " + paths);
+    assertTrue(programStage.has("created"), "expected created on the exported object");
+    assertTrue(
+        programStage.get("programStageDataElements").get(0).has("created"),
+        "expected created on the embedded object one level down");
   }
 
   @Test
   void metadataExportOmitsCreatedAndLastUpdatedWhenFlagIsTrue() throws IOException {
-    List<String> paths =
-        createdAndLastUpdatedPaths(
-            getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true"));
-
     assertEquals(
-        List.of(),
-        paths,
+        Map.of(),
+        remaining(getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true")),
         "no created/lastUpdated field should survive skipCreatedAndLastUpdated=true");
   }
 
   @Test
   void metadataExportKeepsCreatedAndLastUpdatedWhenFlagIsFalse() throws IOException {
-    List<String> paths =
-        createdAndLastUpdatedPaths(
-            getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=false"));
-
-    assertFalse(paths.isEmpty(), "skipCreatedAndLastUpdated=false should behave like the default");
+    assertEquals(
+        CREATED_AND_LAST_UPDATED,
+        remaining(getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=false")).keySet(),
+        "skipCreatedAndLastUpdated=false should behave like the default");
   }
 
   // -------------------------------------------------------------------------
@@ -150,24 +141,22 @@ class MetadataExportSkipCreatedAndLastUpdatedControllerTest
 
   @Test
   void dependencyExportContainsCreatedAndLastUpdatedByDefault() throws IOException {
-    List<String> paths =
-        createdAndLastUpdatedPaths(getMetadata("/programs/" + program.getUid() + "/metadata"));
+    JsonNode programStage =
+        getMetadata("/programs/" + program.getUid() + "/metadata").get("programStages").get(0);
 
-    assertFalse(
-        rootLevel(paths).isEmpty(), () -> "expected root-level created/lastUpdated, got " + paths);
-    assertFalse(nested(paths).isEmpty(), () -> "expected nested created/lastUpdated, got " + paths);
+    assertTrue(programStage.has("created"), "expected created on the exported object");
+    assertTrue(
+        programStage.get("programStageDataElements").get(0).has("created"),
+        "expected created on the embedded object one level down");
   }
 
   @Test
   void dependencyExportOmitsCreatedAndLastUpdatedWhenFlagIsTrue() throws IOException {
-    List<String> paths =
-        createdAndLastUpdatedPaths(
-            getMetadata(
-                "/programs/" + program.getUid() + "/metadata?skipCreatedAndLastUpdated=true"));
-
     assertEquals(
-        List.of(),
-        paths,
+        Map.of(),
+        remaining(
+            getMetadata(
+                "/programs/" + program.getUid() + "/metadata?skipCreatedAndLastUpdated=true")),
         "no created/lastUpdated field should survive skipCreatedAndLastUpdated=true");
   }
 
@@ -180,13 +169,9 @@ class MetadataExportSkipCreatedAndLastUpdatedControllerTest
     JsonNode root =
         getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true&skipSharing=true");
 
-    assertEquals(
-        List.of(),
-        createdAndLastUpdatedPaths(root),
-        "created/lastUpdated should be removed at every depth");
-    assertEquals(
-        List.of(),
-        rootLevel(fieldPaths(root, SHARING_FIELDS)),
+    assertEquals(Map.of(), remaining(root), "created/lastUpdated should be removed at every depth");
+    assertFalse(
+        root.get("dataElements").get(0).has("sharing"),
         "skipSharing should still remove root-level sharing fields");
   }
 
@@ -216,53 +201,21 @@ class MetadataExportSkipCreatedAndLastUpdatedControllerTest
     return new ObjectMapper().readTree(GET(url).content().toString());
   }
 
-  private static List<String> createdAndLastUpdatedPaths(JsonNode root) {
-    return fieldPaths(root, CREATED_AND_LAST_UPDATED);
-  }
-
   /**
-   * Collects the dotted path of every occurrence of {@code names} in an export, e.g. {@code
-   * programStages[0].created} and {@code
-   * programStages[0].programStageDataElements[0].lastUpdatedBy}. Recursion stops at a match so a
-   * {@code createdBy} user object is reported once rather than once per nested property.
+   * The properties still present anywhere in a response, each mapped to the ids of the objects
+   * declaring them. {@link JsonNode#findParents(String)} descends to any depth and does not look
+   * inside a match, so embedded objects are covered and a {@code createdBy} user object is reported
+   * once.
    */
-  private static List<String> fieldPaths(JsonNode root, Set<String> names) {
-    List<String> found = new ArrayList<>();
-    for (Iterator<Map.Entry<String, JsonNode>> it = root.fields(); it.hasNext(); ) {
-      Map.Entry<String, JsonNode> type = it.next();
-      if (!"system".equals(type.getKey())) {
-        collectFieldPaths(type.getValue(), type.getKey(), names, found);
+  private static Map<String, List<String>> remaining(JsonNode root) {
+    Map<String, List<String>> found = new TreeMap<>();
+    for (String name : CREATED_AND_LAST_UPDATED) {
+      List<String> owners =
+          root.findParents(name).stream().map(o -> o.path("id").asText("?")).toList();
+      if (!owners.isEmpty()) {
+        found.put(name, owners);
       }
     }
-    return found.stream().sorted().toList();
-  }
-
-  private static void collectFieldPaths(
-      JsonNode node, String path, Set<String> names, List<String> found) {
-    if (node.isObject()) {
-      for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext(); ) {
-        Map.Entry<String, JsonNode> field = it.next();
-        String childPath = path + "." + field.getKey();
-        if (names.contains(field.getKey())) {
-          found.add(childPath);
-        } else {
-          collectFieldPaths(field.getValue(), childPath, names, found);
-        }
-      }
-    } else if (node.isArray()) {
-      for (int i = 0; i < node.size(); i++) {
-        collectFieldPaths(node.get(i), path + "[" + i + "]", names, found);
-      }
-    }
-  }
-
-  /** e.g. {@code programStages[0].created} -- one property below the exported type. */
-  private static List<String> rootLevel(List<String> paths) {
-    return paths.stream().filter(p -> p.chars().filter(c -> c == '.').count() == 1).toList();
-  }
-
-  /** e.g. {@code programStages[0].programStageDataElements[0].created}. */
-  private static List<String> nested(List<String> paths) {
-    return paths.stream().filter(p -> p.chars().filter(c -> c == '.').count() > 1).toList();
+    return found;
   }
 }

@@ -32,6 +32,7 @@ package org.hisp.dhis.fieldfiltering;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -48,7 +49,7 @@ public class FieldFilterParams<T> {
   /** Do not include sharing properties (user, sharing, publicAccess, etc). */
   private final boolean skipSharing;
 
-  /** Do not include created, lastUpdated, createdBy or lastUpdatedBy. */
+  /** Do not include {@link BaseIdentifiableObject_#CREATED_AND_LAST_UPDATED}. */
   private final boolean skipCreatedAndLastUpdated;
 
   private UserDetails user;

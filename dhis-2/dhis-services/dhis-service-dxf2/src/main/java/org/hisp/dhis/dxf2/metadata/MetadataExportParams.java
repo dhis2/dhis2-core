@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -85,8 +86,8 @@ public class MetadataExportParams {
   private boolean skipSharing;
 
   /**
-   * Indicates whether {@code created}, {@code lastUpdated}, {@code createdBy} and {@code
-   * lastUpdatedBy} should be excluded from the export, at every level of the exported object graph.
+   * Indicates whether {@link BaseIdentifiableObject_#CREATED_AND_LAST_UPDATED} should be excluded
+   * from the export, at every level of the exported object graph.
    */
   private boolean skipCreatedAndLastUpdated;
 

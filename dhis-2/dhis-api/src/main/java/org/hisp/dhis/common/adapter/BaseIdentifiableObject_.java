@@ -44,10 +44,8 @@ public class BaseIdentifiableObject_ {
   public static final String LAST_UPDATED_BY = "lastUpdatedBy";
 
   /**
-   * The change-tracking properties declared by {@link org.hisp.dhis.common.IdentifiableObject}, as
-   * a group. Any type that is not an {@code IdentifiableObject} may declare a property of the same
-   * name holding unrelated payload, so callers filtering on these names must also check the owning
-   * object.
+   * Declared by {@link org.hisp.dhis.common.IdentifiableObject}. Used with the filter flag
+   * `skipCreatedAndLastUpdated`.
    */
   public static final Set<String> CREATED_AND_LAST_UPDATED =
       Set.of(CREATED, LAST_UPDATED, CREATED_BY, LAST_UPDATED_BY);
