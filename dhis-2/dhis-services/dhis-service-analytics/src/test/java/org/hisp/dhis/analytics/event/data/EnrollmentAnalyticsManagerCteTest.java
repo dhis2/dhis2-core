@@ -1624,6 +1624,38 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(grid.getHeaders().isEmpty(), is(true));
   }
 
+  @Test
+  void verifyEnrollmentStageSortReadsTheFilterCteOfAFilterOnlyField() {
+    QueryItem filterOnlyItem = stageScopedSortItem(OCCURRED_DATE_COLUMN_NAME, ValueType.DATE);
+    filterOnlyItem.addFilter(new QueryFilter(QueryOperator.LE, "2022-01-01"));
+    QueryItem sortItem = stageScopedSortItem(OCCURRED_DATE_COLUMN_NAME, ValueType.DATE);
+
+    String generatedSql =
+        enrollmentQuerySql(params -> params.addItemFilter(filterOnlyItem).addAscSortItem(sortItem));
+
+    String key = stageCteKey(OCCURRED_DATE_COLUMN_NAME);
+    assertThat(cteDefinitionCount(generatedSql, key), is(1));
+    // The filter CTE ranks only matching events, so the predicate sits inside the ranked subquery.
+    String cteBody = cteBody(generatedSql, key);
+    assertThat(cteBody, containsString("<= '2022-01-01'"));
+    assertThat(cteBody, containsString(") ranked"));
+    // A filter CTE is joined on enrollment alone; a sort must not turn it into a ranked stage join.
+    assertThat(generatedSql, not(containsString(".rn = 1")));
+    String alias = joinAliasFor(generatedSql, "left", key);
+    assertThat(generatedSql, containsString("order by " + alias + ".value asc nulls last"));
+  }
+
+  @Test
+  void verifyEnrollmentSortOnlyStageCteKeepsTheEnrollmentPrefilter() {
+    QueryItem sortItem = stageScopedSortItem(OU_NAME_COLUMN_NAME, ValueType.ORGANISATION_UNIT);
+
+    String generatedSql = enrollmentQuerySql(params -> params.addAscSortItem(sortItem));
+
+    assertThat(
+        cteBody(generatedSql, stageCteKey(OU_COLUMN_NAME)),
+        containsString("enrollment in (select enrollment from " + getTable(programA.getUid())));
+  }
+
   /**
    * Mirrors the item {@code DefaultQueryItemLocator} produces for {@code <stage>.EVENT_DATE} etc.
    */
@@ -1673,6 +1705,20 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
       count++;
     }
     return count;
+  }
+
+  /**
+   * The body of the named CTE definition, from its {@code as (} up to the next CTE or the outer
+   * select.
+   */
+  private static String cteBody(String generatedSql, String cteKey) {
+    Matcher start = Pattern.compile(cteKey + "\\s+as\\s*\\(").matcher(generatedSql);
+    assertThat("expected CTE " + cteKey + " in: " + generatedSql, start.find(), is(true));
+    int from = start.end();
+    Matcher next =
+        Pattern.compile(",\\s*[A-Za-z0-9_]+\\s+as\\s*\\(|\\)\\s*select ").matcher(generatedSql);
+    int to = next.find(from) ? next.start() : generatedSql.length();
+    return generatedSql.substring(from, to);
   }
 
   /** The WHERE clause of the outer statement, i.e. the last one, up to ORDER BY or LIMIT. */
