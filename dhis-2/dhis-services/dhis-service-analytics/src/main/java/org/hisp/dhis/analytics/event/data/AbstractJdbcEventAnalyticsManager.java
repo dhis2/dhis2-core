@@ -949,7 +949,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         || !params.hasProgramIndicatorDimension()
             && (params.getValue() != null
                 && params.getValue().getAggregationType().isMinOrMaxInPeriodAggregationType())
-        || !params.hasNonDefaultBoundaries()
         || params.getAggregationTypeFallback().isMinOrMaxInPeriodAggregationType()) {
       return getOutputColumnNames(columns);
     }
@@ -1194,11 +1193,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     EventOutputType outputType = params.getOutputType();
 
-    AggregationType aggregationType =
-        params.getAggregationTypeFallback().getPeriodAggregationType();
+    AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
 
-    String function =
-        (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
+    String function = getAggregationFunction(aggregationType);
 
     if (!params.isAggregation()) {
       String sql = quoteAlias(params.getValue().getUid());
@@ -1209,6 +1206,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return AggregateClause.of(sql, aggregationType, "value");
     } else if (params.hasNumericValueDimension() || params.hasBooleanValueDimension()) {
       String expression = quoteAlias(params.getValue().getUid());
+      AggregationType periodAggregationType =
+          params.getAggregationTypeFallback().getPeriodAggregationType();
+
+      if (periodAggregationType.isMinOrMaxInPeriodAggregationType()) {
+        function = getAggregationFunction(periodAggregationType);
+      }
+
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
     } else if (params.hasProgramIndicatorDimension()) {
@@ -1221,6 +1225,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                   params.getProgramIndicator(),
                   params.getEarliestStartDate(),
                   params.getLatestEndDate());
+
+      AggregationType periodAggregationType =
+          params.getAggregationTypeFallback().getPeriodAggregationType();
+
+      if (periodAggregationType.isMinOrMaxInPeriodAggregationType()) {
+        function = getAggregationFunction(periodAggregationType);
+      }
 
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
@@ -1252,6 +1263,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
+  }
+
+  private String getAggregationFunction(AggregationType aggregationType) {
+    return (aggregationType == NONE || aggregationType == CUSTOM)
+        ? EMPTY
+        : aggregationType.getValue();
   }
 
   /**
