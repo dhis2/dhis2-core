@@ -391,12 +391,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (cteDef == null) {
       throw new IllegalQueryException(ErrorCode.E7148, item.getItemId());
     }
-    int offset = computeRowNumberOffset(item.getProgramStageOffset());
-    return Optional.of(cteDef.getAlias(offset) + "." + field.get().getEnrollmentCteColumn());
+    String alias =
+        cteDef.isFilter()
+            ? cteDef.getAlias()
+            : cteDef.getAlias(computeRowNumberOffset(item.getProgramStageOffset()));
+    return Optional.of(alias + "." + field.get().getEnrollmentCteColumn());
   }
 
   private static Optional<StageSortField> stageSortField(QueryItem item) {
     return item.hasProgramStage() ? StageSortField.forItemId(item.getItemId()) : Optional.empty();
+  }
+
+  private boolean hasStageSortField(EventQueryParams params) {
+    return getDistinctOrderByColumns(params).stream()
+        .anyMatch(item -> stageSortField(item).isPresent());
   }
 
   private String getProgramIndicatorColumn(CteContext cteContext, QueryItem item) {
@@ -2332,6 +2340,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (cteContext.isEnrollmentAnalytics()) {
       // Filter CTEs are only meaningful for Enrollment queries
       generateFilterCTEs(params, cteContext);
+      registerStageSortCtes(params, cteContext);
     }
 
     addEventProgramIndicatorCandidatesCte(params, cteContext);
@@ -2912,19 +2921,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     }
 
-    if (!params.isAggregatedEnrollments()) {
-      registerStageSortCtes(params, cteContext);
-    }
-
     return cteContext;
   }
 
   /**
    * Registers the stage CTE each stage-scoped sort field ({@link StageSortField}) reads from,
-   * unless a projected or filtered item already registered it. Fields sharing a CTE (e.g. {@code
-   * ouname} and {@code oucode}) are mapped to their canonical item first, so one CTE serves all of
-   * them. A sort-only registration carries no filter, so it is left-joined and never restricts the
-   * result set.
+   * unless a projected or filtered item already registered it. Must run after {@link
+   * #generateFilterCTEs}: a field that is only filtered keeps its filter CTE, which ranks matching
+   * events, and the sort reads from that. Fields sharing a CTE (e.g. {@code ouname} and {@code
+   * oucode}) are mapped to their canonical item first, so one CTE serves all of them. A sort-only
+   * registration carries no filter, so it is left-joined and never restricts the result set.
    */
   private void registerStageSortCtes(EventQueryParams params, CteContext cteContext) {
     for (QueryItem sortItem : getDistinctOrderByColumns(params)) {
@@ -3691,7 +3697,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String buildEnrollmentPrefilterSql(EventQueryParams params) {
     List<DimensionalItemObject> orgUnits = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
 
-    if (!params.hasStageSpecificItem()
+    if ((!params.hasStageSpecificItem() && !hasStageSortField(params))
         || orgUnits.isEmpty()
         || getAnalyticsType() != AnalyticsType.ENROLLMENT) {
       return "";
