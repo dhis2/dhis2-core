@@ -40,6 +40,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.storage.BlobReadOptions;
+import org.hisp.dhis.storage.BlobReadTimeoutException;
 import org.hisp.dhis.tracker.export.timeout.Deadline;
 import org.hisp.dhis.tracker.export.timeout.DeadlineExceededException;
 import org.hisp.dhis.tracker.export.timeout.DeadlineHolder;
@@ -80,6 +81,15 @@ public record FileResourceStream(
     return BlobReadOptions.timeout(deadline.remaining());
   }
 
+  /**
+   * The store timed out on the budget {@link #readOptions()} gave it, so report it exactly as a
+   * query that ran out of the same budget does.
+   */
+  private static DeadlineExceededException deadlineExceeded(BlobReadTimeoutException e) {
+    Deadline deadline = DeadlineHolder.get();
+    return new DeadlineExceededException(deadline.budget(), e);
+  }
+
   @Nonnull
   public static FileResourceStream of(
       @Nonnull FileResourceService fileResourceService, @Nonnull FileResource fileResource) {
@@ -92,6 +102,8 @@ public record FileResourceStream(
             return new Content(
                 fileResource.getContentLength(),
                 fileResourceService.openContentStream(fileResource, readOptions()));
+          } catch (BlobReadTimeoutException e) {
+            throw deadlineExceeded(e);
           } catch (NoSuchElementException e) {
             // Note: we are assuming that the file resource is not available yet. The same approach
             // is taken in other file endpoints or code relying on the storageStatus = PENDING.
@@ -132,6 +144,8 @@ public record FileResourceStream(
                   fileResource.getContentLength(),
                   fileResourceService.openContentStreamToImage(
                       fileResource, imageDimension, readOptions()));
+            } catch (BlobReadTimeoutException e) {
+              throw deadlineExceeded(e);
             } catch (NoSuchElementException e) {
               // Note: we are assuming that the file resource is not available yet. The same
               // approach
@@ -153,6 +167,8 @@ public record FileResourceStream(
             byte[] content =
                 fileResourceService.copyImageContent(fileResource, imageDimension, readOptions());
             return new Content(content.length, new ByteArrayInputStream(content));
+          } catch (BlobReadTimeoutException e) {
+            throw deadlineExceeded(e);
           } catch (NoSuchElementException e) {
             // Note: we are assuming that the file resource is not available yet. The same approach
             // is taken in other file endpoints or code relying on the storageStatus = PENDING.

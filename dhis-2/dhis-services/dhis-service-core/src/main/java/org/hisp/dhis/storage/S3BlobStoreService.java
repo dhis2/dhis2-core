@@ -53,6 +53,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -209,6 +210,8 @@ public class S3BlobStoreService implements BlobStoreService {
       return true;
     } catch (NoSuchKeyException e) {
       return false;
+    } catch (ApiCallTimeoutException e) {
+      throw timedOut(key, e);
     }
   }
 
@@ -223,6 +226,8 @@ public class S3BlobStoreService implements BlobStoreService {
                   .overrideConfiguration(override(options)));
     } catch (NoSuchKeyException e) {
       return null;
+    } catch (ApiCallTimeoutException e) {
+      throw timedOut(key, e);
     }
   }
 
@@ -238,7 +243,17 @@ public class S3BlobStoreService implements BlobStoreService {
       return head.contentLength();
     } catch (NoSuchKeyException e) {
       return 0L;
+    } catch (ApiCallTimeoutException e) {
+      throw timedOut(key, e);
     }
+  }
+
+  /**
+   * Only reachable when the caller supplied a timeout, since the client sets none of its own, so
+   * this always means the caller's own limit was reached.
+   */
+  private static BlobReadTimeoutException timedOut(BlobKey key, ApiCallTimeoutException e) {
+    return new BlobReadTimeoutException("Reading blob '" + key + "' timed out", e);
   }
 
   /**

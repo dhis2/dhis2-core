@@ -32,6 +32,7 @@ package org.hisp.dhis.storage;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -46,6 +47,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
@@ -182,6 +184,18 @@ class S3BlobStoreServiceTest {
         Optional.empty(),
         capturedRequest(s3).overrideConfiguration().flatMap(o -> o.apiCallTimeout()),
         "callers that pass no options must keep the client configuration");
+  }
+
+  @Test
+  void openStream_translatesTheSdkTimeoutSoCallersNeedNoSdkTypes() {
+    S3Client s3 = mock(S3Client.class);
+    when(s3.getObject(any(Consumer.class)))
+        .thenThrow(ApiCallTimeoutException.builder().message("timed out").build());
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+
+    assertThrows(
+        BlobReadTimeoutException.class,
+        () -> svc.openStream(BlobKey.of("apps/a"), BlobReadOptions.timeout(Duration.ofSeconds(1))));
   }
 
   /**
