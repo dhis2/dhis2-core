@@ -122,10 +122,10 @@ final class InlineJwksClientMetadataConfig {
               .reuseRefreshTokens(false)
               .build();
 
-      // Client-supplied scopes on DCR requests are overridden with the server-side first-party
-      // defaults (openid, profile, username — see OAuth2Constants.DCR_DEFAULT_SCOPES) so
-      // authorize and token requests have usable scopes. Defense-in-depth: any scopes that
-      // arrive on the registration are filtered against the allowed-client-scope set.
+      // SAS 1.5.8 forbids "scope" on DCR requests; assign the server-side first-party defaults
+      // (openid, profile, username; see OAuth2Constants.DCR_DEFAULT_SCOPES) so authorize and
+      // token requests have usable scopes. Defense-in-depth: any scopes that somehow arrive on
+      // the registration are filtered against the allowed-client-scope set.
       RegisteredClient.Builder builder =
           RegisteredClient.from(rc).clientSettings(cs.build()).tokenSettings(tokenSettings);
       if (rc.getScopes() == null || rc.getScopes().isEmpty()) {
