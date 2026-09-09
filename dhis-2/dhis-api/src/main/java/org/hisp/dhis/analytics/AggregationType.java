@@ -105,7 +105,7 @@ public enum AggregationType {
   }
 
   public boolean isMinOrMaxInPeriodAggregationType() {
-    return (MAX_SUM_ORG_UNIT == this || MIN_SUM_ORG_UNIT == this);
+    return (MAX == this || MIN == this);
   }
 
   public boolean isSqlCompatible() {

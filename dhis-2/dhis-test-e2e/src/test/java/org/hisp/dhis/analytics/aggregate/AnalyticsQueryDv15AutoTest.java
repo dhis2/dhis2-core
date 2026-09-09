@@ -308,7 +308,7 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("filter=ou:AXZq6q7Dr6E")
+            .add("filter=ou:GjWQK6UA4FO;DiszpKrYNg8;g8upMTyEZGZ")
             .add("skipData=false")
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
@@ -333,7 +333,7 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
-    validateRow(response, List.of(indicatorUid, "2022", "187.0", "", "", "", "", ""));
-    validateRow(response, List.of(indicatorUid, "2021", "188.0", "", "", "", "", ""));
+    validateRow(response, List.of(indicatorUid, "2022", "28.0", "", "", "", "", ""));
+    validateRow(response, List.of(indicatorUid, "2021", "12.0", "", "", "", "", ""));
   }
 }
