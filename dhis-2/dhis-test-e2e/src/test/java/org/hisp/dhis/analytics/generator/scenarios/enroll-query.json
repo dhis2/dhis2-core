@@ -209,6 +209,48 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentsSortedByStageOrgUnitNameAscending",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&enrollmentDate=202212&outputType=ENROLLMENT&totalPages=false&pageSize=50&page=1&headers=ouname,A03MvHHogjR.ouname,A03MvHHogjR.eventdate&asc=A03MvHHogjR.ouname",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsSortedByStageOrgUnitCodeDescendingWithoutMatchingHeader",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&enrollmentDate=202212&outputType=ENROLLMENT&totalPages=false&pageSize=50&page=1&headers=ouname,A03MvHHogjR.ouname&desc=A03MvHHogjR.oucode",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsSortedByStageEventDateDescending",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&enrollmentDate=202212&outputType=ENROLLMENT&totalPages=false&pageSize=50&page=1&headers=ouname,incidentdate,A03MvHHogjR.eventdate&desc=A03MvHHogjR.eventdate",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsSortedByStageScheduledDateAscendingWithoutMatchingHeader",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&enrollmentDate=202212&outputType=ENROLLMENT&totalPages=false&pageSize=50&page=1&headers=ouname,incidentdate&asc=A03MvHHogjR.scheduleddate",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsSortedByStageEventDateTokenAscending",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&enrollmentDate=202212&outputType=ENROLLMENT&totalPages=false&pageSize=50&page=1&headers=ouname,incidentdate,A03MvHHogjR.eventdate&asc=A03MvHHogjR.EVENT_DATE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentsSortedByStageOrgUnitTokenDescending",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:BGGmAwx33dj&enrollmentDate=202205&outputType=ENROLLMENT&totalPages=false&pageSize=50&page=1&headers=ouname,A03MvHHogjR.ouname&desc=A03MvHHogjR.ou",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

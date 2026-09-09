@@ -354,4 +354,46 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         false,
         true);
   }
+
+  @Test
+  public void queryRejectsUnknownStageSortField() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:lY93YpCxJqf")
+            .add("enrollmentDate=202212")
+            .add("headers=ouname,A03MvHHogjR.ouname")
+            .add("desc=A03MvHHogjR.bogus");
+
+    // When
+    ApiResponse response = enrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7224"));
+  }
+
+  @Test
+  public void queryRejectsRepeatableStageOffsetOnStageSortField() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:lY93YpCxJqf")
+            .add("enrollmentDate=202212")
+            .add("headers=ouname,A03MvHHogjR.ouname")
+            .add("asc=A03MvHHogjR[-1].ouname");
+
+    // When
+    ApiResponse response = enrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7224"));
+  }
 }

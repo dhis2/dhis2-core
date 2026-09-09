@@ -142,6 +142,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHand
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
+import org.hisp.dhis.analytics.event.data.stage.StageSortField;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -351,6 +352,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return enrollmentOuColumn.get();
     }
 
+    if (cteContext.isEnrollmentAnalytics()) {
+      Optional<String> stageSortColumn = resolveStageSortColumn(item, cteContext);
+      if (stageSortColumn.isPresent()) {
+        return stageSortColumn.get();
+      }
+    }
+
     DimensionItemType itemType = item.getItem().getDimensionItemType();
 
     if (itemType == null) {
@@ -362,6 +370,32 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       case DATA_ELEMENT -> getDataElementColumn(cteContext, item);
       default -> getDefaultColumn(params, item);
     };
+  }
+
+  /**
+   * Resolves a stage-scoped sort field ({@link StageSortField}) to the column of the stage CTE it
+   * reads from, e.g. {@code <alias>.ev_ouname} for {@code <stage>.ouname}. Fails rather than
+   * falling through to an unqualified column name, which would silently order by the enrollment's
+   * own column.
+   *
+   * @return the qualified column, or empty when the item is not a stage sort field.
+   */
+  private Optional<String> resolveStageSortColumn(QueryItem item, CteContext cteContext) {
+    Optional<StageSortField> field = stageSortField(item);
+    if (field.isEmpty()) {
+      return Optional.empty();
+    }
+    String cteKey = CteUtils.computeKey(field.get().toCanonicalItem(item));
+    CteDefinition cteDef = cteContext.getDefinitionByItemUid(cteKey);
+    if (cteDef == null) {
+      throw new IllegalQueryException(ErrorCode.E7148, item.getItemId());
+    }
+    int offset = computeRowNumberOffset(item.getProgramStageOffset());
+    return Optional.of(cteDef.getAlias(offset) + "." + field.get().getEnrollmentCteColumn());
+  }
+
+  private static Optional<StageSortField> stageSortField(QueryItem item) {
+    return item.hasProgramStage() ? StageSortField.forItemId(item.getItemId()) : Optional.empty();
   }
 
   private String getProgramIndicatorColumn(CteContext cteContext, QueryItem item) {
@@ -2873,7 +2907,31 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     }
 
+    if (!params.isAggregatedEnrollments()) {
+      registerStageSortCtes(params, cteContext);
+    }
+
     return cteContext;
+  }
+
+  /**
+   * Registers the stage CTE each stage-scoped sort field ({@link StageSortField}) reads from,
+   * unless a projected or filtered item already registered it. Fields sharing a CTE (e.g. {@code
+   * ouname} and {@code oucode}) are mapped to their canonical item first, so one CTE serves all of
+   * them. A sort-only registration carries no filter, so it is left-joined and never restricts the
+   * result set.
+   */
+  private void registerStageSortCtes(EventQueryParams params, CteContext cteContext) {
+    for (QueryItem sortItem : getDistinctOrderByColumns(params)) {
+      Optional<StageSortField> field = stageSortField(sortItem);
+      if (field.isEmpty()) {
+        continue;
+      }
+      QueryItem canonical = field.get().toCanonicalItem(sortItem);
+      if (cteContext.getDefinitionByItemUid(CteUtils.computeKey(canonical)) == null) {
+        buildProgramStageCte(cteContext, canonical, params);
+      }
+    }
   }
 
   void handleProgramIndicatorCte(QueryItem item, CteContext cteContext, EventQueryParams params) {
