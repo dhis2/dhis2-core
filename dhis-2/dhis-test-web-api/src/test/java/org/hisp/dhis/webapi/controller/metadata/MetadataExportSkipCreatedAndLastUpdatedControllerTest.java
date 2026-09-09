@@ -29,19 +29,20 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.common.adapter.BaseIdentifiableObject_.CREATED_AND_LAST_UPDATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonSelector;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -109,28 +110,32 @@ class MetadataExportSkipCreatedAndLastUpdatedControllerTest
   // -------------------------------------------------------------------------
 
   @Test
-  void metadataExportContainsCreatedAndLastUpdatedByDefault() throws IOException {
-    JsonNode programStage = getMetadata("/metadata?" + TYPES).get("programStages").get(0);
+  void metadataExportContainsCreatedAndLastUpdatedByDefault() {
+    JsonObject programStage = objects(getMetadata("/metadata?" + TYPES), "programStages").get(0);
 
     assertTrue(programStage.has("created"), "expected created on the exported object");
     assertTrue(
-        programStage.get("programStageDataElements").get(0).has("created"),
+        programStage.getList("programStageDataElements", JsonObject.class).get(0).has("created"),
         "expected created on the embedded object one level down");
   }
 
   @Test
-  void metadataExportOmitsCreatedAndLastUpdatedWhenFlagIsTrue() throws IOException {
+  void metadataExportOmitsCreatedAndLastUpdatedWhenFlagIsTrue() {
     assertEquals(
-        Map.of(),
-        remaining(getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true")),
+        Set.of(),
+        present(
+            getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true"),
+            CREATED_AND_LAST_UPDATED),
         "no created/lastUpdated field should survive skipCreatedAndLastUpdated=true");
   }
 
   @Test
-  void metadataExportKeepsCreatedAndLastUpdatedWhenFlagIsFalse() throws IOException {
+  void metadataExportKeepsCreatedAndLastUpdatedWhenFlagIsFalse() {
     assertEquals(
         CREATED_AND_LAST_UPDATED,
-        remaining(getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=false")).keySet(),
+        present(
+            getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=false"),
+            CREATED_AND_LAST_UPDATED),
         "skipCreatedAndLastUpdated=false should behave like the default");
   }
 
@@ -140,23 +145,24 @@ class MetadataExportSkipCreatedAndLastUpdatedControllerTest
   // -------------------------------------------------------------------------
 
   @Test
-  void dependencyExportContainsCreatedAndLastUpdatedByDefault() throws IOException {
-    JsonNode programStage =
-        getMetadata("/programs/" + program.getUid() + "/metadata").get("programStages").get(0);
+  void dependencyExportContainsCreatedAndLastUpdatedByDefault() {
+    JsonObject programStage =
+        objects(getMetadata("/programs/" + program.getUid() + "/metadata"), "programStages").get(0);
 
     assertTrue(programStage.has("created"), "expected created on the exported object");
     assertTrue(
-        programStage.get("programStageDataElements").get(0).has("created"),
+        programStage.getList("programStageDataElements", JsonObject.class).get(0).has("created"),
         "expected created on the embedded object one level down");
   }
 
   @Test
-  void dependencyExportOmitsCreatedAndLastUpdatedWhenFlagIsTrue() throws IOException {
+  void dependencyExportOmitsCreatedAndLastUpdatedWhenFlagIsTrue() {
     assertEquals(
-        Map.of(),
-        remaining(
+        Set.of(),
+        present(
             getMetadata(
-                "/programs/" + program.getUid() + "/metadata?skipCreatedAndLastUpdated=true")),
+                "/programs/" + program.getUid() + "/metadata?skipCreatedAndLastUpdated=true"),
+            CREATED_AND_LAST_UPDATED),
         "no created/lastUpdated field should survive skipCreatedAndLastUpdated=true");
   }
 
@@ -165,31 +171,35 @@ class MetadataExportSkipCreatedAndLastUpdatedControllerTest
   // -------------------------------------------------------------------------
 
   @Test
-  void skipCreatedAndLastUpdatedCombinesWithSkipSharing() throws IOException {
-    JsonNode root =
+  void skipCreatedAndLastUpdatedCombinesWithSkipSharing() {
+    JsonMixed json =
         getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true&skipSharing=true");
 
-    assertEquals(Map.of(), remaining(root), "created/lastUpdated should be removed at every depth");
+    assertEquals(
+        Set.of(),
+        present(json, CREATED_AND_LAST_UPDATED),
+        "created/lastUpdated should be removed at every depth");
     assertFalse(
-        root.get("dataElements").get(0).has("sharing"),
+        objects(json, "dataElements").get(0).has("sharing"),
         "skipSharing should still remove root-level sharing fields");
   }
 
   @Test
-  void skipKeepsOtherFields() throws IOException {
-    JsonNode root = getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true");
+  void skipKeepsOtherFields() {
+    JsonMixed root = getMetadata("/metadata?" + TYPES + "&skipCreatedAndLastUpdated=true");
 
-    JsonNode exportedProgram = root.get("programs").get(0);
-    assertEquals(program.getUid(), exportedProgram.get("id").asText());
-    assertFalse(exportedProgram.get("name").asText().isEmpty(), "name should still be exported");
+    JsonObject exportedProgram = objects(root, "programs").get(0);
+    assertEquals(program.getUid(), exportedProgram.getString("id").string());
+    assertFalse(
+        exportedProgram.getString("name").string().isEmpty(), "name should still be exported");
 
-    JsonNode programStage = root.get("programStages").get(0);
+    JsonObject programStage = objects(root, "programStages").get(0);
     assertEquals(
         2,
-        programStage.get("programStageDataElements").size(),
+        programStage.getList("programStageDataElements", JsonObject.class).size(),
         "embedded objects should still be exported, only created/lastUpdated removed");
     assertTrue(
-        programStage.get("programStageDataElements").get(0).has("id"),
+        programStage.getList("programStageDataElements", JsonObject.class).get(0).has("id"),
         "embedded objects should keep their other fields");
   }
 
@@ -197,25 +207,20 @@ class MetadataExportSkipCreatedAndLastUpdatedControllerTest
   // Helpers
   // -------------------------------------------------------------------------
 
-  private JsonNode getMetadata(String url) throws IOException {
-    return new ObjectMapper().readTree(GET(url).content().toString());
+  private JsonMixed getMetadata(String url) {
+    return GET(url).content();
   }
 
-  /**
-   * The properties still present anywhere in a response, each mapped to the ids of the objects
-   * declaring them. {@link JsonNode#findParents(String)} descends to any depth and does not look
-   * inside a match, so embedded objects are covered and a {@code createdBy} user object is reported
-   * once.
-   */
-  private static Map<String, List<String>> remaining(JsonNode root) {
-    Map<String, List<String>> found = new TreeMap<>();
-    for (String name : CREATED_AND_LAST_UPDATED) {
-      List<String> owners =
-          root.findParents(name).stream().map(o -> o.path("id").asText("?")).toList();
-      if (!owners.isEmpty()) {
-        found.put(name, owners);
-      }
-    }
-    return found;
+  /** The named top-level array of a metadata document, e.g. {@code programStages}. */
+  private static JsonList<JsonObject> objects(JsonMixed json, String type) {
+    return json.getList(type, JsonObject.class);
+  }
+
+  /** Which of the given property names occur anywhere in the document, at any depth. */
+  private static Set<String> present(JsonMixed json, Set<String> propertyNames) {
+    JsonNode root = json.node();
+    return propertyNames.stream()
+        .filter(name -> root.queryExists(JsonSelector.of("$..." + name)))
+        .collect(toSet());
   }
 }

@@ -101,20 +101,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     return includePaths.contains(ctx.fullPath());
   }
 
-  /**
-   * Only {@link IdentifiableObject} declares {@code created}/{@code lastUpdated}/{@code
-   * createdBy}/{@code lastUpdatedBy} as change metadata. Other types may expose a property of the
-   * same name carrying real payload -- {@link org.hisp.dhis.interpretation.Mention#getCreated()} is
-   * the time of the mention itself -- so the owning object is checked as well as the name.
-   *
-   * <p>Matching by name is what makes the skip reach every depth of the object graph: a {@code
-   * fields} exclusion such as {@code !created} cannot, because exclusion paths are anchored at the
-   * root and so leave the copies carried by embedded objects in place.
-   *
-   * <p>Called after the {@code alwaysExpand} check in {@link #include(PropertyWriter,
-   * JsonGenerator, Object)}, so that subtrees this filter deliberately does not reason about (maps,
-   * {@link org.hisp.dhis.scheduling.JobParameters}, {@code @JsonTypeInfo} types) stay untouched.
-   */
   private static boolean isCreatedOrLastUpdatedProperty(PropertyWriter writer, Object object) {
     return object instanceof IdentifiableObject
         && CREATED_AND_LAST_UPDATED.contains(writer.getName());

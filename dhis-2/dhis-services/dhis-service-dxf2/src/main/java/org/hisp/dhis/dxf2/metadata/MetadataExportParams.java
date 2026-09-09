@@ -205,17 +205,7 @@ public class MetadataExportParams {
     return this.skipSharing;
   }
 
-  /**
-   * Unlike {@link #setSkipSharing(boolean)}, which narrows {@link #defaultFields} and is therefore
-   * overridden by a per-class {@code fields} expression (see {@link #getFields(Class)}), this flag
-   * is applied while the objects are serialised and so always wins: {@code
-   * ?skipCreatedAndLastUpdated=true&dataElements:fields=id,created} exports no {@code created},
-   * whereas {@code ?skipSharing=true&dataElements:fields=id,sharing} still exports {@code sharing}.
-   *
-   * <p>The difference is deliberate. Being reachable at any depth is the point of this flag --
-   * {@code defaultFields} exclusions are anchored at the root, so they cannot remove the copies
-   * carried by embedded objects.
-   */
+  /** Applied during serialisation, so it takes precedence over any {@code fields} expression. */
   public void setSkipCreatedAndLastUpdated(boolean skipCreatedAndLastUpdated) {
     this.skipCreatedAndLastUpdated = skipCreatedAndLastUpdated;
   }
