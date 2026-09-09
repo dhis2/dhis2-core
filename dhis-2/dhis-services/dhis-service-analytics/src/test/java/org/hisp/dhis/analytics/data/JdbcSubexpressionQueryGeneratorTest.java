@@ -252,7 +252,7 @@ class JdbcSubexpressionQueryGeneratorTest {
   void testGetSql_withoutQueryDimensions() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
-    PeriodDimension peA = PeriodDimension.of(createPeriod("202305"));
+    Period peA = createPeriod("202305");
 
     QueryModifiers queryModsMin = QueryModifiers.builder().aggregationType(MIN).build();
 
