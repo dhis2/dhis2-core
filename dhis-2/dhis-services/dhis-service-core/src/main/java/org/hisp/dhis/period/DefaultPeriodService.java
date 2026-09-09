@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -49,8 +50,11 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -67,6 +71,7 @@ public class DefaultPeriodService implements PeriodService {
   private final PeriodTypeStore periodTypeStore;
   private final RelativePeriodStore relativePeriodStore;
   private final I18nManager i18nManager;
+  private final ConfigurationService configurationService;
 
   // -------------------------------------------------------------------------
   // Period
@@ -275,8 +280,21 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
+  public PeriodTypes getDataOutputPeriodTypes(@CheckForNull Locale locale) {
+    Configuration conf = configurationService.getConfiguration();
+    Set<PeriodTypeEnum> dataOutputTypes = EnumSet.noneOf(PeriodTypeEnum.class);
+    conf.getDataOutputPeriodTypes().forEach(pt -> dataOutputTypes.add(pt.getPeriodTypeEnum()));
+    PeriodTypes res = getAllPeriodTypes(locale);
+    if (dataOutputTypes.isEmpty()) return res;
+    return new PeriodTypes(
+        res.locale(),
+        res.entries().stream().filter(e -> dataOutputTypes.contains(e.type())).toList());
+  }
+
+  @Override
   @IndirectTransactional
-  public PeriodTypes getAllPeriodTypes(@Nonnull Locale locale) {
+  public PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale) {
+    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
     return PERIOD_TYPES_CACHE.compute(
             locale,
             (k, v) -> {

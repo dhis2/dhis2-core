@@ -229,7 +229,9 @@ public interface PeriodService {
    * @return all period types with they display properties resolved for the current user
    * @since 2.44
    */
-  PeriodTypes getAllPeriodTypes(@Nonnull Locale locale);
+  PeriodTypes getAllPeriodTypes(@CheckForNull Locale locale);
+
+  PeriodTypes getDataOutputPeriodTypes(@CheckForNull Locale locale);
 
   /**
    * Updates the label of the given period type name.

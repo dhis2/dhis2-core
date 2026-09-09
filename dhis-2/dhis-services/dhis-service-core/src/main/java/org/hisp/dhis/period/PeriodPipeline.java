@@ -40,7 +40,6 @@ import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -52,9 +51,8 @@ public class PeriodPipeline {
   @IndirectTransactional
   public void exportAllAsJson(
       @CheckForNull Locale locale, @Nonnull Fields fields, @Nonnull Supplier<OutputStream> out) {
-    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
     PeriodTypes types = service.getAllPeriodTypes(locale);
-    PeriodOutput.toJson(new PeriodTypes.Output(locale, types.entries(), fields), out.get());
+    PeriodOutput.toJson(new PeriodTypes.Output(types.locale(), types.entries(), fields), out.get());
   }
 
   @IndirectTransactional
@@ -63,11 +61,10 @@ public class PeriodPipeline {
       @CheckForNull Locale locale,
       @Nonnull Fields fields,
       @Nonnull Supplier<OutputStream> out) {
-    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
     PeriodTypes res = service.getAllPeriodTypes(locale);
     List<PeriodTypes.PeriodTypeEntry> entries =
         res.entries().stream().filter(pt -> types.contains(pt.type())).toList();
-    PeriodOutput.toJsonArray(new PeriodTypes.Output(locale, entries, fields), out.get());
+    PeriodOutput.toJsonArray(new PeriodTypes.Output(res.locale(), entries, fields), out.get());
   }
 
   @IndirectTransactional
@@ -77,7 +74,6 @@ public class PeriodPipeline {
       @Nonnull Fields fields,
       @Nonnull Supplier<OutputStream> out)
       throws NotFoundException {
-    if (locale == null) locale = UserSettings.getCurrentSettings().getUserDbLocale();
     PeriodTypes.PeriodTypeEntry entry =
         service.getAllPeriodTypes(locale).entries().stream()
             .filter(pt -> type == pt.type())
