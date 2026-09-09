@@ -131,7 +131,13 @@ public interface FileResourceContentStore {
    * @param key the key used to store a resource
    * @return byte array of the content
    */
-  byte[] copyContent(BlobKey key) throws IOException, NoSuchElementException;
+  default byte[] copyContent(BlobKey key) throws IOException, NoSuchElementException {
+    return copyContent(key, BlobReadOptions.none());
+  }
+
+  /** {@link #copyContent(BlobKey)} bounded by {@code options}. */
+  byte[] copyContent(BlobKey key, BlobReadOptions options)
+      throws IOException, NoSuchElementException;
 
   /**
    * Opens a stream to the resource stored under key.

@@ -190,10 +190,11 @@ public class BlobStoreFileResourceContentStore implements FileResourceContentSto
   }
 
   @Override
-  public byte[] copyContent(BlobKey key) throws IOException, NoSuchElementException {
-    ensureBlobExists(key, BlobReadOptions.none());
+  public byte[] copyContent(BlobKey key, BlobReadOptions options)
+      throws IOException, NoSuchElementException {
+    ensureBlobExists(key, options);
 
-    try (InputStream in = blobStore.openStream(key)) {
+    try (InputStream in = blobStore.openStream(key, options)) {
       return IOUtils.toByteArray(in);
     }
   }

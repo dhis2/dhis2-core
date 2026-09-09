@@ -326,12 +326,19 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   public byte[] copyImageContent(FileResource fileResource, ImageFileDimension dimension)
       throws NoSuchElementException, BadRequestException, IOException {
+    return copyImageContent(fileResource, dimension, BlobReadOptions.none());
+  }
+
+  @Override
+  public byte[] copyImageContent(
+      FileResource fileResource, ImageFileDimension dimension, BlobReadOptions options)
+      throws NoSuchElementException, BadRequestException, IOException {
     ImageFileDimension imageDimension =
         ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
 
     hasImageDimensionSupport(fileResource, imageDimension);
 
-    return fileResourceContentStore.copyContent(imageKey(fileResource, imageDimension));
+    return fileResourceContentStore.copyContent(imageKey(fileResource, imageDimension), options);
   }
 
   @Override
@@ -350,12 +357,19 @@ public class DefaultFileResourceService implements FileResourceService {
   public InputStream openContentStreamToImage(
       FileResource fileResource, ImageFileDimension dimension)
       throws IOException, NoSuchElementException, BadRequestException {
+    return openContentStreamToImage(fileResource, dimension, BlobReadOptions.none());
+  }
+
+  @Override
+  public InputStream openContentStreamToImage(
+      FileResource fileResource, ImageFileDimension dimension, BlobReadOptions options)
+      throws IOException, NoSuchElementException, BadRequestException {
     ImageFileDimension imageDimension =
         ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
 
     hasImageDimensionSupport(fileResource, imageDimension);
 
-    return fileResourceContentStore.openStream(imageKey(fileResource, imageDimension));
+    return fileResourceContentStore.openStream(imageKey(fileResource, imageDimension), options);
   }
 
   private static void hasImageDimensionSupport(

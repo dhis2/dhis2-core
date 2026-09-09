@@ -130,7 +130,8 @@ public record FileResourceStream(
             try {
               return new Content(
                   fileResource.getContentLength(),
-                  fileResourceService.openContentStreamToImage(fileResource, imageDimension));
+                  fileResourceService.openContentStreamToImage(
+                      fileResource, imageDimension, readOptions()));
             } catch (NoSuchElementException e) {
               // Note: we are assuming that the file resource is not available yet. The same
               // approach
@@ -149,7 +150,8 @@ public record FileResourceStream(
         fileResource.getContentType(),
         () -> {
           try {
-            byte[] content = fileResourceService.copyImageContent(fileResource, imageDimension);
+            byte[] content =
+                fileResourceService.copyImageContent(fileResource, imageDimension, readOptions());
             return new Content(content.length, new ByteArrayInputStream(content));
           } catch (NoSuchElementException e) {
             // Note: we are assuming that the file resource is not available yet. The same approach
