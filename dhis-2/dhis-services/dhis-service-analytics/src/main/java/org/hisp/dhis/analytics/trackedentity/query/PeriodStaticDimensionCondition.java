@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 
@@ -173,11 +174,19 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     return conditions;
   }
 
+  /**
+   * Returns the periods a relative period name spans, relative to the current date.
+   *
+   * @param value a {@link RelativePeriodEnum} name.
+   * @return the periods, in chronological order.
+   */
+  public static List<PeriodDimension> relativePeriods(String value) {
+    return RelativePeriods.getRelativePeriodsFromEnum(
+        RelativePeriodEnum.valueOf(value), DateField.withDefaults(), null, false, null, null);
+  }
+
   private List<Renderable> createRelativePeriodConditions(String value, String columnName) {
-    RelativePeriodEnum relativePeriodEnum = RelativePeriodEnum.valueOf(value);
-    List<org.hisp.dhis.period.PeriodDimension> periods =
-        RelativePeriods.getRelativePeriodsFromEnum(
-            relativePeriodEnum, DateField.withDefaults(), null, false, null, null);
+    List<PeriodDimension> periods = relativePeriods(value);
 
     if (periods.isEmpty()) {
       return List.of();

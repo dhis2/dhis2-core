@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getAggregateGridHeaders;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 
 import java.math.BigDecimal;
@@ -61,6 +62,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.PeriodBucketColumn;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.DisplayProperty;
@@ -75,6 +77,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -156,6 +159,7 @@ public class TrackedEntityAggregateService {
     metadataParamsHandler.handle(
         grid, withGroupedDimensionsOnly(contextParams), currentUser, rowsCount);
     addGroupedOrgUnitMetadata(grid, contextParams);
+    addGroupedPeriodMetadata(grid, contextParams);
     addHeaderMetadata(grid);
     return grid;
   }
@@ -311,6 +315,11 @@ public class TrackedEntityAggregateService {
    * metaData.items} entries mapping each uid to its display name, so clients can resolve org unit
    * uids to names. The org unit uids are read from the {@code ou} column of the grid rows and
    * resolved to {@link OrganisationUnit} objects.
+   *
+   * <p>An org unit dimension carrying items is parsed as a dimensional object, which the shared
+   * handler reports under the bare {@code ou} key whatever its scope. A program or stage scoped org
+   * unit is grouped under its own header, so that entry is dropped unless the query also groups by
+   * the tracked entity {@code ou}.
    */
   private void addGroupedOrgUnitMetadata(
       Grid grid,
@@ -322,8 +331,13 @@ public class TrackedEntityAggregateService {
 
     DisplayProperty displayProperty = contextParams.getCommonRaw().getDisplayProperty();
     boolean includeMetadataDetails = contextParams.getCommonRaw().isIncludeMetadataDetails();
+    Set<String> groupedHeaders = groupedOrgUnitHeaders(contextParams);
 
-    for (String header : groupedOrgUnitHeaders(contextParams)) {
+    if (metadata.dimensions() != null && !groupedHeaders.contains(ORGUNIT_DIM_ID)) {
+      metadata.dimensions().remove(ORGUNIT_DIM_ID);
+    }
+
+    for (String header : groupedHeaders) {
       int ouColumnIndex = grid.getIndexOfHeader(header);
       if (ouColumnIndex < 0) {
         continue;
@@ -338,6 +352,55 @@ public class TrackedEntityAggregateService {
       addOrgUnitItems(
           metadata.items(), orgUnitUids, orgUnitsByUid, displayProperty, includeMetadataDetails);
       addOrgUnitDimension(metadata.dimensions(), header, orgUnitUids);
+    }
+  }
+
+  /**
+   * Lists the periods a grouped date dimension is bucketed into in the grid metaData. Such a
+   * dimension is parsed as a static dimension, so the shared {@link MetadataParamsHandler} never
+   * emits its items. The periods are the values its column can take, so they are listed whether or
+   * not a row matches, each resolved to a {@code metaData.items} entry named by its ISO period: a
+   * relative period carries a translation key as its name, not a label. A date grouped on its raw
+   * timestamp has no fixed set of values and is left to {@link #addHeaderMetadata}.
+   */
+  private void addGroupedPeriodMetadata(
+      Grid grid,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams) {
+    GridMetadata metadata = getGridMetadata(grid);
+    if (metadata == null || metadata.isEmpty()) {
+      return;
+    }
+
+    boolean includeMetadataDetails = contextParams.getCommonRaw().isIncludeMetadataDetails();
+
+    for (DimensionIdentifier<DimensionParam> dimension :
+        AggregateQueryBuilder.getGroupedDimensions(contextParams)) {
+      if (!dimension.getDimension().isPeriodDimension()) {
+        continue;
+      }
+
+      List<PeriodDimension> periods = PeriodBucketColumn.periods(dimension);
+      if (periods.isEmpty()) {
+        continue;
+      }
+
+      if (metadata.items() != null) {
+        for (PeriodDimension period : periods) {
+          metadata
+              .items()
+              .put(
+                  period.getIsoDate(),
+                  new MetadataItem(period.getIsoDate(), includeMetadataDetails ? period : null));
+        }
+      }
+
+      if (metadata.dimensions() != null) {
+        metadata
+            .dimensions()
+            .put(
+                AggregateQueryBuilder.groupedDimensionName(dimension),
+                periods.stream().map(PeriodDimension::getIsoDate).toList());
+      }
     }
   }
 
