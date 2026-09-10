@@ -32,20 +32,28 @@ package org.hisp.dhis.storage;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Error;
@@ -61,6 +69,19 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 class S3BlobStoreServiceTest {
 
   private final BlobContainerName container = new BlobContainerName("dhis2");
+
+  /** Test clock so the timeout assertions do not depend on how long the test itself takes. */
+  private long nanos = TimeUnit.SECONDS.toNanos(1_000);
+
+  private void elapse(Duration elapsed) {
+    nanos += elapsed.toNanos();
+  }
+
+  /** Options bounded by {@code budget} from the test clock's current reading. */
+  private BlobReadOptions remainingFrom(Duration budget) {
+    long deadline = nanos + budget.toNanos();
+    return BlobReadOptions.remaining(() -> deadline - nanos);
+  }
 
   @Test
   void listKeys_paginatesAcrossMultiplePages() {
@@ -152,6 +173,91 @@ class S3BlobStoreServiceTest {
 
     assertEquals(List.of("apps/a", "apps/b/c"), keys);
     assertTrue(keys.stream().noneMatch(k -> k.endsWith("/")));
+  }
+
+  @Test
+  void openStream_passesTheTimeoutOnToTheRequest() {
+    S3Client s3 = mock(S3Client.class);
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+
+    svc.openStream(BlobKey.of("apps/a"), remainingFrom(Duration.ofSeconds(7)));
+
+    assertEquals(
+        Optional.of(Duration.ofSeconds(7)),
+        capturedRequest(s3).overrideConfiguration().flatMap(o -> o.apiCallTimeout()),
+        "the caller's remaining budget must bound the fetch");
+  }
+
+  @Test
+  void openStream_boundsASecondCallByTheRemainderOfTheSameOptions() {
+    // One read through the content store makes several calls, headObject then getObject, sharing
+    // one BlobReadOptions. Each must get what is left rather than the whole limit again.
+    S3Client s3 = mock(S3Client.class);
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobReadOptions options = remainingFrom(Duration.ofSeconds(10));
+
+    svc.blobExists(BlobKey.of("apps/a"), options);
+    elapse(Duration.ofSeconds(4));
+    svc.openStream(BlobKey.of("apps/a"), options);
+
+    assertEquals(
+        Optional.of(Duration.ofSeconds(6)),
+        capturedRequest(s3).overrideConfiguration().flatMap(o -> o.apiCallTimeout()),
+        "the second call must be bounded by the remaining budget, not by the full one");
+  }
+
+  @Test
+  void openStream_doesNotCallTheStoreWithNoneOfTheBudgetLeft() {
+    // The SDK truncates apiCallTimeout to whole milliseconds and treats 0 as no timeout at all, so
+    // there is no bound left to ask for and the call could only time out. It is not made.
+    S3Client s3 = mock(S3Client.class);
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobKey key = BlobKey.of("apps/a");
+    BlobReadOptions options = remainingFrom(Duration.ofMillis(1));
+
+    elapse(Duration.ofNanos(999_999));
+
+    assertThrows(BlobReadTimeoutException.class, () -> svc.openStream(key, options));
+    verifyNoInteractions(s3);
+  }
+
+  @Test
+  void openStream_withoutATimeoutLeavesTheRequestUnbounded() {
+    S3Client s3 = mock(S3Client.class);
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+
+    svc.openStream(BlobKey.of("apps/a"));
+
+    assertEquals(
+        Optional.empty(),
+        capturedRequest(s3).overrideConfiguration().flatMap(o -> o.apiCallTimeout()),
+        "callers that pass no options must keep the client configuration");
+  }
+
+  @Test
+  void openStream_translatesTheSdkTimeoutSoCallersNeedNoSdkTypes() {
+    S3Client s3 = mock(S3Client.class);
+    when(s3.getObject(any(Consumer.class)))
+        .thenThrow(ApiCallTimeoutException.builder().message("timed out").build());
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobKey key = BlobKey.of("apps/a");
+    BlobReadOptions options = remainingFrom(Duration.ofSeconds(1));
+
+    assertThrows(BlobReadTimeoutException.class, () -> svc.openStream(key, options));
+  }
+
+  /**
+   * The service calls the {@code Consumer<Builder>} overload, so what Mockito records is the lambda
+   * rather than a request. Applying it to a builder yields the request the SDK would have built.
+   */
+  @SuppressWarnings("unchecked")
+  private static GetObjectRequest capturedRequest(S3Client s3) {
+    ArgumentCaptor<Consumer<GetObjectRequest.Builder>> captor =
+        ArgumentCaptor.forClass(Consumer.class);
+    verify(s3).getObject(captor.capture());
+    GetObjectRequest.Builder builder = GetObjectRequest.builder();
+    captor.getValue().accept(builder);
+    return builder.build();
   }
 
   private static ListObjectsV2Response page(

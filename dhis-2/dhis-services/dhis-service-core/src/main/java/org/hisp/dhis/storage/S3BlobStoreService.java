@@ -52,6 +52,8 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -197,34 +199,75 @@ public class S3BlobStoreService implements BlobStoreService {
   }
 
   @Override
-  public boolean blobExists(BlobKey key) {
+  public boolean blobExists(BlobKey key, BlobReadOptions options) {
     if (key == null) return false;
+    AwsRequestOverrideConfiguration override = override(options);
     try {
-      s3.headObject(b -> b.bucket(container.value()).key(key.value()));
+      s3.headObject(
+          b -> b.bucket(container.value()).key(key.value()).overrideConfiguration(override));
       return true;
     } catch (NoSuchKeyException e) {
       return false;
+    } catch (ApiCallTimeoutException e) {
+      throw timedOut(key, e);
     }
   }
 
   @Override
   @CheckForNull
-  public InputStream openStream(BlobKey key) {
+  public InputStream openStream(BlobKey key, BlobReadOptions options) {
+    AwsRequestOverrideConfiguration override = override(options);
     try {
-      return s3.getObject(b -> b.bucket(container.value()).key(key.value()));
+      return s3.getObject(
+          b -> b.bucket(container.value()).key(key.value()).overrideConfiguration(override));
     } catch (NoSuchKeyException e) {
       return null;
+    } catch (ApiCallTimeoutException e) {
+      throw timedOut(key, e);
     }
   }
 
   @Override
-  public long contentLength(BlobKey key) {
+  public long contentLength(BlobKey key, BlobReadOptions options) {
+    AwsRequestOverrideConfiguration override = override(options);
     try {
-      HeadObjectResponse head = s3.headObject(b -> b.bucket(container.value()).key(key.value()));
+      HeadObjectResponse head =
+          s3.headObject(
+              b -> b.bucket(container.value()).key(key.value()).overrideConfiguration(override));
       return head.contentLength();
     } catch (NoSuchKeyException e) {
       return 0L;
+    } catch (ApiCallTimeoutException e) {
+      throw timedOut(key, e);
     }
+  }
+
+  /**
+   * Only reachable when the caller supplied a timeout, since the client sets none of its own, so
+   * this always means the caller's own limit was reached.
+   */
+  private static BlobReadTimeoutException timedOut(BlobKey key, ApiCallTimeoutException e) {
+    return new BlobReadTimeoutException("Reading blob '" + key + "' timed out", e);
+  }
+
+  /**
+   * Turns {@link BlobReadOptions} into a per-request override, which takes precedence over the
+   * client configuration. Called per request, so each gets what is left of the caller's limit.
+   *
+   * <p>{@code apiCallTimeout} covers the whole call including retries, unlike {@code
+   * apiCallAttemptTimeout} which bounds one attempt. The SDK retries by default and {@code
+   * AWS_RETRY_MODE} can change how often, so per attempt would give an unpredictable ceiling.
+   *
+   * <p>The timer also runs while the body is read, so a slow client can have its download cut short
+   * after the response status is committed.
+   */
+  private static AwsRequestOverrideConfiguration override(BlobReadOptions options) {
+    AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+    Duration timeout = options.nextTimeout();
+    if (timeout != null) {
+      builder.apiCallTimeout(timeout);
+    }
+    return builder.build();
   }
 
   @Override
