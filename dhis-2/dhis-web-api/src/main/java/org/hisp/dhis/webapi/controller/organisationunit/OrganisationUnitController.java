@@ -391,7 +391,11 @@ public class OrganisationUnitController
       }
     }
     if (parents != null && !parents.isEmpty()) {
-      specialFilters.add(token("path", String.join("|", parents), MatchMode.ANYWHERE));
+      if (parents.size() == 1) {
+        specialFilters.add(like("path", parents.iterator().next(), MatchMode.ANYWHERE));
+      } else {
+        specialFilters.add(token("path", String.join("|", parents), MatchMode.ANYWHERE));
+      }
     }
     if (params.isUserOnly())
       specialFilters.add(in("id", getCurrentUserDetails().getUserOrgUnitIds()));

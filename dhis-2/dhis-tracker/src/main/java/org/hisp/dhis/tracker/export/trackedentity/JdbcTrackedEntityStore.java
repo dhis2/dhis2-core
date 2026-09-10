@@ -55,8 +55,10 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -102,7 +104,16 @@ class JdbcTrackedEntityStore {
 
   private final SystemSettingsProvider settingsProvider;
 
+  /** Export reads. Enforces the tracker export deadline. */
+  @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+  /**
+   * The sync timestamp write. Kept on the primary template: it is a write, called by the data sync
+   * job rather than by any export endpoint, so it must not be bounded by an export deadline.
+   */
+  @Qualifier("namedParameterJdbcTemplate")
+  private final NamedParameterJdbcTemplate writeJdbcTemplate;
 
   public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
@@ -180,7 +191,7 @@ class JdbcTrackedEntityStore {
             .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
             .addValue("uids", trackedEntities.stream().map(UID::toString).toList());
 
-    namedParameterJdbcTemplate.update(sql, parameters);
+    writeJdbcTemplate.update(sql, parameters);
   }
 
   public Long getTrackedEntityCount(TrackedEntityQueryParams params) {
