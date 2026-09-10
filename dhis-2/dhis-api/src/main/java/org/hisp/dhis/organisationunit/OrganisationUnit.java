@@ -615,7 +615,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   @JsonProperty(value = "level", access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(localName = "level", isAttribute = true)
   public int getLevel() {
-    return StringUtils.countMatches(path, PATH_SEP);
+    return getHierarchyLevel();
   }
 
   protected void setLevel(int level) {
@@ -823,7 +823,14 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * application use see {@link OrganisationUnit#getLevel()} which has better performance.
    */
   public Integer getHierarchyLevel() {
-    if (hierarchyLevel == null) hierarchyLevel = getPath().length() / 12;
+    if (hierarchyLevel == null) {
+      // note: in theory we could just calculate: level = path.length / 12
+      // but there is lots of test data with illegal paths ;/
+      int n = 0;
+      String p = getPath();
+      for (int i = 0; i < p.length(); i++) if (p.charAt(i) == '/') n++;
+      hierarchyLevel = n;
+    }
     return hierarchyLevel;
   }
 
