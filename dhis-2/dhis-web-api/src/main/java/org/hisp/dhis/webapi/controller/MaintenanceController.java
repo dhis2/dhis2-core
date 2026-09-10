@@ -117,7 +117,7 @@ public class MaintenanceController {
       method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.OK)
   public WebMessage forceUpdatePaths() {
-    organisationUnitService.forceUpdatePaths();
+    // NOOP, plainly for backwards compatibility
     return WebMessageUtils.ok();
   }
 

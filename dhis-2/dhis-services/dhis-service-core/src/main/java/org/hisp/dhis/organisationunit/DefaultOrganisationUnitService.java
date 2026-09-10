@@ -604,18 +604,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   }
 
   @Override
-  @Transactional
-  public void updatePaths() {
-    organisationUnitStore.updatePaths();
-  }
-
-  @Override
-  @Transactional
-  public void forceUpdatePaths() {
-    organisationUnitStore.forceUpdatePaths();
-  }
-
-  @Override
   public List<String> getOrganisationUnitsUidsByUser(String username) {
     return organisationUnitStore.getOrganisationUnitsUidsByUser(username);
   }

@@ -468,12 +468,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    */
   int getOfflineOrganisationUnitLevels(User user);
 
-  /** Update all OUs where paths is null. */
-  void updatePaths();
-
-  /** Update all OUs (thus forcing update of path). */
-  void forceUpdatePaths();
-
   /**
    * Returns all OrganisationUnits that the user has access to.
    *

@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -308,18 +307,6 @@ public class HibernateOrganisationUnitStore
   // -------------------------------------------------------------------------
 
   @Override
-  public void updatePaths() {
-    getQuery("from OrganisationUnit ou where ou.path is null or ou.hierarchyLevel is null").list();
-  }
-
-  @Override
-  public void forceUpdatePaths() {
-    List<OrganisationUnit> organisationUnits =
-        new ArrayList<>(getQuery("from OrganisationUnit").list());
-    updatePaths(organisationUnits);
-  }
-
-  @Override
   public int getMaxLevel() {
     String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
@@ -345,20 +332,5 @@ public class HibernateOrganisationUnitStore
             OrganisationUnit.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
-  }
-
-  private void updatePaths(List<OrganisationUnit> organisationUnits) {
-    Session session = getSession();
-    int counter = 0;
-
-    for (OrganisationUnit organisationUnit : organisationUnits) {
-      session.update(organisationUnit);
-
-      if ((counter % 400) == 0) {
-        dbmsManager.flushSession();
-      }
-
-      counter++;
-    }
   }
 }

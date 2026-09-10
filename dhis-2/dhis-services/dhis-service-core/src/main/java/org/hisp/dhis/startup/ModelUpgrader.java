@@ -57,8 +57,6 @@ public class ModelUpgrader extends TransactionContextStartupRoutine {
 
   @Override
   public void executeInTransaction() {
-    organisationUnitService.updatePaths();
-
     categoryService.updateCategoryOptionComboNames();
   }
 }
