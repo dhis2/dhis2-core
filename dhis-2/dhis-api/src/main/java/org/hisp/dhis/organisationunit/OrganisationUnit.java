@@ -752,7 +752,10 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     if (path != null
         && (parent.path == null
             || !path.startsWith(parent.path)
-            || path.length() == parent.path.length() + 12)) this.path = null;
+            || path.length() == parent.path.length() + 12)) {
+      this.path = null;
+      this.hierarchyLevel = null;
+    }
   }
 
   @JsonProperty
@@ -770,7 +773,10 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   public void setUid(String uid) {
     this.uid = uid;
     // reset path if uid is inconsistent with it
-    if (path != null && !path.endsWith(uid)) this.path = null;
+    if (path != null && !path.endsWith(uid)) {
+      this.path = null;
+      this.hierarchyLevel = null;
+    }
   }
 
   /**
