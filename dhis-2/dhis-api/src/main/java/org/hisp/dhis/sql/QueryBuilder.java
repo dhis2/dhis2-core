@@ -254,6 +254,10 @@ public final class QueryBuilder {
     return this;
   }
 
+  public boolean isNullParameter(String name) {
+    return nullParams.contains(name);
+  }
+
   /**
    * Erase a JOIN clause to a named table given by alias in case all the given parameters are indeed
    * considered null and therefore erased when calling {@link #eraseNullParameterLines()} making the
