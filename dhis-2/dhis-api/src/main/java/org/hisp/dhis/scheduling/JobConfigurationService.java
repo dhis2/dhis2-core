@@ -88,11 +88,9 @@ public interface JobConfigurationService {
    * least once. This is to protect against aborting a job that does not support alive signals as it
    * does not yet use the {@link JobProgress} tracking.
    *
-   * @param timeoutMinutes duration in minutes for which the job has not been updated for it to be
-   *     considered stale and changed back to {@link JobStatus#SCHEDULED}.
    * @return number of job configurations that were affected
    */
-  int rescheduleStaleJobs(int timeoutMinutes);
+  int rescheduleStaleJobs();
 
   /**
    * Add a job configuration

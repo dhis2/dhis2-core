@@ -48,6 +48,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -174,11 +175,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public int rescheduleStaleJobs(int timeoutMinutes) {
-    if (timeoutMinutes <= 0) {
-      timeoutMinutes = settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
-    }
-    return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
+  public int rescheduleStaleJobs() {
+    EnumSet<JobType> analyticsJobs =
+        EnumSet.of(JobType.ANALYTICS_TABLE, JobType.CONTINUOUS_ANALYTICS_TABLE);
+    EnumSet<JobType> otherJobs = EnumSet.allOf(JobType.class);
+    otherJobs.removeAll(analyticsJobs);
+    int ttlOthers = settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
+    int reset = jobConfigurationStore.rescheduleStaleJobs(ttlOthers, otherJobs);
+    int ttlAnalytics =
+        settingsProvider.getCurrentSettings().getJobsRescheduleAnalyticsAfterMinutes();
+    reset += jobConfigurationStore.rescheduleStaleJobs(ttlAnalytics, analyticsJobs);
+    return reset;
   }
 
   @Override

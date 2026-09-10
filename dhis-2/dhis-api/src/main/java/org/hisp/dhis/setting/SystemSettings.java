@@ -717,10 +717,20 @@ public non-sealed interface SystemSettings extends Settings {
   /**
    * @return A job that has not been updating its "alive" timestamp for this number of minutes is
    *     reset to initial state of being scheduled by the heartbeat job. The run that was in
-   *     progress is considered a failed run.
+   *     progress is considered a failed run. This excludes analytic jobs which use {@link
+   *     #getJobsRescheduleAnalyticsAfterMinutes()}.
    */
   default int getJobsRescheduleAfterMinutes() {
     return asInt("jobsRescheduleAfterMinutes", 10);
+  }
+
+  /**
+   * @return An analytics job that has not been updating its "alive" timestamp for this number of
+   *     minutes is reset to initial state of being scheduled by the heartbeat job. The run that was
+   *     in progress is considered a failed run.
+   */
+  default int getJobsRescheduleAnalyticsAfterMinutes() {
+    return asInt("jobsRescheduleAnalyticsAfterMinutes", 60 * 4);
   }
 
   /**
