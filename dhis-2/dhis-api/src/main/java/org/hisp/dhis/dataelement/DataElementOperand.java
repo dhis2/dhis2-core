@@ -37,7 +37,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
@@ -53,6 +52,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -61,8 +61,6 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.attribute.AttributeValuesDeserializer;
-import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DisplayProperty;
@@ -75,15 +73,12 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.TotalAggregationType;
-import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Gist;
-import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -138,44 +133,15 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   /** Not mapped in the database - implemented this way intentionally. */
   @Transient private CategoryOptionCombo attributeOptionCombo;
 
-  // -------------------------------------------------------------------------
-  // IdentifiableObject / NameableObject / DimensionalItemObject state
-  // (not persisted for this entity - the dataelementoperand table has no
-  // uid/code/name/created/lastupdated/userid/sharing/translations columns)
-  // -------------------------------------------------------------------------
-
-  @Transient private String uid;
-
-  @Transient private String code;
-
-  @Transient private String name;
-
-  @Transient private String shortName;
-
-  @Transient private String description;
-
-  @Transient private String formName;
-
-  @Transient private Date created;
-
-  @Transient private Date lastUpdated;
-
-  @Transient private User createdBy;
-
-  @Transient private User lastUpdatedBy;
-
-  @Transient private String href;
-
-  @Transient private transient Access access;
-
-  @Transient private Sharing sharing = new Sharing();
-
-  @Transient private AttributeValues attributeValues = AttributeValues.empty();
-
-  @Transient private TranslationProperty translations = new TranslationProperty();
-
-  @Transient private List<LegendSet> legendSets = new ArrayList<>();
-
+  /**
+   * {@code queryMods} is the only IdentifiableObject/DimensionalItemObject property below that
+   * carries real, live state for this entity: expression parsing (e.g. {@code periodOffset()}/
+   * {@code yearToDate()} in indicator expressions) sets it, and analytics query planning and
+   * period-shifting read it back (see {@code PeriodOffsetUtils}, {@code
+   * QueryPlannerUtils#getQueryModsElementMap}). Every other IdentifiableObject property is a no-op
+   * below - the {@code dataelementoperand} table has no uid/code/name/created/lastupdated/userid/
+   * sharing/translations/legendsets columns, and nothing reads a value back from them.
+   */
   @Transient private transient QueryModifiers queryMods;
 
   // -------------------------------------------------------------------------
@@ -281,24 +247,30 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
         : TotalAggregationType.SUM;
   }
 
+  /** This entity does not support legend sets. */
   @Override
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
+  @Deprecated
+  @JsonIgnore
   public List<LegendSet> getLegendSets() {
-    return legendSets;
+    // A fresh mutable list, not List.of(): generic reflection-based tooling (e.g.
+    // DefaultMetadataMergeService.merge()) calls clear()/addAll() on whatever a collection
+    // getter returns for any collection property that still has a setter.
+    return new ArrayList<>();
   }
 
+  /** This entity does not support legend sets. */
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Deprecated
+  @JsonIgnore
   public LegendSet getLegendSet() {
-    return legendSets.isEmpty() ? null : legendSets.get(0);
+    return null;
   }
 
+  /** This entity does not support legend sets. */
   @Override
+  @Deprecated
   public boolean hasLegendSet() {
-    return legendSets != null && !legendSets.isEmpty();
+    return false;
   }
 
   @Override
@@ -344,12 +316,19 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The unique code for this Object.")
-  @Property(PropertyType.IDENTIFIER)
+  public void setUid(String uid) {
+    // Not supported - uid is always computed from the data element and category option combo
+  }
+
+  @Override
+  @JsonIgnore
   public String getCode() {
-    return code;
+    return null;
+  }
+
+  @Override
+  public void setCode(String code) {
+    // Not supported
   }
 
   @Override
@@ -358,10 +337,6 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   @Description("The name of this Object. Required and unique.")
   @PropertyRange(min = 1)
   public String getName() {
-    if (name != null) {
-      return name;
-    }
-
     String name = null;
 
     if (dataElement != null) {
@@ -379,6 +354,11 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
     }
 
     return name;
+  }
+
+  @Override
+  public void setName(String name) {
+    // Not supported - name is always computed from the data element and category option combo
   }
 
   @Override
@@ -407,73 +387,92 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was created.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
+  @JsonIgnore
   public Date getCreated() {
-    return created;
+    return null;
   }
 
   @Override
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public void setCreated(Date created) {
+    // Not supported
+  }
+
+  @Override
+  @JsonIgnore
   public User getLastUpdatedBy() {
-    return lastUpdatedBy;
+    return null;
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was last updated.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
+  public void setLastUpdatedBy(User lastUpdatedBy) {
+    // Not supported
+  }
+
+  @Override
+  @JsonIgnore
   public Date getLastUpdated() {
-    return lastUpdated;
+    return null;
   }
 
   @Override
-  @JsonProperty("attributeValues")
-  @JsonDeserialize(using = AttributeValuesDeserializer.class)
-  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public void setLastUpdated(Date lastUpdated) {
+    // Not supported
+  }
+
+  /** This entity does not support attribute values. */
+  @Override
+  @Deprecated
+  @JsonIgnore
   public AttributeValues getAttributeValues() {
-    return attributeValues;
+    return AttributeValues.empty();
   }
 
+  /** This entity does not support attribute values. */
   @Override
+  @Deprecated
   public void setAttributeValues(AttributeValues attributeValues) {
-    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
+    // Not supported
   }
 
+  /** This entity does not support attribute values. */
   @Override
+  @Deprecated
   public void addAttributeValue(String attributeUid, String value) {
-    this.attributeValues = this.attributeValues.added(attributeUid, value);
+    // Not supported
   }
 
+  /** This entity does not support attribute values. */
   @Override
+  @Deprecated
   public void removeAttributeValue(String attributeId) {
-    this.attributeValues = this.attributeValues.removed(attributeId);
+    // Not supported
   }
 
-  @Gist(included = Include.FALSE)
+  /** This entity does not support translations. */
   @Override
-  @Sortable(value = false)
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  @Deprecated
+  @JsonIgnore
   public Set<Translation> getTranslations() {
-    return translations.getTranslations();
+    // A fresh mutable set, not Set.of(): generic reflection-based tooling (e.g.
+    // DefaultMetadataMergeService.merge()) calls clear()/addAll() on whatever a collection
+    // getter returns for any collection property that still has a setter - confirmed live,
+    // this threw UnsupportedOperationException during a DataSet PUT with
+    // compulsoryDataElementOperands.
+    return new HashSet<>();
   }
 
+  /** This entity does not support translations. */
   @Override
+  @Deprecated
   public void setTranslations(Set<Translation> translations) {
-    this.translations.setTranslations(translations);
+    // Not supported
   }
 
+  /**
+   * @deprecated This method is replaced by {@link #getCreatedBy()}
+   */
   @Override
+  @Deprecated
   @OpenApi.Ignore
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
@@ -481,71 +480,87 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   @PropertyTransformer(UserPropertyTransformer.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public User getUser() {
-    return createdBy;
+    return getCreatedBy();
   }
 
   @Override
-  @Gist(included = Include.FALSE)
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonIgnore
   public User getCreatedBy() {
-    return createdBy;
+    return null; // Not supported - dataelementoperand table has no userid column
   }
 
   @Override
+  public void setCreatedBy(User createdBy) {
+    // Not supported - dataelementoperand table has no userid column
+  }
+
+  /**
+   * @deprecated This method is replaced by {@link #setCreatedBy(User)}
+   */
+  @Override
+  @Deprecated
   public void setUser(User user) {
-    setCreatedBy(createdBy == null ? user : createdBy);
-    setOwner(user != null ? user.getUid() : null);
+    setCreatedBy(user);
   }
 
   @Override
+  @Deprecated
   public void setOwner(String ownerId) {
-    getSharing().setOwner(ownerId);
+    // Not supported
   }
 
   @Override
-  @Sortable(value = false)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(isAttribute = true)
-  @Property(PropertyType.URL)
+  @JsonIgnore
   public String getHref() {
-    return href;
+    return null;
   }
 
   @Override
-  @Sortable(value = false)
-  @Gist(included = Include.FALSE)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
+  public void setHref(String href) {
+    // Not supported
+  }
+
+  @Override
+  @JsonIgnore
   public Access getAccess() {
-    return access;
+    return null;
   }
 
   @Override
-  @Sortable(value = false)
-  @Gist(included = Include.FALSE)
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public void setAccess(Access access) {
+    // Not supported
+  }
+
+  @Override
+  @Deprecated
+  @JsonIgnore
   public Sharing getSharing() {
-    return sharing;
+    return Sharing.empty();
+  }
+
+  @Override
+  @Deprecated
+  public void setSharing(Sharing sharing) {
+    // Not supported
+  }
+
+  @Override
+  public boolean hasSharing() {
+    return false;
   }
 
   @Override
   public String getPropertyValue(IdScheme idScheme) {
     if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
-      return uid;
+      return getUid();
     } else if (idScheme.is(IdentifiableProperty.CODE)) {
-      return code;
+      return getCode();
     } else if (idScheme.is(IdentifiableProperty.NAME)) {
-      return name;
+      return getName();
     } else if (idScheme.is(IdentifiableProperty.ID)) {
       return id > 0 ? String.valueOf(id) : null;
     } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
-      return attributeValues.get(idScheme.getAttribute());
+      return getAttributeValues().get(idScheme.getAttribute());
     }
     return null;
   }
@@ -588,6 +603,11 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
     return shortName;
   }
 
+  public void setShortName(String shortName) {
+    // Not supported - shortName is always computed from the data element and category option
+    // combo
+  }
+
   @Override
   @Sortable(whenPersisted = false)
   @JsonProperty
@@ -614,21 +634,19 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   }
 
   @Override
-  @Sortable
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 1)
+  @JsonIgnore
   public String getDescription() {
-    return description;
+    return null;
+  }
+
+  public void setDescription(String description) {
+    // Not supported
   }
 
   @Override
-  @Sortable(value = false)
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  @JsonIgnore
   public String getDisplayDescription() {
-    return translations.getTranslation("DESCRIPTION", getDescription());
+    return getDescription();
   }
 
   @Override
@@ -643,14 +661,16 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
 
   /** Returns the form name, or the name if it does not exist. */
   public String getFormNameFallback() {
-    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+    return getDisplayName();
   }
 
-  @Sortable
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonIgnore
   public String getFormName() {
-    return formName;
+    return null;
+  }
+
+  public void setFormName(String formName) {
+    // Not supported
   }
 
   @JsonProperty
@@ -658,7 +678,7 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "formName", key = "FORM_NAME")
   public String getDisplayFormName() {
-    return translations.getTranslation("FORM_NAME", getFormNameFallback());
+    return getFormNameFallback();
   }
 
   /**
@@ -727,7 +747,6 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
         || obj instanceof DataElementOperand other
             && getRealClass(this) == getRealClass(obj)
             && Objects.equals(getUid(), other.getUid())
-            && Objects.equals(getCode(), other.getCode())
             && Objects.equals(getName(), other.getName())
             && Objects.equals(queryMods, other.queryMods)
             && objectEquals(other);
@@ -742,7 +761,6 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   @Override
   public int hashCode() {
     int result = getUid() != null ? getUid().hashCode() : 0;
-    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
     result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0);
 
