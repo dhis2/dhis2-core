@@ -28,9 +28,9 @@
     <many-to-one name="parent" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="parentid"
       foreign-key="fk_parentid" index="in_parentid" />
 
-    <property name="path" column="path" access="property" unique="true" index="in_organisationunit_path" />
+    <property name="path" column="path" access="property" unique="true" index="in_organisationunit_path" generated="always" />
 
-    <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" />
+    <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" generated="always" />
     
     <property name="level" column="hierarchylevel" insert="false" update="false" />
 

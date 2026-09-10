@@ -30,7 +30,6 @@
 package org.hisp.dhis.organisationunit;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -749,6 +748,11 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   public void setParent(OrganisationUnit parent) {
     this.parent = parent;
+    // reset path if parent is inconsistent with it
+    if (path != null
+        && (parent.path == null
+            || !path.startsWith(parent.path)
+            || path.length() == parent.path.length() + 12)) this.path = null;
   }
 
   @JsonProperty
@@ -763,6 +767,12 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.children = children;
   }
 
+  public void setUid(String uid) {
+    this.uid = uid;
+    // reset path if uid is inconsistent with it
+    if (path != null && !path.endsWith(uid)) this.path = null;
+  }
+
   /**
    * Note that the {@code path} property is mapped with the "property access" mode. This method will
    * calculate and return the path property value based on the org unit ancestors. To access the
@@ -773,25 +783,8 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getPath() {
-    List<String> pathList = new ArrayList<>();
-    Set<String> visitedSet = new HashSet<>();
-    OrganisationUnit unit = parent;
-
-    pathList.add(uid);
-
-    while (unit != null) {
-      if (!visitedSet.contains(unit.getUid())) {
-        pathList.add(unit.getUid());
-        visitedSet.add(unit.getUid());
-        unit = unit.getParent();
-      } else {
-        unit = null; // Protect against cyclic org unit graphs
-      }
-    }
-
-    Collections.reverse(pathList);
-
-    return PATH_SEP + StringUtils.join(pathList, PATH_SEP);
+    if (path == null) path = (parent == null ? "" : parent.getPath()) + "/" + uid;
+    return path;
   }
 
   /**
@@ -805,7 +798,8 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   @JsonIgnore
   public String getStoredPath() {
-    return isNotEmpty(path) ? path : getPath();
+    // now just an alias to getPath
+    return getPath();
   }
 
   /**
@@ -829,20 +823,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * application use see {@link OrganisationUnit#getLevel()} which has better performance.
    */
   public Integer getHierarchyLevel() {
-    Set<String> uids = Sets.newHashSet(uid);
-
-    OrganisationUnit current = this;
-
-    while ((current = current.getParent()) != null) {
-      boolean add = uids.add(current.getUid());
-
-      if (!add) {
-        break; // Protect against cyclic org unit graphs
-      }
-    }
-
-    hierarchyLevel = uids.size();
-
+    if (hierarchyLevel == null) hierarchyLevel = getPath().length() / 12;
     return hierarchyLevel;
   }
 
