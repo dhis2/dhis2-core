@@ -749,10 +749,10 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   public void setParent(OrganisationUnit parent) {
     this.parent = parent;
     // reset path if parent is inconsistent with it
-    if (path != null
-        && (parent.path == null
-            || !path.startsWith(parent.path)
-            || path.length() == parent.path.length() + 12)) {
+    if (parent == null
+        || parent.path == null
+        || !path.startsWith(parent.path)
+        || path.length() == parent.path.length() + 12) {
       this.path = null;
       this.hierarchyLevel = null;
     }
@@ -775,7 +775,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     // reset path if uid is inconsistent with it
     if (path != null && !path.endsWith(uid)) {
       this.path = null;
-      this.hierarchyLevel = null;
     }
   }
 
