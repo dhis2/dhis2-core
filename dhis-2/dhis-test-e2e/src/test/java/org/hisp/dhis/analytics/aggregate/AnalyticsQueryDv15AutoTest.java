@@ -269,7 +269,7 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("filter=ou:AXZq6q7Dr6E;BGGmAwx33dj")
+            .add("filter=ou:ARZ4y5i4reU;YuQRtpLP10I")
             .add("skipData=false")
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
@@ -294,8 +294,8 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
-    validateRow(response, List.of(indicatorUid, "2022", "64657.0", "", "", "", "", ""));
-    validateRow(response, List.of(indicatorUid, "2021", "67138.0", "", "", "", "", ""));
+    validateRow(response, List.of(indicatorUid, "2022", "33239.0", "", "", "", "", ""));
+    validateRow(response, List.of(indicatorUid, "2021", "40902.0", "", "", "", "", ""));
   }
 
   @Test
@@ -308,7 +308,7 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("filter=ou:GjWQK6UA4FO;DiszpKrYNg8;g8upMTyEZGZ")
+            .add("filter=ou:DiszpKrYNg8;GjWQK6UA4FO;g8upMTyEZGZ")
             .add("skipData=false")
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
@@ -333,7 +333,7 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows. Three of the four facilities reported ANC 1st visit in 2021.
-    validateRow(response, List.of(indicatorUid, "2022", "28.0", "", "", "", "", ""));
-    validateRow(response, List.of(indicatorUid, "2021", "12.0", "", "", "", "", ""));
+    validateRow(response, List.of(indicatorUid, "2022", "563.0", "", "", "", "", ""));
+    validateRow(response, List.of(indicatorUid, "2021", "563.0", "", "", "", "", ""));
   }
 }

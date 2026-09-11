@@ -1209,7 +1209,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       AggregationType periodAggregationType =
           params.getAggregationTypeFallback().getPeriodAggregationType();
 
-      if (periodAggregationType.isMinOrMaxInPeriodAggregationType()) {
+      if (periodAggregationType.isMinOrMaxInPeriodAggregationType()
+          && !hasAnyChild(params.getAllOrganisationUnits())) {
         function = getAggregationFunction(periodAggregationType);
       }
 
@@ -1229,7 +1230,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       AggregationType periodAggregationType =
           params.getAggregationTypeFallback().getPeriodAggregationType();
 
-      if (periodAggregationType.isMinOrMaxInPeriodAggregationType()) {
+      if (periodAggregationType.isMinOrMaxInPeriodAggregationType()
+          && !hasAnyChild(params.getAllOrganisationUnits())) {
         function = getAggregationFunction(periodAggregationType);
       }
 
@@ -1263,6 +1265,24 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
+  }
+
+  /**
+   * Based on the given org. units, this method checks if there is any child in the hierarchy. If
+   * there is none, it returns false. True otherwise.
+   *
+   * @param allOrgUnits a list of org. units.
+   * @return the true, if any child is found in the given list of OUs.
+   */
+  public static boolean hasAnyChild(List<DimensionalItemObject> allOrgUnits) {
+    for (DimensionalItemObject dimensionalItemObject : allOrgUnits) {
+      OrganisationUnit organisationUnit = (OrganisationUnit) dimensionalItemObject;
+      if (organisationUnit.hasChild()) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private String getAggregationFunction(AggregationType aggregationType) {
