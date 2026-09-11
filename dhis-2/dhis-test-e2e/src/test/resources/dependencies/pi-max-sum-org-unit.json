@@ -1,0 +1,25 @@
+{
+  "type": "program_indicator",
+  "code": "PI_MAX_SUM_ORG_UNIT",
+  "name": "Test Max sum in org unit - PI",
+  "shortName": "Test Max sum in org unit - PI",
+  "legendSets": [],
+  "aggregationType": "MAX_SUM_ORG_UNIT",
+  "program": {
+    "programType": "WITHOUT_REGISTRATION",
+    "id": "eBAyeGv0exc",
+    "programTrackedEntityAttributes": []
+  },
+  "expression": "#{Zj7UnCAulEk.GieVkTxp4HH}",
+  "analyticsType": "EVENT",
+  "analyticsPeriodBoundaries": [
+    {
+      "boundaryTarget": "EVENT_DATE",
+      "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+    },
+    {
+      "boundaryTarget": "EVENT_DATE",
+      "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+    }
+  ]
+}

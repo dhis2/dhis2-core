@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.function.IntFunction;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -68,6 +69,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** Unit tests for {@link OrganisationUnitResolver}. */
 @ExtendWith(MockitoExtension.class)
 class OrganisationUnitResolverTest {
+
+  private static final String OU_COLUMN = "ax.\"ou\"";
+
+  /** Renders the uidlevel column for a level, the way the analytics managers do. */
+  private static final IntFunction<String> LEVEL_COLUMN = level -> "ax.\"uidlevel" + level + "\"";
 
   @Mock private DimensionalObjectProvider dimensionalObjectProducer;
 
@@ -222,5 +228,52 @@ class OrganisationUnitResolverTest {
 
     // Then
     assertNull(result);
+  }
+
+  @Test
+  void getParentOrgUnitExpressionReturnsCaseExpressionWalkingLevelsUpwards() {
+    // Given
+    when(organisationUnitService.getFilledOrganisationUnitLevels())
+        .thenReturn(List.of(level(1), level(2), level(3)));
+
+    // When
+    String result = resolver.getParentOrgUnitExpression(OU_COLUMN, LEVEL_COLUMN);
+
+    // Then
+    assertEquals(
+        "case when ax.\"uidlevel3\" = ax.\"ou\" then ax.\"uidlevel2\""
+            + " when ax.\"uidlevel2\" = ax.\"ou\" then ax.\"uidlevel1\""
+            + " else ax.\"ou\" end",
+        result);
+  }
+
+  @Test
+  void getParentOrgUnitExpressionReturnsOrgUnitColumnWhenOnlyOneLevelExists() {
+    // Given
+    when(organisationUnitService.getFilledOrganisationUnitLevels()).thenReturn(List.of(level(1)));
+
+    // When
+    String result = resolver.getParentOrgUnitExpression(OU_COLUMN, LEVEL_COLUMN);
+
+    // Then
+    assertEquals("ax.\"ou\"", result);
+  }
+
+  @Test
+  void getParentOrgUnitExpressionReturnsOrgUnitColumnWhenNoLevelsExist() {
+    // Given
+    when(organisationUnitService.getFilledOrganisationUnitLevels()).thenReturn(List.of());
+
+    // When
+    String result = resolver.getParentOrgUnitExpression(OU_COLUMN, LEVEL_COLUMN);
+
+    // Then
+    assertEquals("ax.\"ou\"", result);
+  }
+
+  private static OrganisationUnitLevel level(int level) {
+    OrganisationUnitLevel organisationUnitLevel = new OrganisationUnitLevel();
+    organisationUnitLevel.setLevel(level);
+    return organisationUnitLevel;
   }
 }

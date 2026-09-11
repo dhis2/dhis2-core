@@ -225,6 +225,13 @@
       "version": {
         "min": 41
       }
+    },
+    {
+      "name": "programIndicatorMaxSumOrgUnit",
+      "query": "/api/analytics.json?dimension=dx:fHOl75uS8K0,pe:2020;2021;2022&filter=ou:AXZq6q7Dr6E;BGGmAwx33dj&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false",
+      "version": {
+        "min": 41
+      }
     }
   ]
 }
