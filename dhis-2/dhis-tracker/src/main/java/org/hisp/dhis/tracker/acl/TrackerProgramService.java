@@ -41,6 +41,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserDetails;
@@ -56,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackerProgramService {
 
   @Nonnull private final ProgramService programService;
+  @Nonnull private final ProgramStageService programStageService;
   @Nonnull private final AclService aclService;
 
   /**
@@ -156,13 +158,27 @@ public class TrackerProgramService {
         .toList();
   }
 
+  /**
+   * Returns the stages of the given programs the current user can read.
+   *
+   * <p>The stages are fetched with a query on the owning side rather than by reading {@link
+   * Program#getProgramStages()}. That inverse collection is lazy, so what it yields depends on the
+   * state of whichever Hibernate session happens to be active: a {@code Program} already cached in
+   * the caller's persistence context is returned as-is, with the collection reflecting the
+   * relationships that were known when it was loaded. Reading it can therefore silently produce an
+   * empty list, which is not harmless here: callers pass the result straight into {@code
+   * ev.programstageid in (:programstageid)}, which binds to {@code null} and matches no rows, so
+   * every event disappears from the export with no error. Querying by program keeps the result
+   * independent of the caller's session.
+   */
   @Transactional(readOnly = true)
   public @Nonnull List<ProgramStage> getTrackerProgramStagesWithDataReadAccess(
-      @Nonnull List<Program> program) {
+      @Nonnull List<Program> programs) {
     UserDetails user = getCurrentUserDetails();
 
-    return program.stream()
-        .flatMap(p -> p.getProgramStages().stream())
+    return programs.stream()
+        .map(programStageService::getProgramStagesByProgram)
+        .flatMap(List::stream)
         .filter(ps -> aclService.canRead(user, ps) && aclService.canDataRead(user, ps))
         .toList();
   }
