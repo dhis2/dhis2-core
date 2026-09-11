@@ -706,6 +706,21 @@ public class TrackerTest extends Simulation {
             + this.trackerProgram
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
+    // Mirrors the android-sdk's NewTrackedEntityInstanceFields.asSearchFields: the common TE fields
+    // plus programOwners, with NO enrollments. The Android SDK sends this shape on every online
+    // tracked entity search (see TrackerExporterNetworkHandlerImpl.getTrackedEntityQuery), so it is
+    // a common real-world request. It is covered here because it is the only shape where all of the
+    // server-side tracked entity query branches (tracked entities, attributes, programOwners,
+    // enrollments) are comparable in cost. Every other /trackedEntities request in this test asks
+    // for enrollments, and that branch dominates the total cost whenever it runs, hiding the other
+    // three.
+    String androidSearchTEsUrl =
+        "/api/tracker/trackedEntities?page=1&pageSize=50&orgUnitMode=ACCESSIBLE&program="
+            + this.trackerProgram
+            + "&fields=trackedEntity,createdAt,updatedAt,createdAtClient,updatedAtClient,orgUnit,"
+            + "trackedEntityType,geometry,deleted,attributes[attribute,value,createdAt,updatedAt],"
+            + "programOwners";
+
     String searchBirthEvents =
         "/api/tracker/events?order=createdAt:desc&page=1"
             + "&pageSize=15&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&program="
@@ -768,6 +783,12 @@ public class TrackerTest extends Simulation {
             getTEsFromEvents,
             new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
             "Get TEs from events",
+            "Get Child Programme TEs");
+    Request searchTEsAsAndroidClient =
+        new Request(
+            androidSearchTEsUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 100, Profile.LOAD, 400)),
+            "Search TEs as Android client",
             "Get Child Programme TEs");
     Request getFirstPageOfTEs =
         new Request(
@@ -846,6 +867,13 @@ public class TrackerTest extends Simulation {
                             .pause(1, 3) // user reads results, refines search
                             .exec(
                                 searchTeByNameWithEqOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .pause(1, 3) // user reads results
+                            // Android client performs an online TE search (attributes +
+                            // programOwners, no enrollments)
+                            .exec(
+                                searchTEsAsAndroidClient
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .pause(1, 3) // user reads results
@@ -950,6 +978,7 @@ public class TrackerTest extends Simulation {
             notFoundTeByNameWithEqOperator,
             searchTeByNameWithLikeOperator,
             searchTeByNameWithEqOperator,
+            searchTEsAsAndroidClient,
             searchBirthEventsByStage,
             getTrackedEntitiesForEvents,
             getFirstPageOfTEs,
