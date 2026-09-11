@@ -35,10 +35,16 @@ import java.io.InputStream;
 import java.util.NoSuchElementException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.storage.BlobReadOptions;
+import org.hisp.dhis.storage.BlobReadTimeoutException;
+import org.hisp.dhis.tracker.export.timeout.Deadline;
+import org.hisp.dhis.tracker.export.timeout.DeadlineExceededException;
+import org.hisp.dhis.tracker.export.timeout.DeadlineHolder;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -59,6 +65,53 @@ public record FileResourceStream(
 
   public record Content(long length, InputStream stream) {}
 
+  /**
+   * Bounds the store fetch by what is left of this request's budget. Unbounded when {@code
+   * tracker.export.timeout} is disabled, the only case where a request has no deadline.
+   *
+   * <p>One fetch can make several calls to the store, an existence check before the read among
+   * them. The options carry the deadline rather than a fixed duration, so each call is bounded by
+   * the remainder and the fetch as a whole cannot outlast the budget.
+   *
+   * @throws DeadlineExceededException if the budget is spent, so we fail fast
+   */
+  private static BlobReadOptions readOptions() {
+    Deadline deadline = DeadlineHolder.get();
+    if (deadline == null) {
+      return BlobReadOptions.none();
+    }
+    DeadlineHolder.checkNotExpired();
+    return BlobReadOptions.remaining(() -> deadline.remaining().toNanos());
+  }
+
+  /**
+   * Runs {@code fetch} and maps what the store can fail with onto what the API reports. {@link
+   * NoSuchElementException} is taken to mean the content is not stored yet, the same assumption the
+   * other file endpoints make from {@code storageStatus = PENDING}.
+   */
+  private static Content fetch(ContentFetch fetch) throws ConflictException, BadRequestException {
+    try {
+      return fetch.get();
+    } catch (BlobReadTimeoutException e) {
+      Deadline deadline = DeadlineHolder.get();
+      if (deadline == null) {
+        // a timeout from some other source, not ours to translate
+        throw e;
+      }
+      throw new DeadlineExceededException(deadline.budget(), e);
+    } catch (NoSuchElementException e) {
+      throw new ConflictException(EXCEPTION_PENDING);
+    } catch (IOException e) {
+      throw new ConflictException(EXCEPTION_IO, EXCEPTION_IO_DEV);
+    }
+  }
+
+  /** What the three suppliers do before {@link #fetch} maps their failures. */
+  @FunctionalInterface
+  private interface ContentFetch {
+    Content get() throws IOException, BadRequestException;
+  }
+
   @Nonnull
   public static FileResourceStream of(
       @Nonnull FileResourceService fileResourceService, @Nonnull FileResource fileResource) {
@@ -66,20 +119,12 @@ public record FileResourceStream(
         fileResource.getUid(),
         fileResource.getName(),
         fileResource.getContentType(),
-        () -> {
-          try {
-            return new Content(
-                fileResource.getContentLength(),
-                fileResourceService.openContentStream(fileResource));
-          } catch (NoSuchElementException e) {
-            // Note: we are assuming that the file resource is not available yet. The same approach
-            // is taken in other file endpoints or code relying on the storageStatus = PENDING.
-            // All we know for sure is the file resource is in the DB but not in the store.
-            throw new ConflictException(EXCEPTION_PENDING);
-          } catch (IOException e) {
-            throw new ConflictException(EXCEPTION_IO, EXCEPTION_IO_DEV);
-          }
-        });
+        () ->
+            fetch(
+                () ->
+                    new Content(
+                        fileResource.getContentLength(),
+                        fileResourceService.openContentStream(fileResource, readOptions()))));
   }
 
   /**
@@ -105,39 +150,26 @@ public record FileResourceStream(
           fileResource.getUid(),
           fileResource.getName(),
           fileResource.getContentType(),
-          () -> {
-            try {
-              return new Content(
-                  fileResource.getContentLength(),
-                  fileResourceService.openContentStreamToImage(fileResource, imageDimension));
-            } catch (NoSuchElementException e) {
-              // Note: we are assuming that the file resource is not available yet. The same
-              // approach
-              // is taken in other file endpoints or code relying on the storageStatus = PENDING.
-              // All we know for sure is the file resource is in the DB but not in the store.
-              throw new ConflictException(EXCEPTION_PENDING);
-            } catch (IOException e) {
-              throw new ConflictException(EXCEPTION_IO, EXCEPTION_IO_DEV);
-            }
-          });
+          () ->
+              fetch(
+                  () ->
+                      new Content(
+                          fileResource.getContentLength(),
+                          fileResourceService.openContentStreamToImage(
+                              fileResource, imageDimension, readOptions()))));
     }
 
     return new FileResourceStream(
         fileResource.getUid(),
         fileResource.getName(),
         fileResource.getContentType(),
-        () -> {
-          try {
-            byte[] content = fileResourceService.copyImageContent(fileResource, imageDimension);
-            return new Content(content.length, new ByteArrayInputStream(content));
-          } catch (NoSuchElementException e) {
-            // Note: we are assuming that the file resource is not available yet. The same approach
-            // is taken in other file endpoints or code relying on the storageStatus = PENDING.
-            // All we know for sure is the file resource is in the DB but not in the store.
-            throw new ConflictException(EXCEPTION_PENDING);
-          } catch (IOException e) {
-            throw new ConflictException(EXCEPTION_IO, EXCEPTION_IO_DEV);
-          }
-        });
+        () ->
+            fetch(
+                () -> {
+                  byte[] content =
+                      fileResourceService.copyImageContent(
+                          fileResource, imageDimension, readOptions());
+                  return new Content(content.length, new ByteArrayInputStream(content));
+                }));
   }
 }

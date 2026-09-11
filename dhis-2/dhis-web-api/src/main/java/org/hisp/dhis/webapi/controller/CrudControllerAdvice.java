@@ -81,6 +81,7 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
+import org.hisp.dhis.storage.BlobReadTimeoutException;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
@@ -287,6 +288,17 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage deadlineExceededExceptionHandler(DeadlineExceededException ex) {
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.GATEWAY_TIMEOUT);
+  }
+
+  /**
+   * For callers that do not translate this themselves, as the tracker export does to name the
+   * budget in the message.
+   */
+  @ExceptionHandler(BlobReadTimeoutException.class)
+  @ResponseBody
+  public WebMessage blobReadTimeoutExceptionHandler(BlobReadTimeoutException ex) {
+    return createWebMessage(
+        "Reading the file exceeded the time allowed", Status.ERROR, HttpStatus.GATEWAY_TIMEOUT);
   }
 
   @ExceptionHandler(IllegalQueryException.class)
