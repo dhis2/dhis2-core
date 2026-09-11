@@ -246,10 +246,108 @@
       }
     },
     {
+      "name": "registrationOuWithLevel2",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:LEVEL-2&sortOrder=asc&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuWithMultipleOus",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu;fdc6uOvgoji&sortOrder=asc&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuAsFilter",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022&filter=REGISTRATION_OU:jUb8gELQApl&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuWithUserOrgUnit",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:USER_ORGUNIT&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuCombinedWithEventOu",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,ou:LEVEL-2,REGISTRATION_OU:O6uvpzGd5pu&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "optionSetDimensionFilteredByNoValueKeyword",
       "query": "/api/analytics/events/aggregate/eBAyeGv0exc.json?displayProperty=NAME&totalPages=false&stage=Zj7UnCAulEk&includeMetadataDetails=true&dimension=ou:ImspTQPwCqd,Zj7UnCAulEk.fWIAEtYVEGk:IN:D2__NOVALUE&eventDate=2021",
       "version": {
         "min": 43
+      }
+    },
+    {
+      "name": "registrationOuTableLayoutSingleDistrict",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu&tableLayout=true&rows=registrationou&columns=pe&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuTableLayoutRows",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu;fdc6uOvgoji&tableLayout=true&rows=registrationou&columns=pe&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuTableLayoutColumns",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu;fdc6uOvgoji&tableLayout=true&rows=pe&columns=registrationou&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuTableLayoutWithEventOu",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,ou:jUb8gELQApl,REGISTRATION_OU:O6uvpzGd5pu&tableLayout=true&rows=ou;registrationou&columns=pe&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuTableLayoutFilter",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,ou:jUb8gELQApl&filter=REGISTRATION_OU:O6uvpzGd5pu&tableLayout=true&rows=ou&columns=pe&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuOutputCode",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu&outputIdScheme=CODE&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuOutputName",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu&outputIdScheme=NAME&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuOutputCodeWithOrdinaryOu",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu,ou:LEVEL-2&outputIdScheme=CODE&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "registrationOuTableLayoutOutputCode",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,REGISTRATION_OU:O6uvpzGd5pu,ou:jUb8gELQApl&outputIdScheme=CODE&tableLayout=true&rows=ou;registrationou&columns=pe&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
       }
     }
   ]
