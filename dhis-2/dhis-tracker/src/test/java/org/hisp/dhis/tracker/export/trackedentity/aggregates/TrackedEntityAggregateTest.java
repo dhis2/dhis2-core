@@ -257,11 +257,11 @@ class TrackedEntityAggregateTest {
   @Test
   void shouldThrowAndNotFetchAnythingGivenExpiredDeadline() {
     DeadlineHolder.set(Deadline.in(Duration.ofSeconds(1), expiredNanoTime()));
+    TrackedEntityFields fields = TrackedEntityFields.all();
+    TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
 
     assertThrows(
-        DeadlineExceededException.class,
-        () ->
-            aggregate.find(IDENTIFIERS, TrackedEntityFields.all(), new TrackedEntityQueryParams()));
+        DeadlineExceededException.class, () -> aggregate.find(IDENTIFIERS, fields, queryParams));
 
     verifyNoInteractions(trackedEntityStore, enrollmentAggregate);
   }
