@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query;
 
+import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
+
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +61,7 @@ public class TrackedEntityAttributeCondition extends BaseRenderable {
     for (DimensionParamItem item : dimension.getItems()) {
       BinaryConditionRenderer binaryConditionRenderer =
           BinaryConditionRenderer.of(
-              Field.of(dimension.getUid()),
+              Field.of(TRACKED_ENTITY_ALIAS, dimension::getUid, ""),
               item.getOperator(),
               item.getValues(),
               valueTypeMapping,

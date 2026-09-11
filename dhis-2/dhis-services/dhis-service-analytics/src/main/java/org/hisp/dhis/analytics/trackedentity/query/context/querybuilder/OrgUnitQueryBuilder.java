@@ -90,6 +90,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
 
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
+        .filter(dimension -> !AggregateQueryBuilder.isGroupedInAggregate(queryContext, dimension))
         .map(
             dimId ->
                 GroupableCondition.of(
@@ -98,16 +99,21 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
                         dimId, OrganisationUnitCondition.of(dimId, queryContext))))
         .forEach(builder::groupableCondition);
 
-    acceptedSortingParams.forEach(
-        sortingParam ->
-            builder.orderClause(
-                IndexedOrder.of(
-                    sortingParam.getIndex(),
-                    Order.of(
-                        SqlQueryHelper.buildOrderSubQuery(
-                            sortingParam.getOrderBy(),
-                            () -> sortingParam.getOrderBy().getDimension().getUid()),
-                        sortingParam.getSortDirection()))));
+    acceptedSortingParams.stream()
+        .filter(
+            sortingParam ->
+                !AggregateQueryBuilder.isGroupedInAggregate(
+                    queryContext, sortingParam.getOrderBy()))
+        .forEach(
+            sortingParam ->
+                builder.orderClause(
+                    IndexedOrder.of(
+                        sortingParam.getIndex(),
+                        Order.of(
+                            SqlQueryHelper.buildOrderSubQuery(
+                                sortingParam.getOrderBy(),
+                                () -> sortingParam.getOrderBy().getDimension().getUid()),
+                            sortingParam.getSortDirection()))));
 
     return builder.build();
   }

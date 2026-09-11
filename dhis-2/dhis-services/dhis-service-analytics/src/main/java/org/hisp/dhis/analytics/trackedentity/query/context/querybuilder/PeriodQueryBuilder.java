@@ -109,6 +109,7 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
+        .filter(dimension -> !AggregateQueryBuilder.isGroupedInAggregate(ctx, dimension))
         .map(
             dimensionIdentifier ->
                 GroupableCondition.of(
@@ -117,18 +118,23 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
                         dimensionIdentifier, createPeriodCondition(dimensionIdentifier, ctx))))
         .forEach(builder::groupableCondition);
 
-    acceptedSortingParams.forEach(
-        sortingParam -> {
-          DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
-          String fieldName = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
+    acceptedSortingParams.stream()
+        .filter(
+            sortingParam ->
+                !AggregateQueryBuilder.isGroupedInAggregate(ctx, sortingParam.getOrderBy()))
+        .forEach(
+            sortingParam -> {
+              DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
+              String fieldName = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
 
-          builder.orderClause(
-              IndexedOrder.of(
-                  sortingParam.getIndex(),
-                  Order.of(
-                      SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName),
-                      sortingParam.getSortDirection())));
-        });
+              builder.orderClause(
+                  IndexedOrder.of(
+                      sortingParam.getIndex(),
+                      Order.of(
+                          SqlQueryHelper.buildOrderSubQuery(
+                              sortingParam.getOrderBy(), () -> fieldName),
+                          sortingParam.getSortDirection())));
+            });
 
     return builder.build();
   }
