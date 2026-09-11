@@ -46,6 +46,8 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * @author Lars Helge Overland
@@ -120,6 +122,22 @@ class QueryItemTest {
     QueryItem qiB = new QueryItem(deA, null, ValueType.TEXT, AggregationType.SUM, osA);
     expected = Lists.newArrayList("UIDA", "UIDB", "UIDC");
     assertEquals(expected, qiB.getOptionSetFilterItemsOrAll());
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "D2__NOVALUE;CODEA;CODEB, D2__NOVALUE;UIDA;UIDB",
+    "CODEA;D2__NOVALUE;CODEB, UIDA;D2__NOVALUE;UIDB",
+    "CODEA;CODEB;D2__NOVALUE, UIDA;UIDB;D2__NOVALUE",
+    "CODEB;D2__NOVALUE;CODEA, UIDB;D2__NOVALUE;UIDA",
+    "D2__NOVALUE, D2__NOVALUE",
+    "UNKNOWN;CODEB;D2__NOVALUE;CODEA, UIDB;D2__NOVALUE;UIDA"
+  })
+  void testOptionSetFilterPreservesNoValueOrder(String filter, String expected) {
+    QueryItem item = new QueryItem(deA, null, ValueType.TEXT, AggregationType.SUM, osA);
+    item.addFilter(new QueryFilter(IN, filter));
+
+    assertEquals(List.of(expected.split(";")), item.getOptionSetFilterItemsOrAll());
   }
 
   @Test

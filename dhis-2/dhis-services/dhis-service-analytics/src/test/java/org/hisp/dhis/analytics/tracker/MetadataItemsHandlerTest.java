@@ -106,6 +106,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -2335,6 +2337,49 @@ class MetadataItemsHandlerTest {
   @Nested
   @DisplayName("When an option-set dimension is filtered by the no-value keyword")
   class NoValueTests {
+
+    @ParameterizedTest
+    @CsvSource({
+      "D2__NOVALUE;1;2, D2__NOVALUE;K808uDwsiiG;NnpfZrQQpNF",
+      "1;D2__NOVALUE;2, K808uDwsiiG;D2__NOVALUE;NnpfZrQQpNF",
+      "1;2;D2__NOVALUE, K808uDwsiiG;NnpfZrQQpNF;D2__NOVALUE",
+      "2;D2__NOVALUE;1, NnpfZrQQpNF;D2__NOVALUE;K808uDwsiiG"
+    })
+    void shouldPreserveNoValueOrderInStageAggregateDimension(String filter, String expected) {
+      Grid grid = new ListGrid();
+      optionA.setCode("1");
+      optionA.setUid("K808uDwsiiG");
+      optionB.setCode("2");
+      optionB.setUid("NnpfZrQQpNF");
+      dataElementA.setUid("sadgUWcpIvJ");
+      ProgramStage stage = createProgramStage('S', programA);
+      stage.setUid("jfuXZB3A1ko");
+
+      QueryItem item =
+          new QueryItem(dataElementA, null, ValueType.NUMBER, AggregationType.COUNT, optionSetA);
+      item.setProgramStage(stage);
+      item.addFilter(new QueryFilter(QueryOperator.IN, filter));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(item)
+              .build();
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertEquals(List.of(expected.split(";")), dimensions.get("jfuXZB3A1ko.sadgUWcpIvJ"));
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertFalse(items.containsKey("D2__NOVALUE"));
+    }
 
     @Test
     @DisplayName(
