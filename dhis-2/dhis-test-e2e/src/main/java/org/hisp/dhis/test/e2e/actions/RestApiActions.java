@@ -112,9 +112,12 @@ public class RestApiActions {
     String path = queryParams == null ? "" : queryParams.build();
     addCoverage("POST", resource + path);
 
-    ApiResponse response =
-        new ApiResponse(
-            this.given().body(object).contentType(contentType).when().post(resource + path));
+    RequestSpecification request = this.given().contentType(contentType);
+    if (object != null) {
+      request = request.body(object);
+    }
+
+    ApiResponse response = new ApiResponse(request.when().post(resource + path));
 
     saveCreatedObjects(response);
 
@@ -192,6 +195,64 @@ public class RestApiActions {
 
   public ApiResponse get(QueryParamsBuilder queryParamsBuilder) {
     return this.get("", queryParamsBuilder);
+  }
+
+  /**
+   * Sends head request with provided path appended to URL.
+   *
+   * @param resourceId Id of resource
+   * @return Response
+   */
+  public ApiResponse head(String resourceId) {
+    return head(resourceId, null);
+  }
+
+  /**
+   * Sends head request to specified endpoint
+   *
+   * @return Response
+   */
+  public ApiResponse head() {
+    return head("");
+  }
+
+  public ApiResponse head(QueryParamsBuilder queryParamsBuilder) {
+    return this.head("", queryParamsBuilder);
+  }
+
+  /**
+   * Sends head request with provided path and queryParams appended to URL.
+   *
+   * @param resourceId Id of resource
+   * @param queryParamsBuilder Query params to append to url
+   */
+  public ApiResponse head(String resourceId, QueryParamsBuilder queryParamsBuilder) {
+    String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+    addCoverage("HEAD", resourceId + path);
+
+    Response response = this.given().contentType(ContentType.TEXT).when().head(resourceId + path);
+
+    return new ApiResponse(response);
+  }
+
+  /**
+   * Sends head request with provided path, headers & queryParams appended to URL.
+   *
+   * @param resourceId Id of resource
+   * @param queryParamsBuilder Query params to append to url
+   * @param headers headers to send as part of the request
+   */
+  public ApiResponse headWithHeaders(
+      String resourceId, QueryParamsBuilder queryParamsBuilder, Headers headers) {
+    String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+    addCoverage("HEAD", resourceId + path);
+
+    Response response =
+        this.given().contentType(ContentType.TEXT).headers(headers).when().head(resourceId + path);
+
+    return new ApiResponse(response);
   }
 
   /**

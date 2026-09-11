@@ -1,0 +1,20 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgSTG01",
+      "name": "Cache Program for Stage",
+      "shortName": "Cache Stg Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "programStages": [
+    {
+      "id": "CchPS000001",
+      "name": "Cache Test Program Stage",
+      "program": { "id": "CchPrgSTG01" }
+    }
+  ]
+}

@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.fieldfiltering.FieldFilterParams.*;
 import static org.hisp.dhis.webapi.controller.security.ImpersonateUserController.hasAllowListedIp;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -318,7 +317,7 @@ public class MeController {
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<String>> getAuthorities(
       @CurrentUser(required = true) User currentUser) {
-    return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.getAllAuthorities());
+    return ResponseEntity.ok().body(currentUser.getAllAuthorities());
   }
 
   @GetMapping(
@@ -326,7 +325,7 @@ public class MeController {
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> hasAuthority(
       @PathVariable String authority, @CurrentUser(required = true) User currentUser) {
-    return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.isAuthorized(authority));
+    return ResponseEntity.ok().body(currentUser.isAuthorized(authority));
   }
 
   @GetMapping(value = "/settings", produces = APPLICATION_JSON_VALUE)
@@ -336,7 +335,9 @@ public class MeController {
     UserSettings settings = UserSettings.getCurrentSettings();
     JsonMap<JsonMixed> res =
         key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(false, key);
-    return ResponseEntity.ok().cacheControl(CacheControl.noCache().cachePrivate()).body(res);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noCache().cachePrivate().mustRevalidate())
+        .body(res);
   }
 
   @GetMapping(value = "/settings/{key}", produces = APPLICATION_JSON_VALUE)
@@ -418,7 +419,7 @@ public class MeController {
   public ResponseEntity<List<DataApprovalLevel>> getApprovalLevels(@CurrentUser User currentUser) {
     List<DataApprovalLevel> approvalLevels =
         approvalLevelService.getUserDataApprovalLevels(currentUser);
-    return ResponseEntity.ok().cacheControl(noStore()).body(approvalLevels);
+    return ResponseEntity.ok().body(approvalLevels);
   }
 
   // ------------------------------------------------------------------------------------------------
