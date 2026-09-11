@@ -45,6 +45,8 @@ import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
@@ -181,6 +183,7 @@ class UserAccountServiceTest {
     when(userService.isRecoveryLocked("mia")).thenReturn(false);
     when(passwordManager.matches("Old_pw1!", "encoded-old")).thenReturn(true);
     when(userService.userNonExpired(user)).thenReturn(false);
+    stubEmailRecoveryUnavailable();
 
     BadRequestException exception =
         assertThrows(
@@ -192,12 +195,14 @@ class UserAccountServiceTest {
 
   @Test
   @DisplayName("updateExpiredPassword sets and persists a valid new password")
-  void updateExpiredPasswordOkTest() throws BadRequestException, ForbiddenException {
+  void updateExpiredPasswordOkTest()
+      throws BadRequestException, ConflictException, ForbiddenException {
     User user = expiredPasswordUser();
     when(userService.getUserByUsername("mia")).thenReturn(user);
     when(userService.isRecoveryLocked("mia")).thenReturn(false);
     when(passwordManager.matches("Old_pw1!", "encoded-old")).thenReturn(true);
     when(userService.userNonExpired(user)).thenReturn(false);
+    stubEmailRecoveryUnavailable();
     when(passwordValidationService.validate(any(CredentialsInfo.class)))
         .thenReturn(PasswordValidationResult.VALID);
 
@@ -212,6 +217,61 @@ class UserAccountServiceTest {
     user.setUsername("mia");
     user.setPassword("encoded-old");
     return user;
+  }
+
+  /** Gate is reached after password+expiry; recovery off keeps the emailless path open. */
+  private void stubEmailRecoveryUnavailable() {
+    when(settingsService.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "false")));
+  }
+
+  private void stubEmailRecoveryAvailable(User user) {
+    when(settingsService.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "true")));
+    when(userService.validateRestore(user)).thenReturn(null);
+  }
+
+  @Test
+  @DisplayName("updateExpiredPassword rejects when email recovery is available for the account")
+  void updateExpiredPasswordEmailRecoveryRequiredTest() {
+    User user = expiredPasswordUser();
+    user.setEmail("mia@dhis2.org");
+    when(userService.getUserByUsername("mia")).thenReturn(user);
+    when(userService.isRecoveryLocked("mia")).thenReturn(false);
+    when(passwordManager.matches("Old_pw1!", "encoded-old")).thenReturn(true);
+    when(userService.userNonExpired(user)).thenReturn(false);
+    stubEmailRecoveryAvailable(user);
+
+    ConflictException exception =
+        assertThrows(
+            ConflictException.class,
+            () -> userAccountService.updateExpiredPassword("mia", "Old_pw1!", "New_pw1!"));
+
+    assertEquals(
+        "Password must be reset using email recovery for this account", exception.getMessage());
+    verify(userService, never()).encodeAndSetPassword(any(User.class), anyString());
+  }
+
+  @Test
+  @DisplayName(
+      "canUseEmailPasswordRecovery is true only when recovery is enabled and restore validates")
+  void canUseEmailPasswordRecoveryTest() {
+    User user = expiredPasswordUser();
+    user.setEmail("mia@dhis2.org");
+
+    when(settingsService.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "false")));
+    assertEquals(false, userAccountService.canUseEmailPasswordRecovery(user));
+
+    when(settingsService.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "true")));
+    when(userService.validateRestore(user)).thenReturn(ErrorCode.E6203);
+    assertEquals(false, userAccountService.canUseEmailPasswordRecovery(user));
+
+    when(userService.validateRestore(user)).thenReturn(null);
+    assertEquals(true, userAccountService.canUseEmailPasswordRecovery(user));
+
+    assertEquals(false, userAccountService.canUseEmailPasswordRecovery(null));
   }
 
   @Test
