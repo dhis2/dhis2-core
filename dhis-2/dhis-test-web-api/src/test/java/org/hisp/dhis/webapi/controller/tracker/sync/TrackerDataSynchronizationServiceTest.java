@@ -84,10 +84,15 @@ import org.springframework.web.client.RestTemplate;
  * TrackerDataSynchronizationServiceTest} (dhis-web-api module) cover the decision logic, and this
  * class is kept simple on purpose rather than trying to cover everything.
  *
- * <p>Deliberately NOT {@code @Transactional}: {@code TrackedEntityFields.all()} makes {@link
- * TrackerDataSynchronizationService} fetch enrollments via {@code EnrollmentAggregate}, which runs
- * on a separate thread with its own DB connection. A per-test uncommitted transaction would be
- * invisible to that thread, so fixtures must actually commit.
+ * <p>Deliberately NOT {@code @Transactional}: the fixtures are imported through the real tracker
+ * importer and must be committed for the sync service to see them. A per-test uncommitted
+ * transaction would leave the export finding nothing.
+ *
+ * <p>Until DHIS2-20927 the reason given here was that {@code EnrollmentAggregate} ran on a separate
+ * thread with its own connection. That thread boundary is gone now that the tracked entity export
+ * fetches run in series, and it was hiding a bug: {@code
+ * TrackerProgramService.getTrackerProgramStagesWithDataReadAccess} read a lazy inverse collection
+ * that only resolved because each branch got a fresh Hibernate session.
  */
 class TrackerDataSynchronizationServiceTest extends PostgresControllerIntegrationTestBase {
 
