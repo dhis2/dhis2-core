@@ -53,20 +53,21 @@ public enum ValueCoalescePolicy {
     return "coalesce(" + alias + ".value, " + defaultSqlLiteral + ")";
   }
 
-  /** Maps DHIS2 {@link ValueType} → policy. */
+  /**
+   * Maps DHIS2 {@link ValueType} → policy. The value type predicates are the same ones {@link
+   * org.hisp.dhis.analytics.util.AnalyticsUtils#getColumnType} uses to pick the analytics column
+   * type, so the default literal always matches the column it is coalesced with.
+   */
   public static ValueCoalescePolicy from(ValueType vt) {
-    return switch (vt) {
-      case INTEGER,
-          NUMBER,
-          INTEGER_POSITIVE,
-          INTEGER_NEGATIVE,
-          INTEGER_ZERO_OR_POSITIVE,
-          PERCENTAGE,
-          UNIT_INTERVAL ->
-          NUMBER;
-      case BOOLEAN -> BOOLEAN;
-      case DATE, DATETIME -> DATE;
-      default -> TEXT;
-    };
+    if (vt.isNumeric()) {
+      return NUMBER;
+    }
+    if (vt.isBoolean()) {
+      return BOOLEAN;
+    }
+    if (vt.isDate()) {
+      return DATE;
+    }
+    return TEXT;
   }
 }

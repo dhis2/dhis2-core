@@ -209,6 +209,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "queryProgramIndicatorWithTrueOnlyDataElement",
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n.json?dimension=PItrueOnly1:EQ:1,ou:ImspTQPwCqd&headers=ouname,enrollmentdate,PItrueOnly1&totalPages=false&rowContext=true&enrollmentDate=LAST_5_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=enrollmentdate&relativePeriodDate=2023-07-01",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
