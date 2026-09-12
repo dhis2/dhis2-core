@@ -84,6 +84,7 @@ import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
@@ -91,6 +92,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -160,6 +162,7 @@ class JdbcTrackerEventStore {
   private static final ObjectReader eventDataValueJsonReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
+  @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   public List<TrackerEvent> getEvents(TrackerEventQueryParams queryParams) {

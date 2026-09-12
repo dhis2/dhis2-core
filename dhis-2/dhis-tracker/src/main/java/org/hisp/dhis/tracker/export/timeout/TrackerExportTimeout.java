@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.tracker.export.timeout;
 
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
-import org.hisp.dhis.user.UserDetails;
+import java.time.Duration;
+import javax.annotation.CheckForNull;
 
 /**
- * @author Morten Olav Hansen
+ * The configured tracker export budget, resolved once at startup.
+ *
+ * @param budget how long an export request may spend querying, or null if the timeout is disabled
  */
-@Data
-@AllArgsConstructor
-public class FieldFilterParams<T> {
-  /** Objects to apply filters on. */
-  private final List<T> objects;
+public record TrackerExportTimeout(@CheckForNull Duration budget) {
 
-  private final String fields;
-
-  /** Do not include sharing properties (user, sharing, publicAccess, etc). */
-  private final boolean skipSharing;
-
-  /** Do not include {@link BaseIdentifiableObject_#CREATED_AND_LAST_UPDATED}. */
-  private final boolean skipCreatedAndLastUpdated;
-
-  private UserDetails user;
-
-  public static <T> FieldFilterParams<T> of(T object, String fields) {
-    return of(List.of(object), fields);
-  }
-
-  public static <T> FieldFilterParams<T> of(List<T> objects, String fields) {
-    return of(objects, fields, false);
-  }
-
-  public static <T> FieldFilterParams<T> of(List<T> objects, String fields, boolean skipSharing) {
-    return of(objects, fields, skipSharing, false);
-  }
-
-  public static <T> FieldFilterParams<T> of(
-      List<T> objects, String fields, boolean skipSharing, boolean skipCreatedAndLastUpdated) {
-    return new FieldFilterParams<>(objects, fields, skipSharing, skipCreatedAndLastUpdated, null);
+  /** Null if the timeout is disabled. */
+  @CheckForNull
+  public Deadline newDeadline() {
+    return budget == null ? null : Deadline.in(budget);
   }
 }

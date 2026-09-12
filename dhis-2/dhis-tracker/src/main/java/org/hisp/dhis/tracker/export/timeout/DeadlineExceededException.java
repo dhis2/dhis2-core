@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.tracker.export.timeout;
 
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
-import org.hisp.dhis.user.UserDetails;
+import java.time.Duration;
+import org.springframework.dao.DataAccessException;
 
 /**
- * @author Morten Olav Hansen
+ * Thrown when a tracker export request has used up its {@code tracker.export.timeout} budget. Maps
+ * to HTTP 504 Gateway Timeout.
+ *
+ * <p>Extends {@link DataAccessException} so it can be returned from {@code JdbcTemplate}'s
+ * exception translation, which is where a query cancelled by the deadline surfaces.
+ *
+ * <p>The message names the budget and nothing else. The caller knows the request they sent, and
+ * what made it slow is usually something it does not name, such as ordering by a non-indexed
+ * attribute. Nothing is logged either: the access log already records the 504, and the request is
+ * an idempotent GET, so diagnosis is to reproduce it rather than to read anything captured here.
  */
-@Data
-@AllArgsConstructor
-public class FieldFilterParams<T> {
-  /** Objects to apply filters on. */
-  private final List<T> objects;
+public class DeadlineExceededException extends DataAccessException {
 
-  private final String fields;
-
-  /** Do not include sharing properties (user, sharing, publicAccess, etc). */
-  private final boolean skipSharing;
-
-  /** Do not include {@link BaseIdentifiableObject_#CREATED_AND_LAST_UPDATED}. */
-  private final boolean skipCreatedAndLastUpdated;
-
-  private UserDetails user;
-
-  public static <T> FieldFilterParams<T> of(T object, String fields) {
-    return of(List.of(object), fields);
+  public DeadlineExceededException(Duration budget) {
+    super(message(budget));
   }
 
-  public static <T> FieldFilterParams<T> of(List<T> objects, String fields) {
-    return of(objects, fields, false);
+  public DeadlineExceededException(Duration budget, Throwable cause) {
+    super(message(budget), cause);
   }
 
-  public static <T> FieldFilterParams<T> of(List<T> objects, String fields, boolean skipSharing) {
-    return of(objects, fields, skipSharing, false);
-  }
-
-  public static <T> FieldFilterParams<T> of(
-      List<T> objects, String fields, boolean skipSharing, boolean skipCreatedAndLastUpdated) {
-    return new FieldFilterParams<>(objects, fields, skipSharing, skipCreatedAndLastUpdated, null);
+  private static String message(Duration budget) {
+    return "Tracker export exceeded its time budget of %ss".formatted(budget.toSeconds());
   }
 }

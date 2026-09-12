@@ -85,6 +85,7 @@ import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
+import org.hisp.dhis.tracker.export.timeout.DeadlineExceededException;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
@@ -280,6 +281,12 @@ public class CrudControllerAdvice {
       }
     }
     return false;
+  }
+
+  @ExceptionHandler(DeadlineExceededException.class)
+  @ResponseBody
+  public WebMessage deadlineExceededExceptionHandler(DeadlineExceededException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.GATEWAY_TIMEOUT);
   }
 
   @ExceptionHandler(IllegalQueryException.class)
