@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common.input;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -64,6 +65,7 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
   public static final Fields DEFAULT = new Fields(List.of());
 
   @Nonnull
+  @JsonCreator
   public static Fields of(String fields) {
     if (fields == null || fields.isEmpty()) return DEFAULT;
     List<FieldExp> res = new ArrayList<>();
@@ -104,6 +106,12 @@ public record Fields(List<Field> fields) implements Iterable<Fields.Field> {
   @Override
   public Iterator<Field> iterator() {
     return fields.iterator();
+  }
+
+  public boolean contains(CharSequence path) {
+    PropertyPath p = PropertyPath.of(path);
+    for (Field f : fields) if (f.propertyPath.equals(p)) return true;
+    return false;
   }
 
   /**

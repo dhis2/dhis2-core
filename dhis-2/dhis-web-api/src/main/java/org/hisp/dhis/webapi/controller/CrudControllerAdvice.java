@@ -48,11 +48,14 @@ import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
@@ -77,6 +80,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
@@ -151,6 +155,7 @@ public class CrudControllerAdvice {
       "The server could not obtain a database connection. Please try again later";
 
   private final List<Class<?>> enumClasses;
+  private final Map<Class<?>, Function<String, Object>> enumFromText = new HashMap<>();
 
   public CrudControllerAdvice() {
     this.enumClasses =
@@ -161,6 +166,7 @@ public class CrudControllerAdvice {
             .getAllClasses()
             .getEnums()
             .loadClasses();
+    enumFromText.put(PeriodTypeEnum.class, PeriodTypeEnum::of);
   }
 
   @InitBinder
@@ -168,7 +174,8 @@ public class CrudControllerAdvice {
     binder.registerCustomEditor(Date.class, new FromTextPropertyEditor(DateUtils::parseDate));
     binder.registerCustomEditor(
         IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
-    this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
+    this.enumClasses.forEach(
+        c -> binder.registerCustomEditor(c, new ConvertEnum(c, enumFromText.get(c))));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
   }
 
@@ -791,15 +798,18 @@ public class CrudControllerAdvice {
 
   private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport {
     private final Class<T> enumClass;
+    private final @CheckForNull Function<String, Object> fromText;
 
-    private ConvertEnum(Class<T> enumClass) {
+    private ConvertEnum(Class<T> enumClass, @CheckForNull Function<String, Object> fromText) {
       this.enumClass = enumClass;
+      this.fromText = fromText;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void setAsText(String text) {
       Enum<T> enumValue = EnumUtils.getEnumIgnoreCase(enumClass, text);
-
+      if (enumValue == null && fromText != null) enumValue = (Enum<T>) fromText.apply(text);
       if (enumValue == null) {
         throw new IllegalArgumentException(
             MessageFormat.format(" Cannot convert {0} to {1}", text, enumClass));

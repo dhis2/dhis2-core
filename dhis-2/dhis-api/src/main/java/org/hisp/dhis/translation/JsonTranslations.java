@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.translation;
 
-import java.util.Calendar;
+import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
 
 /**
- * @author Chau Thu Tran
+ * A list/set of translations as stored in DB as JSON(B).
+ *
+ * @author Jan Bernitt
+ * @since 2.44
  */
-public class FinancialOctoberPeriodType extends FinancialPeriodType {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -1623576547899897811L;
-
-  private static final String ISO_FORMAT = "yyyyOct";
-
-  private static final String ISO8601_DURATION = "P1Y";
-
-  @Override
-  public int getBaseMonth() {
-    return Calendar.OCTOBER;
-  }
-
-  @Override
-  public PeriodTypeEnum getPeriodTypeEnum() {
-    return PeriodTypeEnum.FINANCIAL_OCT;
-  }
-
-  @Override
-  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
-    return String.format("%dOct", dateTimeUnit.getYear());
-  }
-
+public interface JsonTranslations extends JsonArray {
   @Nonnull
-  @Override
-  public String getIsoFormat() {
-    return ISO_FORMAT;
+  default List<Translation> translationsList() {
+    return stream()
+        .map(
+            e ->
+                new Translation(
+                    Locale.of(e.getString("locale").string()),
+                    e.getString("property").string(),
+                    e.getString("value").string()))
+        .toList();
   }
 
-  @Nonnull
-  @Override
-  public String getIso8601Duration() {
-    return ISO8601_DURATION;
+  @CheckForNull
+  default String translationValue(@Nonnull Locale locale) {
+    String l = locale.toString();
+    for (JsonMixed e : this)
+      if (e.getString("locale").text().contentEquals(l)) return e.getString("value").string();
+    // fall back to just language?
+    if (locale.script() == null && locale.region() != null)
+      return translationValue(Locale.of(locale.language()));
+    return null;
   }
 }

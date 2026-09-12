@@ -29,10 +29,13 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -91,46 +94,14 @@ public class TranslationsCheck implements ObjectValidationCheck {
 
     ObjectReport objectReport = new ObjectReport(klass, index);
 
-    if (!schema.isTranslatable()) {
-      objectReport.addErrorReport(
-          new ErrorReport(Translation.class, ErrorCode.E1107, klass.getSimpleName())
-              .setErrorKlass(klass));
-      addReports.accept(objectReport);
-      return;
-    }
+    Consumer<ErrorReport> addError =
+        error ->
+            objectReport.addErrorReport(
+                error.setErrorKlass(klass).setErrorProperty("translations"));
 
-    Set<String> setPropertyLocales = new HashSet<>();
+    checkTranslatable(schema, addError);
 
-    for (Translation t : translations) {
-      Locale locale = t.getLocale();
-      String property = t.getProperty();
-      String value = t.getValue();
-      if (locale == null) {
-        objectReport.addErrorReport(
-            new ErrorReport(Translation.class, ErrorCode.E4000, "locale").setErrorKlass(klass));
-      } else if (property == null) {
-        objectReport.addErrorReport(
-            new ErrorReport(Translation.class, ErrorCode.E4000, "property").setErrorKlass(klass));
-      } else if (value == null) {
-        objectReport.addErrorReport(
-            new ErrorReport(Translation.class, ErrorCode.E4000, "value").setErrorKlass(klass));
-      } else {
-        String key = String.join("_", property, locale.toString());
-        if (setPropertyLocales.contains(key)) {
-          objectReport.addErrorReport(
-              new ErrorReport(
-                      Translation.class,
-                      ErrorCode.E1106,
-                      property,
-                      locale,
-                      klass.getSimpleName(),
-                      object.getUid())
-                  .setErrorKlass(klass));
-        } else {
-          setPropertyLocales.add(key);
-        }
-      }
-    }
+    if (!objectReport.hasErrorReports()) checkTranslations(translations, addError);
 
     if (objectReport.hasErrorReports()) {
       addReports.accept(objectReport);
@@ -138,5 +109,59 @@ public class TranslationsCheck implements ObjectValidationCheck {
         context.markForRemoval(object);
       }
     }
+  }
+
+  public static void checkTranslations(
+      Collection<Translation> translations, Consumer<ErrorReport> addError) {
+    if (translations == null || translations.isEmpty()) return;
+    int errors = 0;
+    for (Translation t : translations) {
+      ErrorReport error = checkNotNull(t);
+      if (error != null) {
+        errors++;
+        addError.accept(error);
+      }
+    }
+    if (errors == 0) {
+      ErrorReport error = checkUniqueness(translations);
+      if (error != null) addError.accept(error);
+    }
+  }
+
+  public static void checkTranslatable(Schema schema, Consumer<ErrorReport> addError) {
+    if (!schema.isTranslatable())
+      addError.accept(
+          new ErrorReport(Translation.class, ErrorCode.E1107, schema.getKlass().getSimpleName()));
+  }
+
+  private static ErrorReport checkUniqueness(Collection<Translation> translations) {
+    long uniqueCount =
+        translations.stream()
+            .map(Translation::getCacheKey)
+            .filter(Objects::nonNull)
+            .distinct()
+            .count();
+    if (uniqueCount < translations.size()) {
+      Set<String> keys = new HashSet<>(translations.size());
+      for (Translation t : translations) {
+        String key = t.getCacheKey();
+        if (keys.contains(key))
+          return new ErrorReport(
+              Translation.class, ErrorCode.E1106, t.getProperty(), t.getLocale().toString());
+        keys.add(key);
+      }
+    }
+    return null;
+  }
+
+  @CheckForNull
+  private static ErrorReport checkNotNull(Translation t) {
+    Locale locale = t.getLocale();
+    String property = t.getProperty();
+    String value = t.getValue();
+    if (locale == null) return new ErrorReport(Translation.class, ErrorCode.E4000, "locale");
+    if (property == null) return new ErrorReport(Translation.class, ErrorCode.E4000, "property");
+    if (value == null) return new ErrorReport(Translation.class, ErrorCode.E4000, "value");
+    return null;
   }
 }

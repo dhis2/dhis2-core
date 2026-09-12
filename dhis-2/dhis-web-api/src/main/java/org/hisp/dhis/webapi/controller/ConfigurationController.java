@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E1101;
@@ -37,20 +37,27 @@ import static org.hisp.dhis.period.PeriodTypeEnum.TWO_YEARLY;
 import static org.hisp.dhis.period.PeriodTypeEnum.YEARLY;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -58,14 +65,14 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.period.PeriodPipeline;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
@@ -81,6 +88,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -100,12 +108,11 @@ public class ConfigurationController {
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
   @Autowired private PeriodService periodService;
+  @Autowired private PeriodPipeline periodPipeline;
 
   @Autowired private RenderService renderService;
 
   @Autowired private AppManager appManager;
-
-  @Autowired private I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -477,36 +484,50 @@ public class ConfigurationController {
   @GetMapping(
       value = {"/dataOutputPeriodTypes"},
       produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody Set<org.hisp.dhis.webapi.webdomain.PeriodType> getDataOutputPeriodTypes() {
-    Set<PeriodType> periodTypes =
-        configurationService.getConfiguration().getDataOutputPeriodTypes();
+  public void getDataOutputPeriodTypes(
+      @RequestParam(required = false) Locale locale,
+      @RequestParam(defaultValue = "*") Fields fields,
+      HttpServletResponse response) {
+    Set<PeriodTypeEnum> names =
+        configurationService.getConfiguration().getDataOutputPeriodTypes().stream()
+            .map(PeriodType::getPeriodTypeEnum)
+            .collect(toSet());
 
-    I18n i18n = i18nManager.getI18n();
-
-    return periodTypes.stream()
-        .map(periodType -> new org.hisp.dhis.webapi.webdomain.PeriodType(periodType, i18n))
-        .collect(toCollection(LinkedHashSet::new));
+    periodPipeline.exportAsJson(names, locale, fields, lazyJsonOutputStream(response));
   }
+
+  private static Supplier<OutputStream> lazyJsonOutputStream(HttpServletResponse response) {
+    return () -> {
+      response.setContentType(CONTENT_TYPE_JSON);
+      try {
+        return response.getOutputStream();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
+  }
+
+  @OpenApi.Shared(false)
+  public record PeriodTypeName(String name) {}
 
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping(
       value = {"/dataOutputPeriodTypes"},
       consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void setDataOutputPeriodTypes(
-      @RequestBody Set<org.hisp.dhis.webapi.webdomain.PeriodType> periodTypes) {
+  public void setDataOutputPeriodTypes(@RequestBody Set<PeriodTypeName> names) {
 
     // Disallow deprecated types
-    for (org.hisp.dhis.webapi.webdomain.PeriodType p : periodTypes) {
-      if (trimToEmpty(p.getName()).equalsIgnoreCase(TWO_YEARLY.getName())) {
-        throw new IllegalQueryException(new ErrorMessage(E1101, p.getName()));
+    for (PeriodTypeName obj : names) {
+      if (trimToEmpty(obj.name()).equalsIgnoreCase(TWO_YEARLY.getName())) {
+        throw new IllegalQueryException(new ErrorMessage(E1101, obj.name()));
       }
     }
 
     Set<PeriodType> periodTypesParsed = new LinkedHashSet<>();
 
-    periodTypes.forEach(
-        p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.getName())));
+    names.forEach(
+        p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.name())));
 
     // Always add yearly, as it is mandatory for partition checks
     periodTypesParsed.add(periodService.getPeriodTypeByName(YEARLY.getName()));

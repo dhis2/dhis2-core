@@ -41,11 +41,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.FavoritableObject;
@@ -57,6 +57,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.ReplaceTranslationsParams;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -145,8 +146,6 @@ public abstract class AbstractCrudController<
   @Autowired protected SharingService sharingService;
 
   @Autowired protected BulkPatchManager bulkPatchManager;
-
-  @Autowired private TranslationsCheck translationsCheck;
 
   @Autowired protected EventHookPublisher eventHookPublisher;
 
@@ -409,27 +408,25 @@ public abstract class AbstractCrudController<
   public WebMessage replaceTranslations(
       @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
-      HttpServletRequest request)
-      throws NotFoundException, ForbiddenException, IOException {
+      @RequestBody ReplaceTranslationsParams params)
+      throws NotFoundException, ForbiddenException {
     T persistedObject = getEntity(uid);
 
     updatePermissionCheck(currentUser, persistedObject);
 
-    T inputObject = renderService.fromJson(request.getInputStream(), getEntityClass());
+    List<Translation> translations = params.translations();
 
-    HashSet<Translation> translations = new HashSet<>(inputObject.getTranslations());
+    ObjectReport report = new ObjectReport(getEntityClass(), 0);
+    TranslationsCheck.checkTranslatable(getSchema(), report::addErrorReport);
+    TranslationsCheck.checkTranslations(translations, report::addErrorReport);
 
-    persistedObject.setTranslations(translations);
-    List<ObjectReport> objectReports = new ArrayList<>();
-    translationsCheck.run(
-        persistedObject, getEntityClass(), objectReports::add, getSchema(), 0, null);
-
-    if (objectReports.isEmpty()) {
+    if (!report.hasErrorReports()) {
+      persistedObject.setTranslations(
+          new HashSet<>(translations == null ? Set.of() : translations));
       manager.update(persistedObject);
       return null;
     }
-
-    return objectReport(objectReports.get(0));
+    return objectReport(report);
   }
 
   // --------------------------------------------------------------------------
