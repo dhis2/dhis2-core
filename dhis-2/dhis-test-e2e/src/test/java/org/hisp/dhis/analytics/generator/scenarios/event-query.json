@@ -370,6 +370,48 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "eventsSortedByStageOrgUnitNameAscending",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&stage=A03MvHHogjR&eventDate=202112&outputType=EVENT&totalPages=false&pageSize=50&page=1&headers=A03MvHHogjR.ouname,A03MvHHogjR.eventdate&asc=A03MvHHogjR.ouname",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "eventsSortedByStageOrgUnitCodeDescendingWithoutMatchingHeader",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&stage=A03MvHHogjR&eventDate=202112&outputType=EVENT&totalPages=false&pageSize=50&page=1&headers=A03MvHHogjR.ouname,A03MvHHogjR.eventdate&desc=A03MvHHogjR.oucode",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "eventsSortedByStageEventDateAscending",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&stage=A03MvHHogjR&eventDate=202112&outputType=EVENT&totalPages=false&pageSize=50&page=1&headers=A03MvHHogjR.ouname,A03MvHHogjR.eventdate&asc=A03MvHHogjR.eventdate",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "eventsSortedByStageScheduledDateDescending",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&stage=A03MvHHogjR&eventDate=202112&outputType=EVENT&totalPages=false&pageSize=50&page=1&headers=A03MvHHogjR.ouname,A03MvHHogjR.scheduleddate&desc=A03MvHHogjR.scheduleddate",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "eventsSortedByStageEventDateTokenDescendingWithoutMatchingHeader",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:lY93YpCxJqf&stage=A03MvHHogjR&eventDate=202112&outputType=EVENT&totalPages=false&pageSize=50&page=1&headers=A03MvHHogjR.ouname&desc=A03MvHHogjR.EVENT_DATE",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "eventsSortedByStageOrgUnitTokenAscending",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:BGGmAwx33dj&stage=A03MvHHogjR&eventDate=202105&outputType=EVENT&totalPages=false&pageSize=50&page=1&headers=A03MvHHogjR.ouname,ou&asc=A03MvHHogjR.ou",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
