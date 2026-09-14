@@ -282,9 +282,9 @@ public class DimensionParam implements UidObject {
         "incidentdate"),
     OCCURREDDATE("Occurred Date", DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TrackedEntityStaticField.LAST_UPDATED),
-    LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
+    LASTUPDATEDBYDISPLAYNAME("Last updated by", TEXT, STATIC),
     CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),
-    CREATEDBYDISPLAYNAME("Created By", TEXT, STATIC),
+    CREATEDBYDISPLAYNAME("Created by", TEXT, STATIC),
     ENROLLMENT_STATUS("Enrollment Status", TEXT, STATIC, null, "enrollmentstatus"),
     PROGRAM_STATUS(
         "Program Status",
@@ -306,7 +306,7 @@ public class DimensionParam implements UidObject {
         "scheduleddate",
         "scheduleddate"),
 
-    OU("Organisation Unit", TEXT, ORGANISATION_UNIT, null, "ou", "ou");
+    OU("Organisation unit", TEXT, ORGANISATION_UNIT, null, "ou", "ou");
 
     private final String headerColumnName;
 
@@ -427,11 +427,16 @@ public class DimensionParam implements UidObject {
           .orElse(name());
     }
 
+    /**
+     * The display label of this dimension. Falls back to the header column name so a dimension
+     * without a backing {@link TrackedEntityStaticField} still reads as a label rather than as the
+     * raw enum constant.
+     */
     @Override
     public String getFullName() {
       return Optional.ofNullable(teStaticField)
           .map(TrackedEntityStaticField::getFullName)
-          .orElse(name());
+          .orElseGet(() -> StringUtils.isNotBlank(headerColumnName) ? headerColumnName : name());
     }
 
     @Override

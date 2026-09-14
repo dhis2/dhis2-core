@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.trackedentity;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -61,6 +62,7 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -73,6 +75,8 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
@@ -163,6 +167,110 @@ class TrackedEntityAggregateOuMetadataTest {
   }
 
   @Test
+  void metadataExposesOuLabelItemWithoutClobberingResolvedOrgUnits() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        contextParamsForOuDimension(new CommonRequestParams().withDimension(Set.of("ou")));
+
+    stubQuery(
+        ctx,
+        fakeRowSet(
+            new String[] {"ou", "value"}, List.<Object[]>of(new Object[] {"a04CZxe0PSe", 42})));
+    when(organisationUnitService.getOrganisationUnitsByUid(Set.of("a04CZxe0PSe")))
+        .thenReturn(List.of(orgUnit("Ngelehun CHC", "a04CZxe0PSe", null)));
+
+    Grid grid = service.getGrid(ctx);
+    Map<String, MetadataItem> items = getItems(grid);
+
+    assertTrue(
+        items.containsKey("ou"),
+        "metaData.items must contain the 'ou' dimension label; was: " + items.keySet());
+    assertEquals(headerColumn(grid, "ou"), items.get("ou").getName());
+
+    // The label entry must not displace what addGroupedOrgUnitMetadata resolved.
+    assertEquals(List.of("a04CZxe0PSe"), getDimensions(grid).get("ou"));
+    assertEquals("Ngelehun CHC", items.get("a04CZxe0PSe").getName());
+  }
+
+  /**
+   * Every header a client sees must be resolvable against the metadata, which is what makes the
+   * grid self-describing. Dimensions parsed as static ones carry neither a {@link
+   * org.hisp.dhis.common.DimensionalObject} nor a {@link org.hisp.dhis.common.QueryItem}, so the
+   * shared metadata handlers never emit them.
+   */
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "ou",
+        "ouname",
+        "oucode",
+        "ounamehierarchy",
+        "created",
+        "lastupdated",
+        "trackedentity",
+        "createdbydisplayname",
+        "lastupdatedbydisplayname",
+        "longitude",
+        "latitude",
+        "geometry"
+      })
+  void everyHeaderResolvesInItemsAndDimensions(String dimension) {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        contextParamsForDimension(
+            new CommonRequestParams().withDimension(Set.of(dimension)), dimension);
+
+    stubQuery(
+        ctx,
+        fakeRowSet(
+            new String[] {dimension, "value"},
+            List.<Object[]>of(new Object[] {"a04CZxe0PSe", 42})));
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
+
+    assertHeadersResolveInMetadata(service.getGrid(ctx));
+  }
+
+  @Test
+  void everyHeaderResolvesInMetadataWhenNoRowsMatch() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        contextParamsForOuDimension(new CommonRequestParams().withDimension(Set.of("ou")));
+
+    stubQuery(ctx, fakeRowSet(new String[] {"ou", "value"}, List.of()));
+
+    assertHeadersResolveInMetadata(service.getGrid(ctx));
+  }
+
+  private void assertHeadersResolveInMetadata(Grid grid) {
+    Map<String, MetadataItem> items = getItems(grid);
+    Map<String, List<String>> dimensions = getDimensions(grid);
+
+    for (GridHeader header : grid.getHeaders()) {
+      if ("value".equals(header.getName())) {
+        continue;
+      }
+
+      assertTrue(
+          items.containsKey(header.getName()),
+          "metaData.items must contain header '" + header.getName() + "'; was: " + items.keySet());
+      assertTrue(
+          dimensions.containsKey(header.getName()),
+          "metaData.dimensions must contain header '"
+              + header.getName()
+              + "'; was: "
+              + dimensions.keySet());
+      assertFalse(
+          isBlank(items.get(header.getName()).getName()),
+          "metaData.items entry for '" + header.getName() + "' must carry a label");
+    }
+  }
+
+  private String headerColumn(Grid grid, String headerName) {
+    return grid.getHeaders().stream()
+        .filter(header -> headerName.equals(header.getName()))
+        .findFirst()
+        .map(GridHeader::getColumn)
+        .orElseThrow(() -> new AssertionError("no '" + headerName + "' header"));
+  }
+
+  @Test
   void metadataKeepsGroupedOrgUnitOrderAndDetailsForResolvedUnitsOnly() {
     OrganisationUnit ngelehun = orgUnit("Ngelehun CHC", "a04CZxe0PSe", "NGELEHUN");
     OrganisationUnit mabesseneh = orgUnit("Mabesseneh CHP", "b04CZxe0PSe", "MABESS");
@@ -205,12 +313,17 @@ class TrackedEntityAggregateOuMetadataTest {
 
   private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
       contextParamsForOuDimension(CommonRequestParams request) {
-    when(dimensionIdentifierConverter.fromString(anyList(), eq("ou")))
+    return contextParamsForDimension(request, "ou");
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      contextParamsForDimension(CommonRequestParams request, String dimension) {
+    when(dimensionIdentifierConverter.fromString(anyList(), eq(dimension)))
         .thenReturn(
             DimensionIdentifier.of(
                 ElementWithOffset.emptyElementWithOffset(),
                 ElementWithOffset.emptyElementWithOffset(),
-                StringUid.of("ou")));
+                StringUid.of(dimension)));
 
     CommonParsedParams commonParsed = parser.parse(request);
     return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()

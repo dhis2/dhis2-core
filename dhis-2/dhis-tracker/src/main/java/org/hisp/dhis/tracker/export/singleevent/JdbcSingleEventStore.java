@@ -83,11 +83,13 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.OrgUnitQueryBuilder;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -149,7 +151,16 @@ class JdbcSingleEventStore {
   private static final ObjectReader eventDataValueJsonReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
+  /** Export reads. Enforces the tracker export deadline. */
+  @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
+
+  /**
+   * The sync timestamp write. Kept on the primary template: it is a write, called by the data sync
+   * job rather than by any export endpoint, so it must not be bounded by an export deadline.
+   */
+  @Qualifier("namedParameterJdbcTemplate")
+  private final NamedParameterJdbcTemplate writeJdbcTemplate;
 
   public List<SingleEvent> getEvents(SingleEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -373,7 +384,7 @@ class JdbcSingleEventStore {
             .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
             .addValue("uids", eventUids);
 
-    jdbcTemplate.update(sql, parameters);
+    writeJdbcTemplate.update(sql, parameters);
   }
 
   private EventDataValue parseEventDataValue(

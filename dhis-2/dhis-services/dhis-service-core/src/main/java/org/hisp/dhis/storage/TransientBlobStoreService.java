@@ -63,19 +63,19 @@ public class TransientBlobStoreService implements BlobStoreService {
   }
 
   @Override
-  public boolean blobExists(BlobKey key) {
+  public boolean blobExists(BlobKey key, BlobReadOptions options) {
     return key != null && blobs.containsKey(key.value());
   }
 
   @Override
   @CheckForNull
-  public InputStream openStream(BlobKey key) {
+  public InputStream openStream(BlobKey key, BlobReadOptions options) {
     byte[] payload = blobs.get(key.value());
     return payload == null ? null : new ByteArrayInputStream(payload);
   }
 
   @Override
-  public long contentLength(BlobKey key) {
+  public long contentLength(BlobKey key, BlobReadOptions options) {
     byte[] payload = blobs.get(key.value());
     return payload == null ? 0L : payload.length;
   }
