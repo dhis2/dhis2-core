@@ -627,7 +627,9 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * ancestors are ordered by root first and represented by UIDs.
    *
    * @param roots the root organisation units, if null using real roots.
+   * @deprecated Should be replaced with a service call that can find the graph in DB
    */
+  @Deprecated
   public String getParentGraph(Collection<OrganisationUnit> roots) {
     Set<String> rootUids =
         roots != null ? Sets.newHashSet(IdentifiableObjectUtils.getUids(roots)) : null;
