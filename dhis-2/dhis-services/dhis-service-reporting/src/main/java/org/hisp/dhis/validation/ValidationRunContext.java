@@ -39,7 +39,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.category.CategoryOption;
@@ -61,7 +60,10 @@ import org.hisp.dhis.period.Period;
  * @author Stian Sandvold (persistence)
  */
 @Getter
-@Builder(setterPrefix = "with", builderClassName = "Builder", builderMethodName = "newBuilder")
+@lombok.Builder(
+    setterPrefix = "with",
+    builderClassName = "Builder",
+    builderMethodName = "newBuilder")
 public class ValidationRunContext {
   public static final int ORG_UNITS_PER_TASK = 500;
 

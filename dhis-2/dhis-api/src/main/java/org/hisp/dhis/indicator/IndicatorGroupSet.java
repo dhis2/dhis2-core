@@ -93,7 +93,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Entity
 @Table(name = "indicatorgroupset")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class IndicatorGroupSet extends BaseMetadataObject
     implements IdentifiableObject, MetadataObject {
 
@@ -134,7 +134,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
               foreignKey = @ForeignKey(name = "fk_indicatorgroupset_indicatorgroupid")))
   @OrderColumn(name = "sort_order", nullable = false)
   @ListIndexBase(1)
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<IndicatorGroup> members = new ArrayList<>();
 
   // -------------------------------------------------------------------------

@@ -51,7 +51,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -93,7 +92,6 @@ import org.springframework.util.StringUtils;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Service
 public class Dhis2OAuth2ClientServiceImpl
     implements Dhis2OAuth2ClientService, RegisteredClientRepository {
@@ -541,9 +539,10 @@ public class Dhis2OAuth2ClientServiceImpl
    * <p>{@code clientSettings} must parse with the same Jackson configuration {@link #toObject}
    * uses, and must carry both {@code settings.client.require-proof-key} and {@code
    * settings.client.require-authorization-consent} as booleans — Spring AS unboxes these on every
-   * authorize call, so a partial map would NPE at runtime. An explicit {@code
-   * require-proof-key:false} remains a supported (temporary) opt-out for legacy integrations, but
-   * is logged so the downgrade is auditable.
+   * authorize call, so a partial map would NPE at runtime. {@code
+   * settings.client.require-proof-key} must be {@code true} for {@code authorization_code} clients;
+   * disabling PKCE is rejected. {@code client_credentials} clients (the DCR system registrar) are
+   * not subject to this check.
    */
   private void validateSettings(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
     String clientSettings = entity.getClientSettings();
@@ -555,12 +554,17 @@ public class Dhis2OAuth2ClientServiceImpl
                 settings, ConfigurationSettingNames.Client.REQUIRE_PROOF_KEY, errors);
         checkRequiredBooleanSetting(
             settings, ConfigurationSettingNames.Client.REQUIRE_AUTHORIZATION_CONSENT, errors);
-        if (Boolean.FALSE.equals(proofKey)) {
-          log.warn(
-              "OAuth2 client '{}' explicitly opts out of PKCE (require-proof-key=false). This is a"
-                  + " temporary escape hatch for legacy integrations; new authorization-code"
-                  + " clients should use S256 PKCE.",
-              entity.getClientId());
+        // PKCE applies to the authorization_code grant only. The DCR system registrar is
+        // client_credentials and is created with the SAS builder default (false on SAS 1.x);
+        // a full metadata export/import must be able to re-import it.
+        if (Boolean.FALSE.equals(proofKey)
+            && getAuthorizationGrantTypesSet(entity)
+                .contains(AuthorizationGrantType.AUTHORIZATION_CODE)) {
+          errors.accept(
+              new ErrorReport(
+                  Dhis2OAuth2Client.class,
+                  ErrorCode.E4000,
+                  "PKCE cannot be disabled: settings.client.require-proof-key must be true."));
         }
       }
     }

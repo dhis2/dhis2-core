@@ -302,6 +302,11 @@ public class SingleEventPersister
     return Set.of();
   }
 
+  @Override
+  protected Set<UID> getUpdatedSingleEvents(SingleEvent entity) {
+    return Set.of();
+  }
+
   private boolean isNewDataValue(
       @CheckForNull EventDataValue eventDataValue, @Nonnull DataValue dv) {
     return eventDataValue == null && !StringUtils.isBlank(dv.getValue());

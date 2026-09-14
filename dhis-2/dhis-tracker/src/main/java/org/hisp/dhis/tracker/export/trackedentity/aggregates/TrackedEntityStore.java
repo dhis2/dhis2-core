@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckForNull;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.ValueType;
@@ -46,11 +47,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -61,6 +62,7 @@ import org.springframework.stereotype.Repository;
  * @author Ameen Mohamed
  */
 @Repository
+@RequiredArgsConstructor
 class TrackedEntityStore {
   // language=SQL
   private static final String GET_TE_SQL =
@@ -84,7 +86,8 @@ class TrackedEntityStore {
       """
       select te.uid as te_uid, teav.created, teav.lastupdated, teav.updatedby, teav.value,
              tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
-             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype
+             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype,
+             tea.skipsynchronization as tea_skipsynchronization
       from trackedentityattributevalue teav
       join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
       join trackedentity te on teav.trackedentityid = te.trackedentityid
@@ -98,7 +101,8 @@ class TrackedEntityStore {
       """
       select te.uid as te_uid, teav.created, teav.lastupdated, teav.updatedby, teav.value,
              tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
-             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype
+             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype,
+             tea.skipsynchronization as tea_skipsynchronization
       from trackedentityattributevalue teav
       join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
       join trackedentity te on teav.trackedentityid = te.trackedentityid
@@ -119,11 +123,8 @@ class TrackedEntityStore {
       join trackedentity te on teop.trackedentityid = te.trackedentityid
       where teop.trackedentityid in (:ids)""";
 
+  @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
-
-  TrackedEntityStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
-    this.jdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
-  }
 
   Map<String, TrackedEntity> getTrackedEntities(List<Long> ids) {
     Map<String, TrackedEntity> trackedEntities = new LinkedHashMap<>();
@@ -211,6 +212,7 @@ class TrackedEntityStore {
     attribute.setName(rs.getString("tea_name"));
     attribute.setAttributeValues(AttributeValues.of(rs.getString("tea_attributevalues")));
     attribute.setValueType(ValueType.fromString(rs.getString("tea_valuetype")));
+    attribute.setSkipSynchronization(rs.getBoolean("tea_skipsynchronization"));
     attributeValue.setAttribute(attribute);
 
     return attributeValue;

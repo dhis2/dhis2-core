@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.organisationunit.OrganisationUnit" table="organisationunit">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="organisationunitid">
       <generator class="native" />
@@ -20,7 +20,7 @@
     <property name="shortName" column="shortname" not-null="true" unique="false" length="50" />
 
     <set name="children" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="parentid" />
       <one-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" />
     </set>
@@ -47,31 +47,31 @@
     <property name="url" />
 
     <set name="dataSets" table="datasetsource" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="sourceid" />
       <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
     </set>
 
     <set name="programs" table="program_organisationunits" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.program.Program" column="programid" />
     </set>
 
     <set name="groups" table="orgunitgroupmembers" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroup" column="orgunitgroupid" />
     </set>
 
     <set name="users" table="usermembership" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.user.User" column="userinfoid" />
     </set>
 
     <set name="categoryOptions" table="categoryoption_organisationunits" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.category.CategoryOption" column="categoryoptionid" />
     </set>

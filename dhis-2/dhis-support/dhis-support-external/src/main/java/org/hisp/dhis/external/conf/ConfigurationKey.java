@@ -454,6 +454,21 @@ public enum ConfigurationKey {
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
+  /**
+   * Maximum number of seconds a tracker export request may spend fetching data before it is
+   * canceled and fails with 504. The budget is shared by every database query and object store read
+   * of one request but covers only the time they run, not the wait for a connection, which the pool
+   * bounds separately via {@code connection.pool.timeout} and answers with a 503. {@code 0}
+   * disables the timeout. (default: 600)
+   *
+   * <p>Because the underlying JDBC timeout has whole second granularity and the remaining budget is
+   * rounded up, a request can take up to one second longer than this value.
+   *
+   * <p>Set this below any timeout in front of DHIS2, such as a reverse proxy or load balancer. If
+   * the proxy times out first it returns its own 504 while the query is never cancelled.
+   */
+  TRACKER_EXPORT_TIMEOUT("tracker.export.timeout", "600", false),
+
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
@@ -583,6 +598,13 @@ public enum ConfigurationKey {
 
   /** CPU monitoring. (default: off) */
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
+
+  /**
+   * JMX monitoring: expose selected statistics (user statistics) and HikariCP connection pool
+   * MBeans, for monitoring tools that consume JMX rather than Prometheus, such as Glowroot.
+   * (default: off)
+   */
+  MONITORING_JMX_ENABLED("monitoring.jmx.enabled", Constants.OFF, false),
 
   /** AppHub base URL. (default: https://apps.dhis2.org). */
   APPHUB_BASE_URL("apphub.base.url", "https://apps.dhis2.org", false),
@@ -801,6 +823,14 @@ public enum ConfigurationKey {
   /** Whether to generate a new JWT key if the keystore is missing. */
   OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
       "oauth2.server.jwt.keystore.generate-if-missing", "true", false),
+
+  /**
+   * Refresh token time-to-live in seconds for clients registered through OIDC Dynamic Client
+   * Registration (e.g. Android devices). Refresh tokens are rotated on every use, so this is a
+   * sliding window: each refresh issues a new refresh token valid for this duration. (default: 30
+   * days)
+   */
+  OAUTH2_SERVER_DCR_REFRESH_TOKEN_TTL("oauth2.server.dcr.refresh-token-ttl", "2592000", false),
 
   /** Ehcache monitoring. (default: off) */
   MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),

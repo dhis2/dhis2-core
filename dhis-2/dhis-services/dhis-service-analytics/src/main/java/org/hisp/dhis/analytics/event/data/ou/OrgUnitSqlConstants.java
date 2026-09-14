@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data.ou;
 
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.ColumnHeader;
@@ -53,4 +54,8 @@ public final class OrgUnitSqlConstants {
   public static final String ENROLLMENT_OU_RESULT_ALIAS = ColumnHeader.ENROLLMENT_OU.getItem();
   public static final String ENROLLMENT_OU_NAME_RESULT_ALIAS =
       ColumnHeader.ENROLLMENT_OU_NAME.getItem();
+
+  /** The output columns contributed by the ENROLLMENT_OU join. */
+  public static final Set<String> RESULT_ALIASES =
+      Set.of(ENROLLMENT_OU_RESULT_ALIAS, ENROLLMENT_OU_NAME_RESULT_ALIAS);
 }

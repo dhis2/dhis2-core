@@ -45,11 +45,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.cache.jcache.ConfigSettings;
 import org.hibernate.cache.jcache.MissingCacheStrategy;
-import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.tool.schema.Action;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
+import org.hisp.dhis.cache.guard.GuardedJCacheRegionFactory;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -84,8 +84,16 @@ public class HibernateConfig {
   }
 
   @Bean
-  public JpaTransactionManager jpaTransactionManager(EntityManagerFactory entityManagerFactory) {
-    return new JpaTransactionManager(entityManagerFactory);
+  public JpaTransactionManager jpaTransactionManager(
+      EntityManagerFactory entityManagerFactory,
+      @Qualifier("actualDataSource") DataSource dataSource) {
+    JpaTransactionManager transactionManager = new JpaTransactionManager(entityManagerFactory);
+    // Must be the same bean instance the JdbcTemplates get. Spring keys transactional connections
+    // by DataSource identity, so without this a @Transactional method mixing Hibernate and
+    // JdbcTemplate takes a second connection which is not enlisted in the transaction: its
+    // statements commit immediately and a rollback does not cover them.
+    transactionManager.setDataSource(dataSource);
+    return transactionManager;
   }
 
   @Bean
@@ -169,7 +177,8 @@ public class HibernateConfig {
 
     if (dhisConfig.isEnabled(USE_SECOND_LEVEL_CACHE)) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
-      properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
+      properties.put(
+          AvailableSettings.CACHE_REGION_FACTORY, GuardedJCacheRegionFactory.class.getName());
       // Normalize to true/false: Hibernate parses this value itself and does not understand
       // the on/off variants allowed in dhis.conf.
       properties.put(
@@ -180,7 +189,7 @@ public class HibernateConfig {
       // Specify the location of the Ehcache 3 configuration file
       String configFile = dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE);
       if (!configFile.isBlank()) {
-        properties.put(ConfigSettings.CONFIG_URI, configFile);
+        properties.put(ConfigSettings.CONFIG_URI, normalizeEhcacheConfigLocation(configFile));
       }
     } else {
       // Explicitly disable both caches. Without this, Hibernate auto-enables the second level
@@ -196,5 +205,26 @@ public class HibernateConfig {
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
 
     return properties;
+  }
+
+  /**
+   * Normalizes the {@code cache.ehcache.config.file} value so Hibernate can resolve it.
+   *
+   * <p>Hibernate's ClassLoaderService only understands the nonstandard {@code classpath://} scheme:
+   * it strips that exact prefix and resolves the rest against the classpath, while the common
+   * {@code classpath:} spelling (also the ConfigurationKey default) is passed to the classloader
+   * verbatim, never resolves, and fails the SessionFactory boot with "Couldn't load URI". Both
+   * spellings are therefore stripped here; a bare resource name resolves fine. Other values ({@code
+   * file:} URLs, absolute paths) are passed through untouched.
+   */
+  static String normalizeEhcacheConfigLocation(String location) {
+    String value = location.strip();
+    if (value.regionMatches(true, 0, "classpath://", 0, 12)) {
+      return value.substring(12);
+    }
+    if (value.regionMatches(true, 0, "classpath:", 0, 10)) {
+      return value.substring(10);
+    }
+    return value;
   }
 }

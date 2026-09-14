@@ -331,7 +331,7 @@ public class DataValue implements Serializable {
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   public CategoryOptionCombo getCategoryOptionCombo() {
     return categoryOptionCombo;
   }

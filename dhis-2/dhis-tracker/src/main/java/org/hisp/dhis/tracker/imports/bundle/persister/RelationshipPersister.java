@@ -148,6 +148,11 @@ public class RelationshipPersister
   }
 
   @Override
+  protected Set<UID> getUpdatedSingleEvents(org.hisp.dhis.tracker.model.Relationship entity) {
+    return entity.getSingleEventOrigins();
+  }
+
+  @Override
   protected org.hisp.dhis.tracker.model.Relationship cloneEntityProperties(
       TrackerPreheat preheat, Relationship trackerDto) {
     return null;

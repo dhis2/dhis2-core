@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,13 +40,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -92,7 +93,7 @@ class AttributeValidatorTest {
   private TrackerIdSchemeParams idSchemes;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     bundle = TrackerBundle.builder().preheat(preheat).build();
     idSchemes = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
@@ -386,6 +387,44 @@ class AttributeValidatorTest {
   }
 
   @Test
+  void shouldFailValidationWhenUniqueAttributeHasSameValueWithDifferentCase() {
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("uid");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
+    trackedEntityAttribute.setUnique(true);
+    trackedEntityAttribute.setOrgunitScope(false);
+
+    when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
+        .thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
+        .thenReturn(new TrackedEntityType());
+    when(preheat.getUniqueAttributeValues())
+        .thenReturn(
+            List.of(
+                new UniqueAttributeValue(
+                    UID.generate(),
+                    MetadataIdentifier.ofUid("uid"),
+                    "ABC",
+                    MetadataIdentifier.ofUid("orgUnit"))));
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(UID.generate())
+            .attributes(
+                Collections.singletonList(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("uid"))
+                        .value("abc")
+                        .build()))
+            .trackedEntityType(MetadataIdentifier.ofUid("trackedEntityType"))
+            .build();
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1064);
+  }
+
+  @Test
   void shouldFailOptionSetNotValid() {
     TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
 
@@ -393,6 +432,7 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
+    when(preheat.isValidOptionCode(1L, "wrongCode")).thenReturn(false);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -419,6 +459,7 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
+    when(preheat.isValidOptionCode(1L, "CODE")).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -445,6 +486,8 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
+    when(preheat.isValidOptionCode(2L, "CODE1")).thenReturn(true);
+    when(preheat.isValidOptionCode(2L, "CODE4")).thenReturn(false);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -471,6 +514,8 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
+    when(preheat.isValidOptionCode(2L, "CODE1")).thenReturn(true);
+    when(preheat.isValidOptionCode(2L, "CODE2")).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -625,13 +670,7 @@ class AttributeValidatorTest {
     trackedEntityAttribute.setValueType(ValueType.TEXT);
 
     OptionSet optionSet = new OptionSet();
-    Option option = new Option();
-    option.setCode("CODE");
-
-    Option option1 = new Option();
-    option1.setCode("CODE1");
-
-    optionSet.setOptions(Arrays.asList(option, option1));
+    optionSet.setId(1L);
 
     trackedEntityAttribute.setOptionSet(optionSet);
     return trackedEntityAttribute;
@@ -643,16 +682,7 @@ class AttributeValidatorTest {
     trackedEntityAttribute.setValueType(ValueType.MULTI_TEXT);
 
     OptionSet optionSet = new OptionSet();
-    Option option1 = new Option();
-    option1.setCode("CODE1");
-
-    Option option2 = new Option();
-    option2.setCode("CODE2");
-
-    Option option3 = new Option();
-    option3.setCode("CODE3");
-
-    optionSet.setOptions(Arrays.asList(option1, option2, option3));
+    optionSet.setId(2L);
 
     trackedEntityAttribute.setOptionSet(optionSet);
     return trackedEntityAttribute;

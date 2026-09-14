@@ -127,7 +127,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "optionsetid", foreignKey = @ForeignKey(name = "fk_optionset_optionid"))
   @OrderBy(value = "sortOrder ASC")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<Option> options = new ArrayList<>();
 
   @Type(type = "jsbAttributeValues")

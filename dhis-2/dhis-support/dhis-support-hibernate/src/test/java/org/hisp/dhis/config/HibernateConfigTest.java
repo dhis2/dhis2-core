@@ -39,8 +39,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Properties;
 import org.hibernate.cache.jcache.ConfigSettings;
-import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
+import org.hisp.dhis.cache.guard.GuardedJCacheRegionFactory;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ class HibernateConfigTest {
     assertEquals("true", properties.get(AvailableSettings.USE_SECOND_LEVEL_CACHE));
     assertEquals("true", properties.get(AvailableSettings.USE_QUERY_CACHE));
     assertEquals(
-        JCacheRegionFactory.class.getName(),
+        GuardedJCacheRegionFactory.class.getName(),
         properties.get(AvailableSettings.CACHE_REGION_FACTORY));
     assertFalse(properties.containsKey(ConfigSettings.CONFIG_URI));
   }
@@ -124,6 +124,29 @@ class HibernateConfigTest {
     Properties properties = HibernateConfig.getAdditionalProperties(dhisConfig);
 
     assertEquals("file:/opt/dhis2/ehcache.xml", properties.get(ConfigSettings.CONFIG_URI));
+  }
+
+  /**
+   * Hibernate's ClassLoaderService only strips the nonstandard 'classpath://' scheme, so both
+   * classpath spellings must be normalized to a bare resource name before they are handed over,
+   * otherwise the SessionFactory fails to boot with "Couldn't load URI".
+   */
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "classpath:ehcache.xml",
+        "classpath://ehcache.xml",
+        "CLASSPATH:ehcache.xml",
+        " classpath:ehcache.xml "
+      })
+  void ehcacheConfigFileClasspathSpellingsAreNormalized(String configValue) {
+    when(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE)).thenReturn("true");
+    when(dhisConfig.getProperty(USE_QUERY_CACHE)).thenReturn("true");
+    when(dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE)).thenReturn(configValue);
+
+    Properties properties = HibernateConfig.getAdditionalProperties(dhisConfig);
+
+    assertEquals("ehcache.xml", properties.get(ConfigSettings.CONFIG_URI));
   }
 
   @ParameterizedTest

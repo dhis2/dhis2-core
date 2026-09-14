@@ -44,6 +44,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -156,7 +157,9 @@ public class AuthorizationServerConfig {
   @Bean
   @Order(1)
   public SecurityFilterChain authorizationServerSecurityFilterChain(
-      HttpSecurity http, CustomClaimValidator<Jwt> customClaimValidator) {
+      HttpSecurity http,
+      CustomClaimValidator<Jwt> customClaimValidator,
+      DhisConfigurationProvider dhisConfig) {
     OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
         new OAuth2AuthorizationServerConfigurer();
 
@@ -173,7 +176,9 @@ public class AuthorizationServerConfig {
                       .oidc(
                           oidc ->
                               oidc.clientRegistrationEndpoint(
-                                  cr -> cr.authenticationProviders(customizeDcrProviders()))))
+                                  cr ->
+                                      cr.authenticationProviders(
+                                          customizeDcrProviders(dhisConfig)))))
           .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
           .exceptionHandling(
               exceptions ->
@@ -223,10 +228,15 @@ public class AuthorizationServerConfig {
    * Customizes the Dynamic Client Registration (DCR) authentication providers to use our custom
    * client converters.
    *
+   * @param dhisConfig the system configuration, used for the DCR refresh token time-to-live
    * @return a consumer that customizes the DCR authentication providers.
    */
-  private Consumer<List<AuthenticationProvider>> customizeDcrProviders() {
-    RegisteredClientConverter regConverter = new RegisteredClientConverter();
+  private Consumer<List<AuthenticationProvider>> customizeDcrProviders(
+      DhisConfigurationProvider dhisConfig) {
+    Duration refreshTokenTtl =
+        Duration.ofSeconds(
+            dhisConfig.getIntProperty(ConfigurationKey.OAUTH2_SERVER_DCR_REFRESH_TOKEN_TTL));
+    RegisteredClientConverter regConverter = new RegisteredClientConverter(refreshTokenTtl);
     ClientRegistrationConverter readConverter = new ClientRegistrationConverter();
     return providers ->
         providers.forEach(

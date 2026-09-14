@@ -67,6 +67,8 @@ public class Relationship {
 
   @JsonProperty private boolean bidirectional;
 
+  @JsonProperty private boolean deleted;
+
   @JsonProperty private RelationshipItem from;
 
   @JsonProperty private RelationshipItem to;

@@ -84,7 +84,6 @@ import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -132,7 +131,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 @Entity
 @Table(name = "dataelement")
 @Cacheable
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @JacksonXmlRootElement(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
 public class DataElement extends BaseMetadataObject
     implements DimensionalItemObject,
@@ -213,12 +212,12 @@ public class DataElement extends BaseMetadataObject
 
   /** The data element groups which this data element is a member of. */
   @ManyToMany(mappedBy = "members")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<DataElementGroup> groups = new HashSet<>();
 
   /** The data sets which this data element is a member of. */
   @OneToMany(mappedBy = "dataElement")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<DataSetElement> dataSetElements = new HashSet<>();
 
   /** The lower organisation unit levels for aggregation. */
@@ -229,7 +228,7 @@ public class DataElement extends BaseMetadataObject
       foreignKey = @ForeignKey(name = "fk_dataelementaggregationlevels_dataelementid"))
   @Column(name = "aggregationlevel")
   @OrderColumn(name = "sort_order")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<Integer> aggregationLevels = new ArrayList<>();
 
   /** Indicates whether to store zero data values. */
@@ -258,7 +257,7 @@ public class DataElement extends BaseMetadataObject
               name = "legendsetid",
               foreignKey = @ForeignKey(name = "fk_dataelement_legendsetid")))
   @OrderColumn(name = "sort_order")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<LegendSet> legendSets = new ArrayList<>();
 
   @AuditAttribute
@@ -827,7 +826,7 @@ public class DataElement extends BaseMetadataObject
   }
 
   @JsonProperty("dataElementGroups")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataElementGroups", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataElementGroup> getGroups() {

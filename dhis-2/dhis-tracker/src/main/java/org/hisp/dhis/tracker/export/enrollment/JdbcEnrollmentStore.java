@@ -74,6 +74,7 @@ import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
@@ -81,6 +82,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -102,6 +104,7 @@ class JdbcEnrollmentStore {
           "lastUpdated",
           "lastUpdatedAtClient");
 
+  @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   public List<Enrollment> getEnrollments(EnrollmentQueryParams enrollmentParams) {
@@ -311,7 +314,8 @@ class JdbcEnrollmentStore {
               select json_agg(json_build_object('uid', tea.uid, 'name', tea.name,
               'code', tea.code, 'value', teav.value,
               'valueType', tea.valuetype, 'created', teav.created,
-              'lastUpdated', teav.lastupdated, 'updatedBy', teav.updatedby)) as jsonattributes
+              'lastUpdated', teav.lastupdated, 'updatedBy', teav.updatedby,
+              'skipSynchronization', tea.skipsynchronization)) as jsonattributes
               from trackedentityattributevalue teav
               join trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
               where teav.trackedentityid = e.trackedentityid
@@ -760,6 +764,7 @@ class JdbcEnrollmentStore {
         tea.setValueType(ValueType.valueOf(attribute.getValueType()));
         tea.setName(attribute.getName());
         tea.setCode(attribute.getCode());
+        tea.setSkipSynchronization(attribute.isSkipSynchronization());
         teav.setAttribute(tea);
         teav.setUpdatedBy(attribute.getUpdatedBy());
         teav.setCreated(DateUtils.safeParseDate(attribute.getCreated()));
@@ -806,5 +811,6 @@ class JdbcEnrollmentStore {
     private String created;
     private String lastUpdated;
     private String updatedBy;
+    private boolean skipSynchronization;
   }
 }

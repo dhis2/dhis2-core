@@ -71,6 +71,7 @@ import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -365,6 +366,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
     OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
+    RegistrationOuSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
   }
 
   /**
@@ -501,6 +503,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
     OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
+    sql.append(RegistrationOuSqlCoordinator.joinClause(params, sqlBuilder));
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -738,6 +741,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
     sql += enrollmentOuSql;
 
+    sql += RegistrationOuSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
+
     if (params.hasBbox()) {
       sql +=
           hlp.whereAnd()
@@ -810,7 +815,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   /** Generates a sub query which provides a filter by organisation descendant level. */
   private String getOrgUnitDescendantsClause(
       OrgUnitField orgUnitField, List<DimensionalItemObject> dimensionOrFilterItems) {
-    Map<String, List<OrganisationUnit>> collect =
+    Map<String, List<OrganisationUnit>> orgUnitsMap =
         dimensionOrFilterItems.stream()
             .map(object -> (OrganisationUnit) object)
             .collect(
@@ -820,9 +825,29 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                             .withSqlBuilder(sqlBuilder)
                             .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
 
-    return collect.keySet().stream()
-        .map(org -> toInCondition(org, collect.get(org)))
-        .collect(joining(" and "));
+    return getOuInCondition(orgUnitsMap);
+  }
+
+  /**
+   * Builds a SQL filter clause from a map of org unit level columns to their matching org units.
+   * Each entry produces an {@code IN} condition, and the conditions are joined with {@code OR}.
+   *
+   * <p>Example output for two level groups:
+   *
+   * <pre>
+   * ax."uidlevel2" in ('uid1','uid2') or ax."uidlevel3" in ('uid3')
+   * </pre>
+   *
+   * @param orgUnitsMap a map where each key is a SQL column expression representing an org unit
+   *     level (e.g. {@code ax."uidlevel2"}) and each value is the list of {@link OrganisationUnit}
+   *     objects whose UIDs should appear in the {@code IN} condition for that level.
+   * @return a SQL {@code OR}-joined string of {@code IN} conditions, or an empty string if the map
+   *     is empty.
+   */
+  String getOuInCondition(Map<String, List<OrganisationUnit>> orgUnitsMap) {
+    return orgUnitsMap.keySet().stream()
+        .map(org -> toInCondition(org, orgUnitsMap.get(org)))
+        .collect(joining(" or "));
   }
 
   /**
@@ -898,6 +923,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
     OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
+    columns.addAll(RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder));
     columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
     columns.forEach(

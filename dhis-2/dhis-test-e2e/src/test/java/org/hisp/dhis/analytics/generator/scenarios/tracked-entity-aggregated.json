@@ -90,6 +90,48 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "aggregateCountByBareOrgUnitDimension",
+      "query": "/api/analytics/trackedEntities/aggregate/Zy2SEgA61ys.json?dimension=ou&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByBareOrgUnitAndOrgUnitNameDimensions",
+      "query": "/api/analytics/trackedEntities/aggregate/Zy2SEgA61ys.json?dimension=ou,ouname&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByLastUpdatedAliasDimension",
+      "query": "/api/analytics/trackedEntities/aggregate/Zy2SEgA61ys.json?dimension=LAST_UPDATED&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByCreatedAliasAndIsoPeriod",
+      "query": "/api/analytics/trackedEntities/aggregate/Zy2SEgA61ys.json?dimension=CREATED:2019&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateCountByOrgUnitAndCreatedAliasDateRange",
+      "query": "/api/analytics/trackedEntities/aggregate/Zy2SEgA61ys.json?dimension=ou,CREATED:2019-01-01_2019-12-31&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "aggregateAverageAgeByOrgUnitStaticFieldsSexAndNationality",
+      "query": "/api/analytics/trackedEntities/aggregate/Zy2SEgA61ys.json?dimension=ou,ouname,oucode,CklPZdOd6H1,spkM2E9dn2J&value=B6TnnFMgmCk&aggregationType=AVERAGE&pageSize=50&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
