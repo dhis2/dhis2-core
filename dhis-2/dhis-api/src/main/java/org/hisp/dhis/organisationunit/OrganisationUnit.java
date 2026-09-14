@@ -750,6 +750,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.parent = parent;
     // reset path if parent is inconsistent with it
     if (parent == null
+        || path == null
         || parent.path == null
         || !path.startsWith(parent.path)
         || path.length() == parent.path.length() + 12) {
