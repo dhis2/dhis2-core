@@ -1344,4 +1344,70 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
             Map.entry("multiplier", ""),
             Map.entry("divisor", "")));
   }
+
+  @Test
+  @DependsOn(
+      files = {"pi-has-value-in-filter.json"},
+      delete = true)
+  public void enrollmentProgramIndicatorWithHasValueFilter(List<Resource> resource)
+      throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+    String piUid = resource.get(0).uid();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=dx:%s,pe:LAST_5_YEARS".formatted(piUid))
+            .add("relativePeriodDate=2024-07-01");
+
+    // When
+    ApiResponse response = actions.get(params);
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        5,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // metaData not found or is empty in response, skipping assertion.
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "2019", "value", "0.0"));
+
+    // Validate row exists with values from original row index 2
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "2021", "value", "0.0"));
+
+    // Validate row exists with values from original row index 3
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "2022", "value", "2.0"));
+
+    // Validate row exists with values from original row index 4
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "2023", "value", "3.0"));
+  }
 }

@@ -56,9 +56,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ProgramStageDataElementCteFactoryTest extends TestBase {
 
-  private static final String PLACEHOLDER =
+  private static final String PLACEHOLDER_TEMPLATE =
       "__PSDE_CTE_PLACEHOLDER__(psUid='psUid00001A', deUid='deUid00001A', offset='0', "
-          + "boundaryHash='hash', piUid='piUid00001A')";
+          + "boundaryHash='hash', piUid='piUid00001A', replaceNulls='%b')";
 
   private ProgramStageDataElementCteFactory factory;
 
@@ -97,10 +97,21 @@ class ProgramStageDataElementCteFactoryTest extends TestBase {
     assertEquals("select d1.value as col", render(ValueType.DATE));
   }
 
+  @Test
+  void nullPreservingPlaceholderRendersValueWithoutCoalesce() {
+    assertEquals("select d1.value as col", render(ValueType.TEXT, false));
+  }
+
   private String render(ValueType valueType) {
-    DataElement dataElement = createDataElement('A');
-    dataElement.setValueType(valueType);
-    when(dataElementService.getDataElement("deUid00001A")).thenReturn(dataElement);
+    return render(valueType, true);
+  }
+
+  private String render(ValueType valueType, boolean replaceNulls) {
+    if (replaceNulls) {
+      DataElement dataElement = createDataElement('A');
+      dataElement.setValueType(valueType);
+      when(dataElementService.getDataElement("deUid00001A")).thenReturn(dataElement);
+    }
 
     Program program = createProgram('A');
     ProgramIndicator programIndicator = createProgramIndicator('A', program, "1+1", "1+1");
@@ -111,7 +122,7 @@ class ProgramStageDataElementCteFactoryTest extends TestBase {
 
     return factory
         .process(
-            "select " + PLACEHOLDER + " as col",
+            "select " + String.format(PLACEHOLDER_TEMPLATE, replaceNulls) + " as col",
             programIndicator,
             new Date(),
             new Date(),

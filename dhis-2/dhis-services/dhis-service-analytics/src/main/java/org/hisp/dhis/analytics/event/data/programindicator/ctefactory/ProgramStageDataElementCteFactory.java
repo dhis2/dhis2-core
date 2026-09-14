@@ -98,7 +98,7 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
       String alias = def.getAlias();
       aliasMap.put(m.group(0), alias);
 
-      String replacement = renderReplacement(alias, p.deUid());
+      String replacement = renderReplacement(alias, p.deUid(), p.replaceNulls());
       m.appendReplacement(out, Matcher.quoteReplacement(replacement));
     }
     m.appendTail(out);
@@ -176,7 +176,16 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
         key, CteDefinition.forProgramStageDataElement(key, bodySql, "enrollment", rank));
   }
 
-  private String renderReplacement(String alias, String deUid) {
+  /**
+   * Renders the expression that reads the value out of the CTE. A missing value is replaced with
+   * the default for the data element value type only when the expression asked for it: a caller
+   * testing for the absence of a value, such as {@code d2:hasValue} or {@code is null}, needs the
+   * null to survive.
+   */
+  private String renderReplacement(String alias, String deUid, boolean replaceNulls) {
+    if (!replaceNulls) {
+      return alias + ".value";
+    }
     DataElement de = dataElementService.getDataElement(deUid);
     ValueCoalescePolicy policy =
         de != null ? ValueCoalescePolicy.from(de.getValueType()) : ValueCoalescePolicy.NUMBER;
