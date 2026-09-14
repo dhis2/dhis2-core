@@ -816,6 +816,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   public void setPath(String path) {
     this.path = path;
+    this.hierarchyLevel = null;
   }
 
   /**
