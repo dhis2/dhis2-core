@@ -249,7 +249,7 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
 
   /** This entity does not support legend sets. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonIgnore
   public List<LegendSet> getLegendSets() {
     // A fresh mutable list, not List.of(): generic reflection-based tooling (e.g.
@@ -260,7 +260,7 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
 
   /** This entity does not support legend sets. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonIgnore
   public LegendSet getLegendSet() {
     return null;
@@ -268,7 +268,7 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
 
   /** This entity does not support legend sets. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public boolean hasLegendSet() {
     return false;
   }
@@ -421,7 +421,7 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
 
   /** This entity does not support attribute values. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonIgnore
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
@@ -429,28 +429,28 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
 
   /** This entity does not support attribute values. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void setAttributeValues(AttributeValues attributeValues) {
     // Not supported
   }
 
   /** This entity does not support attribute values. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void addAttributeValue(String attributeUid, String value) {
     // Not supported
   }
 
   /** This entity does not support attribute values. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void removeAttributeValue(String attributeId) {
     // Not supported
   }
 
   /** This entity does not support translations. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonIgnore
   public Set<Translation> getTranslations() {
     // A fresh mutable set, not Set.of(): generic reflection-based tooling (e.g.
@@ -463,7 +463,7 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
 
   /** This entity does not support translations. */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void setTranslations(Set<Translation> translations) {
     // Not supported
   }
@@ -472,7 +472,7 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
    * @deprecated This method is replaced by {@link #getCreatedBy()}
    */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @OpenApi.Ignore
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
@@ -498,13 +498,13 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
    * @deprecated This method is replaced by {@link #setCreatedBy(User)}
    */
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void setUser(User user) {
     setCreatedBy(user);
   }
 
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void setOwner(String ownerId) {
     // Not supported
   }
@@ -532,14 +532,14 @@ public class DataElementOperand implements EmbeddedObject, ValueTypedDimensional
   }
 
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   @JsonIgnore
   public Sharing getSharing() {
     return Sharing.empty();
   }
 
   @Override
-  @Deprecated
+  @Deprecated(since = "2.44")
   public void setSharing(Sharing sharing) {
     // Not supported
   }
