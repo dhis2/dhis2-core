@@ -162,7 +162,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
     sourceA = createOrganisationUnit('A');
 
-    sourceA.setLevel(1);
+    sourceA.setHierarchyLevel(1);
 
     organisationUnitService.addOrganisationUnit(sourceA);
 

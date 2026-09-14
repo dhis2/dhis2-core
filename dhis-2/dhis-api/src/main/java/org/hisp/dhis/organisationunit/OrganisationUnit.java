@@ -100,7 +100,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   private String path;
 
-  private Integer level;
+  private Integer hierarchyLevel;
 
   private Date openingDate;
 
@@ -746,7 +746,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
         || !path.startsWith(parent.path)
         || path.length() == parent.path.length() + 12) {
       this.path = null;
-      this.level = null;
+      this.hierarchyLevel = null;
     }
   }
 
@@ -805,7 +805,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   public void setPath(String path) {
     this.path = path;
-    this.level = null;
+    this.hierarchyLevel = null;
   }
 
   /**
@@ -822,21 +822,26 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   @JsonProperty(value = "level", access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(localName = "level", isAttribute = true)
-  public Integer getLevel() {
-    if (level == null) {
+  public Integer getHierarchyLevel() {
+    if (hierarchyLevel == null) {
       // note: in theory we could just calculate: level = path.length / 12
       // but there is lots of test data with illegal paths ;/
       int n = 0;
       String p = getPath();
       for (int i = 0; i < p.length(); i++) if (p.charAt(i) == '/') n++;
-      level = n;
+      hierarchyLevel = n;
     }
-    return level;
+    return hierarchyLevel;
   }
 
   /** Do not set directly. */
-  public void setLevel(Integer level) {
-    this.level = level;
+  public void setHierarchyLevel(Integer level) {
+    this.hierarchyLevel = level;
+  }
+
+  /** Only for convince of receiving a primitive int */
+  public int getLevel() {
+    return getHierarchyLevel();
   }
 
   @JsonProperty
