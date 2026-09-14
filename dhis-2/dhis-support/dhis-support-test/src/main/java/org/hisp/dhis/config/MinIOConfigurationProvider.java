@@ -29,6 +29,7 @@ package org.hisp.dhis.config;
 
 import java.util.Properties;
 import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Config provider for MinIO store usage. It extends the Postgres config to make use of that setup.
@@ -42,8 +43,12 @@ public class MinIOConfigurationProvider extends PostgresDhisConfigurationProvide
   private static final MinIOContainer MIN_IO_CONTAINER;
 
   static {
+    // Docker Hub no longer serves minio/minio (404 / pull access denied). Official
+    // community images remain on quay.io; Testcontainers requires a compatible substitute.
     MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
+        new MinIOContainer(
+                DockerImageName.parse("quay.io/minio/minio:RELEASE.2024-07-16T23-46-41Z")
+                    .asCompatibleSubstituteFor("minio/minio"))
             .withUserName(MINIO_USER)
             .withPassword(MINIO_PASSWORD);
     MIN_IO_CONTAINER.start();
