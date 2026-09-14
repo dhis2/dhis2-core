@@ -263,7 +263,7 @@ public class HibernateJobConfigurationStore
           now() > lastalive + :timeout * interval '1 second'
           or (schedulingtype = 'FIXED_DELAY'
             and delay is not null
-            and now() > lastexecuted + delay * interval '2 second'
+            and now() > lastexecuted + delay * interval '1 second'
           ))
         """;
     return runReadInStatelessSession(

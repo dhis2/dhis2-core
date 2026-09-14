@@ -66,6 +66,7 @@ import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
@@ -246,10 +247,9 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<JobEntry> getStaleConfigurations(int staleForSeconds) {
-    if (staleForSeconds <= 0) {
-      staleForSeconds = 60 * settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
-    }
+  public List<JobEntry> getStaleConfigurations(int staleForSeconds) throws BadRequestException {
+    if (staleForSeconds <= 0)
+      throw new BadRequestException("Stale timeout must be a positive number");
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }
 

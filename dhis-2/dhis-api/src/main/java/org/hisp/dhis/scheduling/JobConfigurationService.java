@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.UserDetails;
@@ -161,8 +162,9 @@ public interface JobConfigurationService {
    *
    * @param staleForSeconds the duration for which the job has not been updated (alive).
    * @return all jobs that appear to be stale (hanging) considering the given timeout
+   * @throws BadRequestException in case the given timeout duration is non-positive
    */
-  List<JobEntry> getStaleConfigurations(int staleForSeconds);
+  List<JobEntry> getStaleConfigurations(int staleForSeconds) throws BadRequestException;
 
   /**
    * @param params query parameters (criteria) to find
