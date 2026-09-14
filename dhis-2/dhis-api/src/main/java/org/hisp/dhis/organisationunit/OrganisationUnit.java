@@ -100,7 +100,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   private String path;
 
-  private int level;
+  private Integer level;
 
   private Date openingDate;
 
@@ -746,7 +746,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
         || !path.startsWith(parent.path)
         || path.length() == parent.path.length() + 12) {
       this.path = null;
-      this.level = 0;
+      this.level = null;
     }
   }
 
@@ -805,7 +805,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   public void setPath(String path) {
     this.path = path;
-    this.level = 0;
+    this.level = null;
   }
 
   /**
@@ -822,8 +822,8 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   @JsonProperty(value = "level", access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(localName = "level", isAttribute = true)
-  public int getLevel() {
-    if (level <= 0) {
+  public Integer getLevel() {
+    if (level == null) {
       // note: in theory we could just calculate: level = path.length / 12
       // but there is lots of test data with illegal paths ;/
       int n = 0;
@@ -835,7 +835,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /** Do not set directly. */
-  public void setLevel(int level) {
+  public void setLevel(Integer level) {
     this.level = level;
   }
 
