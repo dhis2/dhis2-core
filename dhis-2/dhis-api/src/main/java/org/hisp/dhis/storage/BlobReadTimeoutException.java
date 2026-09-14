@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,59 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
-
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.option.Option;
+package org.hisp.dhis.storage;
 
 /**
- * @author Henning Håkonsen
+ * Thrown when a blob read did not finish within the {@link BlobReadOptions#nextTimeout()} its
+ * caller asked for, so it always means that caller's own limit was reached rather than a fault of
+ * the store.
  */
-public class EventAnalyticsDimensionalItem {
-  private String parentUid;
+public class BlobReadTimeoutException extends RuntimeException {
 
-  private Option option;
-
-  private DimensionalItemObject dimensionalItemObject;
-
-  public EventAnalyticsDimensionalItem(Option option, String parentUid) {
-    this.option = option;
-    this.parentUid = parentUid;
+  public BlobReadTimeoutException(String message) {
+    super(message);
   }
 
-  public EventAnalyticsDimensionalItem(
-      DimensionalItemObject dimensionalItemObject, String parentUid) {
-    this.dimensionalItemObject = dimensionalItemObject;
-    this.parentUid = parentUid;
-  }
-
-  public String getParentUid() {
-    return parentUid;
-  }
-
-  public Option getOption() {
-    return option;
-  }
-
-  public String getDisplayProperty(DisplayProperty displayProperty) {
-    if (option != null) {
-      return option.getDisplayName();
-    } else {
-      if (displayProperty == DisplayProperty.NAME) {
-        return dimensionalItemObject.getName();
-      } else {
-        return dimensionalItemObject.getShortName();
-      }
-    }
-  }
-
-  @Override
-  public String toString() {
-    if (option != null) {
-      return option.getCode();
-    } else {
-      return dimensionalItemObject.getDimensionItem();
-    }
+  public BlobReadTimeoutException(String message, Throwable cause) {
+    super(message, cause);
   }
 }
