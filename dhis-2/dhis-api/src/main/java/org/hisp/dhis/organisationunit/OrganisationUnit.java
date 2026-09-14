@@ -100,7 +100,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   private String path;
 
-  private Integer hierarchyLevel;
+  private int level;
 
   private Date openingDate;
 
@@ -611,17 +611,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return set;
   }
 
-  @Property(persistedAs = "hierarchyLevel")
-  @JsonProperty(value = "level", access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "level", isAttribute = true)
-  public int getLevel() {
-    return getHierarchyLevel();
-  }
-
-  protected void setLevel(int level) {
-    // ignored, just used by persistence framework
-  }
-
   /**
    * Returns a string representing the graph of ancestors. The string is delimited by "/". The
    * ancestors are ordered by root first and represented by UIDs.
@@ -757,7 +746,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
         || !path.startsWith(parent.path)
         || path.length() == parent.path.length() + 12) {
       this.path = null;
-      this.hierarchyLevel = null;
+      this.level = 0;
     }
   }
 
@@ -816,7 +805,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   public void setPath(String path) {
     this.path = path;
-    this.hierarchyLevel = null;
+    this.level = 0;
   }
 
   /**
@@ -831,21 +820,23 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * Used by persistence layer. Purpose is to have a column for use in database queries. For
    * application use see {@link OrganisationUnit#getLevel()} which has better performance.
    */
-  public Integer getHierarchyLevel() {
-    if (hierarchyLevel == null) {
+  @JsonProperty(value = "level", access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "level", isAttribute = true)
+  public int getLevel() {
+    if (level <= 0) {
       // note: in theory we could just calculate: level = path.length / 12
       // but there is lots of test data with illegal paths ;/
       int n = 0;
       String p = getPath();
       for (int i = 0; i < p.length(); i++) if (p.charAt(i) == '/') n++;
-      hierarchyLevel = n;
+      level = n;
     }
-    return hierarchyLevel;
+    return level;
   }
 
   /** Do not set directly. */
-  public void setHierarchyLevel(Integer hierarchyLevel) {
-    this.hierarchyLevel = hierarchyLevel;
+  public void setLevel(int level) {
+    this.level = level;
   }
 
   @JsonProperty

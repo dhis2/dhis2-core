@@ -30,7 +30,7 @@
 
     <property name="path" column="path" access="property" unique="true" index="in_organisationunit_path" generated="always" />
 
-    <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" generated="always" />
+    <property name="level" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" generated="always" />
     
     <property name="description" type="text" />
 

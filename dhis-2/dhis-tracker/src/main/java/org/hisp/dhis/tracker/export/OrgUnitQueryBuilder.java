@@ -322,7 +322,7 @@ public class OrgUnitQueryBuilder {
       String childHierarchyParamName = "childHierarchyLevel" + index;
 
       String pathParamValue = organisationUnit.getStoredPath() + "%";
-      int parentHierarchyParamValue = organisationUnit.getHierarchyLevel();
+      int parentHierarchyParamValue = organisationUnit.getLevel();
 
       sql.append(orHlp.or())
           .append(" ")

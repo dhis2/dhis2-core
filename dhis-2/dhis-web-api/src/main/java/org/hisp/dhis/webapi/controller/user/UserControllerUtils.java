@@ -159,9 +159,6 @@ public class UserControllerUtils {
 
     return userOrgUnits.isEmpty()
         ? 9999
-        : userOrgUnits.stream()
-            .map(OrganisationUnit::getHierarchyLevel)
-            .min(Integer::compare)
-            .get();
+        : userOrgUnits.stream().map(OrganisationUnit::getLevel).min(Integer::compare).get();
   }
 }

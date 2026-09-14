@@ -52,11 +52,11 @@ class OrganisationUnitStructureResourceTableTest {
     ou1.setPath("/p1/p2");
 
     OrganisationUnit ou2 = createOrganisationUnit('C', ou1);
-    ou2.setHierarchyLevel(currentLevel);
+    ou2.setLevel(currentLevel);
     ou2.setPath("/p1/p2/ou2");
 
     OrganisationUnit ou3 = createOrganisationUnit('D', ou1);
-    ou3.setHierarchyLevel(currentLevel);
+    ou3.setLevel(currentLevel);
     ou3.setPath("/p1/p2/ou3");
 
     List<OrganisationUnit> organisationUnits = new ArrayList<>();

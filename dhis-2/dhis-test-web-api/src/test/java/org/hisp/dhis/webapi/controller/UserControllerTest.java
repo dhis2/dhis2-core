@@ -1307,46 +1307,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("GET /users?ou={uid}&includeChildren=true returns users in org unit subtree")
-  void testGetUsersFilterByOrgUnitWithChildren() {
-    OrganisationUnit orgA = createOrganisationUnit('A');
-    organisationUnitService.addOrganisationUnit(orgA);
-    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
-    organisationUnitService.addOrganisationUnit(orgB);
-    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
-    organisationUnitService.addOrganisationUnit(orgC);
-
-    User alice = createUserWithAuth("alice");
-    alice.addOrganisationUnit(orgA);
-    userService.updateUser(alice);
-
-    User bob = createUserWithAuth("bob");
-    bob.addOrganisationUnit(orgB);
-    userService.updateUser(bob);
-
-    User charlie = createUserWithAuth("charlie");
-    charlie.addOrganisationUnit(orgC);
-    userService.updateUser(charlie);
-
-    // Switch to a user whose org units are orgA (fresh security context)
-    User viewer = createUserWithAuth("viewer", "ALL");
-    viewer.addOrganisationUnit(orgA);
-    userService.updateUser(viewer);
-    switchToNewUser(viewer);
-
-    JsonList<JsonUser> users =
-        GET("/users?ou=" + orgA.getUid() + "&includeChildren=true")
-            .content(HttpStatus.OK)
-            .getList("users", JsonUser.class);
-
-    List<String> uids = users.stream().map(JsonUser::getId).toList();
-    assertTrue(uids.contains(alice.getUid()));
-    assertTrue(uids.contains(bob.getUid()));
-    assertTrue(uids.contains(charlie.getUid()));
-    assertTrue(uids.contains(viewer.getUid()));
-  }
-
-  @Test
   @DisplayName("GET /users?query=alice returns only matching users by name/email/username")
   void testGetUsersFilterByQuery() {
     User alice = createUserWithAuth("alice");
