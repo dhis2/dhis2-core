@@ -32,8 +32,6 @@
 
     <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" generated="always" />
     
-    <property name="level" column="hierarchylevel" insert="false" update="false" />
-
     <property name="description" type="text" />
 
     <property name="openingDate" column="openingdate" type="date" not-null="true" />
