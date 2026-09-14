@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
@@ -194,5 +195,100 @@ class TrackedEntityFieldsTest {
             ElementWithOffset.emptyElementWithOffset(),
             dimensionParam)
         .withDefaultGroupId();
+  }
+
+  /**
+   * An event-level dimension is reported under its short stage scoped name, {@code
+   * programStageUid.dimensionName}, which is the form the request addresses it by.
+   */
+  @Test
+  void getGridHeadersNamesAnEventLevelDateByItsStage() {
+    DimensionIdentifier<DimensionParam> eventDate =
+        stageScopedStaticDimension(StaticDimension.EVENT_DATE);
+
+    Set<GridHeader> headers =
+        TrackedEntityFields.getGridHeaders(
+            rowLevelContextParams(eventDate), List.of(fieldFor(eventDate)));
+
+    assertEquals(
+        List.of("A03MvHHogjR.eventdate"), headers.stream().map(GridHeader::getName).toList());
+  }
+
+  @Test
+  void getGridHeadersNamesAnEventLevelOrgUnitByItsStage() {
+    DimensionIdentifier<DimensionParam> eventOrgUnit = stageScopedOrgUnitDimension();
+
+    Set<GridHeader> headers =
+        TrackedEntityFields.getGridHeaders(
+            rowLevelContextParams(eventOrgUnit), List.of(fieldFor(eventOrgUnit)));
+
+    assertEquals(List.of("A03MvHHogjR.ou"), headers.stream().map(GridHeader::getName).toList());
+  }
+
+  /** A dimension that is not event-level has no stage to be named by, so it keeps its own name. */
+  @Test
+  void getGridHeadersKeepsTheNameOfADimensionWithoutAStage() {
+    DimensionIdentifier<DimensionParam> teOrgUnit = stubOuDimension("ou1");
+
+    Set<GridHeader> headers =
+        TrackedEntityFields.getGridHeaders(
+            rowLevelContextParams(teOrgUnit), List.of(fieldFor(teOrgUnit)));
+
+    assertEquals(List.of("ou"), headers.stream().map(GridHeader::getName).toList());
+  }
+
+  private Field fieldFor(DimensionIdentifier<DimensionParam> dimension) {
+    return Field.of("t", () -> "column", dimension);
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> rowLevelContextParams(
+      DimensionIdentifier<DimensionParam> dimension) {
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(TrackedEntityQueryParams.builder().build())
+        .commonRaw(new CommonRequestParams().withDimension(Set.of(dimension.getKey())))
+        .commonParsed(CommonParsedParams.builder().dimensionIdentifiers(List.of(dimension)).build())
+        .build();
+  }
+
+  private DimensionIdentifier<DimensionParam> stageScopedStaticDimension(
+      StaticDimension staticDimension) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            staticDimension.name(), DimensionParamType.DIMENSIONS, UID, List.of());
+
+    return DimensionIdentifier.of(
+        ElementWithOffset.of(stubProgram()),
+        ElementWithOffset.of(stubProgramStage()),
+        dimensionParam);
+  }
+
+  private DimensionIdentifier<DimensionParam> stageScopedOrgUnitDimension() {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("ou1");
+
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(orgUnit)),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of("ou1"));
+
+    return DimensionIdentifier.of(
+        ElementWithOffset.of(stubProgram()),
+        ElementWithOffset.of(stubProgramStage()),
+        dimensionParam);
+  }
+
+  private Program stubProgram() {
+    Program program = new Program();
+    program.setUid("IpHINAT79UW");
+    return program;
+  }
+
+  private ProgramStage stubProgramStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("A03MvHHogjR");
+    programStage.setProgram(stubProgram());
+    return programStage;
   }
 }
