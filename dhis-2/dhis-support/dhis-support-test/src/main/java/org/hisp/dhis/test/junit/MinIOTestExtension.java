@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Use this configuration for tests relying on MinIO storage running in a Docker container. The
@@ -59,8 +60,12 @@ public class MinIOTestExtension implements AfterAllCallback {
   private static final MinIOContainer MIN_IO_CONTAINER;
 
   static {
+    // Docker Hub no longer serves minio/minio (404 / pull access denied). Official
+    // community images remain on quay.io; Testcontainers requires a compatible substitute.
     MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
+        new MinIOContainer(
+                DockerImageName.parse("quay.io/minio/minio:RELEASE.2024-07-16T23-46-41Z")
+                    .asCompatibleSubstituteFor("minio/minio"))
             .withUserName(MINIO_USER)
             .withPassword(MINIO_PASSWORD);
     MIN_IO_CONTAINER.start();
