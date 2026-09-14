@@ -30,14 +30,12 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.stream.Collectors.toSet;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -128,17 +126,6 @@ public class HibernateOrganisationUnitStore
             "from OrganisationUnit o where o.parent is null and not exists "
                 + "(select 1 from OrganisationUnit io where io.parent = o.id)")
         .list();
-  }
-
-  @Override
-  public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences() {
-    return getQuery(
-            "from OrganisationUnit o where exists (select 1 from OrganisationUnit i "
-                + "where i.id <> o.id "
-                + "and i.path like concat('%', o.uid, '%') "
-                + "and o.path like concat('%', i.uid, '%'))")
-        .stream()
-        .collect(toSet());
   }
 
   @Override

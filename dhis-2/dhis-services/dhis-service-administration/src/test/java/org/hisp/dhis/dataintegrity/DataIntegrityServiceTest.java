@@ -346,13 +346,6 @@ class DataIntegrityServiceTest {
   }
 
   @Test
-  void testGetOrganisationUnitsWithCyclicReferences() {
-    subject.getOrganisationUnitsWithCyclicReferences();
-    verify(organisationUnitService).getOrganisationUnitsWithCyclicReferences();
-    verifyNoMoreInteractions(organisationUnitService);
-  }
-
-  @Test
   void testGetProgramRulesVariableWithNoDataElement() {
     programRuleVariableA.setProgram(programA);
 
