@@ -109,45 +109,75 @@ public class SchemeIdHandler {
   private Set<OrganisationUnit> registrationOuItems(
       EventQueryParams params, Grid grid, Settings settings) {
     Set<OrganisationUnit> registrationOus = new LinkedHashSet<>(params.getAllRegistrationOuItems());
-    IdScheme scheme =
-        firstNonNull(
-            settings.getOutputOrgUnitIdScheme(),
-            settings.getOutputIdScheme(),
-            settings.getDataIdScheme(),
-            UID);
-    int column = grid.getIndexOfHeader(REGISTRATION_OU.getItem());
-    if (!params.hasRegistrationOuDimension()
-        || column < 0
-        || !settings.hasCustomIdSchemeSet()
-        || UID.equals(scheme)
-        || scheme.isNull()) {
+    if (!hasRegistrationOuColumn(params, grid) || !orgUnitSchemeChangesOutput(settings)) {
       return registrationOus;
     }
 
-    Map<String, OrganisationUnit> resolved = new LinkedHashMap<>();
+    Map<String, OrganisationUnit> known = new LinkedHashMap<>();
     params.getAllDimensionItems().stream()
         .filter(OrganisationUnit.class::isInstance)
         .map(OrganisationUnit.class::cast)
-        .forEach(ou -> resolved.put(ou.getUid(), ou));
-    registrationOus.forEach(ou -> resolved.put(ou.getUid(), ou));
+        .forEach(ou -> known.put(ou.getUid(), ou));
+    registrationOus.forEach(ou -> known.put(ou.getUid(), ou));
 
-    // Query results contain actual registration facilities, not necessarily the requested
-    // ancestors.
+    List<Object> values = grid.getColumn(grid.getIndexOfHeader(REGISTRATION_OU.getItem()));
+    registrationOus.addAll(resolveReturnedOrgUnits(values, known));
+    return registrationOus;
+  }
+
+  /**
+   * The grid has registration OU values only when the dimension is requested and the corresponding
+   * header is present.
+   */
+  private static boolean hasRegistrationOuColumn(EventQueryParams params, Grid grid) {
+    return params.hasRegistrationOuDimension() && grid.headerExists(REGISTRATION_OU.getItem());
+  }
+
+  /**
+   * Whether the effective org unit scheme replaces UIDs in the output. Metadata is substituted only
+   * when a custom scheme is set ({@code dataIdScheme} alone does not qualify), and a UID or null
+   * scheme maps every UID to itself.
+   */
+  private static boolean orgUnitSchemeChangesOutput(Settings settings) {
+    IdScheme scheme = effectiveOrgUnitIdScheme(settings);
+    return settings.hasCustomIdSchemeSet() && !UID.equals(scheme) && !scheme.isNull();
+  }
+
+  /**
+   * Org unit scheme precedence as applied by {@link SchemeIdResponseMapper}: the org unit specific
+   * scheme, then the general output scheme, then the data scheme, defaulting to UID.
+   */
+  private static IdScheme effectiveOrgUnitIdScheme(Settings settings) {
+    return firstNonNull(
+        settings.getOutputOrgUnitIdScheme(),
+        settings.getOutputIdScheme(),
+        settings.getDataIdScheme(),
+        UID);
+  }
+
+  /**
+   * Query results contain the actual registration facilities, not necessarily the requested
+   * ancestors. Org units already known from the request are reused, the rest are fetched in one
+   * batch.
+   */
+  private Set<OrganisationUnit> resolveReturnedOrgUnits(
+      List<Object> values, Map<String, OrganisationUnit> known) {
+    Set<OrganisationUnit> resolved = new LinkedHashSet<>();
     Set<String> missing = new LinkedHashSet<>();
-    for (Object value : grid.getColumn(column)) {
+    for (Object value : values) {
       if (value instanceof String uid) {
-        OrganisationUnit ou = resolved.get(uid);
+        OrganisationUnit ou = known.get(uid);
         if (ou != null) {
-          registrationOus.add(ou);
+          resolved.add(ou);
         } else {
           missing.add(uid);
         }
       }
     }
     if (!missing.isEmpty()) {
-      registrationOus.addAll(organisationUnitService.getOrganisationUnitsByUid(missing));
+      resolved.addAll(organisationUnitService.getOrganisationUnitsByUid(missing));
     }
-    return registrationOus;
+    return resolved;
   }
 
   Settings schemeSettings(EventQueryParams params) {
