@@ -42,14 +42,14 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
+import org.hisp.dhis.deadline.Deadline;
+import org.hisp.dhis.deadline.DeadlineExceededException;
+import org.hisp.dhis.deadline.DeadlineHolder;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.storage.BlobReadOptions;
 import org.hisp.dhis.storage.BlobReadTimeoutException;
-import org.hisp.dhis.tracker.export.timeout.Deadline;
-import org.hisp.dhis.tracker.export.timeout.DeadlineExceededException;
-import org.hisp.dhis.tracker.export.timeout.DeadlineHolder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -103,7 +103,7 @@ class FileResourceStreamTest {
 
   @Test
   void shouldLeaveTheFetchUnboundedWhenTheTimeoutIsDisabled() throws Exception {
-    // no deadline armed, as when tracker.export.timeout is off
+    // no deadline set, as when tracker.export.timeout is off
     when(fileResourceService.openContentStream(any(FileResource.class), any()))
         .thenReturn(new ByteArrayInputStream(new byte[3]));
 
@@ -116,7 +116,7 @@ class FileResourceStreamTest {
 
   @Test
   void shouldFailFastWhenTheBudgetIsAlreadySpentBeforeReachingTheStore() {
-    // a 5s budget armed 6s ago, so the store is never reached
+    // a 5s budget set 6s ago, so the store is never reached
     long[] clock = {0};
     DeadlineHolder.set(Deadline.in(Duration.ofSeconds(5), () -> clock[0]));
     clock[0] = Duration.ofSeconds(6).toNanos();
@@ -139,7 +139,7 @@ class FileResourceStreamTest {
 
     DeadlineExceededException e = assertThrows(DeadlineExceededException.class, content::get);
     assertEquals(
-        "Tracker export exceeded its time budget of 5s",
+        "Request exceeded its time budget of 5s",
         e.getMessage(),
         "the error must name the budget, as a timed out query does");
   }
