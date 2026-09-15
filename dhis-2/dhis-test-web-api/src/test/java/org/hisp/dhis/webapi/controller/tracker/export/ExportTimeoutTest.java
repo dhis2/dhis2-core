@@ -128,8 +128,8 @@ class ExportTimeoutTest extends PostgresControllerIntegrationTestBase {
   private static final String ID_QUERY = "select te.trackedentityid, te.uid";
 
   /**
-   * Projection unique to {@code TrackedEntityStore}, run by the aggregate branches on {@code
-   * TrackedEntityAggregate}'s thread pool rather than on the request thread.
+   * Projection unique to {@code TrackedEntityStore}, run by {@code TrackedEntityAggregate} after
+   * the id query.
    */
   private static final String AGGREGATE_QUERY = "te.uid as te_uid";
 
@@ -165,8 +165,8 @@ class ExportTimeoutTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldShareOneBudgetAcrossSequentialStatementsOfOneRequest() {
-    // Either statement fits the budget alone, the two together cannot. They also run on different
-    // threads, so this covers the deadline reaching the aggregate's pool.
+    // Either statement fits the budget alone, the two together cannot, so this covers one budget
+    // being shared across the id query and the aggregate's fetches.
     Duration overHalfTheBudget = BUDGET.dividedBy(2).plusSeconds(1);
     SlowQueryDataSourceProxy.sleepBefore(ID_QUERY, overHalfTheBudget);
     SlowQueryDataSourceProxy.sleepBefore(AGGREGATE_QUERY, overHalfTheBudget);

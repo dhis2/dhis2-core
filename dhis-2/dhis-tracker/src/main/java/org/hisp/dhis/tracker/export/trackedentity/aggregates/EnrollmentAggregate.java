@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.model.Enrollment;
-import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,7 +50,6 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentAggregate")
 @RequiredArgsConstructor
 class EnrollmentAggregate {
-  private final AuthenticationService authenticationService;
   private final EnrollmentService enrollmentService;
 
   /**
@@ -63,24 +61,18 @@ class EnrollmentAggregate {
    */
   Multimap<String, Enrollment> findByTrackedEntityIds(
       List<TrackedEntityIdentifiers> ids, Context ctx) {
+    // Runs on the request thread, which already holds the caller's authentication.
     Multimap<String, Enrollment> result = ArrayListMultimap.create();
-    try {
-      // Set up security context on this async thread using UserDetails from HTTP thread
-      authenticationService.obtainAuthentication(ctx.userDetails());
-
-      Set<UID> trackedEntityUids =
-          ids.stream().map(id -> UID.of(id.uid())).collect(Collectors.toSet());
-      EnrollmentOperationParams params =
-          EnrollmentOperationParams.builder()
-              .fields(ctx.fields().getEnrollmentFields())
-              .trackedEntities(trackedEntityUids)
-              .includeDeleted(ctx.queryParams().isIncludeDeleted())
-              .program(ctx.queryParams().getEnrolledInTrackerProgram())
-              .build();
-      findEnrollments(params, result);
-    } finally {
-      authenticationService.clearAuthentication();
-    }
+    Set<UID> trackedEntityUids =
+        ids.stream().map(id -> UID.of(id.uid())).collect(Collectors.toSet());
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .fields(ctx.fields().getEnrollmentFields())
+            .trackedEntities(trackedEntityUids)
+            .includeDeleted(ctx.queryParams().isIncludeDeleted())
+            .program(ctx.queryParams().getEnrolledInTrackerProgram())
+            .build();
+    findEnrollments(params, result);
     return result;
   }
 
