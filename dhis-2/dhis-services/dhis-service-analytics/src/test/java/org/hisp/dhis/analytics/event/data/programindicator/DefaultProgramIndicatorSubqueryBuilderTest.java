@@ -208,7 +208,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         "#{PgmStgUid1.DataElmUid1}",
         "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='"
             + piUid
-            + "')");
+            + "', replaceNulls='true')");
     assertEventPiExpressionDoesNotRegisterCte(
         "d2:countIfValue(#{PgmStgUid1.DataElmUid2}, 5)",
         "__D2FUNC__(func='countIfValue', ps='PgmStgUid1', de='DataElmUid2', argType='val64', arg64='NQ==', hash='noboundaries', pi='"
@@ -1330,7 +1330,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String psdePlaceholder1 =
         "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='"
             + piUid
-            + "')";
+            + "', replaceNulls='true')";
     String d2FuncValueSql =
         "cast(5 as double precision)"; // Expected SQL for '5' with postgres builder
     String d2FuncValueSqlEncoded =

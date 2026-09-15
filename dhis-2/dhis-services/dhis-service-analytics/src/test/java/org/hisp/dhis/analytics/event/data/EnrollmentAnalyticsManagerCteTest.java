@@ -1425,7 +1425,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   private String psdePlaceholder(ProgramIndicator pi) {
-    return "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s')"
+    return "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s', replaceNulls='true')"
         .formatted(programStage.getUid(), dataElementA.getUid(), pi.getUid());
   }
 
