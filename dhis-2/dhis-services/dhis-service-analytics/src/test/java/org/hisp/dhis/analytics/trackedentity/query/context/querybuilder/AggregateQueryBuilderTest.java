@@ -61,6 +61,10 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -70,6 +74,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /** Tests the grouping of event scoped dimensions by {@link AggregateQueryBuilder}. */
 class AggregateQueryBuilderTest {
@@ -88,9 +94,7 @@ class AggregateQueryBuilderTest {
 
   @BeforeEach
   void setUp() {
-    builder =
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder()));
+    builder = new AggregateQueryBuilder();
     trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid(TET_UID);
   }
@@ -232,6 +236,47 @@ class AggregateQueryBuilderTest {
     assertEquals(
         List.of(expected + " as \"" + PROGRAM_STAGE_UID + ".eventdate\"", "count(1) as \"value\""),
         query.getSelectFields().stream().map(Field::render).toList());
+  }
+
+  @ParameterizedTest
+  @EnumSource(Database.class)
+  void dateGroupingUsesPostgresRegardlessOfAnalyticsDatabase(Database database) {
+    AnalyticsSqlBuilder analyticsSqlBuilder =
+        switch (database) {
+          case DORIS -> new DorisAnalyticsSqlBuilder("catalog", "driver.jar");
+          case CLICKHOUSE -> new ClickHouseAnalyticsSqlBuilder("analytics");
+          case POSTGRESQL -> new PostgreSqlAnalyticsSqlBuilder();
+        };
+
+    try (var springContext = new AnnotationConfigApplicationContext()) {
+      springContext.registerBean(AnalyticsSqlBuilder.class, () -> analyticsSqlBuilder);
+      springContext.register(
+          DefaultStageDatePeriodBucketSqlRenderer.class, AggregateQueryBuilder.class);
+      springContext.refresh();
+      AggregateQueryBuilder aggregateBuilder = springContext.getBean(AggregateQueryBuilder.class);
+
+      for (var dimension :
+          List.of(
+              eventScopedDimension(StaticDimension.EVENT_DATE, "2021"),
+              eventScopedDimension(StaticDimension.SCHEDULED_DATE, "2021"),
+              enrollmentScopedDimension(StaticDimension.ENROLLMENTDATE, "2021"),
+              enrollmentScopedDimension(StaticDimension.INCIDENTDATE, "2021"))) {
+        var query =
+            aggregateBuilder.buildSqlQuery(
+                QueryContext.of(contextParams(dimension), new SqlParameterManager()),
+                List.of(),
+                List.of(dimension),
+                List.of());
+
+        String groupBy = query.getGroupByFields().get(0).render();
+        assertTrue(
+            groupBy.startsWith(
+                "(select \"yearly\" from analytics_rs_dateperiodstructure as dps_stage where "
+                    + "dps_stage.\"dateperiod\" = cast("),
+            groupBy);
+        assertTrue(query.getSelectFields().get(0).render().startsWith(groupBy + " as "));
+      }
+    }
   }
 
   /** Without a resolvable period the date column is grouped as it is, matching the reference. */

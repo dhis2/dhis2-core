@@ -59,7 +59,6 @@ import org.hisp.dhis.analytics.common.processing.CommonRequestParamsParser;
 import org.hisp.dhis.analytics.common.processing.DimensionIdentifierConverter;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
-import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
@@ -83,7 +82,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -252,9 +250,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
 
     List<SqlQueryBuilder> builders = new ArrayList<>();
-    builders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    builders.add(new AggregateQueryBuilder());
     builders.addAll(queryBuilders);
 
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
@@ -329,9 +325,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
                 List.of()));
 
     List<SqlQueryBuilder> builders = new ArrayList<>();
-    builders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    builders.add(new AggregateQueryBuilder());
     builders.add(new EventAttributeQueryBuilder());
     builders.addAll(queryBuilders);
 
@@ -403,9 +397,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
             .build();
     List<SqlQueryBuilder> builders = new ArrayList<>(queryBuilders);
     builders.add(new EventAttributeQueryBuilder());
-    builders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    builders.add(new AggregateQueryBuilder());
     String sql =
         new SqlQueryCreatorService(builders)
             .getSqlQueryCreator(ctx)
@@ -424,9 +416,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateCountGroupedByOrgUnit() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    aggregateBuilders.add(new AggregateQueryBuilder());
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -460,9 +450,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateCountGroupedByAttribute() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    aggregateBuilders.add(new AggregateQueryBuilder());
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -494,9 +482,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateCountGroupedByOrgUnitAndAttribute() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    aggregateBuilders.add(new AggregateQueryBuilder());
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -531,9 +517,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateAverageOverValueAttribute() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    aggregateBuilders.add(new AggregateQueryBuilder());
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -569,9 +553,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateCountOverValueAttributeCountsNonNullValues() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    aggregateBuilders.add(new AggregateQueryBuilder());
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -715,9 +697,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
   @Test
   void testAggregateGroupsByExplicitlyRequestedDimensionsOnly() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    aggregateBuilders.add(new AggregateQueryBuilder());
     aggregateBuilders.addAll(queryBuilders);
     SqlQueryCreatorService service = new SqlQueryCreatorService(aggregateBuilders);
 
@@ -750,9 +730,7 @@ class SqlQueryCreatorServiceTest extends TestBase {
 
   private SqlQueryCreatorService aggregateService() {
     List<SqlQueryBuilder> aggregateBuilders = new ArrayList<>();
-    aggregateBuilders.add(
-        new AggregateQueryBuilder(
-            new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder())));
+    aggregateBuilders.add(new AggregateQueryBuilder());
     aggregateBuilders.addAll(queryBuilders);
     return new SqlQueryCreatorService(aggregateBuilders);
   }
