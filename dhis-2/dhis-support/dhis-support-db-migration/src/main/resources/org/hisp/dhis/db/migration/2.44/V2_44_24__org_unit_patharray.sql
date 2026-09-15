@@ -1,28 +1,34 @@
 -- 1. add patharray column
 ALTER TABLE organisationunit ADD COLUMN IF NOT EXISTS patharray varchar(11)[];
 
+-- Note: this init script is idempotent and can be rerun
 DO $$
-    DECLARE
-        r record;
-    BEGIN
-        FOR r IN
-            SELECT organisationunitid, uid, parentid
-            FROM organisationunit
-            ORDER BY hierarchylevel NULLS FIRST, organisationunitid
-        LOOP
-            IF r.parentid IS NULL THEN
-                UPDATE organisationunit
-                SET patharray = ARRAY[r.uid]::varchar(11)[]
-                WHERE organisationunitid = r.organisationunitid;
-            ELSE
-                UPDATE organisationunit u
-                SET patharray = p.patharray || u.uid
-                FROM organisationunit p
-                WHERE u.organisationunitid = r.organisationunitid
-                  AND p.organisationunitid = r.parentid
-                  AND p.patharray IS NOT NULL;
-            END IF;
-        END LOOP;
+DECLARE
+    updated int;
+BEGIN
+    -- Seed: roots get [uid], everyone else gets the empty array as "not computed"
+    UPDATE organisationunit
+    SET patharray =
+        CASE
+            WHEN parentid IS NULL
+                THEN ARRAY[uid]::varchar(11)[]
+            ELSE ARRAY[]::varchar(11)[]
+        END;
+
+    -- now go level by level targeting only rows
+    -- with a parent that already has a non-empty patharray
+    -- until no more row can be updated
+    LOOP
+        UPDATE organisationunit u
+        SET patharray = p.patharray || u.uid
+        FROM organisationunit p
+        WHERE u.parentid = p.organisationunitid
+          AND u.patharray = ARRAY[]::varchar(11)[]
+          AND p.patharray <> ARRAY[]::varchar(11)[];
+
+        GET DIAGNOSTICS updated = ROW_COUNT;
+        EXIT WHEN updated = 0;
+    END LOOP;
 END $$;
 
 ALTER TABLE organisationunit ALTER COLUMN patharray SET NOT NULL;
