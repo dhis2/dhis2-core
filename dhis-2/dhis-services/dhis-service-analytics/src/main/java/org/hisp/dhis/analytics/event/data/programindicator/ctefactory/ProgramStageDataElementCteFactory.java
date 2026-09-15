@@ -48,6 +48,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
 @Slf4j
@@ -158,7 +159,8 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
             pi,
             start,
             end,
-            qb);
+            qb,
+            AnalyticsType.EVENT);
 
     String col = qb.quote(p.deUid());
     String orderCol = getOrderByColumn(pi, qb);
