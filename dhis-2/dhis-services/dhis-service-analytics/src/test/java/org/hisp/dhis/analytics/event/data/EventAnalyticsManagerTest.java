@@ -1357,7 +1357,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String variablePlaceholder =
         "FUNC_CTE_VAR( type='vCreationDate', column='created', piUid='piEnrollComplex', psUid='null', offset='0')";
     String psdePlaceholder =
-        "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='piEnrollComplex')";
+        "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='piEnrollComplex', replaceNulls='true')";
     String d2Placeholder =
         "__D2FUNC__(func='countIfValue', ps='PgmStgUid1', de='DataElmUid2', argType='val64', arg64='NQ==', hash='noboundaries', pi='piEnrollComplex')__";
 

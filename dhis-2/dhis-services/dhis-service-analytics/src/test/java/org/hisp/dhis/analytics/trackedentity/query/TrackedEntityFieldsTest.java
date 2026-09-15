@@ -45,7 +45,6 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDime
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
@@ -58,7 +57,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -97,8 +95,7 @@ class TrackedEntityFieldsTest {
     // Exercise the real aggregate select-field construction so the ou field matches runtime.
     QueryContext queryContext = QueryContext.of(contextParams, new SqlParameterManager());
     RenderableSqlQuery renderableSqlQuery =
-        new AggregateQueryBuilder(
-                new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder()))
+        new AggregateQueryBuilder()
             .buildSqlQuery(
                 queryContext,
                 List.of(),
