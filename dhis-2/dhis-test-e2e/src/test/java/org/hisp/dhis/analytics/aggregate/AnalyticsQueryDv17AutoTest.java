@@ -29,31 +29,20 @@
  */
 package org.hisp.dhis.analytics.aggregate;
 
-import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
-import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
-import org.hisp.dhis.test.e2e.dependsOn.Resource;
-import org.hisp.dhis.test.e2e.dto.ApiResponse;
-import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
-import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
-import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
-import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
+import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.json.JSONException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /** Groups e2e tests for "/analytics" aggregate endpoint. */
 public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
@@ -70,114 +59,147 @@ public class AnalyticsQueryDv17AutoTest extends AnalyticsApiTest {
     boolean expectPostgis = isPostgres();
 
     // Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd")
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
             .add("skipMeta=true")
-            .add("dimension=dx:pi22070And1,pe:2022")
-            ;
+            .add("dimension=dx:pi22070And1,pe:2022");
 
     // When
     ApiResponse response = actions.get(params);
 
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime 'expectPostgis' flag.
-    validateResponseStructure(response, expectPostgis, 1, 3, 3); // Pass runtime flag, row count, and expected header counts
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders = response.extractList("headers", Map.class).stream()
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
             .map(obj -> (Map<String, Object>) obj) // Ensure correct type
             .collect(Collectors.toList());
-
 
     // metaData not found or is empty in response, skipping assertion.
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(response, actualHeaders,"dx", "Data", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(response, actualHeaders,"pe", "Period", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(response, actualHeaders,"value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
-    validateRowExists(response, actualHeaders, Map.of("dx", "pi22070And1", "pe", "2022", "value", "6"));
+    validateRowExists(
+        response, actualHeaders, Map.of("dx", "pi22070And1", "pe", "2022", "value", "6"));
   }
+
   @Test
   public void enrollmentIndicatorWithDisjunctiveEventStatusFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
 
     // Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd")
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
             .add("skipMeta=true")
-            .add("dimension=dx:pi22070Or01,pe:2022")
-            ;
+            .add("dimension=dx:pi22070Or01,pe:2022");
 
     // When
     ApiResponse response = actions.get(params);
 
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime 'expectPostgis' flag.
-    validateResponseStructure(response, expectPostgis, 1, 3, 3); // Pass runtime flag, row count, and expected header counts
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders = response.extractList("headers", Map.class).stream()
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
             .map(obj -> (Map<String, Object>) obj) // Ensure correct type
             .collect(Collectors.toList());
-
 
     // metaData not found or is empty in response, skipping assertion.
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(response, actualHeaders,"dx", "Data", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(response, actualHeaders,"pe", "Period", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(response, actualHeaders,"value", "Value", "NUMBER", "java.lang.Double", false, false);
-
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
-    validateRowExists(response, actualHeaders, Map.of("dx", "pi22070Or01", "pe", "2022", "value", "0"));
+    validateRowExists(
+        response, actualHeaders, Map.of("dx", "pi22070Or01", "pe", "2022", "value", "0"));
   }
+
   @Test
   public void enrollmentIndicatorWithNegatedEventStatusFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
 
     // Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd")
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
             .add("skipMeta=true")
-            .add("dimension=dx:pi22070Not1,pe:2022")
-            ;
+            .add("dimension=dx:pi22070Not1,pe:2022");
 
     // When
     ApiResponse response = actions.get(params);
 
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime 'expectPostgis' flag.
-    validateResponseStructure(response, expectPostgis, 1, 3, 3); // Pass runtime flag, row count, and expected header counts
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders = response.extractList("headers", Map.class).stream()
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
             .map(obj -> (Map<String, Object>) obj) // Ensure correct type
             .collect(Collectors.toList());
-
 
     // metaData not found or is empty in response, skipping assertion.
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(response, actualHeaders,"dx", "Data", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(response, actualHeaders,"pe", "Period", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(response, actualHeaders,"value", "Value", "NUMBER", "java.lang.Double", false, false);
-
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
-    validateRowExists(response, actualHeaders, Map.of("dx", "pi22070Not1", "pe", "2022", "value", "6"));
+    validateRowExists(
+        response, actualHeaders, Map.of("dx", "pi22070Not1", "pe", "2022", "value", "6"));
   }
 }
