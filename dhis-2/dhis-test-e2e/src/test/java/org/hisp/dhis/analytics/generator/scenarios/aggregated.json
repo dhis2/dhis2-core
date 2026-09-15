@@ -220,6 +220,13 @@
       }
     },
     {
+      "name": "enrollmentProgramIndicatorWithHasValueFilter",
+      "query": "/api/analytics.json?dimension=dx:PIhasValue1&dimension=pe:202211;202212;202301;202302;202303&filter=ou:ImspTQPwCqd&displayProperty=NAME&skipMeta=true&skipData=false&includeNumDen=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "outputIdSchemeWithId",
       "query": "/api/analytics.json?dimension=dx:cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG;fbfJHSPpUQD&dimension=ou:USER_ORGUNIT_CHILDREN&showHierarchy=false&hierarchyMeta=false&includeMetadataDetails=true&includeNumDen=true&skipRounding=false&completedOnly=false&outputIdScheme=ID&filter=pe:LAST_5_YEARS&relativePeriodDate=2026-06-01",
       "version": {
