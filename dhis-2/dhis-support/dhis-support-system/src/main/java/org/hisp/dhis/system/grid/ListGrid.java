@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1140,6 +1140,31 @@ public class ListGrid implements Grid, Serializable {
   @Override
   public void setLastDataRow(boolean lastDataRow) {
     this.lastDataRow = lastDataRow;
+  }
+
+  @Override
+  public Grid copy() {
+    ListGrid copy = new ListGrid();
+    copy.title = this.title;
+    copy.subtitle = this.subtitle;
+    copy.table = this.table;
+    copy.headers = new ArrayList<>(this.headers);
+    copy.metaData = new HashMap<>(this.metaData);
+    copy.performanceMetrics = this.performanceMetrics;
+    copy.rowContext = new TreeMap<>(this.rowContext);
+    copy.internalMetaData = new HashMap<>(this.internalMetaData);
+    copy.grid = new ArrayList<>(this.grid.size());
+    for (List<Object> row : this.grid) {
+      copy.grid.add(new ArrayList<>(row));
+    }
+    copy.refs = this.refs == null ? null : new ArrayList<>(this.refs);
+    copy.currentRowWriteIndex = this.currentRowWriteIndex;
+    copy.columnIndexMap = new HashMap<>(this.columnIndexMap);
+    copy.lastDataRow = this.lastDataRow;
+    // currentRowReadIndex intentionally left at its fresh default (-1): a copy is handed to a new
+    // consumer, e.g. a fresh JasperReports iteration or a fresh cache read, never a mid-iteration
+    // one, so resetting the read cursor is correct rather than an omission.
+    return copy;
   }
 
   // -------------------------------------------------------------------------
