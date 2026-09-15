@@ -105,7 +105,7 @@
 
     <!-- Security -->
     <spring-security.version>7.1.1</spring-security.version>
-    <spring-authorization-server.version>7.0.6</spring-authorization-server.version>
+    <spring-authorization-server.version>7.1.1</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
