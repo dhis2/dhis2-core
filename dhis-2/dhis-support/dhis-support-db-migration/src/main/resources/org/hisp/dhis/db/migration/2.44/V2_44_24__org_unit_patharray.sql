@@ -1,23 +1,20 @@
 -- 1. add patharray column
 ALTER TABLE organisationunit ADD COLUMN IF NOT EXISTS patharray varchar(11)[];
 
--- Note: this init script is idempotent and can be rerun
-DO $$
+CREATE OR REPLACE PROCEDURE ou_seed_patharray()
+    LANGUAGE plpgsql
+AS $$
 DECLARE
     updated int;
 BEGIN
-    -- Seed: roots get [uid], everyone else gets the empty array as "not computed"
     UPDATE organisationunit
-    SET patharray =
-        CASE
-            WHEN parentid IS NULL
-                THEN ARRAY[uid]::varchar(11)[]
-            ELSE ARRAY[]::varchar(11)[]
+    -- seed roots
+    SET patharray = CASE
+                        WHEN parentid IS NULL
+                            THEN ARRAY[uid]::varchar(11)[]
+                        ELSE ARRAY[]::varchar(11)[]
         END;
-
-    -- now go level by level targeting only rows
-    -- with a parent that already has a non-empty patharray
-    -- until no more row can be updated
+    -- fill in level by level from roots
     LOOP
         UPDATE organisationunit u
         SET patharray = p.patharray || u.uid
@@ -29,6 +26,17 @@ BEGIN
         GET DIAGNOSTICS updated = ROW_COUNT;
         EXIT WHEN updated = 0;
     END LOOP;
+END $$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM organisationunit WHERE patharray IS NOT NULL
+    ) THEN
+        CALL ou_seed_patharray();
+    ELSE
+        RAISE NOTICE 'patharray already populated, skipping seed';
+    END IF;
 END $$;
 
 ALTER TABLE organisationunit ALTER COLUMN patharray SET NOT NULL;
@@ -53,6 +61,7 @@ ALTER TABLE organisationunit ADD COLUMN hierarchylevel integer
     GENERATED ALWAYS AS (array_length(patharray, 1)) STORED;
 
 -- 3. (re) create indexes
+DROP INDEX IF EXISTS organisationunit_patharray_gin;
 CREATE INDEX organisationunit_patharray_gin ON organisationunit USING GIN (patharray);
 
 DROP INDEX IF EXISTS in_organisationunit_hierarchylevel;
@@ -96,6 +105,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS organisationunit_moved_patharray ON organisationunit;
 CREATE TRIGGER organisationunit_moved_patharray
     BEFORE INSERT OR UPDATE OF parentid
     ON organisationunit
@@ -126,6 +136,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS organisationunit_moved_subtree ON organisationunit;
 CREATE TRIGGER organisationunit_moved_subtree
     AFTER UPDATE OF parentid
     ON organisationunit
