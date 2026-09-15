@@ -48,9 +48,11 @@ public class FilterCteFactory implements CteSqlFactory {
   private static final Pattern PATTERN = PlaceholderParser.filterPattern();
   private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_]");
 
-  private static final Pattern LONE_OP = Pattern.compile("^\\s*(AND|OR)\\s*$");
-  private static final Pattern LEADING_OP = Pattern.compile("^\\s*(AND|OR)\\s+");
-  private static final Pattern TRAILING_OP = Pattern.compile("\\s+(AND|OR)\\s*$");
+  /** Literal left behind in place of a comparison that has been lifted into a filter CTE. */
+  private static final String NEUTRAL_LITERAL = "true";
+
+  private static final Pattern NEUTRAL_TOKENS =
+      Pattern.compile("\\btrue\\b|&&|\\|\\||\\band\\b|\\bor\\b|[()\\s]");
 
   @Override
   public boolean supports(String rawSql) {
@@ -107,18 +109,18 @@ public class FilterCteFactory implements CteSqlFactory {
       String alias = ctx.getDefinitionByKey(cteKey).getAlias();
       aliasMap.put(m.group(0), alias); // placeholder-to-alias
 
-      /* Remove the simple clause from the filter string */
-      m.appendReplacement(out, "");
+      /* The clause is enforced by the CTE, so the filter only needs a valid placeholder here */
+      m.appendReplacement(out, NEUTRAL_LITERAL);
     }
     m.appendTail(out);
-
-    /* Clean dangling AND/OR */
-    String cleaned = clean(out.toString());
 
     if (!simpleFound) {
       return rawSql;
     }
-    return cleaned;
+
+    String remaining = out.toString().trim();
+
+    return carriesNoCondition(remaining) ? "" : remaining;
   }
 
   private Optional<FilterFields> parse(Matcher m) {
@@ -188,19 +190,13 @@ public class FilterCteFactory implements CteSqlFactory {
   }
 
   /**
-   * Cleans a string by trimming whitespace and removing leading or trailing "AND" or "OR" logical
-   * operators (case-sensitive). Also removes the operator if it is the only content of the string
-   * after trimming.
+   * Tells whether an expression restricts nothing, which is the case once every comparison it held
+   * has been lifted into a filter CTE and only neutral literals and logical operators are left.
    *
-   * @param str The filter string segment to clean. Must not be null.
-   * @return The cleaned string, potentially empty if only operators/whitespace were present.
-   * @throws NullPointerException if {@code remaining} is null.
+   * @param expression the remaining filter expression. Must not be null.
+   * @return true if the expression carries no condition of its own.
    */
-  private static String clean(String str) {
-    String cleaned = str.trim();
-    cleaned = LONE_OP.matcher(cleaned).replaceAll("");
-    cleaned = LEADING_OP.matcher(cleaned).replaceAll("");
-    cleaned = TRAILING_OP.matcher(cleaned).replaceAll("");
-    return cleaned.trim();
+  private static boolean carriesNoCondition(String expression) {
+    return NEUTRAL_TOKENS.matcher(expression).replaceAll("").isEmpty();
   }
 }
