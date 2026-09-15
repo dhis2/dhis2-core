@@ -31,8 +31,12 @@ package org.hisp.dhis.analytics.event.data.programindicator.ctefactory;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -41,6 +45,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.antlr.Parser;
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
@@ -52,6 +57,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -143,6 +149,77 @@ class FilterCteFactoryTest extends TestBase {
     String filter = "V{enrollment_status} == 'COMPLETED' && " + DE_CONDITION;
 
     assertEquals(filter, process(filter));
+  }
+
+  @ParameterizedTest
+  @MethodSource("liftedComparisons")
+  void comparisonsUnderOrOrNegationStayInTheExpression(String comparison) {
+    for (String filter :
+        new String[] {
+          DE_CONDITION + " || " + comparison,
+          comparison + " or " + DE_CONDITION,
+          "!(" + comparison + ")",
+          "not (" + comparison + ")"
+        }) {
+      assertEquals(filter, process(filter));
+    }
+    assertTrue(aliasMap.isEmpty());
+    verifyNoInteractions(cteContext);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "V{event_status} == 'ACTIVE' || V{event_status} == 'COMPLETED'",
+        "true || (V{event_status} == 'ACTIVE' && V{event_status} == 'COMPLETED')",
+        "!(true && V{event_status} == 'COMPLETED')",
+        "if(V{event_status} == 'COMPLETED', true, false)",
+        "(V{event_status} == 'COMPLETED') == false",
+        "\"V{event_status} == 'COMPLETED'\" == 'text'"
+      })
+  void comparisonsOutsideRequiredConjunctsAreUntouched(String filter) {
+    assertEquals(filter, process(filter));
+    assertTrue(aliasMap.isEmpty());
+    verifyNoInteractions(cteContext);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"(true || false)", "not false", "'😀' == '😀'"})
+  void unrelatedBooleanContextsDoNotPreventLifting(String condition) {
+    String remaining = process(condition + " && (" + STATUS_CONDITION + ")");
+
+    assertEquals(condition + " && (true)", remaining);
+    assertEquals(Map.of(STATUS_CONDITION, "fcte"), aliasMap);
+    assertParseable(remaining);
+  }
+
+  @Test
+  void identicalComparisonsAreLiftedOnlyAtRequiredOccurrences() {
+    String filter = STATUS_CONDITION + " && (" + STATUS_CONDITION + " || " + DE_CONDITION + ")";
+
+    assertEquals("true && (" + STATUS_CONDITION + " || " + DE_CONDITION + ")", process(filter));
+    assertEquals(Map.of(STATUS_CONDITION, "fcte"), aliasMap);
+    verify(cteContext).addFilterCte(anyString(), anyString());
+  }
+
+  @Test
+  void groupedConjunctionOfLiftedComparisonsLeavesEmptyRemainder() {
+    assertEquals("", process("((" + STATUS_CONDITION + ") and (" + STATUS_CONDITION + "))"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "(V{event_status} == 'COMPLETED' && )",
+        "V{event_status} == 'COMPLETED' ||",
+        "V{event_status} == 'COMPLETED' && && true",
+        "(V{event_status} == 'COMPLETED'",
+        "V{event_status} == 'COMPLETED' AND true"
+      })
+  void invalidOriginalFiltersFailBeforeRegisteringCtes(String filter) {
+    assertThrows(ParserException.class, () -> process(filter));
+    assertTrue(aliasMap.isEmpty());
+    verifyNoInteractions(cteContext);
   }
 
   private String process(String filter) {

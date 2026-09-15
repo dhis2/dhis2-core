@@ -29,18 +29,28 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator.ctefactory;
 
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AMPERSAND_2;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AND;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PAREN;
+
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.event.data.programindicator.BoundarySqlBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser.FilterFields;
+import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
+import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExpressionContext;
 import org.hisp.dhis.program.ProgramIndicator;
 
 public class FilterCteFactory implements CteSqlFactory {
@@ -73,12 +83,17 @@ public class FilterCteFactory implements CteSqlFactory {
       return "";
     }
 
+    // Validate the original expression before changing it or registering any CTEs.
+    Map<Integer, Integer> requiredComparisons = findRequiredComparisons(rawSql);
     StringBuilder out = new StringBuilder();
     boolean simpleFound = false;
     Matcher m = PATTERN.matcher(rawSql);
 
     while (m.find()) {
-      simpleFound = true;
+      if (!Integer.valueOf(m.end()).equals(requiredComparisons.get(m.start()))) {
+        m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
+        continue;
+      }
       Optional<FilterFields> opt = parse(m);
       if (opt.isEmpty()) {
         m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
@@ -109,8 +124,9 @@ public class FilterCteFactory implements CteSqlFactory {
       String alias = ctx.getDefinitionByKey(cteKey).getAlias();
       aliasMap.put(m.group(0), alias); // placeholder-to-alias
 
-      /* The clause is enforced by the CTE, so the filter only needs a valid placeholder here */
+      // Only conjunctive requirements can be enforced by an INNER JOIN and replaced with true.
       m.appendReplacement(out, NEUTRAL_LITERAL);
+      simpleFound = true;
     }
     m.appendTail(out);
 
@@ -126,6 +142,49 @@ public class FilterCteFactory implements CteSqlFactory {
   private Optional<FilterFields> parse(Matcher m) {
     String raw = m.group(0);
     return PlaceholderParser.parseFilter(raw);
+  }
+
+  /**
+   * Finds complete comparisons required by the whole filter. Comparisons under OR, negation or
+   * functions must remain in the expression, where the variable CTE's LEFT JOIN preserves their
+   * boolean context. Matching parser nodes also avoids rewriting comparison-like string literals.
+   */
+  private static Map<Integer, Integer> findRequiredComparisons(String filter) {
+    Map<Integer, Integer> comparisons = new HashMap<>();
+    Parser.listen(
+        filter,
+        new ExpressionBaseListener() {
+          @Override
+          public void enterExpr(ExprContext ctx) {
+            if (ctx.it == null || mapOperator(ctx.it.getText()) == null || !isRequired(ctx)) {
+              return;
+            }
+            String text = ctx.getText();
+            String comparison = text.trim();
+            if (PATTERN.matcher(comparison).matches()) {
+              // ANTLR indexes Unicode code points; Matcher indexes UTF-16 characters.
+              int start =
+                  filter.offsetByCodePoints(0, ctx.getStart().getStartIndex())
+                      + text.indexOf(comparison);
+              comparisons.put(start, start + comparison.length());
+            }
+          }
+        });
+    return comparisons;
+  }
+
+  private static boolean isRequired(ExprContext comparison) {
+    ParseTree parent = comparison.getParent();
+    while (parent instanceof ExprContext expr) {
+      if (expr.it != null
+          && expr.it.getType() != PAREN
+          && expr.it.getType() != AND
+          && expr.it.getType() != AMPERSAND_2) {
+        return false;
+      }
+      parent = parent.getParent();
+    }
+    return parent instanceof ExpressionContext;
   }
 
   private static String buildFilterCteSql(
