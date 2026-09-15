@@ -84,6 +84,8 @@ on:
           Baseline configuration in .env file format (multiline).
           Required: DHIS2_IMAGE, SIMULATION_CLASS
           Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_GENERATE, etc.)
+          Optional: RUN_SCRIPT=run-simulation-sidecars.sh to also sample pg_stat_activity and
+          HikariCP pool metrics into <run-dir>/sidecar/ (needs DHIS_CONF_FILE=dhis-metrics.conf)
           Example:
           DHIS2_IMAGE=dhis2/core:2.42.1
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
@@ -97,6 +99,8 @@ on:
           Candidate configuration in .env file format (multiline).
           Required: DHIS2_IMAGE, SIMULATION_CLASS (must match baseline)
           Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_GENERATE, etc.)
+          Optional: RUN_SCRIPT=run-simulation-sidecars.sh to also sample pg_stat_activity and
+          HikariCP pool metrics into <run-dir>/sidecar/ (needs DHIS_CONF_FILE=dhis-metrics.conf)
           Example:
           DHIS2_IMAGE=dhis2/core-dev:latest
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
@@ -199,7 +203,7 @@ jobs:
         fi
         export REPORT_SUFFIX="baseline"
 
-        ./run-simulation.sh
+        ./"${RUN_SCRIPT:-run-simulation.sh}"
 
     - name: Run performance tests - candidate
       run: |
@@ -216,7 +220,7 @@ jobs:
         # Override workflow-specific settings
         export REPORT_SUFFIX="candidate"
 
-        ./run-simulation.sh
+        ./"${RUN_SCRIPT:-run-simulation.sh}"
 
     # Backup cleanup on cancellation: GitHub sends SIGTERM then SIGKILL after a short grace
     # period, which can interrupt run-simulation.sh's EXIT trap mid-teardown. This step runs
