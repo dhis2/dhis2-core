@@ -94,7 +94,7 @@ public class EmailDeliveryChannelStrategy extends DeliveryChannelStrategy {
   @Override
   public String getOrganisationUnitRecipient(OrganisationUnit orgUnit) {
     if (orgUnit.getEmail() == null) {
-      throw new IllegalQueryException("Organisation unit does not have an email address");
+      return "";
     }
 
     return orgUnit.getEmail();
