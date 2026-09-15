@@ -1,0 +1,21 @@
+{
+  "id": "enrDateAvg1",
+  "name": "Enrollment date boundary - Enrollment PI AVG",
+  "shortName": "Enrollment date boundary - Enrollment PI AVG",
+  "program": {
+    "id": "IpHINAT79UW"
+  },
+  "analyticsType": "ENROLLMENT",
+  "aggregationType": "AVERAGE",
+  "expression": "#{A03MvHHogjR.UXz7xuGCEhU}",
+  "analyticsPeriodBoundaries": [
+    {
+      "boundaryTarget": "ENROLLMENT_DATE",
+      "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+    },
+    {
+      "boundaryTarget": "ENROLLMENT_DATE",
+      "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+    }
+  ]
+}
