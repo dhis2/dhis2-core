@@ -94,7 +94,7 @@ public class SmsDeliveryChannelStrategy extends DeliveryChannelStrategy {
   @Override
   public String getOrganisationUnitRecipient(OrganisationUnit orgUnit) {
     if (orgUnit.getPhoneNumber() == null) {
-      throw new IllegalQueryException("Organisation unit does not have phone number");
+      return "";
     }
 
     return orgUnit.getPhoneNumber();
