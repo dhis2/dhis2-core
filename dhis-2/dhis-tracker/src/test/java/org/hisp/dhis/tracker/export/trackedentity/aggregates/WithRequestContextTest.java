@@ -39,8 +39,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import org.hisp.dhis.tracker.export.timeout.Deadline;
-import org.hisp.dhis.tracker.export.timeout.DeadlineHolder;
+import org.hisp.dhis.deadline.Deadline;
+import org.hisp.dhis.deadline.DeadlineHolder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
