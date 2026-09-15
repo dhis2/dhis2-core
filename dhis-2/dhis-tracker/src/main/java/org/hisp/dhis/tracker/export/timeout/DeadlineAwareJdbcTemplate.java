@@ -42,8 +42,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * what keeps the timeout off every other product.
  *
  * <p>Spring's own {@code DataSourceUtils.applyTimeout} cannot be reused: it reads a thread-bound
- * {@code ConnectionHolder} that the parallel branches of {@code TrackedEntityAggregate} never see,
- * and its fallback is a fixed timeout rather than a shrinking budget.
+ * {@code ConnectionHolder} that these reads do not reliably run inside, and its fallback is a fixed
+ * timeout rather than a shrinking budget.
  */
 public class DeadlineAwareJdbcTemplate extends JdbcTemplate {
 
