@@ -1,0 +1,30 @@
+{
+  "categoryOptions": [
+    {
+      "id": "CchCatO0001",
+      "name": "Cache Test CatOpt",
+      "shortName": "Cache CatOpt"
+    }
+  ],
+  "categories": [
+    {
+      "id": "CchCat00001",
+      "name": "Cache Test Category",
+      "shortName": "Cache Cat",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        { "id": "CchCatO0001" }
+      ]
+    }
+  ],
+  "categoryCombos": [
+    {
+      "id": "CchCC000001",
+      "name": "Cache Test CatCombo",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [
+        { "id": "CchCat00001" }
+      ]
+    }
+  ]
+}
