@@ -300,7 +300,7 @@ public class TrackedEntityAggregate6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":true},\"items\":{\"eHvTba5ijAh\":{\"name\":\"Case outcome\"},\"wYTF0YCHMWr\":{\"name\":\"Case investigation & classification\"},\"qDkgAbB5Jlk\":{\"name\":\"Malaria case diagnosis, treatment and investigation\"},\"hYyB7FUS5eR\":{\"name\":\"Diagnosis & treatment\"},\"C0aLZo75dgJ\":{\"name\":\"Household investigation\"},\"created\":{\"name\":\"Created\"}},\"dimensions\":{\"pe\":[],\"created\":[]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"2019\":{\"name\":\"2019\"},\"qDkgAbB5Jlk\":{\"name\":\"Malaria case diagnosis, treatment and investigation\"},\"created\":{\"name\":\"Created\"},\"eHvTba5ijAh\":{\"name\":\"Case outcome\"},\"wYTF0YCHMWr\":{\"name\":\"Case investigation & classification\"},\"hYyB7FUS5eR\":{\"name\":\"Diagnosis & treatment\"},\"C0aLZo75dgJ\":{\"name\":\"Household investigation\"}},\"dimensions\":{\"pe\":[],\"created\":[\"2019\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

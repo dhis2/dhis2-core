@@ -35,12 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,12 +63,16 @@ import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreator;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryCreatorService;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -309,6 +315,198 @@ class TrackedEntityAggregateOuMetadataTest {
     assertEquals("Mabesseneh CHP", items.get("b04CZxe0PSe").getName());
     assertEquals("b04CZxe0PSe", items.get("b04CZxe0PSe").getUid());
     assertEquals("MABESS", items.get("b04CZxe0PSe").getCode());
+  }
+
+  /**
+   * A stage scoped org unit is grouped under its own header, so its uids must resolve to display
+   * names under that header rather than under the bare {@code ou} one.
+   */
+  @Test
+  void metadataExposesGroupedOrgUnitsForStageScopedOuDimension() {
+    OrganisationUnit ngelehun = orgUnit("Ngelehun CHC", "a04CZxe0PSe", null);
+    CommonRequestParams request = new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.ou"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("A03MvHHogjR.ou")))
+        .thenReturn(
+            DimensionIdentifier.of(
+                ElementWithOffset.of(program()),
+                ElementWithOffset.of(programStage()),
+                StringUid.of("ou")));
+
+    CommonParsedParams commonParsed = parser.parse(request);
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(TrackedEntityQueryParams.builder().aggregate(true).build())
+            .commonRaw(request)
+            .commonParsed(commonParsed)
+            .build();
+
+    stubQuery(
+        ctx,
+        fakeRowSet(
+            new String[] {"A03MvHHogjR.ou", "value"},
+            List.<Object[]>of(new Object[] {"a04CZxe0PSe", 42})));
+    when(organisationUnitService.getOrganisationUnitsByUid(Set.of("a04CZxe0PSe")))
+        .thenReturn(List.of(ngelehun));
+
+    Grid grid = service.getGrid(ctx);
+
+    Map<String, List<String>> dimensions = getDimensions(grid);
+    assertEquals(
+        List.of("a04CZxe0PSe"),
+        dimensions.get("A03MvHHogjR.ou"),
+        "metaData.dimensions must list the grouped org units under the scoped header; was: "
+            + dimensions);
+
+    Map<String, MetadataItem> items = getItems(grid);
+    assertEquals("Ngelehun CHC", items.get("a04CZxe0PSe").getName());
+  }
+
+  /**
+   * The shared handler reports an org unit dimensional object under the bare {@code ou} key
+   * whatever its scope. A stage scoped org unit is grouped under its own header, so the bare entry
+   * would describe a dimension the response does not have.
+   */
+  @Test
+  void metadataReportsStageScopedOrgUnitItemsOnlyUnderItsHeader() {
+    OrganisationUnit sierraLeone = orgUnit("Sierra Leone", "ImspTQPwCqd", null);
+    OrganisationUnit ngelehun = orgUnit("Ngelehun CHC", "a04CZxe0PSe", null);
+    CommonRequestParams request =
+        new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.ou:USER_ORGUNIT"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("A03MvHHogjR.ou")))
+        .thenReturn(
+            DimensionIdentifier.of(
+                ElementWithOffset.of(program()),
+                ElementWithOffset.of(programStage()),
+                StringUid.of("ou")));
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of("USER_ORGUNIT")), any(), any(), anyBoolean(), any(), any()))
+        .thenReturn(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(sierraLeone)));
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        stageScopedContextParams(request);
+
+    stubQuery(
+        ctx,
+        fakeRowSet(
+            new String[] {"A03MvHHogjR.ou", "value"},
+            List.<Object[]>of(new Object[] {"a04CZxe0PSe", 42})));
+    when(organisationUnitService.getOrganisationUnitsByUid(Set.of("a04CZxe0PSe")))
+        .thenReturn(List.of(ngelehun));
+
+    Grid grid = service.getGrid(ctx);
+
+    Map<String, List<String>> dimensions = getDimensions(grid);
+    assertEquals(List.of("a04CZxe0PSe"), dimensions.get("A03MvHHogjR.ou"));
+    assertFalse(
+        dimensions.containsKey("ou"),
+        "metaData.dimensions must not report the scoped org unit under 'ou'; was: " + dimensions);
+
+    Map<String, MetadataItem> items = getItems(grid);
+    assertEquals("Sierra Leone", items.get("ImspTQPwCqd").getName());
+    assertEquals("Ngelehun CHC", items.get("a04CZxe0PSe").getName());
+  }
+
+  /**
+   * A date grouped on a period bucket has a fixed set of items, the periods the request resolves
+   * to, so the metadata lists them even when no row matches.
+   */
+  @Test
+  void metadataListsResolvedPeriodsForStageScopedRelativePeriodDimension() {
+    String thisYear = String.valueOf(LocalDate.now().getYear());
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        stageScopedContextParams(
+            new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.EVENT_DATE:THIS_YEAR")),
+            "EVENT_DATE");
+
+    stubQuery(ctx, fakeRowSet(new String[] {"A03MvHHogjR.eventdate", "value"}, List.of()));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(List.of(thisYear), getDimensions(grid).get("A03MvHHogjR.eventdate"));
+    Map<String, MetadataItem> items = getItems(grid);
+    assertTrue(
+        items.containsKey(thisYear),
+        "metaData.items must contain the period; was: " + items.keySet());
+    assertEquals(thisYear, items.get(thisYear).getName());
+    assertEquals(
+        headerColumn(grid, "A03MvHHogjR.eventdate"), items.get("A03MvHHogjR.eventdate").getName());
+  }
+
+  @Test
+  void metadataListsResolvedPeriodsForStageScopedIsoPeriodDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        stageScopedContextParams(
+            new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.EVENT_DATE:202107;202108")),
+            "EVENT_DATE");
+
+    stubQuery(
+        ctx,
+        fakeRowSet(
+            new String[] {"A03MvHHogjR.eventdate", "value"},
+            List.<Object[]>of(new Object[] {"202107", 2})));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(List.of("202107", "202108"), getDimensions(grid).get("A03MvHHogjR.eventdate"));
+    Map<String, MetadataItem> items = getItems(grid);
+    assertEquals("202107", items.get("202107").getName());
+    assertEquals("202108", items.get("202108").getName());
+  }
+
+  /** A date grouped on its raw timestamp has no fixed set of items. */
+  @Test
+  void metadataKeepsEmptyListForDateDimensionWithoutPeriodBucket() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> ctx =
+        stageScopedContextParams(
+            new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.EVENT_DATE:GE:2021-07-01")),
+            "EVENT_DATE");
+
+    stubQuery(
+        ctx,
+        fakeRowSet(
+            new String[] {"A03MvHHogjR.eventdate", "value"},
+            List.<Object[]>of(new Object[] {"2021-07-01 10:00:00.0", 1})));
+
+    Grid grid = service.getGrid(ctx);
+
+    assertEquals(List.of(), getDimensions(grid).get("A03MvHHogjR.eventdate"));
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      stageScopedContextParams(CommonRequestParams request, String dimension) {
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("A03MvHHogjR." + dimension)))
+        .thenReturn(
+            DimensionIdentifier.of(
+                ElementWithOffset.of(program()),
+                ElementWithOffset.of(programStage()),
+                StringUid.of(dimension)));
+
+    return stageScopedContextParams(request);
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      stageScopedContextParams(CommonRequestParams request) {
+    CommonParsedParams commonParsed = parser.parse(request);
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(TrackedEntityQueryParams.builder().aggregate(true).build())
+        .commonRaw(request)
+        .commonParsed(commonParsed)
+        .build();
+  }
+
+  private Program program() {
+    Program program = new Program();
+    program.setUid("IpHINAT79UW");
+    return program;
+  }
+
+  private ProgramStage programStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("A03MvHHogjR");
+    return programStage;
   }
 
   private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
