@@ -45,7 +45,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -54,6 +57,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -1147,5 +1151,46 @@ class GridTest {
     Grid copy = grid.copy();
 
     assertTrue(copy.hasLastDataRow());
+  }
+
+  /**
+   * {@link ListGrid#copy()} copies each field explicitly rather than generically (e.g. via
+   * reflection or serialization), so a field added to {@link ListGrid} in the future is silently
+   * dropped from copies (shared by reference, or left at its default) unless {@code copy()} is
+   * updated too. This test has no opinion on how a field should be copied — it exists purely to
+   * fail loudly the moment the field list drifts, forcing whoever adds/removes a field to also look
+   * at {@code copy()} and this list.
+   */
+  @Test
+  void testCopyAccountsForEveryDeclaredField() {
+    Set<String> knownFields =
+        Set.of(
+            "title",
+            "subtitle",
+            "table",
+            "headers",
+            "metaData",
+            "performanceMetrics",
+            "rowContext",
+            "internalMetaData",
+            "grid",
+            "refs",
+            "currentRowWriteIndex",
+            "currentRowReadIndex",
+            "columnIndexMap",
+            "lastDataRow");
+
+    Set<String> actualFields =
+        Arrays.stream(ListGrid.class.getDeclaredFields())
+            .filter(f -> !Modifier.isStatic(f.getModifiers()))
+            .filter(f -> !f.isSynthetic())
+            .map(Field::getName)
+            .collect(Collectors.toSet());
+
+    assertEquals(
+        knownFields,
+        actualFields,
+        "ListGrid's instance fields changed - update ListGrid#copy() (and this test's "
+            + "knownFields list) to account for the new/removed field.");
   }
 }

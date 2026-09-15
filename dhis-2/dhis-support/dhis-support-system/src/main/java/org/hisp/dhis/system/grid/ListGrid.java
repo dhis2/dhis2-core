@@ -1142,6 +1142,9 @@ public class ListGrid implements Grid, Serializable {
     this.lastDataRow = lastDataRow;
   }
 
+  // Copies each field explicitly rather than generically, so adding a field to this class without
+  // also adding it here silently drops it from copies (shared by reference, or left at the
+  // default). GridTest#testCopyAccountsForEveryDeclaredField fails loudly if the two drift apart.
   @Override
   public Grid copy() {
     ListGrid copy = new ListGrid();
