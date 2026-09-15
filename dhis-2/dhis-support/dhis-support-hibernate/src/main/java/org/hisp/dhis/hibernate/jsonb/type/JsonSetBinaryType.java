@@ -32,6 +32,8 @@ package org.hisp.dhis.hibernate.jsonb.type;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -44,6 +46,9 @@ public class JsonSetBinaryType extends JsonBinaryType {
     MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     MAPPER.setAnnotationIntrospector(
         new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
+    // Preserve the stored winner when consumers select the first matching entry (translations).
+    MAPPER.registerModule(
+        new SimpleModule().addAbstractTypeMapping(Set.class, LinkedHashSet.class));
   }
 
   @Override
