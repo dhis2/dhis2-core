@@ -30,6 +30,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.analytics.AggregationType.MAX_SUM_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.MIN_SUM_ORG_UNIT;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 
 import com.google.common.collect.ImmutableList;
@@ -266,8 +268,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
                 .removeItemProgramIndicators()
                 .withProgramIndicator(programIndicator)
                 .withProgram(programIndicator.getProgram())
-                .withAggregationType(
-                    fromAggregationType(programIndicator.getAggregationTypeFallback()))
+                .withAggregationType(getAggregationType(programIndicator))
                 .withOrgUnitField(new OrgUnitField(programIndicator.getOrgUnitField()))
                 .build();
 
@@ -302,6 +303,28 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
    * @param params the data query parameters.
    * @return a list of {@link EventQueryParams}.
    */
+  /**
+   * Returns the {@link AnalyticsAggregationType} to use for the given program indicator.
+   *
+   * <p>{@link AggregationType#MIN_SUM_ORG_UNIT} and {@link AggregationType#MAX_SUM_ORG_UNIT} are
+   * mapped directly, so that the period aggregation type survives and the analytics manager can
+   * recognise that MIN or MAX has to be resolved across the children of each organisation unit.
+   * Going through {@link ProgramIndicator#getAggregationTypeFallback()} here would flatten both of
+   * them to plain SUM. Every other type uses the fallback.
+   *
+   * @param programIndicator the {@link ProgramIndicator}.
+   * @return the {@link AnalyticsAggregationType}.
+   */
+  private AnalyticsAggregationType getAggregationType(ProgramIndicator programIndicator) {
+    AggregationType aggregationType = programIndicator.getAggregationType();
+
+    if (aggregationType == MIN_SUM_ORG_UNIT || aggregationType == MAX_SUM_ORG_UNIT) {
+      return fromAggregationType(aggregationType);
+    }
+
+    return fromAggregationType(programIndicator.getAggregationTypeFallback());
+  }
+
   private List<EventQueryParams> groupByPeriod(EventQueryParams params) {
     List<EventQueryParams> queries = new ArrayList<>();
 
