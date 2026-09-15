@@ -50,6 +50,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -1349,7 +1350,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
   @DependsOn(
       files = {"pi-has-value-in-filter.json"},
       delete = true)
-  public void enrollmentProgramIndicatorWithHasValueFilter(List<Resource> resource)
+  public void enrollmentProgramIndicatorWithHasValueFilter(@NonNull List<Resource> resource)
       throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
@@ -1363,8 +1364,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=false")
             .add("displayProperty=NAME")
             .add("skipMeta=true")
-            .add("dimension=dx:%s,pe:LAST_5_YEARS".formatted(piUid))
-            .add("relativePeriodDate=2024-07-01");
+            .add("dimension=dx:%s,pe:202211;202212;202301;202302;202303".formatted(piUid));
 
     // When
     ApiResponse response = actions.get(params);
@@ -1398,16 +1398,15 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
-    // Validate row exists with values from original row index 0
-    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "2019", "value", "0.0"));
+    // Only the enrollment carrying an Apgar comment passes the d2:hasValue filter.
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202211", "value", "0.0"));
 
-    // Validate row exists with values from original row index 2
-    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "2021", "value", "0.0"));
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202212", "value", "0.0"));
 
-    // Validate row exists with values from original row index 3
-    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "2022", "value", "2.0"));
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202301", "value", "1.0"));
 
-    // Validate row exists with values from original row index 4
-    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "2023", "value", "3.0"));
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202302", "value", "0.0"));
+
+    validateRowExists(response, actualHeaders, Map.of("dx", piUid, "pe", "202303", "value", "0.0"));
   }
 }

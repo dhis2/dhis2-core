@@ -221,7 +221,7 @@
     },
     {
       "name": "enrollmentProgramIndicatorWithHasValueFilter",
-      "query": "/api/analytics.json?dimension=dx:CAojsI7bcgU&dimension=pe:LAST_5_YEARS&filter=ou:ImspTQPwCqd&displayProperty=NAME&skipMeta=true&skipData=false&includeNumDen=false&relativePeriodDate=2024-07-01",
+      "query": "/api/analytics.json?dimension=dx:PIhasValue1&dimension=pe:202211;202212;202301;202302;202303&filter=ou:ImspTQPwCqd&displayProperty=NAME&skipMeta=true&skipData=false&includeNumDen=false",
       "version": {
         "min": 44
       }
