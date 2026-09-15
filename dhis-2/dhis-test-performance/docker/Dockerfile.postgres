@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Dockerfile to build and restore the DB dump at build time (not runtime)
-# This significantly speeds up container startup for performance tests.
+# Build either a restored benchmark database or an empty PostGIS database at build time.
+# Author of the empty-fixture mode: Morten Svanæs
 ARG DB_DIR
 ARG DB_TYPE
 ARG DB_VERSION
@@ -11,13 +11,18 @@ ARG DB_TYPE
 ARG DB_VERSION
 WORKDIR /tmp
 
-RUN if [ -n "$DB_DIR" ]; then \
-      S3_PATH="s3://databases.dhis2.org/${DB_DIR}/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"; \
+RUN mkdir -p /tmp/database && \
+    if [ "$DB_TYPE" = "empty" ]; then \
+      echo "Creating an empty database; no dump download"; \
     else \
-      S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"; \
-    fi && \
-    echo "Downloading from: $S3_PATH" && \
-    aws s3 cp --no-sign-request "$S3_PATH" dump.sql.gz
+      if [ -n "$DB_DIR" ]; then \
+        S3_PATH="s3://databases.dhis2.org/${DB_DIR}/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"; \
+      else \
+        S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz"; \
+      fi && \
+      echo "Downloading from: $S3_PATH" && \
+      aws s3 cp --no-sign-request "$S3_PATH" /tmp/database/dump.sql.gz; \
+    fi
 
 FROM ghcr.io/baosystems/postgis:14-3.5 AS builder
 
@@ -33,7 +38,7 @@ ENV POSTGRES_USER=dhis \
     PGDATABASE=dhis \
     PGPASSWORD=dhis
 
-COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
+COPY --from=downloader /tmp/database/ /tmp/database/
 
 COPY docker-entrypoint-build.sh /usr/local/bin/
 # Initialize the database and restore the dump at build time
