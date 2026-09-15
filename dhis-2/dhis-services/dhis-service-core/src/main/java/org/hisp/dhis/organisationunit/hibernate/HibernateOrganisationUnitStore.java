@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.organisationunit.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +40,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -58,19 +55,13 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.organisationunit.OrganisationUnitStore")
 public class HibernateOrganisationUnitStore
     extends HibernateIdentifiableObjectStore<OrganisationUnit> implements OrganisationUnitStore {
-  private final DbmsManager dbmsManager;
 
   public HibernateOrganisationUnitStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService,
-      DbmsManager dbmsManager) {
+      AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, OrganisationUnit.class, aclService, true);
-
-    checkNotNull(dbmsManager);
-
-    this.dbmsManager = dbmsManager;
   }
 
   // -------------------------------------------------------------------------

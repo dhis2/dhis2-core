@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public class UserPostgresControllerTest extends PostgresControllerIntegrationTestBase {
+class UserPostgresControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 

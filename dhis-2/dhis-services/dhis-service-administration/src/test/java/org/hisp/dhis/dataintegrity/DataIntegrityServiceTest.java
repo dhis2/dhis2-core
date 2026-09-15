@@ -209,7 +209,7 @@ class DataIntegrityServiceTest {
   private final BeanRandomizer rnd = BeanRandomizer.create(DataSet.class, "periodType", "workflow");
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     setUpFixtures();
   }
 

@@ -762,6 +762,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.children = children;
   }
 
+  @Override
   public void setUid(String uid) {
     this.uid = uid;
     // reset path if uid is inconsistent with it
