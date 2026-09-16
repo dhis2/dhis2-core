@@ -30,8 +30,8 @@
 package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.getIncidentDateColumn;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
 /**
@@ -55,6 +56,11 @@ public class BoundarySqlBuilder {
    * Returns a String that starts with a single space **or** the empty string. It is already
    * prefixed with `" and "` for each boundary so callers can concatenate directly into a WHERE
    * clause.
+   *
+   * <p>Boundaries are resolved against the <b>enrollment</b> analytics table. Use {@link
+   * #buildSql(Set, String, ProgramIndicator, Date, Date, SqlBuilder, AnalyticsType)} when the
+   * generated SQL targets the event analytics table, as some date columns are named differently
+   * there.
    */
   public String buildSql(
       Set<AnalyticsPeriodBoundary> boundaries,
@@ -63,6 +69,34 @@ public class BoundarySqlBuilder {
       Date reportingStart,
       Date reportingEnd,
       SqlBuilder qb) {
+    return buildSql(
+        boundaries,
+        defaultEventTimeColumn,
+        pi,
+        reportingStart,
+        reportingEnd,
+        qb,
+        AnalyticsType.ENROLLMENT);
+  }
+
+  /**
+   * Returns a String that starts with a single space **or** the empty string. It is already
+   * prefixed with `" and "` for each boundary so callers can concatenate directly into a WHERE
+   * clause.
+   *
+   * @param analyticsType the analytics table the generated SQL runs against. This decides how date
+   *     boundary targets are mapped to columns, as the incident date is named {@code occurreddate}
+   *     in the enrollment analytics table but {@code enrollmentoccurreddate} in the event analytics
+   *     table.
+   */
+  public String buildSql(
+      Set<AnalyticsPeriodBoundary> boundaries,
+      String defaultEventTimeColumn, // e.g. "occurreddate"
+      ProgramIndicator pi,
+      Date reportingStart,
+      Date reportingEnd,
+      SqlBuilder qb,
+      AnalyticsType analyticsType) {
 
     if (boundaries == null || boundaries.isEmpty()) {
       return "";
@@ -77,7 +111,7 @@ public class BoundarySqlBuilder {
           || boundary.getBoundaryTarget() == null) continue;
 
       /* Resolve DB column */
-      String dbColumn = resolveDbColumn(boundary, defaultEventTimeColumn);
+      String dbColumn = resolveDbColumn(boundary, defaultEventTimeColumn, analyticsType);
 
       // Skip if unsupported boundary type
       if (dbColumn == null) {
@@ -107,10 +141,13 @@ public class BoundarySqlBuilder {
     return sql.toString();
   }
 
-  private String resolveDbColumn(AnalyticsPeriodBoundary boundary, String defaultEventTimeColumn) {
+  private String resolveDbColumn(
+      AnalyticsPeriodBoundary boundary,
+      String defaultEventTimeColumn,
+      AnalyticsType analyticsType) {
     if (boundary.isEventDateBoundary()) return defaultEventTimeColumn;
     if (boundary.isEnrollmentDateBoundary()) return DB_ENROLLMENT_DATE;
-    if (boundary.isIncidentDateBoundary()) return DB_INCIDENT_DATE;
+    if (boundary.isIncidentDateBoundary()) return getIncidentDateColumn(analyticsType);
     if (boundary.isScheduledDateBoundary()) return DB_SCHEDULED_DATE;
     return null;
   }
