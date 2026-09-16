@@ -792,7 +792,7 @@ public class TrackerTest extends Simulation {
     Request searchTEsAsAndroidClient =
         new Request(
             androidSearchTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 100, Profile.LOAD, 400)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 100, Profile.LOAD, 85)),
             "Search TEs as Android client",
             "Get Child Programme TEs");
     Request getFirstPageOfTEs =
