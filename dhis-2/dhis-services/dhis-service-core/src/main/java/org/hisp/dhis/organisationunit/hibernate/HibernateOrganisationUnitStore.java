@@ -37,6 +37,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -84,6 +85,17 @@ public class HibernateOrganisationUnitStore
   public List<String> getDataViewOrganisationUnitsUidsByUser(String username) {
     String sql = getOrgUnitTablesUids("userdatavieworgunits");
     return jdbcTemplate.queryForList(sql, String.class, username);
+  }
+
+  @Override
+  public List<String> getOrganisationUnitPathsByUid(Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getSession()
+        .createQuery(
+            "select ou.path from OrganisationUnit ou where ou.uid in :uids and ou.path is not null",
+            String.class)
+        .setParameterList("uids", UID.toValueList(uids))
+        .list();
   }
 
   private static String getOrgUnitTablesUids(String orgUnitTableName) {
