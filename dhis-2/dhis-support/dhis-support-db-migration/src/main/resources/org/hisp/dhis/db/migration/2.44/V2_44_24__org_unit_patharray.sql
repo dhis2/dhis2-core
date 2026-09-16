@@ -27,65 +27,53 @@ BEGIN
 END $$;
 
 -- do we have cycles in the OU tree?
-DO $$
+CREATE OR REPLACE FUNCTION ou_has_cycle(start_id bigint)
+    RETURNS boolean
+    LANGUAGE plpgsql
+AS $$
 DECLARE
-    stuck_id   bigint;          -- match the type of organisationunitid
-    cursor_id  bigint;
-    next_id    bigint;
-    seen       bigint[] := ARRAY[]::bigint[];
+    current_id bigint;
+    visited    bigint[] := ARRAY[]::bigint[];
 BEGIN
-    -- Step 1: find one unreachable node (fast, O(n) descent from roots)
-    WITH RECURSIVE reachable AS (
-        SELECT organisationunitid
-        FROM organisationunit
-        WHERE parentid IS NULL
+    -- Start from the parent, since a node is on a cycle iff its parent
+    -- chain leads back to it.
+    SELECT parentid INTO current_id
+    FROM organisationunit
+    WHERE organisationunitid = start_id;
 
-        UNION
-
-        SELECT u.organisationunitid
-        FROM organisationunit u
-                 JOIN reachable r ON u.parentid = r.organisationunitid
-    )
-    SELECT o.organisationunitid
-    INTO stuck_id
-    FROM organisationunit o
-             LEFT JOIN reachable r ON r.organisationunitid = o.organisationunitid
-    WHERE o.parentid IS NOT NULL
-      AND r.organisationunitid IS NULL
-    LIMIT 1;
-
-    IF stuck_id IS NULL THEN
-        RAISE NOTICE 'RESULT: no cycle detected';
-        RETURN;
-    END IF;
-
-    -- Step 2: walk up from the unreachable node until we revisit something.
-    -- Because the node is unreachable and FK guarantees parentid points at a
-    -- real row or is NULL, this walk must eventually loop.
-    cursor_id := stuck_id;
-    WHILE cursor_id IS NOT NULL LOOP
-            IF cursor_id = ANY(seen) THEN
-                RAISE EXCEPTION
-                    'Cycle detected in organisationunit tree involving unit %',
-                    cursor_id
-                    USING HINT = 'The parentid chain from unit % loops back to unit %. Fix the circular reference before migrating.';
+    WHILE current_id IS NOT NULL LOOP
+            IF current_id = start_id THEN
+                RETURN true;                 -- came back to start: start is on the cycle
             END IF;
 
-            seen := seen || cursor_id;
+            IF current_id = ANY(visited) THEN
+                RETURN false;                -- a loop exists, but it does not include start
+            END IF;
 
-            SELECT parentid INTO next_id
+            visited := visited || current_id;
+
+            SELECT parentid INTO current_id
             FROM organisationunit
-            WHERE organisationunitid = cursor_id;
-
-            cursor_id := next_id;
+            WHERE organisationunitid = current_id;
         END LOOP;
 
-    -- If we got here, the chain ended at a NULL parent. That means the FK
-    -- constraint is missing and parentid points at a row that does not exist.
-    RAISE EXCEPTION
-        'Broken parent reference in organisationunit tree starting from unit %',
-        stuck_id
-        USING HINT = 'The parentid chain does not reach a root. Check for missing parent rows.';
+    RETURN false;                        -- reached a root
+END;
+$$;
+
+DO $$
+DECLARE
+    r record;
+    n_checked int := 0;
+BEGIN
+    FOR r IN SELECT organisationunitid FROM organisationunit WHERE parentid IS NOT NULL LOOP
+            n_checked := n_checked + 1;
+            IF ou_has_cycle(r.organisationunitid) THEN
+                RAISE EXCEPTION 'Cycle detected: unit % never reaches a root (checked % units first)',
+                    r.organisationunitid, n_checked;
+            END IF;
+        END LOOP;
+    RAISE NOTICE 'checked all % units, no cycle', n_checked;
 END $$;
 
 
