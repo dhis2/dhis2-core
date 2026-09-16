@@ -57,6 +57,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.junit.jupiter.api.BeforeEach;
@@ -517,5 +519,99 @@ class AggregatedRowBuilderTest {
 
     assertThat(row, hasSize(1));
     assertThat(row.get(0), is(3));
+  }
+
+  /**
+   * The analytics column of a decimal data element is a double, so the stored option code "1" is
+   * read back as "1.0". The row must carry the option code, as that is what the response metadata
+   * is keyed by.
+   */
+  @Test
+  void testBuildRowResolvesOptionCodeForDecimalOptionSetItem() {
+    DataElement numericElement = createDataElement('N');
+    numericElement.setValueType(ValueType.NUMBER);
+
+    QueryItem numericItem =
+        new QueryItem(
+            numericElement,
+            programA,
+            null,
+            ValueType.NUMBER,
+            AggregationType.NONE,
+            numericOptionSet());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().withProgram(programA).addItem(numericItem).build();
+
+    when(rowSet.getString(numericElement.getUid())).thenReturn("1.0");
+    when(rowSet.getInt("value")).thenReturn(7);
+
+    List<Object> row =
+        AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
+            .build();
+
+    assertThat(row, hasSize(2));
+    assertThat(row.get(0), is("1"));
+    assertThat(row.get(1), is(7));
+  }
+
+  /** A value outside the option set is kept as read, so unexpected data is not silently dropped. */
+  @Test
+  void testBuildRowKeepsValueWithoutMatchingOption() {
+    DataElement numericElement = createDataElement('N');
+    numericElement.setValueType(ValueType.NUMBER);
+
+    QueryItem numericItem =
+        new QueryItem(
+            numericElement,
+            programA,
+            null,
+            ValueType.NUMBER,
+            AggregationType.NONE,
+            numericOptionSet());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().withProgram(programA).addItem(numericItem).build();
+
+    when(rowSet.getString(numericElement.getUid())).thenReturn("99.0");
+    when(rowSet.getInt("value")).thenReturn(1);
+
+    List<Object> row =
+        AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
+            .build();
+
+    assertThat(row.get(0), is("99.0"));
+  }
+
+  /** A text option set is stored as text, so its code is already exact and must not be altered. */
+  @Test
+  void testBuildRowKeepsCodeOfTextOptionSetItem() {
+    DataElement textElement = createDataElement('T');
+    textElement.setValueType(ValueType.TEXT);
+
+    OptionSet optionSet = new OptionSet("Vaccine", ValueType.TEXT);
+    optionSet.addOption(new Option("Moderna", "COVID_19-MODERNA"));
+
+    QueryItem textItem =
+        new QueryItem(textElement, programA, null, ValueType.TEXT, AggregationType.NONE, optionSet);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().withProgram(programA).addItem(textItem).build();
+
+    when(rowSet.getString(textElement.getUid())).thenReturn("COVID_19-MODERNA");
+    when(rowSet.getInt("value")).thenReturn(1);
+
+    List<Object> row =
+        AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
+            .build();
+
+    assertThat(row.get(0), is("COVID_19-MODERNA"));
+  }
+
+  private static OptionSet numericOptionSet() {
+    OptionSet optionSet = new OptionSet("Doses", ValueType.NUMBER);
+    optionSet.addOption(new Option("One", "1"));
+    optionSet.addOption(new Option("Two", "2"));
+    return optionSet;
   }
 }
