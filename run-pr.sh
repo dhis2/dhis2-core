@@ -10,8 +10,6 @@
 #
 # PR images (dhis2/core-pr:<pr-number>) are overwritten on every push to the
 # PR, so the image is always pulled to make sure the latest build is used.
-# Equivalent to:
-#   DHIS2_IMAGE=dhis2/core-pr:<pr-number> docker compose up --pull always
 set -euo pipefail
 
 if [[ $# -lt 1 || ! "$1" =~ ^[0-9]+$ ]]; then
