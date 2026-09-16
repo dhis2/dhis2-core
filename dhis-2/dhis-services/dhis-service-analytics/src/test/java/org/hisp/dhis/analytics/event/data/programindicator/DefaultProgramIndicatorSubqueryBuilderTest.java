@@ -54,6 +54,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
@@ -74,6 +75,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -208,7 +212,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         "#{PgmStgUid1.DataElmUid1}",
         "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='"
             + piUid
-            + "')");
+            + "', replaceNulls='true')");
     assertEventPiExpressionDoesNotRegisterCte(
         "d2:countIfValue(#{PgmStgUid1.DataElmUid2}, 5)",
         "__D2FUNC__(func='countIfValue', ps='PgmStgUid1', de='DataElmUid2', argType='val64', arg64='NQ==', hash='noboundaries', pi='"
@@ -517,6 +521,51 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     assertTrue(
         cteKeys.stream().noneMatch(key -> key.startsWith("varcte_")),
         "Should contain no Value CTEs");
+  }
+
+  private static Stream<Arguments> booleanVariableFilters() {
+    return Stream.of(
+        Arguments.of(
+            "V{event_status} == 'ACTIVE' || V{event_status} == 'COMPLETED'",
+            "$status = 'ACTIVE' or $status = 'COMPLETED'"),
+        Arguments.of("!(V{event_status} == 'COMPLETED')", "not ($status = 'COMPLETED')"),
+        Arguments.of(
+            "V{enrollment_status} == 'ACTIVE' or V{event_status} == 'COMPLETED'",
+            "enrollmentstatus = 'ACTIVE' or $status = 'COMPLETED'"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("booleanVariableFilters")
+  void nonConjunctiveFiltersUseLeftJoinedVariableValues(String filter, String filterSql) {
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(filter);
+    String placeholder =
+        "FUNC_CTE_VAR( type='vEventStatus', column='eventstatus', piUid='"
+            + piUid
+            + "', psUid='null', offset='0')";
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    // The original boolean expression must reach the SQL translator intact.
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(filter), eq(BOOLEAN), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn(filterSql.replace("$status", placeholder));
+
+    builder.addCte(
+        programIndicator, null, AnalyticsType.ENROLLMENT, startDate, endDate, cteContext);
+
+    String variableKey = "varcte_eventstatus_" + piUid + "_0";
+    CteDefinition variableCte = cteContext.getDefinitionByKey(variableKey);
+    assertNotNull(variableCte);
+    String alias = variableCte.getAlias();
+    String mainSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    assertEquals(Set.of(piUid, variableKey), cteContext.getCteKeys());
+    assertFalse(mainSql.contains("inner join"));
+    assertTrue(mainSql.contains("left join " + alias + " " + alias), mainSql);
+    assertTrue(
+        mainSql.contains(
+            "where " + filterSql.replace("$status", "coalesce(" + alias + ".value, '')")),
+        mainSql);
   }
 
   @Test
@@ -975,7 +1024,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
   @Test
   void testAddCteWithMultipleIdenticalSimpleFilters() {
     programIndicator.setExpression("1");
-    programIndicator.setFilter("V{event_status} == 'ACTIVE' AND V{event_status} == 'ACTIVE'");
+    programIndicator.setFilter("V{event_status} == 'ACTIVE' and V{event_status} == 'ACTIVE'");
     String expectedFilterCteKey = "filtercte_eventstatus_eqeq_active_" + piUid;
 
     when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
@@ -1330,7 +1379,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String psdePlaceholder1 =
         "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='"
             + piUid
-            + "')";
+            + "', replaceNulls='true')";
     String d2FuncValueSql =
         "cast(5 as double precision)"; // Expected SQL for '5' with postgres builder
     String d2FuncValueSqlEncoded =

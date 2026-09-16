@@ -33,6 +33,7 @@ import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -76,6 +77,7 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
       SqlBuilder sqlBuilder) {
     StringBuilder out = new StringBuilder();
     Matcher m = PATTERN.matcher(rawSql);
+    Map<String, ValueCoalescePolicy> policies = new HashMap<>();
 
     while (m.find()) {
       Optional<PlaceholderParser.PsDeFields> opt = parse(m);
@@ -87,7 +89,7 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
       int offset = p.offset();
 
       String key = buildCteKey(p, offset);
-      ensureCte(key, p, offset, programIndicator, start, end, cteContext, sqlBuilder);
+      ensureCte(key, p, offset, programIndicator, start, end, cteContext, sqlBuilder, policies);
 
       CteDefinition def = cteContext.getDefinitionByKey(key);
       if (def == null) {
@@ -98,7 +100,7 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
       String alias = def.getAlias();
       aliasMap.put(m.group(0), alias);
 
-      String replacement = renderReplacement(alias, p.deUid());
+      String replacement = renderReplacement(alias, p.deUid(), p.replaceNulls(), policies);
       m.appendReplacement(out, Matcher.quoteReplacement(replacement));
     }
     m.appendTail(out);
@@ -142,7 +144,8 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
       Date start,
       Date end,
       CteContext ctx,
-      SqlBuilder qb) {
+      SqlBuilder qb,
+      Map<String, ValueCoalescePolicy> policies) {
 
     if (ctx.containsCte(key)) return; // CTE is already present
 
@@ -161,6 +164,7 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
             qb);
 
     String col = qb.quote(p.deUid());
+    String valueTest = isTextColumn(p.deUid(), policies) ? qb.nullIfEmpty(col) : col;
     String orderCol = getOrderByColumn(pi, qb);
     String dir = offset <= 0 ? "desc" : "asc";
     int rank = offset <= 0 ? (-offset + 1) : offset;
@@ -169,18 +173,50 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
         String.format(
             "select enrollment, %1$s as value, "
                 + "row_number() over (partition by enrollment order by %2$s %3$s) as rn "
-                + "from %4$s where %1$s is not null and ps = %5$s %6$s",
-            col, orderCol, dir, table, qb.singleQuote(p.psUid()), boundaries);
+                + "from %4$s where %7$s is not null and ps = %5$s %6$s",
+            col, orderCol, dir, table, qb.singleQuote(p.psUid()), boundaries, valueTest);
 
     ctx.addProgramStageDataElementCte(
         key, CteDefinition.forProgramStageDataElement(key, bodySql, "enrollment", rank));
   }
 
-  private String renderReplacement(String alias, String deUid) {
-    DataElement de = dataElementService.getDataElement(deUid);
-    ValueCoalescePolicy policy =
-        de != null ? ValueCoalescePolicy.from(de.getValueType()) : ValueCoalescePolicy.NUMBER;
-    return policy.render(alias);
+  /**
+   * Whether the data element occupies a text column in the analytics event table. Only those
+   * columns need empty-string normalisation: numeric, boolean and date columns already hold {@code
+   * NULL} for an absent value on every analytics database.
+   */
+  private boolean isTextColumn(String deUid, Map<String, ValueCoalescePolicy> policies) {
+    return policyOf(deUid, policies) == ValueCoalescePolicy.TEXT;
+  }
+
+  /**
+   * Renders the expression that reads the value out of the CTE. A missing value is replaced with
+   * the default for the data element value type only when the expression asked for it: a caller
+   * testing for the absence of a value, such as {@code d2:hasValue} or {@code is null}, needs the
+   * null to survive.
+   */
+  private String renderReplacement(
+      String alias, String deUid, boolean replaceNulls, Map<String, ValueCoalescePolicy> policies) {
+    if (!replaceNulls) {
+      return alias + ".value";
+    }
+    return policyOf(deUid, policies).render(alias);
+  }
+
+  /**
+   * Resolves the coalesce policy for a data element, remembering it for the rest of this call.
+   * {@link DataElementService#getDataElement(String)} runs an uncached query against the
+   * transactional database, and one expression can mention the same data element many times.
+   */
+  private ValueCoalescePolicy policyOf(String deUid, Map<String, ValueCoalescePolicy> policies) {
+    return policies.computeIfAbsent(
+        deUid,
+        uid -> {
+          DataElement de = dataElementService.getDataElement(uid);
+          return de != null
+              ? ValueCoalescePolicy.from(de.getValueType())
+              : ValueCoalescePolicy.NUMBER;
+        });
   }
 
   record PsDeCteKey(String psUid, String deUid, int offset, String boundaryHash, String piUid) {

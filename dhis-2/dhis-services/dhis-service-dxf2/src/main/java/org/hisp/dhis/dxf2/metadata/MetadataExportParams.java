@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -83,6 +84,12 @@ public class MetadataExportParams {
 
   /** Indicates whether sharing properties should be included in the export. */
   private boolean skipSharing;
+
+  /**
+   * Indicates whether {@link BaseIdentifiableObject_#CREATED_AND_LAST_UPDATED} should be excluded
+   * from the export, at every level of the exported object graph.
+   */
+  private boolean skipCreatedAndLastUpdated;
 
   /**
    * The object to be exported with dependencies. It will be handled by {@link
@@ -196,6 +203,15 @@ public class MetadataExportParams {
 
   public boolean getSkipSharing() {
     return this.skipSharing;
+  }
+
+  /** Applied during serialisation, so it takes precedence over any {@code fields} expression. */
+  public void setSkipCreatedAndLastUpdated(boolean skipCreatedAndLastUpdated) {
+    this.skipCreatedAndLastUpdated = skipCreatedAndLastUpdated;
+  }
+
+  public boolean isSkipCreatedAndLastUpdated() {
+    return this.skipCreatedAndLastUpdated;
   }
 
   public boolean isExportWithDependencies() {

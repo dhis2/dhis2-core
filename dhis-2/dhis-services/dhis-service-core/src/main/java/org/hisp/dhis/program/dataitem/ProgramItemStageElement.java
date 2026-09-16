@@ -127,8 +127,14 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
 
     // Construct the placeholder string
     return String.format(
-        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
-        programStageId, dataElementId, stageOffset, boundaryHash, programIndicator.getUid());
+        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s',"
+            + " replaceNulls='%b')",
+        programStageId,
+        dataElementId,
+        stageOffset,
+        boundaryHash,
+        programIndicator.getUid(),
+        visitor.getState().isReplaceNulls());
   }
 
   /**
