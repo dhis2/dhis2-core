@@ -206,8 +206,24 @@ class ExpiredEventDeletionValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void shouldPassWhenEventDoesNotExist() {
-    Event event = TrackerEvent.builder().event(UID.generate()).build();
+  void shouldPassWhenEventIsNeitherATrackerEventNorASingleEvent() {
+    Event event = mock(Event.class);
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void
+      shouldPassWhenTrackerEventHasNeitherOccurredNorScheduledDateEvenIfProgramExpiresItsPeriods() {
+    UID uid = UID.generate();
+    org.hisp.dhis.tracker.model.TrackerEvent persisted =
+        persistedTrackerEvent(programExpiringAfter(1));
+    persisted.setOccurredDate(null);
+    persisted.setScheduledDate(null);
+    when(preheat.getTrackerEvent(uid)).thenReturn(persisted);
+    Event event = TrackerEvent.builder().event(uid).build();
 
     validator.validate(reporter, bundle, event);
 

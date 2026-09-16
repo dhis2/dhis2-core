@@ -40,12 +40,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 
 /**
- * The expiry rules of a {@link Program}, shared by the validators blocking changes to expired
- * events. Users with the {@link Authorities#F_EDIT_EXPIRED} authority are exempt from both rules,
- * so callers have to check the authority before applying them.
+ * Checks the expiry rules of a {@link Program}, shared by the validators blocking changes to
+ * expired events. Users with the {@link Authorities#F_EDIT_EXPIRED} authority are exempt from both
+ * rules, so callers have to check the authority before applying them.
  */
-final class EventExpiry {
-  private EventExpiry() {
+final class EventExpiryChecker {
+  private EventExpiryChecker() {
     throw new UnsupportedOperationException("Utility class");
   }
 

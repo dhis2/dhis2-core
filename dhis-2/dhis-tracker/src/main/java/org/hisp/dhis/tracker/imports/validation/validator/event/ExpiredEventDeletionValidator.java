@@ -36,7 +36,6 @@ import java.time.Instant;
 import java.util.Date;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -64,17 +63,17 @@ class ExpiredEventDeletionValidator implements Validator<Event> {
     }
 
     PersistedEvent persistedEvent = getPersistedEvent(bundle.getPreheat(), event);
-    if (persistedEvent == null || persistedEvent.program() == null) {
-      // the event does not exist, ExistenceValidator reports it
+    if (persistedEvent == null) {
       return;
     }
 
-    if (EventExpiry.hasCompletionExpired(
+    if (EventExpiryChecker.hasCompletionExpired(
         persistedEvent.program(), persistedEvent.completedDate())) {
       reporter.addError(event, E1043, event);
     }
 
-    if (EventExpiry.isInExpiredPeriod(persistedEvent.program(), persistedEvent.referenceDate())) {
+    if (EventExpiryChecker.isInExpiredPeriod(
+        persistedEvent.program(), persistedEvent.referenceDate())) {
       reporter.addError(event, E1047, event);
     }
   }
@@ -88,12 +87,9 @@ class ExpiredEventDeletionValidator implements Validator<Event> {
     if (event instanceof TrackerEvent) {
       org.hisp.dhis.tracker.model.TrackerEvent persisted =
           preheat.getTrackerEvent(event.getEvent());
-      if (persisted == null) {
-        return null;
-      }
 
       return new PersistedEvent(
-          getProgram(persisted.getProgramStage()),
+          persisted.getProgramStage().getProgram(),
           toInstant(
               persisted.getOccurredDate() != null
                   ? persisted.getOccurredDate()
@@ -103,21 +99,13 @@ class ExpiredEventDeletionValidator implements Validator<Event> {
 
     if (event instanceof SingleEvent) {
       org.hisp.dhis.tracker.model.SingleEvent persisted = preheat.getSingleEvent(event.getEvent());
-      if (persisted == null) {
-        return null;
-      }
 
       return new PersistedEvent(
-          getProgram(persisted.getProgramStage()),
+          persisted.getProgramStage().getProgram(),
           toInstant(persisted.getOccurredDate()),
           getCompletedDate(persisted.getStatus(), persisted.getCompletedDate()));
     }
-
     return null;
-  }
-
-  private static Program getProgram(ProgramStage programStage) {
-    return programStage == null ? null : programStage.getProgram();
   }
 
   private static Instant getCompletedDate(EventStatus status, Date completedDate) {

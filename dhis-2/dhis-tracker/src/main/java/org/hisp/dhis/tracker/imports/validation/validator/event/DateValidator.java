@@ -88,7 +88,7 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    if (EventExpiry.hasCompletionExpired(program, getCompletedDate(preheat, event))) {
+    if (EventExpiryChecker.hasCompletionExpired(program, getCompletedDate(preheat, event))) {
       reporter.addError(event, E1043, event);
     }
   }
@@ -133,7 +133,7 @@ class DateValidator implements Validator<Event> {
 
   private void validateExpiryPeriodType(
       Reporter reporter, Event event, Program program, UserDetails user) {
-    if (!EventExpiry.hasExpiryPeriod(program)
+    if (!EventExpiryChecker.hasExpiryPeriod(program)
         || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
@@ -145,7 +145,7 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    if (EventExpiry.isInExpiredPeriod(program, referenceDate)) {
+    if (EventExpiryChecker.isInExpiredPeriod(program, referenceDate)) {
       reporter.addError(event, E1047, event);
     }
   }
