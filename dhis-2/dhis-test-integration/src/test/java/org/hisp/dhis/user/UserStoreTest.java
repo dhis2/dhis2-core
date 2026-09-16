@@ -325,6 +325,12 @@ class UserStoreTest extends PostgresIntegrationTestBase {
                     .allMatch(ou -> ou.getUid().equals(ou1.getUid()))));
 
     // then only 1 select query is triggered
+    assertSelectCount(3); // 1 main query + 2x fetch OU generated properties
+    assertEquals(2, users.size());
+
+    // if we rerun the query storing the OUs has no further impact
+    SQLStatementCountValidator.reset();
+    users = userStore.getUsersWithOrgUnit(UserOrgUnitProperty.ORG_UNITS, Set.of(UID.of(ou1)));
     assertSelectCount(1);
     assertEquals(2, users.size());
   }
