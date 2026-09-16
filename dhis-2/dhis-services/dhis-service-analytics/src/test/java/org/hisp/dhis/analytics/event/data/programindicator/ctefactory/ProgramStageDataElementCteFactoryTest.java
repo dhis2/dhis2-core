@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.text.ParseException;
@@ -49,6 +51,7 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
@@ -61,6 +64,7 @@ import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -68,9 +72,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ProgramStageDataElementCteFactoryTest extends TestBase {
 
-  private static final String PLACEHOLDER =
+  private static final String PLACEHOLDER_TEMPLATE =
       "__PSDE_CTE_PLACEHOLDER__(psUid='psUid00001A', deUid='deUid00001A', offset='0', "
-          + "boundaryHash='hash', piUid='piUid00001A')";
+          + "boundaryHash='hash', piUid='piUid00001A', replaceNulls='%b')";
 
   private ProgramStageDataElementCteFactory factory;
 
@@ -109,6 +113,66 @@ class ProgramStageDataElementCteFactoryTest extends TestBase {
     assertEquals("select d1.value as col", render(ValueType.DATE));
   }
 
+  @Test
+  void nullPreservingPlaceholderRendersValueWithoutCoalesce() {
+    assertEquals("select d1.value as col", render(ValueType.TEXT, false));
+  }
+
+  @Test
+  void textDataElementCteNormalisesEmptyStringToNullOnClickHouse() {
+    String body = cteBody(ValueType.TEXT, new ClickHouseSqlBuilder("dhis2"));
+
+    assertTrue(
+        body.contains("where nullif(\"deUid00001A\", '') is not null"),
+        "ClickHouse stores '' for an absent text value, so the CTE must normalise it: " + body);
+  }
+
+  @Test
+  void numericDataElementCteTestsTheColumnDirectlyOnClickHouse() {
+    String body = cteBody(ValueType.NUMBER, new ClickHouseSqlBuilder("dhis2"));
+
+    assertTrue(
+        body.contains("where \"deUid00001A\" is not null"),
+        "Numeric columns already hold NULL for an absent value: " + body);
+  }
+
+  @Test
+  void textDataElementCteTestsTheColumnDirectlyOnPostgres() {
+    String body = cteBody(ValueType.TEXT, new PostgreSqlBuilder());
+
+    assertTrue(
+        body.contains("where \"deUid00001A\" is not null"),
+        "Postgres stores NULL for an absent value, so no normalisation is needed: " + body);
+  }
+
+  @Test
+  void repeatedPlaceholdersLookUpTheDataElementOnce() {
+    DataElement dataElement = createDataElement('A');
+    dataElement.setValueType(ValueType.TEXT);
+    when(dataElementService.getDataElement("deUid00001A")).thenReturn(dataElement);
+
+    Program program = createProgram('A');
+    ProgramIndicator programIndicator = createProgramIndicator('A', program, "1+1", "1+1");
+
+    when(cteDefinition.getAlias()).thenReturn("d1");
+    when(cteContext.containsCte(anyString())).thenReturn(false);
+    when(cteContext.getDefinitionByKey(anyString())).thenReturn(cteDefinition);
+
+    String placeholder = String.format(PLACEHOLDER_TEMPLATE, true);
+
+    factory.process(
+        "select " + placeholder + " + " + placeholder + " + " + placeholder + " as col",
+        programIndicator,
+        new Date(),
+        new Date(),
+        cteContext,
+        aliasMap,
+        sqlBuilder);
+
+    // getDataElement runs an uncached query against the transactional database.
+    verify(dataElementService, times(1)).getDataElement("deUid00001A");
+  }
+
   /**
    * The CTE selects from the event analytics table, where the incident date of the owning
    * enrollment is stored in "enrollmentoccurreddate" - "occurreddate" holds the event date.
@@ -132,7 +196,7 @@ class ProgramStageDataElementCteFactoryTest extends TestBase {
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
 
     factory.process(
-        "select " + PLACEHOLDER + " as col",
+        "select " + PLACEHOLDER_TEMPLATE + " as col",
         programIndicator,
         dateFormat.parse("2026-01-01"),
         dateFormat.parse("2026-12-31"),
@@ -161,10 +225,41 @@ class ProgramStageDataElementCteFactoryTest extends TestBase {
     return boundary;
   }
 
-  private String render(ValueType valueType) {
+  private String cteBody(ValueType valueType, SqlBuilder builder) {
     DataElement dataElement = createDataElement('A');
     dataElement.setValueType(valueType);
     when(dataElementService.getDataElement("deUid00001A")).thenReturn(dataElement);
+
+    Program program = createProgram('A');
+    ProgramIndicator programIndicator = createProgramIndicator('A', program, "1+1", "1+1");
+
+    when(cteContext.containsCte(anyString())).thenReturn(false);
+
+    factory.process(
+        "select " + String.format(PLACEHOLDER_TEMPLATE, false) + " as col",
+        programIndicator,
+        new Date(),
+        new Date(),
+        cteContext,
+        aliasMap,
+        builder);
+
+    ArgumentCaptor<CteDefinition> captor = ArgumentCaptor.forClass(CteDefinition.class);
+    verify(cteContext).addProgramStageDataElementCte(anyString(), captor.capture());
+
+    return captor.getValue().getCteDefinition();
+  }
+
+  private String render(ValueType valueType) {
+    return render(valueType, true);
+  }
+
+  private String render(ValueType valueType, boolean replaceNulls) {
+    if (replaceNulls) {
+      DataElement dataElement = createDataElement('A');
+      dataElement.setValueType(valueType);
+      when(dataElementService.getDataElement("deUid00001A")).thenReturn(dataElement);
+    }
 
     Program program = createProgram('A');
     ProgramIndicator programIndicator = createProgramIndicator('A', program, "1+1", "1+1");
@@ -175,7 +270,7 @@ class ProgramStageDataElementCteFactoryTest extends TestBase {
 
     return factory
         .process(
-            "select " + PLACEHOLDER + " as col",
+            "select " + String.format(PLACEHOLDER_TEMPLATE, replaceNulls) + " as col",
             programIndicator,
             new Date(),
             new Date(),
