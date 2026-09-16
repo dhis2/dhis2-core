@@ -356,6 +356,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "numericOptionSetReturnsOptionCode",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,regOuStge01.numOptDe001&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

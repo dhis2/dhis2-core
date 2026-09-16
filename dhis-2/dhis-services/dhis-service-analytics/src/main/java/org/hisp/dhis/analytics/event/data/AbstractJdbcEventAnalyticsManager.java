@@ -44,8 +44,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.apache.commons.lang3.math.NumberUtils.createDouble;
-import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -175,14 +173,12 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -1427,11 +1423,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Double value type will be added into the grid. There is special handling for Option Set (Type
-   * numeric)/Option. The code in grid/meta info and related value in row has to be the same (FE
-   * request) if possible. The string interpretation of code coming from Option/Code can vary from
-   * Option/value (double) fetched from database ("1" vs "1.0") By the equality (both are converted
-   * to double) of both the Option/Code is used as a value.
+   * Double value type will be added into the grid.
    *
    * @param number the value.
    * @param grid the {@link Grid}.
@@ -1440,33 +1432,48 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addGridDoubleTypeValue(
       Double number, Grid grid, GridHeader header, EventQueryParams params) {
-    Optional<QueryItem> programIndicatorItem =
-        params.getItems().stream()
-            .filter(
-                item -> item.isProgramIndicator() && header.getName().equals(item.getItemName()))
-            .findFirst();
+    grid.addValue(formatDouble(number, header, params));
+  }
 
+  /**
+   * Returns the string representation of the given number for the given header.
+   *
+   * <p>There is special handling for Option Set (Type numeric)/Option. The code in grid/meta info
+   * and related value in row has to be the same (FE request) if possible. The string interpretation
+   * of code coming from Option/Code can vary from Option/value (double) fetched from database ("1"
+   * vs "1.0") By the equality (both are converted to double) of both the Option/Code is used as a
+   * value. A program indicator is rounded to its own number of decimals. Any other number is
+   * rounded to the default scale.
+   *
+   * @param number the value.
+   * @param header the {@link GridHeader}.
+   * @param params the {@link EventQueryParams}.
+   * @return the value to be added to the grid.
+   */
+  String formatDouble(Double number, GridHeader header, EventQueryParams params) {
     if (header.hasOptionSet()) {
-      Optional<Option> option =
-          header.getOptionSetObject().getOptions().stream()
-              .filter(
-                  o ->
-                      isCreatable(o.getCode())
-                          && MathUtils.isEqual(createDouble(o.getCode()), number))
-              .findFirst();
-
-      if (option.isPresent()) {
-        grid.addValue(option.get().getCode());
-      } else {
-        grid.addValue(round(number, params.isSkipRounding()));
-      }
-    } else if (programIndicatorItem.isPresent()) {
-      ProgramIndicator programIndicator = (ProgramIndicator) programIndicatorItem.get().getItem();
-
-      grid.addValue(round(number, params, programIndicator.getDecimals()));
-    } else {
-      grid.addValue(round(number, params.isSkipRounding()));
+      return QueryItemHelper.getMatchingOptionCode(header.getOptionSetObject(), number)
+          .orElseGet(() -> round(number, params.isSkipRounding()));
     }
+
+    return findProgramIndicator(header, params)
+        .map(programIndicator -> round(number, params, programIndicator.getDecimals()))
+        .orElseGet(() -> round(number, params.isSkipRounding()));
+  }
+
+  /**
+   * Returns the {@link ProgramIndicator} the given header refers to, if any.
+   *
+   * @param header the {@link GridHeader}.
+   * @param params the {@link EventQueryParams}.
+   * @return the matching {@link ProgramIndicator}, or empty when the header is not one.
+   */
+  private Optional<ProgramIndicator> findProgramIndicator(
+      GridHeader header, EventQueryParams params) {
+    return params.getItems().stream()
+        .filter(item -> item.isProgramIndicator() && header.getName().equals(item.getItemName()))
+        .findFirst()
+        .map(item -> (ProgramIndicator) item.getItem());
   }
 
   /**
@@ -1480,10 +1487,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String round(Double number, EventQueryParams params, Integer decimals) {
     double roundedNumber = getRoundedValue(params, decimals, number).doubleValue();
-    String noTrailingZerosValue =
-        BigDecimal.valueOf(roundedNumber).stripTrailingZeros().toPlainString();
-
-    return noTrailingZerosValue;
+    return BigDecimal.valueOf(roundedNumber).stripTrailingZeros().toPlainString();
   }
 
   /**
