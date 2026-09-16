@@ -49,9 +49,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for {@link DefaultOutboundMessageBatchService}, focusing on best-effort delivery
- * across channels: a channel with no deliverable recipient must not block, nor be reported as a
- * failure of, another channel that does have one.
+ * Unit tests for {@link DefaultOutboundMessageBatchService}. Filtering out batches that have no
+ * deliverable recipient at all happens upstream now (in the {@code MessageBatchCreatorService}s),
+ * so this class only has to worry about dispatching whatever batches it is actually given.
  */
 @ExtendWith(MockitoExtension.class)
 class DefaultOutboundMessageBatchServiceTest {
@@ -72,7 +72,7 @@ class DefaultOutboundMessageBatchServiceTest {
   }
 
   @Test
-  void shouldSendEmailAndSkipSmsWhenSmsBatchHasNoRecipient() {
+  void shouldSendBatchWhenSenderIsConfigured() {
     when(emailSender.isConfigured()).thenReturn(true);
     when(emailSender.sendMessageBatch(any()))
         .thenReturn(
@@ -83,25 +83,19 @@ class DefaultOutboundMessageBatchServiceTest {
         new OutboundMessageBatch(
             List.of(new OutboundMessage("subj", "text", Set.of("orgunit@test.org"))),
             DeliveryChannel.EMAIL);
-    OutboundMessageBatch smsBatch =
-        new OutboundMessageBatch(
-            List.of(new OutboundMessage("subj", "text", Set.of(""))), DeliveryChannel.SMS);
 
-    List<OutboundMessageResponseSummary> results =
-        service.sendBatches(List.of(emailBatch, smsBatch));
+    List<OutboundMessageResponseSummary> results = service.sendBatches(List.of(emailBatch));
 
-    assertEquals(1, results.size(), "the empty SMS batch should be skipped, not reported");
+    assertEquals(1, results.size());
     assertEquals(DeliveryChannel.EMAIL, results.get(0).getChannel());
     assertEquals(OutboundMessageBatchStatus.COMPLETED, results.get(0).getBatchStatus());
     verify(emailSender, times(1)).sendMessageBatch(any());
-    verify(smsSender, never()).sendMessageBatch(any());
 
-    BatchResponseStatus status = new BatchResponseStatus(results);
-    assertTrue(status.isOk(), "a channel with no recipient must not count as an overall failure");
+    assertTrue(new BatchResponseStatus(results).isOk());
   }
 
   @Test
-  void shouldReportFailureWhenSenderNotConfiguredEvenWithoutRecipients() {
+  void shouldReportFailureWhenSenderNotConfigured() {
     when(smsSender.isConfigured()).thenReturn(false);
 
     OutboundMessageBatch smsBatch =
@@ -114,5 +108,19 @@ class DefaultOutboundMessageBatchServiceTest {
     assertEquals(1, results.size());
     assertEquals(OutboundMessageBatchStatus.FAILED, results.get(0).getBatchStatus());
     verify(smsSender, never()).sendMessageBatch(any());
+  }
+
+  @Test
+  void shouldReportFailureWhenNoSenderIsRegisteredForChannel() {
+    OutboundMessageBatch smsBatch =
+        new OutboundMessageBatch(
+            List.of(new OutboundMessage("subj", "text", Set.of("4712345678"))),
+            DeliveryChannel.EMAIL);
+    service.setMessageSenders(Map.of());
+
+    List<OutboundMessageResponseSummary> results = service.sendBatches(List.of(smsBatch));
+
+    assertEquals(1, results.size());
+    assertEquals(OutboundMessageBatchStatus.FAILED, results.get(0).getBatchStatus());
   }
 }

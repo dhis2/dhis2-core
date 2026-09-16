@@ -107,7 +107,7 @@ class DefaultProgramMessageServiceTest {
   }
 
   @Test
-  void shouldStillSendEmailWhenOrgUnitContactHasEmailButNoPhoneNumber() {
+  void shouldSendEmailAndDiscardSmsWhenOrgUnitContactHasEmailButNoPhoneNumber() {
     OrganisationUnit orgUnit = orgUnitContact(OU_EMAIL, null);
     ProgramMessage message =
         orgUnitContactMessage(orgUnit, DeliveryChannel.SMS, DeliveryChannel.EMAIL);
@@ -117,25 +117,58 @@ class DefaultProgramMessageServiceTest {
 
     service.sendMessages(new ArrayList<>(List.of(message)));
 
-    // Both channels stay configured on the message: whether a channel is actually deliverable is
-    // now decided best-effort at send time (OutboundMessageBatchService), not resolved upfront.
+    // The channel stays configured on the message: whether a recipient could actually be
+    // resolved for it is decided when the OutboundMessage is built for that channel, not by
+    // removing the channel upfront.
     assertContainsOnly(
         Set.of(DeliveryChannel.SMS, DeliveryChannel.EMAIL), message.getDeliveryChannels());
 
     verify(messageBatchService).sendBatches(batchCaptor.capture());
     List<OutboundMessageBatch> batches = batchCaptor.getValue();
-    assertEquals(2, batches.size(), "both an SMS and an EMAIL batch should be created");
 
+    // The org unit has no phone number, so no SMS OutboundMessage is ever built for it and no SMS
+    // batch is created at all -- it's discarded, not sent as a batch that then fails.
+    assertEquals(1, batches.size(), "only the EMAIL batch should be created");
     OutboundMessageBatch emailBatch = getBatch(batches, DeliveryChannel.EMAIL);
     assertEquals(1, emailBatch.getMessages().size());
     assertContainsOnly(Set.of(OU_EMAIL), emailBatch.getMessages().get(0).getRecipients());
+  }
 
-    // The org unit has no phone number, so the SMS batch carries no deliverable recipient. It is
-    // still handed to OutboundMessageBatchService, which is responsible for skipping it
-    // best-effort rather than failing the whole send.
-    OutboundMessageBatch smsBatch = getBatch(batches, DeliveryChannel.SMS);
-    assertEquals(1, smsBatch.getMessages().size());
-    assertContainsOnly(Set.of(""), smsBatch.getMessages().get(0).getRecipients());
+  @Test
+  void shouldDiscardBothChannelsWhenOrgUnitContactHasNeitherEmailNorPhoneNumber() {
+    OrganisationUnit orgUnit = orgUnitContact(null, null);
+    ProgramMessage message =
+        orgUnitContactMessage(orgUnit, DeliveryChannel.SMS, DeliveryChannel.EMAIL);
+
+    when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
+    when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
+
+    service.sendMessages(new ArrayList<>(List.of(message)));
+
+    // Same outcome as before this behavior was reworked: with no deliverable contact detail at
+    // all, no batch is created for either channel -- nothing is attempted and no FAILED batch is
+    // reported, rather than the whole send being reported as failed.
+    verify(messageBatchService).sendBatches(batchCaptor.capture());
+    List<OutboundMessageBatch> batches = batchCaptor.getValue();
+    assertEquals(0, batches.size(), "no batch should be created for either channel");
+  }
+
+  @Test
+  void shouldDiscardBothChannelsWhenOrgUnitContactHasBlankEmailAndPhoneNumber() {
+    // A blank (non-null, empty/whitespace) contact detail must be treated the same as a missing
+    // one, not added as a recipient.
+    OrganisationUnit orgUnit = orgUnitContact("", " ");
+    ProgramMessage message =
+        orgUnitContactMessage(orgUnit, DeliveryChannel.SMS, DeliveryChannel.EMAIL);
+
+    when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
+    when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
+
+    service.sendMessages(new ArrayList<>(List.of(message)));
+
+    verify(messageBatchService).sendBatches(batchCaptor.capture());
+    List<OutboundMessageBatch> batches = batchCaptor.getValue();
+    assertEquals(0, batches.size(), "no batch should be created for either channel");
   }
 
   @Test

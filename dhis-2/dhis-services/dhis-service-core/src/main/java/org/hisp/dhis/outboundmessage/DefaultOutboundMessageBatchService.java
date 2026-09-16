@@ -59,7 +59,6 @@ public class DefaultOutboundMessageBatchService implements OutboundMessageBatchS
   public List<OutboundMessageResponseSummary> sendBatches(List<OutboundMessageBatch> batches) {
     // Partition by channel (sender) first to avoid sender config checks
     return batches.stream()
-        .filter(this::hasRecipient)
         .collect(Collectors.groupingBy(OutboundMessageBatch::getDeliveryChannel))
         .entrySet()
         .stream()
@@ -70,28 +69,6 @@ public class DefaultOutboundMessageBatchService implements OutboundMessageBatchS
   // ---------------------------------------------------------------------
   // Supportive Methods
   // ---------------------------------------------------------------------
-
-  /**
-   * A message batch can contain a delivery channel that none of its messages can actually be
-   * delivered on (e.g. an organisation unit contact with an email but no phone number). Such a
-   * batch is skipped rather than reported as failed, so that a best-effort send across multiple
-   * delivery channels isn't recorded as an overall failure just because one channel had no
-   * deliverable recipient.
-   */
-  private boolean hasRecipient(OutboundMessageBatch batch) {
-    boolean hasRecipient =
-        batch.getMessages().stream()
-            .flatMap(m -> m.getRecipients().stream())
-            .anyMatch(r -> !r.isEmpty());
-
-    if (!hasRecipient) {
-      log.warn(
-          "Skipping message batch for delivery channel {}: no recipients to deliver to",
-          batch.getDeliveryChannel());
-    }
-
-    return hasRecipient;
-  }
 
   private OutboundMessageResponseSummary send(OutboundMessageBatch batch) {
     DeliveryChannel channel = batch.getDeliveryChannel();
