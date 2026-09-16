@@ -55,19 +55,16 @@ public class SmsDeliveryChannelStrategy extends DeliveryChannelStrategy {
   public ProgramMessage setAttributes(ProgramMessage message) {
     validate(message);
 
-    OrganisationUnit orgUnit = getOrganisationUnit(message);
-
-    TrackedEntity te = getTrackedEntity(message);
+    ProgramMessageRecipients recipients = message.getRecipients();
+    OrganisationUnit orgUnit = recipients.getOrganisationUnit();
+    TrackedEntity te = recipients.getTrackedEntity();
 
     if (orgUnit != null && StringUtils.isNotBlank(orgUnit.getPhoneNumber())) {
-      message.getRecipients().getPhoneNumbers().add(orgUnit.getPhoneNumber());
+      recipients.getPhoneNumbers().add(orgUnit.getPhoneNumber());
     }
 
     if (te != null) {
-      message
-          .getRecipients()
-          .getPhoneNumbers()
-          .add(getTrackedEntityRecipient(te, ValueType.PHONE_NUMBER));
+      recipients.getPhoneNumbers().add(getTrackedEntityRecipient(te, ValueType.PHONE_NUMBER));
     }
 
     return message;

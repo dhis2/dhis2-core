@@ -29,31 +29,17 @@
  */
 package org.hisp.dhis.tracker.program.message;
 
-import static org.hisp.dhis.audit.AuditOperationType.READ;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
-
 import java.util.Set;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 public abstract class DeliveryChannelStrategy {
-  @Autowired protected OrganisationUnitService organisationUnitService;
-
-  @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private TrackedEntityAuditService trackedEntityAuditService;
-
   // -------------------------------------------------------------------------
   // Abstract methods
   // -------------------------------------------------------------------------
@@ -82,39 +68,5 @@ public abstract class DeliveryChannelStrategy {
 
     throw new IllegalQueryException(
         "Tracked entity does not have any attribute of value type: " + type.toString());
-  }
-
-  // -------------------------------------------------------------------------
-  // Public methods
-  // -------------------------------------------------------------------------
-
-  protected TrackedEntity getTrackedEntity(ProgramMessage message) {
-    if (message.getRecipients().getTrackedEntity() == null) {
-      return null;
-    }
-
-    String uid = message.getRecipients().getTrackedEntity().getUid();
-
-    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid);
-
-    trackedEntityAuditService.addTrackedEntityAudit(READ, getCurrentUsername(), trackedEntity);
-
-    message.getRecipients().setTrackedEntity(trackedEntity);
-
-    return trackedEntity;
-  }
-
-  protected OrganisationUnit getOrganisationUnit(ProgramMessage message) {
-    if (message.getRecipients().getOrganisationUnit() == null) {
-      return null;
-    }
-
-    String uid = message.getRecipients().getOrganisationUnit().getUid();
-
-    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(uid);
-
-    message.getRecipients().setOrganisationUnit(orgUnit);
-
-    return orgUnit;
   }
 }

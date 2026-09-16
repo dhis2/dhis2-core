@@ -43,7 +43,9 @@ import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
@@ -86,17 +88,6 @@ public class ProgramMessageRecipients implements Serializable {
     this.emailAddresses = emailAddresses;
   }
 
-  public ProgramMessageRecipients(
-      TrackedEntity trackedEntity,
-      OrganisationUnit organisationUnit,
-      Set<String> phoneNumbers,
-      Set<String> emailAddresses) {
-    this.trackedEntity = trackedEntity;
-    this.organisationUnit = organisationUnit;
-    this.phoneNumbers = phoneNumbers;
-    this.emailAddresses = emailAddresses;
-  }
-
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -107,6 +98,34 @@ public class ProgramMessageRecipients implements Serializable {
 
   public boolean hasOrganisationUnit() {
     return organisationUnit != null;
+  }
+
+  /**
+   * Replaces the tracked entity recipient, a stub reference carrying only a UID, with the fully
+   * loaded entity so its attribute values can be read. Returns {@code null} if no tracked entity
+   * recipient is set.
+   */
+  public TrackedEntity hydrateTrackedEntity(IdentifiableObjectManager manager) {
+    if (trackedEntity == null) {
+      return null;
+    }
+
+    trackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
+    return trackedEntity;
+  }
+
+  /**
+   * Replaces the organisation unit recipient, a stub reference carrying only a UID, with the fully
+   * loaded entity so its contact details can be read. Returns {@code null} if no organisation unit
+   * recipient is set.
+   */
+  public OrganisationUnit hydrateOrganisationUnit(OrganisationUnitService organisationUnitService) {
+    if (organisationUnit == null) {
+      return null;
+    }
+
+    organisationUnit = organisationUnitService.getOrganisationUnit(organisationUnit.getUid());
+    return organisationUnit;
   }
 
   // -------------------------------------------------------------------------

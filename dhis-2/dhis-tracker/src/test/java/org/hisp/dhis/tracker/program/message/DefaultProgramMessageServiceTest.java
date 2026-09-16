@@ -47,6 +47,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,8 +57,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for {@link DefaultProgramMessageService#sendMessages(List)}, focusing on how delivery
- * channels are resolved against the recipient's available contact details.
+ * Unit tests for {@link DefaultProgramMessageService#validatePayload(ProgramMessage)}, focusing on
+ * how delivery channels are resolved against the recipient's available contact details. Resolution
+ * happens in {@code validatePayload}, so it must run before {@link
+ * DefaultProgramMessageService#sendMessages(List)}.
  */
 @ExtendWith(MockitoExtension.class)
 class DefaultProgramMessageServiceTest {
@@ -89,9 +92,7 @@ class DefaultProgramMessageServiceTest {
   @BeforeEach
   void setUp() {
     EmailDeliveryChannelStrategy emailStrategy = new EmailDeliveryChannelStrategy();
-    emailStrategy.organisationUnitService = organisationUnitService;
     SmsDeliveryChannelStrategy smsStrategy = new SmsDeliveryChannelStrategy();
-    smsStrategy.organisationUnitService = organisationUnitService;
 
     service =
         new DefaultProgramMessageService(
@@ -115,6 +116,7 @@ class DefaultProgramMessageServiceTest {
     when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
     when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
 
+    service.validatePayload(message);
     service.sendMessages(new ArrayList<>(List.of(message)));
 
     // The channel stays configured on the message: whether a recipient could actually be
@@ -143,6 +145,7 @@ class DefaultProgramMessageServiceTest {
     when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
     when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
 
+    service.validatePayload(message);
     service.sendMessages(new ArrayList<>(List.of(message)));
 
     // Same outcome as before this behavior was reworked: with no deliverable contact detail at
@@ -164,6 +167,7 @@ class DefaultProgramMessageServiceTest {
     when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
     when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
 
+    service.validatePayload(message);
     service.sendMessages(new ArrayList<>(List.of(message)));
 
     verify(messageBatchService).sendBatches(batchCaptor.capture());
@@ -180,6 +184,7 @@ class DefaultProgramMessageServiceTest {
     when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
     when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
 
+    service.validatePayload(message);
     service.sendMessages(new ArrayList<>(List.of(message)));
 
     assertContainsOnly(
@@ -216,6 +221,7 @@ class DefaultProgramMessageServiceTest {
     message.setText("text");
     message.setRecipients(recipients);
     message.setDeliveryChannels(new HashSet<>(Set.of(channels)));
+    message.setEnrollment(new Enrollment());
     return message;
   }
 }

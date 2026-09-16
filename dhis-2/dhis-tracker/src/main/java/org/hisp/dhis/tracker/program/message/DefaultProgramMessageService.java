@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -135,13 +134,10 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   @Override
   @Transactional
   public BatchResponseStatus sendMessages(List<ProgramMessage> programMessages) {
-    List<ProgramMessage> populatedProgramMessages =
-        programMessages.stream()
-            .filter(this::hasDataWriteAccess)
-            .map(this::setAttributesBasedOnStrategy)
-            .collect(Collectors.toList());
+    List<ProgramMessage> allowedProgramMessages =
+        programMessages.stream().filter(this::hasDataWriteAccess).toList();
 
-    List<OutboundMessageBatch> batches = createBatches(populatedProgramMessages);
+    List<OutboundMessageBatch> batches = createBatches(allowedProgramMessages);
 
     BatchResponseStatus status = new BatchResponseStatus(messageBatchService.sendBatches(batches));
 
@@ -150,6 +146,12 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     return status;
   }
 
+  /**
+   * Validates the message payload and, as part of that, resolves the recipients: the tracked
+   * entity/org unit recipients are hydrated and, for each requested delivery channel, a matching
+   * phone number/email address is derived from them. Callers must invoke this before {@link
+   * #sendMessages(List)} so the messages it sends already have their recipients resolved.
+   */
   @Override
   @Transactional(readOnly = true)
   public void validatePayload(ProgramMessage message) {
@@ -169,8 +171,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
       violations.add("Enrollment or Event must be specified");
     }
 
-    if (recipients.getTrackedEntity() != null) {
-      TrackedEntity trackedEntity = getEntity(TrackedEntity.class, recipients.getTrackedEntity());
+    if (recipients.hasTrackedEntity()) {
+      TrackedEntity trackedEntity = recipients.hydrateTrackedEntity(manager);
       if (trackedEntity == null) {
         violations.add("Tracked entity does not exist");
       }
@@ -178,15 +180,16 @@ public class DefaultProgramMessageService implements ProgramMessageService {
       trackedEntityAuditService.addTrackedEntityAudit(READ, getCurrentUsername(), trackedEntity);
     }
 
-    if (recipients.getOrganisationUnit() != null
-        && organisationUnitService.getOrganisationUnit(recipients.getOrganisationUnit().getUid())
-            == null) {
+    if (recipients.hasOrganisationUnit()
+        && recipients.hydrateOrganisationUnit(organisationUnitService) == null) {
       violations.add("Organisation unit does not exist");
     }
 
     if (!violations.isEmpty()) {
       throw new IllegalQueryException(String.join(", ", violations));
     }
+
+    resolveDeliveryChannels(message);
   }
 
   // ---------------------------------------------------------------------
@@ -249,7 +252,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     return manager.get(klass, entity.getUid());
   }
 
-  private ProgramMessage setAttributesBasedOnStrategy(ProgramMessage message) {
+  private void resolveDeliveryChannels(ProgramMessage message) {
     // Iterate over a copy: a channel whose recipient cannot be resolved at all (e.g. a tracked
     // entity with no attribute value of the required type) is dropped from the message so that
     // the remaining deliverable channels are still sent, instead of aborting the whole send. An
@@ -272,7 +275,5 @@ public class DefaultProgramMessageService implements ProgramMessageService {
         }
       }
     }
-
-    return message;
   }
 }

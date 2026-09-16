@@ -39,6 +39,7 @@ import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -896,7 +898,22 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       return;
     }
 
-    programMessageService.sendMessages(Lists.newArrayList(messages));
+    // validatePayload resolves each message's recipients (hydrates the tracked entity/org unit
+    // and derives phone numbers/email addresses per delivery channel); a message that fails
+    // validation entirely (e.g. no deliverable channel) is skipped instead of failing the batch.
+    List<ProgramMessage> validMessages = new ArrayList<>();
+    for (ProgramMessage message : messages) {
+      try {
+        programMessageService.validatePayload(message);
+        validMessages.add(message);
+      } catch (IllegalQueryException ex) {
+        log.warn("Skipping program message {}: {}", message.getUid(), ex.getMessage());
+      }
+    }
+
+    if (!validMessages.isEmpty()) {
+      programMessageService.sendMessages(validMessages);
+    }
   }
 
   private void sendAll(MessageBatch messageBatch) {
