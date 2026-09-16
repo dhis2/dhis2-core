@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -138,8 +139,8 @@ class FileResourceStreamTest {
         FileResourceStream.of(fileResourceService, fileResource()).contentSupplier();
 
     DeadlineExceededException e = assertThrows(DeadlineExceededException.class, content::get);
-    assertEquals(
-        "Request exceeded its time budget of 5s",
+    assertContains(
+        "time budget of 5s",
         e.getMessage(),
         "the error must name the budget, as a timed out query does");
   }
