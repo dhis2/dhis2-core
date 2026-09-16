@@ -29,41 +29,63 @@ END $$;
 -- do we have cycles in the OU tree?
 DO $$
 DECLARE
-    cycle_found record;
+    stuck_id   bigint;          -- match the type of organisationunitid
+    cursor_id  bigint;
+    next_id    bigint;
+    seen       bigint[] := ARRAY[]::bigint[];
 BEGIN
-    WITH RECURSIVE walk AS (
-        SELECT
-            organisationunitid AS start_id,
-            organisationunitid,
-            parentid,
-            ARRAY[organisationunitid] AS path
+    -- Step 1: find one unreachable node (fast, O(n) descent from roots)
+    WITH RECURSIVE reachable AS (
+        SELECT organisationunitid
         FROM organisationunit
-        WHERE parentid IS NOT NULL
+        WHERE parentid IS NULL
 
-        UNION ALL
+        UNION
 
-        SELECT
-            w.start_id,
-            p.organisationunitid,
-            p.parentid,
-            w.path || p.organisationunitid
-        FROM walk w JOIN organisationunit p ON p.organisationunitid = w.parentid
-        WHERE p.parentid IS NOT NULL
-          AND NOT p.organisationunitid = ANY(w.path)
+        SELECT u.organisationunitid
+        FROM organisationunit u
+                 JOIN reachable r ON u.parentid = r.organisationunitid
     )
-    SELECT start_id, organisationunitid, path
-    INTO cycle_found
-    FROM walk
-    WHERE parentid IS NULL
-      AND array_position(path, start_id) <> array_length(path, 1)
+    SELECT o.organisationunitid
+    INTO stuck_id
+    FROM organisationunit o
+             LEFT JOIN reachable r ON r.organisationunitid = o.organisationunitid
+    WHERE o.parentid IS NOT NULL
+      AND r.organisationunitid IS NULL
     LIMIT 1;
 
-    IF FOUND THEN
-        RAISE EXCEPTION
-            'Cycle detected in organisationunit tree starting from unit %',
-            cycle_found.start_id
-            USING HINT = 'The parentid chain from this unit never reaches a root. Fix the circular reference before migrating.';
+    IF stuck_id IS NULL THEN
+        RAISE NOTICE 'RESULT: no cycle detected';
+        RETURN;
     END IF;
+
+    -- Step 2: walk up from the unreachable node until we revisit something.
+    -- Because the node is unreachable and FK guarantees parentid points at a
+    -- real row or is NULL, this walk must eventually loop.
+    cursor_id := stuck_id;
+    WHILE cursor_id IS NOT NULL LOOP
+            IF cursor_id = ANY(seen) THEN
+                RAISE EXCEPTION
+                    'Cycle detected in organisationunit tree involving unit %',
+                    cursor_id
+                    USING HINT = 'The parentid chain from unit % loops back to unit %. Fix the circular reference before migrating.';
+            END IF;
+
+            seen := seen || cursor_id;
+
+            SELECT parentid INTO next_id
+            FROM organisationunit
+            WHERE organisationunitid = cursor_id;
+
+            cursor_id := next_id;
+        END LOOP;
+
+    -- If we got here, the chain ended at a NULL parent. That means the FK
+    -- constraint is missing and parentid points at a row that does not exist.
+    RAISE EXCEPTION
+        'Broken parent reference in organisationunit tree starting from unit %',
+        stuck_id
+        USING HINT = 'The parentid chain does not reach a root. Check for missing parent rows.';
 END $$;
 
 
