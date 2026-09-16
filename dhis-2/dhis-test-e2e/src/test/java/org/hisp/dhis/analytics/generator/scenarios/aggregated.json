@@ -232,6 +232,27 @@
       "version": {
         "min": 41
       }
+    },
+    {
+      "name": "enrollmentIndicatorWithConjunctiveEventStatusFilter",
+      "query": "/api/analytics.json?dimension=dx:pi22070And1&dimension=pe:2022&filter=ou:ImspTQPwCqd&skipMeta=true",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentIndicatorWithDisjunctiveEventStatusFilter",
+      "query": "/api/analytics.json?dimension=dx:pi22070Or01&dimension=pe:2022&filter=ou:ImspTQPwCqd&skipMeta=true",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "enrollmentIndicatorWithNegatedEventStatusFilter",
+      "query": "/api/analytics.json?dimension=dx:pi22070Not1&dimension=pe:2022&filter=ou:ImspTQPwCqd&skipMeta=true",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.query;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.query.operators.DescendantOfOperator;
+import org.junit.jupiter.api.Test;
 
 /**
- * A number of data integrity tests are solely related to {@link OrganisationUnit}s. They are
- * contained in this interface to avoid duplication.
- *
- * @author Jan Bernitt
+ * @author Morten Svanæs
  */
-public interface OrganisationUnitDataIntegrityProvider {
+class DescendantOfOperatorTest {
+  @Test
+  void matchesRootsAndDescendantsOfAnyRoot() {
+    DescendantOfOperator scope =
+        new DescendantOfOperator(List.of("/top/first", "/top/second", "/top/first/nested"));
 
-  /** Gets all organisation units with no parents or children. */
-  List<OrganisationUnit> getOrphanedOrganisationUnits();
+    assertTrue(scope.test("/top/first"));
+    assertTrue(scope.test("/top/second/child"));
+    assertTrue(scope.test("/top/first/nested/child"));
+    assertFalse(scope.test("/top"));
+    assertFalse(scope.test("/top/sibling"));
+    assertFalse(scope.test("/other/first/child"));
+    assertFalse(scope.test("/top/firstSibling/child"));
+  }
 
-  /**
-   * Returns all OrganisationUnits which are not a member of any OrganisationUnitGroups.
-   *
-   * @return all OrganisationUnits which are not a member of any OrganisationUnitGroups.
-   */
-  List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
-
-  /**
-   * Gets all organisation units which are members of more than one group which enter into an
-   * exclusive group set.
-   */
-  List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets();
+  @Test
+  void missingRootsAndMissingPathsDoNotMatch() {
+    assertFalse(new DescendantOfOperator(List.of()).test("/top/first"));
+    assertFalse(new DescendantOfOperator(List.of("/top")).test(null));
+  }
 }
