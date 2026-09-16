@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.function.Predicate.not;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.IdCoder.ObjectType.COC;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DE;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DEG;
@@ -396,10 +397,15 @@ public class DefaultDataExportService implements DataExportService {
               params.getAttributeCombo(), params.getAttributeOptions().stream());
       return aoc == null ? attributeOptionCombos : List.of(aoc);
     }
-    // Fast path: when the export is scoped to data set(s) that all use the default attribute
+    // Fast path: when the export is scoped to data set(s) only (no additional data element or
+    // data element group selectors) and all requested data sets use the default attribute
     // category combo, the only valid attribute option combo is the default one. Applying it as an
-    // explicit filter lets the export query skip the per-row AOC data-sharing check.
-    if (!dataSets.isEmpty()) {
+    // explicit filter lets the export query skip the per-row AOC data-sharing check. A data
+    // element or data element group selector can pull in values from outside those data sets that
+    // legitimately use a non-default AOC, so the fast path must not apply to mixed selectors.
+    if (!dataSets.isEmpty()
+        && isEmpty(params.getDataElement())
+        && isEmpty(params.getDataElementGroup())) {
       UID defaultAoc = store.getDefaultAttributeOptionComboForDataSets(dataSets.stream());
       if (defaultAoc != null) return List.of(defaultAoc);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -152,6 +152,37 @@ class DefaultDataExportServiceTest {
     ArgumentCaptor<DataExportParams> captor = ArgumentCaptor.forClass(DataExportParams.class);
     verify(store).exportValues(captor.capture());
     assertEquals(List.of(), captor.getValue().getAttributeOptionCombos());
+  }
+
+  @Test
+  void testExportValues_DefaultCcDataSetPlusDataElement_FastPathSkipped() throws Exception {
+    // An explicit dataElement selector alongside dataSet can pull in values from outside the
+    // requested data set(s) that legitimately use a non-default AOC, so the default-AOC fast path
+    // must not run (regression test for the C1 finding in the PR #25065 review).
+    when(store.exportValues(any())).thenReturn(Stream.<DataExportValue>empty());
+
+    service()
+        .exportValues(validFiltersBuilder().dataElement(Set.of(UID.generate().getValue())).build());
+
+    ArgumentCaptor<DataExportParams> captor = ArgumentCaptor.forClass(DataExportParams.class);
+    verify(store).exportValues(captor.capture());
+    assertEquals(List.of(), captor.getValue().getAttributeOptionCombos());
+    verify(store, never()).getDefaultAttributeOptionComboForDataSets(any());
+  }
+
+  @Test
+  void testExportValues_DefaultCcDataSetPlusDataElementGroup_FastPathSkipped() throws Exception {
+    // Same as above, but the additional selector is a data element group.
+    when(store.exportValues(any())).thenReturn(Stream.<DataExportValue>empty());
+
+    service()
+        .exportValues(
+            validFiltersBuilder().dataElementGroup(Set.of(UID.generate().getValue())).build());
+
+    ArgumentCaptor<DataExportParams> captor = ArgumentCaptor.forClass(DataExportParams.class);
+    verify(store).exportValues(captor.capture());
+    assertEquals(List.of(), captor.getValue().getAttributeOptionCombos());
+    verify(store, never()).getDefaultAttributeOptionComboForDataSets(any());
   }
 
   @Test
