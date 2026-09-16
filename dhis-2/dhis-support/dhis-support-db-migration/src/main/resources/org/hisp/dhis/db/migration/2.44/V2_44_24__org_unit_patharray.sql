@@ -27,37 +27,36 @@ BEGIN
 END $$;
 
 -- do we have cycles in the OU tree?
-CREATE OR REPLACE FUNCTION ou_has_cycle(start_id bigint)
-    RETURNS boolean
+CREATE OR REPLACE FUNCTION ou_find_cycle(start_id bigint)
+    RETURNS bigint[]
     LANGUAGE plpgsql
 AS $$
 DECLARE
-    current_id bigint;
-    visited    bigint[] := ARRAY[]::bigint[];
+    cur_id  bigint := start_id;
+    path    bigint[] := ARRAY[]::bigint[];
+    pos     int;
+    cycle   bigint[] := ARRAY[]::bigint[];
+    i       int;
 BEGIN
-    -- Start from the parent, since a node is on a cycle iff its parent
-    -- chain leads back to it.
-    SELECT parentid INTO current_id
-    FROM organisationunit
-    WHERE organisationunitid = start_id;
+    LOOP
+        pos := array_position(path, cur_id);
+        IF pos IS NOT NULL THEN
+            FOR i IN pos .. array_length(path, 1) LOOP
+                cycle := cycle || path[i];
+            END LOOP;
+            RETURN cycle;
+        END IF;
 
-    WHILE current_id IS NOT NULL LOOP
-            IF current_id = start_id THEN
-                RETURN true;                 -- came back to start: start is on the cycle
-            END IF;
+        path := path || cur_id;
 
-            IF current_id = ANY(visited) THEN
-                RETURN false;                -- a loop exists, but it does not include start
-            END IF;
+        SELECT parentid
+        INTO cur_id
+        FROM organisationunit
+        WHERE organisationunitid = cur_id;
 
-            visited := visited || current_id;
-
-            SELECT parentid INTO current_id
-            FROM organisationunit
-            WHERE organisationunitid = current_id;
-        END LOOP;
-
-    RETURN false;                        -- reached a root
+        EXIT WHEN cur_id IS NULL;
+    END LOOP;
+    RETURN NULL;   -- reached a root, no cycle
 END;
 $$;
 
@@ -65,12 +64,14 @@ DO $$
 DECLARE
     r record;
     n_checked int := 0;
+    cycle_path bigint[] := ARRAY[]::bigint[];
 BEGIN
     FOR r IN SELECT organisationunitid FROM organisationunit WHERE parentid IS NOT NULL LOOP
             n_checked := n_checked + 1;
-            IF ou_has_cycle(r.organisationunitid) THEN
-                RAISE EXCEPTION 'Cycle detected: unit % never reaches a root (checked % units first)',
-                    r.organisationunitid, n_checked;
+            cycle_path := ou_find_cycle(r.organisationunitid);
+            IF cycle_path IS NOT NULL THEN
+                RAISE EXCEPTION 'Cycle detected: % (checked % units first)',
+                    cycle_path, n_checked;
             END IF;
         END LOOP;
     RAISE NOTICE 'checked all % units, no cycle', n_checked;
