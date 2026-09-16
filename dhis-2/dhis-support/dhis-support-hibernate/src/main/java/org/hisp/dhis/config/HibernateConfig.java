@@ -84,8 +84,16 @@ public class HibernateConfig {
   }
 
   @Bean
-  public JpaTransactionManager jpaTransactionManager(EntityManagerFactory entityManagerFactory) {
-    return new JpaTransactionManager(entityManagerFactory);
+  public JpaTransactionManager jpaTransactionManager(
+      EntityManagerFactory entityManagerFactory,
+      @Qualifier("actualDataSource") DataSource dataSource) {
+    JpaTransactionManager transactionManager = new JpaTransactionManager(entityManagerFactory);
+    // Must be the same bean instance the JdbcTemplates get. Spring keys transactional connections
+    // by DataSource identity, so without this a @Transactional method mixing Hibernate and
+    // JdbcTemplate takes a second connection which is not enlisted in the transaction: its
+    // statements commit immediately and a rollback does not cover them.
+    transactionManager.setDataSource(dataSource);
+    return transactionManager;
   }
 
   @Bean

@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.UrlParamsMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.TrackerExportDeadlineInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.FilteredPageHttpMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -98,6 +99,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
 
+  @Autowired private TrackerExportDeadlineInterceptor trackerExportDeadlineInterceptor;
+
   @Autowired private NodeService nodeService;
 
   @Autowired private CurrentUserHandlerMethodArgumentResolver currentUserArgResolver;
@@ -143,6 +146,9 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
+    registry
+        .addInterceptor(trackerExportDeadlineInterceptor)
+        .addPathPatterns(TrackerExportDeadlineInterceptor.PATH_PATTERNS);
     mapping.setInterceptors(registry.getInterceptors().toArray());
 
     mapping.setContentNegotiationManager(
@@ -180,6 +186,9 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(authorityInterceptor);
+    registry
+        .addInterceptor(trackerExportDeadlineInterceptor)
+        .addPathPatterns(TrackerExportDeadlineInterceptor.PATH_PATTERNS);
   }
 
   @Bean

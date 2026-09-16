@@ -35,6 +35,7 @@ import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.junit.jupiter.api.extension.Extension;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Use this configuration for tests relying on MinIO storage running in a Docker container. The
@@ -56,8 +57,12 @@ public class MinIOTestExtension implements Extension {
   private static final MinIOContainer MIN_IO_CONTAINER;
 
   static {
+    // Docker Hub no longer serves minio/minio (404 / pull access denied). Official
+    // community images remain on quay.io; Testcontainers requires a compatible substitute.
     MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2025-04-22T22-12-26Z")
+        new MinIOContainer(
+                DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z")
+                    .asCompatibleSubstituteFor("minio/minio"))
             .withUserName(MINIO_USER)
             .withPassword(MINIO_PASSWORD);
     MIN_IO_CONTAINER.start();
