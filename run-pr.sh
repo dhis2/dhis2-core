@@ -7,10 +7,11 @@
 # Examples:
 #   ./run-pr.sh 25126
 #   ./run-pr.sh 25126 -d
-#   ./run-pr.sh 25126 --force-recreate
 #
 # PR images (dhis2/core-pr:<pr-number>) are overwritten on every push to the
-# PR, so the image is always pulled first to make sure the latest build is used.
+# PR, so the image is always pulled to make sure the latest build is used.
+# Equivalent to:
+#   DHIS2_IMAGE=dhis2/core-pr:<pr-number> docker compose up --pull always
 set -euo pipefail
 
 if [[ $# -lt 1 || ! "$1" =~ ^[0-9]+$ ]]; then
@@ -20,12 +21,7 @@ fi
 
 pr="$1"
 shift
-image="dhis2/core-pr:${pr}"
 
 cd "$(dirname "$0")"
 
-echo "Pulling ${image}..."
-docker pull "${image}"
-
-echo "Starting ${image} with docker compose..."
-DHIS2_IMAGE="${image}" exec docker compose up "$@"
+DHIS2_IMAGE="dhis2/core-pr:${pr}" exec docker compose up --pull always "$@"
