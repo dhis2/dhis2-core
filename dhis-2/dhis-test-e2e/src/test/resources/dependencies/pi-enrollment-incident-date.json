@@ -12,11 +12,11 @@
   "expression": "#{A03MvHHogjR.UXz7xuGCEhU}",
   "analyticsPeriodBoundaries": [
     {
-      "boundaryTarget": "ENROLLMENT_DATE",
+      "boundaryTarget": "INCIDENT_DATE",
       "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
     },
     {
-      "boundaryTarget": "ENROLLMENT_DATE",
+      "boundaryTarget": "INCIDENT_DATE",
       "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
     }
   ]
