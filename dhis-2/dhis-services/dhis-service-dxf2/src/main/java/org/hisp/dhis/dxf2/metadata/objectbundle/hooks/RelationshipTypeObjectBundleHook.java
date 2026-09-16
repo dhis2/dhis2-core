@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -172,10 +172,10 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
   }
 
   /**
-   * Resolves an object referenced by a RelationshipConstraint. The referenced object may be part
-   * of the same import payload (e.g. a Program being created/updated together with a
-   * RelationshipType that references it) and therefore not yet persisted/committed, so the bundle
-   * itself is checked before falling back to a database lookup.
+   * Resolves an object referenced by a RelationshipConstraint. The referenced object may be part of
+   * the same import payload (e.g. a Program being created/updated together with a RelationshipType
+   * that references it) and therefore not yet persisted/committed, so the bundle itself is checked
+   * before falling back to a database lookup.
    */
   private <T extends IdentifiableObject> Optional<T> findInBundle(
       ObjectBundle bundle, Class<T> klass, String uid) {
