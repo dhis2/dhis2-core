@@ -35,7 +35,6 @@ import static org.hisp.dhis.query.Filters.eq;
 import static org.hisp.dhis.query.Filters.in;
 import static org.hisp.dhis.query.Filters.le;
 import static org.hisp.dhis.query.Filters.like;
-import static org.hisp.dhis.query.Filters.token;
 import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_MERGE;
 import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_SPLIT;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
@@ -69,6 +68,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.operators.DescendantOfOperator;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
@@ -380,11 +381,11 @@ public class OrganisationUnitController
       }
     }
     if (parents != null && !parents.isEmpty()) {
-      if (parents.size() == 1) {
-        specialFilters.add(like("path", parents.iterator().next(), MatchMode.ANYWHERE));
-      } else {
-        specialFilters.add(token("path", String.join("|", parents), MatchMode.ANYWHERE));
-      }
+      specialFilters.add(
+          new Filter(
+              "path",
+              new DescendantOfOperator(
+                  organisationUnitService.getOrganisationUnitPathsByUid(UID.of(parents)))));
     }
     if (params.isUserOnly())
       specialFilters.add(in("id", getCurrentUserDetails().getUserOrgUnitIds()));
@@ -395,6 +396,22 @@ public class OrganisationUnitController
       specialFilters.add(in("id", getCurrentUserDetails().getUserDataOrgUnitIds()));
 
     return specialFilters;
+  }
+
+  @Override
+  protected void modifyGetObjectList(
+      GetOrganisationUnitObjectListParams params, Query<OrganisationUnit> query) {
+    // Hierarchy scope is mandatory, even when the caller combines search filters with OR.
+    query
+        .getFilters()
+        .removeIf(
+            filter -> {
+              if (filter.getOperator() instanceof DescendantOfOperator descendants) {
+                query.addPredicateSupplier(descendants);
+                return true;
+              }
+              return false;
+            });
   }
 
   @Override
