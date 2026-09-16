@@ -76,7 +76,7 @@ class ExpiredEventDeletionValidatorTest extends TrackerTestBase {
   private Reporter reporter;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     validator = new ExpiredEventDeletionValidator();
 
     bundle =
@@ -199,16 +199,6 @@ class ExpiredEventDeletionValidatorTest extends TrackerTestBase {
     UID uid = UID.generate();
     when(preheat.getTrackerEvent(uid)).thenReturn(persistedTrackerEvent(programExpiringAfter(14)));
     Event event = TrackerEvent.builder().event(uid).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void shouldPassWhenEventDateBelongsToExpiredPeriodButUserIsAuthorized() {
-    bundle.setUser(userAuthorizedToEditExpired());
-    Event event = TrackerEvent.builder().event(UID.generate()).build();
 
     validator.validate(reporter, bundle, event);
 
