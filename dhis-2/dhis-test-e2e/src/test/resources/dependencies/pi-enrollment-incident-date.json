@@ -1,5 +1,7 @@
 {
   "id": "enrDateAvg1",
+  "type": "program_indicator",
+  "code": "ENR_DATE_AVG1",
   "name": "Enrollment date boundary - Enrollment PI AVG",
   "shortName": "Enrollment date boundary - Enrollment PI AVG",
   "program": {
