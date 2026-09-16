@@ -1,3 +1,72 @@
+-- 0. detect issues that could fail migration and fail with hint message instead
+-- are there any views on OU table?
+DO $$
+DECLARE
+    view_found record;
+BEGIN
+    SELECT DISTINCT
+        n.nspname AS schema_name,
+        c.relname AS view_name
+    INTO view_found
+    FROM pg_depend d
+             JOIN pg_rewrite w ON w.oid = d.objid
+             JOIN pg_class c ON c.oid = w.ev_class
+             JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE d.refclassid = 'pg_class'::regclass
+      AND d.classid = 'pg_rewrite'::regclass
+      AND d.refobjid = 'organisationunit'::regclass
+      AND c.relkind IN ('v', 'm')  -- views and materialized views
+    LIMIT 1;
+
+    IF FOUND THEN
+        RAISE EXCEPTION
+            'View %.% depends on organisationunit',
+            view_found.schema_name, view_found.view_name
+            USING HINT = 'Drop or recreate this view after the migration.';
+    END IF;
+END $$;
+
+-- do we have cycles in the OU tree?
+DO $$
+DECLARE
+    cycle_found record;
+BEGIN
+    WITH RECURSIVE walk AS (
+        SELECT
+            organisationunitid AS start_id,
+            organisationunitid,
+            parentid,
+            ARRAY[organisationunitid] AS path
+        FROM organisationunit
+        WHERE parentid IS NOT NULL
+
+        UNION ALL
+
+        SELECT
+            w.start_id,
+            p.organisationunitid,
+            p.parentid,
+            w.path || p.organisationunitid
+        FROM walk w JOIN organisationunit p ON p.organisationunitid = w.parentid
+        WHERE p.parentid IS NOT NULL
+          AND NOT p.organisationunitid = ANY(w.path)
+    )
+    SELECT start_id, organisationunitid, path
+    INTO cycle_found
+    FROM walk
+    WHERE parentid IS NULL
+      AND array_position(path, start_id) <> array_length(path, 1)
+    LIMIT 1;
+
+    IF FOUND THEN
+        RAISE EXCEPTION
+            'Cycle detected in organisationunit tree starting from unit %',
+            cycle_found.start_id
+            USING HINT = 'The parentid chain from this unit never reaches a root. Fix the circular reference before migrating.';
+    END IF;
+END $$;
+
+
 -- 1. add patharray column
 ALTER TABLE organisationunit ADD COLUMN IF NOT EXISTS patharray varchar(11)[];
 
@@ -54,11 +123,11 @@ $$;
 
 ALTER TABLE organisationunit DROP COLUMN path;
 ALTER TABLE organisationunit ADD COLUMN path varchar(255)
-    GENERATED ALWAYS AS (ou_path_join(patharray)) STORED;
+    GENERATED ALWAYS AS (ou_path_join(patharray)) STORED NOT NULL;
 
 ALTER TABLE organisationunit DROP COLUMN hierarchylevel;
 ALTER TABLE organisationunit ADD COLUMN hierarchylevel integer
-    GENERATED ALWAYS AS (array_length(patharray, 1)) STORED;
+    GENERATED ALWAYS AS (array_length(patharray, 1)) STORED NOT NULL;
 
 -- 3. (re) create indexes
 DROP INDEX IF EXISTS organisationunit_patharray_gin;
