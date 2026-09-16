@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -140,6 +141,9 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     caB = createCategory('B', coC, coD);
     idObjectManager.save(Lists.newArrayList(caA, caB));
     ccA = createCategoryCombo('A', caA, caB);
+    // only ATTRIBUTE-type category combos are valid as a data set's category combo; the export
+    // ACL query's aoc_access CTE only checks sharing for combos of this type (plus "default")
+    ccA.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     idObjectManager.save(ccA);
     cocA = createCategoryOptionCombo(ccA, coA, coC);
     cocB = createCategoryOptionCombo(ccA, coA, coD);
