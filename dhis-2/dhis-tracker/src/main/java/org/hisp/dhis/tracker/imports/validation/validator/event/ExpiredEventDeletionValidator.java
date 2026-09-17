@@ -58,7 +58,7 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 class ExpiredEventDeletionValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
-    if (bundle.getUser().isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+    if (bundle.getUser().isAuthorized(Authorities.F_EDIT_EXPIRED)) {
       return;
     }
 
@@ -67,7 +67,7 @@ class ExpiredEventDeletionValidator implements Validator<Event> {
       return;
     }
 
-    if (EventExpiryChecker.hasCompletionExpired(
+    if (EventExpiryChecker.isCompletionExpired(
         persistedEvent.program(), persistedEvent.completedDate())) {
       reporter.addError(event, E1043, event);
     }

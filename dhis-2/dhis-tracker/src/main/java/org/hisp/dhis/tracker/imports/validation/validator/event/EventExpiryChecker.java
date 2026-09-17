@@ -53,7 +53,7 @@ final class EventExpiryChecker {
    * Returns true if the event was completed longer ago than the number of days the program allows
    * changes to a completed event.
    */
-  static boolean hasCompletionExpired(Program program, Instant completedAt) {
+  static boolean isCompletionExpired(Program program, Instant completedAt) {
     if (program.getCompleteEventsExpiryDays() == 0 || completedAt == null) {
       return false;
     }
@@ -62,8 +62,8 @@ final class EventExpiryChecker {
   }
 
   /**
-   * Returns true if the period {@code referenceDate} falls into ended more than the program's
-   * expiry days ago.
+   * Returns true if the current instant is after the end date of the period containing {@code
+   * referenceDate} plus the program's expiry days.
    */
   static boolean isInExpiredPeriod(Program program, Instant referenceDate) {
     if (!hasExpiryPeriod(program) || referenceDate == null) {

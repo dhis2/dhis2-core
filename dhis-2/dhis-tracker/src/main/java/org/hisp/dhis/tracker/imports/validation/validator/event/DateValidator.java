@@ -88,7 +88,7 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    if (EventExpiryChecker.hasCompletionExpired(program, getCompletedDate(preheat, event))) {
+    if (EventExpiryChecker.isCompletionExpired(program, getCompletedDate(preheat, event))) {
       reporter.addError(event, E1043, event);
     }
   }
