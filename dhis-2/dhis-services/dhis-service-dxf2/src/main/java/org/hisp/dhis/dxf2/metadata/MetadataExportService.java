@@ -99,8 +99,8 @@ public interface MetadataExportService {
    * a single de-duplicated result.
    *
    * <p>This is the fold of {@link #getMetadataWithDependencies(IdentifiableObject)} over the given
-   * roots under set union, so an object reachable from more than one root -- including a root that
-   * is itself another root's dependency -- appears exactly once.
+   * roots under set union, so an object reachable from more than one root, including a root that is
+   * itself another root's dependency, appears exactly once.
    *
    * @param objects Objects to export including dependencies
    * @return All given objects + the union of their selected dependencies

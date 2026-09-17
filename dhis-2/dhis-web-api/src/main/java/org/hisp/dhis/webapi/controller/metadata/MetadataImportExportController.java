@@ -205,7 +205,7 @@ public class MetadataImportExportController {
    *
    * <p>Each {@code object} parameter is a {@code type:id} pair, where {@code type} is a singular
    * schema name (the plural form is accepted too). An object reachable from more than one of the
-   * requested roots -- including a root that is itself another root's dependency -- appears exactly
+   * requested roots, including a root that is itself another root's dependency, appears exactly
    * once.
    *
    * <p>Deliberately declares no {@code produces}: the response is written by {@code

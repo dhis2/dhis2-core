@@ -35,13 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,6 +51,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,7 @@ class MetadataDependencyRootResolverTest {
   private static final String DATA_SET_UID = "lyLU2wR22tC";
 
   @Mock private SchemaService schemaService;
+  @Mock private AclService aclService;
   @Mock private IdentifiableObjectManager manager;
   @Mock private MetadataExportService metadataExportService;
 
@@ -85,8 +87,7 @@ class MetadataDependencyRootResolverTest {
 
   @BeforeEach
   void setUp() {
-    lenient()
-        .when(metadataExportService.getSupportedDependencyRootTypes())
+    when(metadataExportService.getSupportedDependencyRootTypes())
         .thenReturn(Set.of(DataSet.class, OptionSet.class));
 
     stubSchema(DataSet.class, "dataSet", "dataSets");
@@ -179,7 +180,7 @@ class MetadataDependencyRootResolverTest {
   @Test
   @DisplayName("An id that is not a valid UID is reported without hitting the database")
   void invalidUidIsReported() {
-    assertErrorCodes(resolver.resolve(List.of("optionSet:not-a-uid")), ErrorCode.E6025);
+    assertErrorCodes(resolver.resolve(List.of("optionSet:not-a-uid")), ErrorCode.E1113);
     verify(manager, times(0)).getByUid(eq(OptionSet.class), anyCollection());
   }
 
@@ -188,7 +189,7 @@ class MetadataDependencyRootResolverTest {
   void unresolvedIdIsReported() {
     stubLoad(OptionSet.class);
 
-    assertErrorCodes(resolver.resolve(List.of("optionSet:" + OPTION_SET_UID)), ErrorCode.E6025);
+    assertErrorCodes(resolver.resolve(List.of("optionSet:" + OPTION_SET_UID)), ErrorCode.E1113);
   }
 
   @Test
@@ -206,7 +207,7 @@ class MetadataDependencyRootResolverTest {
                 "optionSet:" + OPTION_SET_UID));
 
     assertErrorCodes(
-        roots, ErrorCode.E6024, ErrorCode.E6002, ErrorCode.E6026, ErrorCode.E6029, ErrorCode.E6025);
+        roots, ErrorCode.E6024, ErrorCode.E6002, ErrorCode.E6026, ErrorCode.E6029, ErrorCode.E1113);
   }
 
   @Test
@@ -225,7 +226,7 @@ class MetadataDependencyRootResolverTest {
   @DisplayName("More roots than the cap is refused before anything is loaded")
   void tooManyReferencesIsRefused() {
     List<String> tokens =
-        java.util.stream.IntStream.range(0, MetadataDependencyRootResolver.MAX_ROOTS + 1)
+        IntStream.range(0, MetadataDependencyRootResolver.MAX_ROOTS + 1)
             .mapToObj(i -> "optionSet:" + String.format("optSet%05d", i))
             .toList();
 
@@ -251,18 +252,13 @@ class MetadataDependencyRootResolverTest {
     when(manager.getByUid(eq(type), anyCollection())).thenReturn(List.of(found));
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   private void stubSchema(Class<?> type, String singular, String plural) {
     Schema schema = new Schema(type, singular, plural);
-    lenient().when(schemaService.getSchemaBySingularName(singular)).thenReturn(schema);
-    lenient().when(schemaService.getSchemaByPluralName(plural)).thenReturn(schema);
-    lenient().when(schemaService.getSchema(type)).thenReturn(schema);
-  }
-
-  private DataSet dataSet(String uid) {
-    DataSet dataSet = new DataSet();
-    dataSet.setUid(uid);
-    dataSet.setName("DataSet " + uid);
-    return dataSet;
+    when(schemaService.getSchemaBySingularName(singular)).thenReturn(schema);
+    when(aclService.classForType(singular)).thenReturn((Class) type);
+    when(schemaService.getSchemaByPluralName(plural)).thenReturn(schema);
+    when(schemaService.getSchema(type)).thenReturn(schema);
   }
 
   private OptionSet optionSet(String uid) {

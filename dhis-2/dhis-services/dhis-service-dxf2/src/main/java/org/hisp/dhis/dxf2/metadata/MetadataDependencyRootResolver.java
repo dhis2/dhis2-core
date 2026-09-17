@@ -29,27 +29,32 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Resolves the {@code object=type:id} references of a multi-object dependency export into the
@@ -66,8 +71,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class MetadataDependencyRootResolver {
 
   /**
-   * The dependency traversal is not memoised, so N roots means N full walks of the object graph.
-   * This bounds the work a single request can ask for.
+   * The dependency traversal has no visited-set, so N roots means N walks of the object graph. This
+   * bounds the work a single request can ask for.
    */
   public static final int MAX_ROOTS = 50;
 
@@ -77,18 +82,19 @@ public class MetadataDependencyRootResolver {
    * <p>Deliberately narrower than {@link MetadataExportService#getSupportedDependencyRootTypes()},
    * which is every type the traversal can walk and which the per-type {@code /{uid}/metadata}
    * endpoints continue to serve in full. The dependency traversal has known N+1 query problems for
-   * the other root types -- one query per category option combo, one per data set element, one per
-   * program stage data element -- and a multi-object export multiplies how much of that a single
+   * the other root types, one query per category option combo, one per data set element, one per
+   * program stage data element, and a multi-object export multiplies how much of that a single
    * request can ask for. {@code OptionSet} is the one root type whose closure is flat (its options,
    * and nothing else), so it is the one type enabled to begin with.
    *
-   * <p>Add a type here once its N+1s are fixed. Nothing else needs to change: the fold, the
-   * merging, the error contract and the serialisation are all type-agnostic.
+   * <p>Add a type here once its N+1s are fixed. Nothing else needs to change: the merging, the
+   * error contract and the serialisation are all type-agnostic.
    */
   public static final Set<Class<? extends IdentifiableObject>> ENABLED_ROOT_TYPES =
       Set.of(OptionSet.class);
 
   private final SchemaService schemaService;
+  private final AclService aclService;
   private final IdentifiableObjectManager manager;
   private final MetadataExportService metadataExportService;
 
@@ -96,27 +102,25 @@ public class MetadataDependencyRootResolver {
    * Resolves the given {@code type:id} tokens.
    *
    * <p>Objects are loaded with one batched, ACL-aware query per type, so an object the current user
-   * may not read comes back missing and is reported the same way as one that does not exist -- the
+   * may not read comes back missing and is reported the same way as one that does not exist, the
    * response does not distinguish the two.
    *
    * @param tokens the raw {@code object} parameter values
    * @return the resolved roots, or every reason resolution failed
    */
-  @Transactional(readOnly = true)
   public MetadataDependencyRoots resolve(@CheckForNull Collection<String> tokens) {
     List<ErrorReport> errors = new ArrayList<>();
 
     if (tokens == null || tokens.isEmpty()) {
-      errors.add(new ErrorReport(IdentifiableObject.class, ErrorCode.E6028));
+      errors.add(error(IdentifiableObject.class, null, ErrorCode.E6028));
       return new MetadataDependencyRoots(List.of(), errors);
     }
 
-    // identical tokens would otherwise walk the same closure twice
-    List<String> distinct = tokens.stream().distinct().toList();
+    Set<String> distinct = new LinkedHashSet<>(tokens);
 
     if (distinct.size() > MAX_ROOTS) {
       errors.add(
-          new ErrorReport(IdentifiableObject.class, ErrorCode.E6027, MAX_ROOTS, distinct.size()));
+          error(IdentifiableObject.class, null, ErrorCode.E6027, MAX_ROOTS, distinct.size()));
       return new MetadataDependencyRoots(List.of(), errors);
     }
 
@@ -128,77 +132,67 @@ public class MetadataDependencyRootResolver {
 
   /**
    * Classifies each token in request order, in the order malformed, unknown type, unsupported root
-   * type, invalid UID. Tokens that survive are returned for loading.
+   * type, not yet enabled, invalid UID. Tokens that survive are returned for loading, de-duplicated
+   * by the reference they denote rather than by their spelling, so {@code optionSet:X} and {@code
+   * optionSets:X} are walked once.
    */
-  private List<TypedReference> classify(List<String> tokens, List<ErrorReport> errors) {
-    List<TypedReference> typed = new ArrayList<>();
+  private List<TypedReference> classify(Collection<String> tokens, List<ErrorReport> errors) {
+    Set<Class<? extends IdentifiableObject>> supported =
+        metadataExportService.getSupportedDependencyRootTypes();
+
+    // keyed by what the reference denotes, not how it was spelt, so `optionSet:X` and
+    // `optionSets:X` resolve to one root and the graph is walked once
+    Map<RootKey, TypedReference> typed = new LinkedHashMap<>();
 
     for (String token : tokens) {
       MetadataObjectReference reference = MetadataObjectReference.parse(token);
 
       if (reference == null) {
-        errors.add(
-            new ErrorReport(IdentifiableObject.class, ErrorCode.E6024, token).setMainId(token));
+        errors.add(error(IdentifiableObject.class, token, ErrorCode.E6024, token));
         continue;
       }
 
       Class<? extends IdentifiableObject> type = classForType(reference.type());
 
       if (type == null) {
-        errors.add(
-            new ErrorReport(IdentifiableObject.class, ErrorCode.E6002, reference.type())
-                .setMainId(token));
+        errors.add(error(IdentifiableObject.class, token, ErrorCode.E6002, reference.type()));
         continue;
       }
 
-      if (!metadataExportService.getSupportedDependencyRootTypes().contains(type)) {
-        errors.add(
-            new ErrorReport(type, ErrorCode.E6026, reference.type(), supportedRootTypeNames())
-                .setMainId(token));
+      if (!supported.contains(type)) {
+        errors.add(error(type, token, ErrorCode.E6026, reference.type(), typeNames(supported)));
         continue;
       }
 
-      // a dependency export root, but not yet enabled here -- see ENABLED_ROOT_TYPES
       if (!ENABLED_ROOT_TYPES.contains(type)) {
         errors.add(
-            new ErrorReport(type, ErrorCode.E6029, reference.type(), enabledRootTypeNames())
-                .setMainId(token));
+            error(type, token, ErrorCode.E6029, reference.type(), typeNames(ENABLED_ROOT_TYPES)));
         continue;
       }
 
       if (!CodeGenerator.isValidUid(reference.id())) {
-        errors.add(
-            new ErrorReport(type, ErrorCode.E6025, reference.id(), reference.type())
-                .setMainId(token));
+        errors.add(error(type, token, ErrorCode.E1113, reference.type(), reference.id()));
         continue;
       }
 
-      typed.add(new TypedReference(reference, type));
+      typed.putIfAbsent(
+          new RootKey(type, reference.id()), new TypedReference(reference, type, token));
     }
 
-    return typed;
+    return List.copyOf(typed.values());
   }
 
   /** Loads the classified references with one batched query per type, preserving request order. */
   private List<IdentifiableObject> load(List<TypedReference> typed, List<ErrorReport> errors) {
-    Map<Class<? extends IdentifiableObject>, List<TypedReference>> byType = new LinkedHashMap<>();
-    typed.forEach(t -> byType.computeIfAbsent(t.type(), k -> new ArrayList<>()).add(t));
+    Map<Class<? extends IdentifiableObject>, List<String>> idsByType =
+        typed.stream()
+            .collect(groupingBy(TypedReference::type, mapping(t -> t.reference().id(), toList())));
 
-    Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> found =
-        new LinkedHashMap<>();
-
-    byType.forEach(
-        (type, references) ->
-            found.put(
-                type,
-                manager
-                    .getByUid(type, references.stream().map(t -> t.reference().id()).toList())
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            IdentifiableObject::getUid,
-                            Function.<IdentifiableObject>identity(),
-                            (a, b) -> a))));
+    Map<Class<? extends IdentifiableObject>, Map<String, ? extends IdentifiableObject>> found =
+        new HashMap<>();
+    idsByType.forEach(
+        (type, ids) ->
+            found.put(type, IdentifiableObjectUtils.getUidObjectMap(manager.getByUid(type, ids))));
 
     List<IdentifiableObject> objects = new ArrayList<>();
 
@@ -207,8 +201,7 @@ public class MetadataDependencyRootResolver {
 
       if (object == null) {
         errors.add(
-            new ErrorReport(t.type(), ErrorCode.E6025, t.reference().id(), t.reference().type())
-                .setMainId(t.reference().toString()));
+            error(t.type(), t.token(), ErrorCode.E1113, t.reference().type(), t.reference().id()));
       } else {
         objects.add(object);
       }
@@ -217,42 +210,49 @@ public class MetadataDependencyRootResolver {
     return objects;
   }
 
+  private static ErrorReport error(
+      Class<?> klass, @CheckForNull String token, ErrorCode code, Object... args) {
+    ErrorReport report = new ErrorReport(klass, code, args);
+    return token == null ? report : report.setMainId(token);
+  }
+
   /**
-   * Resolves a schema name to its class. Singular is tried first so the lookup stays deterministic
+   * Resolves a schema name to its class. The singular form is canonical and delegates to {@link
+   * AclService#classForType}; the plural form is accepted as a fallback because it is what appears
+   * as the key in the exported payload. Singular is tried first so the lookup stays deterministic
    * and cannot become ambiguous as schemas are added.
    */
   @CheckForNull
   @SuppressWarnings("unchecked")
   private Class<? extends IdentifiableObject> classForType(String type) {
-    Schema schema = schemaService.getSchemaBySingularName(type);
+    Class<? extends IdentifiableObject> singular = aclService.classForType(type);
 
-    if (schema == null) {
-      schema = schemaService.getSchemaByPluralName(type);
+    if (singular != null) {
+      return singular;
     }
+
+    Schema schema = schemaService.getSchemaByPluralName(type);
 
     return schema != null && schema.isIdentifiableObject()
         ? (Class<? extends IdentifiableObject>) schema.getKlass()
         : null;
   }
 
-  /** The supported root types as singular schema names, sorted, for use in an error message. */
-  private String supportedRootTypeNames() {
-    return typeNames(metadataExportService.getSupportedDependencyRootTypes());
-  }
-
-  /** The currently enabled root types as singular schema names, sorted, for an error message. */
-  private String enabledRootTypeNames() {
-    return typeNames(ENABLED_ROOT_TYPES);
-  }
-
+  /** The given root types as singular schema names, sorted, for use in an error message. */
   private String typeNames(Set<Class<? extends IdentifiableObject>> types) {
     return types.stream()
         .map(schemaService::getSchema)
         .map(Schema::getSingular)
-        .sorted(Comparator.naturalOrder())
-        .collect(Collectors.joining(", "));
+        .sorted()
+        .collect(joining(", "));
   }
 
+  /**
+   * A reference that survived classification, with the class it names and the token it came from.
+   */
   private record TypedReference(
-      MetadataObjectReference reference, Class<? extends IdentifiableObject> type) {}
+      MetadataObjectReference reference, Class<? extends IdentifiableObject> type, String token) {}
+
+  /** What a reference denotes, independent of whether it was spelt singular or plural. */
+  private record RootKey(Class<? extends IdentifiableObject> type, String id) {}
 }

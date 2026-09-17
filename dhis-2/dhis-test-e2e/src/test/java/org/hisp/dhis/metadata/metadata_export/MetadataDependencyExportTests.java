@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.metadata.metadata_export;
 
+import static java.util.stream.Collectors.joining;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -39,15 +40,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.test.e2e.Constants;
 import org.hisp.dhis.test.e2e.actions.IdGenerator;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
-import org.hisp.dhis.test.e2e.actions.UserActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.utils.DataGenerator;
@@ -62,19 +60,22 @@ import org.junit.jupiter.api.Test;
  *
  * <p>The endpoint is gated to {@code OptionSet} to begin with, because the dependency traversal has
  * known N+1 query problems for the other root types. The fixture is therefore two option sets that
- * share one custom attribute -- an option belongs to exactly one option set, so a shared attribute
- * is the only way two enabled roots can share a dependency -- plus a data set used to prove the
- * gate refuses a type the traversal otherwise supports.
+ * share one custom attribute, an option belongs to exactly one option set, so a shared attribute is
+ * the only way two enabled roots can share a dependency, plus a data set used to prove the gate
+ * refuses a type the traversal otherwise supports.
  *
- * <p>What only an end-to-end test can show is that the merged payload actually imports; see {@link
- * #exportedPayloadShouldBeImportable()}.
+ * <p>Deliberately small. The behaviour of this endpoint, every error code, the type gate, the
+ * lean-payload flags, the authority check, parity with the per-type endpoint, is covered by {@code
+ * MetadataDependencyExportControllerTest}, which runs the same code far more cheaply. What is kept
+ * here is only what needs a real, fully wired instance: that the feature works through the real
+ * HTTP stack at all, that the merged payload genuinely imports, that real compression and download
+ * headers are produced by Tomcat rather than MockMvc, and that the type gate is visible to a real
+ * client.
  */
 public class MetadataDependencyExportTests extends ApiTest {
 
   private MetadataActions metadataActions;
-  private RestApiActions optionSetActions;
   private LoginActions loginActions;
-  private UserActions userActions;
 
   private final IdGenerator idGenerator = new IdGenerator();
 
@@ -85,14 +86,10 @@ public class MetadataDependencyExportTests extends ApiTest {
   private String optionBId;
   private String gatedDataSetId;
 
-  private String userWithoutAccessUsername;
-
   @BeforeAll
   public void beforeAll() {
     metadataActions = new MetadataActions();
-    optionSetActions = new RestApiActions("/optionSets");
     loginActions = new LoginActions();
-    userActions = new UserActions();
 
     loginActions.loginAsSuperUser();
 
@@ -104,10 +101,6 @@ public class MetadataDependencyExportTests extends ApiTest {
     gatedDataSetId = idGenerator.generateUniqueId();
 
     metadataActions.importAndValidateMetadata(new Gson().fromJson(fixture(), JsonObject.class));
-
-    userWithoutAccessUsername =
-        ("MetadataDependencyExportUser" + DataGenerator.randomString()).toLowerCase();
-    userActions.addUser(userWithoutAccessUsername, Constants.USER_PASSWORD);
   }
 
   @BeforeEach
@@ -120,64 +113,19 @@ public class MetadataDependencyExportTests extends ApiTest {
   // -------------------------------------------------------------------------
 
   @Test
-  @DisplayName("Several roots are returned in one payload")
-  public void shouldExportSeveralRootsInOnePayload() {
+  @DisplayName("Several roots merge into one payload with shared dependencies de-duplicated")
+  public void shouldMergeRootsAndDeduplicateSharedDependencies() {
     ApiResponse response = dependencies(refA(), refB());
 
     response
         .validate()
         .statusCode(200)
         .body("optionSets.id", hasItem(optionSetAId))
-        .body("optionSets.id", hasItem(optionSetBId));
+        .body("optionSets.id", hasItem(optionSetBId))
+        .body("optionSets.size()", equalTo(2))
+        .body(occurrencesOf("attributes", attributeId), equalTo(1));
 
     assertNoDuplicateIds(response);
-  }
-
-  @Test
-  @DisplayName("A dependency shared by two roots appears once")
-  public void shouldNotDuplicateSharedDependency() {
-    ApiResponse response = dependencies(refA(), refB());
-
-    response
-        .validate()
-        .statusCode(200)
-        .body(occurrencesOf("attributes", attributeId), equalTo(1))
-        .body("optionSets.size()", equalTo(2));
-
-    assertNoDuplicateIds(response);
-  }
-
-  @Test
-  @DisplayName("The same reference given twice yields one root")
-  public void shouldCollapseRepeatedReference() {
-    dependencies(refA(), refA())
-        .validate()
-        .statusCode(200)
-        .body(occurrencesOf("optionSets", optionSetAId), equalTo(1));
-  }
-
-  @Test
-  @DisplayName("A single root gives the same payload as the per-type endpoint")
-  public void shouldMatchPerTypeEndpointForASingleRoot() {
-    JsonObject viaNewEndpoint = dependencies(refA()).getBody();
-    JsonObject viaPerTypeEndpoint =
-        optionSetActions.get("/" + optionSetAId + "/metadata").getBody();
-
-    for (String type : List.of("optionSets", "options", "attributes")) {
-      assertEquals(
-          idsOf(viaPerTypeEndpoint, type),
-          idsOf(viaNewEndpoint, type),
-          "the multi-object endpoint diverged from /optionSets/{id}/metadata on '" + type + "'");
-    }
-  }
-
-  @Test
-  @DisplayName("The plural type name is accepted as well as the singular")
-  public void shouldAcceptPluralTypeName() {
-    dependencies("optionSets:" + optionSetAId)
-        .validate()
-        .statusCode(200)
-        .body("optionSets.id", hasItem(optionSetAId));
   }
 
   // -------------------------------------------------------------------------
@@ -192,16 +140,6 @@ public class MetadataDependencyExportTests extends ApiTest {
         .statusCode(409)
         .body("response.errorReports[0].errorCode", equalTo("E6029"))
         .body("response.errorReports[0].message", containsString("optionSet"));
-  }
-
-  @Test
-  @DisplayName("Gating this endpoint does not affect that type's own metadata endpoint")
-  public void gatedTypeShouldStillWorkOnItsOwnEndpoint() {
-    new RestApiActions("/dataSets")
-        .get("/" + gatedDataSetId + "/metadata")
-        .validate()
-        .statusCode(200)
-        .body("dataSets.id", hasItem(gatedDataSetId));
   }
 
   // -------------------------------------------------------------------------
@@ -226,16 +164,6 @@ public class MetadataDependencyExportTests extends ApiTest {
   // -------------------------------------------------------------------------
 
   @Test
-  @DisplayName("download=true returns the payload as an attachment")
-  public void shouldDownloadAsAttachment() {
-    metadataActions
-        .get("/dependencies?object=" + refA() + "&download=true")
-        .validate()
-        .statusCode(200)
-        .header("Content-Disposition", equalTo("attachment; filename=metadata.json"));
-  }
-
-  @Test
   @DisplayName("The .json.zip suffix returns a zipped attachment")
   public void shouldDownloadAsZip() {
     metadataActions
@@ -244,83 +172,6 @@ public class MetadataDependencyExportTests extends ApiTest {
         .statusCode(200)
         .header("Content-Disposition", equalTo("attachment; filename=metadata.json.zip"))
         .header("Content-Type", containsString("application/json+zip"));
-  }
-
-  // -------------------------------------------------------------------------
-  // Fail fast on bad references
-  // -------------------------------------------------------------------------
-
-  @Test
-  @DisplayName("Every bad reference is reported in one response")
-  public void shouldReportAllInvalidReferencesAtOnce() {
-    dependencies(
-            "optionSet",
-            "optionSetz:" + optionSetAId,
-            "dataElement:" + optionSetAId,
-            "dataSet:" + gatedDataSetId,
-            "optionSet:aaaaaaaaaaa")
-        .validate()
-        .statusCode(409)
-        .body(
-            "response.errorReports.errorCode",
-            equalTo(List.of("E6024", "E6002", "E6026", "E6029", "E6025")));
-  }
-
-  @Test
-  @DisplayName("A type that is not a dependency export root at all is rejected")
-  public void shouldRejectTypeThatIsNotADependencyRoot() {
-    dependencies("dataElement:" + optionSetAId)
-        .validate()
-        .statusCode(409)
-        .body("response.errorReports[0].errorCode", equalTo("E6026"));
-  }
-
-  @Test
-  @DisplayName("A request with any bad reference exports nothing")
-  public void shouldNotReturnAPartialPayload() {
-    dependencies(refA(), "optionSet:aaaaaaaaaaa")
-        .validate()
-        .statusCode(409)
-        .body("optionSets", equalTo(null));
-  }
-
-  @Test
-  @DisplayName("Omitting the object parameter is rejected")
-  public void shouldRejectMissingObjectParameter() {
-    metadataActions
-        .get("/dependencies")
-        .validate()
-        .statusCode(409)
-        .body("response.errorReports[0].errorCode", equalTo("E6028"));
-  }
-
-  // -------------------------------------------------------------------------
-  // Authority
-  // -------------------------------------------------------------------------
-
-  @Test
-  @DisplayName("A user without F_METADATA_EXPORT cannot use the endpoint")
-  public void shouldRequireMetadataExportAuthority() {
-    loginActions.loginAsUser(userWithoutAccessUsername, Constants.USER_PASSWORD);
-
-    dependencies(refA())
-        .validate()
-        .statusCode(409)
-        .body(
-            "message",
-            equalTo(
-                "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority."));
-  }
-
-  @Test
-  @DisplayName("A class selection parameter cannot be used to skip the authority check")
-  public void classSelectionShouldNotBypassAuthorityCheck() {
-    loginActions.loginAsUser(userWithoutAccessUsername, Constants.USER_PASSWORD);
-
-    metadataActions
-        .get("/dependencies?object=" + refA() + "&optionSets=true")
-        .validate()
-        .statusCode(409);
   }
 
   // -------------------------------------------------------------------------
@@ -340,25 +191,13 @@ public class MetadataDependencyExportTests extends ApiTest {
    * are built by hand.
    */
   private ApiResponse dependencies(String... objects) {
-    String query =
-        List.of(objects).stream().map(o -> "object=" + o).collect(Collectors.joining("&"));
+    String query = Arrays.stream(objects).map(o -> "object=" + o).collect(joining("&"));
     return metadataActions.get("/dependencies?" + query);
   }
 
   /** A GPath expression counting how many entries of the given type carry the given id. */
   private static String occurrencesOf(String type, String id) {
     return String.format("%s.findAll { it.id == '%s' }.size()", type, id);
-  }
-
-  private static List<String> idsOf(JsonObject payload, String type) {
-    if (!payload.has(type)) {
-      return List.of();
-    }
-
-    List<String> ids = new ArrayList<>();
-    payload.getAsJsonArray(type).forEach(e -> ids.add(e.getAsJsonObject().get("id").getAsString()));
-    ids.sort(String::compareTo);
-    return ids;
   }
 
   /** No array in a merged payload may carry the same id twice. */

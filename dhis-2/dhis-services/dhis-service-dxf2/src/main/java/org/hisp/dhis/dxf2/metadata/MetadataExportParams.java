@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -232,16 +233,12 @@ public class MetadataExportParams {
    */
   @JsonIgnore
   public List<IdentifiableObject> getObjectsExportWithDependencies() {
-    return objectsExportWithDependencies;
+    return Collections.unmodifiableList(objectsExportWithDependencies);
   }
 
   /** Sets a single dependency export root, replacing any roots set previously. */
   public void setObjectExportWithDependencies(IdentifiableObject object) {
-    objectsExportWithDependencies.clear();
-
-    if (object != null) {
-      objectsExportWithDependencies.add(object);
-    }
+    setObjectsExportWithDependencies(object == null ? List.of() : List.of(object));
   }
 
   /** Sets the dependency export roots, replacing any roots set previously. */

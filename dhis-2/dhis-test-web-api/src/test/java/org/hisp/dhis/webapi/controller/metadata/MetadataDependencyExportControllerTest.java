@@ -29,11 +29,11 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
-import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.ValueType;
@@ -55,8 +55,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Tests {@code GET /api/metadata/dependencies}, the multi-object dependency export (DHIS2-21899).
  *
- * <p>The endpoint is currently gated to {@code OptionSet} -- see {@code
- * MetadataDependencyRootResolver.ENABLED_ROOT_TYPES} -- because the dependency traversal has known
+ * <p>The endpoint is currently gated to {@code OptionSet}, see {@code
+ * MetadataDependencyRootResolver.ENABLED_ROOT_TYPES}, because the dependency traversal has known
  * N+1 query problems for the other root types. The fixture therefore uses two option sets that
  * share one custom {@link Attribute}: an {@link Option} belongs to exactly one {@link OptionSet},
  * so a shared attribute is the only way two enabled roots can share a dependency.
@@ -235,7 +235,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
   @Test
   @DisplayName("An unknown id is rejected")
   void unknownIdIsRejected() {
-    assertErrorCodes(GET(dependencies("optionSet:aaaaaaaaaaa")), "E6025");
+    assertErrorCodes(GET(dependencies("optionSet:aaaaaaaaaaa")), "E1113");
   }
 
   @Test
@@ -259,7 +259,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
         "E6002",
         "E6026",
         "E6029",
-        "E6025");
+        "E1113");
   }
 
   @Test
@@ -274,7 +274,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
   @Test
   @DisplayName("A bad reference is still reported as JSON under a compressed suffix")
   void errorUnderCompressedSuffixIsStillReported() {
-    assertErrorCodes(GET("/metadata/dependencies.json.zip?object=optionSet:aaaaaaaaaaa"), "E6025");
+    assertErrorCodes(GET("/metadata/dependencies.json.zip?object=optionSet:aaaaaaaaaaa"), "E1113");
   }
 
   // -------------------------------------------------------------------------
@@ -315,11 +315,11 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
 
   private static String dependencies(String... objects) {
     return "/metadata/dependencies?"
-        + String.join("&", List.of(objects).stream().map(o -> "object=" + o).toList());
+        + String.join("&", Arrays.stream(objects).map(o -> "object=" + o).toList());
   }
 
   private static List<String> sorted(String... uids) {
-    return List.of(uids).stream().sorted().collect(toList());
+    return Arrays.stream(uids).sorted().toList();
   }
 
   /** The ids of the named top-level array, sorted so comparisons are order independent. */
@@ -330,7 +330,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
         : array.asList(JsonObject.class).stream()
             .map(o -> o.getString("id").string())
             .sorted()
-            .collect(toList());
+            .toList();
   }
 
   private static void assertErrorCodes(HttpResponse response, String... expected) {
@@ -340,7 +340,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
         List.of(expected),
         json.getObject("response").getArray("errorReports").asList(JsonObject.class).stream()
             .map(report -> report.getString("errorCode").string())
-            .collect(toList()),
+            .toList(),
         "every bad reference should be reported, in request order");
   }
 }

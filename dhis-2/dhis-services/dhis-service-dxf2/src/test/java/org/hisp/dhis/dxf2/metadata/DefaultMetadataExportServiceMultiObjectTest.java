@@ -30,17 +30,22 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SetMap;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.query.QueryService;
@@ -136,6 +141,20 @@ class DefaultMetadataExportServiceMultiObjectTest {
   }
 
   @Test
+  @DisplayName("Two instances of the same row collapse to one entry")
+  void equalButDistinctInstancesCollapse() {
+    // two separate objects for the same row, as two traversals in different sessions could produce
+    OptionSet first = optionSetWithOption();
+    OptionSet second = optionSetWithOption();
+
+    Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> result =
+        service.getMetadataWithDependencies(List.of(first, second));
+
+    assertEquals(1, result.get(OptionSet.class).size(), "objects compare by uid, code and name");
+    assertEquals(1, result.get(Option.class).size());
+  }
+
+  @Test
   @DisplayName("The same root requested twice contributes once")
   void repeatedRootAppearsOnce() {
     OptionSet optionSet = optionSetWithOption();
@@ -156,19 +175,23 @@ class DefaultMetadataExportServiceMultiObjectTest {
         service.getMetadataWithDependencies(List.of(optionSet, loose));
 
     assertEquals(Set.of(optionSet), result.get(OptionSet.class));
-    assertTrue(
-        result.get(DataElement.class) == null,
+    assertNull(
+        result.get(DataElement.class),
         "a DataElement is not a supported root, so it must contribute nothing on its own");
   }
 
   @Test
   @DisplayName("The declared supported root types are the ones the dispatch actually handles")
   void supportedRootTypesMatchTheDispatch() {
-    Set<Class<? extends IdentifiableObject>> supported = service.getSupportedDependencyRootTypes();
-
-    assertTrue(supported.contains(OptionSet.class));
-    assertTrue(supported.contains(DataElementGroup.class));
-    assertEquals(6, supported.size());
+    assertEquals(
+        Set.of(
+            OptionSet.class,
+            DataSet.class,
+            Program.class,
+            CategoryCombo.class,
+            Dashboard.class,
+            DataElementGroup.class),
+        service.getSupportedDependencyRootTypes());
   }
 
   private OptionSet optionSetWithOption() {

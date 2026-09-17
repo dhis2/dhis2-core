@@ -444,7 +444,6 @@ public enum ErrorCode {
   E6022("Object cannot reference itself by property `{0}`"),
   E6023("Type `{0}` cannot be imported via metadata"),
   E6024("Object reference `{0}` is not of the form `type:id`"),
-  E6025("Object `{0}` of type `{1}` does not exist or is not accessible"),
   E6026("Type `{0}` is not supported as a dependency export root, supported types are: {1}"),
   E6027("A maximum of {0} objects can be exported with dependencies, {1} were requested"),
   E6028("At least one object reference must be given"),

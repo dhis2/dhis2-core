@@ -44,9 +44,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -553,7 +553,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   /**
    * Field filter params shared by both dependency exports. These always export the owner fields --
-   * a dependency export has no {@code fields} parameter -- so only the skip flags vary.
+   * a dependency export has no {@code fields} parameter, so only the skip flags vary.
    */
   private FieldFilterParams<IdentifiableObject> dependencyExportFields(
       Collection<IdentifiableObject> objects, MetadataExportParams params) {
@@ -570,31 +570,34 @@ public class DefaultMetadataExportService implements MetadataExportService {
   }
 
   /**
-   * The fold of {@link #getMetadataWithDependencies(IdentifiableObject)} over the given roots.
+   * Unions the dependency closure of every given root into one result.
    *
-   * <p>De-duplication is the union itself rather than a separate pass: every closure contributes
-   * into one {@link SetMap}, so an object reachable from several roots -- including a root that is
-   * another root's dependency -- is stored once. See {@link MetadataDependencies}.
+   * <p>De-duplication is the union itself rather than a separate pass: every closure is merged into
+   * one {@link SetMap}, so an object reachable from several roots, including a root that is another
+   * root's dependency, is stored once. Objects compare by uid, code and name, so two instances of
+   * the same row also collapse.
    *
    * <p>This method carries its own transaction because the per-root call below is a self-invocation
    * and so does not go through the Spring proxy. The whole traversal walks lazy Hibernate
-   * collections and needs a single session spanning all roots; that shared session is also what
-   * makes the union collapse duplicates by instance identity.
-   *
-   * <p>Deliberately sequential -- the accumulator is mutable and the values are session-bound.
+   * collections and needs a single session spanning all roots.
    */
   @Override
   @Transactional(readOnly = true)
   public SetMap<Class<? extends IdentifiableObject>, IdentifiableObject>
       getMetadataWithDependencies(Collection<? extends IdentifiableObject> objects) {
     if (objects == null || objects.isEmpty()) {
-      return MetadataDependencies.empty();
+      return new SetMap<>();
     }
 
-    return objects.stream()
-        .filter(Objects::nonNull)
-        .map(this::getMetadataWithDependencies)
-        .collect(MetadataDependencies.union());
+    // the first closure is a freshly built map, so it can serve as the accumulator; a single root
+    // therefore costs no merge and no copy, which keeps the per-type endpoints as cheap as before
+    Iterator<? extends IdentifiableObject> roots = objects.iterator();
+    SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> merged =
+        getMetadataWithDependencies(roots.next());
+
+    roots.forEachRemaining(root -> merged.putValues(getMetadataWithDependencies(root)));
+
+    return merged;
   }
 
   @Override
