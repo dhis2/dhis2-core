@@ -57,7 +57,7 @@ import org.springframework.stereotype.Component;
 public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject> {
   /**
    * Text properties that are trimmed of leading/trailing whitespace on create and update, so that
-   * values differing only by whitespace (e.g. {@code "Name"} vs {@code "Name  "}) do not appear as
+   * values differing only by whitespace (e.g. {@code "Name"} vs {@code "Name "}) do not appear as
    * near-duplicate metadata. {@code name} and {@code code} are set directly through the {@link
    * IdentifiableObject} interface; the remaining properties are not declared on the interface and
    * are set reflectively, only if present on the given object's schema.
@@ -89,7 +89,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   /**
    * Trims leading and trailing whitespace from common metadata text properties ({@code name},
    * {@code code}, {@code shortName}, {@code description}). A value made up entirely of whitespace
-   * (e.g. {@code "   "}) is trimmed down to an empty string rather than left untouched.
+   * (e.g. {@code " "}) is trimmed down to an empty string rather than left untouched.
    *
    * @param identifiableObject object to normalize text properties on
    */
