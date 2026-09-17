@@ -349,12 +349,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
-  public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences() {
-    return organisationUnitStore.getOrganisationUnitsWithCyclicReferences();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<OrganisationUnit> getOrphanedOrganisationUnits() {
     return organisationUnitStore.getOrphanedOrganisationUnits();
   }
@@ -601,18 +595,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     // ---------------------------------------------------------------------
 
     return 1;
-  }
-
-  @Override
-  @Transactional
-  public void updatePaths() {
-    organisationUnitStore.updatePaths();
-  }
-
-  @Override
-  @Transactional
-  public void forceUpdatePaths() {
-    organisationUnitStore.forceUpdatePaths();
   }
 
   @Override
