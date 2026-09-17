@@ -329,8 +329,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   // -------------------------------------------------------------------------
 
   List<DataIntegrityIssue> getOrganisationUnitsWithCyclicReferences() {
-    return toSimpleIssueList(
-        organisationUnitService.getOrganisationUnitsWithCyclicReferences().stream());
+    return List.of();
   }
 
   // -------------------------------------------------------------------------

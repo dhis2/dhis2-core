@@ -30,7 +30,6 @@
 package org.hisp.dhis.organisationunit;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -612,23 +611,14 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return set;
   }
 
-  @Property(persistedAs = "hierarchyLevel")
-  @JsonProperty(value = "level", access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "level", isAttribute = true)
-  public int getLevel() {
-    return StringUtils.countMatches(path, PATH_SEP);
-  }
-
-  protected void setLevel(int level) {
-    // ignored, just used by persistence framework
-  }
-
   /**
    * Returns a string representing the graph of ancestors. The string is delimited by "/". The
    * ancestors are ordered by root first and represented by UIDs.
    *
    * @param roots the root organisation units, if null using real roots.
+   * @deprecated Should be replaced with a service call that can find the graph in DB
    */
+  @Deprecated
   public String getParentGraph(Collection<OrganisationUnit> roots) {
     Set<String> rootUids =
         roots != null ? Sets.newHashSet(IdentifiableObjectUtils.getUids(roots)) : null;
@@ -749,6 +739,15 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   public void setParent(OrganisationUnit parent) {
     this.parent = parent;
+    // reset path if parent is inconsistent with it
+    if (parent == null
+        || path == null
+        || parent.path == null
+        || !path.startsWith(parent.path)
+        || path.length() == parent.path.length() + 12) {
+      this.path = null;
+      this.hierarchyLevel = null;
+    }
   }
 
   @JsonProperty
@@ -763,6 +762,15 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.children = children;
   }
 
+  @Override
+  public void setUid(String uid) {
+    this.uid = uid;
+    // reset path if uid is inconsistent with it
+    if (path != null && !path.endsWith(uid)) {
+      this.path = null;
+    }
+  }
+
   /**
    * Note that the {@code path} property is mapped with the "property access" mode. This method will
    * calculate and return the path property value based on the org unit ancestors. To access the
@@ -773,25 +781,8 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getPath() {
-    List<String> pathList = new ArrayList<>();
-    Set<String> visitedSet = new HashSet<>();
-    OrganisationUnit unit = parent;
-
-    pathList.add(uid);
-
-    while (unit != null) {
-      if (!visitedSet.contains(unit.getUid())) {
-        pathList.add(unit.getUid());
-        visitedSet.add(unit.getUid());
-        unit = unit.getParent();
-      } else {
-        unit = null; // Protect against cyclic org unit graphs
-      }
-    }
-
-    Collections.reverse(pathList);
-
-    return PATH_SEP + StringUtils.join(pathList, PATH_SEP);
+    if (path == null) path = (parent == null ? "" : parent.getPath()) + "/" + uid;
+    return path;
   }
 
   /**
@@ -805,7 +796,8 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   @JsonIgnore
   public String getStoredPath() {
-    return isNotEmpty(path) ? path : getPath();
+    // now just an alias to getPath
+    return getPath();
   }
 
   /**
@@ -814,6 +806,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    */
   public void setPath(String path) {
     this.path = path;
+    this.hierarchyLevel = null;
   }
 
   /**
@@ -828,27 +821,28 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * Used by persistence layer. Purpose is to have a column for use in database queries. For
    * application use see {@link OrganisationUnit#getLevel()} which has better performance.
    */
+  @JsonProperty(value = "level", access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "level", isAttribute = true)
   public Integer getHierarchyLevel() {
-    Set<String> uids = Sets.newHashSet(uid);
-
-    OrganisationUnit current = this;
-
-    while ((current = current.getParent()) != null) {
-      boolean add = uids.add(current.getUid());
-
-      if (!add) {
-        break; // Protect against cyclic org unit graphs
-      }
+    if (hierarchyLevel == null) {
+      // note: in theory we could just calculate: level = path.length / 12
+      // but there is lots of test data with illegal paths ;/
+      int n = 0;
+      String p = getPath();
+      for (int i = 0; i < p.length(); i++) if (p.charAt(i) == '/') n++;
+      hierarchyLevel = n;
     }
-
-    hierarchyLevel = uids.size();
-
     return hierarchyLevel;
   }
 
   /** Do not set directly. */
-  public void setHierarchyLevel(Integer hierarchyLevel) {
-    this.hierarchyLevel = hierarchyLevel;
+  public void setHierarchyLevel(Integer level) {
+    this.hierarchyLevel = level;
+  }
+
+  /** Only for convince of receiving a primitive int */
+  public int getLevel() {
+    return getHierarchyLevel();
   }
 
   @JsonProperty
