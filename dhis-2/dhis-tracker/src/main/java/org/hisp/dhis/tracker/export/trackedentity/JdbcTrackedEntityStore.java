@@ -36,6 +36,8 @@ import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,17 +46,22 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
+import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
@@ -62,7 +69,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 @Component("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
@@ -86,7 +92,33 @@ class JdbcTrackedEntityStore {
   private static final String INVALID_ORDER_FIELD_MESSAGE =
       "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.";
 
-  private static final String BASE_SELECT = "select te.trackedentityid, te.uid";
+  /** Columns for {@link #getTrackedEntityCount}, which only counts the subquery rows. */
+  private static final String COUNT_BASE_SELECT = "select te.trackedentityid, te.uid";
+
+  /**
+   * Joins the subquery result back to {@code trackedentity} and its type and org unit to fetch the
+   * wide columns. Applied after LIMIT/OFFSET so they are only read for the rows being returned.
+   */
+  // language=SQL
+  private static final String HYDRATION_JOINS =
+      """
+      join trackedentity te_data on te_data.trackedentityid = te.trackedentityid \
+      join trackedentitytype tet on te_data.trackedentitytypeid = tet.trackedentitytypeid \
+      join organisationunit te_ou on te_data.organisationunitid = te_ou.organisationunitid""";
+
+  /** The wide columns themselves, selected from the tables {@link #HYDRATION_JOINS} brings in. */
+  // language=SQL
+  private static final String HYDRATION_COLUMNS =
+      """
+      te.trackedentityid, te.uid as te_uid, te_data.created, te_data.createdatclient, \
+      te_data.createdbyuserinfo, te_data.lastupdated, te_data.lastupdatedatclient, \
+      te_data.lastupdatedbyuserinfo, te_data.inactive, te_data.deleted, \
+      te_data.potentialduplicate, ST_AsBinary(te_data.geometry) as geometry, \
+      tet.trackedentitytypeid as type_id, tet.uid as type_uid, tet.code as type_code, \
+      tet.name as type_name, tet.attributevalues as tet_attributevalues, \
+      tet.allowauditlog as type_allowauditlog, tet.enableChangeLog as type_enableChangeLog, \
+      te_ou.uid as ou_uid, te_ou.code as ou_code, te_ou.name as ou_name, \
+      te_ou.path as ou_path, te_ou.attributevalues as ou_attributevalues""";
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
@@ -115,7 +147,7 @@ class JdbcTrackedEntityStore {
   @Qualifier("namedParameterJdbcTemplate")
   private final NamedParameterJdbcTemplate writeJdbcTemplate;
 
-  public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
+  public List<TrackedEntity> getTrackedEntities(TrackedEntityQueryParams params) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
     // not have access to one.
@@ -127,17 +159,10 @@ class JdbcTrackedEntityStore {
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
     String sql = getQuery(params, null, sqlParameters);
-    SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(sql, sqlParameters);
-
-    List<TrackedEntityIdentifiers> ids = new ArrayList<>();
-    while (rowSet.next()) {
-      ids.add(
-          new TrackedEntityIdentifiers(rowSet.getLong("trackedentityid"), rowSet.getString("uid")));
-    }
-    return ids;
+    return query(sql, sqlParameters);
   }
 
-  public Page<TrackedEntityIdentifiers> getTrackedEntityIds(
+  public Page<TrackedEntity> getTrackedEntities(
       TrackedEntityQueryParams params, PageParams pageParams) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
@@ -150,15 +175,61 @@ class JdbcTrackedEntityStore {
 
     MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
     String sql = getQuery(params, pageParams, sqlParameters);
-    SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(sql, sqlParameters);
+    return new Page<>(query(sql, sqlParameters), pageParams, () -> getTrackedEntityCount(params));
+  }
 
-    List<TrackedEntityIdentifiers> ids = new ArrayList<>();
-    while (rowSet.next()) {
-      ids.add(
-          new TrackedEntityIdentifiers(rowSet.getLong("trackedentityid"), rowSet.getString("uid")));
-    }
+  /**
+   * Maps the hydrated rows. The id is carried on the returned {@link TrackedEntity} so the
+   * remaining fetches (attributes, enrollments, program owners) can key off it without a second
+   * query for the ids.
+   */
+  private List<TrackedEntity> query(String sql, MapSqlParameterSource sqlParameters) {
+    List<TrackedEntity> trackedEntities = new ArrayList<>();
+    namedParameterJdbcTemplate.query(
+        sql,
+        sqlParameters,
+        rs -> {
+          TrackedEntity trackedEntity = mapTrackedEntity(rs);
+          trackedEntity.setId(rs.getLong("trackedentityid"));
+          trackedEntities.add(trackedEntity);
+        });
+    return trackedEntities;
+  }
 
-    return new Page<>(ids, pageParams, () -> getTrackedEntityCount(params));
+  private static TrackedEntity mapTrackedEntity(ResultSet rs) throws SQLException {
+    TrackedEntity te = new TrackedEntity();
+    te.setUid(rs.getString("te_uid"));
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setId(rs.getLong("type_id"));
+    trackedEntityType.setUid(rs.getString("type_uid"));
+    trackedEntityType.setCode(rs.getString("type_code"));
+    trackedEntityType.setName(rs.getString("type_name"));
+    trackedEntityType.setAttributeValues(AttributeValues.of(rs.getString("tet_attributevalues")));
+    trackedEntityType.setAllowAuditLog(rs.getBoolean("type_allowauditlog"));
+    trackedEntityType.setEnableChangeLog(rs.getBoolean("type_enableChangeLog"));
+    te.setTrackedEntityType(trackedEntityType);
+
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(rs.getString("ou_uid"));
+    orgUnit.setCode(rs.getString("ou_code"));
+    orgUnit.setName(rs.getString("ou_name"));
+    orgUnit.setPath(rs.getString("ou_path"));
+    orgUnit.setAttributeValues(AttributeValues.of(rs.getString("ou_attributevalues")));
+    te.setOrganisationUnit(orgUnit);
+
+    te.setCreated(rs.getTimestamp("created"));
+    te.setCreatedAtClient(rs.getTimestamp("createdatclient"));
+    te.setCreatedByUserInfo(UserInfoSnapshots.fromJson(rs.getString("createdbyuserinfo")));
+    te.setLastUpdated(rs.getTimestamp("lastupdated"));
+    te.setLastUpdatedAtClient(rs.getTimestamp("lastupdatedatclient"));
+    te.setLastUpdatedByUserInfo(UserInfoSnapshots.fromJson(rs.getString("lastupdatedbyuserinfo")));
+    te.setInactive(rs.getBoolean("inactive"));
+    te.setDeleted(rs.getBoolean("deleted"));
+    te.setPotentialDuplicate(rs.getBoolean("potentialduplicate"));
+    te.setGeometry(Geometries.fromWkb(rs.getBytes("geometry")));
+
+    return te;
   }
 
   private void validateMaxTeLimit(TrackedEntityQueryParams params) {
@@ -244,8 +315,11 @@ class JdbcTrackedEntityStore {
    */
   private String getQuery(
       TrackedEntityQueryParams params, PageParams pageParams, MapSqlParameterSource sqlParameters) {
-    StringBuilder sql = new StringBuilder();
-    addOuterSelect(sql, params);
+    // The subquery narrows to the page's rows; the wide columns are then joined on so they are
+    // only read for those rows and stay out of the subquery's DISTINCT. Order-by columns remain
+    // in the subquery's select list, so the outer ORDER BY can still see them.
+    StringBuilder sql = new StringBuilder("select ");
+    sql.append(HYDRATION_COLUMNS);
     sql.append(" from (");
     addSubqueryBody(sql, sqlParameters, params);
     sql.append(" ");
@@ -257,6 +331,7 @@ class JdbcTrackedEntityStore {
       addLimitAndOffset(sql, pageParams);
     }
     sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
+    sql.append(HYDRATION_JOINS).append(" ");
     addOrderBy(sql, params);
     // LIMIT must be in outer query for DISTINCT ON (applied after final ORDER BY)
     if (needsDistinctOnForEnrolledAt(params)) {
@@ -292,7 +367,7 @@ class JdbcTrackedEntityStore {
   }
 
   private void addOuterSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    sql.append(BASE_SELECT);
+    sql.append(COUNT_BASE_SELECT);
     if (isOrderingByEnrolledAt(params)) {
       sql.append(", ").append(ENROLLMENT_DATE_ALIAS);
     }
