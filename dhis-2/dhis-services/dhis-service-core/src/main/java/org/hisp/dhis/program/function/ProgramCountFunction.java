@@ -53,6 +53,7 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import org.hisp.dhis.parser.expression.statement.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
@@ -213,11 +214,15 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
 
     String endBoundarySql =
         (pi.getEndEventBoundary() != null)
-            ? "and " + sb.getBoundaryCondition(pi.getEndEventBoundary(), pi, startDate, endDate)
+            ? "and "
+                + sb.getBoundaryCondition(
+                    pi.getEndEventBoundary(), pi, null, startDate, endDate, AnalyticsType.EVENT)
             : ""; // Empty if no end boundary
     String startBoundarySql =
         (pi.getStartEventBoundary() != null)
-            ? "and " + sb.getBoundaryCondition(pi.getStartEventBoundary(), pi, startDate, endDate)
+            ? "and "
+                + sb.getBoundaryCondition(
+                    pi.getStartEventBoundary(), pi, null, startDate, endDate, AnalyticsType.EVENT)
             : ""; // Empty if no start boundary
 
     return String.format(
