@@ -238,7 +238,7 @@ class ExpiredEventDeletionValidatorTest extends TrackerTestBase {
 
   private UserDetails userAuthorizedToEditExpired() {
     UserDetails user = mock(UserDetails.class);
-    when(user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())).thenReturn(true);
+    when(user.isAuthorized(Authorities.F_EDIT_EXPIRED)).thenReturn(true);
     return user;
   }
 
