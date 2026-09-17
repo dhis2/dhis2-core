@@ -35,12 +35,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.deadline.DeadlineHolder;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -65,10 +63,10 @@ public class TrackedEntityAggregate {
    * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
    */
   public List<TrackedEntity> find(
-      List<TrackedEntityIdentifiers> identifiers,
+      List<TrackedEntity> trackedEntities,
       TrackedEntityFields fields,
       TrackedEntityQueryParams queryParams) {
-    if (identifiers.isEmpty()) {
+    if (trackedEntities.isEmpty()) {
       return Collections.emptyList();
     }
     Context ctx = new Context(fields, queryParams);
@@ -78,13 +76,11 @@ public class TrackedEntityAggregate {
             ? queryParams.getEnrolledInTrackerProgram().getId()
             : null;
 
-    List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
+    List<Long> ids = trackedEntities.stream().map(TrackedEntity::getId).toList();
 
-    // Fail fast if the id query already spent the export budget. Each store call below then
+    // Fail fast if the main query already spent the export budget. Each store call below then
     // bounds itself through DeadlineAwareJdbcTemplate.
     DeadlineHolder.checkNotExpired();
-
-    Map<String, TrackedEntity> trackedEntities = trackedEntityStore.getTrackedEntities(ids);
 
     Multimap<String, TrackedEntityAttributeValue> attributes =
         fields.isIncludesAttributes()
@@ -93,7 +89,7 @@ public class TrackedEntityAggregate {
 
     Multimap<String, Enrollment> enrollments =
         fields.isIncludesEnrollments()
-            ? enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx)
+            ? enrollmentAggregate.findByTrackedEntities(trackedEntities, ctx)
             : ImmutableMultimap.of();
 
     Multimap<String, TrackedEntityProgramOwner> programOwners =
@@ -101,11 +97,10 @@ public class TrackedEntityAggregate {
             ? trackedEntityStore.getProgramOwners(ids)
             : ImmutableMultimap.of();
 
-    return trackedEntities.entrySet().stream()
+    return trackedEntities.stream()
         .map(
-            entry -> {
-              String uid = entry.getKey();
-              TrackedEntity te = entry.getValue();
+            te -> {
+              String uid = te.getUid();
               te.setTrackedEntityAttributeValues(new LinkedHashSet<>(attributes.get(uid)));
               te.setEnrollments(new HashSet<>(enrollments.get(uid)));
               te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
