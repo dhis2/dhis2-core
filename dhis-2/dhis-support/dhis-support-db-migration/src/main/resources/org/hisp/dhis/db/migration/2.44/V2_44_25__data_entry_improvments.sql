@@ -10,5 +10,6 @@ SELECT
 FROM datasetelement dse
 JOIN dataelement de ON de.dataelementid = dse.dataelementid
 JOIN dataset     ds ON ds.datasetid     = dse.datasetid
-JOIN categoryoptioncombo coc ON coc.categoryoptioncomboid = COALESCE(dse.categorycomboid, de.categorycomboid)
+JOIN categorycombos_optioncombos coc_cc ON coc_cc.categorycomboid = COALESCE(dse.categorycomboid, de.categorycomboid)
+JOIN categoryoptioncombo coc ON coc.categoryoptioncomboid = coc_cc.categoryoptioncomboid
 GROUP BY ds.uid, de.uid;
