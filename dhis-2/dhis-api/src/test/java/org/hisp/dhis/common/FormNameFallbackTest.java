@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -43,11 +43,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 
 /**
- * These classes each redeclare their own {@code formName} field rather than using the one
- * inherited from {@link BaseNameableObject}, so {@link
- * BaseNameableObject#getFormNameFallback()} (compiled against the superclass's field) would
- * silently always fall back to the display name, ignoring any form name actually set, unless each
- * class overrides {@code getFormNameFallback()} itself.
+ * These classes each redeclare their own {@code formName} field rather than using the one inherited
+ * from {@link BaseNameableObject}, so {@link BaseNameableObject#getFormNameFallback()} (compiled
+ * against the superclass's field) would silently always fall back to the display name, ignoring any
+ * form name actually set, unless each class overrides {@code getFormNameFallback()} itself.
  */
 class FormNameFallbackTest {
 
