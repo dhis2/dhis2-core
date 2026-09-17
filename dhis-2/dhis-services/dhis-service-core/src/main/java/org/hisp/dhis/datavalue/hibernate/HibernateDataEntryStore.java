@@ -30,7 +30,6 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.Math.min;
-import static java.lang.System.currentTimeMillis;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
@@ -43,7 +42,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,8 +56,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.DateRange;
@@ -421,46 +417,27 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return listAsStrings(sql, q -> q.setParameter("ou", ou).setParameter("ds", ds));
   }
 
-  private record DsDeKey(String ds, String de) {}
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private static final Cache<DsDeKey, Set<String>> VALID_COCS_BY_DS_DE =
-      (Cache)
-          Cache2kBuilder.forUnknownTypes()
-              .name("validCocsByDsDe")
-              .entryCapacity(1000)
-              .expireAfterWrite(Duration.ofHours(1))
-              .build();
-
-  private Set<String> loadCocInDataSet(String ds, String de) {
-    String sql =
-        """
-        SELECT coc_cc.categoryoptioncomboid
-        FROM categorycombos_optioncombos coc_cc
-        WHERE coc_cc.categorycomboid = (
-            SELECT COALESCE(dse.categorycomboid, de.categorycomboid)
-            FROM datasetelement dse
-            JOIN dataelement de ON de.dataelementid = dse.dataelementid
-            JOIN dataset ds ON ds.datasetid = dse.datasetid
-            WHERE ds.uid = :ds
-              AND de.uid = :de
-        )""";
-    return Set.copyOf(listAsStrings(sql, q -> q.setParameter("ds", ds).setParameter("de", de)));
-  }
-
   @Override
   public List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos) {
-    UID defaultCoc = getDefaultCategoryOptionComboUid();
-    DsDeKey key = new DsDeKey(dataSet.getValue(), dataElement.getValue());
+    String sql =
+        """
+        SELECT unnest(CAST(:coc AS varchar(11)[])) AS uid
+        EXCEPT
+        SELECT unnest(coc_uids)
+        FROM v_dataentry_cocs_of_ds_de
+        WHERE ds_uid = :ds AND de_uid = :de""";
 
-    Set<String> validUids =
-        VALID_COCS_BY_DS_DE.computeIfAbsent(key, k -> loadCocInDataSet(k.ds(), k.de()));
-    return optionCombos
-        .map(id -> id == null ? defaultCoc : id)
-        .map(UID::getValue)
-        .distinct()
-        .filter(uid -> !validUids.contains(uid))
-        .toList();
+    String ds = dataSet.getValue();
+    String de = dataElement.getValue();
+    UID defaultCoc = getDefaultCategoryOptionComboUid();
+    String[] coc =
+        optionCombos
+            .map(id -> id == null ? defaultCoc : id)
+            .map(UID::getValue)
+            .distinct()
+            .toArray(String[]::new);
+    return listAsStrings(
+        sql, q -> q.setParameter("coc", coc).setParameter("ds", ds).setParameter("de", de));
   }
 
   @Override
@@ -971,26 +948,14 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return getIdMap("categoryoptioncombo", ids);
   }
 
-  private UID defaultCocUid;
-  private long defaultCocId;
-  private long defaultCocValidUntil;
-
   private long getDefaultCategoryOptionComboId() {
-    long now = currentTimeMillis();
-    if (now < defaultCocValidUntil && defaultCocId != 0L) return defaultCocId;
     String sql = "select categoryoptioncomboid from categoryoptioncombo where name = 'default'";
-    defaultCocId = ((Number) getSession().createNativeQuery(sql).getSingleResult()).longValue();
-    defaultCocValidUntil = now + Duration.ofHours(1).toMillis();
-    return defaultCocId;
+    return ((Number) getSession().createNativeQuery(sql).getSingleResult()).longValue();
   }
 
   private UID getDefaultCategoryOptionComboUid() {
-    long now = currentTimeMillis();
-    if (now < defaultCocValidUntil && defaultCocUid != null) return defaultCocUid;
     String sql = "select uid from categoryoptioncombo where name = 'default'";
-    defaultCocUid = UID.of((String) getSession().createNativeQuery(sql).getSingleResult());
-    defaultCocValidUntil = now + Duration.ofHours(1).toMillis();
-    return defaultCocUid;
+    return UID.of((String) getSession().createNativeQuery(sql).getSingleResult());
   }
 
   private Map<String, Long> getOptionComboIdMap(List<DataEntryValue> values) {
