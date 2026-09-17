@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,8 @@ import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.gml.GmlImportService;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
+import org.hisp.dhis.dxf2.metadata.MetadataDependencyRootResolver;
+import org.hisp.dhis.dxf2.metadata.MetadataDependencyRoots;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -60,6 +63,8 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -110,6 +115,7 @@ public class MetadataImportExportController {
   private final JobExecutionService jobExecutionService;
   private final ObjectMapper jsonMapper;
   private final BulkPatchManager bulkPatchManager;
+  private final MetadataDependencyRootResolver dependencyRootResolver;
 
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -189,6 +195,49 @@ public class MetadataImportExportController {
     MetadataExportParams params =
         metadataExportService.getParamsFromMap(contextService.getParameterValuesMap());
     metadataExportService.validate(params);
+
+    return ResponseEntity.ok(params);
+  }
+
+  /**
+   * Exports several objects, of possibly differing types, with their dependencies, merged into one
+   * de-duplicated payload.
+   *
+   * <p>Each {@code object} parameter is a {@code type:id} pair, where {@code type} is a singular
+   * schema name (the plural form is accepted too). An object reachable from more than one of the
+   * requested roots -- including a root that is itself another root's dependency -- appears exactly
+   * once.
+   *
+   * <p>Deliberately declares no {@code produces}: the response is written by {@code
+   * MetadataExportParamsMessageConverter}, and a {@code produces} would make the {@code .json.zip}
+   * / {@code .json.gz} suffixes fail content negotiation. For the same reason the {@code
+   * Content-Disposition} header is left to that converter rather than set here.
+   */
+  @OpenApi.Response(status = OpenApi.Response.Status.OK, value = Metadata.class)
+  @GetMapping("/dependencies")
+  public ResponseEntity<MetadataExportParams> getMetadataWithDependencies(
+      @OpenApi.Param(name = "object", value = String[].class)
+          @RequestParam(name = "object", required = false)
+          List<String> objects)
+      throws WebMessageException {
+
+    MetadataExportParams params =
+        metadataExportService.getParamsFromMap(contextService.getParameterValuesMap());
+
+    // A dependency export ignores class selection, but leaving `classes` populated would skip the
+    // F_METADATA_EXPORT check in validate(), so `?object=dataSet:X&dataSets=true` would bypass it.
+    params.setClasses(new HashSet<>());
+    metadataExportService.validate(params);
+
+    MetadataDependencyRoots roots = dependencyRootResolver.resolve(objects);
+
+    if (roots.hasErrors()) {
+      throw new WebMessageException(
+          conflict("One or more of the requested objects could not be resolved")
+              .setResponse(new ErrorReportsWebMessageResponse(roots.errors())));
+    }
+
+    params.setObjectsExportWithDependencies(roots.objects());
 
     return ResponseEntity.ok(params);
   }

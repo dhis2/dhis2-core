@@ -46,6 +46,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -224,6 +226,22 @@ public class DefaultMetadataExportService implements MetadataExportService {
   public static final Predicate<Schema> DEPRECATED_ANALYTICS_SCHEMAS =
       schema -> schema.getKlass() != EventChart.class && schema.getKlass() != EventReport.class;
 
+  /**
+   * The types supported as roots of a dependency export. Kept in step with the dispatch in {@link
+   * #getMetadataWithDependencies(IdentifiableObject)}, which returns an empty result for anything
+   * else. What holds the two together is {@code
+   * DefaultMetadataExportServiceMultiObjectTest#supportedRootTypesMatchTheDispatch} and {@code
+   * MetadataExportMultipleDependenciesTest#declaredSupportedRootTypesProduceOutput}.
+   */
+  private static final Set<Class<? extends IdentifiableObject>> SUPPORTED_DEPENDENCY_ROOT_TYPES =
+      Set.of(
+          OptionSet.class,
+          DataSet.class,
+          Program.class,
+          CategoryCombo.class,
+          Dashboard.class,
+          DataElementGroup.class);
+
   @Override
   @Transactional(readOnly = true)
   public ObjectNode exportMetadataVersion(MetadataExportParams params) {
@@ -282,7 +300,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
     if (params.isExportWithDependencies()) {
       getMetadataWithDependenciesAsNodeStream(
-          params.getObjectExportWithDependencies(), params, outputStream);
+          params.getObjectsExportWithDependencies(), params, outputStream);
       return;
     }
 
@@ -330,9 +348,20 @@ public class DefaultMetadataExportService implements MetadataExportService {
   public void getMetadataWithDependenciesAsNodeStream(
       IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
       throws IOException {
+    getMetadataWithDependenciesAsNodeStream(
+        object == null ? List.of() : List.of(object), params, outputStream);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void getMetadataWithDependenciesAsNodeStream(
+      Collection<? extends IdentifiableObject> objects,
+      @Nonnull MetadataExportParams params,
+      OutputStream outputStream)
+      throws IOException {
     SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
-    SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata =
-        getMetadataWithDependencies(object);
+    Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata =
+        getMetadataWithDependencies(objects);
     try (JsonGenerator generator = objectMapper.getFactory().createGenerator(outputStream)) {
       generator.writeStartObject();
 
@@ -533,6 +562,39 @@ public class DefaultMetadataExportService implements MetadataExportService {
         ":owner",
         params.getSkipSharing(),
         params.isSkipCreatedAndLastUpdated());
+  }
+
+  @Override
+  public Set<Class<? extends IdentifiableObject>> getSupportedDependencyRootTypes() {
+    return SUPPORTED_DEPENDENCY_ROOT_TYPES;
+  }
+
+  /**
+   * The fold of {@link #getMetadataWithDependencies(IdentifiableObject)} over the given roots.
+   *
+   * <p>De-duplication is the union itself rather than a separate pass: every closure contributes
+   * into one {@link SetMap}, so an object reachable from several roots -- including a root that is
+   * another root's dependency -- is stored once. See {@link MetadataDependencies}.
+   *
+   * <p>This method carries its own transaction because the per-root call below is a self-invocation
+   * and so does not go through the Spring proxy. The whole traversal walks lazy Hibernate
+   * collections and needs a single session spanning all roots; that shared session is also what
+   * makes the union collapse duplicates by instance identity.
+   *
+   * <p>Deliberately sequential -- the accumulator is mutable and the values are session-bound.
+   */
+  @Override
+  @Transactional(readOnly = true)
+  public SetMap<Class<? extends IdentifiableObject>, IdentifiableObject>
+      getMetadataWithDependencies(Collection<? extends IdentifiableObject> objects) {
+    if (objects == null || objects.isEmpty()) {
+      return MetadataDependencies.empty();
+    }
+
+    return objects.stream()
+        .filter(Objects::nonNull)
+        .map(this::getMetadataWithDependencies)
+        .collect(MetadataDependencies.union());
   }
 
   @Override

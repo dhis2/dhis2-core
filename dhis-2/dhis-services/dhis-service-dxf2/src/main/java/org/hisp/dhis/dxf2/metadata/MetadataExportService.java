@@ -32,6 +32,7 @@ package org.hisp.dhis.dxf2.metadata;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,6 +95,29 @@ public interface MetadataExportService {
       IdentifiableObject object);
 
   /**
+   * Exports several objects, of possibly differing types, including their dependencies, merged into
+   * a single de-duplicated result.
+   *
+   * <p>This is the fold of {@link #getMetadataWithDependencies(IdentifiableObject)} over the given
+   * roots under set union, so an object reachable from more than one root -- including a root that
+   * is itself another root's dependency -- appears exactly once.
+   *
+   * @param objects Objects to export including dependencies
+   * @return All given objects + the union of their selected dependencies
+   */
+  Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies(
+      Collection<? extends IdentifiableObject> objects);
+
+  /**
+   * The object types that are supported as roots of a dependency export. Any other type yields an
+   * empty result from {@link #getMetadataWithDependencies(IdentifiableObject)}, so callers that
+   * must not produce a silently empty payload should check against this set first.
+   *
+   * @return the supported dependency export root types
+   */
+  Set<Class<? extends IdentifiableObject>> getSupportedDependencyRootTypes();
+
+  /**
    * Exports an object including a set of selected dependencies. Only a subset of the specified
    * export parameters are used for the metadata with dependencies export. All objects are written
    * to given outputStream
@@ -105,6 +129,21 @@ public interface MetadataExportService {
    */
   void getMetadataWithDependenciesAsNodeStream(
       IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
+      throws IOException;
+
+  /**
+   * Exports several objects, of possibly differing types, including their dependencies, as a single
+   * de-duplicated document written to the given outputStream.
+   *
+   * @param objects The {@link IdentifiableObject}s to be exported with dependencies.
+   * @param params {@link MetadataExportParams}
+   * @param outputStream Streaming target.
+   * @throws IOException if the document cannot be written
+   */
+  void getMetadataWithDependenciesAsNodeStream(
+      Collection<? extends IdentifiableObject> objects,
+      @Nonnull MetadataExportParams params,
+      OutputStream outputStream)
       throws IOException;
 
   /**
