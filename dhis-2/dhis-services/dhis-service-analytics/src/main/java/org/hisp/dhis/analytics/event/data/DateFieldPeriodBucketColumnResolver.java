@@ -56,13 +56,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DateFieldPeriodBucketColumnResolver {
-  record JoinClause(String table, String alias, String condition) {
+  public record JoinClause(String table, String alias, String condition) {
     String toSql() {
       return "left join " + table + " as " + alias + " on " + condition;
     }
   }
 
-  record ResolvedExpression(
+  public record ResolvedExpression(
       String selectExpression,
       String groupByExpression,
       String sourceColumn,
