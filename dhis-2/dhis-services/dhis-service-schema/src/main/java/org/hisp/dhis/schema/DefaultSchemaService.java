@@ -538,7 +538,7 @@ public class DefaultSchemaService implements SchemaService {
 
   public static <T> T safeInvoke(Object object, Method method) {
     // Resolve the fallback up front: ReflectionUtils.invokeMethod logs a type mismatch at ERROR.
-    if (object != null && !method.getDeclaringClass().isInstance(object)) {
+    if (object != null && method != null && !method.getDeclaringClass().isInstance(object)) {
       Method fallback = getInterfaceMethod(method);
       if (fallback != null && fallback.getDeclaringClass().isInstance(object)) {
         return ReflectionUtils.invokeMethod(object, fallback);

@@ -31,6 +31,7 @@ package org.hisp.dhis.schema;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mockStatic;
@@ -65,6 +66,13 @@ class DefaultSchemaServiceSafeInvokeTest {
       reflectionUtils.verify(
           () -> ReflectionUtils.invokeMethod(categoryOption, getterMethod), never());
     }
+  }
+
+  @Test
+  void testNullMethodReturnsNull() {
+    CategoryOption categoryOption = new CategoryOption("Test Option");
+
+    assertNull(DefaultSchemaService.safeInvoke(categoryOption, null));
   }
 
   @Test
