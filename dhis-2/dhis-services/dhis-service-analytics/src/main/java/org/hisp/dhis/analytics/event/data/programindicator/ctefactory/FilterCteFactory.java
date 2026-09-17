@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholde
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser.FilterFields;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
 public class FilterCteFactory implements CteSqlFactory {
@@ -140,7 +141,13 @@ public class FilterCteFactory implements CteSqlFactory {
 
     String boundaries =
         BoundarySqlBuilder.buildSql(
-            pi.getAnalyticsPeriodBoundaries(), "occurreddate", pi, start, end, qb);
+            pi.getAnalyticsPeriodBoundaries(),
+            "occurreddate",
+            pi,
+            start,
+            end,
+            qb,
+            AnalyticsType.EVENT);
 
     return String.format(
         """
