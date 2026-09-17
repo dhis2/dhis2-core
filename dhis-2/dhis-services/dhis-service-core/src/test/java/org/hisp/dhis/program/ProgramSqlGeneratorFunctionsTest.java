@@ -110,6 +110,9 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
   private final Date endDate = getDate(2020, 12, 31);
 
+  /** Emits CTE placeholders for enrollment stage elements instead of correlated subqueries. */
+  private boolean useExperimentalSqlEngine;
+
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private ProgramIndicatorService programIndicatorService;
@@ -481,6 +484,42 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   }
 
   @Test
+  void testEnrollmentHasValueDataElementUsesPlaceholderWithoutNullReplacement() {
+    programIndicator.setAnalyticsType(ENROLLMENT);
+    useExperimentalSqlEngine = true;
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    String sql = test("d2:hasValue(#{ProgrmStagA.DataElmentA})");
+
+    assertThat(
+        sql,
+        is(
+            "(__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', "
+                + "boundaryHash='noboundaries', piUid='"
+                + programIndicator.getUid()
+                + "', replaceNulls='false') is not null)"));
+  }
+
+  @Test
+  void testEnrollmentDataElementUsesPlaceholderWithNullReplacement() {
+    programIndicator.setAnalyticsType(ENROLLMENT);
+    useExperimentalSqlEngine = true;
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    String sql = test("#{ProgrmStagA.DataElmentA}");
+
+    assertThat(
+        sql,
+        is(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', "
+                + "boundaryHash='noboundaries', piUid='"
+                + programIndicator.getUid()
+                + "', replaceNulls='true')"));
+  }
+
+  @Test
   void testHasValueAttribute() {
     when(idObjectManager.get(TrackedEntityAttribute.class, attributeA.getUid()))
         .thenReturn(attributeA);
@@ -806,6 +845,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
             .params(params)
             .progParams(progParams)
             .sqlBuilder(new PostgreSqlBuilder())
+            .useExperimentalSqlEngine(useExperimentalSqlEngine)
             .build();
 
     visitor.setExpressionLiteral(exprLiteral);
