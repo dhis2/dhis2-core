@@ -46,11 +46,11 @@
       <artifactId>jsr305</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.activemq</groupId>
+      <groupId>org.apache.artemis</groupId>
       <artifactId>artemis-jakarta-server</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.activemq</groupId>
+      <groupId>org.apache.artemis</groupId>
       <artifactId>artemis-jakarta-client</artifactId>
     </dependency>
 
