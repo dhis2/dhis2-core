@@ -84,8 +84,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE 1=1
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE 1=1""",
         Set.of(),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -115,8 +114,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE dv.deleted = :deleted
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE dv.deleted = :deleted""",
         Set.of("deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -153,8 +151,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE dv.deleted = :deleted
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE dv.deleted = :deleted""",
         Set.of("pe", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -195,8 +192,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE dv.deleted = :deleted
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE dv.deleted = :deleted""",
         Set.of("de", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -237,8 +233,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE dv.deleted = :deleted
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE dv.deleted = :deleted""",
         Set.of("deg", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -279,8 +274,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE dv.deleted = :deleted
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE dv.deleted = :deleted""",
         Set.of("ou", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -330,8 +324,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE dv.deleted = :deleted
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE dv.deleted = :deleted""",
         Set.of("ou", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -372,8 +365,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE dv.deleted = :deleted
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE dv.deleted = :deleted""",
         Set.of("ougSuper", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -423,8 +415,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE dv.deleted = :deleted
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE dv.deleted = :deleted""",
         Set.of("ougSuper", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser(), null));
   }
@@ -467,8 +458,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
-          AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+          AND EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""",
         Set.of("oug", "capture", "deleted", "aocAllowed"),
         createExportQuery(params, createSpyQuery(), currentUser, new long[] {11L}));
   }
@@ -589,8 +579,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)
-        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        WHERE EXISTS (SELECT 1 FROM unnest(CAST(:aocAllowed AS bigint[])) a(id) WHERE a.id = dv.attributeoptioncomboid)""",
         Set.of("aocAllowed"),
         createExportQuery(params, createSpyQuery(), user, new long[] {11L, 12L}));
     assertArrayEquals(new long[] {11L, 12L}, (long[]) paramValue("aocAllowed"));
