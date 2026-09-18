@@ -143,6 +143,39 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
   }
 
   @Test
+  @DisplayName("One object parameter may name several objects of the same type")
+  void commaSeparatedIdsInOneParameter() {
+    JsonMixed json =
+        GET("/metadata/dependencies?object=optionSet:"
+                + optionSetA.getUid()
+                + ","
+                + optionSetB.getUid())
+            .content();
+
+    assertEquals(sorted(optionSetA.getUid(), optionSetB.getUid()), ids(json, "optionSets"));
+    assertEquals(
+        List.of(sharedAttribute.getUid()),
+        ids(json, "attributes"),
+        "the shared attribute must still be de-duplicated");
+  }
+
+  @Test
+  @DisplayName("A comma list gives the same payload as repeating the parameter")
+  void commaListMatchesRepeatedParameters() {
+    JsonMixed viaCommaList =
+        GET("/metadata/dependencies?object=optionSet:"
+                + optionSetA.getUid()
+                + ","
+                + optionSetB.getUid())
+            .content();
+    JsonMixed viaRepeated = GET(dependencies(refA(), refB())).content();
+
+    for (String type : List.of("optionSets", "options", "attributes")) {
+      assertEquals(ids(viaRepeated, type), ids(viaCommaList, type), "diverged on '" + type + "'");
+    }
+  }
+
+  @Test
   @DisplayName("The plural type name works as well as the singular")
   void pluralTypeNameIsAccepted() {
     assertEquals(

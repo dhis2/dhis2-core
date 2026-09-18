@@ -212,18 +212,20 @@ public class MetadataImportExportController {
    * / {@code .json.gz} suffixes fail content negotiation. For the same reason the {@code
    * Content-Disposition} header is left to that converter rather than set here.
    */
+  @OpenApi.Param(name = "object", value = String[].class)
   @OpenApi.Response(status = OpenApi.Response.Status.OK, value = Metadata.class)
   @GetMapping("/dependencies")
-  public ResponseEntity<MetadataExportParams> getMetadataWithDependencies(
-      @OpenApi.Param(name = "object", value = String[].class)
-          @RequestParam(name = "object", required = false)
-          List<String> objects)
+  public ResponseEntity<MetadataExportParams> getMetadataWithDependencies()
       throws WebMessageException {
 
     MetadataExportParams params =
         metadataExportService.getDependencyExportParams(contextService.getParameterValuesMap());
 
-    MetadataDependencyRoots roots = dependencyRootResolver.resolve(objects);
+    // read straight from the request rather than binding a @RequestParam: Spring splits a
+    // comma separated value into separate list entries, which would tear `optionSet:a,b` into
+    // `optionSet:a` and a type-less `b`
+    MetadataDependencyRoots roots =
+        dependencyRootResolver.resolve(contextService.getParameterValues("object"));
 
     if (roots.hasErrors()) {
       throw new WebMessageException(

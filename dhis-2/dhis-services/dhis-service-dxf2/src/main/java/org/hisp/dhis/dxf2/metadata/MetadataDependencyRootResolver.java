@@ -71,12 +71,6 @@ import org.springframework.stereotype.Service;
 public class MetadataDependencyRootResolver {
 
   /**
-   * The dependency traversal has no visited-set, so N roots means N walks of the object graph. This
-   * bounds the work a single request can ask for.
-   */
-  public static final int MAX_ROOTS = 50;
-
-  /**
    * The root types this endpoint currently accepts.
    *
    * <p>Deliberately narrower than {@link MetadataExportService#getSupportedDependencyRootTypes()},
@@ -116,42 +110,40 @@ public class MetadataDependencyRootResolver {
       return new MetadataDependencyRoots(List.of(), errors);
     }
 
-    Set<String> distinct = new LinkedHashSet<>(tokens);
+    // one parameter may name several objects, so expand each token before classifying: how the
+    // caller chose to spell a request must not change what it resolves to
+    Set<MetadataObjectReference> references = new LinkedHashSet<>();
 
-    if (distinct.size() > MAX_ROOTS) {
-      errors.add(
-          error(IdentifiableObject.class, null, ErrorCode.E6027, MAX_ROOTS, distinct.size()));
-      return new MetadataDependencyRoots(List.of(), errors);
+    for (String token : new LinkedHashSet<>(tokens)) {
+      List<MetadataObjectReference> parsed = MetadataObjectReference.parseAll(token);
+
+      if (parsed.isEmpty()) {
+        errors.add(error(IdentifiableObject.class, token, ErrorCode.E6024, token));
+      } else {
+        references.addAll(parsed);
+      }
     }
 
-    List<TypedReference> typed = classify(distinct, errors);
+    List<TypedReference> typed = classify(references, errors);
     List<IdentifiableObject> objects = load(typed, errors);
 
     return new MetadataDependencyRoots(errors.isEmpty() ? objects : List.of(), errors);
   }
 
   /**
-   * Classifies each token in request order, in the order malformed, unknown type, unsupported root
-   * type, not yet enabled, invalid UID. Tokens that survive are returned for loading, de-duplicated
-   * by the reference they denote rather than by their spelling, so {@code optionSet:X} and {@code
+   * Classifies each reference in request order, in the order unknown type, unsupported root type,
+   * not yet enabled, invalid UID. References that survive are returned for loading, de-duplicated
+   * by the object they denote rather than by their spelling, so {@code optionSet:X} and {@code
    * optionSets:X} are walked once.
    */
-  private List<TypedReference> classify(Collection<String> tokens, List<ErrorReport> errors) {
+  private List<TypedReference> classify(
+      Collection<MetadataObjectReference> references, List<ErrorReport> errors) {
     Set<Class<? extends IdentifiableObject>> supported =
         metadataExportService.getSupportedDependencyRootTypes();
-
-    // keyed by what the reference denotes, not how it was spelt, so `optionSet:X` and
-    // `optionSets:X` resolve to one root and the graph is walked once
     Map<RootKey, TypedReference> typed = new LinkedHashMap<>();
 
-    for (String token : tokens) {
-      MetadataObjectReference reference = MetadataObjectReference.parse(token);
-
-      if (reference == null) {
-        errors.add(error(IdentifiableObject.class, token, ErrorCode.E6024, token));
-        continue;
-      }
-
+    for (MetadataObjectReference reference : references) {
+      String token = reference.toString();
       Class<? extends IdentifiableObject> type = classForType(reference.type());
 
       if (type == null) {
@@ -175,8 +167,7 @@ public class MetadataDependencyRootResolver {
         continue;
       }
 
-      typed.putIfAbsent(
-          new RootKey(type, reference.id()), new TypedReference(reference, type, token));
+      typed.putIfAbsent(new RootKey(type, reference.id()), new TypedReference(reference, type));
     }
 
     return List.copyOf(typed.values());
@@ -201,7 +192,12 @@ public class MetadataDependencyRootResolver {
 
       if (object == null) {
         errors.add(
-            error(t.type(), t.token(), ErrorCode.E1113, t.reference().type(), t.reference().id()));
+            error(
+                t.type(),
+                t.reference().toString(),
+                ErrorCode.E1113,
+                t.reference().type(),
+                t.reference().id()));
       } else {
         objects.add(object);
       }
@@ -251,7 +247,7 @@ public class MetadataDependencyRootResolver {
    * A reference that survived classification, with the class it names and the token it came from.
    */
   private record TypedReference(
-      MetadataObjectReference reference, Class<? extends IdentifiableObject> type, String token) {}
+      MetadataObjectReference reference, Class<? extends IdentifiableObject> type) {}
 
   /** What a reference denotes, independent of whether it was spelt singular or plural. */
   private record RootKey(Class<? extends IdentifiableObject> type, String id) {}

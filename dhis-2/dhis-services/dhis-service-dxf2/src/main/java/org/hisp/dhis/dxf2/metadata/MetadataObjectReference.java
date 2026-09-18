@@ -29,46 +29,69 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import javax.annotation.CheckForNull;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
- * A reference to a single metadata object, as given by an {@code object=type:id} request parameter
+ * A reference to a single metadata object, as named by an {@code object=type:id} request parameter
  * of the multi-object dependency export.
  *
  * <p>{@code type} is a schema name. The singular form is canonical, matching {@code
  * /api/sharing?type=} and {@code AclService#classForType}; the plural form is also accepted because
  * it is what appears as the key in the exported payload.
  *
+ * <p>One parameter may name several objects of the same type, {@code object=optionSet:abc,def}, so
+ * a caller repeats {@code object} only when the type changes.
+ *
  * @author David Mackessy
  */
 public record MetadataObjectReference(String type, String id) {
 
   /**
-   * Parses a {@code type:id} token.
+   * Parses a {@code type:id} token, where the id part may be a comma separated list.
    *
    * <p>Splits on the first colon only, so a token with extra colons keeps them in the id and is
    * rejected later as an invalid UID rather than being silently re-interpreted.
    *
    * @param token the raw parameter value
-   * @return the parsed reference, or {@code null} when the token is not of the form {@code type:id}
+   * @return one reference per id, in the order given, or an empty list when the token is not of the
+   *     form {@code type:id[,id...]}
    */
-  @CheckForNull
-  public static MetadataObjectReference parse(String token) {
+  @Nonnull
+  public static List<MetadataObjectReference> parseAll(String token) {
     if (token == null) {
-      return null;
+      return List.of();
     }
 
     String trimmed = token.trim();
     int separator = trimmed.indexOf(':');
 
     if (separator < 0) {
-      return null;
+      return List.of();
     }
 
     String type = trimmed.substring(0, separator).trim();
-    String id = trimmed.substring(separator + 1).trim();
+    String ids = trimmed.substring(separator + 1);
 
-    return type.isEmpty() || id.isEmpty() ? null : new MetadataObjectReference(type, id);
+    if (type.isEmpty() || ids.isBlank()) {
+      return List.of();
+    }
+
+    List<MetadataObjectReference> references = new ArrayList<>();
+
+    for (String id : ids.split(",", -1)) {
+      String trimmedId = id.trim();
+
+      if (trimmedId.isEmpty()) {
+        return List
+            .of(); // a blank entry makes the whole token malformed, rather than silently dropped
+      }
+
+      references.add(new MetadataObjectReference(type, trimmedId));
+    }
+
+    return List.copyOf(references);
   }
 
   @Override

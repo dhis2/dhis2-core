@@ -30,8 +30,9 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -48,50 +49,83 @@ class MetadataObjectReferenceTest {
   @Test
   @DisplayName("A well formed token is split into type and id")
   void parsesTypeAndId() {
-    MetadataObjectReference reference = MetadataObjectReference.parse("dataSet:lyLU2wR22tC");
-
-    assertEquals("dataSet", reference.type());
-    assertEquals("lyLU2wR22tC", reference.id());
+    assertEquals(
+        List.of(new MetadataObjectReference("dataSet", "lyLU2wR22tC")),
+        MetadataObjectReference.parseAll("dataSet:lyLU2wR22tC"));
   }
 
   @Test
-  @DisplayName("Surrounding whitespace is ignored")
+  @DisplayName("One token may name several objects of the same type")
+  void parsesCommaSeparatedIds() {
+    assertEquals(
+        List.of(
+            new MetadataObjectReference("optionSet", "aaaaaaaaaaa"),
+            new MetadataObjectReference("optionSet", "bbbbbbbbbbb"),
+            new MetadataObjectReference("optionSet", "ccccccccccc")),
+        MetadataObjectReference.parseAll("optionSet:aaaaaaaaaaa,bbbbbbbbbbb,ccccccccccc"));
+  }
+
+  @Test
+  @DisplayName("Ids keep the order they were given in")
+  void preservesOrder() {
+    assertEquals(
+        List.of("ccccccccccc", "aaaaaaaaaaa", "bbbbbbbbbbb"),
+        MetadataObjectReference.parseAll("optionSet:ccccccccccc,aaaaaaaaaaa,bbbbbbbbbbb").stream()
+            .map(MetadataObjectReference::id)
+            .toList());
+  }
+
+  @Test
+  @DisplayName("Surrounding whitespace is ignored, around the type and around each id")
   void parseTrimsWhitespace() {
     assertEquals(
-        new MetadataObjectReference("dataSet", "lyLU2wR22tC"),
-        MetadataObjectReference.parse("  dataSet : lyLU2wR22tC  "));
+        List.of(
+            new MetadataObjectReference("dataSet", "aaaaaaaaaaa"),
+            new MetadataObjectReference("dataSet", "bbbbbbbbbbb")),
+        MetadataObjectReference.parseAll("  dataSet : aaaaaaaaaaa , bbbbbbbbbbb  "));
   }
 
   @Test
-  @DisplayName(
-      "Only the first colon separates, so extra colons stay in the id and are rejected later")
+  @DisplayName("Only the first colon separates, so extra colons stay in the id")
   void parseSplitsOnFirstColonOnly() {
-    MetadataObjectReference reference = MetadataObjectReference.parse("dataSet:a:b");
-
-    assertEquals("dataSet", reference.type());
-    assertEquals("a:b", reference.id());
+    assertEquals(
+        List.of(new MetadataObjectReference("dataSet", "a:b")),
+        MetadataObjectReference.parseAll("dataSet:a:b"));
   }
 
   @ParameterizedTest
   @NullSource
-  @ValueSource(strings = {"", "   ", "dataSet", "dataSet:", ":lyLU2wR22tC", ":", "  :  "})
-  @DisplayName("A token that is not of the form type:id does not parse")
+  @ValueSource(
+      strings = {
+        "",
+        "   ",
+        "dataSet",
+        "dataSet:",
+        ":lyLU2wR22tC",
+        ":",
+        "  :  ",
+        "dataSet:,",
+        "dataSet:aaaaaaaaaaa,",
+        "dataSet:aaaaaaaaaaa,,bbbbbbbbbbb"
+      })
+  @DisplayName("A token that is not of the form type:id[,id...] does not parse")
   void malformedTokensDoNotParse(String token) {
-    assertNull(MetadataObjectReference.parse(token));
+    assertTrue(MetadataObjectReference.parseAll(token).isEmpty());
   }
 
   @Test
-  @DisplayName("Identical references are equal, so duplicate tokens can be collapsed")
+  @DisplayName("Identical references are equal, so duplicates can be collapsed")
   void referencesWithSameTypeAndIdAreEqual() {
     assertEquals(
-        MetadataObjectReference.parse("dataSet:lyLU2wR22tC"),
-        MetadataObjectReference.parse("dataSet:lyLU2wR22tC"));
+        MetadataObjectReference.parseAll("dataSet:lyLU2wR22tC"),
+        MetadataObjectReference.parseAll("dataSet:lyLU2wR22tC"));
   }
 
   @Test
-  @DisplayName("A reference renders back as the token it came from")
+  @DisplayName("A reference renders back as a single type:id token")
   void toStringRoundTrips() {
     assertEquals(
-        "dataSet:lyLU2wR22tC", MetadataObjectReference.parse("dataSet:lyLU2wR22tC").toString());
+        "dataSet:lyLU2wR22tC",
+        MetadataObjectReference.parseAll("dataSet:lyLU2wR22tC").get(0).toString());
   }
 }
