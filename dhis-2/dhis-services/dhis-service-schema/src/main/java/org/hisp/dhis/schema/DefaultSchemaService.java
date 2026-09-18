@@ -537,20 +537,29 @@ public class DefaultSchemaService implements SchemaService {
   }
 
   public static <T> T safeInvoke(Object object, Method method) {
+    // Resolve the fallback up front: ReflectionUtils.invokeMethod logs a type mismatch at ERROR.
+    if (object != null && method != null && !method.getDeclaringClass().isInstance(object)) {
+      Method fallback = getInterfaceMethod(method);
+      if (fallback != null && fallback.getDeclaringClass().isInstance(object)) {
+        return ReflectionUtils.invokeMethod(object, fallback);
+      }
+    }
     try {
       return ReflectionUtils.invokeMethod(object, method);
     } catch (Exception e) {
-      Class<?> interfaceClass = INTERFACE_TYPE_BY_BASE_TYPE.get(method.getDeclaringClass());
-      if (interfaceClass != null) {
-        try {
-          Method fallback = interfaceClass.getMethod(method.getName());
-          return ReflectionUtils.invokeMethod(object, fallback);
-        } catch (Exception ex) {
-          throw new RuntimeException(
-              "Failed to invoke fallback method for " + method.getName(), ex);
-        }
-      }
       throw new RuntimeException("Failed to invoke method " + method.getName(), e);
+    }
+  }
+
+  private static Method getInterfaceMethod(Method method) {
+    Class<?> interfaceClass = INTERFACE_TYPE_BY_BASE_TYPE.get(method.getDeclaringClass());
+    if (interfaceClass == null) {
+      return null;
+    }
+    try {
+      return interfaceClass.getMethod(method.getName());
+    } catch (NoSuchMethodException e) {
+      return null;
     }
   }
 
