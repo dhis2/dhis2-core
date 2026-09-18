@@ -30,6 +30,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -54,6 +55,16 @@ import org.springframework.stereotype.Component;
 @Order(0)
 @AllArgsConstructor
 public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject> {
+  /**
+   * Text properties that are trimmed of leading/trailing whitespace on create and update, so that
+   * values differing only by whitespace (e.g. {@code "Name"} vs {@code "Name "}) do not appear as
+   * near-duplicate metadata. {@code name} and {@code code} are set directly through the {@link
+   * IdentifiableObject} interface; the remaining properties are not declared on the interface and
+   * are set reflectively, only if present on the given object's schema.
+   */
+  private static final List<String> REFLECTIVE_TRIMMABLE_PROPERTIES =
+      List.of("shortName", "description");
+
   private final AclService aclService;
 
   @Override
@@ -69,9 +80,39 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     }
 
     Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(identifiableObject));
+    trimTextFields(identifiableObject);
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
     handleSortOrder(identifiableObject, bundle, schema);
+  }
+
+  /**
+   * Trims leading and trailing whitespace from common metadata text properties ({@code name},
+   * {@code code}, {@code shortName}, {@code description}). A value made up entirely of whitespace
+   * (e.g. {@code " "}) is trimmed down to an empty string rather than left untouched.
+   *
+   * @param identifiableObject object to normalize text properties on
+   */
+  private void trimTextFields(IdentifiableObject identifiableObject) {
+    identifiableObject.setName(trim(identifiableObject.getName()));
+    identifiableObject.setCode(trim(identifiableObject.getCode()));
+
+    for (String property : REFLECTIVE_TRIMMABLE_PROPERTIES) {
+      if (ReflectionUtils.findSetterMethod(property, identifiableObject) == null) {
+        continue;
+      }
+
+      String value = ReflectionUtils.invokeGetterMethod(property, identifiableObject);
+      String trimmed = trim(value);
+
+      if (!Objects.equals(value, trimmed)) {
+        ReflectionUtils.invokeSetterMethod(property, identifiableObject, trimmed);
+      }
+    }
+  }
+
+  private String trim(String value) {
+    return value == null ? null : value.strip();
   }
 
   /**
@@ -134,6 +175,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     handleCreatedByProperty(object, persistedObject, bundle);
 
     Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
+    trimTextFields(object);
     handleSortOrder(object, bundle, schema);
   }
 
