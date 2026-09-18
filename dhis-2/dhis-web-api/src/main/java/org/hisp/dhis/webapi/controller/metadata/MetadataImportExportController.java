@@ -39,7 +39,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -222,12 +221,7 @@ public class MetadataImportExportController {
       throws WebMessageException {
 
     MetadataExportParams params =
-        metadataExportService.getParamsFromMap(contextService.getParameterValuesMap());
-
-    // A dependency export ignores class selection, but leaving `classes` populated would skip the
-    // F_METADATA_EXPORT check in validate(), so `?object=dataSet:X&dataSets=true` would bypass it.
-    params.setClasses(new HashSet<>());
-    metadataExportService.validate(params);
+        metadataExportService.getDependencyExportParams(contextService.getParameterValuesMap());
 
     MetadataDependencyRoots roots = dependencyRootResolver.resolve(objects);
 

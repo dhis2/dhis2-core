@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -346,15 +347,6 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Override
   @Transactional(readOnly = true)
   public void getMetadataWithDependenciesAsNodeStream(
-      IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
-      throws IOException {
-    getMetadataWithDependenciesAsNodeStream(
-        object == null ? List.of() : List.of(object), params, outputStream);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public void getMetadataWithDependenciesAsNodeStream(
       Collection<? extends IdentifiableObject> objects,
       @Nonnull MetadataExportParams params,
       OutputStream outputStream)
@@ -414,6 +406,15 @@ public class DefaultMetadataExportService implements MetadataExportService {
     }
 
     return rootNode;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public MetadataExportParams getDependencyExportParams(Map<String, List<String>> parameters) {
+    MetadataExportParams params = getParamsFromMap(parameters);
+    params.setClasses(new HashSet<>());
+    validate(params);
+    return params;
   }
 
   @Override
@@ -574,8 +575,14 @@ public class DefaultMetadataExportService implements MetadataExportService {
    *
    * <p>De-duplication is the union itself rather than a separate pass: every closure is merged into
    * one {@link SetMap}, so an object reachable from several roots, including a root that is another
-   * root's dependency, is stored once. Objects compare by uid, code and name, so two instances of
-   * the same row also collapse.
+   * root's dependency, is stored once.
+   *
+   * <p>There is no comparison logic here. {@link SetMap#putValues} adds into a {@link
+   * java.util.HashSet}, so what counts as "already present" is {@link
+   * org.hisp.dhis.common.BaseIdentifiableObject#equals}: the same real class (proxy-safe) and equal
+   * uid, code and name. That comparison is {@code final}, so no metadata type can change it. Two
+   * distinct instances of the same row therefore collapse as well, not only repeated references to
+   * one instance.
    *
    * <p>This method carries its own transaction because the per-root call below is a self-invocation
    * and so does not go through the Spring proxy. The whole traversal walks lazy Hibernate

@@ -85,6 +85,20 @@ public interface MetadataExportService {
   MetadataExportParams getParamsFromMap(Map<String, List<String>> parameters);
 
   /**
+   * Builds the export params for a dependency export.
+   *
+   * <p>Same as {@link #getParamsFromMap(Map)} followed by {@link #validate(MetadataExportParams)},
+   * except that the class selection is cleared first. A dependency export ignores class selection,
+   * but {@code validate} reads a populated {@code classes} as "this export is filtered" and skips
+   * the {@code F_METADATA_EXPORT} check, so a stray {@code &dataSets=true} would otherwise slip
+   * past it. Kept here so that ordering is not something every caller has to remember.
+   *
+   * @param parameters Key-Value map of wanted parameters
+   * @return validated params, with no class selection
+   */
+  MetadataExportParams getDependencyExportParams(Map<String, List<String>> parameters);
+
+  /**
    * Exports an object including a set of selected dependencies. Only a subset of the specified
    * export parameters are used for the metadata with dependencies export.
    *
@@ -116,20 +130,6 @@ public interface MetadataExportService {
    * @return the supported dependency export root types
    */
   Set<Class<? extends IdentifiableObject>> getSupportedDependencyRootTypes();
-
-  /**
-   * Exports an object including a set of selected dependencies. Only a subset of the specified
-   * export parameters are used for the metadata with dependencies export. All objects are written
-   * to given outputStream
-   *
-   * @param object The {@link IdentifiableObject} to be exported with dependencies.
-   * @param params {@link MetadataExportParams}
-   * @param outputStream Streaming target.
-   * @throws IOException
-   */
-  void getMetadataWithDependenciesAsNodeStream(
-      IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
-      throws IOException;
 
   /**
    * Exports several objects, of possibly differing types, including their dependencies, as a single

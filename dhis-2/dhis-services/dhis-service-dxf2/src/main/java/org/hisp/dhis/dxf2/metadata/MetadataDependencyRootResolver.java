@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,8 +101,8 @@ public class MetadataDependencyRootResolver {
   /**
    * Resolves the given {@code type:id} tokens.
    *
-   * <p>Objects are loaded with one batched, ACL-aware query per type, so an object the current user
-   * may not read comes back missing and is reported the same way as one that does not exist, the
+   * <p>Objects are loaded with one batched ACL-aware query per type. An object the current user may
+   * not read comes back missing and is reported the same way as one that does not exist, the
    * response does not distinguish the two.
    *
    * @param tokens the raw {@code object} parameter values
