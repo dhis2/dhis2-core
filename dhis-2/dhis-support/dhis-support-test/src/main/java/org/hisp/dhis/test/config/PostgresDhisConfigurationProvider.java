@@ -63,7 +63,8 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
             .withPassword(POSTGRES_PASSWORD)
             .withInitScript("db/extensions.sql")
             .withTmpFs(Map.of("/testtmpfs", "rw"))
-            .withCommand("postgres -c idle_session_timeout=35000")
+            .withCommand(
+                "postgres -c idle_session_timeout=35000 -c shared_preload_libraries=postgis-3")
             .withEnv("LC_COLLATE", "C");
 
     POSTGRES_CONTAINER.start();
