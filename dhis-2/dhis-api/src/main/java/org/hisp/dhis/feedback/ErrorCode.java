@@ -445,7 +445,7 @@ public enum ErrorCode {
   E6023("Type `{0}` cannot be imported via metadata"),
   E6024("Object reference `{0}` is not of the form `type:id`"),
   E6026("Type `{0}` is not supported as a dependency export root, supported types are: {1}"),
-  E6028("At least one object reference must be given"),
+  E6028("At least one `objects` parameter must be given, of the form `type:id`"),
   E6029(
       "Type `{0}` is not yet available for multi-object dependency export, use that type''s"
           + " single-object metadata endpoint instead. Available types: {1}"),

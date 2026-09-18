@@ -58,19 +58,12 @@ import org.junit.jupiter.api.Test;
  * End-to-end tests for {@code GET /api/metadata/dependencies}, the multi-object dependency export
  * (DHIS2-21899).
  *
- * <p>The endpoint is gated to {@code OptionSet} to begin with, because the dependency traversal has
- * known N+1 query problems for the other root types. The fixture is therefore two option sets that
- * share one custom attribute, an option belongs to exactly one option set, so a shared attribute is
- * the only way two enabled roots can share a dependency, plus a data set used to prove the gate
- * refuses a type the traversal otherwise supports.
+ * <p>Gated to {@code OptionSet}. The fixture is two option sets sharing one attribute, plus a data
+ * set to prove the gate refuses a type the traversal otherwise supports.
  *
- * <p>Deliberately small. The behaviour of this endpoint, every error code, the type gate, the
- * lean-payload flags, the authority check, parity with the per-type endpoint, is covered by {@code
- * MetadataDependencyExportControllerTest}, which runs the same code far more cheaply. What is kept
- * here is only what needs a real, fully wired instance: that the feature works through the real
- * HTTP stack at all, that the merged payload genuinely imports, that real compression and download
- * headers are produced by Tomcat rather than MockMvc, and that the type gate is visible to a real
- * client.
+ * <p>Deliberately small: {@code MetadataDependencyExportControllerTest} covers the behaviour far
+ * more cheaply. Kept here is only what needs a fully wired instance, that the merged payload really
+ * imports and that Tomcat, not MockMvc, produces the compression and download headers.
  */
 public class MetadataDependencyExportTests extends ApiTest {
 
@@ -167,7 +160,7 @@ public class MetadataDependencyExportTests extends ApiTest {
   @DisplayName("The .json.zip suffix returns a zipped attachment")
   public void shouldDownloadAsZip() {
     metadataActions
-        .get("/dependencies.json.zip?object=" + refA() + "&download=true")
+        .get("/dependencies.json.zip?objects=" + refA() + "&download=true")
         .validate()
         .statusCode(200)
         .header("Content-Disposition", equalTo("attachment; filename=metadata.json.zip"))
@@ -187,11 +180,11 @@ public class MetadataDependencyExportTests extends ApiTest {
   }
 
   /**
-   * {@code QueryParamsBuilder} collapses repeated keys, so the repeated {@code object} parameters
+   * {@code QueryParamsBuilder} collapses repeated keys, so the repeated {@code objects} parameters
    * are built by hand.
    */
   private ApiResponse dependencies(String... objects) {
-    String query = Arrays.stream(objects).map(o -> "object=" + o).collect(joining("&"));
+    String query = Arrays.stream(objects).map(o -> "objects=" + o).collect(joining("&"));
     return metadataActions.get("/dependencies?" + query);
   }
 

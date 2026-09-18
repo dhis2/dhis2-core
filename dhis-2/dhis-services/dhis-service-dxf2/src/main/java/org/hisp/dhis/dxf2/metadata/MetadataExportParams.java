@@ -33,7 +33,6 @@ import static org.hisp.dhis.common.collection.CollectionUtils.addAllUnique;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Lists;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -95,12 +94,7 @@ public class MetadataExportParams {
    */
   private boolean skipCreatedAndLastUpdated;
 
-  /**
-   * The objects to be exported with their dependencies. Handled by {@link
-   * MetadataExportService#getMetadataWithDependenciesAsNodeStream(Collection, MetadataExportParams,
-   * OutputStream)}, which merges the dependency closure of every root into a single de-duplicated
-   * result.
-   */
+  /** The roots of a dependency export, merged into one de-duplicated result. */
   private final List<IdentifiableObject> objectsExportWithDependencies = new ArrayList<>();
 
   private boolean download = false;
@@ -226,10 +220,8 @@ public class MetadataExportParams {
   /**
    * The roots of a dependency export, in request order. Never {@code null}, possibly empty.
    *
-   * <p>Marked {@link JsonIgnore} because this params object is the return type of the dependency
-   * export controllers: {@code MetadataExportParamsMessageConverter} claims it for the JSON media
-   * types, but an XML {@code Accept} header would otherwise let a generic Jackson converter reflect
-   * over this bean and serialise whole Hibernate entities.
+   * <p>{@link JsonIgnore} because an XML {@code Accept} header would otherwise let a generic
+   * Jackson converter reflect over this bean and serialise whole Hibernate entities.
    */
   @JsonIgnore
   public List<IdentifiableObject> getObjectsExportWithDependencies() {

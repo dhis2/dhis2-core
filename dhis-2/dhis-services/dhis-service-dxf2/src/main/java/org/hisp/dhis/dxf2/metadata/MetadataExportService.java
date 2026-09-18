@@ -85,13 +85,10 @@ public interface MetadataExportService {
   MetadataExportParams getParamsFromMap(Map<String, List<String>> parameters);
 
   /**
-   * Builds the export params for a dependency export.
-   *
-   * <p>Same as {@link #getParamsFromMap(Map)} followed by {@link #validate(MetadataExportParams)},
-   * except that the class selection is cleared first. A dependency export ignores class selection,
-   * but {@code validate} reads a populated {@code classes} as "this export is filtered" and skips
-   * the {@code F_METADATA_EXPORT} check, so a stray {@code &dataSets=true} would otherwise slip
-   * past it. Kept here so that ordering is not something every caller has to remember.
+   * {@link #getParamsFromMap(Map)} then {@link #validate(MetadataExportParams)}, with the class
+   * selection cleared first. {@code validate} reads populated {@code classes} as "filtered export"
+   * and skips the {@code F_METADATA_EXPORT} check, so a stray {@code &dataSets=true} would slip
+   * past it.
    *
    * @param parameters Key-Value map of wanted parameters
    * @return validated params, with no class selection
@@ -109,12 +106,8 @@ public interface MetadataExportService {
       IdentifiableObject object);
 
   /**
-   * Exports several objects, of possibly differing types, including their dependencies, merged into
-   * a single de-duplicated result.
-   *
-   * <p>This is the fold of {@link #getMetadataWithDependencies(IdentifiableObject)} over the given
-   * roots under set union, so an object reachable from more than one root, including a root that is
-   * itself another root's dependency, appears exactly once.
+   * The fold of {@link #getMetadataWithDependencies(IdentifiableObject)} over the given roots under
+   * set union, so an object reachable from more than one root appears exactly once.
    *
    * @param objects Objects to export including dependencies
    * @return All given objects + the union of their selected dependencies
@@ -123,9 +116,9 @@ public interface MetadataExportService {
       Collection<? extends IdentifiableObject> objects);
 
   /**
-   * The object types that are supported as roots of a dependency export. Any other type yields an
-   * empty result from {@link #getMetadataWithDependencies(IdentifiableObject)}, so callers that
-   * must not produce a silently empty payload should check against this set first.
+   * Any other type yields an empty result from {@link
+   * #getMetadataWithDependencies(IdentifiableObject)}, so callers that must not produce a silently
+   * empty payload should check this first.
    *
    * @return the supported dependency export root types
    */

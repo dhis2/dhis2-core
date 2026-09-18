@@ -57,12 +57,9 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
 
 /**
- * Resolves the {@code object=type:id} references of a multi-object dependency export into the
- * {@link IdentifiableObject} roots to export.
- *
- * <p>Every reference is classified before any object is returned, and every problem is collected
- * rather than the first one thrown, so a caller with several bad references learns about all of
- * them in one response.
+ * Resolves the {@code objects=type:id} references of a multi-object dependency export into the
+ * {@link IdentifiableObject} roots to export, collecting every problem rather than throwing the
+ * first.
  *
  * @author David Mackessy
  */
@@ -71,18 +68,13 @@ import org.springframework.stereotype.Service;
 public class MetadataDependencyRootResolver {
 
   /**
-   * The root types this endpoint currently accepts.
+   * The root types this endpoint accepts, deliberately narrower than {@link
+   * MetadataExportService#getSupportedDependencyRootTypes()}. The traversal has known N+1s for the
+   * other types, one query per category option combo, per data set element, per program stage data
+   * element, and a multi-object request multiplies them. {@code OptionSet} has the shallowest
+   * closure, its options plus any attributes either carries.
    *
-   * <p>Deliberately narrower than {@link MetadataExportService#getSupportedDependencyRootTypes()},
-   * which is every type the traversal can walk and which the per-type {@code /{uid}/metadata}
-   * endpoints continue to serve in full. The dependency traversal has known N+1 query problems for
-   * the other root types, one query per category option combo, one per data set element, one per
-   * program stage data element, and a multi-object export multiplies how much of that a single
-   * request can ask for. {@code OptionSet} is the one root type whose closure is flat (its options,
-   * and nothing else), so it is the one type enabled to begin with.
-   *
-   * <p>Add a type here once its N+1s are fixed. Nothing else needs to change: the merging, the
-   * error contract and the serialisation are all type-agnostic.
+   * <p>Add a type here once its N+1s are fixed, nothing else needs to change.
    */
   public static final Set<Class<? extends IdentifiableObject>> ENABLED_ROOT_TYPES =
       Set.of(OptionSet.class);
@@ -93,13 +85,10 @@ public class MetadataDependencyRootResolver {
   private final MetadataExportService metadataExportService;
 
   /**
-   * Resolves the given {@code type:id} tokens.
+   * Loads with one batched ACL-aware query per type. An object the user may not read is reported
+   * the same way as one that does not exist.
    *
-   * <p>Objects are loaded with one batched ACL-aware query per type. An object the current user may
-   * not read comes back missing and is reported the same way as one that does not exist, the
-   * response does not distinguish the two.
-   *
-   * @param tokens the raw {@code object} parameter values
+   * @param tokens the raw {@code objects} parameter values
    * @return the resolved roots, or every reason resolution failed
    */
   public MetadataDependencyRoots resolve(@CheckForNull Collection<String> tokens) {
@@ -131,9 +120,8 @@ public class MetadataDependencyRootResolver {
   }
 
   /**
-   * Classifies each reference in request order, in the order unknown type, unsupported root type,
-   * not yet enabled, invalid UID. References that survive are returned for loading, de-duplicated
-   * by the object they denote rather than by their spelling, so {@code optionSet:X} and {@code
+   * Classifies in request order, reporting the first failing check per reference. Survivors are
+   * de-duplicated by the object they denote, not their spelling, so {@code optionSet:X} and {@code
    * optionSets:X} are walked once.
    */
   private List<TypedReference> classify(
@@ -213,10 +201,9 @@ public class MetadataDependencyRootResolver {
   }
 
   /**
-   * Resolves a schema name to its class. The singular form is canonical and delegates to {@link
-   * AclService#classForType}; the plural form is accepted as a fallback because it is what appears
-   * as the key in the exported payload. Singular is tried first so the lookup stays deterministic
-   * and cannot become ambiguous as schemas are added.
+   * Singular is canonical, via {@link AclService#classForType}, and tried first so the lookup
+   * cannot become ambiguous as schemas are added. Plural is accepted because it is the key in the
+   * exported payload.
    */
   @CheckForNull
   @SuppressWarnings("unchecked")
@@ -243,9 +230,7 @@ public class MetadataDependencyRootResolver {
         .collect(joining(", "));
   }
 
-  /**
-   * A reference that survived classification, with the class it names and the token it came from.
-   */
+  /** A reference that survived classification, paired with the class its type name resolved to. */
   private record TypedReference(
       MetadataObjectReference reference, Class<? extends IdentifiableObject> type) {}
 

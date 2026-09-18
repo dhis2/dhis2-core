@@ -200,19 +200,14 @@ public class MetadataImportExportController {
 
   /**
    * Exports several objects, of possibly differing types, with their dependencies, merged into one
-   * de-duplicated payload.
+   * de-duplicated payload. Each {@code objects} parameter names objects of one type, {@code
+   * objects=optionSet:abc,def}, repeated when the type changes.
    *
-   * <p>Each {@code object} parameter is a {@code type:id} pair, where {@code type} is a singular
-   * schema name (the plural form is accepted too). An object reachable from more than one of the
-   * requested roots, including a root that is itself another root's dependency, appears exactly
-   * once.
-   *
-   * <p>Deliberately declares no {@code produces}: the response is written by {@code
-   * MetadataExportParamsMessageConverter}, and a {@code produces} would make the {@code .json.zip}
-   * / {@code .json.gz} suffixes fail content negotiation. For the same reason the {@code
-   * Content-Disposition} header is left to that converter rather than set here.
+   * <p>Declares no {@code produces} and sets no {@code Content-Disposition}: both belong to {@code
+   * MetadataExportParamsMessageConverter}, and a {@code produces} would break the {@code .json.zip}
+   * and {@code .json.gz} suffixes.
    */
-  @OpenApi.Param(name = "object", value = String[].class)
+  @OpenApi.Param(name = "objects", value = String[].class)
   @OpenApi.Response(status = OpenApi.Response.Status.OK, value = Metadata.class)
   @GetMapping("/dependencies")
   public ResponseEntity<MetadataExportParams> getMetadataWithDependencies()
@@ -225,7 +220,7 @@ public class MetadataImportExportController {
     // comma separated value into separate list entries, which would tear `optionSet:a,b` into
     // `optionSet:a` and a type-less `b`
     MetadataDependencyRoots roots =
-        dependencyRootResolver.resolve(contextService.getParameterValues("object"));
+        dependencyRootResolver.resolve(contextService.getParameterValues("objects"));
 
     if (roots.hasErrors()) {
       throw new WebMessageException(

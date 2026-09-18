@@ -111,7 +111,7 @@ class MetadataDependencyRootResolverTest {
   @Test
   @DisplayName("A traversal root type that is not yet enabled here is reported separately")
   void notYetEnabledRootTypeIsReported() {
-    // DataSet is a real dependency-export root -- /api/dataSets/{id}/metadata still serves it --
+    // DataSet is a real dependency-export root, /api/dataSets/{id}/metadata still serves it,
     // but it is gated out of the multi-object endpoint until its N+1s are fixed
     assertErrorCodes(resolver.resolve(List.of("dataSet:" + DATA_SET_UID)), ErrorCode.E6029);
   }

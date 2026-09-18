@@ -228,11 +228,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
       schema -> schema.getKlass() != EventChart.class && schema.getKlass() != EventReport.class;
 
   /**
-   * The types supported as roots of a dependency export. Kept in step with the dispatch in {@link
-   * #getMetadataWithDependencies(IdentifiableObject)}, which returns an empty result for anything
-   * else. What holds the two together is {@code
-   * DefaultMetadataExportServiceMultiObjectTest#supportedRootTypesMatchTheDispatch} and {@code
-   * MetadataExportMultipleDependenciesTest#declaredSupportedRootTypesProduceOutput}.
+   * Kept in step with the dispatch in {@link #getMetadataWithDependencies(IdentifiableObject)},
+   * which is empty for anything else. Pinned by {@code
+   * DefaultMetadataExportServiceMultiObjectTest#supportedRootTypesMatchTheDispatch}.
    */
   private static final Set<Class<? extends IdentifiableObject>> SUPPORTED_DEPENDENCY_ROOT_TYPES =
       Set.of(
@@ -571,22 +569,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
   }
 
   /**
-   * Unions the dependency closure of every given root into one result.
+   * Unions the dependency closure of every root into one result. De-duplication is the union
+   * itself: {@link SetMap} adds into a {@link java.util.HashSet}, so objects collapse by whatever
+   * {@code equals} their type declares, which is always at least uid, code and name.
    *
-   * <p>De-duplication is the union itself rather than a separate pass: every closure is merged into
-   * one {@link SetMap}, so an object reachable from several roots, including a root that is another
-   * root's dependency, is stored once.
-   *
-   * <p>There is no comparison logic here. {@link SetMap#putValues} adds into a {@link
-   * java.util.HashSet}, so what counts as "already present" is {@link
-   * org.hisp.dhis.common.BaseIdentifiableObject#equals}: the same real class (proxy-safe) and equal
-   * uid, code and name. That comparison is {@code final}, so no metadata type can change it. Two
-   * distinct instances of the same row therefore collapse as well, not only repeated references to
-   * one instance.
-   *
-   * <p>This method carries its own transaction because the per-root call below is a self-invocation
-   * and so does not go through the Spring proxy. The whole traversal walks lazy Hibernate
-   * collections and needs a single session spanning all roots.
+   * <p>Carries its own transaction, since the per-root call is a self-invocation that bypasses the
+   * proxy and the traversal needs one session spanning all roots.
    */
   @Override
   @Transactional(readOnly = true)

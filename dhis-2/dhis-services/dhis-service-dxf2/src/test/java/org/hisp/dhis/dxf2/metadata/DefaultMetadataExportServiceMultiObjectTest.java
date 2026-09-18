@@ -60,9 +60,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * Unit tests for the multi-root dependency export in {@link DefaultMetadataExportService}.
  *
- * <p>These pin the three properties the feature rests on: the fold of one root is the single-root
- * call (so the existing endpoints cannot drift), closures of different types merge, and an object
- * reached from more than one root appears exactly once.
+ * <p>Pins the three properties the feature rests on: the fold of one root equals the single-root
+ * call, closures of different types merge, and an object reached from more than one root appears
+ * once.
  *
  * @author David Mackessy
  */

@@ -34,15 +34,11 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * The outcome of resolving the {@code object=type:id} references of a multi-object dependency
- * export.
- *
- * <p>Resolution is all-or-nothing: every reference is classified before anything is returned, so a
- * caller gets either all the roots it asked for or a complete list of what was wrong with its
- * request. A partially resolved export would silently drop objects from the payload.
+ * The outcome of resolving the {@code objects} references of a multi-object dependency export.
+ * All-or-nothing, since a partially resolved export would silently drop objects.
  *
  * @param objects the resolved roots, in request order; empty when there are any errors
- * @param errors every problem found, in request order; empty on success
+ * @param errors every problem found, grouped by the stage that found it; empty on success
  * @author David Mackessy
  */
 public record MetadataDependencyRoots(List<IdentifiableObject> objects, List<ErrorReport> errors) {

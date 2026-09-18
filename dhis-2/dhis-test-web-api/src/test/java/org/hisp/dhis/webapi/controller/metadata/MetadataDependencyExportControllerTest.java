@@ -55,11 +55,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Tests {@code GET /api/metadata/dependencies}, the multi-object dependency export (DHIS2-21899).
  *
- * <p>The endpoint is currently gated to {@code OptionSet}, see {@code
- * MetadataDependencyRootResolver.ENABLED_ROOT_TYPES}, because the dependency traversal has known
- * N+1 query problems for the other root types. The fixture therefore uses two option sets that
- * share one custom {@link Attribute}: an {@link Option} belongs to exactly one {@link OptionSet},
- * so a shared attribute is the only way two enabled roots can share a dependency.
+ * <p>Gated to {@code OptionSet}, see {@code MetadataDependencyRootResolver.ENABLED_ROOT_TYPES}. An
+ * {@link Option} belongs to exactly one {@link OptionSet}, so a shared {@link Attribute} is the
+ * only way two enabled roots can share a dependency, and that is what the fixture builds.
  *
  * @author David Mackessy
  */
@@ -143,10 +141,10 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
   }
 
   @Test
-  @DisplayName("One object parameter may name several objects of the same type")
+  @DisplayName("One objects parameter may name several objects of the same type")
   void commaSeparatedIdsInOneParameter() {
     JsonMixed json =
-        GET("/metadata/dependencies?object=optionSet:"
+        GET("/metadata/dependencies?objects=optionSet:"
                 + optionSetA.getUid()
                 + ","
                 + optionSetB.getUid())
@@ -163,7 +161,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
   @DisplayName("A comma list gives the same payload as repeating the parameter")
   void commaListMatchesRepeatedParameters() {
     JsonMixed viaCommaList =
-        GET("/metadata/dependencies?object=optionSet:"
+        GET("/metadata/dependencies?objects=optionSet:"
                 + optionSetA.getUid()
                 + ","
                 + optionSetB.getUid())
@@ -235,7 +233,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
   @Test
   @DisplayName("The .json.zip suffix returns a zipped attachment")
   void zipSuffixReturnsZippedAttachment() {
-    HttpResponse res = GET("/metadata/dependencies.json.zip?object=" + refA() + "&download=true");
+    HttpResponse res = GET("/metadata/dependencies.json.zip?objects=" + refA() + "&download=true");
 
     assertEquals(HttpStatus.OK, res.status());
     assertEquals("attachment; filename=metadata.json.zip", res.header("Content-Disposition"));
@@ -272,7 +270,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
   }
 
   @Test
-  @DisplayName("No object parameter at all is rejected")
+  @DisplayName("No objects parameter at all is rejected")
   void missingObjectParameterIsRejected() {
     assertErrorCodes(GET("/metadata/dependencies"), "E6028");
   }
@@ -307,7 +305,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
   @Test
   @DisplayName("A bad reference is still reported as JSON under a compressed suffix")
   void errorUnderCompressedSuffixIsStillReported() {
-    assertErrorCodes(GET("/metadata/dependencies.json.zip?object=optionSet:aaaaaaaaaaa"), "E1113");
+    assertErrorCodes(GET("/metadata/dependencies.json.zip?objects=optionSet:aaaaaaaaaaa"), "E1113");
   }
 
   // -------------------------------------------------------------------------
@@ -348,7 +346,7 @@ class MetadataDependencyExportControllerTest extends H2ControllerIntegrationTest
 
   private static String dependencies(String... objects) {
     return "/metadata/dependencies?"
-        + String.join("&", Arrays.stream(objects).map(o -> "object=" + o).toList());
+        + String.join("&", Arrays.stream(objects).map(o -> "objects=" + o).toList());
   }
 
   private static List<String> sorted(String... uids) {

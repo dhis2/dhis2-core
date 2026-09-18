@@ -34,29 +34,19 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 /**
- * A reference to a single metadata object, as named by an {@code object=type:id} request parameter
- * of the multi-object dependency export.
- *
- * <p>{@code type} is a schema name. The singular form is canonical, matching {@code
- * /api/sharing?type=} and {@code AclService#classForType}; the plural form is also accepted because
- * it is what appears as the key in the exported payload.
- *
- * <p>One parameter may name several objects of the same type, {@code object=optionSet:abc,def}, so
- * a caller repeats {@code object} only when the type changes.
+ * A reference to one metadata object, from an {@code objects=type:id} parameter of the multi-object
+ * dependency export. One parameter may name several objects of a type, {@code
+ * objects=optionSet:abc,def}.
  *
  * @author David Mackessy
  */
 public record MetadataObjectReference(String type, String id) {
 
   /**
-   * Parses a {@code type:id} token, where the id part may be a comma separated list.
+   * Splits on the first colon only, so extra colons stay in the id and fail UID validation later.
    *
-   * <p>Splits on the first colon only, so a token with extra colons keeps them in the id and is
-   * rejected later as an invalid UID rather than being silently re-interpreted.
-   *
-   * @param token the raw parameter value
-   * @return one reference per id, in the order given, or an empty list when the token is not of the
-   *     form {@code type:id[,id...]}
+   * @param token a {@code type:id} value, where the id part may be a comma separated list
+   * @return one reference per id, in order, or empty if the token is malformed or any id is blank
    */
   @Nonnull
   public static List<MetadataObjectReference> parseAll(String token) {
