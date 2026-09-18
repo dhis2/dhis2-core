@@ -27,14 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.timeout;
+package org.hisp.dhis.deadline;
 
 import java.time.Duration;
 import org.springframework.dao.DataAccessException;
 
 /**
- * Thrown when a tracker export request has used up its {@code tracker.export.timeout} budget. Maps
- * to HTTP 504 Gateway Timeout.
+ * Thrown when a request has used up the time budget set for it. Maps to HTTP 504 Gateway Timeout.
  *
  * <p>Extends {@link DataAccessException} so it can be returned from {@code JdbcTemplate}'s
  * exception translation, which is where a query cancelled by the deadline surfaces.
@@ -55,6 +54,6 @@ public class DeadlineExceededException extends DataAccessException {
   }
 
   private static String message(Duration budget) {
-    return "Tracker export exceeded its time budget of %ss".formatted(budget.toSeconds());
+    return "Request exceeded its time budget of %ss".formatted(budget.toSeconds());
   }
 }
