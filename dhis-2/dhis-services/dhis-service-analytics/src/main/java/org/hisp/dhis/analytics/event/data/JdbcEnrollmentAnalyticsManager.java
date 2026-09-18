@@ -38,16 +38,18 @@ import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -367,18 +369,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + ") ";
     } else // Descendants
     {
-      sql += hlp.whereAnd() + " (";
-
-      for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
-        OrganisationUnit unit = (OrganisationUnit) object;
-        sql +=
-            params.getOrgUnitField().getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
-                + " = '"
-                + unit.getUid()
-                + "' or ";
-      }
-
-      sql = removeLastOr(sql) + ") ";
+      sql += getDescendantsCondition(params, hlp);
     }
 
     // ---------------------------------------------------------------------
@@ -485,6 +476,58 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return sql;
+  }
+
+  /**
+   * It gets the OU items and its respective levels, and generates a SQL condition/filter that
+   * checks if the respective level matches any descendant.
+   *
+   * @param params the {@link EventQueryParams} where OU items are retrieved from.
+   * @param hlp the {@link SqlHelper} used to append the right operator.
+   * @return the SQL statement.
+   */
+  String getDescendantsCondition(EventQueryParams params, SqlHelper hlp) {
+    List<DimensionalItemObject> orgUnitItems = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
+    Map<Integer, Set<String>> levelsOus = new HashMap<>();
+    String condition = "";
+    String orClause = "";
+
+    for (DimensionalItemObject orgUnitItem : orgUnitItems) {
+      OrganisationUnit orgUnit = (OrganisationUnit) orgUnitItem;
+      Set<String> ouUids = levelsOus.get(orgUnit.getLevel());
+
+      if (ouUids == null) {
+        ouUids = new HashSet<>();
+      }
+
+      ouUids.add(orgUnit.getUid());
+      levelsOus.put(orgUnit.getLevel(), ouUids);
+    }
+
+    boolean or = false;
+
+    for (Entry<Integer, Set<String>> levelOu : levelsOus.entrySet()) {
+      String column =
+          params
+              .getOrgUnitField()
+              .withSqlBuilder(sqlBuilder)
+              .getOrgUnitLevelCol(levelOu.getKey(), getAnalyticsType());
+      orClause =
+          orClause.concat(
+              (or ? " or " : EMPTY)
+                  + column
+                  + " in ("
+                  + getQuotedCommaDelimitedString(levelOu.getValue())
+                  + ")");
+
+      or = true;
+    }
+
+    if (!orClause.isEmpty()) {
+      condition = hlp.whereAnd() + " (" + orClause + ") ";
+    }
+
+    return condition;
   }
 
   @Override

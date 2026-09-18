@@ -43,6 +43,8 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -82,6 +84,8 @@ public class OrgUnitField {
   private final String field;
 
   private final OrgUnitFieldType type;
+
+  private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   public OrgUnitField(String field) {
     this.field = field;
@@ -163,6 +167,11 @@ public class OrgUnitField {
    */
   public String getOrgUnitWhereCol(AnalyticsType analyticsType) {
     return getTableAndColumn(ANALYTICS_TBL_ALIAS, getOuUidColumn(analyticsType), true);
+  }
+
+  public OrgUnitField withSqlBuilder(SqlBuilder sqlBuilder) {
+    this.sqlBuilder = sqlBuilder;
+    return this;
   }
 
   // -------------------------------------------------------------------------
