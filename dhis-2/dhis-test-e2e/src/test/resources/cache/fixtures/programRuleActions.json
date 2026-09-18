@@ -1,0 +1,29 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgPRA01",
+      "name": "Cache Program for PRA",
+      "shortName": "Cache PRA Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "programRules": [
+    {
+      "id": "CchPR000001",
+      "name": "Cache Rule for PRA",
+      "program": { "id": "CchPrgPRA01" },
+      "condition": "true"
+    }
+  ],
+  "programRuleActions": [
+    {
+      "id": "CchPRA00001",
+      "programRule": { "id": "CchPR000001" },
+      "programRuleActionType": "SHOWWARNING",
+      "content": "Cache test warning"
+    }
+  ]
+}
