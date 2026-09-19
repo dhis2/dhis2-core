@@ -1,0 +1,8 @@
+services:
+  web:
+    volumes:
+      - ./docker/chap/dhis-chap.conf:/opt/dhis2/dhis.conf:ro
+
+  db-dump:
+    environment:
+      DHIS2_DB_DUMP_URL: "https://databases.dhis2.org/climate/laos/2.42/demo.sql.gz"
