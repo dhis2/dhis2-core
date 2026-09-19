@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -183,7 +183,7 @@ public class HibernateDataExportStore implements DataExportStore {
         SELECT DISTINCT ou.organisationunitid
         FROM ou_ids
         JOIN organisationunit root USING (organisationunitid)
-        JOIN organisationunit ou ON ou.path LIKE root.path || '%'
+        JOIN organisationunit ou ON ou.patharray @> root.patharray
       ),
       aoc_access AS MATERIALIZED (
         SELECT aoc.categoryoptioncomboid, aoc.uid
