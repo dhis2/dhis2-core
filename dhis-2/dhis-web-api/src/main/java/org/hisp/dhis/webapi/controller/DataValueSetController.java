@@ -35,10 +35,18 @@ import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX_ZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -207,14 +215,7 @@ public class DataValueSetController {
       DataExportParams.Input params, HttpServletResponse response)
       throws HttpMessageNotWritableException {
     return () -> {
-      String contentType =
-          switch (params.getFormat()) {
-            case "xml" -> CONTENT_TYPE_XML;
-            case "adx+xml" -> CONTENT_TYPE_XML_ADX;
-            case "csv" -> CONTENT_TYPE_CSV;
-            default -> CONTENT_TYPE_JSON;
-          };
-      response.setContentType(contentType);
+      response.setContentType(contentType(params.getFormat(), params.getCompression()));
       // file download only if attachment is explicitly specified for no-compression option.
       if (params.getCompression() != Compression.NONE || params.getAttachment() == null) {
         response.setHeader(
@@ -227,6 +228,37 @@ public class DataValueSetController {
       } catch (IOException ex) {
         throw new UncheckedIOException(ex);
       }
+    };
+  }
+
+  /**
+   * The content type must describe the bytes actually written to the response: when the export is
+   * compressed the body is a gzip/zip container, not the plain format. Uses the same {@code
+   * +gzip}/{@code +zip} media types as the metadata and tracker exports.
+   */
+  private static String contentType(String format, Compression compression) {
+    return switch (compression) {
+      case NONE ->
+          switch (format) {
+            case "xml" -> CONTENT_TYPE_XML;
+            case "adx+xml" -> CONTENT_TYPE_XML_ADX;
+            case "csv" -> CONTENT_TYPE_CSV;
+            default -> CONTENT_TYPE_JSON;
+          };
+      case GZIP ->
+          switch (format) {
+            case "xml" -> CONTENT_TYPE_XML_GZIP;
+            case "adx+xml" -> CONTENT_TYPE_XML_ADX_GZIP;
+            case "csv" -> CONTENT_TYPE_CSV_GZIP;
+            default -> CONTENT_TYPE_JSON_GZIP;
+          };
+      case ZIP ->
+          switch (format) {
+            case "xml" -> CONTENT_TYPE_XML_ZIP;
+            case "adx+xml" -> CONTENT_TYPE_XML_ADX_ZIP;
+            case "csv" -> CONTENT_TYPE_CSV_ZIP;
+            default -> CONTENT_TYPE_JSON_ZIP;
+          };
     };
   }
 }
