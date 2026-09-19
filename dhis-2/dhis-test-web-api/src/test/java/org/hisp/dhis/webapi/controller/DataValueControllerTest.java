@@ -33,6 +33,7 @@ import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
@@ -44,8 +45,12 @@ import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
 /**
@@ -188,6 +193,54 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
             .getResponse()
             .getHeader("Content-Disposition")
             .contains("dataValues_2022-01-01_2022-01-30.json.zip"));
+  }
+
+  @ParameterizedTest(name = "format={0} compression={1}")
+  @DisplayName("Content-Type reflects the (compressed) bytes written to the response")
+  @CsvSource({
+    "json,none,application/json,",
+    "json,gzip,application/json+gzip,dataValues.json.gz",
+    "json,zip,application/json+zip,dataValues.json.zip",
+    "csv,none,application/csv,",
+    "csv,gzip,application/csv+gzip,dataValues.csv.gz",
+    "csv,zip,application/csv+zip,dataValues.csv.zip",
+    "xml,none,application/xml,",
+    "xml,gzip,application/xml+gzip,dataValues.xml.gz",
+    "xml,zip,application/xml+zip,dataValues.xml.zip",
+    "adx+xml,none,application/adx+xml,",
+    "adx+xml,gzip,application/adx+xml+gzip,dataValues.xml.gz",
+    "adx+xml,zip,application/adx+xml+zip,dataValues.xml.zip",
+  })
+  void testGetDataValueSet_ContentTypeMatchesCompression(
+      String format, String compression, String expectedMediaType, String expectedFilename) {
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
+                    + dataElementId
+                    + "'}}]}"));
+    switchToUserWithOrgUnitDataView("A", orgUnitId);
+
+    HttpResponse response =
+        GET(
+            "/dataValueSets?orgUnit={ou}&period=202201&dataSet={ds}&format={format}&compression={compression}",
+            orgUnitId,
+            dsId,
+            format,
+            compression);
+
+    assertEquals(HttpStatus.OK, response.status());
+    MediaType contentType = MediaType.parseMediaType(response.header("Content-Type"));
+    assertEquals(expectedMediaType, contentType.getType() + "/" + contentType.getSubtype());
+    if (expectedFilename == null) {
+      assertNull(response.header("Content-Disposition"));
+    } else {
+      assertEquals(
+          "attachment; filename=" + expectedFilename, response.header("Content-Disposition"));
+      assertEquals("binary", response.header("Content-Transfer-Encoding"));
+    }
   }
 
   private void assertFollowups(boolean... expected) {
