@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -222,6 +223,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsContinuousAnalytics() {
+    return true;
+  }
+
+  @Override
+  public boolean requiresUniqueKeyAnalyticsTables() {
+    return true;
+  }
+
+  @Override
   public boolean supportsPercentileCont() {
     return false;
   }
@@ -370,7 +381,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Columns
 
     if (table.hasColumns()) {
-      String columns = toCommaSeparated(table.getColumns(), this::toColumnString);
+      String columns = toCommaSeparated(getOrderedColumns(table), this::toColumnString);
 
       sql.append("(").append(columns).append(") engine = olap ");
     }
@@ -448,6 +459,37 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
+   * Returns the table's columns ordered so that primary key columns appear first, in their declared
+   * order, followed by the remaining columns in their original order. Doris requires key columns
+   * (for both the unique key and duplicate key models) to be an ordered leading prefix of the table
+   * schema.
+   *
+   * @param table the {@link Table}.
+   * @return the ordered list of {@link Column}.
+   */
+  private List<Column> getOrderedColumns(Table table) {
+    if (!table.hasPrimaryKey()) {
+      return table.getColumns();
+    }
+
+    Map<String, Column> columnsByName =
+        table.getColumns().stream().collect(Collectors.toMap(Column::getName, c -> c));
+
+    List<Column> keyColumns =
+        table.getPrimaryKey().stream().map(columnsByName::get).collect(Collectors.toList());
+
+    List<Column> otherColumns =
+        table.getColumns().stream()
+            .filter(c -> !table.getPrimaryKey().contains(c.getName()))
+            .collect(Collectors.toList());
+
+    List<Column> orderedColumns = new ArrayList<>(keyColumns);
+    orderedColumns.addAll(otherColumns);
+
+    return orderedColumns;
+  }
+
+  /**
    * Returns a column definition string.
    *
    * @param column the {@link Column}.
@@ -506,7 +548,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         """
         select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' \
+        where t.table_schema = database() \
         and t.table_name = %s;""",
         singleQuote(name));
   }
