@@ -76,29 +76,12 @@ public abstract class PeriodType implements Serializable {
           .withMaximumSize(30000)
           .build();
 
-  protected String label;
-
-  protected transient String displayLabel;
-
   private String getCacheKey(Date date) {
     return getCalendar().name() + getName() + date.getTime();
   }
 
   private String getCacheKey(org.hisp.dhis.calendar.Calendar calendar, Date date) {
     return calendar.name() + getName() + date.getTime();
-  }
-
-  public String getLabel() {
-    return label;
-  }
-
-  public void setLabel(String label) {
-    this.label = label;
-  }
-
-  public String getDisplayLabel() {
-    // TODO: Return actual displayLabel.
-    return label;
   }
 
   /**
@@ -219,24 +202,6 @@ public abstract class PeriodType implements Serializable {
     }
 
     return null;
-  }
-
-  /**
-   * Get period type according to natural order order.
-   *
-   * @param index the index of the period type with base 1
-   * @return period type according to index order or null if no match TODO: Consider manual
-   *     ordering, since relying on natural order might create problems if new periods are
-   *     introduced.
-   */
-  public static PeriodType getByIndex(int index) {
-    index -= 1;
-
-    if (index < 0 || index > PERIOD_TYPES.size() - 1) {
-      return null;
-    }
-
-    return PERIOD_TYPES.get(index);
   }
 
   /**
@@ -386,6 +351,7 @@ public abstract class PeriodType implements Serializable {
     return toIsoPeriod(dateTimeUnit, dateTimeUnit);
   }
 
+  @Nonnull
   public abstract String getIso8601Duration();
 
   public abstract Period createPeriod(
@@ -569,6 +535,7 @@ public abstract class PeriodType implements Serializable {
    *
    * @return the iso8601 format.
    */
+  @Nonnull
   public abstract String getIsoFormat();
 
   // -------------------------------------------------------------------------
