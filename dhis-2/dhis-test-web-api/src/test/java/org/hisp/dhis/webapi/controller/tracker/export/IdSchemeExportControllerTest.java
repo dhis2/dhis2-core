@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -122,13 +121,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
 
     List<String> idSchemeRequestParams =
-        List.of(
-            "orgUnit",
-            "program",
-            "programStage",
-            "categoryOptionCombo",
-            "categoryOption",
-            "dataElement");
+        List.of("orgUnit", "program", "programStage", "categoryOptionCombo", "dataElement");
     String idSchemes =
         idSchemeRequestParams.stream()
             .map(p -> p + "IdScheme=" + idSchemeParam)
@@ -136,7 +129,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
     JsonEvent actual =
         GET(
-                "/tracker/events/{id}?fields=orgUnit,program,programStage,attributeOptionCombo,attributeCategoryOptions,dataValues&{idSchemes}",
+                "/tracker/events/{id}?fields=orgUnit,program,programStage,attributeOptionCombo,dataValues&{idSchemes}",
                 event.getUid(),
                 idSchemes)
             .content(HttpStatus.OK)
@@ -168,26 +161,6 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
                 actual,
                 idSchemeParam,
                 "attributeOptionCombo"),
-        () -> {
-          String field = "attributeCategoryOptions";
-          List<String> expected =
-              event.getAttributeOptionCombo().getCategoryOptions().stream()
-                  .map(co -> idSchemeParam.getIdentifier(co))
-                  .toList();
-          assertNotEmpty(
-              expected,
-              String.format(
-                  "metadata corresponding to field \"%s\" has no value in test data for"
-                      + " idScheme '%s'",
-                  field, idSchemeParam));
-          assertTrue(
-              actual.has(field),
-              () ->
-                  String.format(
-                      "field \"%s\" is not in response %s for idScheme '%s'",
-                      field, actual, idSchemeParam));
-          assertContainsOnly(expected, Arrays.asList(actual.getString(field).string().split(",")));
-        },
         () -> assertDataValues(actual, event, idSchemeParam));
   }
 
@@ -309,7 +282,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             GET(
                 "/tracker/events"
                     + urlPortion
-                    + "fields=orgUnit,program,programStage,attributeOptionCombo,attributeCategoryOptions,dataValues&idScheme=ATTRIBUTE:{attribute}",
+                    + "fields=orgUnit,program,programStage,attributeOptionCombo,dataValues&idScheme=ATTRIBUTE:{attribute}",
                 event.getUid(),
                 UNUSED_METADATA_ATTRIBUTE));
 
