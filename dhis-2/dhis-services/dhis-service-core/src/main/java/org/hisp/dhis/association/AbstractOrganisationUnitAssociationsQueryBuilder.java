@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -209,8 +209,23 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
   private String getUserOrgUnitPathsFilter(Set<String> userOrgUnitPaths) {
     return Stream.concat(
             Stream.of("ou.organisationunitid is null"),
-            userOrgUnitPaths.stream()
-                .map(userOrgUnitPath -> "ou.path like '" + userOrgUnitPath + "%'"))
+            userOrgUnitPaths.stream().map(this::patharrayContainsCondition))
         .collect(joining(" or ", "(", ")"));
+  }
+
+  /**
+   * Descendant-or-self test for a user org unit, expressed as array containment against the {@code
+   * patharray} column instead of a {@code path like '<path>%'} prefix match. {@code patharray} is
+   * GIN-indexed (see {@code organisationunit_patharray_gin}), whereas a per-row LIKE prefix can
+   * never use an index since the pattern isn't a plan-time constant — same fix already applied to
+   * the dataValueSets export descendant query.
+   */
+  private String patharrayContainsCondition(String userOrgUnitPath) {
+    String patharrayLiteral =
+        Arrays.stream(userOrgUnitPath.split("/"))
+            .filter(uid -> !uid.isEmpty())
+            .map(SqlUtils::singleQuote)
+            .collect(joining(",", "ARRAY[", "]::varchar[]"));
+    return "ou.patharray @> " + patharrayLiteral;
   }
 }
