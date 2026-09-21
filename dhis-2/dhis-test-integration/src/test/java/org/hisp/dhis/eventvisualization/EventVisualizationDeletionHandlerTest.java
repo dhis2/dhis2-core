@@ -40,9 +40,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 class EventVisualizationDeletionHandlerTest extends IntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
@@ -54,26 +52,34 @@ class EventVisualizationDeletionHandlerTest extends IntegrationTestBase {
   @DisplayName(
       "deleting a Program Indicator used as a line list program indicator dimension succeeds and removes the dangling dimension")
   void testDeleteProgramIndicatorUsedInProgramIndicatorDimension() {
-    Program program = createProgram('A');
-    programService.addProgram(program);
+    // dbmsManager.clearSession()/flushSession() call entityManager.flush() directly, which
+    // requires an active Spring-managed transaction; IntegrationTestBase only binds a session
+    // (no transaction), so this runs inside an explicit transactionTemplate block.
+    transactionTemplate.execute(
+        status -> {
+          Program program = createProgram('A');
+          programService.addProgram(program);
 
-    ProgramIndicator programIndicator =
-        createProgramIndicator('A', program, "V{enrollment_count}", "true");
-    manager.save(programIndicator);
+          ProgramIndicator programIndicator =
+              createProgramIndicator('A', program, "V{enrollment_count}", "true");
+          manager.save(programIndicator);
 
-    EventVisualization eventVisualization = createEventVisualization('A', program);
-    eventVisualization
-        .getProgramIndicatorDimensions()
-        .add(new TrackedEntityProgramIndicatorDimension(programIndicator, null, null));
-    eventVisualizationStore.save(eventVisualization);
-    dbmsManager.clearSession();
+          EventVisualization eventVisualization = createEventVisualization('A', program);
+          eventVisualization
+              .getProgramIndicatorDimensions()
+              .add(new TrackedEntityProgramIndicatorDimension(programIndicator, null, null));
+          eventVisualizationStore.save(eventVisualization);
+          dbmsManager.clearSession();
 
-    manager.delete(manager.get(ProgramIndicator.class, programIndicator.getUid()));
-    dbmsManager.flushSession();
+          manager.delete(manager.get(ProgramIndicator.class, programIndicator.getUid()));
+          dbmsManager.flushSession();
 
-    assertNull(manager.get(ProgramIndicator.class, programIndicator.getUid()));
+          assertNull(manager.get(ProgramIndicator.class, programIndicator.getUid()));
 
-    EventVisualization reloaded = eventVisualizationStore.getByUid(eventVisualization.getUid());
-    assertTrue(reloaded.getProgramIndicatorDimensions().isEmpty());
+          EventVisualization reloaded =
+              eventVisualizationStore.getByUid(eventVisualization.getUid());
+          assertTrue(reloaded.getProgramIndicatorDimensions().isEmpty());
+          return null;
+        });
   }
 }
