@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -82,7 +83,7 @@ public class TrackedEntityAggregate {
     // bounds itself through DeadlineAwareJdbcTemplate.
     DeadlineHolder.checkNotExpired();
 
-    Multimap<String, TrackedEntityAttributeValue> attributes =
+    Multimap<Long, TrackedEntityAttributeValue> attributes =
         fields.isIncludesAttributes()
             ? trackedEntityStore.getAttributes(ids, programId)
             : ImmutableMultimap.of();
@@ -92,7 +93,7 @@ public class TrackedEntityAggregate {
             ? enrollmentAggregate.findByTrackedEntities(trackedEntities, ctx)
             : ImmutableMultimap.of();
 
-    Multimap<String, TrackedEntityProgramOwner> programOwners =
+    Multimap<Long, TrackedEntityProgramOwner> programOwners =
         fields.isIncludesProgramOwners()
             ? trackedEntityStore.getProgramOwners(ids)
             : ImmutableMultimap.of();
@@ -100,10 +101,13 @@ public class TrackedEntityAggregate {
     return trackedEntities.stream()
         .map(
             te -> {
-              String uid = te.getUid();
-              te.setTrackedEntityAttributeValues(new LinkedHashSet<>(attributes.get(uid)));
-              te.setEnrollments(new HashSet<>(enrollments.get(uid)));
-              te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+              te.setTrackedEntityAttributeValues(new LinkedHashSet<>(attributes.get(te.getId())));
+              te.setEnrollments(new HashSet<>(enrollments.get(te.getUid())));
+
+              // The store cannot set the owning tracked entity, it only selected the id.
+              Collection<TrackedEntityProgramOwner> owners = programOwners.get(te.getId());
+              owners.forEach(owner -> owner.setTrackedEntity(te));
+              te.setProgramOwners(new HashSet<>(owners));
               return te;
             })
         .toList();

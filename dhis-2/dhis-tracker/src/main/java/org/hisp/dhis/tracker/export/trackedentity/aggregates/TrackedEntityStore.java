@@ -61,13 +61,12 @@ class TrackedEntityStore {
   // language=SQL
   private static final String GET_TE_ATTRIBUTES_WITHOUT_PROGRAM =
       """
-      select te.uid as te_uid, teav.created, teav.lastupdated, teav.updatedby, teav.value,
-             tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
+      select teav.trackedentityid as te_id, teav.created, teav.lastupdated, teav.updatedby,
+             teav.value, tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
              tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype,
              tea.skipsynchronization as tea_skipsynchronization
       from trackedentityattributevalue teav
       join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
-      join trackedentity te on teav.trackedentityid = te.trackedentityid
       where teav.trackedentityid in (:ids)
         and teav.trackedentityattributeid in (
           select teta.trackedentityattributeid from trackedentitytypeattribute teta
@@ -76,13 +75,12 @@ class TrackedEntityStore {
   // language=SQL
   private static final String GET_TE_ATTRIBUTES_WITH_PROGRAM =
       """
-      select te.uid as te_uid, teav.created, teav.lastupdated, teav.updatedby, teav.value,
-             tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
+      select teav.trackedentityid as te_id, teav.created, teav.lastupdated, teav.updatedby,
+             teav.value, tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
              tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype,
              tea.skipsynchronization as tea_skipsynchronization
       from trackedentityattributevalue teav
       join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
-      join trackedentity te on teav.trackedentityid = te.trackedentityid
       where teav.trackedentityid in (:ids)
         and teav.trackedentityattributeid in (
           select teta.trackedentityattributeid from trackedentitytypeattribute teta
@@ -93,19 +91,18 @@ class TrackedEntityStore {
   // language=SQL
   private static final String GET_PROGRAM_OWNERS =
       """
-      select te.uid as key, p.uid as prguid, o.uid as ouuid
+      select teop.trackedentityid as te_id, p.uid as prguid, o.uid as ouuid
       from trackedentityprogramowner teop
       join program p on teop.programid = p.programid
       join organisationunit o on teop.organisationunitid = o.organisationunitid
-      join trackedentity te on teop.trackedentityid = te.trackedentityid
       where teop.trackedentityid in (:ids)""";
 
   @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  Multimap<String, TrackedEntityAttributeValue> getAttributes(
+  Multimap<Long, TrackedEntityAttributeValue> getAttributes(
       List<Long> ids, @CheckForNull Long programId) {
-    Multimap<String, TrackedEntityAttributeValue> attributes = ArrayListMultimap.create();
+    Multimap<Long, TrackedEntityAttributeValue> attributes = ArrayListMultimap.create();
     MapSqlParameterSource params = new MapSqlParameterSource("ids", ids);
     String sql;
     if (programId == null) {
@@ -117,16 +114,16 @@ class TrackedEntityStore {
     jdbcTemplate.query(
         sql,
         params,
-        (RowCallbackHandler) rs -> attributes.put(rs.getString("te_uid"), mapAttributeValue(rs)));
+        (RowCallbackHandler) rs -> attributes.put(rs.getLong("te_id"), mapAttributeValue(rs)));
     return attributes;
   }
 
-  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
-    Multimap<String, TrackedEntityProgramOwner> programOwners = ArrayListMultimap.create();
+  Multimap<Long, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
+    Multimap<Long, TrackedEntityProgramOwner> programOwners = ArrayListMultimap.create();
     jdbcTemplate.query(
         GET_PROGRAM_OWNERS,
         new MapSqlParameterSource("ids", ids),
-        (RowCallbackHandler) rs -> programOwners.put(rs.getString("key"), mapProgramOwner(rs)));
+        (RowCallbackHandler) rs -> programOwners.put(rs.getLong("te_id"), mapProgramOwner(rs)));
     return programOwners;
   }
 
@@ -149,6 +146,11 @@ class TrackedEntityStore {
     return attributeValue;
   }
 
+  /**
+   * The owning tracked entity is left unset: the query no longer joins {@code trackedentity}, so it
+   * only knows the id. {@link TrackedEntityAggregate} holds the {@link TrackedEntity} the owner
+   * belongs to and sets it.
+   */
   private static TrackedEntityProgramOwner mapProgramOwner(ResultSet rs) throws SQLException {
     TrackedEntityProgramOwner programOwner = new TrackedEntityProgramOwner();
 
@@ -159,10 +161,6 @@ class TrackedEntityStore {
     Program program = new Program();
     program.setUid(rs.getString("prguid"));
     programOwner.setProgram(program);
-
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(rs.getString("key"));
-    programOwner.setTrackedEntity(trackedEntity);
 
     return programOwner;
   }
