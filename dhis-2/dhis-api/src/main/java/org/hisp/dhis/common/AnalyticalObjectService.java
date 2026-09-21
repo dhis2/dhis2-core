@@ -61,6 +61,8 @@ public interface AnalyticalObjectService<T extends AnalyticalObject> {
 
   List<T> getAnalyticalObjects(ProgramIndicator programIndicator);
 
+  List<T> getAnalyticalObjectsByDataDimension(ProgramIndicator programIndicator);
+
   List<T> getAnalyticalObjects(Period period);
 
   List<T> getAnalyticalObjects(OrganisationUnit organisationUnit);
