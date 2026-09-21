@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.timeout;
+package org.hisp.dhis.analytics.trackedentity.query;
 
-import java.time.Duration;
-import org.springframework.dao.DataAccessException;
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.query.Renderable;
 
 /**
- * Thrown when a tracker export request has used up its {@code tracker.export.timeout} budget. Maps
- * to HTTP 504 Gateway Timeout.
- *
- * <p>Extends {@link DataAccessException} so it can be returned from {@code JdbcTemplate}'s
- * exception translation, which is where a query cancelled by the deadline surfaces.
- *
- * <p>The message names the budget and nothing else. The caller knows the request they sent, and
- * what made it slow is usually something it does not name, such as ordering by a non-indexed
- * attribute. Nothing is logged either: the access log already records the 504, and the request is
- * an idempotent GET, so diagnosis is to reproduce it rather than to read anything captured here.
+ * Resolves a data element's value to the SQL expression a condition compares against. The default
+ * reads the value out of the event row the condition's own subquery is scoped to, which is what the
+ * row level query does. A grouped aggregate query passes a resolver that reads it from the single
+ * event chosen for each tracked entity, the same event it groups on.
  */
-public class DeadlineExceededException extends DataAccessException {
+@FunctionalInterface
+public interface DataValueResolver {
 
-  public DeadlineExceededException(Duration budget) {
-    super(message(budget));
-  }
-
-  public DeadlineExceededException(Duration budget, Throwable cause) {
-    super(message(budget), cause);
-  }
-
-  private static String message(Duration budget) {
-    return "Tracker export exceeded its time budget of %ss".formatted(budget.toSeconds());
-  }
+  Renderable resolve(ValueTypeMapping valueTypeMapping);
 }

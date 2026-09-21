@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.export.timeout.DeadlineHolder;
+import org.hisp.dhis.deadline.DeadlineHolder;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
