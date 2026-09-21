@@ -62,6 +62,7 @@ public class EventValidator implements Validator<TrackerBundle> {
                     all(
                         categoryOptValidator,
                         new DateValidator(),
+                        new ExpiredEventDeletionValidator(),
                         new GeoValidator(),
                         new NoteValidator(),
                         new DataValuesValidator(),

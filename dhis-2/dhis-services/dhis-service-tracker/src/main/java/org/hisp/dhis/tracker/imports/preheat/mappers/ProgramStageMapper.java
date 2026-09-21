@@ -81,5 +81,10 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "categoryCombo")
   @Mapping(target = "sharing")
   @Mapping(target = "accessLevel")
+  // the expiry settings are needed to validate changes to events of an existing program, which is
+  // only reachable through its program stage when the payload does not reference the program
+  @Mapping(target = "expiryDays")
+  @Mapping(target = "expiryPeriodType")
+  @Mapping(target = "completeEventsExpiryDays")
   Program mapProgram(Program p);
 }
