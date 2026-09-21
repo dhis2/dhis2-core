@@ -56,7 +56,6 @@ import org.springframework.util.Assert;
   "completedAt",
   "updatedBy",
   "attributeOptionCombo",
-  "attributeCategoryOptions",
   "assignedUser",
   "dataElement",
   "value",
@@ -101,8 +100,6 @@ class SingleEventCsvRow {
 
   private String attributeOptionCombo;
 
-  private String attributeCategoryOptions;
-
   private String assignedUser;
 
   private String dataElement;
@@ -126,7 +123,6 @@ class SingleEventCsvRow {
     orgUnit = dataValue.getOrgUnit();
     occurredAt = dataValue.getOccurredAt();
     attributeOptionCombo = dataValue.getAttributeOptionCombo();
-    attributeCategoryOptions = dataValue.getAttributeCategoryOptions();
     deleted = dataValue.isDeleted();
     createdAt = dataValue.getCreatedAt();
     updatedAt = dataValue.getUpdatedAt();
