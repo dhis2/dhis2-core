@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -185,7 +185,14 @@ public class HibernateOrganisationUnitStore
   public List<OrganisationUnit> getOrganisationUnits(OrganisationUnitQueryParams params) {
     SqlHelper hlp = new SqlHelper();
 
-    String hql = "select distinct o from OrganisationUnit o ";
+    // DISTINCT is only needed to collapse duplicate rows from a join that can legitimately
+    // produce more than one row per org unit: the children fetch join (one row per child) and
+    // the groups filter (one row per matching group when filtering by a set of group ids). A
+    // plain filter (levels, parents, query, maxLevels, geometryOnly) never joins a collection, so
+    // it can never produce a duplicate org unit row — adding DISTINCT there only costs Postgres a
+    // pointless sort/dedupe over the full entity, including geometry and attributeValues.
+    boolean requiresDistinct = params.isFetchChildren() || params.hasGroups();
+    String hql = "select " + (requiresDistinct ? "distinct " : "") + "o from OrganisationUnit o ";
 
     if (params.isFetchChildren()) {
       hql += "left join fetch o.children c ";
