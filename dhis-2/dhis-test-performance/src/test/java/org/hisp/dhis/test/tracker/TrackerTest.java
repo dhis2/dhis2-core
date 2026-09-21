@@ -339,7 +339,12 @@ public class TrackerTest extends Simulation {
 
     List<Assertion> assertions = getAssertions(this.profile, eventScenario, trackerScenario);
     SetUp setUp = setUp(populationBuilder).protocols(httpProtocolBuilder).assertions(assertions);
-    if (this.profile == Profile.SMOKE) {
+    // Pauses model a user reading the screen between requests. SMOKE has none by design, and
+    // -DdisablePauses=true opts any profile out: with pauses a closed-injection user is idle most
+    // of its cycle, so a given user count produces far fewer in-flight requests. Disabling them
+    // brackets the dense end of closed-loop usage without moving to an open injection model, which
+    // would not be faithful to DHIS2 (a known set of health workers, not open internet arrivals).
+    if (this.profile == Profile.SMOKE || Boolean.getBoolean("disablePauses")) {
       setUp.disablePauses();
     }
   }
@@ -706,6 +711,21 @@ public class TrackerTest extends Simulation {
             + this.trackerProgram
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
+    // The android-sdk's NewTrackedEntityInstanceFields.asSearchFields, sent on every online tracked
+    // entity search. Attributes and programOwners without enrollments is the only covered shape
+    // where the server-side query branches are comparable in cost; every other request here asks
+    // for enrollments, which dominates.
+    //
+    // The attribute filter is required: ACCESSIBLE searches outside the capture scope, and Child
+    // Programme sets minAttributesRequiredToSearch=1, so a filterless search is rejected with 409.
+    String androidSearchTEsUrl =
+        "/api/tracker/trackedEntities?page=1&pageSize=50&orgUnitMode=ACCESSIBLE&program="
+            + this.trackerProgram
+            + "&filter=w75KJ2mc4zz:like:an"
+            + "&fields=trackedEntity,createdAt,updatedAt,createdAtClient,updatedAtClient,orgUnit,"
+            + "trackedEntityType,geometry,deleted,attributes[attribute,value,createdAt,updatedAt],"
+            + "programOwners";
+
     String searchBirthEvents =
         "/api/tracker/events?order=createdAt:desc&page=1"
             + "&pageSize=15&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&program="
@@ -768,6 +788,12 @@ public class TrackerTest extends Simulation {
             getTEsFromEvents,
             new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
             "Get TEs from events",
+            "Get Child Programme TEs");
+    Request searchTEsAsAndroidClient =
+        new Request(
+            androidSearchTEsUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 100, Profile.LOAD, 85)),
+            "Search TEs as Android client",
             "Get Child Programme TEs");
     Request getFirstPageOfTEs =
         new Request(
@@ -846,6 +872,13 @@ public class TrackerTest extends Simulation {
                             .pause(1, 3) // user reads results, refines search
                             .exec(
                                 searchTeByNameWithEqOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .pause(1, 3) // user reads results
+                            // Android client performs an online TE search (attributes +
+                            // programOwners, no enrollments)
+                            .exec(
+                                searchTEsAsAndroidClient
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .pause(1, 3) // user reads results
@@ -950,6 +983,7 @@ public class TrackerTest extends Simulation {
             notFoundTeByNameWithEqOperator,
             searchTeByNameWithLikeOperator,
             searchTeByNameWithEqOperator,
+            searchTEsAsAndroidClient,
             searchBirthEventsByStage,
             getTrackedEntitiesForEvents,
             getFirstPageOfTEs,
