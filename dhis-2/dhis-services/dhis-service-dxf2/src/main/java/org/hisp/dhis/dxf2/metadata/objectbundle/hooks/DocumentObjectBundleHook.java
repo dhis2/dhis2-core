@@ -67,7 +67,15 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook<Document>
     } else if (!document.isExternal() && fileResource == null) {
       addReports.accept(new ErrorReport(Document.class, ErrorCode.E4015, "url", document.getUrl()));
     } else if (!document.isExternal() && fileResource.isAssigned()) {
-      addReports.accept(new ErrorReport(Document.class, ErrorCode.E4016, "url", document.getUrl()));
+      Document persistedDocument = bundle.getPreheat().get(bundle.getPreheatIdentifier(), document);
+      // An update may keep the file already assigned to this document.
+      if (persistedDocument == null
+          || persistedDocument.getId() == 0
+          || persistedDocument.isExternal()
+          || !document.getUrl().equals(persistedDocument.getUrl())) {
+        addReports.accept(
+            new ErrorReport(Document.class, ErrorCode.E4016, "url", document.getUrl()));
+      }
     }
   }
 
@@ -90,6 +98,6 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook<Document>
       fileResourceService.updateFileResource(fileResource);
     }
 
-    idObjectManager.save(document);
+    idObjectManager.save(document, false);
   }
 }
