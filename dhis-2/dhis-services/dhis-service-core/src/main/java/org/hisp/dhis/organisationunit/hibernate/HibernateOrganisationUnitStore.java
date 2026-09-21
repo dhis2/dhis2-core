@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,26 +141,29 @@ public class HibernateOrganisationUnitStore
         .list();
   }
 
+  // program_organisationunits and datasetsource both have a composite primary key of
+  // (program/dataset id, org unit id), so filtering by a single program/dataset id can never
+  // join more than one row per org unit. distinct is a no-op here, so drop it rather than pay
+  // for a sort/hash pass on every call.
+
   @Override
   public List<OrganisationUnit> getOrganisationUnitsWithProgram(Program program) {
     final String jpql =
-        "select distinct o from OrganisationUnit o " + "join o.programs p where p.id = :programId";
+        "select o from OrganisationUnit o join o.programs p where p.id = :programId";
 
     return getQuery(jpql).setParameter("programId", program.getId()).list();
   }
 
   @Override
   public List<OrganisationUnit> getOrganisationUnitsByProgram(String programUid) {
-    String jpql =
-        "select distinct o from OrganisationUnit o join o.programs p where p.uid = :programUid";
+    String jpql = "select o from OrganisationUnit o join o.programs p where p.uid = :programUid";
 
     return getQuery(jpql).setParameter("programUid", programUid).list();
   }
 
   @Override
   public List<OrganisationUnit> getOrganisationUnitsByDataSet(String dataSetUid) {
-    String jpql =
-        "select distinct o from OrganisationUnit o join o.dataSets d where d.uid = :dataSetUid";
+    String jpql = "select o from OrganisationUnit o join o.dataSets d where d.uid = :dataSetUid";
 
     return getQuery(jpql).setParameter("dataSetUid", dataSetUid).list();
   }
