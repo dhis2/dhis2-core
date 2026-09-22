@@ -123,6 +123,7 @@ class JdbcEnrollmentStore {
         sqlParams,
         new EnrollmentRowMapper(
             enrollmentParams.isIncludeAttributes(),
+            enrollmentParams.isIncludeNotes(),
             enrollmentParams.getEnrolledInTrackerProgram()));
   }
 
@@ -139,7 +140,7 @@ class JdbcEnrollmentStore {
    *   inner join organisationunit ou ...
    *   inner join organisationunit en_ou ...
    *   inner join (...) as coc ...
-   *   left join lateral (...) notes on true
+   *   left join lateral (...) notes on true   -- if includeNotes
    *   left join lateral (...) attrs on true   -- if includeAttributes
    * where ...
    * order by ...
@@ -158,7 +159,7 @@ class JdbcEnrollmentStore {
     addJoinOnOwnerOrgUnit(sql);
     addJoinOnEnrollmentOrgUnit(sql);
     addJoinOnCategoryOptionCombo(sql);
-    addLeftJoinOnNotes(sql);
+    addLeftJoinOnNotes(sql, enrollmentParams);
     addLeftJoinOnAttributes(sql, enrollmentParams);
     addWhereConditions(sql, sqlParams, enrollmentParams);
     addOrderBy(sql, enrollmentParams);
@@ -182,7 +183,6 @@ class JdbcEnrollmentStore {
           """
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
-            notes.jsonnotes as notes,
             coc.uid as coc_uid
           """);
     } else {
@@ -193,8 +193,15 @@ class JdbcEnrollmentStore {
             p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
-            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes,
+            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing,
             coc.uid as coc_uid
+          """);
+    }
+
+    if (params.isIncludeNotes()) {
+      sql.append(
+          """
+          , notes.jsonnotes as notes
           """);
     }
 
@@ -290,7 +297,11 @@ class JdbcEnrollmentStore {
     return !user.isSuper();
   }
 
-  private void addLeftJoinOnNotes(StringBuilder sql) {
+  private void addLeftJoinOnNotes(StringBuilder sql, EnrollmentQueryParams params) {
+    if (!params.isIncludeNotes()) {
+      return;
+    }
+
     sql.append(
         """
       left join lateral (
@@ -484,6 +495,7 @@ class JdbcEnrollmentStore {
             sqlParams,
             new EnrollmentRowMapper(
                 enrollmentParams.isIncludeAttributes(),
+                enrollmentParams.isIncludeNotes(),
                 enrollmentParams.getEnrolledInTrackerProgram()));
     return new Page<>(enrollments, pageParams, () -> countEnrollments(enrollmentParams));
   }
@@ -608,10 +620,13 @@ class JdbcEnrollmentStore {
 
   private static class EnrollmentRowMapper implements RowMapper<Enrollment> {
     private final boolean isIncludeAttributes;
+    private final boolean isIncludeNotes;
     private final Program program;
 
-    EnrollmentRowMapper(boolean isIncludeAttributes, @Nullable Program program) {
+    EnrollmentRowMapper(
+        boolean isIncludeAttributes, boolean isIncludeNotes, @Nullable Program program) {
       this.isIncludeAttributes = isIncludeAttributes;
+      this.isIncludeNotes = isIncludeNotes;
       this.program = program;
     }
 
@@ -676,9 +691,11 @@ class JdbcEnrollmentStore {
       enrollmentOrgUnit.setUid(rs.getString("en_org_unit_uid"));
       enrollment.setOrganisationUnit(enrollmentOrgUnit);
 
-      String jsonNotes = rs.getString("notes");
-      if (jsonNotes != null) {
-        enrollment.setNotes(mapEnrollmentNotes(jsonNotes));
+      if (isIncludeNotes) {
+        String jsonNotes = rs.getString("notes");
+        if (jsonNotes != null) {
+          enrollment.setNotes(mapEnrollmentNotes(jsonNotes));
+        }
       }
 
       if (isIncludeAttributes) {
