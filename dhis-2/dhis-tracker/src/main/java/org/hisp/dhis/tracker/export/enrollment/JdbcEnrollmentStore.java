@@ -71,6 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Geometries;
+import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
@@ -78,7 +79,6 @@ import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
@@ -302,19 +302,7 @@ class JdbcEnrollmentStore {
       return;
     }
 
-    sql.append(
-        """
-      left join lateral (
-        select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
-          'created', n.created, 'updatedByUid', u.uid,
-          'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
-          'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
-          from enrollment_notes en
-          join note n on n.noteid = en.noteid
-          left join userinfo u on u.userinfoid = n.lastupdatedby
-          where en.enrollmentid = e.enrollmentid
-      ) notes on true
-    """);
+    sql.append(JdbcNotes.leftJoinLateral("enrollment_notes", "enrollmentid", "e.enrollmentid"));
   }
 
   private void addLeftJoinOnAttributes(StringBuilder sql, EnrollmentQueryParams params) {
@@ -692,9 +680,9 @@ class JdbcEnrollmentStore {
       enrollment.setOrganisationUnit(enrollmentOrgUnit);
 
       if (isIncludeNotes) {
-        String jsonNotes = rs.getString("notes");
-        if (jsonNotes != null) {
-          enrollment.setNotes(mapEnrollmentNotes(jsonNotes));
+        List<Note> notes = JdbcNotes.fromJson(rs.getString("notes"));
+        if (notes != null) {
+          enrollment.setNotes(notes);
         }
       }
 
@@ -728,37 +716,6 @@ class JdbcEnrollmentStore {
         log.error("Error mapping enrollment sharing: {}", jsonSharing);
         return null;
       }
-    }
-
-    private List<Note> mapEnrollmentNotes(String jsonNotes) {
-      List<JdbcNote> jdbcNotes;
-      ObjectMapper mapper = new ObjectMapper();
-      try {
-        jdbcNotes = mapper.readValue(jsonNotes, new TypeReference<>() {});
-      } catch (JsonProcessingException e) {
-        log.error("Error mapping enrollment notes: {}", jsonNotes);
-        return List.of();
-      }
-
-      List<Note> notes = new ArrayList<>();
-      for (JdbcNote jdbcNote : jdbcNotes) {
-        Note note = new Note();
-        note.setUid(jdbcNote.getUid());
-        note.setNoteText(jdbcNote.getText());
-        note.setCreated(DateUtils.safeParseDate(jdbcNote.getCreated()));
-        if (jdbcNote.getUpdatedByUid() != null) {
-          User user = new User();
-          user.setUid(jdbcNote.getUpdatedByUid());
-          user.setUsername(jdbcNote.getUpdatedByUsername());
-          user.setFirstName(jdbcNote.getUpdatedByFirstname());
-          user.setSurname(jdbcNote.getUpdatedBySurname());
-          user.setName(jdbcNote.getUpdatedByName());
-          note.setLastUpdatedBy(user);
-        }
-        notes.add(note);
-      }
-
-      return notes;
     }
 
     private Set<TrackedEntityAttributeValue> mapTrackedEntityAttributeValues(
@@ -804,19 +761,6 @@ class JdbcEnrollmentStore {
 
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
-  }
-
-  @Getter
-  @Setter
-  private static class JdbcNote {
-    private String uid;
-    private String text;
-    private String created;
-    private String updatedByUid;
-    private String updatedByUsername;
-    private String updatedByFirstname;
-    private String updatedBySurname;
-    private String updatedByName;
   }
 
   @Getter
