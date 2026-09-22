@@ -62,6 +62,11 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
         buildTrackedEntityProgramOwner(trackedEntity, program, orgUnit));
   }
 
+  @Override
+  public void invalidateOwnershipCache(TrackedEntity trackedEntity, Program program) {
+    trackedEntityProgramOwnerStore.invalidateOwnershipCache(trackedEntity, program);
+  }
+
   private TrackedEntityProgramOwner buildTrackedEntityProgramOwner(
       TrackedEntity trackedEntity, Program program, OrganisationUnit ou) {
     TrackedEntityProgramOwner teProgramOwner =

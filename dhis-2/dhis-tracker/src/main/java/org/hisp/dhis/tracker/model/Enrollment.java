@@ -56,8 +56,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -87,7 +85,6 @@ import org.locationtech.jts.geom.Geometry;
  */
 @Entity
 @Table(name = "enrollment")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Auditable(scope = AuditScope.TRACKER)
 @Data
 public class Enrollment extends BaseTrackerObject
@@ -95,10 +92,10 @@ public class Enrollment extends BaseTrackerObject
 
   @Id
   @Column(name = "enrollmentid")
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "programinstance_sequence")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "enrollment_sequence")
   @SequenceGenerator(
-      name = "programinstance_sequence",
-      sequenceName = "programinstance_sequence",
+      name = "enrollment_sequence",
+      sequenceName = "enrollment_sequence",
       allocationSize = 1)
   private long id;
 
@@ -285,7 +282,6 @@ public class Enrollment extends BaseTrackerObject
         .add("trackedEntity", trackedEntity)
         .add("program", program)
         .add("deleted", deleted)
-        .add("storedBy", storedBy)
         .toString();
   }
 

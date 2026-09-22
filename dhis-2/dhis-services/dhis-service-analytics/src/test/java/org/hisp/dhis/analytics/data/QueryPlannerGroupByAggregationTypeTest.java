@@ -60,6 +60,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodDimension;
@@ -76,6 +77,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class QueryPlannerGroupByAggregationTypeTest {
   @Mock private PartitionManager partitionManager;
+
+  @Mock private DataElementStore dataElementStore;
 
   @InjectMocks private DefaultQueryPlanner subject;
 

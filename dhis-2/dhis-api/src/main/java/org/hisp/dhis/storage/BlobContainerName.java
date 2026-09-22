@@ -38,7 +38,8 @@ import javax.annotation.Nonnull;
  * #resolve(BlobKey)} always produces a clean path without any slash-cleaning.
  *
  * <p>Configured via {@link org.hisp.dhis.external.conf.ConfigurationKey#FILESTORE_CONTAINER} and
- * resolved once at startup by {@link org.hisp.dhis.jclouds.JCloudsStore}.
+ * resolved once at startup by the {@link org.hisp.dhis.storage.BlobStoreService} implementation
+ * selected for the configured {@code filestore.provider}.
  */
 public record BlobContainerName(String value) {
 

@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.test.e2e.TestRunStorage;
@@ -52,6 +53,21 @@ public class TestCleanUp {
   private int deleteCount = 0;
 
   /**
+   * Resources whose deletion is a soft delete and can leave rows behind that block deletion of
+   * referencing objects. Deleting any of these requires a follow-up {@code /maintenance} sweep to
+   * physically purge the soft-deleted rows. Everything else (plain metadata) is a hard delete and
+   * needs no sweep.
+   */
+  private static final Set<String> SOFT_DELETABLE_RESOURCES =
+      Set.of(
+          "trackedEntities",
+          "events",
+          "enrollments",
+          "relationships",
+          "dataValues",
+          "dataValueSets");
+
+  /**
    * Deletes entities created during test run. Entities deleted one by one starting from last
    * created one.
    */
@@ -60,13 +76,23 @@ public class TestCleanUp {
     List<String> reverseOrderedKeys = new ArrayList<>(createdEntities.keySet());
     Collections.reverse(reverseOrderedKeys);
 
-    for (String key : reverseOrderedKeys) {
-      boolean deleted = deleteEntity(createdEntities.get(key), key);
-      if (deleted) {
-        TestRunStorage.removeEntity(createdEntities.get(key), key);
-        createdEntities.remove(createdEntities.get(key), key);
-      }
+    boolean deletedSoftDeletableData = false;
 
+    for (String key : reverseOrderedKeys) {
+      String resource = createdEntities.get(key);
+      boolean deleted = deleteEntity(resource, key);
+      if (deleted) {
+        TestRunStorage.removeEntity(resource, key);
+        createdEntities.remove(key);
+        deletedSoftDeletableData |= requiresSoftDeleteMaintenance(resource);
+      }
+    }
+
+    // Purge soft-deleted rows once per pass, and only if this pass actually deleted
+    // tracker/data-value data. This previously ran after every single entity deletion, adding a
+    // full DB-wide maintenance sweep per entity - even for pure-metadata cleanups that never
+    // produce soft-deleted rows.
+    if (deletedSoftDeletableData) {
       new MaintenanceActions().removeSoftDeletedData();
     }
 
@@ -76,6 +102,14 @@ public class TestCleanUp {
     }
 
     TestRunStorage.removeAllEntities();
+  }
+
+  private static boolean requiresSoftDeleteMaintenance(String resource) {
+    if (resource == null) {
+      return false;
+    }
+    String normalized = resource.startsWith("/") ? resource.substring(1) : resource;
+    return SOFT_DELETABLE_RESOURCES.contains(normalized);
   }
 
   /**

@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.function.Function.identity;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -131,6 +132,12 @@ public class HibernateDataExportStore implements DataExportStore {
 
   static QueryBuilder createExportQuery(
       DataExportParams params, SQL.QueryAPI api, UserDetails currentUser) {
+    String aocAclSql = null;
+    boolean isSuper = currentUser.isSuper();
+    // explicit AOCs mean they are already sharing checked
+    if ((params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
+        && !isSuper)
+      aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
     String sql =
         """
       WITH
@@ -174,11 +181,17 @@ public class HibernateDataExportStore implements DataExportStore {
       ),
       ou_with_descendants_ids AS (
         SELECT DISTINCT ou.organisationunitid
-        FROM organisationunit ou
-        LEFT JOIN organisationunit parent_ou ON (ou.path LIKE parent_ou.path || '%')
-        WHERE ou.organisationunitid IN (SELECT organisationunitid FROM ou_ids)
-             OR parent_ou.organisationunitid IN (SELECT organisationunitid FROM ou_ids)
-      )
+        FROM ou_ids
+        JOIN organisationunit root USING (organisationunitid)
+        JOIN organisationunit ou ON ou.path LIKE root.path || '%'
+      ),
+      aoc_access AS MATERIALIZED (
+        SELECT aoc.categoryoptioncomboid, aoc.uid
+        FROM categoryoptioncombo aoc
+        WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
+        JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+        WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
+      ),
       SELECT
         de.uid AS deid,
         pe.iso,
@@ -202,31 +215,22 @@ public class HibernateDataExportStore implements DataExportStore {
       JOIN period pe ON dv.periodid = pe.periodid
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+      JOIN aoc_access ON dv.attributeoptioncomboid = aoc_access.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
       WHERE 1=1
         AND coc.uid = ANY(:coc)
         AND aoc.uid = ANY(:aoc)
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
-        AND ou.hierarchylevel = :level
-        -- access check below must be 1 line for erasure
-        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co \
-          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid \
-          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))""";
+        AND ou.hierarchylevel = :level""";
+
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
 
-    String aocAclSql = null;
-    boolean isSuper = currentUser.isSuper();
-    // explicit AOCs mean they are already sharing checked
-    if ((params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
-        && !isSuper)
-      aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
-
     boolean descendants = params.isIncludeDescendants();
     List<Order> orders = params.getOrders();
-    if (orders == null || orders.isEmpty()) orders = List.of(Order.PE, Order.CREATED, Order.DE);
+    if (isEmpty(orders)) orders = List.of(Order.PE, Order.CREATED, Order.DE);
 
     List<UID> oug = params.getOrganisationUnitGroups();
     Set<String> ouCapture = currentUser.getUserOrgUnitIds();
@@ -252,6 +256,7 @@ public class HibernateDataExportStore implements DataExportStore {
         .setDynamicClause("aocAccess", aocAclSql)
         .eraseNullParameterLines()
         // keep params below even when null
+        .eraseJoinLine("aoc_access", aocAclSql == null)
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
         .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
         .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
@@ -293,6 +298,40 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("name", categoryCombo == null ? "default" : null)
         .setParameter("co", co)
         .setParameter("n", co.size())
+        .eraseNullParameterLines()
+        .stream(String.class)
+        .map(UID::of)
+        .findFirst()
+        .orElse(null);
+  }
+
+  @CheckForNull
+  @Override
+  public UID getDefaultAttributeOptionComboForDataSets(@Nonnull Stream<UID> dataSets) {
+    // Returns the default category option combo UID only when at least one of the given data sets
+    // exists and every existing one uses the default attribute category combo. A data set with a
+    // missing or non-default attribute category combo yields no row (=> null), disabling the
+    // fast-path so the regular per-row AOC data-sharing check is used instead.
+    String sql =
+        """
+        SELECT coc.uid
+        FROM categoryoptioncombo coc
+        JOIN categorycombos_optioncombos ccoc ON ccoc.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+        WHERE cc.name = 'default'
+          AND EXISTS (
+            SELECT 1 FROM dataset ds
+            WHERE ds.uid = ANY(:ds)
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM dataset ds
+            LEFT JOIN categorycombo dscc ON dscc.categorycomboid = ds.categorycomboid
+            WHERE ds.uid = ANY(:ds)
+              AND (dscc.name IS NULL OR dscc.name <> 'default')
+          )""";
+    return createQuery(sql)
+        .setParameter("ds", dataSets)
+        .useEqualsOverInForParameters("ds")
         .eraseNullParameterLines()
         .stream(String.class)
         .map(UID::of)

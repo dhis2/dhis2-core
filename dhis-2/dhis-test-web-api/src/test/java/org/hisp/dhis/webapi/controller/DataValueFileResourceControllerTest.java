@@ -108,6 +108,24 @@ class DataValueFileResourceControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void testSaveFileDataValue_TooBigFileSize() {
+    int frCountBefore = GET("/fileResources/gist").content().getArray("fileResources").size();
+    int dvCountBefore = dataExportStore.getAllDataValues().size();
+    String url = format("/api/dataValues/file?ds=%s&de=%s&pe=%s&ou=%s&co=%s", ds, de, pe, ou, coc);
+    // 10MB + 1 byte exceeds the default max.file_upload_size (10MB).
+    MockMultipartFile image =
+        new MockMultipartFile("file", "OU_profile_image.png", "image/png", new byte[10_000_001]);
+    HttpResponse response = POST_MULTIPART(url, image);
+    assertEquals(
+        "File size can't be bigger than 10000000, current file size 10000001",
+        response.content(HttpStatus.CONFLICT).getString("message").string());
+    int frCountAfter = GET("/fileResources/gist").content().getArray("fileResources").size();
+    int dvCountAfter = dataExportStore.getAllDataValues().size();
+    assertEquals(frCountBefore, frCountAfter, "Rejected upload left behind a file resource");
+    assertEquals(dvCountBefore, dvCountAfter, "Rejected upload left behind a data value");
+  }
+
+  @Test
   void testFailedFileUploadDoesNotCreateDisconnectedRow() {
     int frCountBefore = GET("/fileResources/gist").content().getArray("fileResources").size();
     int dvCountBefore = dataExportStore.getAllDataValues().size();

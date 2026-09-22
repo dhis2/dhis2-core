@@ -114,7 +114,8 @@ class ConsistentAnnotatedElement implements AnnotatedElement {
   private <T extends Annotation> T[] getMethodAnnotationsByType(Class<T> type, Method method) {
     if (isPrivate(method.getModifiers())
         || isStatic(method.getModifiers())
-        || method.isSynthetic()) {
+        || method.isSynthetic()
+        || method.getDeclaringClass().isInterface()) {
       return target.getAnnotationsByType(type);
     }
     Method m = method;

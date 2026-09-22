@@ -68,10 +68,6 @@ public class SingleEvent {
 
   @JsonProperty private Instant occurredAt;
 
-  @JsonProperty
-  @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
-  private String storedBy;
-
   @JsonProperty private boolean deleted;
 
   @JsonProperty private Instant createdAt;

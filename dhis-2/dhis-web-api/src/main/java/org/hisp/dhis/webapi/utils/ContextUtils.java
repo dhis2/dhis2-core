@@ -48,7 +48,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -318,7 +317,7 @@ public class ContextUtils {
       return null;
     }
 
-    String value = String.format("%s-%s", DateUtils.toLongDate(lastModified), user.getUid());
+    String value = String.format("%d-%s", lastModified.getTime(), user.getUid());
 
     return HashUtils.hashMD5(value.getBytes());
   }

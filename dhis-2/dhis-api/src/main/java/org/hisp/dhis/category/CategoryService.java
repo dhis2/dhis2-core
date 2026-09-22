@@ -413,6 +413,17 @@ public interface CategoryService {
   List<CategoryOptionCombo> getAllCategoryOptionCombos();
 
   /**
+   * Eagerly loads, in three queries rather than one per parent, the associations of the given
+   * {@link CategoryCombo}s: {@link CategoryCombo#getCategories()} with each category's {@link
+   * Category#getCategoryOptions()}, and {@link CategoryCombo#getOptionCombos()} with each option
+   * combo's {@link CategoryOptionCombo#getCategoryOptions()}. Used to prime the session before
+   * those associations are traversed or serialised, avoiding an N+1 select per parent.
+   *
+   * @param categoryCombos the category combos whose associations to load.
+   */
+  void preloadCategoryComboAssociations(Collection<CategoryCombo> categoryCombos);
+
+  /**
    * Generates and persists a default Category, CategoryOption, CategoryCombo and
    * CategoryOptionCombo.
    */

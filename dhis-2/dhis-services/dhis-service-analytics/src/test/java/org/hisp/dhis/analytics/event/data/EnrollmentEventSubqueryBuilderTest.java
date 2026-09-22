@@ -81,8 +81,8 @@ class EnrollmentEventSubqueryBuilderTest {
     assertEquals(
         "(select '[' || round(ST_X((\"deUidABCDEF\"))::numeric, 6) || ',' "
             + "|| round(ST_Y((\"deUidABCDEF\"))::numeric, 6) || ']' as \"deUidABCDEF\" "
-            + "from analytics_event_prog123ABCD "
-            + "where analytics_event_prog123ABCD.enrollment = ax.enrollment "
+            + "from analytics_event_prog123abcd "
+            + "where analytics_event_prog123abcd.enrollment = ax.enrollment "
             + "and \"deUidABCDEF\" is not null  "
             + "order by occurreddate desc, created desc  limit 1 )",
         sql);
@@ -100,8 +100,8 @@ class EnrollmentEventSubqueryBuilderTest {
     assertEquals(
         "(select '[' || round(ST_X((\"deUidABCDEF\"))::numeric, 6) || ',' "
             + "|| round(ST_Y((\"deUidABCDEF\"))::numeric, 6) || ']' as \"deUidABCDEF\" "
-            + "from analytics_event_prog123ABCD "
-            + "where analytics_event_prog123ABCD.enrollment = ax.enrollment "
+            + "from analytics_event_prog123abcd "
+            + "where analytics_event_prog123abcd.enrollment = ax.enrollment "
             + "and \"deUidABCDEF\" is not null and ps = 'stagABCDEFG'  "
             + "order by occurreddate desc, created desc  limit 1 )",
         sql);
@@ -119,8 +119,8 @@ class EnrollmentEventSubqueryBuilderTest {
     assertEquals(
         "(select '[' || round(ST_X(ST_Centroid(\"deUidABCDEF\"))::numeric, 6) || ',' "
             + "|| round(ST_Y(ST_Centroid(\"deUidABCDEF\"))::numeric, 6) || ']' as \"deUidABCDEF\" "
-            + "from analytics_event_prog123ABCD "
-            + "where analytics_event_prog123ABCD.enrollment = ax.enrollment "
+            + "from analytics_event_prog123abcd "
+            + "where analytics_event_prog123abcd.enrollment = ax.enrollment "
             + "and \"deUidABCDEF\" is not null and ps = 'stagABCDEFG'  "
             + "order by occurreddate desc, created desc  limit 1 )",
         sql);
@@ -136,9 +136,9 @@ class EnrollmentEventSubqueryBuilderTest {
 
     assertEquals(
         "(select \"deUidABCDEF\" as \"stagABCDEFG.deUidABCDEF\" "
-            + "from analytics_event_prog123ABCD "
-            + "where analytics_event_prog123ABCD.eventstatus != 'SCHEDULE' "
-            + "and analytics_event_prog123ABCD.enrollment = ax.enrollment "
+            + "from analytics_event_prog123abcd "
+            + "where analytics_event_prog123abcd.eventstatus != 'SCHEDULE' "
+            + "and analytics_event_prog123abcd.enrollment = ax.enrollment "
             + "and \"deUidABCDEF\" is not null and ps = 'stagABCDEFG' "
             + "order by occurreddate desc, created desc  limit 1 )",
         sql);
@@ -157,9 +157,9 @@ class EnrollmentEventSubqueryBuilderTest {
 
     assertEquals(
         "(select \"deUidABCDEF\" "
-            + "from analytics_event_prog123ABCD "
-            + "where analytics_event_prog123ABCD.eventstatus != 'SCHEDULE' "
-            + "and analytics_event_prog123ABCD.enrollment = ax.enrollment "
+            + "from analytics_event_prog123abcd "
+            + "where analytics_event_prog123abcd.eventstatus != 'SCHEDULE' "
+            + "and analytics_event_prog123abcd.enrollment = ax.enrollment "
             + "and ps = 'rstgABCDEFG' "
             + "order by occurreddate desc, created desc  limit 1 )",
         sql);
@@ -180,9 +180,9 @@ class EnrollmentEventSubqueryBuilderTest {
 
     assertEquals(
         "(select \"deUidABCDEF\" "
-            + "from analytics_event_prog123ABCD "
-            + "where analytics_event_prog123ABCD.eventstatus != 'SCHEDULE' "
-            + "and analytics_event_prog123ABCD.enrollment = ax.enrollment "
+            + "from analytics_event_prog123abcd "
+            + "where analytics_event_prog123abcd.eventstatus != 'SCHEDULE' "
+            + "and analytics_event_prog123abcd.enrollment = ax.enrollment "
             + "and ps = 'rstgABCDEFG'  and occurreddate >= '2024-01-15'  "
             + "and occurreddate <= '2024-12-31' "
             + "order by occurreddate desc, created desc  limit 1 )",

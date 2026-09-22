@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.acl.ErrorMessage;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -118,7 +119,7 @@ class SecurityRelationshipValidatorTest extends TrackerTestBase {
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
     when(bundle.getUser()).thenReturn(user);
     when(trackerAccessManager.canCreate(any(), eq(convertedRelationship)))
-        .thenReturn(List.of("error"));
+        .thenReturn(List.of(new ErrorMessage(E4020, user.getUid(), List.of())));
 
     validator.validate(reporter, bundle, relationship);
 
@@ -141,7 +142,7 @@ class SecurityRelationshipValidatorTest extends TrackerTestBase {
     when(bundle.getStrategy(relationship)).thenReturn(DELETE);
     when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
     when(trackerAccessManager.canDelete(any(), eq(convertedRelationship)))
-        .thenReturn(List.of("error"));
+        .thenReturn(List.of(new ErrorMessage(E4020, "uid", List.of())));
 
     validator.validate(reporter, bundle, relationship);
 

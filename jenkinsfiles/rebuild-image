@@ -21,6 +21,7 @@ pipeline {
             environment {
                 OLD_VERSION_SCHEMA_PREFIX = '2'
                 SUPPORTED_VERSIONS_JSON = sh(returnStdout: true, script: 'curl -fsSL "https://releases.dhis2.org/v1/versions/stable.json" | jq -r \'.versions[] | select(.supported == true)\'').trim()
+                ARCHITECTURES = 'amd64 arm64'
             }
 
             steps {

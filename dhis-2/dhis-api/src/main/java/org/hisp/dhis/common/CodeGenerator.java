@@ -31,7 +31,6 @@ package org.hisp.dhis.common;
 
 import java.security.SecureRandom;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.regex.Pattern;
 
 /**
  * @author bobj
@@ -51,21 +50,22 @@ public class CodeGenerator {
     static final SecureRandom GENERATOR = new SecureRandom();
   }
 
-  public static final String NUMERIC_CHARS = "0123456789";
+  private static final String NUMERIC_CHARS = "0123456789";
 
-  public static final String UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final String UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  public static final String LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz";
+  private static final String LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
-  public static final String LETTERS = LOWERCASE_LETTERS + UPPERCASE_LETTERS;
+  private static final String LETTERS = LOWERCASE_LETTERS + UPPERCASE_LETTERS;
 
   public static final String ALPHANUMERIC_CHARS = NUMERIC_CHARS + LETTERS;
+
+  private static final char[] ALPHABET1 = LETTERS.toCharArray();
+  private static final char[] ALPHABET = ALPHANUMERIC_CHARS.toCharArray();
 
   public static final int UID_CODE_SIZE = 11;
 
   public static final String UID_REGEXP = "^[a-zA-Z][a-zA-Z0-9]{10}$";
-
-  public static final Pattern UID_PATTERN = Pattern.compile(UID_REGEXP);
 
   /**
    * The minimum length of a random alphanumeric string, with the first character always being a
@@ -96,11 +96,9 @@ public class CodeGenerator {
     char[] randomChars = new char[codeSize];
 
     // First char should be a letter
-    randomChars[0] = LETTERS.charAt(r.nextInt(LETTERS.length()));
+    randomChars[0] = ALPHABET1[r.nextInt(ALPHABET1.length)];
 
-    for (int i = 1; i < codeSize; ++i) {
-      randomChars[i] = ALPHANUMERIC_CHARS.charAt(r.nextInt(ALPHANUMERIC_CHARS.length()));
-    }
+    for (int i = 1; i < codeSize; ++i) randomChars[i] = ALPHABET[r.nextInt(ALPHABET.length)];
 
     return randomChars;
   }
@@ -229,7 +227,22 @@ public class CodeGenerator {
    * @param code the code to validate.
    * @return true if the code is valid.
    */
-  public static boolean isValidUid(String code) {
-    return code != null && UID_PATTERN.matcher(code).matches();
+  public static boolean isValidUid(CharSequence code) {
+    if (code == null || code.length() != 11) return false;
+    if (!isLetter(code.charAt(0))) return false;
+    for (int i = 1; i < 11; i++) if (!isLetterOrDigit(code.charAt(i))) return false;
+    return true;
+  }
+
+  private static boolean isLetterOrDigit(char c) {
+    return isLetter(c) || isDigit(c);
+  }
+
+  private static boolean isLetter(char c) {
+    return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z';
+  }
+
+  private static boolean isDigit(char c) {
+    return c >= '0' && c <= '9';
   }
 }

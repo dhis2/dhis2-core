@@ -61,6 +61,4 @@ public class Note {
   @JsonProperty private String value;
 
   @JsonProperty private User createdBy;
-
-  @JsonProperty private String storedBy;
 }

@@ -59,6 +59,16 @@ public record BlobKey(String value) {
       throw new IllegalArgumentException(
           "BlobKey value must not exceed " + MAX_KEY_LENGTH + " characters: " + value);
     }
+    // Reject `..` as a path segment so filesystem-backed stores can't be tricked into writing
+    // outside the container directory. Substrings like "a..b" are fine — only segments split by
+    // `/` count. No DHIS2 caller produces `..` segments today (zip uploads sanitise via
+    // ZipFileUtils, file-resource storage keys are UUID-shaped) so this is defense-in-depth.
+    for (String segment : value.split("/", -1)) {
+      if ("..".equals(segment)) {
+        throw new IllegalArgumentException(
+            "BlobKey value must not contain '..' as a path segment: " + value);
+      }
+    }
   }
 
   /**

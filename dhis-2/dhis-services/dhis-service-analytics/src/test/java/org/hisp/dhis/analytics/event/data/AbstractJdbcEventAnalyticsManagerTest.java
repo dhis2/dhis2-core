@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -52,6 +53,8 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOption;
+import static org.hisp.dhis.test.TestBase.createOptionSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
@@ -86,6 +89,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -121,6 +125,7 @@ import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -204,7 +209,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   private final UUID uuidB = UUID.fromString("1786142e-6d51-48e3-8bbe-9cc2a2836120");
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     programA = createProgram('A');
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
@@ -221,7 +226,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new DefaultStageQuerySqlFacade(
             new DefaultStageQueryItemClassifier(),
             new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
-            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder),
+            sqlBuilder);
 
     eventSubject =
         new JdbcEventAnalyticsManager(
@@ -699,7 +705,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void
-      verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite() {
+      verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnits() {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
@@ -730,8 +736,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(
         columns,
         containsInAnyOrder(
-            "ax.\"pe\"",
-            "ax.\"ou\"",
+            "ax.\"pe\" as pe",
+            "ax.\"ou\" as ou",
             "'[' || round(ST_X(ST_Centroid(\""
                 + deA.getUid()
                 + "_geom"
@@ -1099,6 +1105,46 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testFormatDoubleReturnsMatchingOptionCode() {
+    OptionSet optionSet = createOptionSet('A', createOption("1"), createOption("2"));
+    GridHeader header =
+        new GridHeader("header-1", "header-1", NUMBER, false, true, optionSet, null);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("1", eventSubject.formatDouble(1.0d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleRoundsWhenNoOptionCodeMatches() {
+    OptionSet optionSet = createOptionSet('A', createOption("1"), createOption("2"));
+    GridHeader header =
+        new GridHeader("header-1", "header-1", NUMBER, false, true, optionSet, null);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("3.5", eventSubject.formatDouble(3.5d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleAppliesProgramIndicatorDecimals() {
+    ProgramIndicator programIndicator = createProgramIndicator('A', programA, "9.0", null);
+    programIndicator.setDecimals(3);
+
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder().addItem(new QueryItem(programIndicator)).build();
+    GridHeader header = new GridHeader(programIndicator.getUid(), NUMBER);
+
+    assertEquals("1.235", eventSubject.formatDouble(1.23456d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleAppliesDefaultRoundingWithoutOptionSetOrProgramIndicator() {
+    GridHeader header = new GridHeader("header-1", NUMBER);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("1.23", eventSubject.formatDouble(1.23456d, header, queryParams));
+  }
+
+  @Test
   void testItemsInFilterAreQuotedForOrganisationUnit() {
     // Given
     QueryItem queryItem = mock(QueryItem.class);
@@ -1107,7 +1153,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("A;B;C");
 
     // When
@@ -1133,7 +1180,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndpointAction(AGGREGATE)
             .withEndpointItem(ENROLLMENT)
             .build();
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("A;B;C");
 
     // When
@@ -1209,7 +1257,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndDate(new Date())
             .build();
 
-    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+    when(organisationUnitResolver.resolveOrgUnits(
+            any(QueryFilter.class), anyList(), any(QueryItem.class)))
         .thenReturn("ouA;ouB");
 
     String sql = eventSubject.toSql(queryItem, filter, params).trim();
@@ -1388,6 +1437,132 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testRegistrationOuInWhereClause() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuFilter(List.of(ouA, ouB))
+            .build();
+
+    String whereClause = eventSubject.getWhereClause(params);
+
+    assertThat(whereClause, containsString("regous.\"uidlevel1\""));
+    assertThat(whereClause, containsString(ouA.getUid()));
+    assertThat(whereClause, containsString(ouB.getUid()));
+  }
+
+  @Test
+  void testFromClauseIncludesRegistrationOuJoinWhenRegistrationOuIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    String fromClause = eventSubject.getFromClause(params);
+
+    assertThat(fromClause, containsString("inner join analytics_rs_orgunitstructure as regous"));
+    assertThat(
+        fromClause, containsString("on regous.\"organisationunituid\" = ax.\"registrationou\""));
+  }
+
+  @Test
+  void testFromClauseOmitsRegistrationOuJoinWhenUnused() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .build();
+
+    assertThat(eventSubject.getFromClause(params), not(containsString("regous")));
+  }
+
+  @Test
+  void testLegacySelectColumnsDoesNotIncludeRegistrationOuAggregateColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, false);
+
+    assertTrue(columns.stream().noneMatch(c -> c.contains("registrationou")));
+  }
+
+  @Test
+  void testAggregatedLegacySelectColumnsIncludesRegistrationOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("as registrationou")));
+  }
+
+  @Test
+  void testAggregatedLegacyGroupByColumnsIncludesRegistrationOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getGroupByColumnNames(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("regous.\"uidlevel1\"")));
+  }
+
+  /** REGISTRATION_OU and ENROLLMENT_OU must be able to appear in one query without colliding. */
+  @Test
+  void testRegistrationOuAndEnrollmentOuCoexist() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .withEnrollmentOuDimension(List.of(ouB))
+            .build();
+
+    String fromClause = eventSubject.getFromClause(params);
+
+    assertThat(fromClause, containsString("as regous"));
+    assertThat(fromClause, containsString("as enrl"));
+  }
+
+  @Test
   void testEnrollmentOuInWhereClause() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     OrganisationUnit ouB = createOrganisationUnit('B');
@@ -1467,6 +1642,47 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(selectClause, containsString("enrl.\"ou\" as enrollmentou"));
     assertThat(selectClause, containsString("enrl.\"ouname\" as enrollmentouname"));
+  }
+
+  @Test
+  void testSortClauseReadsEnrollmentOuNameFromEnrollmentTable() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .addAscSortItem(
+                new QueryItem(
+                    new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU_NAME.getItem())))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
+            .build();
+
+    String sortClause =
+        eventSubject.getCteAwareSortClause(
+            new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
+
+    assertThat(sortClause, containsString("enrl.\"ouname\" asc nulls last"));
+  }
+
+  @Test
+  void testSortClauseReadsEnrollmentOuFromEnrollmentTable() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .addDescSortItem(
+                new QueryItem(new BaseDimensionalItemObject(ColumnHeader.ENROLLMENT_OU.getItem())))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
+            .build();
+
+    String sortClause =
+        eventSubject.getCteAwareSortClause(
+            new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT), params);
+
+    assertThat(sortClause, containsString("enrl.\"ou\" desc nulls last"));
   }
 
   @Test
@@ -1635,6 +1851,43 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql, containsString("\"occurreddate\" >= '2021-03-01'"));
     assertThat(sql, containsString("\"occurreddate\" <= '2021-05-31'"));
     assertThat(sql, containsString("\"ps\" = 'Zj7UnCAulEk'"));
+  }
+
+  /**
+   * DHIS2-20929: PI filters such as {@code #{stage.de} == 0} must not be wrapped in {@code
+   * coalesce(..., 0)} — otherwise events where the DE is NULL (or where the row belongs to a
+   * different program stage) incorrectly match the equality to zero. The filter must therefore be
+   * compiled with NULL-allowing semantics.
+   */
+  @Test
+  void verifyProgramIndicatorFilterCompiledAllowingNulls() {
+    ProgramIndicator programIndicator =
+        createProgramIndicator('A', programA, "V{event_count}", "#{ProgrmStagA.DataElmentA} == 0");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withProgramIndicator(programIndicator)
+            .build();
+
+    lenient()
+        .when(
+            programIndicatorService.getAnalyticsSqlAllowingNulls(
+                eq(programIndicator.getFilter()),
+                eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+                eq(programIndicator),
+                any(Date.class),
+                any(Date.class)))
+        .thenReturn("ax.\"DataElmentA\" = 0");
+
+    eventSubject.getWhereClause(params);
+
+    verify(programIndicatorService)
+        .getAnalyticsSqlAllowingNulls(
+            eq(programIndicator.getFilter()),
+            eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+            eq(programIndicator),
+            any(Date.class),
+            any(Date.class));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(

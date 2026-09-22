@@ -37,12 +37,14 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the settings translation feature included in {@link SystemSettingsService}
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SystemSettingsTranslationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private SystemSettingsTranslationService settingsTranslationService;

@@ -148,7 +148,7 @@ public class RelationshipsTests extends TrackerApiTest {
 
     trackerImportExportActions
         .postAndGetJobReport(
-            updatedRelationship.getDeclaration(),
+            updatedRelationship.getDeclaration().toString(),
             new QueryParamsBuilder().addAll("importStrategy=UPDATE"))
         .validateWarningReport()
         .body("warningCode", hasItems("E4015"))

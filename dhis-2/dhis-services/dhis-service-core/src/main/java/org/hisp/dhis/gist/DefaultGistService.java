@@ -29,7 +29,10 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.Spliterator.ORDERED;
+import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
@@ -40,6 +43,7 @@ import jakarta.persistence.EntityManager;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -47,9 +51,9 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PropertyPath;
+import org.hisp.dhis.common.input.Fields;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.object.ObjectOutput;
@@ -85,8 +89,6 @@ public class DefaultGistService implements GistService {
 
   private final AclService aclService;
 
-  private final AttributeService attributeService;
-
   private final ObjectMapper jsonMapper;
 
   private final GistBuilder.GistBuilderSupport builderSupport = new GistBuilderSupportAdapter();
@@ -101,7 +103,14 @@ public class DefaultGistService implements GistService {
   public GistObjectList exportObjectList(@Nonnull GistQuery query) {
     GistQuery planned = plan(query);
     Stream<Object[]> values = gist(planned);
-    return new GistObjectList(pager(query), properties(planned), values);
+    if (!query.isPaging())
+      return new GistObjectList(pager(query, true), properties(planned), values);
+    // we peek the stream to see if it is empty or not, then re-wrap it back into a stream
+    Iterator<Object[]> rows = values.iterator(); // marks values stream as "consumed"
+    boolean hasRows = rows.hasNext();
+    Stream<Object[]> valuesRewrapped =
+        stream(spliteratorUnknownSize(rows, ORDERED), false).onClose(values::close);
+    return new GistObjectList(pager(query, hasRows), properties(planned), valuesRewrapped);
   }
 
   @Nonnull
@@ -123,18 +132,24 @@ public class DefaultGistService implements GistService {
   private List<ObjectOutput.Property> properties(GistQuery query) {
     RelativePropertyContext context = createPropertyContext(query);
     List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
-    for (GistQuery.Field f : query.getFields()) {
-      String name = f.getName();
+    for (Fields.Field f : query.getFields()) {
+      PropertyPath path = f.path();
       if (f.isAttribute()) {
-        res.add(new ObjectOutput.Property(name, ObjectOutput.Type.STRING, false));
-      } else if (GistQuery.Field.REFS_PATH.equals(f.getPropertyPath())) {
+        ObjectOutput.Type type =
+            f.isAttributeAsJson()
+                ? new ObjectOutput.Type(JsonNode.class)
+                : ObjectOutput.Type.STRING;
+        res.add(new ObjectOutput.Property(path, type, false));
+      } else if (f.isRefs()) {
         res.add(
             new ObjectOutput.Property(
-                "apiEndpoints", new ObjectOutput.Type(Map.class, String.class), false));
+                PropertyPath.of("apiEndpoints"),
+                new ObjectOutput.Type(Map.class, String.class),
+                false));
       } else {
-        Property p = context.resolveMandatory(f.getPropertyPath());
+        Property p = context.resolveMandatory(f.propertyPath());
         ObjectOutput.Type type =
-            switch (f.getTransformation()) {
+            switch (f.transformation()) {
               case IS_EMPTY, IS_NOT_EMPTY, MEMBER, NOT_MEMBER -> ObjectOutput.Type.BOOLEAN;
               case SIZE -> ObjectOutput.Type.INTEGER;
               case IDS -> new ObjectOutput.Type(String[].class);
@@ -145,8 +160,8 @@ public class DefaultGistService implements GistService {
               case ID_OBJECTS -> new ObjectOutput.Type(JsonBuilder.JsonEncodable[].class);
               default -> type(p);
             };
-        boolean arrayAggregate = f.getTransformation().isArrayAggregate() && !f.isMultiPluck();
-        res.add(new ObjectOutput.Property(name, type, arrayAggregate));
+        boolean arrayAggregate = f.transformation().isArrayAggregate() && !f.isMultiPluck();
+        res.add(new ObjectOutput.Property(path, type, arrayAggregate));
       }
     }
     return res;
@@ -175,7 +190,7 @@ public class DefaultGistService implements GistService {
     return queryBuilder.transform(rows);
   }
 
-  private GistPager pager(GistQuery query) {
+  private GistPager pager(GistQuery query, boolean hasRows) {
     if (!query.isPaging()) return null;
     int page = 1 + (query.getPageOffset() / query.getPageSize());
     Schema schema = schemaService.getSchema(query.getElementType());
@@ -200,7 +215,7 @@ public class DefaultGistService implements GistService {
                 .toString();
       }
       Integer pageCount = GistPager.getPageCount(total, query.getPageSize());
-      if (pageCount == null || pageCount > page) {
+      if (hasRows && (pageCount == null || pageCount > page)) {
         next =
             UriComponentsBuilder.fromUri(queryURI)
                 .replaceQueryParam("page", page + 1)
@@ -268,23 +283,6 @@ public class DefaultGistService implements GistService {
       return userService.getUser(userId).getGroups().stream()
           .map(IdentifiableObject::getUid)
           .collect(toList());
-    }
-
-    @Override
-    public Attribute getAttributeById(String attributeId) {
-      return attributeService.getAttribute(attributeId);
-    }
-
-    @Override
-    public Object getTypedAttributeValue(Attribute attribute, String value) {
-      if (value == null || value.isBlank()) {
-        return value;
-      }
-      try {
-        return attribute.getValueType().isJson() ? jsonMapper.readTree(value) : value;
-      } catch (JsonProcessingException e) {
-        return value;
-      }
     }
   }
 }

@@ -164,7 +164,7 @@
             "idScheme": "UID",
             "identifier": "multitxtAtr"
           },
-          "value": "red,blue,Green"
+          "value": "red, blue ,Green"
         }
       ]
     }

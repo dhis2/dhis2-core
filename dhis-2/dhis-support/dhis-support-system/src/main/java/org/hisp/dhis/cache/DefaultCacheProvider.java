@@ -466,4 +466,34 @@ public class DefaultCacheProvider implements CacheProvider {
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_100))));
   }
+
+  @Override
+  public <V> Cache<V> createSystemStatisticsOverviewCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.systemStatisticsOverview.name())
+            .expireAfterWrite(5, MINUTES)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(1)));
+  }
+
+  @Override
+  public <V> Cache<V> createSystemStatisticsDataCountsCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.systemStatisticsDataCounts.name())
+            .expireAfterWrite(30, MINUTES)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(1)));
+  }
+
+  @Override
+  public <V> Cache<V> createDataSummarySessionGaugesCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.dataSummarySessionGauges.name())
+            .expireAfterWrite(60, TimeUnit.SECONDS)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(1)));
+  }
 }

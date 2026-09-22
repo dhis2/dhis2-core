@@ -49,12 +49,14 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder.AddMember;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.object.ObjectOutput;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -432,8 +434,7 @@ public final class JsonStreamOutput {
   }
 
   public static AddMember<Object> getAdder(ObjectOutput.Property property) {
-    if (!property.arrayAggregate() || !property.path().contains("."))
-      return getAdder(property.type());
+    if (!property.arrayAggregate() || !property.path().isNested()) return getAdder(property.type());
     return getAdder(property.type().componentType());
   }
 
@@ -442,16 +443,17 @@ public final class JsonStreamOutput {
   }
 
   private static String getPath(ObjectOutput.Property property) {
-    if (!property.arrayAggregate()) return property.path();
-    String path = property.path();
-    if (!path.contains(".")) return path;
-    String[] parts = path.split("\\.");
-    if (parts.length == 2) return "[" + parts[0] + "]." + parts[1];
+    if (!property.arrayAggregate()) return property.path().toString();
+    PropertyPath path = property.path();
+    if (!path.isNested()) return path.toString();
+    List<Text> parts = path.segments().toList();
+    int len = parts.size();
+    if (len == 2) return "[" + parts.get(0) + "]." + parts.get(1);
     return "%s.[%s].%s"
         .formatted(
-            Stream.of(parts).limit(parts.length - 2).collect(joining(".")),
-            parts[parts.length - 1],
-            parts[parts.length - 1]);
+            Stream.of(parts).limit(len - 2).map(Object::toString).collect(joining(".")),
+            parts.get(len - 2),
+            parts.get(len - 1));
   }
 
   public static AddMember<Object> getAdder(ObjectOutput.Type valueType) {
@@ -492,7 +494,9 @@ public final class JsonStreamOutput {
     return getGuardedAdder(
         Map.class,
         (obj, name, val) ->
-            obj.addObject(name, map -> ((Map<String, String>) val).forEach(map::addString)));
+            obj.addObject(
+                name,
+                map -> ((Map<?, String>) val).forEach((k, v) -> map.addString(k.toString(), v))));
   }
 
   @CheckForNull

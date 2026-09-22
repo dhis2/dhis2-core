@@ -147,14 +147,11 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private TrackedEntityType trackedEntityType;
 
   private EventDataValue dv;
-  private EventDataValue dvMultiText;
 
   private DataElement de;
 
   private DataElement deMultiText;
 
-  private TrackerEvent eventRBG;
-  private TrackerEvent eventRWY;
   private TrackerEvent eventNoValue;
 
   @BeforeEach
@@ -208,11 +205,10 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());
-    dv.setStoredBy("user");
     dv.setValue(DATA_ELEMENT_VALUE);
 
-    eventRBG = createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RBG), orgUnit, EVENT_RBG);
-    eventRWY = createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RWY), orgUnit, EVENT_RWY);
+    createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RBG), orgUnit, EVENT_RBG);
+    createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RWY), orgUnit, EVENT_RWY);
     eventNoValue =
         createEvent(
             createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_NO_VALUE), orgUnit, EVENT_NO_VALUE);
@@ -222,7 +218,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   void getEventByPathIsIdenticalToQueryParam() {
     TrackedEntity to = trackedEntity();
     TrackerEvent event = event(enrollment(to));
-    event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    event.setNotes(List.of(note("oqXG28h988k", "my notes")));
     manager.update(event);
     relationship(event, to);
     switchContextToUser(user);
@@ -272,7 +268,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getEventByIdWithNotes() {
     TrackerEvent event = event(enrollment(trackedEntity()));
-    event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
+    event.setNotes(List.of(note("oqXG28h988k", "my notes")));
     manager.update(event);
     switchContextToUser(user);
 
@@ -284,7 +280,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     JsonNote note = jsonEvent.getNotes().get(0);
     assertEquals("oqXG28h988k", note.getNote());
     assertEquals("my notes", note.value());
-    assertEquals(owner.getUid(), note.getStoredBy());
   }
 
   @Test
@@ -305,7 +300,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(dv.getValue(), dataValue.value());
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
-    assertHasMember(dataValue, "storedBy");
   }
 
   @ParameterizedTest
@@ -1208,7 +1202,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private EventDataValue createDataValue(String value) {
     EventDataValue dvMultiText = new EventDataValue();
     dvMultiText.setDataElement(deMultiText.getUid());
-    dvMultiText.setStoredBy("user");
     dvMultiText.setValue(value);
     return dvMultiText;
   }
@@ -1225,8 +1218,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return event;
   }
 
-  private Note note(String uid, String value, String storedBy) {
-    Note note = new Note(value, storedBy);
+  private Note note(String uid, String value) {
+    Note note = new Note(value);
     note.setUid(uid);
     manager.save(note, false);
     return note;

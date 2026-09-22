@@ -178,6 +178,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     swapTables(params, tables, progress);
 
+    if (params.isPartialUpdate() && !params.isLatestUpdate()) {
+      progress.startingStage("Removing latest partition overlap: '{}'", tableType);
+      progress.runStage(() -> tableManager.removeLatestPartitionOverlap(tables));
+      clock.logTime("Removed latest partition overlap");
+    }
+
     clock.logTime("Table update done: '{}'", tableType.getTableName());
   }
 

@@ -33,9 +33,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.http.HttpMethod;
@@ -45,7 +45,7 @@ public record ApiContract(
     HttpMethod httpMethod,
     String requestUrl,
     int responseStatus,
-    @JsonDeserialize(using = JsonSchemaDeserializer.class) JsonSchema jsonSchema) {
+    @JsonDeserialize(using = JsonSchemaDeserializer.class) Schema jsonSchema) {
 
   @Nonnull
   @Override
@@ -59,12 +59,11 @@ public record ApiContract(
  * api-contracts/contracts/category/category-json-schema.json</code> which is expected to be
  * available in test resources. The contract defines where the schema is located.
  */
-class JsonSchemaDeserializer extends JsonDeserializer<JsonSchema> {
+class JsonSchemaDeserializer extends JsonDeserializer<Schema> {
   @Override
-  public JsonSchema deserialize(JsonParser parser, DeserializationContext context)
-      throws IOException {
-    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-    return factory.getSchema(
+  public Schema deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    SchemaRegistry registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_7);
+    return registry.getSchema(
         getClass().getClassLoader().getResourceAsStream(parser.getValueAsString()));
   }
 }

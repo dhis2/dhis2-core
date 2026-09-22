@@ -41,7 +41,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 
 /**
@@ -118,7 +117,7 @@ public class ApiResponse {
   }
 
   public JsonMixed getBodyAsJsonValue() {
-    return JsonMixed.of(raw.asString(), JsonTypedAccess.GLOBAL);
+    return JsonMixed.of(raw.asString());
   }
 
   public JsonNode getBodyAsJsonNode() {

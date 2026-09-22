@@ -32,39 +32,48 @@ package org.hisp.dhis.test.junit;
 import java.util.Properties;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
-import org.junit.jupiter.api.extension.AfterAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.Extension;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Use this configuration for tests relying on MinIO storage running in a Docker container. The
- * container is stopped after the tests in the class have completed. Just add to test class like
+ * container is started once per JVM and shared across all test classes that use this extension;
+ * Testcontainers' Ryuk reaper handles teardown on JVM exit. Just add to test class like
  *
  * <p>@ExtendWith(MinIOTestExtension.class)
  *
  * <p>@ContextConfiguration(classes = {MinIOConfig.class})
  *
- * <p>If there are many uses of this extension then it should be considered whether keeping the
- * container up for the entirety of the tests is more preferable, rather than starting/stopping
- * multiple containers.
- *
  * @author david mackessy
  */
-public class MinIOTestExtension implements AfterAllCallback {
+public class MinIOTestExtension implements Extension {
+
+  public static final String MINIO_USER = "testuser";
+  public static final String MINIO_PASSWORD = "testpassword";
 
   private static final String S3_URL;
-  private static final String MINIO_USER = "testuser";
-  private static final String MINIO_PASSWORD = "testpassword";
   private static final MinIOContainer MIN_IO_CONTAINER;
 
   static {
+    // Docker Hub no longer serves minio/minio (404 / pull access denied). Official
+    // community images remain on quay.io; Testcontainers requires a compatible substitute.
     MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2025-04-22T22-12-26Z")
+        new MinIOContainer(
+                DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z")
+                    .asCompatibleSubstituteFor("minio/minio"))
             .withUserName(MINIO_USER)
             .withPassword(MINIO_PASSWORD);
     MIN_IO_CONTAINER.start();
     S3_URL = MIN_IO_CONTAINER.getS3URL();
+  }
+
+  /**
+   * Endpoint URL the running MinIO container is reachable on (e.g. {@code http://localhost:32812}).
+   */
+  public static String s3Url() {
+    return S3_URL;
   }
 
   public static class DhisConfig {
@@ -82,10 +91,5 @@ public class MinIOTestExtension implements AfterAllCallback {
       pgDhisConfig.addProperties(properties);
       return pgDhisConfig;
     }
-  }
-
-  @Override
-  public void afterAll(ExtensionContext context) {
-    MIN_IO_CONTAINER.stop();
   }
 }

@@ -83,11 +83,13 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.OrgUnitQueryBuilder;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -102,7 +104,6 @@ class JdbcSingleEventStore {
        n.noteid as note_id,\
        n.notetext as note_text,\
        n.created as note_created,\
-       n.creator as note_creator,\
        n.uid as note_uid,\
        userinfo.userinfoid as note_user_id,\
        userinfo.code as note_user_code,\
@@ -132,7 +133,6 @@ class JdbcSingleEventStore {
           entry("organisationUnit.uid", "orgunit_uid"),
           entry("occurredDate", "ev_occurreddate"),
           entry("status", "ev_status"),
-          entry("storedBy", "ev_storedby"),
           entry("lastUpdatedBy", "ev_lastupdatedbyuserinfo"),
           entry("createdBy", "ev_createdbyuserinfo"),
           entry("created", "ev_created"),
@@ -151,7 +151,16 @@ class JdbcSingleEventStore {
   private static final ObjectReader eventDataValueJsonReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
+  /** Export reads. Enforces the tracker export deadline. */
+  @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
+
+  /**
+   * The sync timestamp write. Kept on the primary template: it is a write, called by the data sync
+   * job rather than by any export endpoint, so it must not be bounded by an export deadline.
+   */
+  @Qualifier("namedParameterJdbcTemplate")
+  private final NamedParameterJdbcTemplate writeJdbcTemplate;
 
   public List<SingleEvent> getEvents(SingleEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -279,7 +288,6 @@ class JdbcSingleEventStore {
               coc.setCategoryOptions(options);
               event.setAttributeOptionCombo(coc);
 
-              event.setStoredBy(resultSet.getString("ev_storedby"));
               event.setOccurredDate(resultSet.getTimestamp("ev_occurreddate"));
               event.setCreated(resultSet.getTimestamp("ev_created"));
               event.setCreatedAtClient(resultSet.getTimestamp("ev_createdatclient"));
@@ -340,7 +348,6 @@ class JdbcSingleEventStore {
               note.setUid(resultSet.getString("note_uid"));
               note.setNoteText(resultSet.getString("note_text"));
               note.setCreated(resultSet.getTimestamp("note_created"));
-              note.setCreator(resultSet.getString("note_creator"));
 
               if (resultSet.getObject("note_user_id") != null) {
                 User noteLastUpdatedBy = new User();
@@ -377,7 +384,7 @@ class JdbcSingleEventStore {
             .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
             .addValue("uids", eventUids);
 
-    jdbcTemplate.update(sql, parameters);
+    writeJdbcTemplate.update(sql, parameters);
   }
 
   private EventDataValue parseEventDataValue(
@@ -397,7 +404,6 @@ class JdbcSingleEventStore {
     eventDataValue.setValue(dataValueJson.getString("value").string(""));
     eventDataValue.setProvidedElsewhere(
         dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
-    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
 
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     eventDataValue.setCreatedByUserInfo(
@@ -619,7 +625,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     sql.append(
         """
             \s as ev_eventdatavalues,
-            ev.completedby as ev_completedby, ev.storedby as ev_storedby,
+            ev.completedby as ev_completedby,
             ev.created as ev_created, ev.createdatclient as ev_createdatclient,
             ev.createdbyuserinfo as ev_createdbyuserinfo,
             ev.lastupdated as ev_lastupdated, ev.lastupdatedatclient as ev_lastupdatedatclient,

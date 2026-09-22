@@ -32,10 +32,13 @@ package org.hisp.dhis.tracker.export.singleevent;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdScheme;
@@ -52,6 +55,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -62,6 +66,7 @@ import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,6 +85,8 @@ class DefaultSingleEventService implements SingleEventService {
   private final SingleEventOperationParamsMapper paramsMapper;
 
   private final RelationshipService relationshipService;
+
+  private final AclService aclService;
 
   @Override
   @Transactional(readOnly = true)
@@ -198,33 +205,9 @@ class DefaultSingleEventService implements SingleEventService {
     if (events.getItems().isEmpty()) {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
-    SingleEvent event = events.getItems().get(0);
-
-    Set<EventDataValue> dataValues = new HashSet<>(event.getEventDataValues().size());
-    for (EventDataValue dataValue : event.getEventDataValues()) {
-      DataElement dataElement = null;
-      TrackerIdSchemeParam dataElementIdScheme = idSchemeParams.getDataElementIdScheme();
-      if (TrackerIdScheme.UID == dataElementIdScheme.getIdScheme()) {
-        dataElement = dataElementService.getDataElement(dataValue.getDataElement());
-      } else if (TrackerIdScheme.CODE == dataElementIdScheme.getIdScheme()) {
-        dataElement = manager.getByCode(DataElement.class, dataValue.getDataElement());
-      } else if (TrackerIdScheme.NAME == dataElementIdScheme.getIdScheme()) {
-        dataElement = manager.getByName(DataElement.class, dataValue.getDataElement());
-      } else if (TrackerIdScheme.ATTRIBUTE == dataElementIdScheme.getIdScheme()) {
-        dataElement =
-            manager.getObject(
-                DataElement.class,
-                new IdScheme(IdentifiableProperty.ATTRIBUTE, dataElementIdScheme.getAttributeUid()),
-                dataValue.getDataElement());
-      }
-
-      if (dataElement != null) {
-        dataValues.add(dataValue);
-      }
-    }
-    event.setEventDataValues(dataValues);
-
-    return event;
+    // findEvents already dropped data values whose data element cannot be resolved for the
+    // requested idScheme or the user is not allowed to read.
+    return events.getItems().get(0);
   }
 
   @Nonnull
@@ -234,6 +217,7 @@ class DefaultSingleEventService implements SingleEventService {
       throws BadRequestException, ForbiddenException {
     SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     List<SingleEvent> events = eventStore.getEvents(queryParams);
+    filterReadableDataValues(events, queryParams.getIdSchemeParams());
     if (operationParams.getFields().isIncludesRelationships()) {
       for (SingleEvent event : events) {
         event.setRelationshipItems(
@@ -263,6 +247,7 @@ class DefaultSingleEventService implements SingleEventService {
       throws BadRequestException, ForbiddenException {
     SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<SingleEvent> events = eventStore.getEvents(queryParams, pageParams);
+    filterReadableDataValues(events.getItems(), queryParams.getIdSchemeParams());
     if (operationParams.getFields().isIncludesRelationships()) {
       for (SingleEvent event : events.getItems()) {
         event.setRelationshipItems(
@@ -274,6 +259,52 @@ class DefaultSingleEventService implements SingleEventService {
       }
     }
     return events;
+  }
+
+  /**
+   * Removes the data values whose data element the user is not allowed to read. Data values only
+   * carry the data element identifier (a UID, code or name depending on the requested idScheme)
+   * stored in the {@code eventdatavalues} jsonb column, not the data element metadata, so we
+   * resolve each data element and honor its (metadata) sharing. Data values whose data element
+   * cannot be resolved for the requested idScheme are dropped as well. The readability of a data
+   * element is cached per call since the same data element is typically shared across many events.
+   */
+  private void filterReadableDataValues(
+      List<SingleEvent> events, TrackerIdSchemeParams idSchemeParams) {
+    UserDetails user = getCurrentUserDetails();
+    Map<String, Boolean> readableByIdentifier = new HashMap<>();
+    for (SingleEvent event : events) {
+      Set<EventDataValue> readable =
+          event.getEventDataValues().stream()
+              .filter(
+                  dataValue ->
+                      readableByIdentifier.computeIfAbsent(
+                          dataValue.getDataElement(),
+                          identifier -> isDataElementReadable(identifier, idSchemeParams, user)))
+              .collect(Collectors.toCollection(LinkedHashSet::new));
+      event.setEventDataValues(readable);
+    }
+  }
+
+  private boolean isDataElementReadable(
+      String identifier, TrackerIdSchemeParams idSchemeParams, UserDetails user) {
+    DataElement dataElement = null;
+    TrackerIdSchemeParam dataElementIdScheme = idSchemeParams.getDataElementIdScheme();
+    if (TrackerIdScheme.UID == dataElementIdScheme.getIdScheme()) {
+      dataElement = dataElementService.getDataElement(identifier);
+    } else if (TrackerIdScheme.CODE == dataElementIdScheme.getIdScheme()) {
+      dataElement = manager.getByCode(DataElement.class, identifier);
+    } else if (TrackerIdScheme.NAME == dataElementIdScheme.getIdScheme()) {
+      dataElement = manager.getByName(DataElement.class, identifier);
+    } else if (TrackerIdScheme.ATTRIBUTE == dataElementIdScheme.getIdScheme()) {
+      dataElement =
+          manager.getObject(
+              DataElement.class,
+              new IdScheme(IdentifiableProperty.ATTRIBUTE, dataElementIdScheme.getAttributeUid()),
+              identifier);
+    }
+
+    return dataElement != null && aclService.canRead(user, dataElement);
   }
 
   @Override

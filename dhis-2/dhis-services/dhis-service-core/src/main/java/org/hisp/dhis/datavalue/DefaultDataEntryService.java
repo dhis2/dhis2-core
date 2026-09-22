@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -861,7 +861,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   pe -> {
                     List<DateRange> openSpan = entrySpansByIso.get(pe.getIsoDate());
                     if (openSpan == null) return true;
-                    return openSpan.stream().anyMatch(range -> range.includes(now));
+                    return openSpan.stream().noneMatch(range -> range.includes(now));
                   })
               .toList();
       if (!peNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, peNotOpen);

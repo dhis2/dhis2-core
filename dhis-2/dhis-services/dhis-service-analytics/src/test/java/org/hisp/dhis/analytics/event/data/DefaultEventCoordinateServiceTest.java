@@ -39,9 +39,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -110,5 +113,84 @@ class DefaultEventCoordinateServiceTest {
 
     assertThrows(
         IllegalQueryException.class, () -> service.isFallbackCoordinateFieldValid(false, geometry));
+  }
+
+  @Test
+  void testFallbackCoordinateFieldWithDataElementOfTypeOrgUnitAppendsGeomSuffix() {
+    String uid = "deUid000001";
+    DataElement de = new DataElement();
+    de.setValueType(ValueType.ORGANISATION_UNIT);
+
+    when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
+    when(dataElementService.getDataElement(uid)).thenReturn(de);
+
+    assertEquals(List.of(uid + "_geom"), service.getFallbackCoordinateFields("A", uid, false));
+  }
+
+  @Test
+  void testFallbackCoordinateFieldWithDataElementOfTypeCoordinateIsReturnedUnchanged() {
+    String uid = "deUid000002";
+    DataElement de = new DataElement();
+    de.setValueType(ValueType.COORDINATE);
+
+    when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
+    when(dataElementService.getDataElement(uid)).thenReturn(de);
+
+    assertEquals(List.of(uid), service.getFallbackCoordinateFields("A", uid, false));
+  }
+
+  @Test
+  void testFallbackCoordinateFieldWithDataElementOfUnsupportedTypeThrows() {
+    String uid = "deUid000003";
+    DataElement de = new DataElement();
+    de.setValueType(ValueType.TEXT);
+
+    when(dataElementService.getDataElement(uid)).thenReturn(de);
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class, () -> service.isFallbackCoordinateFieldValid(false, uid));
+    assertEquals(ErrorCode.E7219, ex.getErrorCode());
+  }
+
+  @Test
+  void testFallbackCoordinateFieldWithAttributeOfTypeOrgUnitAppendsGeomSuffix() {
+    String uid = "teaUid00001";
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setValueType(ValueType.ORGANISATION_UNIT);
+
+    when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
+    when(dataElementService.getDataElement(uid)).thenReturn(null);
+    when(attributeService.getTrackedEntityAttribute(uid)).thenReturn(tea);
+
+    assertEquals(List.of(uid + "_geom"), service.getFallbackCoordinateFields("A", uid, false));
+  }
+
+  @Test
+  void testFallbackCoordinateFieldWithAttributeOfTypeCoordinateIsReturnedUnchanged() {
+    String uid = "teaUid00002";
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setValueType(ValueType.COORDINATE);
+
+    when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
+    when(dataElementService.getDataElement(uid)).thenReturn(null);
+    when(attributeService.getTrackedEntityAttribute(uid)).thenReturn(tea);
+
+    assertEquals(List.of(uid), service.getFallbackCoordinateFields("A", uid, false));
+  }
+
+  @Test
+  void testFallbackCoordinateFieldWithAttributeOfUnsupportedTypeThrows() {
+    String uid = "teaUid00003";
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setValueType(ValueType.TEXT);
+
+    when(dataElementService.getDataElement(uid)).thenReturn(null);
+    when(attributeService.getTrackedEntityAttribute(uid)).thenReturn(tea);
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class, () -> service.isFallbackCoordinateFieldValid(false, uid));
+    assertEquals(ErrorCode.E7220, ex.getErrorCode());
   }
 }

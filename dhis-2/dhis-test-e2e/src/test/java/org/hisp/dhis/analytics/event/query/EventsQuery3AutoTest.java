@@ -306,15 +306,15 @@ public class EventsQuery3AutoTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("headers=enrollmentouname,programstatus,enrollmentdate")
             .add("displayProperty=NAME")
-            .add("outputType=EVENT")
             .add("pageSize=100")
             .add("page=1")
             .add("dimension=ENROLLMENT_OU:O6uvpzGd5pu,PROGRAM_STATUS:ACTIVE")
-            .add("desc=eventdate,lastupdated");
+            .add("desc=eventdate,lastupdated")
+            .add("eventDate=LAST_12_MONTHS")
+            .add("relativePeriodDate=2026-04-01");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
     //    This helper checks basic counts and dimensions, adapting based on the runtime

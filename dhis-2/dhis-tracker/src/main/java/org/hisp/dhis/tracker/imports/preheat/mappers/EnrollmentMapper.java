@@ -38,7 +38,12 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-    uses = {TrackedEntityMapper.class, OrganisationUnitMapper.class, AttributeValuesMapper.class})
+    uses = {
+      TrackedEntityMapper.class,
+      OrganisationUnitMapper.class,
+      AttributeValuesMapper.class,
+      CategoryOptionComboMapper.class
+    })
 public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   EnrollmentMapper INSTANCE = Mappers.getMapper(EnrollmentMapper.class);
 
@@ -52,6 +57,7 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "program", qualifiedByName = "program")
   @Mapping(target = "trackedEntity")
   @Mapping(target = "organisationUnit")
+  @Mapping(target = "attributeOptionCombo")
   @Mapping(target = "created")
   @Mapping(target = "occurredDate")
   @Mapping(target = "enrollmentDate")

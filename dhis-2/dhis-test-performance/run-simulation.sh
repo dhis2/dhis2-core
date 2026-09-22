@@ -17,17 +17,26 @@ show_usage() {
   echo "  SIMULATION_CLASS      Fully qualified Gatling Simulation class name"
   echo ""
   echo "OPTIONS:"
+  echo "  DB_DIR                Optional top-level S3 directory (default: not set)"
+  echo "                        Valid values: dev"
+  echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values: sierra-leone, hmis"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis"
+  echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
-  echo "                        Pattern: s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
+  echo "                        Pattern (no DB_DIR): s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DHIS2_USERNAME        DHIS2 username for API authentication (default: admin)"
   echo "  DHIS2_PASSWORD        DHIS2 password for API authentication (default: district)"
   echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
   echo "                        Required for analytics endpoints that query pre-computed tables"
   echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
+  echo "  DHIS_CONF_FILE        dhis.conf variant from ./docker/ mounted into the web container"
+  echo "                        (default: dhis.conf; e.g. dhis-l2cache-on.conf, dhis-l2cache-off.conf)"
+  echo "  COMPOSE_EXTRA_FILE    Additional docker compose override file appended to every compose"
+  echo "                        invocation (e.g. to pin a network subnet on hosts with exhausted"
+  echo "                        docker address pools)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_DHIS2_LOGS    Capture DHIS2 application logs from the web container"
@@ -89,6 +98,7 @@ fi
 # ENVIRONMENT SETUP
 ################################################################################
 
+DB_DIR=${DB_DIR:-""}
 DB_TYPE=${DB_TYPE:-"sierra-leone"}
 DB_VERSION=${DB_VERSION:-"dev"}
 DHIS2_USERNAME=${DHIS2_USERNAME:-"admin"}
@@ -102,21 +112,48 @@ CAPTURE_DHIS2_LOGS=${CAPTURE_DHIS2_LOGS:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
+DHIS_CONF_FILE=${DHIS_CONF_FILE:-"dhis.conf"}
+COMPOSE_EXTRA_FILE=${COMPOSE_EXTRA_FILE:-""}
+# docker compose interpolates ${DHIS_CONF_FILE} in the volume mount
+export DHIS_CONF_FILE
+
+if [ ! -f "docker/$DHIS_CONF_FILE" ]; then
+  echo "Error: DHIS_CONF_FILE=$DHIS_CONF_FILE does not exist in ./docker/"
+  exit 1
+fi
 
 # Track last non-warmup run directory for output summary
 LAST_RUN_DIR=""
 
-# Validate DB_TYPE (only allow sierra-leone or hmis)
-case "$DB_TYPE" in
-  sierra-leone|hmis)
-    # Valid
-    ;;
-  *)
-    echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis', got: $DB_TYPE" >&2
+# Validate DB_DIR: currently only 'dev' is supported
+if [ -n "$DB_DIR" ] && [ "$DB_DIR" != "dev" ]; then
+  echo "Error: DB_DIR must be 'dev', got: $DB_DIR" >&2
+  echo "Run '$0' without arguments to see usage" >&2
+  exit 1
+fi
+
+# Validate DB_TYPE
+if [ -z "$DB_DIR" ]; then
+  # No DB_DIR: only standard public databases are allowed
+  case "$DB_TYPE" in
+    sierra-leone|hmis)
+      # Valid
+      ;;
+    *)
+      echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Set DB_DIR to use a custom database type" >&2
+      echo "Run '$0' without arguments to see usage" >&2
+      exit 1
+      ;;
+  esac
+else
+  # DB_DIR is set: only 'platform-perf' is supported for now
+  if [ "$DB_TYPE" != "platform-perf" ]; then
+    echo "Error: DB_TYPE must be 'platform-perf' when DB_DIR is set, got: $DB_TYPE" >&2
     echo "Run '$0' without arguments to see usage" >&2
     exit 1
-    ;;
-esac
+  fi
+fi
 
 # Validate DB_VERSION (no slashes, no special characters that could be malicious)
 # Allow only alphanumeric, dots, hyphens, and underscores
@@ -167,7 +204,10 @@ cleanup() {
   if [ -n "$PROF_ARGS" ]; then
     compose_files+=("-f" "docker-compose.profile.yml")
   fi
-  docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
+  if [ -n "$COMPOSE_EXTRA_FILE" ]; then
+    compose_files+=("-f" "$COMPOSE_EXTRA_FILE")
+  fi
+  docker compose "${compose_files[@]}" down --volumes --remove-orphans 2>/dev/null || true
 
   # Show output summary for the main (non-warmup) run
   if [ -n "$LAST_RUN_DIR" ] && [ -d "$LAST_RUN_DIR" ]; then
@@ -195,6 +235,9 @@ get_compose_args() {
   local args=("-f" "docker-compose.yml")
   if [ -n "$PROF_ARGS" ]; then
     args+=("-f" "docker-compose.profile.yml")
+  fi
+  if [ -n "$COMPOSE_EXTRA_FILE" ]; then
+    args+=("-f" "$COMPOSE_EXTRA_FILE")
   fi
   echo "${args[@]}"
 }
@@ -264,7 +307,7 @@ start_containers() {
   start_time=$(date +%s)
 
   # shellcheck disable=SC2086
-  docker compose $compose_args down --volumes
+  docker compose $compose_args down --volumes --remove-orphans
 
   # shellcheck disable=SC2086
   if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
@@ -576,6 +619,14 @@ prepare_database() {
   fi
 }
 
+prepare_database_for_measurement() {
+  # Drains warmup-induced WAL and reclaims dead tuples so the measured run starts
+  # from a clean state.
+  echo ""
+  echo "Preparing database for measurement (vacuum analyze + checkpoint)..."
+  docker compose exec db psql --username=dhis --quiet --command='vacuum analyze;' --command='checkpoint;' > /dev/null
+}
+
 start_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     # shellcheck disable=SC2086
@@ -631,8 +682,11 @@ generate_metadata() {
     echo "# Args"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
+    echo "DB_DIR=$DB_DIR"
     echo "DB_TYPE=$DB_TYPE"
     echo "DB_VERSION=$DB_VERSION"
+    echo "DHIS_CONF_FILE=$DHIS_CONF_FILE"
+    echo "COMPOSE_EXTRA_FILE=$COMPOSE_EXTRA_FILE"
     echo "DHIS2_USERNAME=$DHIS2_USERNAME"
     echo "DHIS2_PASSWORD=$DHIS2_PASSWORD"
     echo "ANALYTICS_GENERATE=$ANALYTICS_GENERATE"
@@ -807,6 +861,7 @@ if [ "$WARMUP" -gt 0 ]; then
     run_simulation "$i"
   done
   echo "Warmup complete."
+  prepare_database_for_measurement
 fi
 
 echo ""

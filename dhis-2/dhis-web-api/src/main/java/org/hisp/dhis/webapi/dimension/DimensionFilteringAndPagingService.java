@@ -76,7 +76,7 @@ public class DimensionFilteringAndPagingService {
   public AnalyticsDimensionsPagingWrapper<ObjectNode> pageAndFilter(
       Collection<DimensionResponse> dimensionResponses,
       DimensionsCriteria dimensionsCriteria,
-      List<String> fields) {
+      String fields) {
     AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper =
         new AnalyticsDimensionsPagingWrapper<>();
 

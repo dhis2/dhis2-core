@@ -39,8 +39,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -67,7 +68,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.datastatistics.DataStatisticsService")
 @Transactional
 public class DefaultDataStatisticsService implements DataStatisticsService {
@@ -87,7 +87,45 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
   private final SystemService systemService;
 
+  /**
+   * The system statistics overview covers object counts (approximate counts for the large data
+   * tables), logins, active users, user invitations and system info. These queries are cheap, but
+   * the result is still cached briefly so aggressive or misbehaving monitoring scrapers are bounded
+   * to one computation per TTL window, regardless of request rate.
+   */
+  private final Cache<DataSummary> overviewCache;
+
+  /**
+   * The data counts run exact, windowed count queries over the largest tables (data values, tracker
+   * events, single events, enrollments), which can be very expensive on databases with a lot of
+   * data. The result is therefore cached considerably longer than the overview; these counts move
+   * slowly and 30 minutes of staleness is acceptable.
+   */
+  private final Cache<DataSummary> dataCountsCache;
+
   static final ZoneId SERVER_ZONE = ZoneId.systemDefault();
+
+  public DefaultDataStatisticsService(
+      DataStatisticsStore dataStatisticsStore,
+      DataStatisticsEventStore dataStatisticsEventStore,
+      UserService userService,
+      IdentifiableObjectManager idObjectManager,
+      DataValueService dataValueService,
+      StatisticsProvider statisticsProvider,
+      EventVisualizationStore eventVisualizationStore,
+      SystemService systemService,
+      CacheProvider cacheProvider) {
+    this.dataStatisticsStore = dataStatisticsStore;
+    this.dataStatisticsEventStore = dataStatisticsEventStore;
+    this.userService = userService;
+    this.idObjectManager = idObjectManager;
+    this.dataValueService = dataValueService;
+    this.statisticsProvider = statisticsProvider;
+    this.eventVisualizationStore = eventVisualizationStore;
+    this.systemService = systemService;
+    this.overviewCache = cacheProvider.createSystemStatisticsOverviewCache();
+    this.dataCountsCache = cacheProvider.createSystemStatisticsDataCountsCache();
+  }
 
   // -------------------------------------------------------------------------
   // DataStatisticsService implementation
@@ -205,14 +243,41 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   /**
-   * Generates a summary of system statistics including object counts, active users, user
-   * invitations, data value counts, tracker event counts, single event counts, enrollment counts,
-   * and system information.
+   * Returns the full system statistics summary, composed of the cached overview (see {@link
+   * #overviewCache}) and the cached data counts (see {@link #dataCountsCache}).
    *
    * @return A DataSummary object containing the system statistics summary.
    */
   @Override
   public DataSummary getSystemStatisticsSummary() {
+    DataSummary overview = getSystemStatisticsOverview();
+    DataSummary dataCounts = getSystemStatisticsDataCounts();
+
+    DataSummary summary = new DataSummary();
+    summary.setObjectCounts(overview.getObjectCounts());
+    summary.setActiveUsers(overview.getActiveUsers());
+    summary.setLogins(overview.getLogins());
+    summary.setUserInvitations(overview.getUserInvitations());
+    summary.setSystem(overview.getSystem());
+    summary.setDataValueCount(dataCounts.getDataValueCount());
+    summary.setEventCount(dataCounts.getEventCount());
+    summary.setTrackerEventCount(dataCounts.getTrackerEventCount());
+    summary.setSingleEventCount(dataCounts.getSingleEventCount());
+    summary.setEnrollmentCount(dataCounts.getEnrollmentCount());
+    return summary;
+  }
+
+  @Override
+  public DataSummary getSystemStatisticsOverview() {
+    return overviewCache.get("overview", key -> computeSystemStatisticsOverview());
+  }
+
+  @Override
+  public DataSummary getSystemStatisticsDataCounts() {
+    return dataCountsCache.get("dataCounts", key -> computeSystemStatisticsDataCounts());
+  }
+
+  private DataSummary computeSystemStatisticsOverview() {
     DataSummary statistics = new DataSummary();
 
     // Database objects
@@ -223,45 +288,20 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
     statistics.setObjectCounts(objectCounts);
 
-    // Logins
-    // Note that the source of active users and logins are different. This one is
-    // counting logins based on last login date stored in user table
-    Map<Integer, Integer> logins =
-        Map.ofEntries(
-            Map.entry(0, userService.getActiveUsersCount(hoursAgo(1))),
-            Map.entry(1, userService.getActiveUsersCount(startOfToday())),
-            Map.entry(2, userService.getActiveUsersCount(daysAgo(2))),
-            Map.entry(7, userService.getActiveUsersCount(daysAgo(7))),
-            Map.entry(30, userService.getActiveUsersCount(daysAgo(30))));
-    statistics.setLogins(logins);
+    // Distinct users by last login (userinfo.lastlogin) and by recorded view activity
+    // (datastatisticsevent), for the windows: last hour (key 0), since start of today (key 1),
+    // and the last 2, 7 and 30 days. Note that the two sources differ: logins cover all
+    // authentication, while active users only cover users generating view events in the
+    // analytics apps.
+    List<Integer> windowKeys = List.of(0, 1, 2, 7, 30);
+    List<Date> windowDates =
+        List.of(hoursAgo(1), startOfToday(), daysAgo(2), daysAgo(7), daysAgo(30));
 
-    // Active users based on DataStatisticsEventStore
-    // This one is counting active users based on activity stored in data statistics event table
-    // Consider to include all of the event types, since we are already querying them
-    Date base = new Date();
-    Map<DataStatisticsEventType, Long> eventCountMapOneHour =
-        dataStatisticsEventStore.getDataStatisticsEventCount(hoursAgo(1), base);
-    Map<DataStatisticsEventType, Long> eventCountMapToday =
-        dataStatisticsEventStore.getDataStatisticsEventCount(startOfToday(), base);
-    Map<DataStatisticsEventType, Long> eventCountMapLast2Days =
-        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(2), base);
-    Map<DataStatisticsEventType, Long> eventCountMapLast7Days =
-        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(7), base);
-    Map<DataStatisticsEventType, Long> eventCountMapLast30Days =
-        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(30), base);
-    Map<Integer, Integer> activeUsersMap =
-        Map.ofEntries(
-            Map.entry(
-                0, (int) getOrZero(eventCountMapOneHour, DataStatisticsEventType.ACTIVE_USERS)),
-            Map.entry(1, (int) getOrZero(eventCountMapToday, DataStatisticsEventType.ACTIVE_USERS)),
-            Map.entry(
-                2, (int) getOrZero(eventCountMapLast2Days, DataStatisticsEventType.ACTIVE_USERS)),
-            Map.entry(
-                7, (int) getOrZero(eventCountMapLast7Days, DataStatisticsEventType.ACTIVE_USERS)),
-            Map.entry(
-                30,
-                (int) getOrZero(eventCountMapLast30Days, DataStatisticsEventType.ACTIVE_USERS)));
-    statistics.setActiveUsers(activeUsersMap);
+    statistics.setLogins(toWindowMap(windowKeys, userService.getActiveUsersCounts(windowDates)));
+    statistics.setActiveUsers(
+        toWindowMap(
+            windowKeys,
+            dataStatisticsEventStore.getDistinctActiveUserCounts(windowDates, new Date())));
 
     // User invitations
     Map<String, Integer> userInvitations = new HashMap<>();
@@ -276,6 +316,14 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
         UserInvitationStatus.EXPIRED.getValue(), userService.getUserCount(inviteExpired));
 
     statistics.setUserInvitations(userInvitations);
+
+    statistics.setSystem(getDhis2Info());
+
+    return statistics;
+  }
+
+  private DataSummary computeSystemStatisticsDataCounts() {
+    DataSummary statistics = new DataSummary();
 
     Map<Integer, Integer> dataValueCount =
         Map.ofEntries(
@@ -325,8 +373,6 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
                 30, (long) idObjectManager.getCountByLastUpdated(Enrollment.class, daysAgo(30))));
     statistics.setEnrollmentCount(Map.copyOf(enrollmentCount));
 
-    statistics.setSystem(getDhis2Info());
-
     return statistics;
   }
 
@@ -346,6 +392,21 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   private static long getOrZero(
       Map<DataStatisticsEventType, Long> map, DataStatisticsEventType type) {
     return map.getOrDefault(type, 0L);
+  }
+
+  /**
+   * Zips window keys with their counts into an unmodifiable map.
+   *
+   * @param keys the window keys.
+   * @param counts the counts, in the same order as the keys.
+   * @return a map from window key to count.
+   */
+  private static Map<Integer, Integer> toWindowMap(List<Integer> keys, List<Integer> counts) {
+    Map<Integer, Integer> map = new HashMap<>();
+    for (int i = 0; i < keys.size(); i++) {
+      map.put(keys.get(i), counts.get(i));
+    }
+    return Map.copyOf(map);
   }
 
   /**

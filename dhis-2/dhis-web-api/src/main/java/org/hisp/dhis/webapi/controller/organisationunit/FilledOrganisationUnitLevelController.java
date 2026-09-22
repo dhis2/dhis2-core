@@ -74,7 +74,7 @@ public class FilledOrganisationUnitLevelController {
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<List<ObjectNode>> getList(
-      @RequestParam(defaultValue = "*") List<String> fields) {
+      @RequestParam(defaultValue = "*") String fields) {
     List<OrganisationUnitLevel> organisationUnitLevels =
         organisationUnitService.getFilledOrganisationUnitLevels();
 

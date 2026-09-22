@@ -34,6 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -212,5 +213,12 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional(readOnly = true)
   public String getDisplayName(String uid) {
     return userGroupNameCache.get(uid, n -> userGroupStore.getByUidNoAcl(uid).getDisplayName());
+  }
+
+  @Override
+  @Nonnull
+  @Transactional(readOnly = true)
+  public Set<Long> getManagedGroupIds(@Nonnull Collection<Long> userGroupIds) {
+    return userGroupStore.getManagedGroupIds(userGroupIds);
   }
 }

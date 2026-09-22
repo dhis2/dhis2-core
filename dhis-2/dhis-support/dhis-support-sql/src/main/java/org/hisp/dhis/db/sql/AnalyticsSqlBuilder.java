@@ -101,4 +101,20 @@ public interface AnalyticsSqlBuilder extends SqlBuilder {
   default boolean useJoinForDatePeriodStructureLookup() {
     return false;
   }
+
+  /**
+   * Returns an SQL expression casting {@code expression} to {@code DATE}, propagating {@code NULL}
+   * inputs to {@code NULL} results.
+   *
+   * <p>The default uses ANSI {@code cast(... as date)}, which Postgres and Doris already make
+   * NULL-safe. Engines that throw on {@code NULL} input (e.g. ClickHouse {@code toDate}) must
+   * override to return their NULL-tolerant equivalent.
+   *
+   * @param expression the source SQL expression
+   * @return an SQL fragment that casts {@code expression} to a date and yields {@code NULL} when
+   *     the input is {@code NULL}
+   */
+  default String castAsDate(String expression) {
+    return "cast(" + expression + " as date)";
+  }
 }

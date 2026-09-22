@@ -67,24 +67,10 @@ public class D2RelationshipCount extends ProgramExpressionItem {
 
   @Override
   public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    String relationshipIdConstraint = "";
-
+    String relationshipTypeUid = "";
     if (ctx.QUOTED_UID() != null) {
-      String relationshipId = trimQuotes(ctx.QUOTED_UID().getText());
-      relationshipIdConstraint = "and relationshiptypeuid = '%s'".formatted(relationshipId);
+      relationshipTypeUid = trimQuotes(ctx.QUOTED_UID().getText());
     }
-
-    return relationshipIdConstraint.isEmpty()
-        ? """
-            (select sum(relationship_count)
-             from analytics_rs_relationship arr
-             where arr.trackedentityid = ax.trackedentity)
-            """
-        : """
-            (select relationship_count
-             from analytics_rs_relationship arr
-             where arr.trackedentityid = ax.trackedentity %s)
-            """
-            .formatted(relationshipIdConstraint);
+    return RelationshipCountPlaceholder.format(relationshipTypeUid);
   }
 }

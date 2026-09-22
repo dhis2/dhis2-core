@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.eventhook.handlers;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -83,7 +86,10 @@ public class WebhookHandler implements Handler {
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     if (webhookTarget.getAuth() != null) {
       try {
-        webhookTarget.getAuth().apply(applicationContext, httpHeaders, queryParams);
+        Map<String, List<String>> authHeaders = new LinkedHashMap<>();
+        webhookTarget.getAuth().apply(applicationContext, authHeaders, queryParams);
+        authHeaders.forEach(
+            (name, values) -> values.forEach(value -> httpHeaders.add(name, value)));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

@@ -37,16 +37,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.InputFormat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
@@ -74,6 +77,7 @@ import org.springframework.transaction.annotation.Transactional;
 class ApiContractTest extends H2ControllerIntegrationTestBase {
 
   private static final ObjectMapper mapper = new ObjectMapper();
+  private static final Set<String> typeRequiresSpecialHandling = Set.of("categoryOptionCombo");
 
   @TestFactory
   @DisplayName("Test API contracts")
@@ -111,21 +115,25 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     assertEquals(contract.responseStatus(), response.status().code(), "HTTP status code mismatch");
 
     // And the response body should not have any JSON schema validation errors
-    Set<ValidationMessage> errors =
-        contract.jsonSchema().validate(mapper.readTree(response.content().toJson()));
+    List<Error> errors =
+        contract.jsonSchema().validate(response.content().toJson(), InputFormat.JSON);
     assertTrue(
         errors.isEmpty(),
         () -> String.format("Valid JSON should pass schema validation, errors: %s", errors));
   }
 
   /**
-   * Create type to be tested using existing JsonSchema code
+   * Create type to be tested using existing JsonSchema code. Some types require special handling
+   * and bypass the normal generator flow.
    *
    * @param contract contract which contains type
    * @return UID of created type
    */
   private String createType(ApiContract contract, JsonGenerator generator) {
     String type = contract.name();
+
+    // handle types that require special handling - skipping normal flow
+    if (typeRequiresSpecialHandling.contains(type)) return typeWithSpecialHandling(type);
 
     JsonSchema schema = GET("/schemas/" + type).content().as(JsonSchema.class);
     Map<String, String> objects = generator.generateObjects(schema);
@@ -168,5 +176,22 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
       return Set.of();
     }
     return contracts;
+  }
+
+  /**
+   * Special handling for qualifying types. This list will likely grow over time so left as a switch
+   * statement.
+   *
+   * @param type the contract that requires special handling
+   * @return the uid from the type required for the contract test
+   */
+  private String typeWithSpecialHandling(String type) {
+    return switch (type) {
+      case "categoryOptionCombo" -> {
+        TestCategoryMetadata categoryMetadata = setupCategoryMetadata("apiContractTest");
+        yield categoryMetadata.coc1().getUid();
+      }
+      default -> throw new IllegalArgumentException("Type needs special handling: " + type);
+    };
   }
 }

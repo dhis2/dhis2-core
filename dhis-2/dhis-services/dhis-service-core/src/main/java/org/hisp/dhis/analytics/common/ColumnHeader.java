@@ -34,6 +34,7 @@ public enum ColumnHeader {
   TRACKED_ENTITY("tei", "Tracked entity"),
   ENROLLMENT("pi", "Enrollment"),
   GEOMETRY("geometry", "Geometry"),
+  GEOMETRY_SOURCE("geometrySource", "Geometry source"),
   ENROLLMENT_GEOMETRY("enrollmentgeometry", "Enrollment geometry"),
   ENROLLMENT_DATE("enrollmentdate", "Enrollment date"),
   /**
@@ -42,7 +43,6 @@ public enum ColumnHeader {
   @Deprecated(since = "2.42")
   INCIDENT_DATE("incidentdate", "Incident date"),
   OCCURRED_DATE("occurreddate", "Occurred date"),
-  STORED_BY("storedby", "Stored by"),
   CREATED_BY_DISPLAY_NAME("createdbydisplayname", "Created by"),
   LAST_UPDATED_BY_DISPLAY_NAME("lastupdatedbydisplayname", "Last updated by"),
   LAST_UPDATED("lastupdated", "Last updated on"),
@@ -67,6 +67,8 @@ public enum ColumnHeader {
   EVENT_STATUS("eventstatus", "Event status"),
   ENROLLMENT_OU("enrollmentou", "Enrollment org unit"),
   ENROLLMENT_OU_NAME("enrollmentouname", "Enrollment org unit name"),
+  REGISTRATION_OU("registrationou", "Registration org unit"),
+  REGISTRATION_OU_NAME("registrationouname", "Registration org unit name"),
   DIMENSION("dx", "Data"),
   DIMENSION_NAME("dxname", "Data name"),
   PERIOD("pe", "Period"),

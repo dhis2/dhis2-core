@@ -125,7 +125,7 @@ public class DataStatisticsController {
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate endDate,
       @RequestParam(defaultValue = "DAY") EventInterval interval,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       HttpServletResponse response)
       throws WebMessageException {
 

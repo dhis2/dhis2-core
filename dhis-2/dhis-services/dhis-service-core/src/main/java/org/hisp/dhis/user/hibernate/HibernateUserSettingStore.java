@@ -34,6 +34,8 @@ import static java.util.stream.Collectors.toMap;
 import jakarta.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InvalidClassException;
+import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -55,6 +57,16 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class HibernateUserSettingStore extends HibernateNativeStore<UserSetting>
     implements UserSettingStore {
+
+  private static final ObjectInputFilter DESERIALIZATION_FILTER =
+      ObjectInputFilter.Config.createFilter(
+          "maxdepth=5;maxrefs=20;maxarray=0;maxbytes=65536;"
+              + "java.lang.String;java.lang.Boolean;"
+              + "java.lang.Number;java.lang.Integer;java.lang.Long;"
+              + "java.lang.Double;java.lang.Float;java.lang.Enum;"
+              + "java.util.Locale;java.util.Date;"
+              + "org.hisp.dhis.common.Locale;org.hisp.dhis.common.DisplayProperty;"
+              + "!*");
 
   public HibernateUserSettingStore(EntityManager em) {
     super(em, UserSetting.class);
@@ -121,30 +133,34 @@ public class HibernateUserSettingStore extends HibernateNativeStore<UserSetting>
   }
 
   /**
-   * ATM values are stored as binary data serialized from {@link java.io.Serializable}. As we are
-   * only dealing with primitive values they all implement {@link Object#toString()} in a way that
-   * yields the proper {@link String} form. This is the 1st step in away from storing binary data by
-   * only using strings outside the store layer. Also, once settings are updated they always are
-   * {@link String}s just still in their binary form.
+   * Deserializes a binary-stored user setting value to its String form. After V2_44_8 migration,
+   * all rows contain serialized Strings. The ObjectInputFilter remains as a safety net against
+   * unexpected types or tampered data.
    */
-  private static String fromBinary(String key, Object value) {
+  static String fromBinary(String key, Object value) {
     if (value == null) return "";
     if (value instanceof byte[] binary) {
       try {
         ByteArrayInputStream bis = new ByteArrayInputStream(binary);
         ObjectInputStream ois = new ObjectInputStream(bis);
+        ois.setObjectInputFilter(DESERIALIZATION_FILTER);
         return Settings.valueOf((Serializable) ois.readObject());
+      } catch (InvalidClassException ex) {
+        log.error(
+            "Deserialization filter rejected class for user setting '{}': {}",
+            key,
+            ex.getMessage());
+        return "";
       } catch (Exception ex) {
-        log.warn(
-            "Failed to de-serialize user setting %s from binary representation, using default"
-                .formatted(key));
+        log.warn("Failed to de-serialize user setting '{}' from binary, using default", key);
         return "";
       }
     }
     if (value instanceof Serializable s) return Settings.valueOf(s);
     log.warn(
-        "Failed to de-serialize user setting %s from unknown source type: %s, using default"
-            .formatted(key, value.getClass()));
+        "Failed to de-serialize user setting '{}' from unknown source type: {}, using default",
+        key,
+        value.getClass());
     return "";
   }
 

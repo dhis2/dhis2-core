@@ -99,10 +99,10 @@ public class SimplisticHttpGetGateWay extends SmsGateway {
 
       if (genericConfig.isSendUrlParameters()) {
         uriBuilder =
-            UriComponentsBuilder.fromHttpUrl(
+            UriComponentsBuilder.fromUriString(
                 config.getUrlTemplate() + "?" + requestEntity.getBody());
       } else {
-        uriBuilder = UriComponentsBuilder.fromHttpUrl(config.getUrlTemplate());
+        uriBuilder = UriComponentsBuilder.fromUriString(config.getUrlTemplate());
       }
 
       uri = uriBuilder.build().encode().toUri();

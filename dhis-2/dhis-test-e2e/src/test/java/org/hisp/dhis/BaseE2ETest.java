@@ -248,7 +248,7 @@ public class BaseE2ETest {
     }
   }
 
-  public String callTokenEndpoint(String code) {
+  public String callTokenEndpoint(String code, String codeVerifier) {
     RestTemplate restTemplate = getRestTemplateNoRedirects();
     String apiUrl = serverHostUrl + "/oauth2/token";
     HttpHeaders headers = new HttpHeaders();
@@ -260,6 +260,9 @@ public class BaseE2ETest {
     formData.add("client_secret", "secret");
     formData.add("grant_type", "authorization_code");
     formData.add("redirect_uri", "http://localhost:9090/oauth2/code/dhis2-client");
+    if (codeVerifier != null) {
+      formData.add("code_verifier", codeVerifier);
+    }
 
     HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
     ResponseEntity<String> response =

@@ -284,7 +284,6 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         () -> assertEquals(uidDataValue.value(), nameDataValue.value(), "value"),
         () -> assertEquals(uidDataValue.getCreatedAt(), nameDataValue.getCreatedAt(), "createdAt"),
         () -> assertEquals(uidDataValue.getUpdatedAt(), nameDataValue.getUpdatedAt(), "updatedAt"),
-        () -> assertEquals(uidDataValue.getStoredBy(), nameDataValue.getStoredBy(), "storedBy"),
         () ->
             assertEquals(
                 uidDataValue.getProvidedElsewhere(),

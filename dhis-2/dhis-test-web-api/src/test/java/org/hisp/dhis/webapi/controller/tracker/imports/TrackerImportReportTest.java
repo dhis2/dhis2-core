@@ -43,7 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  * requests
  */
 @Transactional
-class TrackerImportReportTest extends H2ControllerIntegrationTestBase {
+class TrackerImportReportTest extends PostgresControllerIntegrationTestBase {
 
   private static final String ORG_UNIT_UID = "PSeMWi7rBgb";
 

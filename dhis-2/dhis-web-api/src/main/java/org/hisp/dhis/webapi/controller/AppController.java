@@ -72,6 +72,7 @@ import org.hisp.dhis.webapi.security.csp.CspAppHost;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
 import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
+import org.hisp.dhis.webapi.staticresource.StaticCacheMetrics;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -113,6 +114,8 @@ public class AppController {
   @Autowired private StaticCacheControlService staticCacheControlService;
 
   @Autowired private HtmlCacheBustingService htmlCacheBustingService;
+
+  @Autowired private StaticCacheMetrics staticCacheMetrics;
 
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
@@ -206,6 +209,7 @@ public class AppController {
     // Early 304 check — avoids resource I/O for cached responses
     String etag = staticCacheControlService.generateETag(application, requestUri, queryString);
     if (new ServletWebRequest(request, response).checkNotModified(etag)) {
+      staticCacheMetrics.countNotModified();
       return;
     }
 

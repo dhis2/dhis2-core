@@ -66,9 +66,6 @@ class SecurityEnrollmentValidator implements Validator<Enrollment> {
     } else {
       org.hisp.dhis.tracker.model.Enrollment databaseEnrollment =
           bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
-      CategoryOptionCombo aoc =
-          preheat.getCategoryOptionCombo(enrollment.getAttributeOptionCombo());
-      databaseEnrollment.setAttributeOptionCombo(aoc);
 
       if (strategy.isUpdate()) {
         handleUpdate(reporter, preheat, user, databaseEnrollment, enrollment);
@@ -97,8 +94,13 @@ class SecurityEnrollmentValidator implements Validator<Enrollment> {
     OrganisationUnit orgUnit =
         payloadOrgUnit != null ? payloadOrgUnit : databaseEnrollment.getOrganisationUnit();
 
+    CategoryOptionCombo payloadAoc =
+        preheat.getCategoryOptionCombo(enrollment.getAttributeOptionCombo());
+    CategoryOptionCombo aoc =
+        payloadAoc != null ? payloadAoc : databaseEnrollment.getAttributeOptionCombo();
+
     trackerAccessManager
-        .canUpdate(user, databaseEnrollment, orgUnit)
+        .canUpdate(user, databaseEnrollment, orgUnit, aoc)
         .forEach(em -> reporter.addError(enrollment, em.validationCode(), em.args().toArray()));
   }
 

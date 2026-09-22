@@ -47,8 +47,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.util.DateUtils;
@@ -71,8 +69,6 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   protected static final int EMAIL_CHAR_LIMIT = 10000;
 
   protected static final int SUBJECT_CHAR_LIMIT = 100;
-
-  protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]";
 
   // Error placeholders
   protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
@@ -191,38 +187,6 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
 
   /** Returns the set of ExpressionTypes supported by the implementor. */
   protected abstract Set<ExpressionType> getSupportedExpressionTypes();
-
-  /**
-   * Renders the display value for a {@link DataElement} within the context of an event.
-   *
-   * <p>This method performs the following:
-   *
-   * <ul>
-   *   <li>Returns a placeholder if the {@code DataElement} is not part of the program stage.
-   *   <li>Returns a confidential replacement if the underlying value is {@code null}.
-   *   <li>Resolves OptionSet codes to their corresponding display names when applicable.
-   *   <li>Otherwise, returns the raw data value.
-   * </ul>
-   *
-   * @param dv the {@link EventDataValue} containing the stored value
-   * @param dataElement the {@link DataElement} associated with the value
-   * @return a rendered, user-friendly value suitable for notifications or messages
-   */
-  protected String renderDataElementValue(EventDataValue dv, DataElement dataElement) {
-    if (dataElement == null) {
-      return DE_NOT_IN_STAGE;
-    }
-    String value = dv.getValue();
-
-    if (value == null) {
-      return CONFIDENTIAL_VALUE_REPLACEMENT;
-    }
-
-    // If the DV has an OptionSet -> substitute value with the name of the
-    // Option
-
-    return dataElement.hasOptionSet() ? getOptionName(dataElement.getOptionSet(), value) : value;
-  }
 
   // -------------------------------------------------------------------------
   // Internal methods

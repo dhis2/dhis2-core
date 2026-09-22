@@ -204,12 +204,12 @@ class CspPolicyServiceTest {
     HttpHeaders headers = cspPolicyService.getSecurityHeaders("script-src 'self';");
 
     assertNotNull(headers);
-    assertTrue(headers.containsKey("Content-Security-Policy"));
+    assertTrue(headers.containsHeader("Content-Security-Policy"));
     assertEquals("nosniff", headers.getFirst("X-Content-Type-Options"));
     // X-Frame-Options is omitted when CSP is enabled because the frame-ancestors
     // directive in the CSP is the source of truth and may legitimately whitelist
     // external origins.
-    assertFalse(headers.containsKey("X-Frame-Options"));
+    assertFalse(headers.containsHeader("X-Frame-Options"));
   }
 
   @Test
@@ -218,7 +218,7 @@ class CspPolicyServiceTest {
 
     HttpHeaders headers = cspPolicyService.getSecurityHeaders("script-src 'self';");
 
-    assertFalse(headers.containsKey("Content-Security-Policy"));
+    assertFalse(headers.containsHeader("Content-Security-Policy"));
     assertEquals("nosniff", headers.getFirst("X-Content-Type-Options"));
     assertEquals("SAMEORIGIN", headers.getFirst("X-Frame-Options"));
   }
@@ -241,7 +241,7 @@ class CspPolicyServiceTest {
         DEFAULT_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';",
         headers.getFirst("Content-Security-Policy"));
     assertEquals("nosniff", headers.getFirst("X-Content-Type-Options"));
-    assertFalse(headers.containsKey("X-Frame-Options"));
+    assertFalse(headers.containsHeader("X-Frame-Options"));
   }
 
   @Test

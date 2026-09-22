@@ -36,7 +36,6 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -52,20 +51,31 @@ class SecurityRelationshipValidator implements Validator<Relationship> {
     TrackerImportStrategy strategy = bundle.getStrategy(relationship);
     UserDetails user = bundle.getUser();
 
-    if (strategy.isDelete()
-        && (!trackerAccessManager
-            .canDelete(user, bundle.getPreheat().getRelationship(relationship))
-            .isEmpty())) {
-      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
+    if (strategy.isCreate()) {
+      handleCreate(reporter, bundle, user, relationship);
+    } else if (strategy.isDelete()) {
+      handleDelete(reporter, bundle, user, relationship);
     }
+  }
 
-    if (strategy.isCreate()
-        && (!trackerAccessManager
-            .canCreate(
-                user, TrackerObjectsMapper.map(bundle.getPreheat(), relationship, bundle.getUser()))
-            .isEmpty())) {
-      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
-    }
+  private void handleCreate(
+      Reporter reporter, TrackerBundle bundle, UserDetails user, Relationship relationship) {
+    org.hisp.dhis.tracker.model.Relationship mappedRelationship =
+        TrackerObjectsMapper.map(bundle.getPreheat(), relationship, user);
+
+    trackerAccessManager
+        .canCreate(user, mappedRelationship)
+        .forEach(em -> reporter.addError(relationship, em.validationCode(), em.args().toArray()));
+  }
+
+  private void handleDelete(
+      Reporter reporter, TrackerBundle bundle, UserDetails user, Relationship relationship) {
+    org.hisp.dhis.tracker.model.Relationship databaseRelationship =
+        bundle.getPreheat().getRelationship(relationship);
+
+    trackerAccessManager
+        .canDelete(user, databaseRelationship)
+        .forEach(em -> reporter.addError(relationship, em.validationCode(), em.args().toArray()));
   }
 
   @Override

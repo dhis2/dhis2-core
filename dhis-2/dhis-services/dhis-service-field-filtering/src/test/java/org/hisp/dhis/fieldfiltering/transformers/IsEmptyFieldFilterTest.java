@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.junit.jupiter.api.Test;
 
@@ -47,7 +48,7 @@ class IsEmptyFieldFilterTest {
     ObjectNode objectNode = jsonMapper.createObjectNode();
     objectNode.set("a", jsonMapper.createArrayNode());
     IsEmptyFieldTransformer transformer = new IsEmptyFieldTransformer();
-    transformer.apply("a", objectNode.get("a"), objectNode);
+    transformer.apply(PropertyPath.of("a"), objectNode.get("a"), objectNode);
     assertTrue(objectNode.has("a"));
     assertTrue(objectNode.get("a").isBoolean());
     assertTrue(objectNode.get("a").asBoolean());

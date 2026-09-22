@@ -140,9 +140,6 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
         "update singleevent set lastupdated = ? where eventid = ?",
         Timestamp.from(olderThanSevenDays),
         eventIds.get(2));
-
-    entityManager.flush();
-    entityManager.clear();
   }
 
   @Test

@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.junit.jupiter.api.Test;
 
@@ -49,8 +50,8 @@ class SizeFieldFilterTest {
     objectNode.set("a", jsonMapper.createArrayNode());
     objectNode.put("b", "hello");
     SizeFieldTransformer transformer = new SizeFieldTransformer();
-    transformer.apply("a", objectNode.get("a"), objectNode);
-    transformer.apply("b", objectNode.get("b"), objectNode);
+    transformer.apply(PropertyPath.of("a"), objectNode.get("a"), objectNode);
+    transformer.apply(PropertyPath.of("b"), objectNode.get("b"), objectNode);
     assertTrue(objectNode.has("a"));
     assertTrue(objectNode.get("a").isInt());
     assertEquals(0, objectNode.get("a").asInt());

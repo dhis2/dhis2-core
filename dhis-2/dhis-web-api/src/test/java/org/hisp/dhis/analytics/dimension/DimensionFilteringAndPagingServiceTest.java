@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -76,29 +75,42 @@ public class DimensionFilteringAndPagingServiceTest {
   }
 
   @Test
-  public void testPaging() {
+  void testPaging() {
     DimensionsCriteria criteria = new DimensionsCriteria();
     criteria.setPageSize(5);
 
     AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper =
-        service.pageAndFilter(dimensionResponses, criteria, Collections.singletonList("*"));
+        service.pageAndFilter(dimensionResponses, criteria, "*");
 
     assertThat(pagingWrapper.getDimensions().size(), is(5));
   }
 
   @Test
-  public void testFiltering() {
+  void testFiltering() {
     DimensionsCriteria criteria = new DimensionsCriteria();
     criteria.setFilter(Set.of("name:eq:test"));
 
     AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper =
-        service.pageAndFilter(dimensionResponses, criteria, Collections.singletonList("*"));
+        service.pageAndFilter(dimensionResponses, criteria, "*");
 
     assertThat(pagingWrapper.getDimensions().size(), is(5));
   }
 
+  @Test
+  void testFilteringByInOperator() {
+    DimensionsCriteria criteria = new DimensionsCriteria();
+    criteria.setFilter(Set.of("valueType:in:[ NUMBER, INTEGER ]"));
+
+    AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper =
+        service.pageAndFilter(dimensionResponses, criteria, "*");
+
+    assertThat(pagingWrapper.getDimensions().size(), is(7));
+  }
+
   private DimensionResponse buildDimensionResponse(int operand) {
     DimensionResponse.DimensionResponseBuilder builder = DimensionResponse.builder();
-    return (operand % 2 == 0 ? builder.name("test") : builder.name("another")).build();
+    builder.name(operand % 2 == 0 ? "test" : "another");
+    builder.valueType(operand % 3 == 0 ? "INTEGER" : operand % 2 == 0 ? "NUMBER" : "TEXT");
+    return builder.build();
   }
 }

@@ -29,15 +29,15 @@
  */
 package org.hisp.dhis.schema;
 
-import static java.util.Collections.singletonList;
-
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.PropertyPath;
+import org.hisp.dhis.jsontree.Text;
 
 /**
  * A utility to resolve the {@link Property} for a given path.
@@ -58,7 +58,7 @@ public final class RelativePropertyContext {
 
   private final Function<Class<?>, Schema> schemaLookup;
 
-  private final Map<String, Property> cache = new ConcurrentHashMap<>();
+  private final Map<PropertyPath, Property> cache = new ConcurrentHashMap<>();
 
   private final Map<Class<?>, RelativePropertyContext> byHomeType;
 
@@ -92,8 +92,12 @@ public final class RelativePropertyContext {
             homeType, home -> new RelativePropertyContext(home, schemaLookup, byHomeType));
   }
 
-  public RelativePropertyContext switchedTo(String path) {
-    if (path.indexOf('.') < 0) {
+  public RelativePropertyContext switchedTo(CharSequence path) {
+    return switchedTo(PropertyPath.of(path));
+  }
+
+  public RelativePropertyContext switchedTo(PropertyPath path) {
+    if (path.parent() == null) {
       return this;
     }
     List<Property> segments = resolvePath(path);
@@ -101,7 +105,12 @@ public final class RelativePropertyContext {
   }
 
   @Nonnull
-  public Property resolveMandatory(String path) {
+  public Property resolveMandatory(@Nonnull CharSequence path) {
+    return resolveMandatory(PropertyPath.of(path));
+  }
+
+  @Nonnull
+  public Property resolveMandatory(@Nonnull PropertyPath path) {
     Property property = resolve(path);
     if (property == null) {
       throw createNoSuchPath(path);
@@ -110,55 +119,65 @@ public final class RelativePropertyContext {
   }
 
   @CheckForNull
-  public Property resolve(String path) {
-    if (path.indexOf('.') < 0) {
+  public Property resolve(@Nonnull CharSequence path) {
+    return resolve(PropertyPath.of(path));
+  }
+
+  @CheckForNull
+  public Property resolve(@Nonnull PropertyPath path) {
+    if (path.parent() == null) {
       // just for performance do simple and common case first
       // also these are not cached
-      return homeSchema.getProperty(path);
+      return homeSchema.getProperty(path.property().toString());
     }
     return cache.computeIfAbsent(path, key -> resolvePath(key, null));
   }
 
   @Nonnull
-  public List<Property> resolvePath(String path) {
-    if (path.indexOf('.') < 0) {
+  public List<Property> resolvePath(@Nonnull CharSequence path) {
+    return resolvePath(PropertyPath.of(path));
+  }
+
+  @Nonnull
+  public List<Property> resolvePath(@Nonnull PropertyPath path) {
+    if (path.parent() == null) {
       // just for performance do simple and common case first
-      return singletonList(resolveMandatory(path));
+      return List.of(resolveMandatory(path));
     }
-    ArrayList<Property> pathElements = new ArrayList<>();
-    Property tail = resolvePath(path, pathElements);
+    Property[] properties = new Property[path.length()];
+    Property tail = resolvePath(path, properties);
     if (tail == null) {
       throw createNoSuchPath(path);
     }
-    return pathElements;
+    return List.of(properties);
   }
 
-  private Property resolvePath(String path, List<Property> pathElements) {
-    String[] segments = path.split("\\.");
+  private Property resolvePath(PropertyPath path, @CheckForNull Property[] properties) {
+    int i = 0;
     Schema curSchema = homeSchema;
     Property curProp = null;
-    for (int i = 0; i < segments.length - 1; i++) {
-      curProp = curSchema.getProperty(segments[i]);
+    Iterator<String> iter = path.properties().map(Text::toString).iterator();
+    while (iter.hasNext()) {
+      curProp = curSchema.getProperty(iter.next());
       if (curProp == null) {
         return null; // does not exist
       }
-      if (pathElements != null) {
-        pathElements.add(curProp);
+      if (properties != null) {
+        properties[i++] = curProp;
       }
-      curSchema =
-          schemaLookup.apply(curProp.isCollection() ? curProp.getItemKlass() : curProp.getKlass());
-      if (curSchema == null) {
-        return null; // does not exist
+      if (iter.hasNext()) {
+        curSchema =
+            schemaLookup.apply(
+                curProp.isCollection() ? curProp.getItemKlass() : curProp.getKlass());
+        if (curSchema == null) {
+          return null; // does not exist
+        }
       }
     }
-    Property tail = curSchema.getProperty(segments[segments.length - 1]);
-    if (pathElements != null) {
-      pathElements.add(tail);
-    }
-    return tail;
+    return curProp;
   }
 
-  private SchemaPathException createNoSuchPath(String path) {
+  private SchemaPathException createNoSuchPath(PropertyPath path) {
     return new SchemaPathException(
         String.format("Property `%s` does not exist in %s", path, homeSchema.getSingular()));
   }

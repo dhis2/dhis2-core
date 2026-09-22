@@ -22,6 +22,10 @@ CI workflows use `./run-simulation.sh` the same way as local runs:
 * [`performance-tests.yml`](../../.github/workflows/performance-tests.yml) - Manual single test
 * [`performance-tests-compare.yml`](../../.github/workflows/performance-tests-compare.yml) - Manual baseline vs candidate comparison
 
+Performance tests run on a single shared [self-hosted
+runner](https://github.com/dhis2/dhis2-core/actions/runners?tab=self-hosted) with exclusive access.
+Iterate locally; use CI only to publish numbers for PRs or release notes.
+
 ## Results
 
 Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
@@ -65,7 +69,7 @@ UI matters, use `index.html` as the source of truth.
 
 Since Gatling 3.12, test results are written in binary format. The `run-simulation.sh` script
 automatically converts `simulation.log` to `simulation.csv` if
-[glog](https://github.com/dhis2/gatling/releases) is installed like in CI. 
+[glog](https://github.com/dhis2/gatling/releases) is installed like in CI.
 
 
 ## Platform Tests
@@ -152,6 +156,31 @@ Available properties:
 | `initialUserCount` | `3` | Users included in the create request |
 | `patchUserCount` | `6` | Users included after the PATCH replace |
 | `putUserCount` | `9` | Users included after the PUT full replace |
+
+### OrganisationUnitUsersFieldFilterPerformanceTest
+
+Regression guard for DHIS2-21867: `GET /api/organisationUnits/{uid}?fields=id,name,users[id,name,userRoles[id,name]]`
+used to force an N+1 lazy-load storm (250,054 JDBC queries / ~70s on the platform-perf DB's root org
+unit) because `FieldPathHelper.visitFieldPath` walked into every requested sub-path under a
+`@PropertyTransformer` property, invoking `getUserRoles()` on every member user while looking for
+`access`/`sharing` segments a transformer-backed subtree can never contain. Fixed in #24514.
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.OrganisationUnitUsersFieldFilterPerformanceTest \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+Available properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `configFile` | — | Path to a `.properties` file |
+| `baseUrl` | `http://localhost:8080` | DHIS2 base URL |
+| `username` | `admin` | API username |
+| `password` | `district` | API password |
+| `orgUnitUid` | `VCCdfC9pvMA` | Org unit UID (platform-perf root org unit, ~250k users) |
+| `fields` | `id,name,users[id,name,userRoles[id,name]]` | `fields` query param (the DHIS2-21867 repro) |
+| `iterations` | `3` | Requests to run |
 
 ## Tracker Tests
 
@@ -304,3 +333,11 @@ docker builder prune -a
 ```
 
 Use `-a` to remove all cache layers, not just unused ones.
+
+## Recording Traffic
+
+Gatling Recorder captures HTTP requests as you interact with DHIS2 and generates a simulation that
+replays them. Use it to capture production workflows and replay them in a testing environment, for
+example to evaluate performance after a DHIS2 upgrade or to conduct load testing.
+
+See [Recording DHIS2 Traffic with Gatling Recorder](RECORDING.md) for the full guide.

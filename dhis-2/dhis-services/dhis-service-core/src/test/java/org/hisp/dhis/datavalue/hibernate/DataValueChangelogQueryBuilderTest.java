@@ -29,12 +29,10 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
+import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataValueChangelogStore.createEntriesQuery;
-import static org.hisp.dhis.period.Period.of;
 
-import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
 import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
@@ -53,8 +51,8 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByTypes() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setTypes(List.of(DataValueChangelogType.CREATE, DataValueChangelogType.UPDATE));
+        DataValueChangelogQueryParams.ofType(
+            DataValueChangelogType.CREATE, DataValueChangelogType.UPDATE);
     assertSQL(
         """
       SELECT *
@@ -68,7 +66,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByTypes_Single() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE));
+        DataValueChangelogQueryParams.ofType(DataValueChangelogType.UPDATE);
     assertSQL(
         """
       SELECT *
@@ -82,8 +80,8 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testCountByTypes() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setTypes(List.of(DataValueChangelogType.UPDATE, DataValueChangelogType.CREATE));
+        DataValueChangelogQueryParams.ofType(
+            DataValueChangelogType.UPDATE, DataValueChangelogType.CREATE);
     assertCountSQL(
         """
       SELECT count(*)
@@ -96,7 +94,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testCountByTypes_Single() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE));
+        DataValueChangelogQueryParams.ofType(DataValueChangelogType.UPDATE);
     assertCountSQL(
         """
       SELECT count(*)
@@ -109,8 +107,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByDataElements() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setDataElements(List.of(UID.of("de123456789"), UID.of("de987654321")));
+        decodeInput(DataValueChangelogQueryParams.class, "de=de123456789&de=de987654321");
     assertSQL(
         """
       SELECT *
@@ -125,7 +122,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByDataElements_Single() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setDataElements(List.of(UID.of("de123456789")));
+        decodeInput(DataValueChangelogQueryParams.class, "de=de123456789");
     assertSQL(
         """
       SELECT *
@@ -140,8 +137,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByOrgUnits() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setOrgUnits(List.of(UID.of("ou123456789"), UID.of("ou987654321")));
+        decodeInput(DataValueChangelogQueryParams.class, "ou=ou123456789&ou=ou987654321");
     assertSQL(
         """
       SELECT *
@@ -156,7 +152,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByOrgUnits_Single() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setOrgUnits(List.of(UID.of("ou123456789")));
+        decodeInput(DataValueChangelogQueryParams.class, "ou=ou123456789");
     assertSQL(
         """
       SELECT *
@@ -171,8 +167,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByDataSets() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setDataSets(List.of(UID.of("ds123456789"), UID.of("ds987654321")));
+        decodeInput(DataValueChangelogQueryParams.class, "ds=ds123456789&ds=ds987654321");
     assertSQL(
         """
       SELECT *
@@ -188,7 +183,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByDataSets_Single() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setDataSets(List.of(UID.of("ds123456789")));
+        decodeInput(DataValueChangelogQueryParams.class, "ds=ds123456789");
     assertSQL(
         """
       SELECT *
@@ -204,7 +199,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByPeriods() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setPeriods(List.of(of("2021"), of("2022")));
+        decodeInput(DataValueChangelogQueryParams.class, "pe=2021&pe=2022");
     assertSQL(
         """
       SELECT *
@@ -219,7 +214,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByPeriods_Single() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setPeriods(List.of(of("2021")));
+        decodeInput(DataValueChangelogQueryParams.class, "pe=2021");
     assertSQL(
         """
       SELECT *
@@ -234,7 +229,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByCategoryOptionCombo() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of("coc23456789"));
+        decodeInput(DataValueChangelogQueryParams.class, "co=coc23456789");
     assertSQL(
         """
       SELECT *
@@ -248,7 +243,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByAttributeOptionCombo() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setAttributeOptionCombo(UID.of("aoc23456789"));
+        decodeInput(DataValueChangelogQueryParams.class, "cc=aoc23456789");
     assertSQL(
         """
       SELECT *
@@ -262,10 +257,9 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByMixed() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setTypes(List.of(DataValueChangelogType.UPDATE))
-            .setDataSets(List.of(UID.of("ds123456789"), UID.of("ds987654321")))
-            .setPeriods(List.of(of("2022")));
+        decodeInput(
+            DataValueChangelogQueryParams.class,
+            "type=UPDATE&ds=ds123456789&ds=ds987654321&pe=2022");
     assertSQL(
         """
       SELECT *

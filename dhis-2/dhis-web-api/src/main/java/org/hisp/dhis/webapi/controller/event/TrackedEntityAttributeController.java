@@ -191,7 +191,7 @@ public class TrackedEntityAttributeController
   @Override
   protected void postProcessResponseEntities(
       List<TrackedEntityAttribute> entityList, GetObjectListParams params) {
-    List<String> fields = params.getFieldsJsonList();
+    String fields = params.getFieldsJsonList();
 
     if (fields.contains("*") || fields.contains("trigramIndexed")) {
       Set<UID> indexedAttributeUids =
@@ -204,7 +204,7 @@ public class TrackedEntityAttributeController
 
   @Override
   protected void postProcessResponseEntity(TrackedEntityAttribute entity, GetObjectParams params) {
-    List<String> fields = params.getFieldsJsonList();
+    String fields = params.getFieldsJsonList();
 
     if (fields.contains("*") || fields.contains("trigramIndexed")) {
       Set<UID> indexedAttributeUids =

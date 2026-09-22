@@ -30,12 +30,14 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -289,6 +291,152 @@ class OrganisationUnitControllerTest extends PostgresControllerIntegrationTestBa
     // Should only get level 3 org units within the data view hierarchy
     assertListOfOrganisationUnits(
         GET("/organisationUnits?withinDataViewUserHierarchy=true&level=3").content(), "L21", "L22");
+  }
+
+  @Test
+  void testGetWithinUserHierarchyWithDisjointRoots() {
+    switchToHierarchyUser(List.of(ou21, ou22), List.of(), List.of());
+
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserHierarchy=true").content(), "L21", "L22", "L31", "L32");
+  }
+
+  @Test
+  void testGetWithinUserSearchHierarchyWithOverlappingRoots() {
+    switchToHierarchyUser(List.of(), List.of(), List.of(ou1, ou21));
+
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserSearchHierarchy=true").content(),
+        "L1",
+        "L21",
+        "L22",
+        "L31",
+        "L32");
+  }
+
+  @Test
+  void testGetWithinUserSearchHierarchyUsesSearchInsteadOfCaptureRoots() {
+    switchToHierarchyUser(List.of(ou21), List.of(), List.of(ou22));
+
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserSearchHierarchy=true").content(), "L22", "L32");
+  }
+
+  @Test
+  void testGetWithinUserHierarchyFlagsCombineRoots() {
+    switchToHierarchyUser(List.of(ou21), List.of(ou22), List.of(ou1));
+
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserHierarchy=true&withinDataViewUserHierarchy=true")
+            .content(),
+        "L21",
+        "L22",
+        "L31",
+        "L32");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserHierarchy=true&withinUserSearchHierarchy=true").content(),
+        "L1",
+        "L21",
+        "L22",
+        "L31",
+        "L32");
+  }
+
+  @Test
+  void testGetWithinUserSearchAndDataViewHierarchyFallBackToCaptureRoots() {
+    switchToHierarchyUser(List.of(ou21), List.of(), List.of());
+
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserSearchHierarchy=true").content(), "L21", "L31");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinDataViewUserHierarchy=true").content(), "L21", "L31");
+  }
+
+  @Test
+  void testGetWithinEmptyUserHierarchyPreservesUnrestrictedResults() {
+    switchToHierarchyUser(List.of(), List.of(), List.of());
+
+    // These optional scope flags historically add no restriction when all effective roots are
+    // empty.
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserHierarchy=true&withinDataViewUserHierarchy=true"
+                + "&withinUserSearchHierarchy=true")
+            .content(),
+        "L0",
+        "L1",
+        "L1x",
+        "L21",
+        "L22",
+        "L2x",
+        "L31",
+        "L32",
+        "L3x");
+  }
+
+  @Test
+  void testGetWithinMissingUserHierarchyDoesNotBecomeUnrestricted() {
+    switchToHierarchyUser(List.of(), List.of(), List.of());
+    // Simulate an authenticated session retaining a root UID after its organisation unit is
+    // deleted.
+    getCurrentUserDetails().getUserOrgUnitIds().add("missingRoot");
+
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserHierarchy=true&rootJunction=OR&filter=name:eq:L0")
+            .content());
+  }
+
+  @Test
+  void testGetWithinUserHierarchyCannotBeBypassedByRootJunction() {
+    switchToHierarchyUser(List.of(ou21, ou22), List.of(), List.of());
+
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinUserHierarchy=true&rootJunction=OR"
+                + "&filter=name:eq:L0&filter=name:eq:L31")
+            .content(),
+        "L31");
+  }
+
+  @Test
+  void testGetWithinUserHierarchyAndDisplayNamePaging() {
+    switchToHierarchyUser(List.of(ou21, ou22), List.of(), List.of());
+    String request =
+        "/organisationUnits?withinUserHierarchy=true&filter=displayName:ilike:L3"
+            + "&paging=true&pageSize=1&order=displayName:asc,id:asc";
+
+    JsonObject first = GET(request + "&page=1").content();
+    JsonObject second = GET(request + "&page=2").content();
+    assertEquals(List.of("L31"), toOrganisationUnitNames(first));
+    assertEquals(List.of("L32"), toOrganisationUnitNames(second));
+    assertEquals(2, first.getObject("pager").getNumber("total").intValue());
+    assertEquals(2, second.getObject("pager").getNumber("total").intValue());
+  }
+
+  @Test
+  void testGetWithinUserHierarchyAndDisplayNameRootJunctionPaging() {
+    switchToHierarchyUser(List.of(ou21, ou22), List.of(), List.of());
+    String request =
+        "/organisationUnits?withinUserHierarchy=true&rootJunction=OR"
+            + "&filter=displayName:ilike:L3&filter=name:eq:L0"
+            + "&paging=true&pageSize=1&order=name:asc";
+
+    JsonObject first = GET(request + "&page=1").content();
+    JsonObject second = GET(request + "&page=2").content();
+    assertEquals(List.of("L31"), toOrganisationUnitNames(first));
+    assertEquals(List.of("L32"), toOrganisationUnitNames(second));
+    assertEquals(2, first.getObject("pager").getNumber("total").intValue());
+    assertEquals(2, second.getObject("pager").getNumber("total").intValue());
+  }
+
+  private void switchToHierarchyUser(
+      List<String> captureRoots, List<String> dataViewRoots, List<String> searchRoots) {
+    User user = makeUser("h");
+    user.setOrganisationUnits(Set.copyOf(manager.getByUid(OrganisationUnit.class, captureRoots)));
+    user.setDataViewOrganisationUnits(
+        Set.copyOf(manager.getByUid(OrganisationUnit.class, dataViewRoots)));
+    user.setTeiSearchOrganisationUnits(
+        Set.copyOf(manager.getByUid(OrganisationUnit.class, searchRoots)));
+    userService.addUser(user);
+    switchToNewUser(user);
   }
 
   private void assertListOfOrganisationUnits(JsonObject response, String... names) {

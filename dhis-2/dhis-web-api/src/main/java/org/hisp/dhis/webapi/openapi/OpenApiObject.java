@@ -89,8 +89,7 @@ public interface OpenApiObject extends JsonObject {
   }
 
   default Stream<OperationObject> operations() {
-    return $paths()
-        .values()
+    return $paths().entries().stream()
         .flatMap(
             item ->
                 Stream.of(
@@ -305,8 +304,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default String responseSuccessCode() {
-      return responses()
-          .keys()
+      return responses().keys().stream()
           .filter(code -> code.startsWith("2"))
           .map(Text::toString)
           .findFirst()
@@ -314,13 +312,12 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default List<String> responseCodes() {
-      return responses().keys().distinct().sorted().map(Text::toString).toList();
+      return responses().keys().stream().distinct().sorted().map(Text::toString).toList();
     }
 
     default List<String> responseMediaSubTypes() {
-      return responses()
-          .values()
-          .flatMap(r -> r.content().keys())
+      return responses().entries().stream()
+          .flatMap(r -> r.content().keys().stream())
           .map(type -> type.toString().substring(type.indexOf('/') + 1).toLowerCase())
           .distinct()
           .sorted()
@@ -348,7 +345,7 @@ public interface OpenApiObject extends JsonObject {
 
     private static List<SchemaObject> toListOfSchemas(JsonMap<MediaTypeObject> content) {
       if (content.isUndefined() || content.isEmpty()) return List.of();
-      List<SchemaObject> schemas = content.values().map(MediaTypeObject::schema).toList();
+      List<SchemaObject> schemas = content.entries().map(MediaTypeObject::schema).toList();
       if (content.size() == 1) return schemas;
       if (MediaTypeObject.isUniform(content)) return List.of(schemas.get(0));
       return schemas;
@@ -408,12 +405,17 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default boolean isShared() {
-      String path = node().path().toString();
-      return path.substring(0, path.lastIndexOf('.')).equals(".components.parameters");
+      // A shared parameter is a direct member of components.parameters. Inspect the path segments
+      // structurally rather than via toString(), which throws for path keys that cannot be escaped
+      // (e.g. operation paths like /api/.../{trackedEntityType}.csv).
+      List<Text> path = node().path().segments();
+      return path.size() == 3
+          && path.get(0).contentEquals("components")
+          && path.get(1).contentEquals("parameters");
     }
 
     default String getSharedName() {
-      return isShared() ? node().path().toString().substring(24) : null;
+      return isShared() ? node().path().segments().get(2).toString() : null;
     }
 
     /**
@@ -455,7 +457,7 @@ public interface OpenApiObject extends JsonObject {
       if (content.isUndefined()) return false;
       if (content.size() == 1) return true;
       List<SchemaObject> types =
-          content.values().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
+          content.entries().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
       SchemaObject type0 = types.get(0);
       if (type0.isShared())
         return types.stream()
@@ -496,12 +498,17 @@ public interface OpenApiObject extends JsonObject {
 
     default boolean isShared() {
       if (!exists()) return false;
-      String path = node().path().toString();
-      return path.substring(0, path.lastIndexOf('.')).equals(".components.schemas");
+      // A shared schema is a direct member of components.schemas. Inspect the path segments
+      // structurally rather than via toString(), which throws for path keys that cannot be escaped
+      // (e.g. operation paths like /api/.../{trackedEntityType}.csv).
+      List<Text> path = node().path().segments();
+      return path.size() == 3
+          && path.get(0).contentEquals("components")
+          && path.get(1).contentEquals("schemas");
     }
 
     default String getSharedName() {
-      return isShared() ? node().path().toString().substring(20) : null;
+      return isShared() ? node().path().segments().get(2).toString() : null;
     }
 
     default String x_kind() {
@@ -637,9 +644,8 @@ public interface OpenApiObject extends JsonObject {
       JsonMap<SchemaObject> properties = properties();
       if (properties.isUndefined()) return false;
       if (properties.size() != 2) return false;
-      if (properties.values().noneMatch(SchemaObject::isArrayType)) return false;
-      return properties
-          .values()
+      if (properties.entries().stream().noneMatch(SchemaObject::isArrayType)) return false;
+      return properties.entries().stream()
           .anyMatch(s -> s.isObjectType() || s.isRef() && s.resolve().isObjectType());
     }
 

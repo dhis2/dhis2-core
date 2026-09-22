@@ -29,32 +29,43 @@
  */
 package org.hisp.dhis.analytics.event.data.aggregate;
 
+import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.LATEST_EVENTS_CTE_PREFIX;
+import static org.hisp.dhis.analytics.util.RepeatableStageParamsHelper.removeRepeatableStageParams;
+
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
+import org.hisp.dhis.analytics.event.data.stage.StageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier.StageHeaderType;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlColumnParser;
+import org.hisp.dhis.common.QueryItem;
 
 /**
  * Resolves aggregated enrollment header columns into SQL select and group-by expressions, handling
  * stage-specific dimensions via per-stage filter CTEs.
  */
 public final class AggregatedEnrollmentHeaderColumnResolver {
-  private static final String LATEST_EVENTS_CTE_PREFIX = "latest_events_";
 
   private final StageHeaderClassifier stageHeaderClassifier;
 
+  private final StageDatePeriodBucketSqlRenderer dateRenderer;
+
   /**
-   * Creates a resolver that uses the provided classifier to detect stage-specific headers.
+   * Creates a resolver that uses the provided classifier to detect stage-specific headers and the
+   * renderer to bucket stage date columns by the requested period.
    *
    * @param stageHeaderClassifier classifier for stage-specific header types
+   * @param dateRenderer renderer that buckets a stage date column by the requested period
    */
-  public AggregatedEnrollmentHeaderColumnResolver(StageHeaderClassifier stageHeaderClassifier) {
+  public AggregatedEnrollmentHeaderColumnResolver(
+      StageHeaderClassifier stageHeaderClassifier, StageDatePeriodBucketSqlRenderer dateRenderer) {
     this.stageHeaderClassifier = stageHeaderClassifier;
+    this.dateRenderer = dateRenderer;
   }
 
   /**
@@ -65,6 +76,8 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
    * @param cteContext CTE context with available CTE definitions
    * @param sb select builder to append columns and group-by entries to
    * @param cteDefinitionMap map of header keys to their CTE definitions
+   * @param stageDateItems map of stage date header keys (e.g. {@code stageUid.eventdate}) to their
+   *     {@link QueryItem}, used to bucket the column by the requested period
    * @param quote operator used to quote column aliases
    */
   public void addHeaderColumns(
@@ -72,6 +85,7 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
       CteContext cteContext,
       SelectBuilder sb,
       Map<String, CteDefinition> cteDefinitionMap,
+      Map<String, QueryItem> stageDateItems,
       UnaryOperator<String> quote) {
 
     for (String headerColumn : headerColumns) {
@@ -82,7 +96,7 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
       if (stageHeaderType != StageHeaderType.NOT_STAGE_SPECIFIC) {
         CteDefinition filterCte = findFilterCte(headerColumn, cteContext);
         if (filterCte != null) {
-          String cteCol = resolveCteColumn(filterCte, stageHeaderType, colName);
+          String cteCol = resolveCteColumn(filterCte, stageHeaderType, colName, stageDateItems);
           sb.addColumn(cteCol, "", quotedCol);
           sb.groupBy(cteCol);
           continue;
@@ -91,8 +105,8 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
 
       Map.Entry<String, CteDefinition> matchingEntry = findMatchingCte(cteDefinitionMap, colName);
       if (matchingEntry != null) {
-        sb.addColumn(matchingEntry.getValue().getAlias() + ".value", "", matchingEntry.getKey());
-        sb.groupBy(matchingEntry.getKey());
+        sb.addColumn(matchingEntry.getValue().getAlias() + ".value", "", quotedCol);
+        sb.groupBy(quotedCol);
       } else {
         sb.addColumn(quotedCol);
         sb.groupBy(quotedCol);
@@ -117,18 +131,40 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
    * alias convention established by the aggregate filter CTE.
    */
   private String resolveCteColumn(
-      CteDefinition filterCte, StageHeaderType stageHeaderType, String colName) {
+      CteDefinition filterCte,
+      StageHeaderType stageHeaderType,
+      String colName,
+      Map<String, QueryItem> stageDateItems) {
     String alias = filterCte.getAlias();
     String bareCol = extractColumnName(colName);
     return switch (stageHeaderType) {
-      case EVENT_DATE -> alias + ".ev_occurreddate";
-      case SCHEDULED_DATE -> alias + ".ev_scheduleddate";
+      case EVENT_DATE -> resolveStageDateColumn(alias, "ev_occurreddate", colName, stageDateItems);
+      case SCHEDULED_DATE ->
+          resolveStageDateColumn(alias, "ev_scheduleddate", colName, stageDateItems);
       case EVENT_STATUS -> alias + ".ev_eventstatus";
       case OU_NAME -> alias + ".ev_ouname";
       case OU_CODE -> alias + ".ev_oucode";
       case OU, GENERIC_STAGE_ITEM -> alias + ".ev_" + bareCol;
       case NOT_STAGE_SPECIFIC -> alias + "." + bareCol;
     };
+  }
+
+  /**
+   * Resolves a stage date column to a period-bucket expression when the matching {@link QueryItem}
+   * carries period dimension values; otherwise returns the raw {@code <alias>.<dateColumn>}
+   * reference (ranges and no-value cases are unaffected).
+   */
+  private String resolveStageDateColumn(
+      String alias, String dateColumn, String colName, Map<String, QueryItem> stageDateItems) {
+    String rawColumn = alias + "." + dateColumn;
+    QueryItem item = stageDateItems.get(colName);
+    if (item == null) {
+      return rawColumn;
+    }
+    Optional<String> periodBucket = dateRenderer.resolvePeriodBucketColumn(item);
+    return periodBucket
+        .map(bucket -> dateRenderer.renderPeriodBucketExpression(rawColumn, bucket))
+        .orElse(rawColumn);
   }
 
   /**
@@ -155,8 +191,12 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
 
   private Map.Entry<String, CteDefinition> findMatchingCte(
       Map<String, CteDefinition> cteDefinitionMap, String colName) {
+    String normalizedColName =
+        removeRepeatableStageParams(colName.replace("\"", "").replace("`", ""));
     for (Map.Entry<String, CteDefinition> entry : cteDefinitionMap.entrySet()) {
-      if (entry.getKey().contains(colName)) {
+      String normalizedKey =
+          removeRepeatableStageParams(entry.getKey().replace("\"", "").replace("`", ""));
+      if (normalizedKey.contains(normalizedColName)) {
         return entry;
       }
     }

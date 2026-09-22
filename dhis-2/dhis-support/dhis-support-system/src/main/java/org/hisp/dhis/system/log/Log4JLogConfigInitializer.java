@@ -33,12 +33,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.google.common.collect.Lists;
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.Deflater;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -161,7 +161,7 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
         RollingFileAppender.newBuilder()
             .withFileName(file)
             .setName("appender_" + file)
-            .withFilePattern(file + ".%i")
+            .withFilePattern(file + ".%i.gz")
             .setLayout(PATTERN_LAYOUT)
             .withPolicy(
                 CronTriggeringPolicy.createPolicy(getLogConfiguration(), "true", "0 0 0 * * ?"))

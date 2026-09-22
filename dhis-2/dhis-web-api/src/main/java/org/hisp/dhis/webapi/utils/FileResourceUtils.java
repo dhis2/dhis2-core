@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES;
 import static org.imgscalr.Scalr.resize;
 
 import com.google.common.hash.Hashing;
@@ -56,6 +57,7 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
@@ -81,6 +83,7 @@ public class FileResourceUtils {
 
   @Autowired private final JobRunner jobRunner;
   @Autowired private final FileResourceService fileResourceService;
+  @Autowired private final DhisConfigurationProvider dhisConfig;
 
   private static final List<String> CUSTOM_ICON_VALID_ICON_EXTENSIONS = List.of("png");
 
@@ -201,6 +204,11 @@ public class FileResourceUtils {
 
   public FileResource saveFileResource(String uid, MultipartFile file, FileResourceDomain domain)
       throws IOException, ConflictException {
+    // Enforce the system-wide user-upload cap for every MultipartFile save path — both
+    // FileResourceController and DataValueController route through here. Domain-specific stricter
+    // limits (icon/avatar/org-unit image) are applied by callers before they reach this method.
+    validateFileSize(file, Long.parseLong(dhisConfig.getProperty(MAX_FILE_UPLOAD_SIZE_BYTES)));
+
     String filename =
         StringUtils.defaultIfBlank(
             FilenameUtils.getName(file.getOriginalFilename()), FileResource.DEFAULT_FILENAME);

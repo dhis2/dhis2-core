@@ -44,7 +44,6 @@ import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -165,7 +164,7 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
         co ->
             assertTrue(
                 co.getCategories().stream()
-                    .map(BaseIdentifiableObject::getUid)
+                    .map(IdentifiableObject::getUid)
                     .noneMatch(
                         uid ->
                             uid.equals(catSource1.getUid()) || uid.equals(catSource2.getUid()))));

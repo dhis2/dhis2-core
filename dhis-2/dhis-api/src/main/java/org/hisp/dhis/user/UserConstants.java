@@ -41,7 +41,7 @@ public final class UserConstants {
 
   public static final String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
 
-  public static final String RESTORE_PATH = "/dhis-web-login/index.html#/";
+  public static final String RESTORE_PATH = "/login/index.html#/";
 
   public static final String TBD_NAME = "(TBD)";
 

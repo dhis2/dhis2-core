@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Temporal;
@@ -61,10 +60,6 @@ public class BaseTrackerObject {
   @Setter
   protected Date lastUpdated;
 
-  @Column(name = "storedby", length = 255)
-  @Setter
-  protected String storedBy;
-
   // -------------------------------------------------------------------------------------------
   // Getters
   // -------------------------------------------------------------------------------------------
@@ -85,10 +80,5 @@ public class BaseTrackerObject {
   @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getLastUpdated() {
     return lastUpdated;
-  }
-
-  @JsonProperty
-  public String getStoredBy() {
-    return storedBy;
   }
 }

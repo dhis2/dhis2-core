@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.object.ObjectOutput.Property;
 
 /**
@@ -85,6 +86,7 @@ public record GistObjectList(
    * @param values a stream of value object of the result list
    */
   public record Output(
+      boolean unwrap,
       boolean headless,
       @CheckForNull GistPager pager,
       @Nonnull String collectionName,
@@ -97,7 +99,7 @@ public record GistObjectList(
     }
 
     public List<String> paths() {
-      return properties.stream().map(Property::path).toList();
+      return properties.stream().map(Property::path).map(PropertyPath::toString).toList();
     }
   }
 }

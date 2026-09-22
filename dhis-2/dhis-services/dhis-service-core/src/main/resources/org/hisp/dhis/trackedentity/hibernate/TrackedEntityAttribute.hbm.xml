@@ -62,8 +62,6 @@
 
     <property name="sortOrderInListNoProgram" />
 
-    <property name="confidential" />
-
     <property name="unique" column="uniquefield" />
 
     <property name="generated" />

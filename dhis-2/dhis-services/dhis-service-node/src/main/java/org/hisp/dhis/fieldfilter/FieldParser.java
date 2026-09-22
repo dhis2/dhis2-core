@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.fieldfilter;
 
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -44,13 +41,4 @@ public interface FieldParser {
    * @see org.hisp.dhis.fieldfilter.FieldMap
    */
   FieldMap parse(String filter);
-
-  /**
-   * Recursively add some field filtering to a field filter
-   *
-   * @param fieldFilter Field filter to modify
-   * @param excludeFields Fields to add to the field filter
-   * @return Modified field filter
-   */
-  List<String> modifyFilter(Collection<String> fieldFilter, Collection<String> excludeFields);
 }

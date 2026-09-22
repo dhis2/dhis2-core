@@ -162,7 +162,7 @@ public class MetadataSyncPostProcessor {
             "Following Exceptions were encountered while the scheduler run for metadata sync \n\n");
 
     for (String name : MetadataSyncJob.keys) {
-      Object value = retryContext.getRetryContext().getAttribute(name);
+      Object value = retryContext.getAttribute(name);
 
       if (value != null) {
         text.append("ERROR_CATEGORY ")
@@ -174,16 +174,15 @@ public class MetadataSyncPostProcessor {
       }
     }
 
-    Object report =
-        retryContext.getRetryContext().getAttribute(MetadataSyncJob.METADATA_SYNC_REPORT);
+    Object report = retryContext.getAttribute(MetadataSyncJob.METADATA_SYNC_REPORT);
 
     if (report != null) {
       String reportString = (String) report;
 
       text.append(MetadataSyncJob.METADATA_SYNC_REPORT).append("\n ").append(reportString);
     } else {
-      if (retryContext.getRetryContext().getLastThrowable() != null) {
-        text.append(retryContext.getRetryContext().getLastThrowable().getMessage());
+      if (retryContext.getLastThrowable() != null) {
+        text.append(retryContext.getLastThrowable().getMessage());
       }
     }
 

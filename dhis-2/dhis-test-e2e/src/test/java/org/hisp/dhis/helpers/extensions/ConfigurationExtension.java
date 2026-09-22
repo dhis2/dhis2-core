@@ -88,7 +88,9 @@ public class ConfigurationExtension implements BeforeAllCallback {
     RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
 
     requestSpecification
-        .addFilters(Arrays.asList(new CookieFilter(), new SessionFilter(), new AuthFilter()))
+        .addFilters(
+            Arrays.asList(
+                new CookieFilter(), new SessionFilter(), new AuthFilter(), new RequestIdFilter()))
         .setContentType(ContentType.JSON);
 
     return requestSpecification.build();

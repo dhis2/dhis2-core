@@ -404,7 +404,7 @@ lower("%s".value) like :"""
     assertStartsWith(
         "exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
             + deMultiText.getUid()
-            + ", value}'), ',')) AS val where trim(val) in",
+            + ", value}'), ',')) AS val where val in",
         filter.getSql());
     assertParameter(deMultiText, filter, Types.VARCHAR, "blue", "green", "red");
   }
@@ -418,7 +418,7 @@ lower("%s".value) like :"""
     assertStartsWith(
         "exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
             + deMultiText.getUid()
-            + ", value}'), ',')) AS val where trim(val) like",
+            + ", value}'), ',')) AS val where val like",
         filter.getSql());
     assertParameter(deMultiText, filter, Types.VARCHAR, "%blue%");
   }
@@ -430,7 +430,7 @@ lower("%s".value) like :"""
 
     assertEquals(
         String.format(
-            "not exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{%s, value}'), ',')) AS val where trim(val) is not null and trim(val) <> '')",
+            "not exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{%s, value}'), ',')) AS val where val is not null and val <> '')",
             deMultiText.getUid()),
         predicate.getSql());
 

@@ -33,6 +33,7 @@ import java.util.Optional;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ColumnAndAlias;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +48,7 @@ public class DefaultStageQuerySqlFacade implements StageQuerySqlFacade {
   private final StageQueryItemClassifier classifier;
   private final StageDatePeriodBucketSqlRenderer dateRenderer;
   private final StageOrgUnitSqlService stageOrgUnitSqlService;
+  private final AnalyticsSqlBuilder sqlBuilder;
 
   /**
    * Creates a stage SQL facade.
@@ -54,14 +56,17 @@ public class DefaultStageQuerySqlFacade implements StageQuerySqlFacade {
    * @param classifier stage query item classifier
    * @param dateRenderer stage date period renderer
    * @param stageOrgUnitSqlService stage org unit SQL service
+   * @param sqlBuilder SQL builder used to quote the event-path stage date column
    */
   public DefaultStageQuerySqlFacade(
       StageQueryItemClassifier classifier,
       StageDatePeriodBucketSqlRenderer dateRenderer,
-      StageOrgUnitSqlService stageOrgUnitSqlService) {
+      StageOrgUnitSqlService stageOrgUnitSqlService,
+      AnalyticsSqlBuilder sqlBuilder) {
     this.classifier = classifier;
     this.dateRenderer = dateRenderer;
     this.stageOrgUnitSqlService = stageOrgUnitSqlService;
+    this.sqlBuilder = sqlBuilder;
   }
 
   /** {@inheritDoc} */
@@ -81,7 +86,9 @@ public class DefaultStageQuerySqlFacade implements StageQuerySqlFacade {
     if (isAggregated && classifier.isStageDate(item)) {
       Optional<String> periodBucket = dateRenderer.resolvePeriodBucketColumn(item);
       if (periodBucket.isPresent()) {
-        String expression = dateRenderer.renderPeriodBucketExpression(item, periodBucket.get());
+        String expression =
+            dateRenderer.renderPeriodBucketExpression(
+                sqlBuilder.quoteAx(item.getItemId()), periodBucket.get());
         return Optional.of(
             isGroupByClause
                 ? ColumnAndAlias.ofColumn(expression)

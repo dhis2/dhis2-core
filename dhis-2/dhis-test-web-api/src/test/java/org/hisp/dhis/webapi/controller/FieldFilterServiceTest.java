@@ -37,6 +37,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
 import lombok.Data;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -62,11 +63,9 @@ class FieldFilterServiceTest extends H2ControllerIntegrationTestBase {
         "filterIncludes should match what's included in the filtered JSON",
         () ->
             assertJSONIncludes(fieldFilterService.toObjectNode(root, filter), "first.second.third"),
-        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first")),
-        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
-        () ->
-            assertTrue(
-                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+        () -> assertTrue(filterIncludes(filter, "first")),
+        () -> assertTrue(filterIncludes(filter, "first.second")),
+        () -> assertTrue(filterIncludes(filter, "first.second.third")));
   }
 
   @Test
@@ -78,11 +77,9 @@ class FieldFilterServiceTest extends H2ControllerIntegrationTestBase {
         "filterIncludes should match what's included in the filtered JSON",
         () ->
             assertJSONIncludes(fieldFilterService.toObjectNode(root, filter), "first.second.third"),
-        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first")),
-        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
-        () ->
-            assertTrue(
-                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+        () -> assertTrue(filterIncludes(filter, "first")),
+        () -> assertTrue(filterIncludes(filter, "first.second")),
+        () -> assertTrue(filterIncludes(filter, "first.second.third")));
   }
 
   @Test
@@ -93,11 +90,9 @@ class FieldFilterServiceTest extends H2ControllerIntegrationTestBase {
     assertAll(
         "filterIncludes should match what's included in the filtered JSON",
         () -> assertJSONExcludes(fieldFilterService.toObjectNode(root, filter), "first"),
-        () -> assertFalse(fieldFilterService.filterIncludes(Root.class, filter, "first")),
-        () -> assertFalse(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
-        () ->
-            assertFalse(
-                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+        () -> assertFalse(filterIncludes(filter, "first")),
+        () -> assertFalse(filterIncludes(filter, "first.second")),
+        () -> assertFalse(filterIncludes(filter, "first.second.third")));
   }
 
   @Test
@@ -108,13 +103,11 @@ class FieldFilterServiceTest extends H2ControllerIntegrationTestBase {
     assertAll(
         "filterIncludes should match what's included in the filtered JSON",
         () -> assertJSONIncludes(fieldFilterService.toObjectNode(root, filter), "first.second"),
-        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first")),
-        () -> assertTrue(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
+        () -> assertTrue(filterIncludes(filter, "first")),
+        () -> assertTrue(filterIncludes(filter, "first.second")),
         () ->
             assertJSONExcludes(fieldFilterService.toObjectNode(root, filter), "first.second.third"),
-        () ->
-            assertFalse(
-                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+        () -> assertFalse(filterIncludes(filter, "first.second.third")));
   }
 
   @Test
@@ -126,11 +119,9 @@ class FieldFilterServiceTest extends H2ControllerIntegrationTestBase {
     assertAll(
         "filterIncludes should match what's included in the filtered JSON",
         () -> assertJSONExcludes(fieldFilterService.toObjectNode(root, filter), "first"),
-        () -> assertFalse(fieldFilterService.filterIncludes(Root.class, filter, "first")),
-        () -> assertFalse(fieldFilterService.filterIncludes(Root.class, filter, "first.second")),
-        () ->
-            assertFalse(
-                fieldFilterService.filterIncludes(Root.class, filter, "first.second.third")));
+        () -> assertFalse(filterIncludes(filter, "first")),
+        () -> assertFalse(filterIncludes(filter, "first.second")),
+        () -> assertFalse(filterIncludes(filter, "first.second.third")));
   }
 
   void assertJSONIncludes(ObjectNode json, String path) {
@@ -172,5 +163,28 @@ class FieldFilterServiceTest extends H2ControllerIntegrationTestBase {
   @Data
   private static class Third {
     @JsonProperty private final String value = "3";
+  }
+
+  /**
+   * Determines whether given path is included in the resulting ObjectNodes after applying {@link
+   * #toObjectNode(Object, List)}. This obviously requires that the actual data contains such path
+   * when filtered.
+   *
+   * <p>For example given a structure like
+   *
+   * <p><code>{"event": "relationships": [] }</code> and a
+   *
+   * <p><code>filter="*,first[second[!third]]"</code>
+   *
+   * <p>both paths<code>first</code> and <code>first.second</code> will result in true as they will
+   * be included in the filtered result. While <code>first.second.third</code> will result in false.
+   *
+   * @param filter field paths to be applied on the class
+   * @param path path to check for inclusion in the filter
+   * @return true if path is included in filter
+   */
+  private boolean filterIncludes(List<FieldPath> filter, String path) {
+    return fieldPathHelper.apply(filter, Root.class).stream()
+        .anyMatch(f -> f.getPath().equals(PropertyPath.of(path)));
   }
 }

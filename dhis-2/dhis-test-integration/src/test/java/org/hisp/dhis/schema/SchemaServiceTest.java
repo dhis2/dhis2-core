@@ -38,6 +38,7 @@ import java.util.HashSet;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -180,5 +181,13 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Schema schema = schemaService.getSchema(Message.class);
     Property text = schema.getProperty("text");
     assertEquals(Integer.MAX_VALUE, text.getLength());
+  }
+
+  @Test
+  void testMapViewSchemaRegistered() {
+    Schema schema = schemaService.getSchema(MapView.class);
+    assertNotNull(schema);
+    assertEquals(MapView.class, schema.getKlass());
+    assertTrue(schema.isEmbeddedObject());
   }
 }

@@ -31,14 +31,11 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
-import org.hisp.dhis.user.UserDetails;
 
 /**
- * Immutable context passed to async aggregate fetchers.
+ * Immutable context passed to the aggregate fetchers.
  *
- * @param userDetails used to set up security context on async threads
  * @param fields specifies which fields the user wants returned
  * @param queryParams filter parameters for tracked entities
  */
-record Context(
-    UserDetails userDetails, TrackedEntityFields fields, TrackedEntityQueryParams queryParams) {}
+record Context(TrackedEntityFields fields, TrackedEntityQueryParams queryParams) {}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,113 +29,80 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import static org.hisp.dhis.common.AccessLevel.CLOSED;
-import static org.hisp.dhis.common.AccessLevel.OPEN;
-import static org.hisp.dhis.common.AccessLevel.PROTECTED;
-import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createPersonToPersonRelationshipType;
 import static org.hisp.dhis.test.TestBase.createProgram;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityType;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4019;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
-import java.util.Set;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
+import java.util.List;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultTrackerAccessManagerTest {
 
+  @Mock private AclService aclService;
+  @Mock private TrackerOwnershipManager ownershipAccessManager;
+  @Mock private TrackerProgramService trackerProgramService;
+
   @InjectMocks private DefaultTrackerAccessManager trackerAccessManager;
 
-  private Program program;
-
-  private OrganisationUnit orgUnit;
-
-  private User user;
+  private RelationshipType relationshipType;
+  private Relationship relationship;
 
   @BeforeEach
-  void before() {
-    program = createProgram('A');
-    orgUnit = createOrganisationUnit('A');
-    user = new User();
+  void setUp() {
+    relationshipType =
+        createPersonToPersonRelationshipType(
+            'A', createProgram('A'), createTrackedEntityType('A'), false);
+
+    relationship = new Relationship();
+    relationship.setRelationshipType(relationshipType);
+    relationship.setFrom(new RelationshipItem());
+    relationship.setTo(new RelationshipItem());
   }
 
   @Test
-  void shouldHaveAccessWhenProgramOpenAndSearchAccessAvailable() {
-    program.setAccessLevel(OPEN);
-    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
-
-    assertTrue(
-        trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
-        "User should have access to open program");
+  void shouldReturnNoErrorsWhenSuperUserReadsRelationship() {
+    assertIsEmpty(trackerAccessManager.canRead(new SystemUser(), relationship));
   }
 
   @Test
-  void shouldNotHaveAccessWhenProgramOpenAndSearchAccessNotAvailable() {
-    program.setAccessLevel(OPEN);
+  void shouldReturnNoErrorsWhenUserHasDataReadAccessToRelationshipType() {
+    UserDetails user = userDetails("userA");
+    when(aclService.canDataRead(user, relationshipType)).thenReturn(true);
 
-    assertFalse(
-        trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
-        "User should not have access to open program");
+    assertIsEmpty(trackerAccessManager.canRead(user, relationship));
   }
 
   @Test
-  void shouldHaveAccessWhenProgramNullAndSearchAccessAvailable() {
-    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+  void shouldReturnE4019WhenUserHasNoDataReadAccessToRelationshipType() {
+    UserDetails user = userDetails("userA");
+    when(aclService.canDataRead(user, relationshipType)).thenReturn(false);
 
-    assertTrue(
-        trackerAccessManager.canAccess(UserDetails.fromUser(user), null, orgUnit),
-        "User should have access to unspecified program");
+    List<ErrorMessage> errors = trackerAccessManager.canRead(user, relationship);
+
+    assertEquals(1, errors.size());
+    assertEquals(E4019, errors.get(0).validationCode());
   }
 
-  @Test
-  void shouldNotHaveAccessWhenProgramNullAndSearchAccessNotAvailable() {
-    assertFalse(
-        trackerAccessManager.canAccess(UserDetails.fromUser(user), null, orgUnit),
-        "User should not have access to unspecified program");
-  }
-
-  @Test
-  void shouldHaveAccessWhenProgramClosedAndCaptureAccessAvailable() {
-    program.setAccessLevel(CLOSED);
-    user.setOrganisationUnits(Set.of(orgUnit));
-
-    assertTrue(
-        trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
-        "User should have access to closed program");
-  }
-
-  @Test
-  void shouldNotHaveAccessWhenProgramClosedAndCaptureAccessNotAvailable() {
-    program.setAccessLevel(CLOSED);
-
-    assertFalse(
-        trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
-        "User should not have access to closed program");
-  }
-
-  @Test
-  void shouldHaveAccessWhenProgramProtectedAndCaptureAccessAvailable() {
-    program.setAccessLevel(PROTECTED);
-    user.setOrganisationUnits(Set.of(orgUnit));
-
-    assertTrue(
-        trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
-        "User should have access to protected program");
-  }
-
-  @Test
-  void shouldNotHaveAccessWhenProgramProtectedAndCaptureAccessNotAvailable() {
-    program.setAccessLevel(PROTECTED);
-
-    assertFalse(
-        trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
-        "User should not have access to protected program");
+  private static UserDetails userDetails(String uid) {
+    User user = new User();
+    user.setUid(uid);
+    return UserDetails.fromUser(user);
   }
 }

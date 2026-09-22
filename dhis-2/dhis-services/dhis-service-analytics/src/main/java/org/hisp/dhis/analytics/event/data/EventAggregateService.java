@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -49,8 +50,9 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.addValues;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.generateEventDataPermutations;
-import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
-import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
+import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.getAggregatedEventDataMapping;
+import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getOrgUnitLabel;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
@@ -109,7 +111,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.Timer;
@@ -249,16 +250,6 @@ public class EventAggregateService {
     if (!params.isSkipData() || params.analyzeOnly()) {
       addHeaders(params, grid);
       addData(grid, params, maxLimit);
-
-      // Sort grid, done again due to potential multiple partitions
-      if (params.hasSortOrder() && grid.getHeight() > 0) {
-        grid.sortGrid(1, params.getSortOrderAsInt());
-      }
-
-      // Limit grid
-      if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
-        grid.limitGrid(params.getLimit());
-      }
     }
 
     addPaging(params, UNLIMITED_PAGING, grid);
@@ -292,6 +283,16 @@ public class EventAggregateService {
     }
 
     timer.getTime("Got aggregated events");
+
+    // Sort grid, done again due to potential multiple partitions.
+    if (params.hasSortOrder() && grid.getHeight() > 0 && grid.getIndexOfHeader("value") != -1) {
+      grid.sortGrid(grid.getIndexOfHeader("value") + 1, params.getSortOrderAsInt());
+    }
+
+    // Limit grid.
+    if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
+      grid.limitGrid(params.getLimit());
+    }
 
     if (maxLimit > 0 && grid.getHeight() > maxLimit) {
       throwIllegalQueryEx(E7128, maxLimit);
@@ -343,10 +344,17 @@ public class EventAggregateService {
     }
 
     if (params.hasEnrollmentOuDimension()) {
+      String ouLabel = getOrgUnitLabel(params.getProgram(), ColumnHeader.ENROLLMENT_OU.getName());
+
+      grid.addHeader(
+          new GridHeader(ColumnHeader.ENROLLMENT_OU.getItem(), ouLabel, TEXT, false, true));
+    }
+
+    if (params.hasRegistrationOuAggregateColumn()) {
       grid.addHeader(
           new GridHeader(
-              ColumnHeader.ENROLLMENT_OU.getItem(),
-              ColumnHeader.ENROLLMENT_OU.getName(),
+              ColumnHeader.REGISTRATION_OU.getItem(),
+              ColumnHeader.REGISTRATION_OU.getName(),
               TEXT,
               false,
               true));
@@ -363,9 +371,15 @@ public class EventAggregateService {
   }
 
   private String getDimensionHeaderColumn(DimensionalObject dimension, EventQueryParams params) {
+    String defaultColumn = dimension.getDisplayProperty(params.getDisplayProperty());
+
+    if (ORGUNIT_DIM_ID.equals(dimension.getDimension())) {
+      return getOrgUnitLabel(params.getProgram(), defaultColumn);
+    }
+
     return getStaticDateField(dimension)
         .map(dateField -> getDateFieldLabel(dateField, params.getProgram()))
-        .orElse(dimension.getDisplayProperty(params.getDisplayProperty()));
+        .orElse(defaultColumn);
   }
 
   private Optional<String> getStaticDateField(DimensionalObject dimension) {
@@ -394,23 +408,6 @@ public class EventAggregateService {
     return dateField.toLowerCase().replace("_", "");
   }
 
-  private String getDateFieldLabel(String dateField, Program program) {
-    return switch (dateField) {
-      case "ENROLLMENT_DATE" -> getEnrollmentDateLabel(program, toDateFieldDisplayName(dateField));
-      case "INCIDENT_DATE" -> getIncidentDateLabel(program, toDateFieldDisplayName(dateField));
-      default -> toDateFieldDisplayName(dateField);
-    };
-  }
-
-  private String toDateFieldDisplayName(String dateField) {
-    String[] parts = dateField.toLowerCase().split("_");
-    if (parts.length == 0) {
-      return dateField;
-    }
-    parts[0] = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
-    return String.join(" ", parts);
-  }
-
   private void addValueHeader(Grid grid) {
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false));
   }
@@ -437,7 +434,11 @@ public class EventAggregateService {
       Map<String, List<EventAnalyticsDimensionalItem>> table,
       String dimension) {
     List<EventAnalyticsDimensionalItem> objects =
-        params.getEventReportDimensionalItemArrayExploded(dimension);
+        ColumnHeader.REGISTRATION_OU.getItem().equals(dimension)
+            ? params.getRegistrationOuDimensionItems().stream()
+                .map(ou -> new EventAnalyticsDimensionalItem(ou, dimension))
+                .toList()
+            : params.getEventReportDimensionalItemArrayExploded(dimension);
 
     if (objects.isEmpty()) {
       ValueTypedDimensionalItemObject eventDimensionalItemObject =
@@ -632,6 +633,14 @@ public class EventAggregateService {
           outputGrid.addHeader(new GridHeader(display, display, NUMBER, false, false));
         });
 
+    // The value map is a pure function of the input grid, which is not modified below. Build it
+    // once here instead of once per row permutation.
+    Map<String, Object> valueMap = getAggregatedEventDataMapping(grid);
+    Map<String, String> schemeMap =
+        params.hasCustomIdSchemeSet() && !params.isSkipMeta()
+            ? schemeIdHandler.getSchemeIdResponseMap(params)
+            : Map.of();
+
     for (Map<String, EventAnalyticsDimensionalItem> rowCombination : rowPermutations) {
       outputGrid.addRow();
       List<List<String>> ids = new ArrayList<>();
@@ -645,21 +654,23 @@ public class EventAggregateService {
         boolean finalFillDisplayList = fillDisplayList;
         rowCombination.forEach(
             (key, value) -> {
-              idList.add(value.toString());
+              idList.add(firstNonNull(schemeMap.get(value.toString()), value.toString()));
 
               if (finalFillDisplayList) {
                 displayObjects.put(value.getParentUid(), value);
               }
             });
 
-        columnCombination.forEach((key, value) -> idList.add(value.toString()));
+        columnCombination.forEach(
+            (key, value) ->
+                idList.add(firstNonNull(schemeMap.get(value.toString()), value.toString())));
 
         ids.add(idList);
         fillDisplayList = false;
       }
 
       addValuesInOutputGrid(rowDimensions, outputGrid, displayObjects, params);
-      addValues(ids, grid, outputGrid);
+      addValues(ids, valueMap, outputGrid);
     }
 
     return getGridWithRows(grid, outputGrid);
@@ -680,19 +691,19 @@ public class EventAggregateService {
    * empty.
    *
    * @param rowDimensions the list of row dimensions.
-   * @param grid the {@link Grid}.
+   * @param outputGrid the output {@link Grid}.
    * @param displayObjects the map of display objects.
    * @param params the {@link EventQueryParams}.
    */
   private static void addValuesInOutputGrid(
       List<String> rowDimensions,
-      Grid grid,
+      Grid outputGrid,
       Map<String, EventAnalyticsDimensionalItem> displayObjects,
       EventQueryParams params) {
     if (!displayObjects.isEmpty()) {
       rowDimensions.forEach(
           dimension ->
-              grid.addValue(
+              outputGrid.addValue(
                   displayObjects.get(dimension).getDisplayProperty(params.getDisplayProperty())));
     }
   }

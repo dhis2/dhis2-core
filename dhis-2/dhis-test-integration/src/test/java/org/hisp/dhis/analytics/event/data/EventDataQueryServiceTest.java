@@ -194,6 +194,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getItems().size());
     assertEquals(2, params.getFilterPeriods().size());
     assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("psigeometry", "ougeometry"), getGeometrySources(params));
   }
 
   @Test
@@ -260,6 +261,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(deA, params.getValue());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
     assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("psigeometry", "ougeometry"), getGeometrySources(params));
   }
 
   @Test
@@ -523,6 +525,50 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testGetDefaultGeometrySources() {
+    EventQueryParams params =
+        dataQueryService.getFromRequest(
+            toRequest(prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, null, true));
+
+    assertEquals(
+        List.of("eventgeometry", "enrollmentgeometry", "tegeometry", "ougeometry"),
+        params.getCoordinateFields());
+    assertEquals(
+        List.of("psigeometry", "pigeometry", "teigeometry", "ougeometry"),
+        getGeometrySources(params));
+  }
+
+  @Test
+  void testGetGeometrySourcesWithCoordinateDataElementFallback() {
+    EventQueryParams params =
+        dataQueryService.getFromRequest(
+            toRequest(prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, deC.getUid(), false));
+
+    assertEquals(List.of("eventgeometry", deC.getUid()), params.getCoordinateFields());
+    assertEquals(List.of("psigeometry", deC.getUid()), getGeometrySources(params));
+  }
+
+  @Test
+  void testGetGeometrySourcesWithOrgUnitDataElementFallback() {
+    DataElement orgUnitDataElement = createDataElement('D');
+    orgUnitDataElement.setValueType(ValueType.ORGANISATION_UNIT);
+    dataElementService.addDataElement(orgUnitDataElement);
+
+    EventQueryParams params =
+        dataQueryService.getFromRequest(
+            toRequest(
+                prA.getUid(),
+                EventQueryParams.EVENT_COORDINATE_FIELD,
+                orgUnitDataElement.getUid(),
+                false));
+
+    assertEquals(
+        List.of("eventgeometry", orgUnitDataElement.getUid() + "_geom"),
+        params.getCoordinateFields());
+    assertEquals(List.of("psigeometry", orgUnitDataElement.getUid()), getGeometrySources(params));
+  }
+
+  @Test
   void testGetBackwardCompatibleCoordinateField() {
     final String OLD_COL_NAME_EVENT_GEOMETRY = "psigeometry";
     final String OLD_COL_NAME_ENROLLMENT_GEOMETRY = "pigeometry";
@@ -594,5 +640,11 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
         .fallbackCoordinateField(fallbackCoordinateField)
         .defaultCoordinateFallback(isDefaultCoordinateFallback)
         .build();
+  }
+
+  private List<String> getGeometrySources(EventQueryParams params) {
+    return params.getGeometrySources().stream()
+        .map(EventQueryParams.GeometrySource::source)
+        .toList();
   }
 }

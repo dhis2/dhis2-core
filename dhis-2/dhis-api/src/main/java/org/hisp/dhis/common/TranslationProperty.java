@@ -95,7 +95,7 @@ public class TranslationProperty implements Serializable {
    *
    * @return Translation value if exists, otherwise return default value.
    */
-  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+  private String getTranslationValue(Locale locale, String translationKey, String defaultValue) {
     for (Translation translation : translations) {
       if (locale.equals(translation.getLocale())
           && translationKey.equalsIgnoreCase(translation.getProperty())
@@ -125,8 +125,8 @@ public class TranslationProperty implements Serializable {
     }
 
     return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+        Translation.getCacheKey(locale, translationKey),
+        key -> getTranslationValue(locale, translationKey, defaultTranslation));
   }
 
   /**

@@ -1,0 +1,27 @@
+# Seed entries for the auth-idp LDAP e2e tests (LdapLoginTest).
+# Loaded by the osixia/openldap container (docker-compose.e2e-auth.yml).
+# The DHIS2-side users are created by the tests; DHIS2 binds with the user's
+# ldapId as the (cn={0}) filter value, so cn here deliberately differs from
+# the DHIS2 username to pin that rewrite.
+
+dn: ou=users,dc=dhis2,dc=org
+objectClass: organizationalUnit
+ou: users
+
+dn: cn=ldapcn1,ou=users,dc=dhis2,dc=org
+objectClass: inetOrgPerson
+cn: ldapcn1
+sn: One
+userPassword: ldapPass1###
+
+dn: cn=ldapcn2,ou=users,dc=dhis2,dc=org
+objectClass: inetOrgPerson
+cn: ldapcn2
+sn: Two
+userPassword: ldapPass2###
+
+dn: cn=ldaporphancn,ou=users,dc=dhis2,dc=org
+objectClass: inetOrgPerson
+cn: ldaporphancn
+sn: Orphan
+userPassword: ldapOrphan###

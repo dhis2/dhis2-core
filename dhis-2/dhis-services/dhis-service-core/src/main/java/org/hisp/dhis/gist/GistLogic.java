@@ -31,6 +31,7 @@ package org.hisp.dhis.gist;
 
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.PropertyPath;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
@@ -85,8 +86,10 @@ final class GistLogic {
     return path.length() == 11 && CodeGenerator.isValidUid(path);
   }
 
-  static boolean isAttributeValuesAttributePropertyPath(String path) {
-    return path.startsWith("attributeValues.attribute.");
+  static boolean isAttributeValuesAttributePropertyPath(PropertyPath path) {
+    return path.length() == 3
+        && path.head().contentEquals("attributeValues")
+        && path.parent().segment().contentEquals("attribute");
   }
 
   static String attributePath(String path) {
@@ -131,10 +134,11 @@ final class GistLogic {
     Comparison op = filter.getOperator();
     return property.isSimple()
         && property.getKlass() == String.class
+        && property.getPropertyType() == PropertyType.TEXT
         && (op.isEmptinessCompare()
             || (op.isOrderCompare()
                 && filter.getValue().length == 1
-                && filter.getValue()[0].matches("[0-9]+")));
+                && filter.getValue()[0].matches("[0-9]{1,5}")));
   }
 
   static Transform effectiveTransform(Property property, Transform fallback, Transform target) {

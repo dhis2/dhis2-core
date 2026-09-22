@@ -57,6 +57,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.JsonNode.Index;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.staxwax.factory.XMLFactory;
@@ -237,7 +238,7 @@ public final class DataEntryInput {
                 wrapAndCheckCompressionFormat(in).readAllBytes(),
                 StandardCharsets.UTF_8,
                 null,
-                JsonNode.Index.AUTO_SKIP));
+                Index.AUTO_SKIP));
     String ds = dvs.getString("dataSet").string();
     String completionDate = dvs.getString("completeDate").string();
     // keys that are common for all values
@@ -286,31 +287,25 @@ public final class DataEntryInput {
 
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
-    // Note that this uses JsonNode API to iterate without indexing
-    // to make the processing memory footprint smaller
     JsonArray dataValues = dvs.get("dataValues");
     if (dataValues.exists())
-      dataValues.stream(JsonNode.Index.SKIP)
-          .forEach(
-              dv -> {
-                JsonString coc = dv.getString("categoryOptionCombo");
-                values.add(
-                    new DataEntryValue.Input(
-                        dv.getString("dataElement").string(),
-                        dv.getString("orgUnit").string(),
-                        coc.isString() ? coc.string() : null,
-                        coc.isObject()
-                            ? coc.asMap(JsonString.class).toMap(JsonString::string)
-                            : null,
-                        dv.getString("attributeOptionCombo").string(),
-                        null,
-                        null,
-                        dv.getString("period").string(),
-                        dv.getString("value").string(),
-                        dv.getString("comment").string(),
-                        dv.getBoolean("followUp").bool(),
-                        dv.getBoolean("deleted").bool()));
-              });
+      for (JsonObject dv : dataValues.values(Index.SKIP)) {
+        JsonString coc = dv.getString("categoryOptionCombo");
+        values.add(
+            new DataEntryValue.Input(
+                dv.getString("dataElement").string(),
+                dv.getString("orgUnit").string(),
+                coc.isString() ? coc.string() : null,
+                coc.isObject() ? coc.asMap(JsonString.class).toMap(JsonString::string) : null,
+                dv.getString("attributeOptionCombo").string(),
+                null,
+                null,
+                dv.getString("period").string(),
+                dv.getString("value").string(),
+                dv.getString("comment").string(),
+                dv.getBoolean("followUp").bool(),
+                dv.getBoolean("deleted").bool()));
+      }
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
     return List.of(
         new DataEntryGroup.Input(

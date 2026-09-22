@@ -82,10 +82,6 @@ public class TrackerEvent {
 
   @JsonProperty private Instant scheduledAt;
 
-  @JsonProperty
-  @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
-  private String storedBy;
-
   @JsonProperty private boolean followUp;
 
   @JsonProperty private boolean deleted;

@@ -56,6 +56,10 @@ class UserGroupServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
+  @Autowired private UserGroupStore userGroupStore;
+
+  @Autowired private org.hisp.dhis.common.IdentifiableObjectManager manager;
+
   private User user1;
 
   private User user2;
@@ -177,6 +181,29 @@ class UserGroupServiceTest extends PostgresIntegrationTestBase {
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet());
     userGroupService.addUserGroup(userGroup);
     assertEquals("UserGroupA", userGroupService.getDisplayName(userGroup.getUid()));
+  }
+
+  @Test
+  void testGetManagedGroupIds() {
+    UserGroup managed1 = createUserGroup('M', new HashSet<>());
+    UserGroup managed2 = createUserGroup('N', new HashSet<>());
+    userGroupService.addUserGroup(managed1);
+    userGroupService.addUserGroup(managed2);
+
+    UserGroup managingGroup = createUserGroup('G', new HashSet<>());
+    managingGroup.addManagedGroup(managed1);
+    managingGroup.addManagedGroup(managed2);
+    userGroupService.addUserGroup(managingGroup);
+    manager.flush();
+
+    Set<Long> managedIds = userGroupStore.getManagedGroupIds(Set.of(managingGroup.getId()));
+
+    assertContainsOnly(Set.of(managed1.getId(), managed2.getId()), managedIds);
+  }
+
+  @Test
+  void testGetManagedGroupIdsEmptyInputReturnsEmpty() {
+    assertTrue(userGroupStore.getManagedGroupIds(Set.of()).isEmpty());
   }
 
   @Test

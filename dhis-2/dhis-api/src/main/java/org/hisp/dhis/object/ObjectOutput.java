@@ -36,6 +36,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.PropertyPath;
 
 /**
  * Utility for generic output handling. In this context this means converting form domain objects to
@@ -91,7 +92,7 @@ public final class ObjectOutput {
    * @param arrayAggregate true for array properties that originally are simple properties array
    *     aggregated for the parent property which itself was the original collection property
    */
-  public record Property(String path, Type type, boolean arrayAggregate) {
+  public record Property(PropertyPath path, Type type, boolean arrayAggregate) {
 
     public Property {
       requireNonNull(path);
@@ -105,15 +106,7 @@ public final class ObjectOutput {
      *     part)
      */
     public String name() {
-      return name(path);
-    }
-
-    /**
-     * @return the segments of the {@link #path()} that make drill down into the parent (owner) of
-     *     this property
-     */
-    public List<String> parentPath() {
-      return parentPath(path);
+      return path.property().toString();
     }
 
     @Nonnull

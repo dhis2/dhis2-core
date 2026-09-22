@@ -22,7 +22,7 @@ x-web-base: &web-base
     DB_PASSWORD: ${DB_PASSWORD}
 
 x-db-base: &db-base
-  image: ghcr.io/baosystems/postgis:12-3.3
+  image: ghcr.io/baosystems/postgis:16-3.5
   # uncomment to enable query logging
   # command:
   #   ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]

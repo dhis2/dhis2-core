@@ -67,9 +67,6 @@ class SecurityTrackerEventValidator
     } else {
       org.hisp.dhis.tracker.model.TrackerEvent databaseTrackerEvent =
           bundle.getPreheat().getTrackerEvent(trackerEvent.getUID());
-      CategoryOptionCombo aoc =
-          bundle.getPreheat().getCategoryOptionCombo(trackerEvent.getAttributeOptionCombo());
-      databaseTrackerEvent.setAttributeOptionCombo(aoc);
 
       if (strategy.isUpdate()) {
         handleUpdate(reporter, bundle, databaseTrackerEvent, trackerEvent);
@@ -97,8 +94,13 @@ class SecurityTrackerEventValidator
     OrganisationUnit orgUnit =
         payloadOrgUnit != null ? payloadOrgUnit : databaseTrackerEvent.getOrganisationUnit();
 
+    CategoryOptionCombo payloadAoc =
+        bundle.getPreheat().getCategoryOptionCombo(trackerEvent.getAttributeOptionCombo());
+    CategoryOptionCombo aoc =
+        payloadAoc != null ? payloadAoc : databaseTrackerEvent.getAttributeOptionCombo();
+
     trackerAccessManager
-        .canUpdate(bundle.getUser(), databaseTrackerEvent, orgUnit)
+        .canUpdate(bundle.getUser(), databaseTrackerEvent, orgUnit, aoc)
         .forEach(em -> reporter.addError(trackerEvent, em.validationCode(), em.args().toArray()));
   }
 
