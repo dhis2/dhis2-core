@@ -385,6 +385,42 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldGetEnrollmentWithNotesWhenNotesAreRequested() throws NotFoundException {
+    Note note = new Note();
+    note.setNoteText("text");
+    manager.save(note);
+    enrollmentA.getNotes().add(note);
+    manager.save(enrollmentA);
+    manager.flush();
+    manager.clear();
+
+    EnrollmentFields fields = EnrollmentFields.builder().includeNotes().build();
+
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
+
+    assertNotNull(enrollment);
+    assertContainsOnly(
+        List.of(note.getUid()), enrollment.getNotes().stream().map(Note::getUid).toList());
+  }
+
+  @Test
+  void shouldGetEnrollmentWithoutNotesWhenNotesAreNotRequested() throws NotFoundException {
+    Note note = new Note();
+    note.setNoteText("text");
+    manager.save(note);
+    enrollmentA.getNotes().add(note);
+    manager.save(enrollmentA);
+    manager.flush();
+    manager.clear();
+
+    Enrollment enrollment =
+        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentFields.none());
+
+    assertNotNull(enrollment);
+    assertIsEmpty(enrollment.getNotes());
+  }
+
+  @Test
   void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem() throws NotFoundException {
     EnrollmentFields fields = EnrollmentFields.builder().includeAttributes().build();
 
