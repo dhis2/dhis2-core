@@ -42,9 +42,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventFields;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -156,7 +159,11 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
     manager.flush();
 
-    TrackerEvent dbEvent = trackerEventService.getEvent(UID.of("pTzf9KYMk72"));
+    TrackerEvent dbEvent =
+        trackerEventService.getEvent(
+            UID.of("pTzf9KYMk72"),
+            TrackerIdSchemeParams.builder().build(),
+            TrackerEventFields.builder().includeNotes().build());
     assertNotes(List.of(note), dbEvent.getNotes(), userDetails);
   }
 
@@ -169,7 +176,11 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
     manager.flush();
 
-    SingleEvent dbEvent = singleEventService.getEvent(UID.of("QRYjLTiJTrA"));
+    SingleEvent dbEvent =
+        singleEventService.getEvent(
+            UID.of("QRYjLTiJTrA"),
+            TrackerIdSchemeParams.builder().build(),
+            SingleEventFields.builder().includeNotes().build());
     assertNotes(List.of(note), dbEvent.getNotes(), userDetails);
   }
 
@@ -240,7 +251,9 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSetCreatorToAuthenticatedUserForEnrollmentNote() throws NotFoundException {
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of("TvctPPhpD8z"));
+    Enrollment enrollment =
+        enrollmentService.getEnrollment(
+            UID.of("TvctPPhpD8z"), EnrollmentFields.builder().includeNotes().build());
     org.hisp.dhis.note.Note note =
         enrollment.getNotes().stream()
             .filter(n -> "f9423652692".equals(n.getUid()))
@@ -252,7 +265,11 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSetCreatorToAuthenticatedUserForTrackerEventNote() throws NotFoundException {
-    TrackerEvent event = trackerEventService.getEvent(UID.of("pTzf9KYMk72"));
+    TrackerEvent event =
+        trackerEventService.getEvent(
+            UID.of("pTzf9KYMk72"),
+            TrackerIdSchemeParams.builder().build(),
+            TrackerEventFields.builder().includeNotes().build());
     org.hisp.dhis.note.Note note =
         event.getNotes().stream()
             .filter(n -> "SGuCABkhpgn".equals(n.getUid()))
@@ -264,7 +281,11 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSetCreatorToAuthenticatedUserForSingleEventNote() throws NotFoundException {
-    SingleEvent event = singleEventService.getEvent(UID.of("QRYjLTiJTrA"));
+    SingleEvent event =
+        singleEventService.getEvent(
+            UID.of("QRYjLTiJTrA"),
+            TrackerIdSchemeParams.builder().build(),
+            SingleEventFields.builder().includeNotes().build());
     org.hisp.dhis.note.Note note =
         event.getNotes().stream()
             .filter(n -> "r8Ge3bH7aF9".equals(n.getUid()))
