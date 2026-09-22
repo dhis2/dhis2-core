@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -52,6 +53,8 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOption;
+import static org.hisp.dhis.test.TestBase.createOptionSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
@@ -122,6 +125,7 @@ import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -1101,6 +1105,46 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testFormatDoubleReturnsMatchingOptionCode() {
+    OptionSet optionSet = createOptionSet('A', createOption("1"), createOption("2"));
+    GridHeader header =
+        new GridHeader("header-1", "header-1", NUMBER, false, true, optionSet, null);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("1", eventSubject.formatDouble(1.0d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleRoundsWhenNoOptionCodeMatches() {
+    OptionSet optionSet = createOptionSet('A', createOption("1"), createOption("2"));
+    GridHeader header =
+        new GridHeader("header-1", "header-1", NUMBER, false, true, optionSet, null);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("3.5", eventSubject.formatDouble(3.5d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleAppliesProgramIndicatorDecimals() {
+    ProgramIndicator programIndicator = createProgramIndicator('A', programA, "9.0", null);
+    programIndicator.setDecimals(3);
+
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder().addItem(new QueryItem(programIndicator)).build();
+    GridHeader header = new GridHeader(programIndicator.getUid(), NUMBER);
+
+    assertEquals("1.235", eventSubject.formatDouble(1.23456d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleAppliesDefaultRoundingWithoutOptionSetOrProgramIndicator() {
+    GridHeader header = new GridHeader("header-1", NUMBER);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("1.23", eventSubject.formatDouble(1.23456d, header, queryParams));
+  }
+
+  @Test
   void testItemsInFilterAreQuotedForOrganisationUnit() {
     // Given
     QueryItem queryItem = mock(QueryItem.class);
@@ -1390,6 +1434,132 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     List<String> columns = eventSubject.getGroupByColumnNames(params, true);
 
     assertTrue(columns.stream().anyMatch(c -> c.contains("enrl.\"ou\"")));
+  }
+
+  @Test
+  void testRegistrationOuInWhereClause() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuFilter(List.of(ouA, ouB))
+            .build();
+
+    String whereClause = eventSubject.getWhereClause(params);
+
+    assertThat(whereClause, containsString("regous.\"uidlevel1\""));
+    assertThat(whereClause, containsString(ouA.getUid()));
+    assertThat(whereClause, containsString(ouB.getUid()));
+  }
+
+  @Test
+  void testFromClauseIncludesRegistrationOuJoinWhenRegistrationOuIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    String fromClause = eventSubject.getFromClause(params);
+
+    assertThat(fromClause, containsString("inner join analytics_rs_orgunitstructure as regous"));
+    assertThat(
+        fromClause, containsString("on regous.\"organisationunituid\" = ax.\"registrationou\""));
+  }
+
+  @Test
+  void testFromClauseOmitsRegistrationOuJoinWhenUnused() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .build();
+
+    assertThat(eventSubject.getFromClause(params), not(containsString("regous")));
+  }
+
+  @Test
+  void testLegacySelectColumnsDoesNotIncludeRegistrationOuAggregateColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, false);
+
+    assertTrue(columns.stream().noneMatch(c -> c.contains("registrationou")));
+  }
+
+  @Test
+  void testAggregatedLegacySelectColumnsIncludesRegistrationOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("as registrationou")));
+  }
+
+  @Test
+  void testAggregatedLegacyGroupByColumnsIncludesRegistrationOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getGroupByColumnNames(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("regous.\"uidlevel1\"")));
+  }
+
+  /** REGISTRATION_OU and ENROLLMENT_OU must be able to appear in one query without colliding. */
+  @Test
+  void testRegistrationOuAndEnrollmentOuCoexist() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withRegistrationOuDimension(List.of(ouA))
+            .withEnrollmentOuDimension(List.of(ouB))
+            .build();
+
+    String fromClause = eventSubject.getFromClause(params);
+
+    assertThat(fromClause, containsString("as regous"));
+    assertThat(fromClause, containsString("as enrl"));
   }
 
   @Test

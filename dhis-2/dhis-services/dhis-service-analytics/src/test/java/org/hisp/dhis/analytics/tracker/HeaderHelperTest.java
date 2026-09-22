@@ -38,9 +38,11 @@ import static org.hisp.dhis.test.TestBase.createLegend;
 import static org.hisp.dhis.test.TestBase.createLegendSet;
 import static org.hisp.dhis.test.TestBase.createOption;
 import static org.hisp.dhis.test.TestBase.createOptionSet;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -56,6 +58,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
@@ -370,6 +373,55 @@ class HeaderHelperTest {
     assertEquals("enrollmentou", headers.get(0).getName());
     assertEquals("enrollmentouname", headers.get(1).getName());
     assertEquals("deUidA001", headers.get(2).getName());
+  }
+
+  @Test
+  @DisplayName("registrationou/registrationouname headers precede item headers on query endpoints")
+  void registrationOuHeadersPrecedeItemHeaders() {
+    Grid grid = new ListGrid();
+
+    QueryItem item = queryItem("deUidA001", "Item A", TEXT);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addItem(item)
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of());
+
+    List<GridHeader> headers = grid.getHeaders();
+
+    assertEquals(3, headers.size());
+    assertEquals("registrationou", headers.get(0).getName());
+    assertEquals("registrationouname", headers.get(1).getName());
+    assertEquals("deUidA001", headers.get(2).getName());
+  }
+
+  /**
+   * The aggregate grid carries one column per dimension, and the base CTE only projects the org
+   * unit uid, so the name header must not be added there.
+   */
+  @Test
+  @DisplayName("enrollment aggregate adds only the registrationou header, not the name")
+  void registrationOuAggregateAddsUidHeaderOnly() {
+    Grid grid = new ListGrid();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT)
+            .withEndpointAction(RequestTypeAware.EndpointAction.AGGREGATE)
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of());
+
+    List<String> names = grid.getHeaders().stream().map(GridHeader::getName).toList();
+
+    assertTrue(names.contains("registrationou"), names.toString());
+    assertFalse(names.contains("registrationouname"), names.toString());
   }
 
   @Test

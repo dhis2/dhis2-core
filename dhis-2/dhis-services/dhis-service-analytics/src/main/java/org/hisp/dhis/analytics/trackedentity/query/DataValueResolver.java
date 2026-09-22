@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.analytics.trackedentity.query;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.query.Renderable;
 
 /**
- * Exposes a static method to fetch an Executor for the Aggregates operations
- *
- * @author Luciano Fiandesio
+ * Resolves a data element's value to the SQL expression a condition compares against. The default
+ * reads the value out of the event row the condition's own subquery is scoped to, which is what the
+ * row level query does. A grouped aggregate query passes a resolver that reads it from the single
+ * event chosen for each tracked entity, the same event it groups on.
  */
-class ThreadPoolManager {
-  // Thread factory that sets a user-defined thread name (useful for debugging
-  // purposes)
-  private ThreadPoolManager() {
-    throw new IllegalStateException("only used for its static fields");
-  }
+@FunctionalInterface
+public interface DataValueResolver {
 
-  private static final ThreadFactory threadFactory =
-      new ThreadFactoryBuilder().setNameFormat("TRACKER-TE-FETCH-%d").setDaemon(true).build();
-
-  /** Cached thread pool: not bound to a size, but can reuse existing threads. */
-  private static final Executor AGGREGATE_THREAD_POOL =
-      Executors.newCachedThreadPool(threadFactory);
-
-  static Executor getPool() {
-    return AGGREGATE_THREAD_POOL;
-  }
+  Renderable resolve(ValueTypeMapping valueTypeMapping);
 }

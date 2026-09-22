@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.timeout;
-
-import java.time.Duration;
-import org.springframework.dao.DataAccessException;
+package org.hisp.dhis.storage;
 
 /**
- * Thrown when a tracker export request has used up its {@code tracker.export.timeout} budget. Maps
- * to HTTP 504 Gateway Timeout.
- *
- * <p>Extends {@link DataAccessException} so it can be returned from {@code JdbcTemplate}'s
- * exception translation, which is where a query cancelled by the deadline surfaces.
- *
- * <p>The message names the budget and nothing else. The caller knows the request they sent, and
- * what made it slow is usually something it does not name, such as ordering by a non-indexed
- * attribute. Nothing is logged either: the access log already records the 504, and the request is
- * an idempotent GET, so diagnosis is to reproduce it rather than to read anything captured here.
+ * Thrown when a blob read did not finish within the {@link BlobReadOptions#nextTimeout()} its
+ * caller asked for, so it always means that caller's own limit was reached rather than a fault of
+ * the store.
  */
-public class DeadlineExceededException extends DataAccessException {
+public class BlobReadTimeoutException extends RuntimeException {
 
-  public DeadlineExceededException(Duration budget) {
-    super(message(budget));
+  public BlobReadTimeoutException(String message) {
+    super(message);
   }
 
-  public DeadlineExceededException(Duration budget, Throwable cause) {
-    super(message(budget), cause);
-  }
-
-  private static String message(Duration budget) {
-    return "Tracker export exceeded its time budget of %ss".formatted(budget.toSeconds());
+  public BlobReadTimeoutException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

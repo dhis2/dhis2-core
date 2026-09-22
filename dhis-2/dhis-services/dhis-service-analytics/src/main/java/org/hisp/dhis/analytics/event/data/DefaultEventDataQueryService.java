@@ -61,12 +61,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -77,6 +79,9 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlConstants;
+import org.hisp.dhis.analytics.event.data.stage.StageQualifiedName;
+import org.hisp.dhis.analytics.event.data.stage.StageSortField;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -123,6 +128,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private static final String SCHEDULED_DATE_DIMENSION = "SCHEDULED_DATE";
 
   private static final String ENROLLMENT_OU_DIMENSION = "ENROLLMENT_OU";
+  private static final String REGISTRATION_OU_DIMENSION = RegistrationOuSqlConstants.DIMENSION_NAME;
   private static final String LEVEL_PREFIX = "LEVEL-";
 
   private final ProgramService programService;
@@ -519,13 +525,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventDataQueryRequest request,
       Program pr,
       Set<String> existingKeys) {
-    if (!isStagePrefixed(header)) {
+    Optional<StageQualifiedName> name = StageQualifiedName.parse(header);
+    if (name.isEmpty()) {
       return false;
     }
 
-    int dot = header.lastIndexOf('.');
-    String prefix = header.substring(0, dot);
-    String suffix = header.substring(dot + 1);
+    String suffix = name.get().suffix();
     boolean enrollment = request.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT;
 
     if (enrollment && isStageOuHelperSuffix(suffix)) {
@@ -533,7 +538,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           params,
           request,
           pr,
-          prefix,
+          name.get(),
           EventAnalyticsColumnName.OU_COLUMN_NAME,
           EventAnalyticsColumnName.OU_COLUMN_NAME,
           existingKeys);
@@ -545,7 +550,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           params,
           request,
           pr,
-          prefix,
+          name.get(),
           EVENT_DATE_DIMENSION,
           EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
           existingKeys);
@@ -557,7 +562,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           params,
           request,
           pr,
-          prefix,
+          name.get(),
           EVENT_STATUS_DIMENSION,
           EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME,
           existingKeys);
@@ -569,7 +574,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           params,
           request,
           pr,
-          prefix,
+          name.get(),
           SCHEDULED_DATE_DIMENSION,
           EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
           existingKeys);
@@ -586,22 +591,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * {@link #handleStagePrefixedSpecialCase}.
    */
   private static boolean shouldSkipHeader(String header, EventDataQueryRequest request) {
-    if (isStagePrefixed(header)) {
+    if (StageQualifiedName.isStageQualified(header)) {
       return false;
     }
     if (request.getEndpointAction() != RequestTypeAware.EndpointAction.QUERY) {
       return true;
     }
     return isStaticColumnSuffix(header);
-  }
-
-  /**
-   * Returns {@code true} when the header has the {@code {stageUid}.{suffix}} shape — i.e. an
-   * interior dot with non-empty text on both sides. A leading or trailing dot doesn't count.
-   */
-  private static boolean isStagePrefixed(String header) {
-    int dot = header.lastIndexOf('.');
-    return dot > 0 && dot < header.length() - 1;
   }
 
   /**
@@ -634,15 +630,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventQueryParams.Builder params,
       EventDataQueryRequest request,
       Program pr,
-      String stagePrefix,
+      StageQualifiedName name,
       String dimensionSuffix,
       String itemIdSuffix,
       Set<String> existingKeys) {
-    String quickKey = stagePrefix + "." + itemIdSuffix;
+    String quickKey = name.withSuffix(itemIdSuffix).toString();
     if (existingKeys.contains(quickKey)) {
       return;
     }
-    String dimension = stagePrefix + "." + dimensionSuffix;
+    String dimension = name.withSuffix(dimensionSuffix).toString();
     try {
       QueryItem item =
           getQueryItem(dimension, pr, request.getOutputType(), request.getRelativePeriodDate());
@@ -692,15 +688,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventQueryParams.Builder params, EventDataQueryRequest request, Program pr) {
     if (request.getAsc() != null) {
       for (String sort : request.getAsc()) {
-        params.addAscSortItem(
-            getSortItem(sort, pr, request.getOutputType(), request.getEndpointItem()));
+        params.addAscSortItem(getSortItem(sort, pr, request));
       }
     }
 
     if (request.getDesc() != null) {
       for (String sort : request.getDesc()) {
-        params.addDescSortItem(
-            getSortItem(sort, pr, request.getOutputType(), request.getEndpointItem()));
+        params.addDescSortItem(getSortItem(sort, pr, request));
       }
     }
   }
@@ -716,6 +710,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getFilter())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
+        if (REGISTRATION_OU_DIMENSION.equals(input.dimensionId())) {
+          requireRegistrationProgram(pr);
+          params.withRegistrationOuFilter(
+              resolveRegistrationOuItems(input.items(), request, userOrgUnits, idScheme));
           continue;
         }
         if (isProgramStatusDimension(input.dimensionId())) {
@@ -766,6 +766,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getDimension())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuDimension(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
+        if (REGISTRATION_OU_DIMENSION.equals(input.dimensionId())) {
+          resolveRegistrationOuDimension(
+              params, request, userOrgUnits, input.items(), idScheme, pr);
           continue;
         }
         if (isProgramStatusDimension(input.dimensionId())) {
@@ -863,7 +868,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     String dimensionId = getDimensionFromParam(rawDimension);
     List<String> items = getDimensionItemsFromParam(rawDimension);
 
-    if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)) {
+    if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)
+        || REGISTRATION_OU_DIMENSION.equals(dimensionId)) {
       normalizedInputs.add(
           new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
       return;
@@ -903,7 +909,32 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     peTracker.insertMergedInto(normalizedInputs);
+    rejectRepeatedOrgUnitDimensions(normalizedInputs);
     return normalizedInputs;
+  }
+
+  /**
+   * Rejects a request naming ENROLLMENT_OU or REGISTRATION_OU more than once. Both are held outside
+   * {@code params.dimensions} and so are invisible to {@link
+   * org.hisp.dhis.analytics.DataQueryParams#getDuplicateDimensions()}, which is what raises E7201
+   * for an ordinary dimension. Without this check the last occurrence processed would silently win,
+   * and which one that is follows hash order rather than the order the caller wrote them in.
+   *
+   * <p>Several org units in one dimension ({@code REGISTRATION_OU:uidA;uidB}) is a single
+   * occurrence and stays valid, as does the same dimension used once as a dimension and once as a
+   * filter, since those are normalized separately.
+   */
+  private void rejectRepeatedOrgUnitDimensions(List<NormalizedDimensionInput> normalizedInputs) {
+    for (String dimensionId : List.of(ENROLLMENT_OU_DIMENSION, REGISTRATION_OU_DIMENSION)) {
+      long occurrences =
+          normalizedInputs.stream()
+              .filter(input -> dimensionId.equals(input.dimensionId()))
+              .count();
+
+      if (occurrences > 1) {
+        throwIllegalQueryEx(ErrorCode.E7201, dimensionId);
+      }
+    }
   }
 
   private record NormalizedDimensionInput(
@@ -974,16 +1005,71 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return queryItemLocator.getQueryItemFromDimension(itemId, program, type);
   }
 
-  private QueryItem getSortItem(
-      String item,
-      Program program,
-      EventOutputType type,
-      RequestTypeAware.EndpointItem endpointItem) {
+  private QueryItem getSortItem(String item, Program program, EventDataQueryRequest request) {
+    Optional<QueryItem> stageSort = resolveStageSortItem(item, program, request);
+    if (stageSort.isPresent()) {
+      return stageSort.get();
+    }
+    RequestTypeAware.EndpointItem endpointItem = request.getEndpointItem();
     if (isSortable(item, endpointItem)) {
       return new QueryItem(
           new BaseDimensionalItemObject(translateItemIfNecessary(item, endpointItem)));
     }
-    return getQueryItem(item, program, type, null);
+    return getQueryItem(item, program, request.getOutputType(), null);
+  }
+
+  /**
+   * Resolves a {@code <stageUid>.<field>} sort item on the query endpoints, where the field is one
+   * of {@link StageSortField}. The stage is validated by resolving the field's canonical dimension
+   * through {@link #getQueryItem}; a bad stage stays an error.
+   *
+   * <p>An event row carries its own stage, so on the Event endpoint the prefix is dropped and the
+   * event's own column is ordered by. An enrollment row reads stage values from a stage CTE, so on
+   * the Enrollment endpoint the item stays stage-scoped and its id names the field to read from
+   * that CTE. Repeatable-stage offsets are not supported on stage sort fields and are rejected
+   * rather than silently collapsed to the most recent event.
+   *
+   * @return the resolved sort item, or empty when the input is not a stage sort field.
+   */
+  private Optional<QueryItem> resolveStageSortItem(
+      String item, Program program, EventDataQueryRequest request) {
+
+    if (request.getEndpointAction() != RequestTypeAware.EndpointAction.QUERY) {
+      return Optional.empty();
+    }
+    Optional<StageQualifiedName> name = StageQualifiedName.parse(item);
+    if (name.isEmpty()) {
+      return Optional.empty();
+    }
+    Optional<StageSortField> field = StageSortField.forRequestedSuffix(name.get().suffix());
+    if (field.isEmpty()) {
+      return Optional.empty();
+    }
+
+    QueryItem validated =
+        getQueryItem(
+            name.get().withSuffix(field.get().getCanonicalDimension()).toString(),
+            program,
+            request.getOutputType(),
+            null);
+
+    if (request.getEndpointItem() == RequestTypeAware.EndpointItem.EVENT) {
+      return Optional.of(new QueryItem(new BaseDimensionalItemObject(field.get().getItemId())));
+    }
+
+    if (name.get().hasRepeatableStageOffset()) {
+      throwIllegalQueryEx(ErrorCode.E7224, item);
+    }
+    QueryItem sortItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(field.get().getItemId()),
+            program,
+            null,
+            validated.getValueType(),
+            AggregationType.NONE,
+            null);
+    sortItem.setProgramStage(validated.getProgramStage());
+    return Optional.of(sortItem);
   }
 
   private DimensionalItemObject getValueDimension(String value) {
@@ -1207,6 +1293,57 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return new EnrollmentOuResolution(uidItems, levels);
   }
 
+  /**
+   * Resolves REGISTRATION_OU items through the standard "ou" dimension pipeline, so that every
+   * keyword form (USER_ORGUNIT and its variants, LEVEL-n, OU_GROUP-uid) expands to concrete org
+   * units already carrying their hierarchy level.
+   */
+  private List<OrganisationUnit> resolveRegistrationOuItems(
+      List<String> items,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      IdScheme idScheme) {
+    if (items == null || items.isEmpty()) {
+      return List.of();
+    }
+
+    DimensionalObject ouDimension =
+        dataQueryService.getDimension("ou", items, request, userOrgUnits, true, idScheme);
+
+    if (ouDimension == null) {
+      return List.of();
+    }
+
+    return ouDimension.getItems().stream()
+        .filter(OrganisationUnit.class::isInstance)
+        .map(OrganisationUnit.class::cast)
+        .toList();
+  }
+
+  private void resolveRegistrationOuDimension(
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      List<String> items,
+      IdScheme idScheme,
+      Program program) {
+    requireRegistrationProgram(program);
+
+    if ((items == null || items.isEmpty()) && isAggregateRequest(request)) {
+      throwIllegalQueryEx(ErrorCode.E7260, REGISTRATION_OU_DIMENSION);
+    }
+
+    params.withRegistrationOuDimension(
+        resolveRegistrationOuItems(items, request, userOrgUnits, idScheme));
+  }
+
+  /** Registration org unit is a property of a tracked entity, so it needs a tracker program. */
+  private void requireRegistrationProgram(Program program) {
+    if (program != null && !program.isRegistration()) {
+      throwIllegalQueryEx(ErrorCode.E7259, REGISTRATION_OU_DIMENSION);
+    }
+  }
+
   private record EnrollmentOuResolution(
       List<DimensionalItemObject> uidItems, Set<Integer> levels) {}
 
@@ -1229,6 +1366,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         ColumnHeader.SCHEDULED_DATE.getItem(), EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
     ORG_UNIT_NAME(ColumnHeader.ORG_UNIT_NAME.getItem()),
     ORG_UNIT_NAME_HIERARCHY(ColumnHeader.ORG_UNIT_NAME_HIERARCHY.getItem()),
+    // Projected under their own aliases only when REGISTRATION_OU is a dimension, so the query
+    // validator rejects sorting on them otherwise.
+    REGISTRATION_OU(ColumnHeader.REGISTRATION_OU.getItem()),
+    REGISTRATION_OU_NAME(ColumnHeader.REGISTRATION_OU_NAME.getItem()),
     ORG_UNIT_CODE(ColumnHeader.ORG_UNIT_CODE.getItem()),
     PROGRAM_STATUS(
         ColumnHeader.PROGRAM_STATUS.getItem(),
