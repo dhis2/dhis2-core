@@ -428,11 +428,6 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
     this.formName = formName;
   }
 
-  @Override
-  public String getFormNameFallback() {
-    return StringUtils.isEmpty(getFormName()) ? getDisplayName() : getFormName();
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getOrgUnitField() {

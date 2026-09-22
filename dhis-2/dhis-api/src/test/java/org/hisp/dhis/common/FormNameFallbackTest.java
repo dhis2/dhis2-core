@@ -58,6 +58,9 @@ class FormNameFallbackTest {
 
     dataElement.setFormName("Form Name");
     assertEquals("Form Name", dataElement.getDisplayFormName());
+
+    dataElement.setFormName("");
+    assertEquals("Name", dataElement.getDisplayFormName());
   }
 
   @Test
@@ -68,6 +71,9 @@ class FormNameFallbackTest {
 
     categoryOption.setFormName("Form Name");
     assertEquals("Form Name", categoryOption.getDisplayFormName());
+
+    categoryOption.setFormName("");
+    assertEquals("Name", categoryOption.getDisplayFormName());
   }
 
   @Test
@@ -78,6 +84,9 @@ class FormNameFallbackTest {
 
     dataSet.setFormName("Form Name");
     assertEquals("Form Name", dataSet.getDisplayFormName());
+
+    dataSet.setFormName("");
+    assertEquals("Name", dataSet.getDisplayFormName());
   }
 
   @Test
@@ -88,6 +97,9 @@ class FormNameFallbackTest {
 
     indicator.setFormName("Form Name");
     assertEquals("Form Name", indicator.getDisplayFormName());
+
+    indicator.setFormName("");
+    assertEquals("Name", indicator.getDisplayFormName());
   }
 
   @Test
@@ -98,6 +110,9 @@ class FormNameFallbackTest {
 
     option.setFormName("Form Name");
     assertEquals("Form Name", option.getDisplayFormName());
+
+    option.setFormName("");
+    assertEquals("Name", option.getDisplayFormName());
   }
 
   @Test
@@ -108,6 +123,9 @@ class FormNameFallbackTest {
 
     programIndicator.setFormName("Form Name");
     assertEquals("Form Name", programIndicator.getDisplayFormName());
+
+    programIndicator.setFormName("");
+    assertEquals("Name", programIndicator.getDisplayFormName());
   }
 
   @Test
@@ -118,6 +136,9 @@ class FormNameFallbackTest {
 
     programSection.setFormName("Form Name");
     assertEquals("Form Name", programSection.getDisplayFormName());
+
+    programSection.setFormName("");
+    assertEquals("Name", programSection.getDisplayFormName());
   }
 
   @Test
@@ -128,6 +149,9 @@ class FormNameFallbackTest {
 
     programStageSection.setFormName("Form Name");
     assertEquals("Form Name", programStageSection.getDisplayFormName());
+
+    programStageSection.setFormName("");
+    assertEquals("Name", programStageSection.getDisplayFormName());
   }
 
   @Test
@@ -138,5 +162,8 @@ class FormNameFallbackTest {
 
     trackedEntityType.setFormName("Form Name");
     assertEquals("Form Name", trackedEntityType.getDisplayFormName());
+
+    trackedEntityType.setFormName("");
+    assertEquals("Name", trackedEntityType.getDisplayFormName());
   }
 }

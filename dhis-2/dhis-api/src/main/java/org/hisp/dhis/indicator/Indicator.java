@@ -36,7 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -317,11 +316,6 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   @Override
   public void setFormName(String formName) {
     this.formName = formName;
-  }
-
-  @Override
-  public String getFormNameFallback() {
-    return StringUtils.isEmpty(getFormName()) ? getDisplayName() : getFormName();
   }
 
   /**

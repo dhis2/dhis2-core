@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -155,11 +154,6 @@ public class ProgramSection extends BaseNameableObject implements MetadataObject
 
   public void setFormName(String formName) {
     this.formName = formName;
-  }
-
-  @Override
-  public String getFormNameFallback() {
-    return StringUtils.isEmpty(getFormName()) ? getDisplayName() : getFormName();
   }
 
   @JsonProperty

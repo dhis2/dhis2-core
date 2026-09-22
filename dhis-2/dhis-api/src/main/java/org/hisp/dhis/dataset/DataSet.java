@@ -45,7 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -774,11 +773,6 @@ public class DataSet extends BaseDimensionalItemObject
   @Override
   public void setFormName(String formName) {
     this.formName = formName;
-  }
-
-  @Override
-  public String getFormNameFallback() {
-    return StringUtils.isEmpty(getFormName()) ? getDisplayName() : getFormName();
   }
 
   @JsonProperty

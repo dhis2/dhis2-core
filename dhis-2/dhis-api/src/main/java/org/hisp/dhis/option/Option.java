@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -143,11 +142,6 @@ public class Option extends BaseNameableObject implements MetadataObject, Sortab
 
   public void setFormName(String formName) {
     this.formName = formName;
-  }
-
-  @Override
-  public String getFormNameFallback() {
-    return StringUtils.isEmpty(getFormName()) ? getDisplayName() : getFormName();
   }
 
   @JsonProperty
