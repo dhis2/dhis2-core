@@ -197,7 +197,10 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
     TrackerEvent pTzf9KYMk72 = get(TrackerEvent.class, "pTzf9KYMk72");
     TrackerEventOperationParams params =
-        operationParamsBuilder.events(Set.of(UID.of("pTzf9KYMk72"))).build();
+        operationParamsBuilder
+            .events(Set.of(UID.of("pTzf9KYMk72")))
+            .fields(TrackerEventFields.builder().includeNotes().build())
+            .build();
 
     List<TrackerEvent> events = trackerEventService.findEvents(params);
 
