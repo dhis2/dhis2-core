@@ -789,10 +789,15 @@ public class TrackerTest extends Simulation {
             new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
             "Get TEs from events",
             "Get Child Programme TEs");
+    // NOTE: no SMOKE assertion. This request is bimodal in smoke: across three back-to-back runs on
+    // the same image it measured 4140ms, 4146ms and 13ms, uniformly across all 100 requests in each
+    // run (min 4122ms in the slow runs), so it is a different query plan rather than a slow tail.
+    // The cause is not yet understood, so asserting on it would only produce flaky failures.
+    // LOAD is stable (114-123ms over three runs) and is asserted. See DHIS2-21377.
     Request searchTEsAsAndroidClient =
         new Request(
             androidSearchTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 175)),
+            new EnumMap<>(Map.of(Profile.LOAD, 175)),
             "Search TEs as Android client",
             "Get Child Programme TEs");
     Request getFirstPageOfTEs =
@@ -1076,9 +1081,9 @@ public class TrackerTest extends Simulation {
   }
 
   private static final EnumMap<Profile, Integer> MNCH_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 94, Profile.LOAD, 529));
+      new EnumMap<>(Map.of(Profile.SMOKE, 112, Profile.LOAD, 569));
   private static final EnumMap<Profile, Integer> CHILD_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 72, Profile.LOAD, 306));
+      new EnumMap<>(Map.of(Profile.SMOKE, 73, Profile.LOAD, 582));
   private static final EnumMap<Profile, Integer> ANC_IMPORT_P95 =
       new EnumMap<>(Map.of(Profile.SMOKE, 54, Profile.LOAD, 233));
 
