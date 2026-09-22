@@ -582,7 +582,7 @@
   "dataElements": [
     {
       "href": "http://localhost:8080/api/dataElements/VkoGQvbzHk2",
-      "code": "TA_ID_SCHEMES_DATA_ELEMENT ",
+      "code": "TA_ID_SCHEMES_DATA_ELEMENT",
       "name": "TA id schemes data element",
       "created": "2022-05-30T09:33:51.936",
       "lastUpdated": "2022-05-30T09:33:51.936",
