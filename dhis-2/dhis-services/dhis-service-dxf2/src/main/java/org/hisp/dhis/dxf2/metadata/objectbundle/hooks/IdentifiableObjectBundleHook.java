@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -38,6 +39,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.Property;
@@ -56,16 +58,22 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject> {
   /**
-   * Text properties that are trimmed of leading/trailing whitespace on create and update, so that
-   * values differing only by whitespace (e.g. {@code "Name"} vs {@code "Name "}) do not appear as
-   * near-duplicate metadata. {@code name} and {@code code} are set directly through the {@link
-   * IdentifiableObject} interface; the remaining properties are not declared on the interface and
-   * are set reflectively, only if present on the given object's schema.
+   * Text properties that are trimmed of leading/trailing whitespace, so that values differing only
+   * by whitespace (e.g. {@code "Name"} vs {@code "Name "}) do not appear as near-duplicate
+   * metadata. {@code name} and {@code code} are set directly through the {@link IdentifiableObject}
+   * interface; the remaining properties are not declared on the interface and are set reflectively,
+   * only if present on the given object's schema.
    */
   private static final List<String> REFLECTIVE_TRIMMABLE_PROPERTIES =
       List.of("shortName", "description");
 
   private final AclService aclService;
+  
+  @Override
+  public void validate(
+      IdentifiableObject object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    trimTextFields(object);
+  }
 
   @Override
   public void preCreate(IdentifiableObject identifiableObject, ObjectBundle bundle) {
@@ -80,7 +88,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     }
 
     Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(identifiableObject));
-    trimTextFields(identifiableObject);
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
     handleSortOrder(identifiableObject, bundle, schema);
@@ -175,7 +182,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     handleCreatedByProperty(object, persistedObject, bundle);
 
     Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
-    trimTextFields(object);
     handleSortOrder(object, bundle, schema);
   }
 

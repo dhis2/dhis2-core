@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -40,6 +41,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -115,6 +117,27 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
     assertEquals("Updated Name", persisted.getName());
     assertEquals("Updated Short", persisted.getShortName());
     assertEquals("Updated description", persisted.getDescription());
+  }
+
+  @Test
+  void createDetectsUniquenessCollisionThatOnlyEmergesAfterTrimming() {
+    DataElement dataElementOne = createDataElement('E');
+    dataElementOne.setCode("SHARED");
+
+    DataElement dataElementTwo = createDataElement('F');
+    dataElementTwo.setCode("  SHARED  ");
+
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.addObject(dataElementOne);
+    params.addObject(dataElementTwo);
+
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport report = objectBundleValidationService.validate(bundle);
+
+    assertTrue(report.hasErrorReports());
+    assertEquals(1, report.getErrorReportsCount(ErrorCode.E5003));
   }
 
   private void commit(ImportStrategy importStrategy, DataElement dataElement) {
