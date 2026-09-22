@@ -311,7 +311,7 @@ class JdbcEnrollmentStore {
           'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
           from enrollment_notes en
           join note n on n.noteid = en.noteid
-          join userinfo u on u.userinfoid = n.lastupdatedby
+          left join userinfo u on u.userinfoid = n.lastupdatedby
           where en.enrollmentid = e.enrollmentid
       ) notes on true
     """);
@@ -746,13 +746,15 @@ class JdbcEnrollmentStore {
         note.setUid(jdbcNote.getUid());
         note.setNoteText(jdbcNote.getText());
         note.setCreated(DateUtils.safeParseDate(jdbcNote.getCreated()));
-        User user = new User();
-        user.setUid(jdbcNote.getUpdatedByUid());
-        user.setUsername(jdbcNote.getUpdatedByUsername());
-        user.setFirstName(jdbcNote.getUpdatedByFirstname());
-        user.setSurname(jdbcNote.getUpdatedBySurname());
-        user.setName(jdbcNote.getUpdatedByName());
-        note.setLastUpdatedBy(user);
+        if (jdbcNote.getUpdatedByUid() != null) {
+          User user = new User();
+          user.setUid(jdbcNote.getUpdatedByUid());
+          user.setUsername(jdbcNote.getUpdatedByUsername());
+          user.setFirstName(jdbcNote.getUpdatedByFirstname());
+          user.setSurname(jdbcNote.getUpdatedBySurname());
+          user.setName(jdbcNote.getUpdatedByName());
+          note.setLastUpdatedBy(user);
+        }
         notes.add(note);
       }
 

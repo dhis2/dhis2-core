@@ -37,7 +37,9 @@ import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -49,7 +51,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -106,21 +110,17 @@ import org.springframework.stereotype.Repository;
 class JdbcTrackerEventStore {
   private static final String EVENT_NOTE_QUERY =
       """
-      select evn.eventid as evn_id,\
-       n.noteid as note_id,\
-       n.notetext as note_text,\
-       n.created as note_created,\
-       n.uid as note_uid,\
-       userinfo.userinfoid as note_user_id,\
-       userinfo.code as note_user_code,\
-       userinfo.uid as note_user_uid,\
-       userinfo.username as note_user_username,\
-       userinfo.firstname as note_user_firstname,\
-       userinfo.surname as note_user_surname\
-       from trackerevent_notes evn\
-       inner join note n\
-       on evn.noteid = n.noteid\
-       left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
+      left join lateral (
+        select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
+          'created', n.created, 'updatedByUid', u.uid,
+          'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
+          'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
+          from trackerevent_notes evn
+          join note n on n.noteid = evn.noteid
+          left join userinfo u on u.userinfoid = n.lastupdatedby
+          where evn.eventid = event.ev_id
+      ) notes on true
+      """;
 
   private static final String DEFAULT_ORDER = "ev_id desc";
 
@@ -198,7 +198,6 @@ class JdbcTrackerEventStore {
         sql,
         sqlParameters,
         resultSet -> {
-          Set<String> notes = new HashSet<>();
           // data elements per event
           Map<String, Set<String>> dataElementUids = new HashMap<>();
 
@@ -335,6 +334,13 @@ class JdbcTrackerEventStore {
                             resultSet.getString("ev_eventdatavalues")));
               }
 
+              if (queryParams.isIncludeNotes()) {
+                String jsonNotes = resultSet.getString("notes");
+                if (jsonNotes != null) {
+                  event.getNotes().addAll(mapNotes(jsonNotes));
+                }
+              }
+
               events.add(event);
             }
 
@@ -353,29 +359,6 @@ class JdbcTrackerEventStore {
                   dataElementUids.get(eventUid).add(dataElementUid);
                 }
               }
-            }
-
-            if (queryParams.isIncludeNotes()
-                && resultSet.getString("note_text") != null
-                && !notes.contains(resultSet.getString("note_id"))) {
-              Note note = new Note();
-              note.setUid(resultSet.getString("note_uid"));
-              note.setNoteText(resultSet.getString("note_text"));
-              note.setCreated(resultSet.getTimestamp("note_created"));
-
-              if (resultSet.getObject("note_user_id") != null) {
-                User noteLastUpdatedBy = new User();
-                noteLastUpdatedBy.setId(resultSet.getLong("note_user_id"));
-                noteLastUpdatedBy.setCode(resultSet.getString("note_user_code"));
-                noteLastUpdatedBy.setUid(resultSet.getString("note_user_uid"));
-                noteLastUpdatedBy.setUsername(resultSet.getString("note_user_username"));
-                noteLastUpdatedBy.setFirstName(resultSet.getString("note_user_firstname"));
-                noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
-                note.setLastUpdatedBy(noteLastUpdatedBy);
-              }
-
-              event.getNotes().add(note);
-              notes.add(resultSet.getString("note_id"));
             }
           }
 
@@ -459,7 +442,10 @@ class JdbcTrackerEventStore {
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       UserDetails user) {
-    StringBuilder sqlBuilder = new StringBuilder("select *");
+    StringBuilder sqlBuilder = new StringBuilder("select event.*");
+    if (queryParams.isIncludeNotes()) {
+      sqlBuilder.append(", notes.jsonnotes as notes");
+    }
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
@@ -479,9 +465,7 @@ class JdbcTrackerEventStore {
     sqlBuilder.append(") as event ");
 
     if (queryParams.isIncludeNotes()) {
-      sqlBuilder.append("left join (");
       sqlBuilder.append(EVENT_NOTE_QUERY);
-      sqlBuilder.append(") as cm on event.ev_id=cm.evn_id ");
     }
 
     if (TrackerIdScheme.UID
@@ -1248,5 +1232,47 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
     }
+  }
+
+  private static List<Note> mapNotes(String jsonNotes) {
+    List<JdbcNote> jdbcNotes;
+    try {
+      jdbcNotes = new ObjectMapper().readValue(jsonNotes, new TypeReference<>() {});
+    } catch (JsonProcessingException e) {
+      log.error("Error mapping event notes: {}", jsonNotes);
+      return List.of();
+    }
+
+    List<Note> notes = new ArrayList<>();
+    for (JdbcNote jdbcNote : jdbcNotes) {
+      Note note = new Note();
+      note.setUid(jdbcNote.getUid());
+      note.setNoteText(jdbcNote.getText());
+      note.setCreated(DateUtils.safeParseDate(jdbcNote.getCreated()));
+      if (jdbcNote.getUpdatedByUid() != null) {
+        User user = new User();
+        user.setUid(jdbcNote.getUpdatedByUid());
+        user.setUsername(jdbcNote.getUpdatedByUsername());
+        user.setFirstName(jdbcNote.getUpdatedByFirstname());
+        user.setSurname(jdbcNote.getUpdatedBySurname());
+        user.setName(jdbcNote.getUpdatedByName());
+        note.setLastUpdatedBy(user);
+      }
+      notes.add(note);
+    }
+    return notes;
+  }
+
+  @Getter
+  @Setter
+  private static class JdbcNote {
+    private String uid;
+    private String text;
+    private String created;
+    private String updatedByUid;
+    private String updatedByUsername;
+    private String updatedByFirstname;
+    private String updatedBySurname;
+    private String updatedByName;
   }
 }
