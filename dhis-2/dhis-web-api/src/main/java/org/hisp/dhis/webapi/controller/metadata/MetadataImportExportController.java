@@ -208,7 +208,6 @@ public class MetadataImportExportController {
    * and {@code .json.gz} suffixes.
    */
   @OpenApi.Param(name = "objects", value = String[].class)
-  @OpenApi.Response(status = OpenApi.Response.Status.OK, value = Metadata.class)
   @GetMapping("/dependencies")
   public ResponseEntity<MetadataExportParams> getMetadataWithDependencies()
       throws WebMessageException {
