@@ -344,6 +344,13 @@
       }
     },
     {
+      "name": "optionSetDimensionFilteredByNoValueKeyword",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=ou:ImspTQPwCqd,fWIAEtYVEGk:IN:D2__NOVALUE&stage=Zj7UnCAulEk&eventDate=2021&headers=ouname,fWIAEtYVEGk&includeMetadataDetails=true&paging=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "eventsWithOrgUnitGroups",
       "query": "/api/analytics/events/query/lxAQ7Zs9VYR.json?dimension=ou:USER_ORGUNIT;OU_GROUP-uYxK4wmcPqA;OU_GROUP-RpbiCJpIYEj;OU_GROUP-CXw2yu5fodb;OU_GROUP-f25dqv3Y7Z0;OU_GROUP-tDZVQ1WtwpA&skipMeta=true&headers=ouname,lastupdated&totalPages=false&lastUpdated=LAST_5_FINANCIAL_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=false&outputType=EVENT&stage=dBwrot7S420&relativePeriodDate=2026-08-06&desc=lastupdated",
       "version": {
