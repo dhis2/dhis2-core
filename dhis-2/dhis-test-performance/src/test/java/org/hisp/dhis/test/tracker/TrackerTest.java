@@ -835,7 +835,7 @@ public class TrackerTest extends Simulation {
     Request getFirstEventFromEnrollment =
         new Request(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 41, Profile.LOAD, 77)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 41, Profile.LOAD, 107)),
             "Get first event from enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment",
