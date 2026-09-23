@@ -618,6 +618,11 @@ public enum ErrorCode {
   E7251("Query does not support program indicators: `{0}`"),
   E7253(
       "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
+  E7259("Dimension `{0}` is not supported for a program without registration"),
+  E7260("Dimension `{0}` must specify organisation units in an aggregate query"),
+  E7261(
+      "Dimension `{0}` does not support organisation units at different hierarchy levels in an aggregate query"),
+  E7262("Sorting by `{0}` requires the `{1}` dimension"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
