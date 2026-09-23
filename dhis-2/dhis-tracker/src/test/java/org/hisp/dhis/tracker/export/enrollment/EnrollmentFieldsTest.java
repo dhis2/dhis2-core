@@ -61,10 +61,6 @@ class EnrollmentFieldsTest {
     assertFalse(EnrollmentFields.builder().build().isIncludesNotes());
   }
 
-  /**
-   * Notes used to always be fetched. Gating them on the fields must not change what clients asking
-   * for all fields get.
-   */
   @ParameterizedTest
   @ValueSource(strings = {"*", "*,!attributes", "notes", "notes,attributes"})
   void shouldIncludeNotesWhenRequested(String fields) {
@@ -77,10 +73,6 @@ class EnrollmentFieldsTest {
     assertFalse(of(fields).isIncludesNotes());
   }
 
-  /**
-   * {@code :all} is expanded to {@code *} by {@code FieldsParser.PRESET_ALL} before it reaches
-   * here, so it keeps notes just like {@code *} does.
-   */
   @Test
   void shouldIncludeNotesWhenAllPresetIsExpanded() {
     assertTrue(of("*").isIncludesNotes());
