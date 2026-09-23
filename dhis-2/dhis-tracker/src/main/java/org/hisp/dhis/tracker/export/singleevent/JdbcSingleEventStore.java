@@ -342,7 +342,8 @@ class JdbcSingleEventStore {
               }
             }
 
-            if (resultSet.getString("note_text") != null
+            if (queryParams.isIncludeNotes()
+                && resultSet.getString("note_text") != null
                 && !notes.contains(resultSet.getString("note_id"))) {
               Note note = new Note();
               note.setUid(resultSet.getString("note_uid"));
@@ -544,9 +545,13 @@ class JdbcSingleEventStore {
       sqlBuilder.append(getLimitAndOffsetClause(pageParams));
     }
 
-    sqlBuilder.append(") as event left join (");
-    sqlBuilder.append(EVENT_NOTE_QUERY);
-    sqlBuilder.append(") as cm on event.ev_id=cm.evn_id ");
+    sqlBuilder.append(") as event ");
+
+    if (queryParams.isIncludeNotes()) {
+      sqlBuilder.append("left join (");
+      sqlBuilder.append(EVENT_NOTE_QUERY);
+      sqlBuilder.append(") as cm on event.ev_id=cm.evn_id ");
+    }
 
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {

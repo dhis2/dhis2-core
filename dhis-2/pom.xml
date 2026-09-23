@@ -86,7 +86,9 @@
     <!-- spring.test.extension.context.scope=test_class restores the pre-Spring-7 test-class-scoped
          SpringExtension ExtensionContext (Spring 7.0 switched the default to test-method scope, which
          breaks @PostConstruct-populated fixtures such as TestBase's static services). -->
-    <surefireArgLine>-Xmx2024m -Dspring.test.extension.context.scope=test_class -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
+    <!-- Overridable; dhis-test-web-api raises it for its integration-h2-test run. -->
+    <surefireMaxHeap>2048m</surefireMaxHeap>
+    <surefireArgLine>-Xmx${surefireMaxHeap} -Dspring.test.extension.context.scope=test_class -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
 
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
@@ -177,7 +179,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.56.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.57.0</artemis-jakarta.version>
     <netty-all.version>4.2.18.Final</netty-all.version>
     <classgraph.version>4.8.195</classgraph.version>
 
@@ -196,7 +198,7 @@
     <google-api-client.version>2.9.1</google-api-client.version>
     <lombok.version>1.18.48</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.14.3</joda-time.version>
+    <joda-time.version>2.14.4</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.6.0</commons-collections4.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
@@ -245,7 +247,7 @@
     <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.6.0</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
-    <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+    <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
     <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
     <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
