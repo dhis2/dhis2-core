@@ -144,6 +144,7 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlFragments;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
@@ -370,6 +371,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private String getColumnExpression(
       CteContext cteContext, EventQueryParams params, QueryItem item) {
+    // Enrollment org unit columns are read from the joined enrollment analytics table. Everything
+    // below resolves columns on the event table.
+    Optional<String> enrollmentOuColumn =
+        OrgUnitSqlFragments.sortColumn(item.getItem().getUid(), sqlBuilder);
+
+    if (enrollmentOuColumn.isPresent()) {
+      return enrollmentOuColumn.get();
+    }
+
     DimensionItemType itemType = item.getItem().getDimensionItemType();
 
     if (itemType == null) {

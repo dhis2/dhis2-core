@@ -38,6 +38,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.valueIsComparable;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -96,6 +97,10 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
     if (!params.hasOrganisationUnits() && !params.hasEnrollmentOu()) {
       return new ErrorMessage(ErrorCode.E7200);
+    }
+    Optional<String> enrollmentOuSortColumn = params.getEnrollmentOuSortColumn();
+    if (enrollmentOuSortColumn.isPresent() && !params.hasEnrollmentOu()) {
+      return new ErrorMessage(ErrorCode.E7246, enrollmentOuSortColumn.get());
     }
     if (!params.getDuplicateDimensions().isEmpty()) {
       return new ErrorMessage(ErrorCode.E7201, params.getDuplicateDimensions());
