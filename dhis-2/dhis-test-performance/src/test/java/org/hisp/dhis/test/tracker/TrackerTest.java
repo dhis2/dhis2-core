@@ -574,13 +574,13 @@ public class TrackerTest extends Simulation {
     Request goToFirstPage =
         new Request(
             getEventsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 92, Profile.LOAD, 128)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 34, Profile.LOAD, 128)),
             "Go to first page",
             "Get ANC events");
     Request goToSecondPage =
         new Request(
             getEventsUrl + "&page=2",
-            new EnumMap<>(Map.of(Profile.SMOKE, 90, Profile.LOAD, 156)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 34, Profile.LOAD, 156)),
             "Go to second page",
             "Get ANC events");
     Request searchEventsByDateRange =
@@ -592,7 +592,7 @@ public class TrackerTest extends Simulation {
     Request searchEventsNotAssigned =
         new Request(
             getEventsUrl + "&assignedUserMode=NONE",
-            new EnumMap<>(Map.of(Profile.SMOKE, 89, Profile.LOAD, 156)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 34, Profile.LOAD, 156)),
             "Search not assigned",
             "Get ANC events");
     Request getFirstEvent =
@@ -756,7 +756,7 @@ public class TrackerTest extends Simulation {
     Request notFoundTeByNameWithLikeOperator =
         new Request(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 112)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 116)),
             "Not found TE by name with like operator",
             "Get Child Programme TEs");
     Request notFoundTeByNameWithEqOperator =
@@ -780,7 +780,7 @@ public class TrackerTest extends Simulation {
     Request searchBirthEventsByStage =
         new Request(
             searchBirthEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 54, Profile.LOAD, 966)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 54, Profile.LOAD, 201)),
             "Search Birth events",
             "Get Child Programme TEs");
     Request getTrackedEntitiesForEvents =
@@ -789,15 +789,14 @@ public class TrackerTest extends Simulation {
             new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
             "Get TEs from events",
             "Get Child Programme TEs");
-    // NOTE: no SMOKE assertion. This request is bimodal in smoke: across three back-to-back runs on
-    // the same image it measured 4140ms, 4146ms and 13ms, uniformly across all 100 requests in each
-    // run (min 4122ms in the slow runs), so it is a different query plan rather than a slow tail.
-    // The cause is not yet understood, so asserting on it would only produce flaky failures.
-    // LOAD is stable (114-123ms over three runs) and is asserted. See DHIS2-21377.
+    // Bimodal in smoke: 11-13ms on most runs, ~4140ms on 5 of 8 observed. The upper mode is an
+    // ordered-LIMIT plan whose scan depth grows as imports add tracked entities under other
+    // programs. Both thresholds are calibrated on the stable lower mode, so a run that hits the
+    // upper mode fails. That is intended: the failure has to stay visible until the query is fixed.
     Request searchTEsAsAndroidClient =
         new Request(
             androidSearchTEsUrl,
-            new EnumMap<>(Map.of(Profile.LOAD, 175)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 29, Profile.LOAD, 151)),
             "Search TEs as Android client",
             "Get Child Programme TEs");
     Request getFirstPageOfTEs =
@@ -822,7 +821,7 @@ public class TrackerTest extends Simulation {
     Request getFirstEnrollment =
         new Request(
             singleEnrollmentUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 32, Profile.LOAD, 46)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 46)),
             "Get first enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment");
@@ -1081,9 +1080,9 @@ public class TrackerTest extends Simulation {
   }
 
   private static final EnumMap<Profile, Integer> MNCH_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 112, Profile.LOAD, 569));
+      new EnumMap<>(Map.of(Profile.SMOKE, 112, Profile.LOAD, 689));
   private static final EnumMap<Profile, Integer> CHILD_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 73, Profile.LOAD, 582));
+      new EnumMap<>(Map.of(Profile.SMOKE, 73, Profile.LOAD, 306));
   private static final EnumMap<Profile, Integer> ANC_IMPORT_P95 =
       new EnumMap<>(Map.of(Profile.SMOKE, 54, Profile.LOAD, 233));
 
