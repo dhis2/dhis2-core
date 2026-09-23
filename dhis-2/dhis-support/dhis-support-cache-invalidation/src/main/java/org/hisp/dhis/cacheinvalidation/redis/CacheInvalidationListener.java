@@ -122,10 +122,20 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
       return;
     }
 
-    Serializable entityId = getEntityId(message);
-
     Class<?> entityClass = Class.forName(parts[2]);
     Objects.requireNonNull(entityClass, "Entity class can't be null");
+
+    // Handle "unknown" entityId from DML observer (coarse-grained fallback)
+    String idPart = parts[3];
+    if ("unknown".equals(idPart)) {
+      log.debug(
+          "Coarse-grained cache invalidation for {} (unknown entityId)", entityClass.getName());
+      queryCacheManager.evictQueryCache(sessionFactory.getCache(), entityClass);
+      paginationCacheManager.evictCache(entityClass.getName());
+      return;
+    }
+
+    Serializable entityId = getEntityId(message);
 
     if (CacheEventOperation.INSERT == operationType) {
       // Make sure queries will refetch to capture the new object.

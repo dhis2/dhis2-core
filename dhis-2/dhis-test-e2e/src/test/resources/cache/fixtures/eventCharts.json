@@ -1,0 +1,21 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgECH01",
+      "name": "Cache Program for EventChart",
+      "shortName": "Cache ECH Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "eventCharts": [
+    {
+      "id": "CchEC000001",
+      "name": "Cache Test Event Chart",
+      "type": "COLUMN",
+      "program": { "id": "CchPrgECH01" }
+    }
+  ]
+}

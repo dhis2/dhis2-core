@@ -35,18 +35,28 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public class TempGetAppMenuServlet extends HttpServlet {
 
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-      throws IOException, ServletException {
-    resp.setContentType("application/json");
-    resp.setStatus(HttpServletResponse.SC_OK);
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
     RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
-    dispatcher.include(req, resp);
+    try {
+      dispatcher.forward(req, resp);
+    } catch (ServletException | IOException e) {
+      log.error("Failed to forward app menu request to /api/apps/menu", e);
+      if (!resp.isCommitted()) {
+        try {
+          resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } catch (IOException ioException) {
+          log.debug("Could not send error response for app menu forward", ioException);
+        }
+      }
+    }
   }
 }
