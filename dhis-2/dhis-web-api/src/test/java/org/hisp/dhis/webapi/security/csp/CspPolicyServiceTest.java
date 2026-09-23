@@ -91,8 +91,11 @@ class CspPolicyServiceTest {
   }
 
   @Test
-  void constructUserUploadedContentPolicy_appendsFrameAncestorsSelf() {
-    String result = cspPolicyService.constructUserUploadedContentCspPolicy();
+  void userUploadedContentHeaders_includeFrameAncestorsSelf() {
+    String result =
+        cspPolicyService
+            .getUserUploadedContentSecurityHeaders()
+            .getFirst("Content-Security-Policy");
 
     assertEquals(
         USER_UPLOADED_CONTENT_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';",
@@ -148,7 +151,7 @@ class CspPolicyServiceTest {
     // Regression guard.
     String[] policies = {
       cspPolicyService.constructDefaultCspPolicy(),
-      cspPolicyService.constructUserUploadedContentCspPolicy(),
+      cspPolicyService.getUserUploadedContentSecurityHeaders().getFirst("Content-Security-Policy"),
       cspPolicyService.constructAppHostCspPolicy(),
       cspPolicyService.constructOpenApiDocsCspPolicy(),
     };

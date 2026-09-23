@@ -71,8 +71,14 @@ public class CspPolicyService {
     return appendFrameAncestors(DEFAULT_CSP_POLICY);
   }
 
-  public String constructUserUploadedContentCspPolicy() {
-    return appendFrameAncestors(USER_UPLOADED_CONTENT_CSP_POLICY);
+  /**
+   * Uploaded content is isolated even when general CSP is disabled. In that legacy mode, preserve
+   * SAMEORIGIN framing rather than expanding access to the CORS whitelist.
+   */
+  public HttpHeaders getUserUploadedContentSecurityHeaders() {
+    return buildSecurityHeaders(
+        appendFrameAncestors(USER_UPLOADED_CONTENT_CSP_POLICY, dhisConfig.isEnabled(CSP_ENABLED)),
+        true);
   }
 
   public String constructAppHostCspPolicy() {
@@ -103,7 +109,7 @@ public class CspPolicyService {
    * @return headers to apply via {@code response.setHeader}
    */
   public HttpHeaders getDefaultSecurityHeaders() {
-    return buildSecurityHeaders(constructDefaultCspPolicy());
+    return buildSecurityHeaders(constructDefaultCspPolicy(), false);
   }
 
   /**
@@ -123,23 +129,23 @@ public class CspPolicyService {
       throw new IllegalArgumentException(
           "cspPolicy must not be null or blank; call getDefaultSecurityHeaders() for the baseline");
     }
-    return buildSecurityHeaders(cspPolicy);
+    return buildSecurityHeaders(cspPolicy, false);
   }
 
-  private HttpHeaders buildSecurityHeaders(String cspPolicy) {
+  private HttpHeaders buildSecurityHeaders(String cspPolicy, boolean mandatory) {
     HttpHeaders headers = new HttpHeaders();
 
-    if (dhisConfig.isEnabled(CSP_ENABLED)) {
+    boolean enabled = dhisConfig.isEnabled(CSP_ENABLED);
+    if (enabled || mandatory) {
       String effectivePolicy = cspPolicy.endsWith(";") ? cspPolicy : cspPolicy + ";";
       headers.set(CONTENT_SECURITY_POLICY_HEADER_NAME, effectivePolicy);
       log.debug(
           "Applied CSP policy {} and standard security headers for response", effectivePolicy);
-    } else {
-      // X-Frame-Options is a legacy fallback. When CSP is enabled the frame-ancestors
-      // directive is the source of truth (and may legitimately whitelist external origins
-      // via the CORS whitelist), so emitting XFO would conflict with it.
+    }
+    if (!enabled) {
+      // Mandatory upload CSP uses the same ancestor restriction as this legacy fallback.
       headers.set("X-Frame-Options", "SAMEORIGIN");
-      log.debug("CSP disabled; applying only standard security headers for response");
+      log.debug("General CSP disabled; retaining SAMEORIGIN framing");
     }
 
     headers.set("X-Content-Type-Options", "nosniff");
@@ -148,6 +154,10 @@ public class CspPolicyService {
   }
 
   private String appendFrameAncestors(String basePolicy) {
+    return appendFrameAncestors(basePolicy, true);
+  }
+
+  private String appendFrameAncestors(String basePolicy, boolean allowConfiguredAncestors) {
     StringBuilder builder = new StringBuilder();
     if (basePolicy != null && !basePolicy.trim().isEmpty()) {
       String trimmed = basePolicy.trim();
@@ -160,7 +170,10 @@ public class CspPolicyService {
     if (dhisConfig.isEnabled(CSP_UPGRADE_INSECURE_ENABLED)) {
       builder.append("upgrade-insecure-requests; ");
     }
-    builder.append(getFrameAncestorsCspDirective());
+    builder.append(
+        allowConfiguredAncestors
+            ? getFrameAncestorsCspDirective()
+            : FRAME_ANCESTORS_DEFAULT_CSP + ";");
     return builder.toString();
   }
 

@@ -29,169 +29,159 @@
  */
 package org.hisp.dhis.webapi.security.csp;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.lang.reflect.Method;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.method.HandlerMethod;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Unit tests for {@link CspInterceptor}.
- *
- * <p>These tests cover the annotation→policy-resolution wiring only. The actual header values that
- * land on a real response are exercised by {@code CspHeadersE2ETest}.
+ * Response-level coverage of baseline headers and handler policy precedence.
  *
  * @author Austin McGee
  * @author Morten Svanæs
  */
-@ExtendWith(MockitoExtension.class)
 class CspInterceptorTest {
-
-  @Mock private CspPolicyService cspPolicyService;
-  @Mock private HttpServletRequest request;
-  @Mock private HttpServletResponse response;
-  @InjectMocks private CspInterceptor cspInterceptor;
-
-  @Test
-  void nonHandlerMethod_addsNoHeaders() {
-    boolean result = cspInterceptor.preHandle(request, response, "not a handler method");
-
-    assertTrue(result);
-    verify(response, never()).setHeader(anyString(), anyString());
-  }
-
-  @Test
-  void noMarker_leavesBaselineHeadersUntouched() throws Exception {
-    boolean result = cspInterceptor.preHandle(request, response, handler(Plain.class, "plain"));
-
-    assertTrue(result);
-    verify(cspPolicyService, never()).getSecurityHeaders(anyString());
-    verify(cspPolicyService, never()).getDefaultSecurityHeaders();
-    verify(response, never()).setHeader(anyString(), anyString());
-  }
-
-  @Test
-  void methodLevelUserUploadedContent_appliesUserUploadedPolicy() throws Exception {
-    when(cspPolicyService.constructUserUploadedContentCspPolicy()).thenReturn("policy");
-    when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
-
-    cspInterceptor.preHandle(request, response, handler(MethodMarked.class, "marked"));
-
-    verify(cspPolicyService, times(1)).constructUserUploadedContentCspPolicy();
-    verify(cspPolicyService, never()).constructAppHostCspPolicy();
-  }
-
-  @Test
-  void classLevelAppHost_appliesAppHostPolicy() throws Exception {
-    when(cspPolicyService.constructAppHostCspPolicy()).thenReturn("policy");
-    when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
-
-    cspInterceptor.preHandle(request, response, handler(ClassMarkedAppHost.class, "anyMethod"));
-
-    verify(cspPolicyService, times(1)).constructAppHostCspPolicy();
-    verify(cspPolicyService, never()).constructUserUploadedContentCspPolicy();
-  }
-
-  @Test
-  void methodLevelOpenApiDocs_appliesOpenApiDocsPolicy() throws Exception {
-    when(cspPolicyService.constructOpenApiDocsCspPolicy()).thenReturn("policy");
-    when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
-
-    cspInterceptor.preHandle(request, response, handler(MethodMarkedOpenApiDocs.class, "openapi"));
-
-    verify(cspPolicyService, times(1)).constructOpenApiDocsCspPolicy();
-    verify(cspPolicyService, never()).constructUserUploadedContentCspPolicy();
-    verify(cspPolicyService, never()).constructAppHostCspPolicy();
-  }
-
-  @Test
-  void userUploadedTakesPrecedenceOverAppHostOnSameElement() throws Exception {
-    when(cspPolicyService.constructUserUploadedContentCspPolicy()).thenReturn("policy");
-    when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
-
-    cspInterceptor.preHandle(request, response, handler(BothMarked.class, "both"));
-
-    verify(cspPolicyService, times(1)).constructUserUploadedContentCspPolicy();
-    verify(cspPolicyService, never()).constructAppHostCspPolicy();
-  }
-
-  @Test
-  void securityHeadersAreSetOnResponse() throws Exception {
-    HttpHeaders h = new HttpHeaders();
-    h.set("Content-Security-Policy", "default-src 'self';");
-    h.set("X-Content-Type-Options", "nosniff");
-    h.set("X-Frame-Options", "SAMEORIGIN");
-    when(cspPolicyService.constructUserUploadedContentCspPolicy()).thenReturn("policy");
-    when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(h);
-
-    cspInterceptor.preHandle(request, response, handler(MethodMarked.class, "marked"));
-
-    verify(response).setHeader("Content-Security-Policy", "default-src 'self';");
-    verify(response).setHeader("X-Content-Type-Options", "nosniff");
-    verify(response).setHeader("X-Frame-Options", "SAMEORIGIN");
-  }
-
-  private static HttpHeaders headers() {
-    HttpHeaders h = new HttpHeaders();
-    h.set("Content-Security-Policy", "x");
-    return h;
-  }
-
-  private static HandlerMethod handler(Class<?> controllerClass, String methodName)
-      throws Exception {
-    Object controller = controllerClass.getDeclaredConstructor().newInstance();
-    Method method = controllerClass.getMethod(methodName);
-    return new HandlerMethod(controller, method);
-  }
-
-  // The static classes below are test fixtures: each method body is intentionally empty
-  // because the interceptor only inspects annotations via reflection; the methods exist
-  // solely as targets for HandlerMethod construction.
-
-  public static class Plain {
-    public void plain() {
-      // empty — fixture target for reflection
+  @ParameterizedTest
+  @CsvSource({
+    "true,true",
+    "TRUE,true",
+    "on,true",
+    "ON,true",
+    "false,false",
+    "FALSE,false",
+    "off,false",
+    "OFF,false"
+  })
+  void uploadedContentRemainsIsolated(String setting, boolean enabled) throws Exception {
+    MockMvc mvc = mvc(setting);
+    for (String path : List.of("/upload", "/app/upload", "/upload/openapi", "/upload/error")) {
+      MockHttpServletResponse response = mvc.perform(get(path)).andReturn().getResponse();
+      assertEquals(path.endsWith("error") ? 403 : 200, response.getStatus());
+      String policy = response.getHeader("Content-Security-Policy");
+      assertTrue(policy != null && policy.contains("default-src 'none';"), path + ": " + policy);
+      assertEquals(1, response.getHeaders("Content-Security-Policy").size());
+      assertTrue(policy.contains("object-src 'none';"));
+      assertTrue(policy.contains("base-uri 'self';"));
+      assertTrue(policy.contains("form-action 'self';"));
+      assertTrue(policy.contains("upgrade-insecure-requests;"));
+      assertTrue(
+          policy.endsWith(
+              enabled
+                  ? "frame-ancestors 'self' https://embed.example;"
+                  : "frame-ancestors 'self';"));
+      assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+      assertEquals(enabled ? null : "SAMEORIGIN", response.getHeader("X-Frame-Options"));
     }
   }
 
-  public static class MethodMarked {
-    @CspUserUploadedContent
-    public void marked() {
-      // empty — fixture target for reflection
+  @ParameterizedTest
+  @CsvSource({"on,true", "off,false"})
+  void generalPoliciesRetainOptionalEnablement(String setting, boolean enabled) throws Exception {
+    MockMvc mvc = mvc(setting);
+    for (String path : List.of("/plain", "/app", "/openapi", "/missing")) {
+      MockHttpServletResponse response = mvc.perform(get(path)).andReturn().getResponse();
+      assertEquals(path.equals("/missing") ? 404 : 200, response.getStatus());
+      assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+      if (enabled) {
+        String policy = response.getHeader("Content-Security-Policy");
+        assertEquals(1, response.getHeaders("Content-Security-Policy").size());
+        assertTrue(policy.contains("default-src 'self';"));
+        assertEquals(
+            path.equals("/openapi"), policy.contains("script-src 'self' 'unsafe-inline';"));
+        assertEquals(path.equals("/app"), policy.contains("child-src 'self' blob:;"));
+        assertNull(response.getHeader("X-Frame-Options"));
+      } else {
+        assertNull(response.getHeader("Content-Security-Policy"));
+        assertEquals("SAMEORIGIN", response.getHeader("X-Frame-Options"));
+      }
     }
   }
 
-  @CspAppHost
-  public static class ClassMarkedAppHost {
-    public void anyMethod() {
-      // empty — fixture target for reflection
-    }
+  private MockMvc mvc(String setting) {
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    when(config.getProperty(any()))
+        .thenAnswer(
+            invocation -> {
+              ConfigurationKey key = invocation.getArgument(0);
+              return key == CSP_ENABLED ? setting : key.getDefaultValue();
+            });
+    when(config.isEnabled(any())).thenCallRealMethod();
+    ConfigurationService configuration = mock(ConfigurationService.class);
+    when(configuration.getCorsWhitelist()).thenReturn(Set.of("https://embed.example"));
+    CspPolicyService policies = new CspPolicyService(config, configuration);
+    return MockMvcBuilders.standaloneSetup(new Plain(), new App(), new Upload())
+        .addFilters(new CspBaselineFilter(policies))
+        .addInterceptors(new CspInterceptor(policies))
+        .build();
   }
 
-  public static class BothMarked {
+  @RestController
+  static class Plain {
+    @GetMapping("/plain")
+    String plain() {
+      return "plain";
+    }
+
     @CspUserUploadedContent
     @CspAppHost
-    public void both() {
-      // empty — fixture target for reflection
+    @CspOpenApiDocs
+    @GetMapping("/upload")
+    String upload() {
+      return "upload";
+    }
+
+    @CspOpenApiDocs
+    @GetMapping("/openapi")
+    String openapi() {
+      return "docs";
     }
   }
 
-  public static class MethodMarkedOpenApiDocs {
+  @RestController
+  @CspAppHost
+  static class App {
+    @GetMapping("/app")
+    String app() {
+      return "app";
+    }
+
+    @CspUserUploadedContent
+    @GetMapping("/app/upload")
+    String upload() {
+      return "upload";
+    }
+  }
+
+  @RestController
+  @CspUserUploadedContent
+  static class Upload {
     @CspOpenApiDocs
-    public void openapi() {
-      // empty — fixture target for reflection
+    @GetMapping("/upload/openapi")
+    String upload() {
+      return "upload";
+    }
+
+    @GetMapping("/upload/error")
+    ResponseEntity<Void> error() {
+      return ResponseEntity.status(403).build();
     }
   }
 }

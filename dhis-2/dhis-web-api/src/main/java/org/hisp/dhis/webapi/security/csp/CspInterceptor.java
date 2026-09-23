@@ -64,11 +64,10 @@ public class CspInterceptor implements HandlerInterceptor {
       return true;
     }
 
-    String cspPolicy = resolvePolicy(handlerMethod);
-    if (cspPolicy == null) {
+    HttpHeaders securityHeaders = resolveSecurityHeaders(handlerMethod);
+    if (securityHeaders == null) {
       return true;
     }
-    HttpHeaders securityHeaders = cspPolicyService.getSecurityHeaders(cspPolicy);
     securityHeaders.forEach(
         (headerName, headerValues) -> {
           if (!headerValues.isEmpty()) {
@@ -78,21 +77,21 @@ public class CspInterceptor implements HandlerInterceptor {
     return true;
   }
 
-  private String resolvePolicy(HandlerMethod handlerMethod) {
+  private HttpHeaders resolveSecurityHeaders(HandlerMethod handlerMethod) {
     Method method = handlerMethod.getMethod();
     Class<?> controllerClass = handlerMethod.getBeanType();
 
     if (hasMarker(method, controllerClass, CspUserUploadedContent.class)) {
       log.debug("Applying user-uploaded-content CSP policy for {}", method.getName());
-      return cspPolicyService.constructUserUploadedContentCspPolicy();
+      return cspPolicyService.getUserUploadedContentSecurityHeaders();
     }
     if (hasMarker(method, controllerClass, CspAppHost.class)) {
       log.debug("Applying app-host CSP policy for {}", method.getName());
-      return cspPolicyService.constructAppHostCspPolicy();
+      return cspPolicyService.getSecurityHeaders(cspPolicyService.constructAppHostCspPolicy());
     }
     if (hasMarker(method, controllerClass, CspOpenApiDocs.class)) {
       log.debug("Applying openapi-docs CSP policy for {}", method.getName());
-      return cspPolicyService.constructOpenApiDocsCspPolicy();
+      return cspPolicyService.getSecurityHeaders(cspPolicyService.constructOpenApiDocsCspPolicy());
     }
     return null;
   }
