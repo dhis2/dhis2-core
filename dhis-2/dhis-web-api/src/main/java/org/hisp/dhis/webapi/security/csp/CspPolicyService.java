@@ -164,10 +164,8 @@ public class CspPolicyService {
       builder.append(trimmed);
       builder.append(trimmed.endsWith(";") ? " " : "; ");
     }
-    // upgrade-insecure-requests is config-gated: default ON, opt out via
-    // csp.upgrade.insecure.enabled=off in dhis.conf for deployments that genuinely serve over
-    // plain HTTP and need cross-origin http sub-resources to remain reachable.
-    if (dhisConfig.isEnabled(CSP_UPGRADE_INSECURE_ENABLED)) {
+    // HTTP deployments must not upgrade requests to an unavailable TLS endpoint.
+    if (dhisConfig.isEnabled(SERVER_HTTPS) && dhisConfig.isEnabled(CSP_UPGRADE_INSECURE_ENABLED)) {
       builder.append("upgrade-insecure-requests; ");
     }
     builder.append(

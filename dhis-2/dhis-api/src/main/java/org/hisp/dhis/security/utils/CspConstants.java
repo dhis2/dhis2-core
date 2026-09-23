@@ -51,7 +51,8 @@ public class CspConstants {
    *
    * <p>{@code upgrade-insecure-requests} is appended at runtime by {@link
    * org.hisp.dhis.webapi.security.csp.CspPolicyService} based on {@link
-   * org.hisp.dhis.external.conf.ConfigurationKey#CSP_UPGRADE_INSECURE_ENABLED} (default ON).
+   * org.hisp.dhis.external.conf.ConfigurationKey#CSP_UPGRADE_INSECURE_ENABLED} (default ON), only
+   * when {@code server.https} is enabled.
    */
   private static final String COMMON_HARDENING =
       "base-uri 'self'; form-action 'self'; object-src 'none';";
@@ -90,9 +91,10 @@ public class CspConstants {
           + " http://cartodb-basemaps-b.global.ssl.fastly.net"
           + " http://cartodb-basemaps-c.global.ssl.fastly.net";
 
+  /** App images include generated chart exports and App Hub icons, never uploaded documents. */
   public static final String APP_HOST_CSP_POLICY =
       "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"
-          + " img-src 'self' data: "
+          + " img-src 'self' data: blob: https://apps.dhis2.org "
           + CARTODB_BASEMAP_ORIGINS
           + "; connect-src 'self' "
           + CARTODB_BASEMAP_ORIGINS

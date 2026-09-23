@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.security.csp;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,7 +82,7 @@ class CspInterceptorTest {
       assertTrue(policy.contains("object-src 'none';"));
       assertTrue(policy.contains("base-uri 'self';"));
       assertTrue(policy.contains("form-action 'self';"));
-      assertTrue(policy.contains("upgrade-insecure-requests;"));
+      assertFalse(policy.contains("upgrade-insecure-requests;"));
       assertTrue(
           policy.endsWith(
               enabled

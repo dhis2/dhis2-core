@@ -745,8 +745,9 @@ public enum ConfigurationKey {
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 
   /**
-   * Whether to emit the CSP {@code upgrade-insecure-requests} directive. When ON, browsers silently
-   * rewrite {@code http://} sub-resource fetches to {@code https://}, closing mixed-content gaps.
+   * Whether HTTPS deployments emit the CSP {@code upgrade-insecure-requests} directive. Requires
+   * {@code server.https} to be enabled. Browsers then rewrite {@code http://} sub-resource fetches
+   * to {@code https://}, closing mixed-content gaps.
    */
   CSP_UPGRADE_INSECURE_ENABLED("csp.upgrade.insecure.enabled", Constants.ON, true),
 

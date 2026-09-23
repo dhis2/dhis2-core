@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -51,6 +52,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
@@ -116,10 +119,7 @@ class CspPolicyServiceTest {
 
   @Test
   void constructAppHostPolicy_serverHttpsOff_includesHttpCartodbOrigins() {
-    // server.https=off (the default in dhis.conf) → dev / non-TLS deployment. The Maps app's
-    // cartodb fetches go out as http://, and the browser doesn't reliably upgrade them under
-    // upgrade-insecure-requests when the parent page is on http://localhost. So the dev policy
-    // extends img-src and connect-src with the http variants.
+    // Plain HTTP deployments retain the Maps app's HTTP tile origins without upgrading requests.
     when(dhisConfig.isEnabled(SERVER_HTTPS)).thenReturn(false);
 
     String result = cspPolicyService.constructAppHostCspPolicy();
@@ -162,26 +162,67 @@ class CspPolicyServiceTest {
     }
   }
 
-  @Test
-  void upgradeInsecureRequests_configEnabled_appendsDirective() {
-    // setUp mocks dhisConfig.isEnabled(any()) -> true, so CSP_UPGRADE_INSECURE_ENABLED is on.
-    String result = cspPolicyService.constructDefaultCspPolicy();
+  @ParameterizedTest
+  @CsvSource({
+    "true,true,true",
+    "TRUE,TRUE,true",
+    "on,on,true",
+    "ON,ON,true",
+    "false,on,false",
+    "FALSE,ON,false",
+    "off,true,false",
+    "OFF,TRUE,false",
+    "on,false,false",
+    "ON,FALSE,false",
+    "true,off,false",
+    "TRUE,OFF,false"
+  })
+  void upgradeInsecureRequests_requiresHttpsAndEnabledSetting(
+      String https, String upgrade, boolean expected) {
+    when(dhisConfig.getProperty(SERVER_HTTPS)).thenReturn(https);
+    when(dhisConfig.getProperty(CSP_UPGRADE_INSECURE_ENABLED)).thenReturn(upgrade);
+    when(dhisConfig.isEnabled(SERVER_HTTPS)).thenCallRealMethod();
+    when(dhisConfig.isEnabled(CSP_UPGRADE_INSECURE_ENABLED)).thenCallRealMethod();
 
-    assertTrue(
-        result.contains("upgrade-insecure-requests;"),
-        "with csp.upgrade.insecure.enabled=on the directive should be present, got: " + result);
+    for (String policy :
+        new String[] {
+          cspPolicyService.constructDefaultCspPolicy(),
+          cspPolicyService.constructAppHostCspPolicy(),
+          cspPolicyService.constructOpenApiDocsCspPolicy(),
+          cspPolicyService
+              .getUserUploadedContentSecurityHeaders()
+              .getFirst("Content-Security-Policy")
+        }) {
+      assertEquals(expected, policy.contains("upgrade-insecure-requests;"), policy);
+    }
   }
 
   @Test
-  void upgradeInsecureRequests_configDisabled_omitsDirective() {
-    // Opt-out for deployments serving over plain HTTP (e.g. e2e Selenium harness on port 9090).
-    when(dhisConfig.isEnabled(CSP_UPGRADE_INSECURE_ENABLED)).thenReturn(false);
-
-    String result = cspPolicyService.constructDefaultCspPolicy();
-
-    assertFalse(
-        result.contains("upgrade-insecure-requests"),
-        "with csp.upgrade.insecure.enabled=off the directive must not be emitted, got: " + result);
+  void appImageSources_doNotRelaxOtherPoliciesOrScriptSources() {
+    String appPolicy = cspPolicyService.constructAppHostCspPolicy();
+    String imageDirective =
+        Arrays.stream(appPolicy.split(";"))
+            .map(String::trim)
+            .filter(directive -> directive.startsWith("img-src "))
+            .findFirst()
+            .orElseThrow();
+    assertTrue(imageDirective.contains("blob:"));
+    assertTrue(imageDirective.contains("https://apps.dhis2.org"));
+    // Scripts still fall back to self; image allowances must not authorize executable content.
+    assertTrue(appPolicy.startsWith("default-src 'self';"));
+    assertFalse(appPolicy.contains("script-src"));
+    assertFalse(appPolicy.contains("'unsafe-eval'"));
+    for (String policy :
+        new String[] {
+          cspPolicyService.constructDefaultCspPolicy(),
+          cspPolicyService.constructOpenApiDocsCspPolicy(),
+          cspPolicyService
+              .getUserUploadedContentSecurityHeaders()
+              .getFirst("Content-Security-Policy")
+        }) {
+      assertFalse(policy.contains("blob:"), policy);
+      assertFalse(policy.contains("https://apps.dhis2.org"), policy);
+    }
   }
 
   @Test
