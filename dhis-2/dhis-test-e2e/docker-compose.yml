@@ -21,7 +21,7 @@ services:
 
   db:
     image: postgis/postgis:13-3.4-alpine
-    command: postgres -c max_locks_per_transaction=100
+    command: postgres -c max_locks_per_transaction=100 -c shared_preload_libraries=postgis-3
     restart: unless-stopped
     environment:
       POSTGRES_USER: dhis

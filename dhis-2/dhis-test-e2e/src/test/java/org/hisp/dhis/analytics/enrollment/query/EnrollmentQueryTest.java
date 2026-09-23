@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.analytics.enrollment.query;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
@@ -40,6 +42,7 @@ import static org.hisp.dhis.analytics.ValidationHelper.validateRowContext;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -353,5 +356,101 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
+  }
+
+  @Test
+  public void queryRejectsUnknownStageSortField() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:lY93YpCxJqf")
+            .add("enrollmentDate=202212")
+            .add("headers=ouname,A03MvHHogjR.ouname")
+            .add("desc=A03MvHHogjR.bogus");
+
+    // When
+    ApiResponse response = enrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7224"));
+  }
+
+  @Test
+  public void queryRejectsRepeatableStageOffsetOnStageSortField() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:lY93YpCxJqf")
+            .add("enrollmentDate=202212")
+            .add("headers=ouname,A03MvHHogjR.ouname")
+            .add("asc=A03MvHHogjR[-1].ouname");
+
+    // When
+    ApiResponse response = enrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7224"));
+  }
+
+  @Test
+  public void stageSortKeepsEnrollmentsMatchedByAFilterOnTheSameStageField() {
+    // Enrollment SolDyMgW3oc has jdRD35YwbRH events on 2022-08-02, 03, 05 and 08. The filter
+    // matches its older events, so it must stay in the result whether or not the field is sorted.
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:YuQRtpLP10I")
+            .add("enrollmentDate=LAST_10_YEARS")
+            .add("relativePeriodDate=2026-09-09")
+            .add("headers=pi,ouname")
+            .add("filter=jdRD35YwbRH.EVENT_DATE:LE:2022-08-04")
+            .add("paging=false");
+
+    List<String> unsorted =
+        enrollmentIds(enrollmentsActions.query().get("ur1Edk5Oe2n", JSON, JSON, params));
+    List<String> sorted =
+        enrollmentIds(
+            enrollmentsActions
+                .query()
+                .get("ur1Edk5Oe2n", JSON, JSON, params.add("asc=jdRD35YwbRH.eventdate")));
+
+    assertThat(unsorted, hasSize(5));
+    assertThat(unsorted, hasItem("SolDyMgW3oc"));
+    assertThat(new HashSet<>(sorted), equalTo(new HashSet<>(unsorted)));
+  }
+
+  @Test
+  public void stageSortKeepsEnrollmentsWithoutTheStageAndSortsThemLast() {
+    // Chiefdom YuQRtpLP10I, September 2022: five enrollments, SAWQe5hyhy0 has no Birth event.
+    for (String direction : List.of("asc", "desc")) {
+      QueryParamsBuilder params =
+          new QueryParamsBuilder()
+              .add("dimension=ou:YuQRtpLP10I")
+              .add("enrollmentDate=202209")
+              .add("headers=pi,A03MvHHogjR.eventdate")
+              .add("paging=false")
+              .add(direction + "=A03MvHHogjR.eventdate");
+
+      ApiResponse response = enrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+      List<List> rows = response.extractList("rows", List.class);
+      assertThat(direction, rows, hasSize(5));
+      List<?> last = rows.get(rows.size() - 1);
+      assertThat(direction, last.get(0), equalTo("SAWQe5hyhy0"));
+      assertThat(direction, String.valueOf(last.get(1)), equalTo(""));
+    }
+  }
+
+  private static List<String> enrollmentIds(ApiResponse response) {
+    response.validate().statusCode(200);
+    List<List> rows = response.extractList("rows", List.class);
+    return rows.stream().map(row -> String.valueOf(row.get(0))).toList();
   }
 }

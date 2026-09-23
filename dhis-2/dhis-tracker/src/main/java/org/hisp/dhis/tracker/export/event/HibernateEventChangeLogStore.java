@@ -30,8 +30,8 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.deadline.DeadlineQueries.resultList;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
-import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.resultList;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
