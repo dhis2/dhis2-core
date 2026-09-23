@@ -69,8 +69,8 @@ public class MetadataDependencyRootResolver {
 
   /**
    * The root types this endpoint accepts, deliberately narrower than {@link
-   * MetadataExportService#getSupportedDependencyRootTypes()}. The traversal has known N+1s for the
-   * other types, one query per category option combo, per data set element, per program stage data
+   * MetadataExportService#getDependencyRootTypes()}. The traversal has known N+1s for the other
+   * types, one query per category option combo, per data set element, per program stage data
    * element, and a multi-object request multiplies them. {@code OptionSet} has the shallowest
    * closure, its options plus any attributes either carries.
    *
@@ -127,7 +127,7 @@ public class MetadataDependencyRootResolver {
   private List<TypedReference> classify(
       Collection<MetadataObjectReference> references, List<ErrorReport> errors) {
     Set<Class<? extends IdentifiableObject>> supported =
-        metadataExportService.getSupportedDependencyRootTypes();
+        metadataExportService.getDependencyRootTypes();
     Map<RootKey, TypedReference> typed = new LinkedHashMap<>();
 
     for (MetadataObjectReference reference : references) {

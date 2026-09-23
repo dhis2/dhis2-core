@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createDataElementGroup;
+import static org.hisp.dhis.test.TestBase.createOption;
+import static org.hisp.dhis.test.TestBase.createOptionSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,7 +90,7 @@ class DefaultMetadataExportServiceMultiObjectTest {
   @Test
   @DisplayName("Identity law: folding a single root equals the single-root call")
   void foldOfSingleObjectEqualsLegacySingleCall() {
-    OptionSet optionSet = optionSetWithOption();
+    OptionSet optionSet = createOptionSet('A', createOption('A'));
 
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> folded =
         service.getMetadataWithDependencies(List.of(optionSet));
@@ -99,8 +103,8 @@ class DefaultMetadataExportServiceMultiObjectTest {
   @Test
   @DisplayName("Roots of different types merge into one result")
   void mergesRootsOfDifferentTypesIntoOnePayload() {
-    OptionSet optionSet = optionSetWithOption();
-    DataElementGroup group = dataElementGroup(dataElement("dataElemAa", null));
+    OptionSet optionSet = createOptionSet('A', createOption('A'));
+    DataElementGroup group = createDataElementGroup('A', createDataElement('A'));
 
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> result =
         service.getMetadataWithDependencies(List.of(optionSet, group));
@@ -113,9 +117,9 @@ class DefaultMetadataExportServiceMultiObjectTest {
   @Test
   @DisplayName("A dependency shared by two roots appears once")
   void sharedDependencyAppearsOnce() {
-    OptionSet shared = optionSetWithOption();
-    DataElementGroup first = dataElementGroup(dataElement("dataElemAa", shared));
-    DataElementGroup second = dataElementGroup(dataElement("dataElemBb", shared));
+    OptionSet shared = createOptionSet('A', createOption('A'));
+    DataElementGroup first = createDataElementGroup('A', dataElementUsing('A', shared));
+    DataElementGroup second = createDataElementGroup('B', dataElementUsing('B', shared));
 
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> result =
         service.getMetadataWithDependencies(List.of(first, second));
@@ -130,8 +134,8 @@ class DefaultMetadataExportServiceMultiObjectTest {
   @Test
   @DisplayName("A root that is also another root's dependency appears once")
   void rootThatIsAlsoAnotherRootsDependencyAppearsOnce() {
-    OptionSet optionSet = optionSetWithOption();
-    DataElementGroup group = dataElementGroup(dataElement("dataElemAa", optionSet));
+    OptionSet optionSet = createOptionSet('A', createOption('A'));
+    DataElementGroup group = createDataElementGroup('A', dataElementUsing('A', optionSet));
 
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> result =
         service.getMetadataWithDependencies(List.of(group, optionSet));
@@ -143,9 +147,13 @@ class DefaultMetadataExportServiceMultiObjectTest {
   @Test
   @DisplayName("Two instances of the same row collapse to one entry")
   void equalButDistinctInstancesCollapse() {
-    // two separate objects for the same row, as two traversals in different sessions could produce
-    OptionSet first = optionSetWithOption();
-    OptionSet second = optionSetWithOption();
+    // two separate objects for the same row, as two traversals in different sessions could
+    // produce. createOptionSet/createOption generate a fresh uid per call, so align them: without
+    // that these are two different rows and the test would prove nothing.
+    OptionSet first = createOptionSet('A', createOption('A'));
+    OptionSet second = createOptionSet('A', createOption('A'));
+    second.setUid(first.getUid());
+    second.getOptions().get(0).setUid(first.getOptions().get(0).getUid());
 
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> result =
         service.getMetadataWithDependencies(List.of(first, second));
@@ -157,7 +165,7 @@ class DefaultMetadataExportServiceMultiObjectTest {
   @Test
   @DisplayName("The same root requested twice contributes once")
   void repeatedRootAppearsOnce() {
-    OptionSet optionSet = optionSetWithOption();
+    OptionSet optionSet = createOptionSet('A', createOption('A'));
 
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> result =
         service.getMetadataWithDependencies(List.of(optionSet, optionSet));
@@ -168,8 +176,8 @@ class DefaultMetadataExportServiceMultiObjectTest {
   @Test
   @DisplayName("An unsupported root type contributes nothing, and does not fail the others")
   void unsupportedRootTypeContributesNothing() {
-    OptionSet optionSet = optionSetWithOption();
-    DataElement loose = dataElement("dataElemCc", null);
+    OptionSet optionSet = createOptionSet('A', createOption('A'));
+    DataElement loose = createDataElement('A');
 
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> result =
         service.getMetadataWithDependencies(List.of(optionSet, loose));
@@ -191,35 +199,13 @@ class DefaultMetadataExportServiceMultiObjectTest {
             CategoryCombo.class,
             Dashboard.class,
             DataElementGroup.class),
-        service.getSupportedDependencyRootTypes());
+        service.getDependencyRootTypes());
   }
 
-  private OptionSet optionSetWithOption() {
-    OptionSet optionSet = new OptionSet();
-    optionSet.setUid("optionSetA");
-    optionSet.setName("OptionSet A");
-
-    Option option = new Option();
-    option.setUid("optionAaaaa");
-    option.setName("Option A");
-    optionSet.addOption(option);
-
-    return optionSet;
-  }
-
-  private DataElement dataElement(String uid, OptionSet optionSet) {
-    DataElement dataElement = new DataElement();
-    dataElement.setUid(uid);
-    dataElement.setName("Data Element " + uid);
+  /** {@link org.hisp.dhis.test.TestBase} has no data element factory taking an option set. */
+  private static DataElement dataElementUsing(char uniqueCharacter, OptionSet optionSet) {
+    DataElement dataElement = createDataElement(uniqueCharacter);
     dataElement.setOptionSet(optionSet);
     return dataElement;
-  }
-
-  private DataElementGroup dataElementGroup(DataElement member) {
-    DataElementGroup group = new DataElementGroup();
-    group.setUid("deGroup" + member.getUid().substring(8));
-    group.setName("Group of " + member.getUid());
-    group.addDataElement(member);
-    return group;
   }
 }

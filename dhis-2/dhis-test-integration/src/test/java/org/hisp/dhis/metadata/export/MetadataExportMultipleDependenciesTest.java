@@ -221,7 +221,7 @@ class MetadataExportMultipleDependenciesTest extends PostgresIntegrationTestBase
   @DisplayName("Each declared root type actually produces a dependency closure")
   void declaredSupportedRootTypesProduceOutput() {
     Set<Class<? extends IdentifiableObject>> supported =
-        metadataExportService.getSupportedDependencyRootTypes();
+        metadataExportService.getDependencyRootTypes();
 
     assertTrue(supported.contains(DataSet.class));
     assertTrue(supported.contains(OptionSet.class));

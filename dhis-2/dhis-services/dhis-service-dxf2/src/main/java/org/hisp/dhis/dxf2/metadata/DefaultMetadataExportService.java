@@ -232,7 +232,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
    * which is empty for anything else. Pinned by {@code
    * DefaultMetadataExportServiceMultiObjectTest#supportedRootTypesMatchTheDispatch}.
    */
-  private static final Set<Class<? extends IdentifiableObject>> SUPPORTED_DEPENDENCY_ROOT_TYPES =
+  private static final Set<Class<? extends IdentifiableObject>> DEPENDENCY_ROOT_TYPES =
       Set.of(
           OptionSet.class,
           DataSet.class,
@@ -564,8 +564,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
   }
 
   @Override
-  public Set<Class<? extends IdentifiableObject>> getSupportedDependencyRootTypes() {
-    return SUPPORTED_DEPENDENCY_ROOT_TYPES;
+  public Set<Class<? extends IdentifiableObject>> getDependencyRootTypes() {
+    return DEPENDENCY_ROOT_TYPES;
   }
 
   /**

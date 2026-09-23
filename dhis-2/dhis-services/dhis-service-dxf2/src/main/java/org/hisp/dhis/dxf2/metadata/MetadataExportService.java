@@ -120,9 +120,9 @@ public interface MetadataExportService {
    * #getMetadataWithDependencies(IdentifiableObject)}, so callers that must not produce a silently
    * empty payload should check this first.
    *
-   * @return the supported dependency export root types
+   * @return the dependency export root types
    */
-  Set<Class<? extends IdentifiableObject>> getSupportedDependencyRootTypes();
+  Set<Class<? extends IdentifiableObject>> getDependencyRootTypes();
 
   /**
    * Exports several objects, of possibly differing types, including their dependencies, as a single

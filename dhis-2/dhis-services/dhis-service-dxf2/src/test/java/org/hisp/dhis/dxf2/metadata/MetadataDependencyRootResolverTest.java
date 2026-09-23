@@ -85,7 +85,7 @@ class MetadataDependencyRootResolverTest {
 
   @BeforeEach
   void setUp() {
-    when(metadataExportService.getSupportedDependencyRootTypes())
+    when(metadataExportService.getDependencyRootTypes())
         .thenReturn(Set.of(DataSet.class, OptionSet.class));
 
     stubSchema(DataSet.class, "dataSet", "dataSets");
