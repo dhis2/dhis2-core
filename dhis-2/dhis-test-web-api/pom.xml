@@ -511,16 +511,6 @@
   </build>
 
   <profiles>
-    <!-- The H2 controller tests share one reused surefire fork that holds every Spring test
-         context for the whole run. The suite and its contexts have grown over time and need
-         more headroom than the default. Profile-scoped because surefire forks per module -->
-    <profile>
-      <id>integration-h2-test</id>
-      <properties>
-        <surefireMaxHeap>4096m</surefireMaxHeap>
-      </properties>
-    </profile>
-
     <profile>
       <id>jmh</id>
       <build>
