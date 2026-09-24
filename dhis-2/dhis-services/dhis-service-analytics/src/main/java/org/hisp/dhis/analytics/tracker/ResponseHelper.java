@@ -37,11 +37,13 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.stage.StageQualifiedName;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -117,11 +119,11 @@ public class ResponseHelper {
    *     interior dot or the suffix does not resolve.
    */
   private static String resolveAfterStagePrefix(String header, Grid grid) {
-    int dot = header.lastIndexOf('.');
-    if (dot <= 0 || dot >= header.length() - 1) return null;
-    String resolvedSuffix = resolveHeader(header.substring(dot + 1), grid);
+    Optional<StageQualifiedName> name = StageQualifiedName.parse(header);
+    if (name.isEmpty()) return null;
+    String resolvedSuffix = resolveHeader(name.get().suffix(), grid);
     if (resolvedSuffix == null) return null;
-    String stagePrefixed = header.substring(0, dot + 1) + resolvedSuffix;
+    String stagePrefixed = name.get().withSuffix(resolvedSuffix).toString();
     renameGridHeader(grid, resolvedSuffix, stagePrefixed);
     return stagePrefixed;
   }

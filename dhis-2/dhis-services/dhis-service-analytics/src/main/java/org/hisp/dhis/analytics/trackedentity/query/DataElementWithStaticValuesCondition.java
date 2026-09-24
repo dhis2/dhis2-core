@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query;
 
-import static org.hisp.dhis.analytics.trackedentity.query.DataElementCondition.getDataValueRenderable;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -42,11 +40,21 @@ import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class DataElementWithStaticValuesCondition extends BaseRenderable {
   private final QueryContext queryContext;
 
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+
+  private final DataValueResolver dataValueResolver;
+
+  static DataElementWithStaticValuesCondition of(
+      QueryContext queryContext,
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      DataValueResolver dataValueResolver) {
+    return new DataElementWithStaticValuesCondition(
+        queryContext, dimensionIdentifier, dataValueResolver);
+  }
 
   @Override
   public String render() {
@@ -63,7 +71,7 @@ public class DataElementWithStaticValuesCondition extends BaseRenderable {
     DimensionParam dimension = dimensionIdentifier.getDimension();
     boolean isOptionSet = dimension.hasOptionSet();
     return BinaryConditionRenderer.of(
-        getDataValueRenderable(dimensionIdentifier, getValueTypeMapping()),
+        dataValueResolver.resolve(getValueTypeMapping()),
         item.getOperator(),
         item.getValues(),
         getValueTypeMapping(),

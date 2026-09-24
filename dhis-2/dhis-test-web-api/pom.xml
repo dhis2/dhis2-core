@@ -395,7 +395,7 @@
     <dependency>
       <groupId>org.openapitools</groupId>
       <artifactId>openapi-generator</artifactId>
-      <version>7.24.0</version>
+      <version>7.25.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -433,7 +433,7 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
-      <version>3.0.6</version>
+      <version>3.0.7</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>

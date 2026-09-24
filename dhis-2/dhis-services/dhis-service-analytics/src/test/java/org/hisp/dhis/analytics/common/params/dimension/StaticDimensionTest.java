@@ -30,13 +30,73 @@
 package org.hisp.dhis.analytics.common.params.dimension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
+import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class StaticDimensionTest {
+
+  /**
+   * The full name is the label a client renders, so it must never fall through to the raw enum
+   * constant. The dimensions listed here have no backing {@code TrackedEntityStaticField}, which is
+   * what used to expose names like {@code OU} and {@code CREATEDBYDISPLAYNAME} as column labels.
+   */
+  @ParameterizedTest
+  @CsvSource({
+    "OU,Organisation unit",
+    "OUNAME,Organisation unit name",
+    "OUCODE,Organisation unit code",
+    "OUNAMEHIERARCHY,Organisation unit hierarchy",
+    "CREATED,Created",
+    "CREATEDBYDISPLAYNAME,Created by",
+    "LASTUPDATEDBYDISPLAYNAME,Last updated by",
+    "LASTUPDATED,Last updated",
+    "TRACKEDENTITY,Tracked entity",
+    "ENROLLMENTDATE,Enrollment Date"
+  })
+  void testFullNameIsALabelAndNotTheEnumConstant(StaticDimension dimension, String expected) {
+    assertEquals(expected, dimension.getFullName());
+  }
+
+  /**
+   * The same column must read the same on the tracked entity query and aggregate endpoints. The
+   * query endpoint labels it from {@link TrackedEntityStaticField}; a requested dimension is
+   * labelled from this enum.
+   */
+  @ParameterizedTest
+  @CsvSource({
+    "OUNAME,ORG_UNIT_NAME",
+    "OUCODE,ORG_UNIT_CODE",
+    "OUNAMEHIERARCHY,ORG_UNIT_NAME_HIERARCHY",
+    "CREATED,CREATED",
+    "CREATEDBYDISPLAYNAME,CREATED_BY_DISPLAY_NAME",
+    "LASTUPDATED,LAST_UPDATED",
+    "LASTUPDATEDBYDISPLAYNAME,LAST_UPDATED_BY_DISPLAY_NAME",
+    "TRACKEDENTITY,TRACKED_ENTITY",
+    "LONGITUDE,LONGITUDE",
+    "LATITUDE,LATITUDE",
+    "GEOMETRY,GEOMETRY"
+  })
+  void testFullNameMatchesTheTrackedEntityStaticFieldLabel(
+      StaticDimension dimension, TrackedEntityStaticField staticField) {
+    assertEquals(staticField.getFullName(), dimension.getFullName());
+  }
+
+  @Test
+  void testEveryFullNameDiffersFromTheEnumConstant() {
+    for (StaticDimension dimension : StaticDimension.values()) {
+      assertNotEquals(
+          dimension.name(),
+          dimension.getFullName(),
+          "getFullName() must return a label, not the enum constant, for " + dimension.name());
+    }
+  }
 
   @Test
   void testMatchesByExactEnumName() {

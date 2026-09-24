@@ -48,6 +48,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,6 +66,7 @@ import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
@@ -174,11 +176,17 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional
-  public int rescheduleStaleJobs(int timeoutMinutes) {
-    if (timeoutMinutes <= 0) {
-      timeoutMinutes = settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
-    }
-    return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
+  public int rescheduleStaleJobs() {
+    EnumSet<JobType> analyticsJobs =
+        EnumSet.of(JobType.ANALYTICS_TABLE, JobType.CONTINUOUS_ANALYTICS_TABLE);
+    EnumSet<JobType> otherJobs = EnumSet.allOf(JobType.class);
+    otherJobs.removeAll(analyticsJobs);
+    int ttlOthers = settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
+    int reset = jobConfigurationStore.rescheduleStaleJobs(ttlOthers, otherJobs);
+    int ttlAnalytics =
+        settingsProvider.getCurrentSettings().getJobsRescheduleAnalyticsAfterMinutes();
+    reset += jobConfigurationStore.rescheduleStaleJobs(ttlAnalytics, analyticsJobs);
+    return reset;
   }
 
   @Override
@@ -239,10 +247,9 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<JobEntry> getStaleConfigurations(int staleForSeconds) {
-    if (staleForSeconds <= 0) {
-      staleForSeconds = 60 * settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
-    }
+  public List<JobEntry> getStaleConfigurations(int staleForSeconds) throws BadRequestException {
+    if (staleForSeconds <= 0)
+      throw new BadRequestException("Stale timeout must be a positive number");
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }
 

@@ -31,14 +31,18 @@ package org.hisp.dhis.organisationunit;
 
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import jakarta.persistence.PersistenceException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import org.hibernate.exception.GenericJDBCException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -294,7 +298,12 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest {
     ouA.setParent(ouB);
     ouB.getChildren().add(ouA);
     unitStore.save(ouB);
-    assertContainsOnly(Set.of(ouA, ouB), unitStore.getOrganisationUnitsWithCyclicReferences());
+    // because of TX scope the issue first manifests when we try to read back
+    PersistenceException ex =
+        assertThrows(PersistenceException.class, () -> unitStore.getByUidNoAcl(ouA.getUid()));
+    assertStartsWith(
+        "ERROR: Cycle detected:",
+        ((GenericJDBCException) ex.getCause()).getSQLException().getMessage());
   }
 
   @Test
@@ -310,8 +319,12 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest {
     ouA.setParent(ouD);
     ouD.getChildren().add(ouA);
     unitStore.save(ouD);
-    assertContainsOnly(
-        Set.of(ouA, ouB, ouC, ouD), unitStore.getOrganisationUnitsWithCyclicReferences());
+    // because of TX scope the issue first manifests when we try to read back
+    PersistenceException ex =
+        assertThrows(PersistenceException.class, () -> unitStore.getByUidNoAcl(ouA.getUid()));
+    assertStartsWith(
+        "ERROR: Cycle detected:",
+        ((GenericJDBCException) ex.getCause()).getSQLException().getMessage());
   }
 
   @Test

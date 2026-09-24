@@ -47,6 +47,7 @@ import org.hisp.dhis.antlr.AntlrParserUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
 @Slf4j
@@ -181,7 +182,8 @@ public class D2FunctionCteFactory implements CteSqlFactory {
                     pi,
                     start,
                     end,
-                    qb));
+                    qb,
+                    AnalyticsType.EVENT));
 
     String body =
         "select enrollment, count(%s) as value from %s %s group by enrollment"

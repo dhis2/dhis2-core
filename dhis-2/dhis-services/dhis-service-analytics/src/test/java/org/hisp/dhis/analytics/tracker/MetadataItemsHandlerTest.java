@@ -77,6 +77,7 @@ import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
@@ -106,6 +107,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -1297,6 +1300,167 @@ class MetadataItemsHandlerTest {
   @DisplayName("Organisation Unit Hierarchy Tests")
   class OrgUnitHierarchyTests {
 
+    @ParameterizedTest
+    @CsvSource({
+      "LEVEL-2, true, false",
+      "OU_GROUP-CXw2yu5fodb, false, true",
+      "LEVEL-2;ImspTQPwCqd, true, true"
+    })
+    void shouldBuildHierarchyForActiveStageOrgUnits(
+        String selector, boolean showHierarchy, boolean hierarchyMeta) {
+      OrganisationUnit root = hierarchyRoot();
+      QueryItem item = stageOrgUnit("A03MvHHogjR", selector);
+      EventQueryParams params =
+          hierarchyParams()
+              .addItem(item)
+              .withShowHierarchy(showHierarchy)
+              .withHierarchyMeta(hierarchyMeta)
+              .build();
+      resolveStageOrgUnits(params, item, List.of(orgUnitA, orgUnitB));
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      grid.addRow().addValue(orgUnitB.getUid());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      if (hierarchyMeta) {
+        assertEquals(
+            Map.of(orgUnitB.getUid(), root.getUid()),
+            grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      }
+      if (showHierarchy) {
+        assertEquals(
+            Map.of(orgUnitB.getUid(), "/Country/" + orgUnitB.getName()),
+            grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void shouldKeepResolvedHierarchyForStageFiltersAndEmptyResults(boolean asFilter) {
+      OrganisationUnit root = hierarchyRoot();
+      QueryItem item = stageOrgUnit("A03MvHHogjR", "LEVEL-2");
+      EventQueryParams.Builder builder = hierarchyParams();
+      if (asFilter) {
+        builder.addItemFilter(item);
+      } else {
+        builder.addItem(item);
+      }
+      EventQueryParams params = builder.build();
+      resolveStageOrgUnits(params, item, List.of(orgUnitA, orgUnitB));
+      Grid grid = new ListGrid();
+      if (asFilter) {
+        grid.addHeader(new GridHeader("pe"));
+        grid.addRow().addValue("2021");
+      } else {
+        grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      }
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          Map.of(orgUnitA.getUid(), root.getUid(), orgUnitB.getUid(), root.getUid()),
+          grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), "/Country/" + orgUnitA.getName(),
+              orgUnitB.getUid(), "/Country/" + orgUnitB.getName()),
+          grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+    }
+
+    @Test
+    void shouldCombineHierarchyFromBareAndMultipleStageColumns() {
+      OrganisationUnit root = hierarchyRoot();
+      OrganisationUnit orgUnitC = createOrganisationUnit('C');
+      orgUnitC.setParent(root);
+      orgUnitC.setPath(root.getPath() + "/" + orgUnitC.getUid());
+      QueryItem firstStage = stageOrgUnit("A03MvHHogjR", "LEVEL-2");
+      QueryItem secondStage = stageOrgUnit("ZkbAXlQUYJG", "LEVEL-2");
+      EventQueryParams params =
+          hierarchyParams()
+              .withOrganisationUnits(List.of(orgUnitA, orgUnitB, orgUnitC))
+              .addItem(firstStage)
+              .addItem(secondStage)
+              .build();
+      resolveStageOrgUnits(params, firstStage, List.of(orgUnitA, orgUnitB));
+      when(organisationUnitResolver.resolveOrgUnits(params, secondStage))
+          .thenReturn(List.of(orgUnitA.getUid(), orgUnitC.getUid()));
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitC.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitC);
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem("LEVEL-2", IdScheme.UID))
+          .thenReturn(null);
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("ou"));
+      grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      grid.addHeader(new GridHeader("ZkbAXlQUYJG.ou"));
+      grid.addRow()
+          .addValue(orgUnitA.getUid())
+          .addValue(orgUnitB.getUid())
+          .addValue(orgUnitC.getUid());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), root.getUid(),
+              orgUnitB.getUid(), root.getUid(),
+              orgUnitC.getUid(), root.getUid()),
+          grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), "/Country/" + orgUnitA.getName(),
+              orgUnitB.getUid(), "/Country/" + orgUnitB.getName(),
+              orgUnitC.getUid(), "/Country/" + orgUnitC.getName()),
+          grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+    }
+
+    private OrganisationUnit hierarchyRoot() {
+      OrganisationUnit root = createOrganisationUnit('R');
+      root.setName("Country");
+      root.setPath("/" + root.getUid());
+      orgUnitA.setParent(root);
+      orgUnitB.setParent(root);
+      orgUnitA.setPath(root.getPath() + "/" + orgUnitA.getUid());
+      orgUnitB.setPath(root.getPath() + "/" + orgUnitB.getUid());
+      return root;
+    }
+
+    private EventQueryParams.Builder hierarchyParams() {
+      return new EventQueryParams.Builder()
+          .withProgram(programA)
+          .withEndpointAction(AGGREGATE)
+          .withPeriods(createPeriodDimensions("2021"), "yearly")
+          .withShowHierarchy(true)
+          .withHierarchyMeta(true);
+    }
+
+    private QueryItem stageOrgUnit(String stageUid, String selector) {
+      ProgramStage stage = createProgramStage('S', programA);
+      stage.setUid(stageUid);
+      QueryItem item =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(stage));
+      item.setProgramStage(stage);
+      item.addFilter(new QueryFilter(QueryOperator.IN, selector));
+      return item;
+    }
+
+    private void resolveStageOrgUnits(
+        EventQueryParams params, QueryItem item, List<OrganisationUnit> orgUnits) {
+      when(organisationUnitResolver.resolveOrgUnits(params, item))
+          .thenReturn(orgUnits.stream().map(OrganisationUnit::getUid).toList());
+      for (OrganisationUnit orgUnit : orgUnits) {
+        when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnit.getUid(), IdScheme.UID))
+            .thenReturn(orgUnit);
+      }
+    }
+
     @Test
     @DisplayName("should add org unit hierarchy when hierarchyMeta is true")
     void shouldAddOrgUnitHierarchyWhenHierarchyMetaIsTrue() {
@@ -2075,6 +2239,103 @@ class MetadataItemsHandlerTest {
   }
 
   @Nested
+  @DisplayName("Registration OU Dimension Tests")
+  class RegistrationOuDimensionTests {
+
+    @Test
+    @DisplayName("should include registration OU dimension items and metadata")
+    void shouldIncludeRegistrationOuDimensionItemsAndMetadata() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .withRegistrationOuDimension(List.of(orgUnitA, orgUnitB))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+      assertTrue(dimensions.containsKey("registrationou"));
+      assertEquals(2, dimensions.get("registrationou").size());
+      assertTrue(dimensions.get("registrationou").contains(orgUnitA.getUid()));
+      assertTrue(dimensions.get("registrationou").contains(orgUnitB.getUid()));
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey(orgUnitA.getUid()));
+      assertTrue(items.containsKey(orgUnitB.getUid()));
+      assertTrue(items.containsKey("registrationou"));
+      // The ticket specifies the unabbreviated form, unlike the enrollment OU equivalent.
+      assertEquals("Registration org unit", ((MetadataItem) items.get("registrationou")).getName());
+    }
+
+    @Test
+    @DisplayName("should include registration OU metadata on the query endpoints too")
+    void shouldIncludeRegistrationOuMetadataOnQuery() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withRegistrationOuDimension(List.of(orgUnitB))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertTrue(dimensions.containsKey("registrationou"));
+      assertEquals(List.of(orgUnitB.getUid()), dimensions.get("registrationou"));
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertTrue(items.containsKey("registrationou"));
+      assertTrue(items.containsKey(orgUnitB.getUid()));
+    }
+
+    @Test
+    @DisplayName("a bare dimension carries no items, so no dimension entry is emitted")
+    void shouldOmitRegistrationOuWhenBare() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withRegistrationOuDimension(List.of())
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertFalse(dimensions.containsKey("registrationou"));
+    }
+  }
+
+  @Nested
   @DisplayName("Program Status Metadata Tests")
   class ProgramStatusMetadataTests {
 
@@ -2335,6 +2596,49 @@ class MetadataItemsHandlerTest {
   @Nested
   @DisplayName("When an option-set dimension is filtered by the no-value keyword")
   class NoValueTests {
+
+    @ParameterizedTest
+    @CsvSource({
+      "D2__NOVALUE;1;2, D2__NOVALUE;K808uDwsiiG;NnpfZrQQpNF",
+      "1;D2__NOVALUE;2, K808uDwsiiG;D2__NOVALUE;NnpfZrQQpNF",
+      "1;2;D2__NOVALUE, K808uDwsiiG;NnpfZrQQpNF;D2__NOVALUE",
+      "2;D2__NOVALUE;1, NnpfZrQQpNF;D2__NOVALUE;K808uDwsiiG"
+    })
+    void shouldPreserveNoValueOrderInStageAggregateDimension(String filter, String expected) {
+      Grid grid = new ListGrid();
+      optionA.setCode("1");
+      optionA.setUid("K808uDwsiiG");
+      optionB.setCode("2");
+      optionB.setUid("NnpfZrQQpNF");
+      dataElementA.setUid("sadgUWcpIvJ");
+      ProgramStage stage = createProgramStage('S', programA);
+      stage.setUid("jfuXZB3A1ko");
+
+      QueryItem item =
+          new QueryItem(dataElementA, null, ValueType.NUMBER, AggregationType.COUNT, optionSetA);
+      item.setProgramStage(stage);
+      item.addFilter(new QueryFilter(QueryOperator.IN, filter));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(item)
+              .build();
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertEquals(List.of(expected.split(";")), dimensions.get("jfuXZB3A1ko.sadgUWcpIvJ"));
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertFalse(items.containsKey("D2__NOVALUE"));
+    }
 
     @Test
     @DisplayName(

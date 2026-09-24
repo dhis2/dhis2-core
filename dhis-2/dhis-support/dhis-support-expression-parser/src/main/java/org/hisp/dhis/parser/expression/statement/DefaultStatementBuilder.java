@@ -33,7 +33,6 @@ import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_EVENT_DATE;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
 
 import java.text.SimpleDateFormat;
@@ -158,7 +157,8 @@ public class DefaultStatementBuilder implements StatementBuilder {
                     programIndicator,
                     null,
                     reportingStartDate,
-                    reportingEndDate)
+                    reportingEndDate,
+                    AnalyticsType.EVENT)
                 + " ")
             : "")
         + (programIndicator.getStartEventBoundary() != null
@@ -168,7 +168,8 @@ public class DefaultStatementBuilder implements StatementBuilder {
                     programIndicator,
                     null,
                     reportingStartDate,
-                    reportingEndDate)
+                    reportingEndDate,
+                    AnalyticsType.EVENT)
                 + " ")
             : "")
         + programStageCondition
@@ -179,7 +180,8 @@ public class DefaultStatementBuilder implements StatementBuilder {
                 programIndicator,
                 null,
                 reportingStartDate,
-                reportingEndDate))
+                reportingEndDate,
+                AnalyticsType.EVENT))
         + SPACE
         + createOrderTypeAndOffset(stageOffset)
         + " limit 1 )";
@@ -270,10 +272,16 @@ public class DefaultStatementBuilder implements StatementBuilder {
       ProgramIndicator programIndicator,
       String timeField,
       Date reportingStartDate,
-      Date reportingEndDate) {
+      Date reportingEndDate,
+      AnalyticsType analyticsType) {
     final String column =
         getBoundaryColumn(
-            boundary, programIndicator, timeField, reportingStartDate, reportingEndDate);
+            boundary,
+            programIndicator,
+            timeField,
+            reportingStartDate,
+            reportingEndDate,
+            analyticsType);
 
     final SimpleDateFormat format = new SimpleDateFormat();
     format.applyPattern(Period.DEFAULT_DATE_FORMAT);
@@ -302,7 +310,8 @@ public class DefaultStatementBuilder implements StatementBuilder {
       final ProgramIndicator programIndicator,
       final String timeField,
       final Date reportingStartDate,
-      final Date reportingEndDate) {
+      final Date reportingEndDate,
+      final AnalyticsType analyticsType) {
     if (boundary == null) {
       return DB_EVENT_DATE;
     }
@@ -312,7 +321,7 @@ public class DefaultStatementBuilder implements StatementBuilder {
         : boundary.isEnrollmentDateBoundary()
             ? DB_ENROLLMENT_DATE
             : boundary.isIncidentDateBoundary()
-                ? DB_INCIDENT_DATE
+                ? AnalyticsPeriodBoundary.getIncidentDateColumn(analyticsType)
                 : boundary.isScheduledDateBoundary()
                     ? DB_SCHEDULED_DATE
                     : this.getBoundaryElementColumnSql(

@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,7 +54,7 @@ class PlaceholderParserTest {
     void parse_valid_returnsFields() {
       String p =
           "__PSDE_CTE_PLACEHOLDER__(psUid='PS1', deUid='DE1', offset='3', "
-              + "boundaryHash='abc123', piUid='PI1')";
+              + "boundaryHash='abc123', piUid='PI1', replaceNulls='false')";
       Optional<PlaceholderParser.PsDeFields> opt = PlaceholderParser.parsePsDe(p);
 
       assertTrue(opt.isPresent());
@@ -63,6 +64,7 @@ class PlaceholderParserTest {
       assertEquals(3, f.offset());
       assertEquals("abc123", f.boundaryHash());
       assertEquals("PI1", f.piUid());
+      assertFalse(f.replaceNulls());
     }
 
     @Test
@@ -75,9 +77,9 @@ class PlaceholderParserTest {
     void pattern_findsMultipleInSqlBlob() {
       String sql =
           "x "
-              + "__PSDE_CTE_PLACEHOLDER__(psUid='PS1', deUid='A', offset='0', boundaryHash='h', piUid='PI')"
+              + "__PSDE_CTE_PLACEHOLDER__(psUid='PS1', deUid='A', offset='0', boundaryHash='h', piUid='PI', replaceNulls='true')"
               + " + y + "
-              + "__PSDE_CTE_PLACEHOLDER__(psUid='PS2', deUid='B', offset='1', boundaryHash='h', piUid='PI')";
+              + "__PSDE_CTE_PLACEHOLDER__(psUid='PS2', deUid='B', offset='1', boundaryHash='h', piUid='PI', replaceNulls='true')";
       Matcher m = PlaceholderParser.psDePattern().matcher(sql);
       int count = 0;
       while (m.find()) count++;

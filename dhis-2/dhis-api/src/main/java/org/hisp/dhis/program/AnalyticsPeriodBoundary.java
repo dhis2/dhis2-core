@@ -101,8 +101,17 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
   public static final String DB_ENROLLMENT_DATE =
       EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME;
 
+  /**
+   * The incident date column as named in the <b>enrollment</b> analytics table. Note that in the
+   * event analytics table the very same name refers to the <b>event</b> date, see {@link
+   * #DB_ENROLLMENT_OCCURRED_DATE}.
+   */
   public static final String DB_INCIDENT_DATE =
       EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+
+  /** The incident date column as named in the <b>event</b> analytics table. */
+  public static final String DB_ENROLLMENT_OCCURRED_DATE =
+      EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME;
 
   public static final String DB_SCHEDULED_DATE =
       EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
@@ -205,6 +214,19 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
 
   public boolean isIncidentDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.INCIDENT_DATE);
+  }
+
+  /**
+   * Returns the analytics column holding the incident date for the given analytics table type. The
+   * enrollment analytics table stores the incident date in the {@code occurreddate} column, whereas
+   * in the event analytics table {@code occurreddate} holds the <i>event</i> date and the incident
+   * date of the owning enrollment is stored in {@code enrollmentoccurreddate}.
+   *
+   * @param analyticsType the analytics table the SQL is generated for.
+   * @return the name of the incident date column.
+   */
+  public static String getIncidentDateColumn(AnalyticsType analyticsType) {
+    return AnalyticsType.EVENT == analyticsType ? DB_ENROLLMENT_OCCURRED_DATE : DB_INCIDENT_DATE;
   }
 
   public boolean isScheduledDateBoundary() {

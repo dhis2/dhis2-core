@@ -305,6 +305,40 @@ public class HibernateDataExportStore implements DataExportStore {
         .orElse(null);
   }
 
+  @CheckForNull
+  @Override
+  public UID getDefaultAttributeOptionComboForDataSets(@Nonnull Stream<UID> dataSets) {
+    // Returns the default category option combo UID only when at least one of the given data sets
+    // exists and every existing one uses the default attribute category combo. A data set with a
+    // missing or non-default attribute category combo yields no row (=> null), disabling the
+    // fast-path so the regular per-row AOC data-sharing check is used instead.
+    String sql =
+        """
+        SELECT coc.uid
+        FROM categoryoptioncombo coc
+        JOIN categorycombos_optioncombos ccoc ON ccoc.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categorycombo cc ON cc.categorycomboid = ccoc.categorycomboid
+        WHERE cc.name = 'default'
+          AND EXISTS (
+            SELECT 1 FROM dataset ds
+            WHERE ds.uid = ANY(:ds)
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM dataset ds
+            LEFT JOIN categorycombo dscc ON dscc.categorycomboid = ds.categorycomboid
+            WHERE ds.uid = ANY(:ds)
+              AND (dscc.name IS NULL OR dscc.name <> 'default')
+          )""";
+    return createQuery(sql)
+        .setParameter("ds", dataSets)
+        .useEqualsOverInForParameters("ds")
+        .eraseNullParameterLines()
+        .stream(String.class)
+        .map(UID::of)
+        .findFirst()
+        .orElse(null);
+  }
+
   @Override
   @Nonnull
   public List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets) {

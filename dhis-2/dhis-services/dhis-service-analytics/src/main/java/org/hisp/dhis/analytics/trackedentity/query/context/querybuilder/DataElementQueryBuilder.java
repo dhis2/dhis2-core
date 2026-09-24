@@ -105,6 +105,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
     // Groupable conditions comes from dimensions
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
+        .filter(dimId -> !AggregateQueryBuilder.isGroupedInAggregate(queryContext, dimId))
         .map(
             dimId ->
                 GroupableCondition.of(
@@ -114,23 +115,28 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
         .forEach(builder::groupableCondition);
 
     // Order clause comes from sorting params
-    acceptedSortingParams.forEach(
-        analyticsSortingParams ->
-            builder.orderClause(
-                IndexedOrder.of(
-                    analyticsSortingParams.getIndex(),
-                    Order.of(
-                        SqlQueryHelper.buildOrderSubQuery(
-                            analyticsSortingParams.getOrderBy(),
-                            RenderableDataValue.of(
-                                EMPTY,
-                                analyticsSortingParams.getOrderBy().getDimension().getUid(),
-                                fromValueType(
-                                    analyticsSortingParams
-                                        .getOrderBy()
-                                        .getDimension()
-                                        .getValueType()))),
-                        analyticsSortingParams.getSortDirection()))));
+    acceptedSortingParams.stream()
+        .filter(
+            sortingParam ->
+                !AggregateQueryBuilder.isGroupedInAggregate(
+                    queryContext, sortingParam.getOrderBy()))
+        .forEach(
+            analyticsSortingParams ->
+                builder.orderClause(
+                    IndexedOrder.of(
+                        analyticsSortingParams.getIndex(),
+                        Order.of(
+                            SqlQueryHelper.buildOrderSubQuery(
+                                analyticsSortingParams.getOrderBy(),
+                                RenderableDataValue.of(
+                                    EMPTY,
+                                    analyticsSortingParams.getOrderBy().getDimension().getUid(),
+                                    fromValueType(
+                                        analyticsSortingParams
+                                            .getOrderBy()
+                                            .getDimension()
+                                            .getValueType()))),
+                            analyticsSortingParams.getSortDirection()))));
 
     return builder.build();
   }

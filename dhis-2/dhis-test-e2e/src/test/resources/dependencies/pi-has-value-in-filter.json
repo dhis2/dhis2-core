@@ -1,0 +1,24 @@
+{
+  "type": "program_indicator",
+  "code": "PI_HAS_VALUE_IN_FILTER",
+  "aggregationType":"COUNT",
+  "expression":"V{enrollment_count}",
+  "filter":"d2:hasValue(#{A03MvHHogjR.H6uSAMO5WLD})",
+  "name":"PI_HAS_VALUE_IN_FILTER",
+  "analyticsType":"ENROLLMENT",
+  "shortName":"PI_HAS_VALUE_IN_FILTER",
+  "program":{
+    "id":"IpHINAT79UW"
+  },
+  "analyticsPeriodBoundaries": [
+    {
+      "boundaryTarget": "ENROLLMENT_DATE",
+      "analyticsPeriodBoundaryType": "AFTER_START_OF_REPORTING_PERIOD"
+    },
+    {
+      "boundaryTarget": "ENROLLMENT_DATE",
+      "analyticsPeriodBoundaryType": "BEFORE_END_OF_REPORTING_PERIOD"
+    }
+  ],
+  "legendSets": []
+}

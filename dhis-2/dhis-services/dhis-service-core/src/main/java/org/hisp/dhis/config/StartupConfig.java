@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nLocaleService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobScheduler;
@@ -109,9 +108,8 @@ public class StartupConfig {
   }
 
   @Bean("org.hisp.dhis.startup.ModelUpgrader")
-  public ModelUpgrader modelUpgrader(
-      OrganisationUnitService organisationUnitService, CategoryService categoryService) {
-    ModelUpgrader upgrader = new ModelUpgrader(organisationUnitService, categoryService);
+  public ModelUpgrader modelUpgrader(CategoryService categoryService) {
+    ModelUpgrader upgrader = new ModelUpgrader(categoryService);
     upgrader.setName("ModelUpgrader");
     upgrader.setRunlevel(7);
     upgrader.setSkipInTests(true);

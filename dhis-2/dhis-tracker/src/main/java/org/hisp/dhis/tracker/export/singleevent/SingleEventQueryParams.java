@@ -88,6 +88,9 @@ class SingleEventQueryParams {
 
   @Getter private CategoryOptionCombo categoryOptionCombo;
 
+  /** Indicates whether to include notes in the event */
+  @Getter private boolean includeNotes;
+
   @Getter private Date skipChangedBefore;
 
   @Getter private boolean synchronizationQuery;
@@ -255,6 +258,11 @@ class SingleEventQueryParams {
 
   public SingleEventQueryParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
     this.categoryOptionCombo = categoryOptionCombo;
+    return this;
+  }
+
+  public SingleEventQueryParams setIncludeNotes(boolean includeNotes) {
+    this.includeNotes = includeNotes;
     return this;
   }
 

@@ -230,7 +230,10 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
     SingleEvent event = get(SingleEvent.class, "QRYjLTiJTrA");
     SingleEventOperationParams params =
-        operationParamsBuilder.events(Set.of(UID.of("QRYjLTiJTrA"))).build();
+        operationParamsBuilder
+            .events(Set.of(UID.of("QRYjLTiJTrA")))
+            .fields(SingleEventFields.builder().includeNotes().build())
+            .build();
 
     List<SingleEvent> events = singleEventService.findEvents(params);
 

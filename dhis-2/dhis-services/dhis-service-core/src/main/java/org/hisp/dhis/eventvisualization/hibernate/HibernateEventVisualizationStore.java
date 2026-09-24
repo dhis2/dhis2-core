@@ -213,14 +213,12 @@ public class HibernateEventVisualizationStore
               builder.and(
                   builder.notEqual(root.get("type"), PIVOT_TABLE),
                   builder.notEqual(root.get("type"), LINE_LIST)));
-    } else if (eventVisualizationSet == EventVisualizationSet.EVENT_REPORT) {
+    } else {
       params.addPredicate(
           root ->
               builder.or(
                   builder.equal(root.get("type"), PIVOT_TABLE),
                   builder.equal(root.get("type"), LINE_LIST)));
-    } else {
-      params.addPredicate(root -> builder.equal(root.get("type"), LINE_LIST));
     }
 
     if (legacy != null) {

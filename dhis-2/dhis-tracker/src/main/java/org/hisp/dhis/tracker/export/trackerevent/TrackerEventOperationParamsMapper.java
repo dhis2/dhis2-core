@@ -161,7 +161,8 @@ class TrackerEventOperationParamsMapper {
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIdSchemeParams(operationParams.getIdSchemeParams());
+        .setIdSchemeParams(operationParams.getIdSchemeParams())
+        .setIncludeNotes(operationParams.getFields().isIncludesNotes());
   }
 
   private List<Program> getTrackerPrograms(Program program) {

@@ -1,0 +1,63 @@
+{
+  "trackedEntityTypes": [
+    {
+      "id": "ntEjeQKcNJd",
+      "name": "TrackedEntityTypeA",
+      "shortName": "TrackedEntityTypeA"
+    }
+  ],
+  "trackedEntityAttributes": [
+    {
+      "id": "dIVt4l5vIOa",
+      "name": "TrackedEntityAttributeA",
+      "shortName": "TrackedEntityAttributeA",
+      "valueType": "TEXT",
+      "aggregationType": "NONE"
+    }
+  ],
+  "programs": [
+    {
+      "id": "BFcipDERJnf",
+      "name": "ProgramA",
+      "shortName": "ProgramA",
+      "programType": "WITH_REGISTRATION",
+      "trackedEntityType": {
+        "id": "ntEjeQKcNJd"
+      },
+      "programTrackedEntityAttributes": [
+        {
+          "id": "M3xtLkYBlKI",
+          "program": {
+            "id": "BFcipDERJnf"
+          },
+          "trackedEntityAttribute": {
+            "id": "dIVt4l5vIOa"
+          }
+        }
+      ]
+    }
+  ],
+  "relationshipTypes": [
+    {
+      "id": "V2kkHafcp3w",
+      "name": "RelationshipTypeA",
+      "fromToName": "from",
+      "toFromName": "to",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ntEjeQKcNJd"
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_INSTANCE",
+        "program": {
+          "id": "BFcipDERJnf"
+        },
+        "trackerDataView": {
+          "attributes": ["dIVt4l5vIOa"]
+        }
+      }
+    }
+  ]
+}

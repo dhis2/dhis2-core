@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.time.DateUtils;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.attribute.Attribute;
@@ -64,6 +65,7 @@ import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -139,6 +141,8 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   private CategoryOptionCombo ocDef;
 
+  private CategoryCombo categoryComboA;
+
   private CategoryOption categoryOptionA;
 
   private CategoryOption categoryOptionB;
@@ -177,7 +181,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     categoryOptionB.getCategories().add(categoryA);
     categoryService.addCategoryOption(categoryOptionB);
     categoryService.addCategoryOption(categoryOptionA);
-    CategoryCombo categoryComboA = createCategoryCombo('A', categoryA);
+    categoryComboA = createCategoryCombo('A', categoryA);
     CategoryCombo categoryComboDef = categoryService.getDefaultCategoryCombo();
     ocDef = categoryService.getDefaultCategoryOptionCombo();
     ocDef.setCode("OC_DEF_CODE");
@@ -1303,5 +1307,33 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         () -> assertEquals(deleted, totals.getDeleted(), "unexpected deleted count"),
         () -> assertEquals(ignored, totals.getIgnored(), "unexpected ignored count"),
         () -> assertNotEquals(ImportStatus.ERROR, summary.getStatus(), summary.getDescription()));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_AllDefaultCc() {
+    // dsA uses the default attribute category combo => the default AOC is returned
+    UID expected = UID.of(categoryService.getDefaultCategoryOptionCombo().getUid());
+
+    assertEquals(
+        expected,
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(Stream.of(UID.of(dsA.getUid()))));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_NonDefaultCc() {
+    DataSet dsNonDefault = createDataSet('N', new MonthlyPeriodType());
+    dsNonDefault.setCategoryCombo(categoryComboA);
+    dataSetService.addDataSet(dsNonDefault);
+
+    // one of the data sets uses a non-default attribute category combo => no fast path
+    assertNull(
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(
+            Stream.of(UID.of(dsA.getUid()), UID.of(dsNonDefault.getUid()))));
+  }
+
+  @Test
+  void testGetDefaultAttributeOptionComboForDataSets_NoDataSetExists() {
+    assertNull(
+        dataExportStore.getDefaultAttributeOptionComboForDataSets(Stream.of(UID.generate())));
   }
 }

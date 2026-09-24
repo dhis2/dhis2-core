@@ -111,6 +111,8 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
 
   private EventVisualization evzB;
 
+  private EventVisualization evzC;
+
   private Document dcA;
 
   @BeforeEach
@@ -120,9 +122,13 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     Program program = createProgram('Y', null, null);
     objectManager.save(program);
     evzB = createEventVisualization("A", program);
+    evzC = createEventVisualization("C", program);
+    evzC.setType(PIVOT_TABLE);
+
     visualizationService.save(vzA);
     visualizationService.save(vzB);
     eventVisualizationService.save(evzB);
+    eventVisualizationService.save(evzC);
     dcA = new Document("A", "url", false, null);
     Document dcB = new Document("B", "url", false, null);
     Document dcC = new Document("C", "url", false, null);
@@ -265,6 +271,9 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     result = dashboardService.search("Z");
     assertEquals(0, result.getVisualizationCount());
     assertEquals(0, result.getResourceCount());
+    result = dashboardService.search("C");
+    assertEquals(1, result.getEventVisualizationCount());
+    assertEquals(1, result.getResourceCount());
   }
 
   @Test

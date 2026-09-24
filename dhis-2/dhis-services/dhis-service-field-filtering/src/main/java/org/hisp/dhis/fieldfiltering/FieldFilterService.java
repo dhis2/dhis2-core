@@ -167,7 +167,12 @@ public class FieldFilterService {
     }
 
     List<FieldPath> paths = FieldFilterParser.parse(params.getFields());
-    return toObjectNodes(params.getObjects(), paths, params.getUser(), params.isSkipSharing());
+    return toObjectNodes(
+        params.getObjects(),
+        paths,
+        params.getUser(),
+        params.isSkipSharing(),
+        params.isSkipCreatedAndLastUpdated());
   }
 
   @Transactional(readOnly = true)
@@ -178,13 +183,23 @@ public class FieldFilterService {
   @Transactional(readOnly = true)
   public <T> List<ObjectNode> toObjectNodes(
       List<T> objects, List<FieldPath> paths, UserDetails user, boolean isSkipSharing) {
+    return toObjectNodes(objects, paths, user, isSkipSharing, false);
+  }
+
+  private <T> List<ObjectNode> toObjectNodes(
+      List<T> objects,
+      List<FieldPath> paths,
+      UserDetails user,
+      boolean isSkipSharing,
+      boolean isSkipCreatedAndLastUpdated) {
     List<ObjectNode> objectNodes = new ArrayList<>();
 
     if (objects.isEmpty()) {
       return objectNodes;
     }
 
-    toObjectNodes(objects, paths, user, isSkipSharing, objectNodes::add);
+    toObjectNodes(
+        objects, paths, user, isSkipSharing, isSkipCreatedAndLastUpdated, objectNodes::add);
 
     return objectNodes;
   }
@@ -199,6 +214,7 @@ public class FieldFilterService {
    * @param filter filters
    * @param user user
    * @param isSkipSharing skip sharing
+   * @param isSkipCreatedAndLastUpdated skip created/lastUpdated fields
    * @param consumer consumer action
    * @param <T> type of objects
    */
@@ -207,8 +223,10 @@ public class FieldFilterService {
       List<FieldPath> filter,
       UserDetails user,
       boolean isSkipSharing,
+      boolean isSkipCreatedAndLastUpdated,
       Consumer<ObjectNode> consumer) {
-    toObjectNodes(objects, filter, user, isSkipSharing, false, consumer);
+    toObjectNodes(
+        objects, filter, user, isSkipSharing, isSkipCreatedAndLastUpdated, false, consumer);
   }
 
   private <T> void toObjectNodes(
@@ -216,6 +234,7 @@ public class FieldFilterService {
       List<FieldPath> filter,
       UserDetails user,
       boolean isSkipSharing,
+      boolean isSkipCreatedAndLastUpdated,
       boolean excludeDefaults,
       Consumer<ObjectNode> consumer) {
 
@@ -229,7 +248,8 @@ public class FieldFilterService {
         fieldPathHelper.apply(filter, HibernateProxyUtils.getRealClass(firstObject));
 
     SimpleFilterProvider filterProvider =
-        createSimpleFilterProvider(paths, isSkipSharing, excludeDefaults);
+        createSimpleFilterProvider(
+            paths, isSkipSharing, isSkipCreatedAndLastUpdated, excludeDefaults);
 
     // only set filter provider on a local copy so that we don't affect
     // other object mappers (running across other threads)
@@ -248,7 +268,11 @@ public class FieldFilterService {
 
       ObjectNode objectNode = objectMapper.valueToTree(object);
       addAttributeFieldsInAttributeValues(
-          object, objectNode, relativeAttributePaths, attributeProperties);
+          object,
+          objectNode,
+          relativeAttributePaths,
+          attributeProperties,
+          isSkipCreatedAndLastUpdated);
       applyAttributeAsPropertyFields(object, objectNode, paths);
       applyTransformers(objectNode, fieldTransformers);
 
@@ -334,6 +358,7 @@ public class FieldFilterService {
           paths,
           params.getUser(),
           params.isSkipSharing(),
+          params.isSkipCreatedAndLastUpdated(),
           excludeDefaults,
           n -> {
             try {
@@ -356,7 +381,8 @@ public class FieldFilterService {
       Object object,
       ObjectNode objectNode,
       List<FieldPath> relativeAttributePaths,
-      Map<String, ObjectNode> attributeProperties) {
+      Map<String, ObjectNode> attributeProperties,
+      boolean isSkipCreatedAndLastUpdated) {
     if (relativeAttributePaths.isEmpty()) return;
     if (!(object instanceof IdentifiableObject source)) return;
     ArrayNode attributes = objectNode.putArray("attributeValues");
@@ -375,7 +401,12 @@ public class FieldFilterService {
                         Attribute attribute = attributeService.getAttribute(attributeId);
                         List<ObjectNode> res = new ArrayList<>(1);
                         toObjectNodes(
-                            List.of(attribute), relativeAttributePaths, null, true, res::add);
+                            List.of(attribute),
+                            relativeAttributePaths,
+                            null,
+                            true,
+                            isSkipCreatedAndLastUpdated,
+                            res::add);
                         ObjectNode attr = res.get(0);
                         attr.put("id", attributeId);
                         return attr;
@@ -474,7 +505,10 @@ public class FieldFilterService {
   }
 
   private SimpleFilterProvider createSimpleFilterProvider(
-      List<FieldPath> paths, boolean skipSharing, boolean excludeDefaults) {
+      List<FieldPath> paths,
+      boolean skipSharing,
+      boolean skipCreatedAndLastUpdated,
+      boolean excludeDefaults) {
     SimpleFilterProvider res = new SimpleFilterProvider();
     Set<String> includePaths =
         paths.stream()
@@ -486,7 +520,8 @@ public class FieldFilterService {
             : Set.of();
     res.addFilter(
         "field-filter",
-        new FieldFilterSimpleBeanPropertyFilter(includePaths, skipPaths, excludeDefaults));
+        new FieldFilterSimpleBeanPropertyFilter(
+            includePaths, skipPaths, skipCreatedAndLastUpdated, excludeDefaults));
 
     return res;
   }
