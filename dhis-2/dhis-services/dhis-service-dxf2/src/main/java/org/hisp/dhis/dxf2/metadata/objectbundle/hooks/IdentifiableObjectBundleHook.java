@@ -68,7 +68,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
       List.of("shortName", "description");
 
   private final AclService aclService;
-  
+
   @Override
   public void validate(
       IdentifiableObject object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
