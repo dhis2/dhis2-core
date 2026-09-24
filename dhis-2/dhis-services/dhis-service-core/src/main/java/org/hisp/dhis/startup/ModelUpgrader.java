@@ -32,22 +32,17 @@ package org.hisp.dhis.startup;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 /**
  * @author Lars Helge Overland
  */
 public class ModelUpgrader extends TransactionContextStartupRoutine {
-  private final OrganisationUnitService organisationUnitService;
 
   private final CategoryService categoryService;
 
-  public ModelUpgrader(
-      OrganisationUnitService organisationUnitService, CategoryService categoryService) {
-    checkNotNull(organisationUnitService);
+  public ModelUpgrader(CategoryService categoryService) {
     checkNotNull(categoryService);
-    this.organisationUnitService = organisationUnitService;
     this.categoryService = categoryService;
   }
 
@@ -57,8 +52,6 @@ public class ModelUpgrader extends TransactionContextStartupRoutine {
 
   @Override
   public void executeInTransaction() {
-    organisationUnitService.updatePaths();
-
     categoryService.updateCategoryOptionComboNames();
   }
 }
