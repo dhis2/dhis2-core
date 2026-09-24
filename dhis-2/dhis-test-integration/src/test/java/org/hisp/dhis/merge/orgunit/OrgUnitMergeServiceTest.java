@@ -36,10 +36,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.sql.DataSource;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
@@ -69,6 +73,8 @@ class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private PeriodService periodService;
+
+  @Autowired private DataSource dataSource;
 
   private PeriodType ptA;
 
@@ -112,6 +118,35 @@ class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
     IllegalQueryException ex =
         assertThrows(IllegalQueryException.class, () -> service.getFromQuery(query));
     assertEquals(ErrorCode.E1503, ex.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("Merge is rejected while another merge holds the merge lock")
+  void testMergeRejectedWhenMergeInProgress() throws SQLException {
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+
+    // Simulate a merge in progress on another connection, e.g. another cluster instance
+    try (Connection other = dataSource.getConnection()) {
+      setMergeLock(other, "pg_advisory_lock");
+      try {
+        IllegalQueryException ex =
+            assertThrows(IllegalQueryException.class, () -> service.merge(request));
+        assertEquals(ErrorCode.E1505, ex.getErrorCode());
+      } finally {
+        setMergeLock(other, "pg_advisory_unlock");
+      }
+    }
+
+    assertNotNull(idObjectManager.get(OrganisationUnit.class, ouA.getUid()));
+    assertNotNull(idObjectManager.get(OrganisationUnit.class, ouB.getUid()));
+  }
+
+  private void setMergeLock(Connection connection, String function) throws SQLException {
+    try (PreparedStatement ps = connection.prepareStatement("select " + function + "(?)")) {
+      ps.setLong(1, DefaultOrgUnitMergeService.MERGE_LOCK_KEY);
+      ps.execute();
+    }
   }
 
   @Test
