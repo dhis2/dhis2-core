@@ -34,17 +34,27 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.PersistenceException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -72,6 +82,8 @@ class DataSetStoreTest extends PostgresIntegrationTestBase {
   @Autowired protected OrganisationUnitStore unitStore;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private PeriodService periodService;
 
   // -------------------------------------------------------------------------
   // Supportive methods
@@ -219,5 +231,259 @@ class DataSetStoreTest extends PostgresIntegrationTestBase {
     dse.setDataElement(de);
     ds.addDataSetElement(dse);
     manager.save(ds);
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA migration verification
+  // -------------------------------------------------------------------------
+
+  @Test
+  @DisplayName("SEQUENCE id generation produces positive, increasing identifiers")
+  void testJpaIdGeneration() {
+    DataSet dataSetA = addDataSet('A');
+    DataSet dataSetB = addDataSet('B');
+
+    assertTrue(dataSetA.getId() > 0);
+    assertTrue(dataSetB.getId() > dataSetA.getId());
+  }
+
+  @Test
+  @DisplayName(
+      "periodType (EAGER) and categoryCombo (LAZY) many-to-one associations survive a reload")
+  void testJpaManyToOneAssociationsSurviveReload() {
+    DataSet dataSet = addDataSet('A');
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    assertEquals(PERIOD_TYPE.getName(), reloaded.getPeriodType().getName());
+    assertNotNull(reloaded.getCategoryCombo());
+  }
+
+  @Test
+  @DisplayName("dataInputPeriods (owned, cascade all-delete-orphan) round-trips after a reload")
+  void testJpaDataInputPeriods() {
+    // Use PeriodType#createPeriod() so both startDate and endDate are populated -
+    // HibernatePeriodStore#save() binds a null endDate incorrectly via native SQL, which is a
+    // pre-existing quirk unrelated to this migration.
+    Period period = PERIOD_TYPE.createPeriod();
+    periodService.addPeriod(period);
+
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    DataInputPeriod dip = new DataInputPeriod();
+    dip.setPeriod(period);
+    dataSet.addDataInputPeriod(dip);
+    dataSetStore.save(dataSet);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    assertEquals(1, reloaded.getDataInputPeriods().size());
+  }
+
+  @Test
+  @DisplayName("indicators many-to-many join table round-trips after a reload")
+  void testJpaIndicators() {
+    IndicatorType type = createIndicatorType('A');
+    manager.save(type);
+    Indicator indicator = createIndicator('A', type);
+    manager.save(indicator);
+
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    dataSet.getIndicators().add(indicator);
+    dataSetStore.save(dataSet);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    assertEquals(1, reloaded.getIndicators().size());
+    assertEquals(indicator.getUid(), reloaded.getIndicators().iterator().next().getUid());
+  }
+
+  @Test
+  @DisplayName(
+      "compulsoryDataElementOperands (many-to-many with Hibernate ALL+DELETE_ORPHAN cascade) "
+          + "round-trips and removing an operand deletes the orphaned row, not just the join row")
+  void testJpaCompulsoryDataElementOperandsCascadeDeleteOrphan() {
+    DataElement de = createDataElementAndSave('A');
+
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    DataElementOperand operand = new DataElementOperand(de);
+    dataSet.addCompulsoryDataElementOperand(operand);
+    dataSetStore.save(dataSet);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    assertEquals(1, reloaded.getCompulsoryDataElementOperands().size());
+
+    reloaded.getCompulsoryDataElementOperands().clear();
+    dataSetStore.update(reloaded);
+    entityManager.flush();
+    clearSession();
+
+    DataSet reloadedAgain = dataSetStore.get(id);
+    assertTrue(reloadedAgain.getCompulsoryDataElementOperands().isEmpty());
+
+    Long remaining =
+        entityManager
+            .createQuery("select count(o) from DataElementOperand o", Long.class)
+            .getSingleResult();
+    assertEquals(0L, remaining);
+  }
+
+  @Test
+  @DisplayName("sources (inverse OrganisationUnit.dataSets, owned by DataSet) round-trips")
+  void testJpaSources() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    unitStore.save(ouA);
+
+    DataSet dataSet = addDataSet('A', ouA);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    assertEquals(1, reloaded.getSources().size());
+    assertTrue(reloaded.hasOrganisationUnit(ouA));
+  }
+
+  @Test
+  @DisplayName("sections (inverse OneToMany, ordered by sortOrder) round-trip in order")
+  void testJpaSectionsOrdering() {
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    dataSetStore.save(dataSet);
+
+    Section section2 = createSection('2', dataSet, List.of(), List.of());
+    section2.setSortOrder(2);
+    Section section1 = createSection('1', dataSet, List.of(), List.of());
+    section1.setSortOrder(1);
+    manager.save(section2);
+    manager.save(section1);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    List<String> names = reloaded.getSections().stream().map(Section::getName).toList();
+    assertEquals(List.of("Section1", "Section2"), names);
+  }
+
+  @Test
+  @DisplayName(
+      "legendSets (ordered many-to-many, @OrderColumn base 0) round-trip with order preserved")
+  void testJpaLegendSetsOrdering() {
+    LegendSet legendSetC = createLegendSet('C');
+    LegendSet legendSetA = createLegendSet('A');
+    LegendSet legendSetB = createLegendSet('B');
+    manager.save(legendSetC);
+    manager.save(legendSetA);
+    manager.save(legendSetB);
+
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    dataSet.getLegendSets().addAll(List.of(legendSetC, legendSetA, legendSetB));
+    dataSetStore.save(dataSet);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    List<String> uids = reloaded.getLegendSets().stream().map(LegendSet::getUid).toList();
+    assertEquals(List.of(legendSetC.getUid(), legendSetA.getUid(), legendSetB.getUid()), uids);
+  }
+
+  @Test
+  @DisplayName("workflow many-to-one and its inverse DataApprovalWorkflow.dataSets stay consistent")
+  void testJpaWorkflowAssociation() {
+    CategoryCombo cc = createCategoryCombo('W');
+    manager.save(cc);
+    DataApprovalWorkflow workflow =
+        new DataApprovalWorkflow("WorkflowA", PERIOD_TYPE, cc, Set.of());
+    manager.save(workflow);
+
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    dataSet.assignWorkflow(workflow);
+    dataSetStore.save(dataSet);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    assertNotNull(reloaded.getWorkflow());
+    assertEquals(workflow.getUid(), reloaded.getWorkflow().getUid());
+  }
+
+  @Test
+  @DisplayName("attributeValues (jsonb) round-trips after a reload")
+  void testJpaAttributeValuesRoundTrip() {
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    dataSetStore.save(dataSet);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    assertNotNull(reloaded.getAttributeValues());
+  }
+
+  @Test
+  @DisplayName("periodType is a required (NOT NULL) association")
+  void testJpaPeriodTypeNotNull() {
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    dataSet.setPeriodType(null);
+
+    assertThrows(
+        Exception.class,
+        () -> {
+          dataSetStore.save(dataSet);
+          entityManager.flush();
+        });
+  }
+
+  @Test
+  @DisplayName("categoryCombo is a required (NOT NULL) association")
+  void testJpaCategoryComboNotNull() {
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    dataSet.setCategoryCombo(null);
+
+    assertThrows(
+        Exception.class,
+        () -> {
+          dataSetStore.save(dataSet);
+          entityManager.flush();
+        });
+  }
+
+  @Test
+  @DisplayName("shortName has a unique constraint")
+  void testJpaShortNameUnique() {
+    DataSet dataSetA = addDataSet('A');
+
+    DataSet dataSetB = createDataSet('B', PERIOD_TYPE);
+    dataSetB.setShortName(dataSetA.getShortName());
+
+    assertThrows(
+        PersistenceException.class,
+        () -> {
+          dataSetStore.save(dataSetB);
+          entityManager.flush();
+        });
+  }
+
+  @Test
+  @DisplayName(
+      "getDimensionItem/getUid stay computed and typedEquals matches the same-identity DataSet")
+  void testJpaDimensionalItemAndTypedEquals() {
+    DataSet dataSetA = addDataSet('A');
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(dataSetA.getId());
+    assertEquals(dataSetA.getUid(), reloaded.getDimensionItem());
+    assertTrue(reloaded.typedEquals(dataSetA));
   }
 }

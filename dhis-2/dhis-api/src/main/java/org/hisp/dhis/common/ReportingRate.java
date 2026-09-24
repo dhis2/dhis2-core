@@ -114,7 +114,7 @@ public class ReportingRate extends BaseDimensionalItemObject implements Embedded
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
+  @JsonSerialize(as = NameableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(
       value = PropertyType.REFERENCE,
