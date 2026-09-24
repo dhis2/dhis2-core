@@ -57,12 +57,16 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -91,6 +95,8 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackerEventService trackerEventService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -370,19 +376,19 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testValidateAndAddNotesToEvent() throws IOException {
+  void testValidateAndAddNotesToEvent() throws IOException, NotFoundException {
     Date now = new Date();
     // When
     ImportReport importReport = createEvent("tracker/validations/events-with-notes-data.json");
     // Then
     // Fetch the UID of the newly created event
-    final TrackerEvent event = getEventFromReport(importReport);
-    assertThat(event.getNotes(), hasSize(3));
+    final List<Note> notes = getNotesFromReport(importReport);
+    assertThat(notes, hasSize(3));
     // Validate note content
     Stream.of("first note", "second note", "third note")
         .forEach(
             t -> {
-              Note note = getByNote(event.getNotes(), t);
+              Note note = getByNote(notes, t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
@@ -390,7 +396,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testValidateAndAddNotesToUpdatedEvent() throws IOException {
+  void testValidateAndAddNotesToUpdatedEvent() throws IOException, NotFoundException {
     Date now = new Date();
     // Given -> Creates an event with 3 notes
     createEvent("tracker/validations/events-with-notes-data.json");
@@ -399,13 +405,13 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
         createEvent("tracker/validations/events-with-notes-update-data.json");
     clearSession();
     // Then
-    final TrackerEvent event = getEventFromReport(importReport);
-    assertThat(event.getNotes(), hasSize(6));
+    final List<Note> notes = getNotesFromReport(importReport);
+    assertThat(notes, hasSize(6));
     // validate note content
     Stream.of("first note", "second note", "third note", "4th note", "5th note", "6th note")
         .forEach(
             t -> {
-              Note note = getByNote(event.getNotes(), t);
+              Note note = getByNote(notes, t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
@@ -548,10 +554,15 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     return null;
   }
 
-  private TrackerEvent getEventFromReport(ImportReport importReport) {
+  private List<Note> getNotesFromReport(ImportReport importReport) throws NotFoundException {
     final Map<TrackerType, TrackerTypeReport> typeReportMap =
         importReport.getPersistenceReport().getTypeReportMap();
     UID newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
-    return manager.get(TrackerEvent.class, newEvent);
+    return trackerEventService
+        .getEvent(
+            newEvent,
+            TrackerIdSchemeParams.builder().build(),
+            TrackerEventFields.builder().includeNotes().build())
+        .getNotes();
   }
 }

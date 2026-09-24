@@ -34,6 +34,7 @@ import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
@@ -73,6 +74,7 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
@@ -354,6 +356,9 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             "expected to find relationship " + relationship1.getUID());
 
     JsonList<JsonNote> notes = jsonRelationship.getTo().getEvent().getNotes();
+    assertContainsOnly(
+        relationship1To.getNotes().stream().map(n -> n.getNote().getValue()).toList(),
+        notes.stream().map(JsonNote::getNote).toList());
     notes.forEach(note -> assertHasOnlyMembers(note, "note", "value", "storedAt", "createdBy"));
   }
 
@@ -537,6 +542,92 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     JsonList<JsonNote> notes = jsonRelationship.getTo().getEnrollment().getNotes();
     notes.forEach(note -> assertHasOnlyMembers(note, "note", "value", "storedAt", "createdBy"));
+  }
+
+  @Test
+  void shouldGetEventNotesAsToAndWithinFromWhenGettingEventWithRelationships() {
+    assertNotEmpty(relationship1To.getNotes(), "test expects an event with notes");
+
+    // the response contains event E three times, its notes are asserted in two of them:
+    //
+    // event E
+    // └── relationships
+    //     └── relationship oLT07jKRu9e
+    //         ├── from: tracked entity T
+    //         │   └── enrollments
+    //         │       └── enrollment of T
+    //         │           └── events
+    //         │               └── event E      ← notes of E (check 2)
+    //         └── to: event E                  ← notes of E (check 1)
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/events/{uid}?fields=relationships[relationship,from[trackedEntity[enrollments[events[event,notes]]]],to[event[notes]]]",
+                relationship1To.getUID())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            rel -> relationship1.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship1.getUID());
+    // check 1
+    assertContainsOnly(
+        noteUids(relationship1To.getNotes()),
+        jsonNoteUids(jsonRelationship.getTo().getEvent().getNotes()));
+    // check 2
+    List<String> fromNotes =
+        jsonRelationship.getFrom().getTrackedEntity().getEnrollments().stream()
+            .flatMap(en -> en.getEvents().stream())
+            .filter(ev -> relationship1To.getUID().getValue().equals(ev.getEvent()))
+            .flatMap(ev -> ev.getNotes().stream())
+            .map(JsonNote::getNote)
+            .toList();
+    assertContainsOnly(noteUids(relationship1To.getNotes()), fromNotes);
+  }
+
+  @Test
+  void shouldGetEnrollmentNotesWhenGettingTrackedEntityWithRelationships() {
+    Relationship relationship = getRelationship(UID.of("wVsN59nBTmc"));
+    Enrollment to = getEnrollment(relationship.getTo().getEnrollment());
+    assertNotEmpty(to.getNotes(), "test expects an enrollment with notes");
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/trackedEntities/{uid}?fields=relationships[relationship,to[enrollment[notes]]]",
+                relationship.getFrom().getTrackedEntity())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            rel -> relationship.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship.getUID());
+    assertContainsOnly(
+        noteUids(to.getNotes()), jsonNoteUids(jsonRelationship.getTo().getEnrollment().getNotes()));
+  }
+
+  @Test
+  void shouldGetSingleEventNotesWhenGettingTrackedEntityWithRelationships() {
+    Relationship relationship = getRelationship(UID.of("x8919212736"));
+    TrackerEvent to = getEvent(relationship.getTo().getEvent());
+    assertNotEmpty(to.getNotes(), "test expects a single event with notes");
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/trackedEntities/{uid}?fields=relationships[relationship,to[event[notes]]]",
+                relationship.getFrom().getTrackedEntity())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            rel -> relationship.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship.getUID());
+    assertContainsOnly(
+        noteUids(to.getNotes()), jsonNoteUids(jsonRelationship.getTo().getEvent().getNotes()));
   }
 
   @Test
@@ -987,5 +1078,13 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         .filter(r -> r.getRelationship().equals(relationship))
         .findFirst()
         .get();
+  }
+
+  private static List<String> noteUids(List<Note> notes) {
+    return notes.stream().map(n -> n.getNote().getValue()).toList();
+  }
+
+  private static List<String> jsonNoteUids(JsonList<JsonNote> notes) {
+    return notes.stream().map(JsonNote::getNote).toList();
   }
 }

@@ -29,14 +29,20 @@
  */
 package org.hisp.dhis.tracker.imports.preheat;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -46,10 +52,12 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +82,14 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private AttributeService attributeService;
 
+  @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TestNotes testNotes;
+
+  private OrganisationUnit orgUnit;
+
+  private TrackedEntityType trackedEntityType;
+
   private Program program;
 
   private String programAttribute;
@@ -81,11 +97,11 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     // Set up placeholder OU; We add Code for testing idScheme.
-    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    orgUnit = createOrganisationUnit('A');
     orgUnit.setCode("OUA");
     organisationUnitService.addOrganisationUnit(orgUnit);
     // Set up placeholder TET
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TET_UID);
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     // Set up attribute for program, to be used for testing idScheme.
@@ -143,5 +159,36 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
     Program actualProgram = preheat.getProgram(programAttribute);
     assertNotNull(actualProgram);
     assertEquals(program.getUid(), actualProgram.getUid());
+  }
+
+  @Test
+  void shouldPreheatOnlyNotesThatExist() {
+    org.hisp.dhis.tracker.model.TrackedEntity trackedEntity =
+        createTrackedEntity(orgUnit, trackedEntityType);
+    manager.save(trackedEntity, false);
+    org.hisp.dhis.tracker.model.Enrollment enrollment =
+        createEnrollment(program, trackedEntity, orgUnit);
+    manager.save(enrollment, false);
+    UID existing = UID.of(testNotes.save(enrollment, "text").getUid());
+    UID notExisting = UID.generate();
+
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .enrollments(
+                List.of(
+                    Enrollment.builder()
+                        .enrollment(UID.generate())
+                        .notes(
+                            List.of(
+                                Note.builder().note(existing).value("text").build(),
+                                Note.builder().note(notExisting).value("text").build()))
+                        .build()))
+            .build();
+
+    TrackerPreheat preheat =
+        trackerPreheatService.preheat(trackerObjects, TrackerIdSchemeParams.builder().build());
+
+    assertTrue(preheat.hasNote(existing));
+    assertFalse(preheat.hasNote(notExisting));
   }
 }
