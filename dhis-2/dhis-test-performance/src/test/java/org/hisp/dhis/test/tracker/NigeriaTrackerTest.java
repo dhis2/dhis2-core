@@ -92,6 +92,8 @@ import org.slf4j.LoggerFactory;
  *   <li>The filter values are names of the database: {@code like:an} on both names matches about 1%
  *       of the children, {@code eq} a given and family name pair of 78 children.
  *   <li>EIR is PROTECTED. The requests stay within what a clerk owns, as in {@link TrackerTest}.
+ *   <li>A child is linked to its mother by a Mother and child relationship when she is enrolled in
+ *       ANC, so the relationships of a tracked entity are not always empty. Events have none.
  * </ul>
  *
  * <p>The p95 thresholds are {@link TrackerTest}'s, calibrated on Sierra Leone, so a run shows where
@@ -616,13 +618,14 @@ public class NigeriaTrackerTest extends Simulation {
                                                 exec(getFirstEnrollment
                                                         .action()
                                                         .check(jsonPath("$.enrollment").exists()))
+                                                    // A child is linked to its mother when she is
+                                                    // enrolled in ANC, so it has none or one.
                                                     .exec(
                                                         getRelationshipsForTrackedEntity
                                                             .action()
                                                             .check(
-                                                                jsonPath("$.relationships[*]")
-                                                                    .count()
-                                                                    .is(0)))
+                                                                jsonPath("$.relationships")
+                                                                    .exists()))
                                                     .pause(1, 3) // user reads enrollment details
                                                     // User clicks on event within enrollment
                                                     .doIf(session -> session.contains("eventUid"))
