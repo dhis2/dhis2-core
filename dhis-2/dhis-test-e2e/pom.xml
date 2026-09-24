@@ -20,7 +20,7 @@
     <jackson.version.databind>2.22.2</jackson.version.databind>
     <jackson.version.annotation>2.22</jackson.version.annotation>
     <guava.version>33.7.1-jre</guava.version>
-    <json-tree.version>1.9.4</json-tree.version>
+    <json-tree.version>1.9.5</json-tree.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.12.0</opencsv.version>
     <owner.version>1.0.12</owner.version>
@@ -39,7 +39,7 @@
     <spring.version>7.0.9</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
-    <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
+    <nimbus-jose-jwt.version>10.10</nimbus-jose-jwt.version>
     <jsr305.version>3.0.2</jsr305.version>
     <postgresql.version>42.7.13</postgresql.version>
   </properties>

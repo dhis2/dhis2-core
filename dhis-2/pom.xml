@@ -81,12 +81,12 @@
     <sonar.issue.ignore.multicriteria.S1117.ruleKey>java:S1117</sonar.issue.ignore.multicriteria.S1117.ruleKey>
     <sonar.issue.ignore.multicriteria.S1117.resourceKey>**/src/test/**/*.java</sonar.issue.ignore.multicriteria.S1117.resourceKey>
 
-    <byte-buddy.version>1.18.12</byte-buddy.version>
+    <byte-buddy.version>1.18.14</byte-buddy.version>
     <byte-buddy-agent.version>1.18.14</byte-buddy-agent.version>
     <!-- spring.test.extension.context.scope=test_class restores the pre-Spring-7 test-class-scoped
          SpringExtension ExtensionContext (Spring 7.0 switched the default to test-method scope, which
          breaks @PostConstruct-populated fixtures such as TestBase's static services). -->
-    <surefireArgLine>-Xmx2024m -Dspring.test.extension.context.scope=test_class -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
+    <surefireArgLine>-Xmx2048m -Dspring.test.extension.context.scope=test_class -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
 
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
@@ -101,14 +101,14 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>1.9.4</dhis-json-tree.version>
+    <dhis-json-tree.version>1.9.5</dhis-json-tree.version>
 
     <!-- Security -->
     <spring-security.version>7.1.1</spring-security.version>
     <spring-authorization-server.version>7.1.1</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.10</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.4</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.4</com.google.zxing.javase.version>
 
@@ -130,7 +130,7 @@
     <jaxb-runtime.version>4.0.9</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.5</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.14.1</c3p0.version>
+    <c3p0.version>0.14.2</c3p0.version>
     <HikariCP.version>7.1.0</HikariCP.version>
     <postgresql-driver.version>42.7.13</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
@@ -177,9 +177,9 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.56.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.57.0</artemis-jakarta.version>
     <netty-all.version>4.2.18.Final</netty-all.version>
-    <classgraph.version>4.8.194</classgraph.version>
+    <classgraph.version>4.8.195</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.3.2</sms-compression.version>
@@ -190,13 +190,13 @@
     <jsoup.version>1.23.2</jsoup.version>
 
     <!-- Div. utils -->
-    <guava.version>33.6.0-jre</guava.version>
+    <guava.version>33.7.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.9.0</google-api-client.version>
+    <google-api-client.version>2.9.1</google-api-client.version>
     <lombok.version>1.18.48</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.14.3</joda-time.version>
+    <joda-time.version>2.14.4</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.6.0</commons-collections4.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
@@ -211,7 +211,7 @@
     <commons-logging.version>1.4.0</commons-logging.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
     <httpcomponents-core.version>5.4.3</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.6.3</httpcomponents-client5.version>
+    <httpcomponents-client5.version>5.6.4</httpcomponents-client5.version>
     <kafka.version>4.3.1</kafka.version>
 
     <!-- Monitoring -->
@@ -241,12 +241,12 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
-    <maven-exec-plugin.version>3.6.3</maven-exec-plugin.version>
+    <maven-exec-plugin.version>3.6.4</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.6.0</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
-    <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
+    <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
+    <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
     <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
     <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>3.0.2</restrict-imports-enforcer.version>
