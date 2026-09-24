@@ -48,6 +48,7 @@ public class LoginResponse {
     ACCOUNT_LOCKED("accountLocked"),
     ACCOUNT_EXPIRED("accountExpired"),
     PASSWORD_EXPIRED("passwordExpired"),
+    PASSWORD_EXPIRED_EMAIL_RECOVERY("passwordExpiredEmailRecovery"),
     INCORRECT_TWO_FACTOR_CODE("incorrectTwoFactorCode"),
     REQUIRES_TWO_FACTOR_ENROLMENT("requiresTwoFactorEnrolment");
 
