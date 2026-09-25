@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.security.utils;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class CspConstants {
   private CspConstants() {}
 
@@ -72,32 +75,57 @@ public class CspConstants {
       "default-src 'none'; " + COMMON_HARDENING;
 
   /**
-   * CartoDB tile-server origins (Fastly CDN, round-robin across {@code a/b/c} subdomains) used by
-   * the bundled Maps app. HTTPS variant — always allowed in the app-host policy.
+   * Basemap tile-service hosts the bundled Maps app ships with, read from the app's built-in
+   * basemap catalog:
+   *
+   * <ul>
+   *   <li>{@code cartodb-basemaps-{a,b,c}.global.ssl.fastly.net} for "OSM Light", also used by the
+   *       CartoDB external map layers of the demo database.
+   *   <li>{@code {a,b,c}.tile.openstreetmap.org} for "OSM Detailed".
+   *   <li>{@code tiles.maps.eox.at} for the "Sentinel-2 EOX" WMS basemap.
+   * </ul>
+   *
+   * <p>Exact origins only, no wildcard host and no scheme-relative entry. Basemaps that only appear
+   * once an administrator configures them (Bing and Azure via the {@code keyBingMapsApiKey} system
+   * setting, Earth Engine via a Google service account) and administrator-created external map
+   * layer or GeoJSON URL origins are deliberately not listed here: they are allowed explicitly
+   * through {@link org.hisp.dhis.external.conf.ConfigurationKey#CSP_MAP_SOURCES}.
    */
-  public static final String CARTODB_BASEMAP_ORIGINS =
-      "https://cartodb-basemaps-a.global.ssl.fastly.net"
-          + " https://cartodb-basemaps-b.global.ssl.fastly.net"
-          + " https://cartodb-basemaps-c.global.ssl.fastly.net";
+  private static final List<String> MAPS_BASEMAP_HOSTS =
+      List.of(
+          "cartodb-basemaps-a.global.ssl.fastly.net",
+          "cartodb-basemaps-b.global.ssl.fastly.net",
+          "cartodb-basemaps-c.global.ssl.fastly.net",
+          "a.tile.openstreetmap.org",
+          "b.tile.openstreetmap.org",
+          "c.tile.openstreetmap.org",
+          "tiles.maps.eox.at");
+
+  /** Built-in Maps basemap origins over HTTPS, always allowed in the app-host policy. */
+  public static final String MAPS_BASEMAP_ORIGINS = basemapOrigins("https");
 
   /**
-   * CartoDB origins served over plain HTTP. To keep the bundled Maps app working in dev, {@link
-   * org.hisp.dhis.webapi.security.csp.CspPolicyService#constructAppHostCspPolicy} appends these
-   * origins to the app-host policy only when {@code server.https} is OFF in {@code dhis.conf} (i.e.
-   * dev / non-TLS deployments). Production (HTTPS on) gets the strict https-only policy.
+   * Built-in Maps basemap origins served over plain HTTP. To keep the bundled Maps app working in
+   * dev, {@link org.hisp.dhis.webapi.security.csp.CspPolicyService#constructAppHostCspPolicy}
+   * appends these origins to the app-host policy only when {@code server.https} is OFF in {@code
+   * dhis.conf} (i.e. dev / non-TLS deployments). Production (HTTPS on) gets the strict https-only
+   * policy.
    */
-  public static final String CARTODB_BASEMAP_HTTP_ORIGINS =
-      "http://cartodb-basemaps-a.global.ssl.fastly.net"
-          + " http://cartodb-basemaps-b.global.ssl.fastly.net"
-          + " http://cartodb-basemaps-c.global.ssl.fastly.net";
+  public static final String MAPS_BASEMAP_HTTP_ORIGINS = basemapOrigins("http");
+
+  private static String basemapOrigins(String scheme) {
+    return MAPS_BASEMAP_HOSTS.stream()
+        .map(host -> scheme + "://" + host)
+        .collect(Collectors.joining(" "));
+  }
 
   /** App images include generated chart exports and App Hub icons, never uploaded documents. */
   public static final String APP_HOST_CSP_POLICY =
       "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"
           + " img-src 'self' data: blob: https://apps.dhis2.org "
-          + CARTODB_BASEMAP_ORIGINS
+          + MAPS_BASEMAP_ORIGINS
           + "; connect-src 'self' "
-          + CARTODB_BASEMAP_ORIGINS
+          + MAPS_BASEMAP_ORIGINS
           + "; "
           + COMMON_HARDENING;
 

@@ -754,6 +754,28 @@ public enum ConfigurationKey {
   /** CSP default header value/string. Enable or disable the feature. */
   CSP_HEADER_VALUE("csp.header.value", CspConstants.SCRIPT_SOURCE_DEFAULT, false),
 
+  /**
+   * Additional map resource origins the Maps app is allowed to load tiles and layer data from, as a
+   * comma-separated list of bare origins, e.g. {@code csp.map.sources =
+   * https://wms.example.org,https://tiles.example.org:8443}.
+   *
+   * <p>Use it for administrator-configured sources: external map layers, GeoJSON URL layers and the
+   * basemaps that only work once a key is configured (Bing and Azure through {@code
+   * keyBingMapsApiKey}, Earth Engine through a Google service account). The built-in basemap hosts
+   * of the bundled Maps app are always allowed and need no entry here.
+   *
+   * <p>Each entry must be a bare origin {@code scheme://host[:port]} with no userinfo, path, query,
+   * fragment, trailing slash or wildcard. Entries that do not parse are rejected with a warning
+   * naming their position in the list, and never reach the header. On an HTTPS deployment {@code
+   * http://} entries are rejected as well: map sources follow the same HTTPS-only contract as the
+   * built-in basemap origins, which keep their plain-HTTP variants only while {@code server.https}
+   * is off. Accepted entries are added to the {@code img-src} and {@code connect-src} directives of
+   * the shared app-host policy, which covers every app served from the app host and not only Maps.
+   * Script sources, the uploaded-content, default and OpenAPI policies, and framing remain
+   * untouched. The value is read once at startup, so changes require a server restart.
+   */
+  CSP_MAP_SOURCES("csp.map.sources", "", false),
+
   /** Event hooks for system events. Enable or disable the feature. */
   EVENT_HOOKS_ENABLED("event_hooks.enabled", Constants.OFF, false),
 

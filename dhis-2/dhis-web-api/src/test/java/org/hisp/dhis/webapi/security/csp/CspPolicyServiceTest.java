@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.webapi.security.csp;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_MAP_SOURCES;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_UPGRADE_INSECURE_ENABLED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_HTTPS;
 import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
-import static org.hisp.dhis.security.utils.CspConstants.CARTODB_BASEMAP_HTTP_ORIGINS;
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
+import static org.hisp.dhis.security.utils.CspConstants.MAPS_BASEMAP_HTTP_ORIGINS;
+import static org.hisp.dhis.security.utils.CspConstants.MAPS_BASEMAP_ORIGINS;
 import static org.hisp.dhis.security.utils.CspConstants.OPENAPI_DOCS_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,7 +48,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -113,27 +117,49 @@ class CspPolicyServiceTest {
     assertEquals(
         APP_HOST_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';", result);
     assertFalse(
-        result.contains("http://cartodb"),
-        "https-on policy should not contain plain-http cartodb origins, got: " + result);
+        result.contains("http://"),
+        "https-on policy should not contain plain-http origins, got: " + result);
   }
 
   @Test
-  void constructAppHostPolicy_serverHttpsOff_includesHttpCartodbOrigins() {
+  void constructAppHostPolicy_allowsBundledBasemapOriginsInImgAndConnectSrcOnly() {
+    // The bundled Maps app's built-in basemaps: CartoDB (OSM Light), OpenStreetMap (OSM Detailed)
+    // and the EOX Sentinel-2 WMS. All three must work without any configuration.
+    List<String> builtIn =
+        List.of(
+            "https://cartodb-basemaps-a.global.ssl.fastly.net",
+            "https://cartodb-basemaps-b.global.ssl.fastly.net",
+            "https://cartodb-basemaps-c.global.ssl.fastly.net",
+            "https://a.tile.openstreetmap.org",
+            "https://b.tile.openstreetmap.org",
+            "https://c.tile.openstreetmap.org",
+            "https://tiles.maps.eox.at");
+
+    String result = cspPolicyService.constructAppHostCspPolicy();
+
+    assertTrue(sources(result, "img-src").containsAll(builtIn), result);
+    assertTrue(sources(result, "connect-src").containsAll(builtIn), result);
+    for (String policy : nonAppHostPolicies()) {
+      for (String origin : builtIn) {
+        assertFalse(policy.contains(origin), policy);
+      }
+    }
+  }
+
+  @Test
+  void constructAppHostPolicy_serverHttpsOff_includesHttpBasemapOrigins() {
     // Plain HTTP deployments retain the Maps app's HTTP tile origins without upgrading requests.
     when(dhisConfig.isEnabled(SERVER_HTTPS)).thenReturn(false);
 
     String result = cspPolicyService.constructAppHostCspPolicy();
 
-    assertTrue(
-        result.contains(CARTODB_BASEMAP_HTTP_ORIGINS),
-        "server.https=off policy should include http cartodb origins, got: " + result);
     // both img-src and connect-src should now allow the http variants
+    List<String> httpOrigins = Arrays.asList(MAPS_BASEMAP_HTTP_ORIGINS.split(" "));
+    assertTrue(sources(result, "img-src").containsAll(httpOrigins), result);
+    assertTrue(sources(result, "connect-src").containsAll(httpOrigins), result);
     assertTrue(
-        result.contains("img-src 'self' data: ") && result.contains("http://cartodb-basemaps-a"),
-        "img-src should allow http cartodb origins, got: " + result);
-    assertTrue(
-        result.contains("connect-src 'self' ") && result.contains("http://cartodb-basemaps-a"),
-        "connect-src should allow http cartodb origins, got: " + result);
+        sources(result, "img-src").containsAll(Arrays.asList(MAPS_BASEMAP_ORIGINS.split(" "))),
+        result);
   }
 
   @Test
@@ -295,5 +321,142 @@ class CspPolicyServiceTest {
 
     assertNotNull(value);
     assertTrue(value.endsWith(";"));
+  }
+
+  @Test
+  void configuredMapSources_allowedOriginReachesImgAndConnectSrcOnly() {
+    when(dhisConfig.getProperty(CSP_MAP_SOURCES))
+        .thenReturn("https://wms.example.org,https://tiles.example.org:8443");
+
+    String result = cspPolicyService.constructAppHostCspPolicy();
+
+    // exactly the configured origins reach both directives, nothing derived from them
+    Set<String> expected = Set.of("https://wms.example.org", "https://tiles.example.org:8443");
+    assertEquals(expected, configuredOrigins(sources(result, "img-src")));
+    assertEquals(expected, configuredOrigins(sources(result, "connect-src")));
+    // no other directive of the app-host policy gains the configured origins
+    for (String directive : directiveNames(result)) {
+      if (!directive.equals("img-src") && !directive.equals("connect-src")) {
+        assertFalse(sources(result, directive).contains("https://wms.example.org"), result);
+      }
+    }
+    // and no other policy does either
+    for (String policy : nonAppHostPolicies()) {
+      assertFalse(policy.contains("example.org"), policy);
+    }
+  }
+
+  @Test
+  void configuredMapSources_mixedValidAndInvalidEntries_keepOnlyBareOrigins() {
+    when(dhisConfig.getProperty(CSP_MAP_SOURCES))
+        .thenReturn(
+            " https://good.example.org ,"
+                + "https://path.example.org/tiles,"
+                + "https://trailing.example.org/,"
+                + "https://user:secret@userinfo.example.org,"
+                + "https://*.wildcard.example.org,"
+                + "*,"
+                + "'unsafe-inline',"
+                + "data:,"
+                + "javascript://script.example.org,"
+                + "https://inject.example.org; script-src 'unsafe-inline',"
+                + "https://port.example.org:70000,"
+                + ","
+                + "https://good.example.org");
+
+    String result = cspPolicyService.constructAppHostCspPolicy();
+
+    Set<String> imgSources = sources(result, "img-src");
+    assertTrue(imgSources.contains("https://good.example.org"), result);
+    // the repeated entry is emitted once per directive, so twice in the whole policy
+    assertEquals(
+        2,
+        Arrays.stream(result.split("[ ;]")).filter("https://good.example.org"::equals).count(),
+        result);
+    for (String rejected :
+        List.of(
+            "path.example.org",
+            "trailing.example.org",
+            "userinfo.example.org",
+            "wildcard.example.org",
+            "script.example.org",
+            "inject.example.org",
+            "port.example.org")) {
+      assertFalse(result.contains(rejected), result);
+    }
+    assertFalse(result.contains("script-src"), result);
+    assertFalse(imgSources.contains("*"), result);
+    assertFalse(imgSources.contains("'unsafe-inline'"), result);
+    // the invalid entries neither add nor remove a directive
+    assertEquals(
+        directiveNames(APP_HOST_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';"),
+        directiveNames(result),
+        result);
+  }
+
+  @Test
+  void configuredMapSources_exactOriginIsEmittedVerbatim() {
+    when(dhisConfig.getProperty(CSP_MAP_SOURCES)).thenReturn("https://tiles.example.org");
+
+    Set<String> imgSources = sources(cspPolicyService.constructAppHostCspPolicy(), "img-src");
+
+    // no host wildcard, no path suffix and no scheme-relative form is derived from the entry
+    assertEquals(Set.of("https://tiles.example.org"), configuredOrigins(imgSources));
+  }
+
+  @Test
+  void configuredMapSources_httpEntry_rejectedOnHttpsDeploymentAndKeptWhenHttpsOff() {
+    when(dhisConfig.getProperty(CSP_MAP_SOURCES)).thenReturn("http://intranet.example.org:8080");
+
+    assertFalse(
+        cspPolicyService.constructAppHostCspPolicy().contains("intranet.example.org"),
+        "plain HTTP map sources must not be allowed while server.https is on");
+
+    when(dhisConfig.isEnabled(SERVER_HTTPS)).thenReturn(false);
+    CspPolicyService httpService = new CspPolicyService(dhisConfig, configurationService);
+
+    String httpPolicy = httpService.constructAppHostCspPolicy();
+    assertTrue(
+        sources(httpPolicy, "img-src").contains("http://intranet.example.org:8080"), httpPolicy);
+    assertTrue(
+        sources(httpPolicy, "connect-src").contains("http://intranet.example.org:8080"),
+        httpPolicy);
+  }
+
+  /** The test origins, isolated from the built-in basemap origins of the policy. */
+  private static Set<String> configuredOrigins(Set<String> sources) {
+    return sources.stream()
+        .filter(source -> source.contains("example.org"))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  private String[] nonAppHostPolicies() {
+    return new String[] {
+      cspPolicyService.constructDefaultCspPolicy(),
+      cspPolicyService.constructOpenApiDocsCspPolicy(),
+      cspPolicyService.getUserUploadedContentSecurityHeaders().getFirst("Content-Security-Policy")
+    };
+  }
+
+  private static Set<String> directiveNames(String policy) {
+    return Arrays.stream(policy.split(";"))
+        .map(String::trim)
+        .filter(directive -> !directive.isEmpty())
+        .map(directive -> directive.split(" ")[0])
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  private static Set<String> sources(String policy, String directive) {
+    return Arrays.stream(policy.split(";"))
+        .map(String::trim)
+        .filter(d -> d.equals(directive) || d.startsWith(directive + " "))
+        .findFirst()
+        .map(d -> d.substring(directive.length()).trim())
+        .map(
+            values ->
+                Arrays.stream(values.split(" "))
+                    .filter(value -> !value.isEmpty())
+                    .collect(Collectors.toCollection(LinkedHashSet::new)))
+        .orElseThrow(() -> new AssertionError("no " + directive + " directive in: " + policy));
   }
 }
