@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.maintenance;
 
-import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.hisp.dhis.commons.util.PageRange;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,6 +49,7 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Lars Helge Overland
@@ -65,6 +65,8 @@ public class DefaultMaintenanceService implements MaintenanceService {
   private final MaintenanceStore maintenanceStore;
 
   private final UserService userService;
+
+  private final TransactionTemplate transactionTemplate;
 
   private final DataValueService dataValueService;
 
@@ -181,39 +183,39 @@ public class DefaultMaintenanceService implements MaintenanceService {
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public int removeExpiredInvitations() {
     UserQueryParams params = new UserQueryParams();
     params.setInvitationStatus(UserInvitationStatus.EXPIRED);
+    List<String> expired = userService.getUsers(params).stream().map(User::getUid).toList();
 
-    int userCount = userService.getUserCount(params);
-    int removeCount = 0;
-
-    PageRange range = new PageRange(userCount).setPageSize(200);
-    List<int[]> pages = range.getPages();
-    Collections.reverse(pages); // Iterate from end since users are
-    // deleted
-
-    log.debug("Pages: " + pages);
-
-    for (int[] page : pages) {
-      params.setFirst(page[0]);
-      params.setMax(range.getPageSize());
-      List<User> users = userService.getUsers(params);
-
-      for (User user : users) {
-        try {
-          userService.deleteUser(user);
-          removeCount++;
-        } catch (DeleteNotAllowedException ex) {
-          log.warn("Could not delete user " + user.getUsername());
+    int removed = 0;
+    for (String uid : expired) {
+      try {
+        Boolean deleted = transactionTemplate.execute(status -> removeExpiredInvitation(uid));
+        if (Boolean.TRUE.equals(deleted)) {
+          removed++;
         }
+      } catch (DeleteNotAllowedException ex) {
+        log.warn("Could not remove expired invitation of user {}: {}", uid, ex.getMessage());
       }
     }
 
-    log.info("Removed expired invitations: " + removeCount);
+    log.info("Removed {} of {} expired invitations", removed, expired.size());
+    return removed;
+  }
 
-    return removeCount;
+  private boolean removeExpiredInvitation(String uid) {
+    User user = userService.getUser(uid);
+    if (user == null) {
+      return false;
+    }
+    if (user.getLastLogin() != null) {
+      log.warn("Not removing expired invitation of user {} because the user has logged in", uid);
+      return false;
+    }
+    userService.deleteUser(user);
+    return true;
   }
 
   @Override
