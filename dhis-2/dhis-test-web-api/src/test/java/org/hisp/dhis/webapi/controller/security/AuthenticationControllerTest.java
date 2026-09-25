@@ -90,8 +90,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
 
   @Test
   void testSuccessfulLoginClearsInvitation() {
-    User invitedUser = createUserWithAuth("invited", "ALL");
-    userService.encodeAndSetPassword(invitedUser, "district");
+    User invitedUser = userService.getUserByUsername("admin");
     invitedUser.setInvitation(true);
     invitedUser.setRestoreToken("restore-token");
     Calendar expiry = Calendar.getInstance();
@@ -104,14 +103,14 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
     clearSecurityContext();
 
     JsonLoginResponse response =
-        POST("/auth/login", "{'username':'invited','password':'district'}")
+        POST("/auth/login", "{'username':'admin','password':'district'}")
             .content(HttpStatus.OK)
             .as(JsonLoginResponse.class);
 
     assertEquals("SUCCESS", response.getLoginStatus());
     manager.flush();
     manager.clear();
-    User persistedUser = userService.getUserByUsername("invited");
+    User persistedUser = userService.getUserByUsername("admin");
     assertFalse(persistedUser.isInvitation());
     assertNull(persistedUser.getRestoreToken());
     assertNull(persistedUser.getRestoreExpiry());
