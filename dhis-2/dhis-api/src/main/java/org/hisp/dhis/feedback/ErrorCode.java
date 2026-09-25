@@ -568,7 +568,7 @@ public enum ErrorCode {
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7201("Dimensions cannot be specified more than once: `{0}`"),
   E7202("Query items cannot be specified more than once: `{0}`"),
-  E7203("Value dimension cannot also be specified as an item or item filter"),
+  E7203("Value dimension cannot also be specified as a dimension"),
   E7204("Value dimension or aggregate data must be specified when aggregation type is specified"),
   E7205("Start and end date or at least one period must be specified"),
   E7206("Start date is after end date: `{0}`, `{1}`"),

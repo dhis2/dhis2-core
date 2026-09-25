@@ -133,7 +133,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return new ErrorMessage(ErrorCode.E7202, params.getDuplicateQueryItems());
     }
     if (params.hasValueDimension()
-        && params.getDimensionalObjectItems().contains(params.getValue())) {
+        && params.getItems().stream().anyMatch(item -> params.getValue().equals(item.getItem()))) {
       return new ErrorMessage(ErrorCode.E7203);
     }
     if (params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData())) {
