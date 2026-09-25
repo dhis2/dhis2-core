@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.event.aggregate;
 
-import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
@@ -1330,82 +1329,135 @@ public class EventsAggregate12AutoTest extends AnalyticsApiTest {
     boolean expectPostgis = isPostgres();
 
     // Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd")
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
             .add("aggregationType=AVERAGE")
             .add("stage=Zj7UnCAulEk")
             .add("dimension=pe:LAST_12_MONTHS,Zj7UnCAulEk.qrur9Dvnyt5-Yf6UHoPkdS6")
             .add("value=Zj7UnCAulEk.qrur9Dvnyt5")
-            .add("relativePeriodDate=2023-01-01")
-            ;
+            .add("relativePeriodDate=2023-01-01");
 
     // When
     ApiResponse response = actions.aggregate().get("eBAyeGv0exc", JSON, JSON, params);
 
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime 'expectPostgis' flag.
-    validateResponseStructure(response, expectPostgis, 109, 3, 3); // Pass runtime flag, row count, and expected header counts
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        109,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders = response.extractList("headers", Map.class).stream()
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
             .map(obj -> (Map<String, Object>) obj) // Ensure correct type
             .collect(Collectors.toList());
 
-
     // 3. Assert metaData.
-    String expectedMetaData = "{\"items\":{\"202208\":{\"name\":\"August 2022\"},\"OyVUzWsX8UF\":{\"name\":\"10 - 20\"},\"202209\":{\"name\":\"September 2022\"},\"202206\":{\"name\":\"June 2022\"},\"qrur9Dvnyt5\":{\"name\":\"Age in years\"},\"202207\":{\"name\":\"July 2022\"},\"pZzk1L4Blf1\":{\"name\":\"0 - 10\"},\"202204\":{\"name\":\"April 2022\"},\"202205\":{\"name\":\"May 2022\"},\"202202\":{\"name\":\"February 2022\"},\"202203\":{\"name\":\"March 2022\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"},\"b7MCpzqJaR2\":{\"name\":\"70 - 80\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202210\":{\"name\":\"October 2022\"},\"Tq4NYCn9eNH\":{\"name\":\"60 - 70\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{\"name\":\"Organisation unit\"},\"CpP5yzbgfHo\":{\"name\":\"40 - 50\"},\"scvmgP9F9rn\":{\"name\":\"90 - 100\"},\"202201\":{\"name\":\"January 2022\"},\"cbPqyIAFw9u\":{\"name\":\"50 - 60\"},\"TvM2MQgD7Jd\":{\"name\":\"20 - 30\"},\"pe\":{\"name\":\"Period\"},\"Zj7UnCAulEk.qrur9Dvnyt5\":{\"name\":\"Age in years\"},\"puI3YpLJ3fC\":{\"name\":\"80 - 90\"},\"ZUUGJnvX40X\":{\"name\":\"30 - 40\"}},\"dimensions\":{\"pe\":[\"202201\",\"202202\",\"202203\",\"202204\",\"202205\",\"202206\",\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\"],\"Zj7UnCAulEk.qrur9Dvnyt5\":[\"pZzk1L4Blf1\",\"OyVUzWsX8UF\",\"TvM2MQgD7Jd\",\"ZUUGJnvX40X\",\"CpP5yzbgfHo\",\"cbPqyIAFw9u\",\"Tq4NYCn9eNH\",\"b7MCpzqJaR2\",\"puI3YpLJ3fC\",\"scvmgP9F9rn\"],\"ou\":[\"ImspTQPwCqd\"]}}";
-    String actualMetaData = new JSONObject((Map)response.extract("metaData")).toString();
+    String expectedMetaData =
+        "{\"items\":{\"202208\":{\"name\":\"August 2022\"},\"OyVUzWsX8UF\":{\"name\":\"10 - 20\"},\"202209\":{\"name\":\"September 2022\"},\"202206\":{\"name\":\"June 2022\"},\"qrur9Dvnyt5\":{\"name\":\"Age in years\"},\"202207\":{\"name\":\"July 2022\"},\"pZzk1L4Blf1\":{\"name\":\"0 - 10\"},\"202204\":{\"name\":\"April 2022\"},\"202205\":{\"name\":\"May 2022\"},\"202202\":{\"name\":\"February 2022\"},\"202203\":{\"name\":\"March 2022\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"},\"b7MCpzqJaR2\":{\"name\":\"70 - 80\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202210\":{\"name\":\"October 2022\"},\"Tq4NYCn9eNH\":{\"name\":\"60 - 70\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{\"name\":\"Organisation unit\"},\"CpP5yzbgfHo\":{\"name\":\"40 - 50\"},\"scvmgP9F9rn\":{\"name\":\"90 - 100\"},\"202201\":{\"name\":\"January 2022\"},\"cbPqyIAFw9u\":{\"name\":\"50 - 60\"},\"TvM2MQgD7Jd\":{\"name\":\"20 - 30\"},\"pe\":{\"name\":\"Period\"},\"Zj7UnCAulEk.qrur9Dvnyt5\":{\"name\":\"Age in years\"},\"puI3YpLJ3fC\":{\"name\":\"80 - 90\"},\"ZUUGJnvX40X\":{\"name\":\"30 - 40\"}},\"dimensions\":{\"pe\":[\"202201\",\"202202\",\"202203\",\"202204\",\"202205\",\"202206\",\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\"],\"Zj7UnCAulEk.qrur9Dvnyt5\":[\"pZzk1L4Blf1\",\"OyVUzWsX8UF\",\"TvM2MQgD7Jd\",\"ZUUGJnvX40X\",\"CpP5yzbgfHo\",\"cbPqyIAFw9u\",\"Tq4NYCn9eNH\",\"b7MCpzqJaR2\",\"puI3YpLJ3fC\",\"scvmgP9F9rn\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // Dimension values must retain their requested order.
     assertEquals(
-            new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
-            new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
-            true);
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(response, actualHeaders,"Zj7UnCAulEk.qrur9Dvnyt5", "Age in years", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(response, actualHeaders,"pe", "Period", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(response, actualHeaders,"value", "Value", "NUMBER", "java.lang.Double", false, false);
-
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "Zj7UnCAulEk.qrur9Dvnyt5",
+        "Age in years",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "pZzk1L4Blf1", "pe", "202208", "value", "4.46"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "pZzk1L4Blf1", "pe", "202208", "value", "4.46"));
 
     // Validate row exists with values from original row index 10
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "ZUUGJnvX40X", "pe", "202211", "value", "34.65"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "ZUUGJnvX40X", "pe", "202211", "value", "34.65"));
 
     // Validate row exists with values from original row index 20
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "Tq4NYCn9eNH", "pe", "202208", "value", "64.48"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "Tq4NYCn9eNH", "pe", "202208", "value", "64.48"));
 
     // Validate row exists with values from original row index 30
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "b7MCpzqJaR2", "pe", "202201", "value", "74.6"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "b7MCpzqJaR2", "pe", "202201", "value", "74.6"));
 
     // Validate row exists with values from original row index 40
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "CpP5yzbgfHo", "pe", "202201", "value", "44.42"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "CpP5yzbgfHo", "pe", "202201", "value", "44.42"));
 
     // Validate row exists with values from original row index 50
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202205", "value", "84.22"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202205", "value", "84.22"));
 
     // Validate row exists with values from original row index 60
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "Tq4NYCn9eNH", "pe", "202206", "value", "64.61"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "Tq4NYCn9eNH", "pe", "202206", "value", "64.61"));
 
     // Validate row exists with values from original row index 70
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202203", "value", "83.88"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202203", "value", "83.88"));
 
     // Validate row exists with values from original row index 80
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "Tq4NYCn9eNH", "pe", "202212", "value", "64.66"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "Tq4NYCn9eNH", "pe", "202212", "value", "64.66"));
 
     // Validate row exists with values from original row index 90
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "pZzk1L4Blf1", "pe", "202204", "value", "4.5"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "pZzk1L4Blf1", "pe", "202204", "value", "4.5"));
 
     // Validate row exists with values from original row index 100
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202202", "value", "84.25"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202202", "value", "84.25"));
 
     // Validate row exists with values from original row index 108
-    validateRowExists(response, actualHeaders, Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202210", "value", "84.0"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("Zj7UnCAulEk.qrur9Dvnyt5", "puI3YpLJ3fC", "pe", "202210", "value", "84.0"));
   }
 }
