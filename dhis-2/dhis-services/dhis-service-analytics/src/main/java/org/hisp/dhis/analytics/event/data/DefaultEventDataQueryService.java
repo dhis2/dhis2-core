@@ -84,6 +84,7 @@ import org.hisp.dhis.analytics.event.data.stage.StageQualifiedName;
 import org.hisp.dhis.analytics.event.data.stage.StageSortField;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -170,6 +171,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     if (pr == null) {
       throwIllegalQueryEx(ErrorCode.E7129, request.getProgram());
     }
+
+    validateNoOffsetInValue(request.getValue());
 
     ProgramStage ps =
         programStageService.getProgramStage(
@@ -1070,6 +1073,20 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             null);
     sortItem.setProgramStage(validated.getProgramStage());
     return Optional.of(sortItem);
+  }
+
+  /**
+   * Rejects a "value" param that carries a repeatable stage offset such as {@code
+   * edqlbukwRfQ[0].vANAXwtLwcT}. Occurrence selection in "value" is not supported; accepting the
+   * offset would silently drop the stage scoping.
+   *
+   * @param value the "value" request param, may be null.
+   */
+  private static void validateNoOffsetInValue(String value) {
+    if (StringUtils.isNotBlank(value)
+        && !RepeatableStageParamsHelper.getRepeatableStageParams(value).isDefaultObject()) {
+      throwIllegalQueryEx(ErrorCode.E7264, value);
+    }
   }
 
   private DimensionalItemObject getValueDimension(String value) {

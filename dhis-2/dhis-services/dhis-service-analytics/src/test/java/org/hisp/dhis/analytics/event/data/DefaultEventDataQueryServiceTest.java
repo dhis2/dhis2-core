@@ -1249,6 +1249,55 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestRejectsOffsetInValue() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "[0]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsNegativeOffsetInValue() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "[-1]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsOffsetInValueBeforeStageLookup() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .stage(programStage.getUid())
+            .value(programStage.getUid() + "[0]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
   void getFromRequestPromotesStagePrefixedHeaderIntoItemWhenNotInDimensions() {
     ProgramStage programStage = createProgramStage('S', program);
     DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);
