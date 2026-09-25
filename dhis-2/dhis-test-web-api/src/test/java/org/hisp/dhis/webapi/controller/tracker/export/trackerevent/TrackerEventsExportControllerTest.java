@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
@@ -56,6 +57,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -75,6 +77,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,6 +86,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,6 +117,10 @@ class TrackerEventsExportControllerTest extends PostgresControllerIntegrationTes
 
   @Autowired private TestSetup testSetup;
 
+  @Autowired private DhisConfigurationProvider config;
+
+  private Object originalCspSetting;
+
   private User user;
   private User owner;
   private DataElement dataElement;
@@ -131,7 +139,17 @@ class TrackerEventsExportControllerTest extends PostgresControllerIntegrationTes
 
   @BeforeEach
   void setupUser() {
+    originalCspSetting = config.getProperties().get(CSP_ENABLED.getKey());
     injectSecurityContextUser(user);
+  }
+
+  @AfterEach
+  void restoreCspSetting() {
+    if (originalCspSetting == null) {
+      config.getProperties().remove(CSP_ENABLED.getKey());
+    } else {
+      config.getProperties().put(CSP_ENABLED.getKey(), originalCspSetting);
+    }
   }
 
   @Test
@@ -322,8 +340,10 @@ class TrackerEventsExportControllerTest extends PostgresControllerIntegrationTes
         jsonEvent.getArray("dataValues").getObject(0).getString("updatedBy.username").string());
   }
 
-  @Test
-  void shouldReturnFileWhenRequestingDataValueFile() throws ConflictException {
+  @ParameterizedTest
+  @ValueSource(strings = {"on", "off"})
+  void shouldReturnFileWhenRequestingDataValueFile(String cspSetting) throws ConflictException {
+    config.getProperties().setProperty(CSP_ENABLED.getKey(), cspSetting);
     DataElement de = createDataElementWithValueType(ValueType.FILE_RESOURCE);
     FileResource file = storeFile("text/plain", "file content");
 
@@ -343,7 +363,8 @@ class TrackerEventsExportControllerTest extends PostgresControllerIntegrationTes
     assertEquals("no-cache, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
-    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
+    assertContains("default-src 'none';", response.header("Content-Security-Policy"));
+    assertEquals("nosniff", response.header("X-Content-Type-Options"));
     assertEquals("file content", response.content("text/plain"));
   }
 
@@ -369,8 +390,11 @@ class TrackerEventsExportControllerTest extends PostgresControllerIntegrationTes
     assertEquals("image content", response.content("image/png"));
   }
 
-  @Test
-  void shouldReturnNotModifiedWhenRequestingFileWithMatchingETag() throws ConflictException {
+  @ParameterizedTest
+  @ValueSource(strings = {"on", "off"})
+  void shouldReturnNotModifiedWhenRequestingFileWithMatchingETag(String cspSetting)
+      throws ConflictException {
+    config.getProperties().setProperty(CSP_ENABLED.getKey(), cspSetting);
     DataElement de = createDataElementWithValueType(ValueType.FILE_RESOURCE);
     FileResource file = storeFile("text/plain", "file content");
 
@@ -388,7 +412,8 @@ class TrackerEventsExportControllerTest extends PostgresControllerIntegrationTes
 
     assertEquals(HttpStatus.NOT_MODIFIED, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
-    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
+    assertContains("default-src 'none';", response.header("Content-Security-Policy"));
+    assertEquals("nosniff", response.header("X-Content-Type-Options"));
     assertFalse(response.hasBody());
   }
 
