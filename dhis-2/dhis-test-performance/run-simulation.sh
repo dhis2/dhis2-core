@@ -21,7 +21,7 @@ show_usage() {
   echo "                        Valid values: dev"
   echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values without DB_DIR: sierra-leone, hmis"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis, empty"
   echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
@@ -47,6 +47,9 @@ show_usage() {
   echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
+  echo "  FIXTURE_SETUP_CLASS  Optional Java main class run once before warmup using test classpath"
+  echo "                        Shares MVN_ARGS; after setup restarts only web, preserving the DB"
+  echo "  FIXTURE_SETUP_ARGS   Additional Maven arguments for fixture setup only (default: empty)"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -112,6 +115,8 @@ CAPTURE_DHIS2_LOGS=${CAPTURE_DHIS2_LOGS:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
+FIXTURE_SETUP_CLASS=${FIXTURE_SETUP_CLASS:-""}
+FIXTURE_SETUP_ARGS=${FIXTURE_SETUP_ARGS:-""}
 DHIS_CONF_FILE=${DHIS_CONF_FILE:-"dhis.conf"}
 COMPOSE_EXTRA_FILE=${COMPOSE_EXTRA_FILE:-""}
 # docker compose interpolates ${DHIS_CONF_FILE} in the volume mount
@@ -134,13 +139,13 @@ fi
 
 # Validate DB_TYPE
 if [ -z "$DB_DIR" ]; then
-  # No DB_DIR: only standard public databases are allowed
+  # No DB_DIR: public databases or an empty local database are allowed
   case "$DB_TYPE" in
-    sierra-leone|hmis)
+    sierra-leone|hmis|empty)
       # Valid
       ;;
     *)
-      echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Error: DB_TYPE must be 'sierra-leone', 'hmis', or 'empty' when DB_DIR is not set, got: $DB_TYPE" >&2
       echo "Set DB_DIR to use a custom database type" >&2
       echo "Run '$0' without arguments to see usage" >&2
       exit 1
@@ -317,6 +322,41 @@ start_containers() {
   fi
 
   echo "All containers ready! (took $(($(date +%s) - start_time))s)"
+}
+
+# One-time fixture setup support: Morten Svanæs
+prepare_fixture() {
+  if [ -z "$FIXTURE_SETUP_CLASS" ]; then
+    return 0
+  fi
+
+  echo ""
+  echo "========================================"
+  echo "PHASE: Fixture Setup (excluded from timings)"
+  echo "========================================"
+  # Share the simulation's config/manifest/scale properties; setup-only arguments override them.
+  # Password is supplied through the existing private environment, not command arguments.
+  # shellcheck disable=SC2086
+  DHIS2_PASSWORD="$DHIS2_PASSWORD" mvn test-compile org.codehaus.mojo:exec-maven-plugin:3.5.0:java \
+    -Dusername="$DHIS2_USERNAME" \
+    -DbaseUrl=http://localhost:8080 \
+    $MVN_ARGS \
+    $FIXTURE_SETUP_ARGS \
+    -Dexec.classpathScope=test \
+    -Dexec.mainClass="$FIXTURE_SETUP_CLASS"
+
+  # Setup warms application caches. Restart only the application, preserving the seeded DB.
+  # Subsequent warmup and measured runs reuse this fixture and manifest without re-seeding.
+  local compose_args
+  compose_args=$(get_compose_args)
+  # shellcheck disable=SC2086
+  docker compose $compose_args restart web web-healthcheck
+  # shellcheck disable=SC2086
+  if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
+    echo "Error: Application failed to become ready after fixture setup"
+    dump_container_logs
+    exit 1
+  fi
 }
 
 save_profiler_data() {
@@ -647,19 +687,18 @@ generate_metadata() {
 
   printf "Generating run metadata... "
 
-  # Get DHIS2 image digest for reproducibility
-  # DHIS2 images are only pushed to Docker Hub, so RepoDigests[0] is the Docker Hub digest
+  # Prefer a pullable registry digest; locally built images have only a local image ID.
   local dhis2_image_digest=""
   local dhis2_labels=""
 
-  # Get DHIS2 image RepoDigest (registry digest that can be pulled for exact reproduction)
-  dhis2_image_digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
+  # Avoid indexing an empty RepoDigests list, which can produce a malformed multiline .env value.
+  dhis2_image_digest=$(docker image inspect --format '{{if .RepoDigests}}{{index .RepoDigests 0}}{{else}}{{.Id}}{{end}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
 
   # Extract DHIS2 labels from image (DHIS2_BUILD_BRANCH, DHIS2_BUILD_REVISION, DHIS2_VERSION, etc.)
   dhis2_labels=$(docker inspect --format '{{json .Config.Labels}}' "$DHIS2_IMAGE" 2>/dev/null | \
     jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
 
-  # Build reproducible command using RepoDigest
+  # A registry digest is portable; an image ID requires the image to exist locally.
   # DB image is reproducible via DB_TYPE and DB_VERSION args
   local dhis2_image_immutable="$DHIS2_IMAGE"
   if [ "$dhis2_image_digest" != "unknown" ] && [ -n "$dhis2_image_digest" ]; then
@@ -675,7 +714,7 @@ generate_metadata() {
     echo "#   git checkout $git_commit"
     echo "#   set -o allexport && source run-simulation.env && set +o allexport && ./run-simulation.sh"
     echo "#"
-    echo "# For exact reproduction with pinned image digest:"
+    echo "# For exact reproduction with pinned registry digest or locally available image ID:"
     echo "#   git checkout $git_commit"
     echo "#   set -o allexport && source run-simulation.env && DHIS2_IMAGE=$dhis2_image_immutable && set +o allexport && ./run-simulation.sh"
     echo ""
@@ -698,6 +737,8 @@ generate_metadata() {
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
     echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "MVN_ARGS=\"$MVN_ARGS\""
+    echo "FIXTURE_SETUP_CLASS=\"$FIXTURE_SETUP_CLASS\""
+    echo "FIXTURE_SETUP_ARGS=\"$FIXTURE_SETUP_ARGS\""
     echo ""
     echo "# Additional metadata"
     echo "GIT_BRANCH_PERFORMANCE_TESTS=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
@@ -850,6 +891,7 @@ echo "========================================"
 echo "PHASE: Container Startup"
 echo "========================================"
 start_containers
+prepare_fixture
 prepare_database
 
 if [ "$WARMUP" -gt 0 ]; then

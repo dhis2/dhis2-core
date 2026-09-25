@@ -6,6 +6,7 @@
 # https://github.com/docker-library/postgres/blob/master/14/bookworm/docker-entrypoint.sh
 #
 # Modified for build-time database initialization only (does not start postgres permanently)
+# Empty benchmark database support: Morten Svanæs
 
 set -Eeo pipefail
 
@@ -141,10 +142,17 @@ build_init() {
 	docker_setup_db
 
 	# Restore dump if provided
-	if [ -f /tmp/dump.sql.gz ]; then
+	if [ -f /tmp/database/dump.sql.gz ]; then
 		echo "Restoring database dump..."
-		gunzip -c /tmp/dump.sql.gz | docker_process_sql -d "$POSTGRES_DB"
+		gunzip -c /tmp/database/dump.sql.gz | docker_process_sql -d "$POSTGRES_DB"
 		echo "Database dump restored successfully"
+	elif [ "${DB_TYPE:-}" = "empty" ]; then
+		echo "Creating extensions for a fresh DHIS2 database..."
+		docker_process_sql -d "$POSTGRES_DB" -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+		docker_process_sql -d "$POSTGRES_DB" -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
+	else
+		echo "Expected database dump is missing" >&2
+		exit 1
 	fi
 
 	docker_temp_server_stop
