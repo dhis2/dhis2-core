@@ -100,6 +100,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Entity
 @Table(name = "optionset")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class OptionSet extends BaseMetadataObject implements IdentifiableObject, VersionedObject {
 
   @Id

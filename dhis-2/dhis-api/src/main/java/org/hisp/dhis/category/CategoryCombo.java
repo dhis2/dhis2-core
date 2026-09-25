@@ -93,6 +93,7 @@ import org.hisp.dhis.user.sharing.Sharing;
  */
 @Entity
 @Table(name = "categorycombo")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Setter
 @JacksonXmlRootElement(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
 public class CategoryCombo extends BaseMetadataObject
