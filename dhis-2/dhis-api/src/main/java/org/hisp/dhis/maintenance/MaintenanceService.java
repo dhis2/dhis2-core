@@ -106,7 +106,10 @@ public interface MaintenanceService {
   boolean pruneData(DataElement dataElement);
 
   /**
-   * Deletes user accounts representing expired account invitations.
+   * Deletes user accounts representing expired account invitations, each in its own transaction.
+   * Users that cannot be deleted or that have logged in are skipped.
+   *
+   * <p>Must not be called inside an existing transaction.
    *
    * @return the number of removed user invitations as a result of this operation.
    */
