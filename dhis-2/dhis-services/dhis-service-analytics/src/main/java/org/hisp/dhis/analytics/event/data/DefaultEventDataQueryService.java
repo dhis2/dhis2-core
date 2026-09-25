@@ -198,7 +198,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     addSortToParams(params, request, pr);
 
-    if (request.getAggregationType() != null) {
+    if (request.getAggregationType() != null
+        && request.getAggregationType() != AggregationType.DEFAULT) {
       params.withAggregationType(
           AnalyticsAggregationType.fromAggregationType(request.getAggregationType()));
     }

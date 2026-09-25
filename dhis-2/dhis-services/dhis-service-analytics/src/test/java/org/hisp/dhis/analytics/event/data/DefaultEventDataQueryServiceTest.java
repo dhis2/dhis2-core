@@ -37,8 +37,10 @@ import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createProgramStageDataElement;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -1298,6 +1300,48 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestTreatsDefaultAggregationTypeAsAbsent() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.DEFAULT)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertNull(params.getAggregationType());
+    assertEquals(AggregationType.SUM, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestKeepsExplicitAggregationTypeOverride() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(AggregationType.AVERAGE, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestIgnoresDefaultAggregationTypeWithoutValue() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).aggregationType(AggregationType.DEFAULT).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertNull(params.getAggregationType());
+    assertNull(params.getValue());
+  }
+
+  @Test
   void getFromRequestPromotesStagePrefixedHeaderIntoItemWhenNotInDimensions() {
     ProgramStage programStage = createProgramStage('S', program);
     DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);
@@ -1829,6 +1873,21 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(ErrorCode.E7223, textException.getErrorCode());
     assertEquals(ErrorCode.E7223, dateException.getErrorCode());
+  }
+
+  /** Creates a data element and attaches it to a stage of the test program. */
+  private DataElement dataElementInProgram(
+      char uniqueCharacter, ValueType valueType, AggregationType aggregationType) {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement(uniqueCharacter, valueType, aggregationType);
+    programStage
+        .getProgramStageDataElements()
+        .add(createProgramStageDataElement(programStage, element, 1));
+    program.getProgramStages().add(programStage);
+
+    lenient().when(dataElementService.getDataElement(element.getUid())).thenReturn(element);
+
+    return element;
   }
 
   private EventDataQueryRequest.EventDataQueryRequestBuilder baseRequestBuilder(
