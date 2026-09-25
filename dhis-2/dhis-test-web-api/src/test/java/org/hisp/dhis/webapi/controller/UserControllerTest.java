@@ -84,6 +84,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.transaction.annotation.Transactional;
@@ -1185,6 +1187,50 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
                     + roleUid
                     + "'}]}")
             .content(HttpStatus.CREATED));
+  }
+
+  @ParameterizedTest
+  @CsvSource({"add, /password, tN7!qR2#vL9@, false", "replace, /firstName, Updated, true"})
+  void testPatchInvitedUser(String operation, String path, String value, boolean invitation) {
+    UserRole role = createUserRole("inviteRole", "ALL");
+    userService.addUserRole(role);
+    POST(
+            "/users/invite",
+            "{'surname':'S.','firstName':'Harry','email':'test@example.com',"
+                + "'username':'harrys','userRoles':[{'id':'"
+                + role.getUid()
+                + "'}]}")
+        .content(HttpStatus.CREATED);
+
+    manager.flush();
+    manager.clear();
+    User invitedUser = userService.getUserByUsername("harrys");
+    String uid = invitedUser.getUid();
+    String token = invitedUser.getRestoreToken();
+    String idToken = invitedUser.getIdToken();
+    var expiry = invitedUser.getRestoreExpiry();
+    assertTrue(invitedUser.isInvitation());
+    assertNotNull(token);
+    assertNotNull(idToken);
+    assertNotNull(expiry);
+
+    PATCH(
+            "/users/" + uid,
+            "[{'op':'" + operation + "','path':'" + path + "','value':'" + value + "'}]")
+        .content(OK);
+
+    manager.flush();
+    manager.clear();
+    assertEquals(
+        invitation,
+        GET("/users/{id}?fields=invitation", uid)
+            .content(OK)
+            .getBoolean("invitation")
+            .booleanValue());
+    User updatedUser = userService.getUser(uid);
+    assertEquals(invitation ? token : null, updatedUser.getRestoreToken());
+    assertEquals(invitation ? idToken : null, updatedUser.getIdToken());
+    assertEquals(invitation ? expiry : null, updatedUser.getRestoreExpiry());
   }
 
   @Test
