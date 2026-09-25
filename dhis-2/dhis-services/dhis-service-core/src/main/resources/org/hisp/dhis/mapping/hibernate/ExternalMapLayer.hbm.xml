@@ -17,9 +17,13 @@
 
     <property name="attribution" column="attribution" type="text" />
 
+    <property name="description" column="description" type="text" />
+
     <property name="url" column="url" type="text" not-null="true" />
 
     <property name="legendSetUrl" column="legendseturl" type="text" />
+
+    <property name="descriptionUrl" column="descriptionurl" type="text" />
 
     <property name="mapLayerPosition" column="maplayerposition" type="org.hisp.dhis.mapping.MapLayerPosition" not-null="true" />
 

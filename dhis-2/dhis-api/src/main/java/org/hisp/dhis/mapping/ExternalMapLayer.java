@@ -58,6 +58,10 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
 
   private String legendSetUrl;
 
+  private String description;
+
+  private String descriptionUrl;
+
   // -----------------------------------------------------
   // Constructor
   // -----------------------------------------------------
@@ -150,5 +154,25 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
 
   public void setLegendSetUrl(String legendSetUrl) {
     this.legendSetUrl = legendSetUrl;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescriptionUrl() {
+    return descriptionUrl;
+  }
+
+  public void setDescriptionUrl(String descriptionUrl) {
+    this.descriptionUrl = descriptionUrl;
   }
 }
