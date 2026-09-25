@@ -252,10 +252,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   private ProgramMessage setAttributesBasedOnStrategy(ProgramMessage message) {
     // Iterate over a copy: a channel whose recipient cannot be resolved at all (e.g. a tracked
     // entity with no attribute value of the required type) is dropped from the message so that
-    // the remaining deliverable channels are still sent, instead of aborting the whole send. An
-    // org unit contact simply missing one channel's detail (e.g. an email but no phone number) is
-    // not an error here -- it isn't added as a recipient, and the batch creators filter out the
-    // resulting empty-recipient message for that channel later.
+    // the remaining deliverable channels are still sent, instead of aborting the whole send.
     for (DeliveryChannel channel : new HashSet<>(message.getDeliveryChannels())) {
       for (DeliveryChannelStrategy strategy : strategies) {
         if (strategy.getDeliveryChannel().equals(channel)) {
