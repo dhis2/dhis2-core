@@ -728,6 +728,18 @@ public class GeneratorHelper {
       metaDataAssertion.append(
           "assertEquals(expectedMetaData, actualMetaData, false);\n"); // Use JSONAssert
 
+      if (metaDataObject instanceof Map<?, ?> metadata && metadata.containsKey("dimensions")) {
+        metaDataAssertion.append(
+            """
+
+            // Dimension values must retain their requested order.
+            assertEquals(
+                new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+                new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+                true);
+            """);
+      }
+
       return metaDataAssertion.toString();
 
     } catch (PathNotFoundException e) {

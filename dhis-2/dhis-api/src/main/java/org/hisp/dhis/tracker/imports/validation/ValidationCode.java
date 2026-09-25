@@ -73,9 +73,11 @@ public enum ValidationCode {
   E1033("Event: `{0}`, Enrollment value is null."),
   E1039("ProgramStage: `{0}` is not repeatable and an Event already exists."),
   E1041("Enrollment OrganisationUnit: `{0}` and Program: `{1}` do not match."),
-  E1043("Event: `{0}` completeness date has expired, not allowed to make changes to this Event."),
+  E1043(
+      "Event: `{0}` completeness date has expired, not possible to create, edit or delete Event."),
   E1046("Event: `{0}` needs to have at least one Event or schedule date."),
-  E1047("Event: `{0}` date belongs to an expired period, not possible to create Event."),
+  E1047(
+      "Event: `{0}` date belongs to an expired period, not possible to create, edit or delete Event."),
   E1049("Could not find OrganisationUnit: `{0}` linked to TrackedEntity."),
   E1050("Event ScheduledAt date is missing."),
   E1051("Event: `{0}` completedAt must be null when status is `{1}`."),

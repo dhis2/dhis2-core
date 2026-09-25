@@ -39,7 +39,9 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_CODE_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_NAME_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
@@ -48,6 +50,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
@@ -56,6 +59,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,6 +88,8 @@ import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -98,6 +104,7 @@ import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
@@ -332,6 +339,83 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, not(containsString(programStage.getUid() + ".oucode")));
     // Stage-specific filtering must stay on the event-side CTE, not leak to the enrollment alias
     assertThat(generatedSql, not(containsString("ax.\"ps\"")));
+  }
+
+  /**
+   * The base CTE strips table aliases from its projections, so an unqualified {@code uidlevelN}
+   * would be ambiguous between the enrollment table and the org unit structure join. The
+   * registration OU column must therefore stay qualified and carry the {@code registrationou}
+   * alias, which is also what the outer query groups by.
+   */
+  @Test
+  void verifyAggregateEnrollmentProjectsRegistrationOuFromBaseCteUnambiguously() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                createRequestParamsBuilder().withEndpointAction(AGGREGATE).build())
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .build();
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader("registrationou", "Registration org unit", ValueType.TEXT, false, true));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
+
+    // The registration OU column stays qualified inside the CTE and carries the output alias.
+    assertThat(baseCteSql, containsString("regous.\"uidlevel1\" as registrationou"));
+    // No unqualified uidlevel projection survives; that bare form is what Postgres rejected as
+    // "column reference uidlevel1 is ambiguous" once regous was joined.
+    assertThat(baseCteSql, not(containsString(", uidlevel1")));
+    // The outer query selects and groups by the CTE's aliased column.
+    assertThat(generatedSql, containsString("from enrollment_aggr_base as eb"));
+    assertThat(generatedSql, containsString("group by \"registrationou\""));
+  }
+
+  /**
+   * When the org unit dimension is itself level-based it projects a uidlevelN column too, which
+   * collides with the org unit structure table joined for REGISTRATION_OU. Stripping the table
+   * alias from both leaves an ambiguous bare name, so the org unit dimension's projection has to
+   * stay qualified.
+   */
+  @Test
+  void verifyAggregateEnrollmentKeepsOuLevelColumnQualifiedAlongsideRegistrationOu() {
+    OrganisationUnit district = createOrganisationUnit('D');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                createRequestParamsBuilder().withEndpointAction(AGGREGATE).build())
+            .addDimension(
+                new BaseDimensionalObject(
+                    "uidlevel2", DimensionType.ORGANISATION_UNIT, List.of(district)))
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .build();
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader("registrationou", "Registration org unit", ValueType.TEXT, false, true));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
+
+    // The org unit dimension's own level column keeps its table qualifier.
+    assertThat(baseCteSql, containsString("ax.\"uidlevel2\""));
+    // And no unqualified copy survives to be ambiguous against regous.
+    assertThat(baseCteSql, not(containsString(", uidlevel2")));
   }
 
   @Test
@@ -1512,6 +1596,229 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     return noEof("evf.event_occurreddate as \"eventdate\"");
   }
 
+  @Test
+  void verifyEnrollmentSortByStageEventDateOrdersByStageCteNotEnrollmentOccurredDate() {
+    QueryItem sortItem = stageScopedSortItem(OCCURRED_DATE_COLUMN_NAME, ValueType.DATE);
+
+    String generatedSql = enrollmentQuerySql(params -> params.addAscSortItem(sortItem));
+
+    String alias = joinAliasFor(generatedSql, "left", stageCteKey(OCCURRED_DATE_COLUMN_NAME));
+    assertThat(generatedSql, containsString("order by " + alias + ".value asc nulls last"));
+    assertThat(generatedSql, not(containsString("order by \"occurreddate\"")));
+  }
+
+  @Test
+  void verifyEnrollmentSortByStageOrgUnitOrdersByStageCteNotEnrollmentOrgUnit() {
+    QueryItem sortItem = stageScopedSortItem(OU_COLUMN_NAME, ValueType.ORGANISATION_UNIT);
+
+    String generatedSql = enrollmentQuerySql(params -> params.addDescSortItem(sortItem));
+
+    String alias = joinAliasFor(generatedSql, "left", stageCteKey(OU_COLUMN_NAME));
+    assertThat(generatedSql, containsString("order by " + alias + ".value desc nulls last"));
+    assertThat(generatedSql, not(containsString("order by \"ou\"")));
+  }
+
+  @Test
+  void verifyEnrollmentSortByStageOrgUnitNameOrdersByStageCteOrgUnitName() {
+    QueryItem sortItem = stageScopedSortItem(OU_NAME_COLUMN_NAME, ValueType.ORGANISATION_UNIT);
+
+    String generatedSql = enrollmentQuerySql(params -> params.addAscSortItem(sortItem));
+
+    String alias = joinAliasFor(generatedSql, "left", stageCteKey(OU_COLUMN_NAME));
+    assertThat(generatedSql, containsString("order by " + alias + ".ev_ouname asc nulls last"));
+  }
+
+  @Test
+  void verifyEnrollmentSortByStageOrgUnitCodeOrdersByStageCteOrgUnitCode() {
+    QueryItem sortItem = stageScopedSortItem(OU_CODE_COLUMN_NAME, ValueType.ORGANISATION_UNIT);
+
+    String generatedSql = enrollmentQuerySql(params -> params.addDescSortItem(sortItem));
+
+    String alias = joinAliasFor(generatedSql, "left", stageCteKey(OU_COLUMN_NAME));
+    assertThat(generatedSql, containsString("order by " + alias + ".ev_oucode desc nulls last"));
+  }
+
+  @Test
+  void verifyEnrollmentStageSortReusesTheCteOfTheMatchingHeader() {
+    String stageUid = programStage.getUid();
+    QueryItem sortItem = stageScopedSortItem(OU_NAME_COLUMN_NAME, ValueType.ORGANISATION_UNIT);
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                createStageOuRequestParamsWithHeaders(Set.of(stageUid + ".ouname")))
+            .addAscSortItem(sortItem)
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    String generatedSql = sql.getValue();
+
+    String key = stageCteKey(OU_COLUMN_NAME);
+    assertThat(cteDefinitionCount(generatedSql, key), is(1));
+    String alias = joinAliasFor(generatedSql, "left", key);
+    assertThat(generatedSql, containsString(alias + ".ev_ouname as \"" + stageUid + ".ouname\""));
+    assertThat(generatedSql, containsString("order by " + alias + ".ev_ouname asc nulls last"));
+  }
+
+  @Test
+  void verifyEnrollmentStageSortDoesNotReplaceTheFilteredCteOfTheSameField() {
+    QueryItem filteredItem = stageScopedSortItem(OCCURRED_DATE_COLUMN_NAME, ValueType.DATE);
+    filteredItem.addFilter(new QueryFilter(QueryOperator.GE, "2022-01-01"));
+    QueryItem sortItem = stageScopedSortItem(OCCURRED_DATE_COLUMN_NAME, ValueType.DATE);
+
+    String generatedSql =
+        enrollmentQuerySql(params -> params.addItem(filteredItem).addAscSortItem(sortItem));
+
+    String key = stageCteKey(OCCURRED_DATE_COLUMN_NAME);
+    assertThat(cteDefinitionCount(generatedSql, key), is(1));
+    assertThat(generatedSql, not(containsString("left join " + key)));
+    String alias = joinAliasFor(generatedSql, "inner", key);
+    assertThat(generatedSql, containsString("order by " + alias + ".value asc nulls last"));
+  }
+
+  @Test
+  void verifyEnrollmentStageSortAloneAddsNoRestriction() {
+    String baseline = enrollmentQuerySql(params -> {});
+    clearInvocations(jdbcTemplate);
+    QueryItem sortItem = stageScopedSortItem(OU_NAME_COLUMN_NAME, ValueType.ORGANISATION_UNIT);
+
+    String sorted = enrollmentQuerySql(params -> params.addAscSortItem(sortItem));
+
+    assertThat(outerWhereClause(sorted), is(outerWhereClause(baseline)));
+    assertThat(sorted, not(containsString("exists")));
+    assertThat(sorted, not(containsString("inner join")));
+    assertThat(sorted, containsString("left join " + stageCteKey(OU_COLUMN_NAME)));
+  }
+
+  @Test
+  void verifyEnrollmentStageSortFieldIsNeverProjected() {
+    QueryItem sortItem = stageScopedSortItem(OU_NAME_COLUMN_NAME, ValueType.ORGANISATION_UNIT);
+    ListGrid grid = new ListGrid();
+    EventQueryParams params = createRequestParamsBuilder().addDescSortItem(sortItem).build();
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    String generatedSql = sql.getValue();
+
+    String alias = joinAliasFor(generatedSql, "left", stageCteKey(OU_COLUMN_NAME));
+    assertThat(outerSelectClause(generatedSql), not(containsString(alias + ".")));
+    assertThat(generatedSql, not(containsString("\"" + programStage.getUid() + ".ouname\"")));
+    assertThat(grid.getHeaders().isEmpty(), is(true));
+  }
+
+  @Test
+  void verifyEnrollmentStageSortReadsTheFilterCteOfAFilterOnlyField() {
+    QueryItem filterOnlyItem = stageScopedSortItem(OCCURRED_DATE_COLUMN_NAME, ValueType.DATE);
+    filterOnlyItem.addFilter(new QueryFilter(QueryOperator.LE, "2022-01-01"));
+    QueryItem sortItem = stageScopedSortItem(OCCURRED_DATE_COLUMN_NAME, ValueType.DATE);
+
+    String generatedSql =
+        enrollmentQuerySql(params -> params.addItemFilter(filterOnlyItem).addAscSortItem(sortItem));
+
+    String key = stageCteKey(OCCURRED_DATE_COLUMN_NAME);
+    assertThat(cteDefinitionCount(generatedSql, key), is(1));
+    // The filter CTE ranks only matching events, so the predicate sits inside the ranked subquery.
+    String cteBody = cteBody(generatedSql, key);
+    assertThat(cteBody, containsString("<= '2022-01-01'"));
+    assertThat(cteBody, containsString(") ranked"));
+    // A filter CTE is joined on enrollment alone; a sort must not turn it into a ranked stage join.
+    assertThat(generatedSql, not(containsString(".rn = 1")));
+    String alias = joinAliasFor(generatedSql, "left", key);
+    assertThat(generatedSql, containsString("order by " + alias + ".value asc nulls last"));
+  }
+
+  @Test
+  void verifyEnrollmentSortOnlyStageCteKeepsTheEnrollmentPrefilter() {
+    QueryItem sortItem = stageScopedSortItem(OU_NAME_COLUMN_NAME, ValueType.ORGANISATION_UNIT);
+
+    String generatedSql = enrollmentQuerySql(params -> params.addAscSortItem(sortItem));
+
+    assertThat(
+        cteBody(generatedSql, stageCteKey(OU_COLUMN_NAME)),
+        containsString("enrollment in (select enrollment from " + getTable(programA.getUid())));
+  }
+
+  /**
+   * Mirrors the item {@code DefaultQueryItemLocator} produces for {@code <stage>.EVENT_DATE} etc.
+   */
+  private QueryItem stageScopedSortItem(String itemId, ValueType valueType) {
+    QueryItem item =
+        new QueryItem(
+            new BaseDimensionalItemObject(itemId),
+            programA,
+            null,
+            valueType,
+            AggregationType.NONE,
+            null);
+    item.setProgramStage(programStage);
+    return item;
+  }
+
+  private String stageCteKey(String itemId) {
+    return programStage.getUid() + "_" + itemId + "_0";
+  }
+
+  private String enrollmentQuerySql(Consumer<EventQueryParams.Builder> customizer) {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    customizer.accept(params);
+
+    subject.getEnrollments(params.build(), new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    return sql.getValue();
+  }
+
+  /** Returns the alias the given CTE key is joined under with the given join type, or fails. */
+  private String joinAliasFor(String generatedSql, String joinType, String cteKey) {
+    Matcher matcher =
+        Pattern.compile(joinType + "\\s+join\\s+" + cteKey + "\\s+(\\S+)\\s+on\\s")
+            .matcher(generatedSql);
+    assertThat(
+        "expected a " + joinType + " join on " + cteKey + " in: " + generatedSql,
+        matcher.find(),
+        is(true));
+    return matcher.group(1);
+  }
+
+  private static int cteDefinitionCount(String generatedSql, String cteKey) {
+    Matcher matcher = Pattern.compile(cteKey + "\\s+as\\s*\\(").matcher(generatedSql);
+    int count = 0;
+    while (matcher.find()) {
+      count++;
+    }
+    return count;
+  }
+
+  /**
+   * The body of the named CTE definition, from its {@code as (} up to the next CTE or the outer
+   * select.
+   */
+  private static String cteBody(String generatedSql, String cteKey) {
+    Matcher start = Pattern.compile(cteKey + "\\s+as\\s*\\(").matcher(generatedSql);
+    assertThat("expected CTE " + cteKey + " in: " + generatedSql, start.find(), is(true));
+    int from = start.end();
+    Matcher next =
+        Pattern.compile(",\\s*[A-Za-z0-9_]+\\s+as\\s*\\(|\\)\\s*select ").matcher(generatedSql);
+    int to = next.find(from) ? next.start() : generatedSql.length();
+    return generatedSql.substring(from, to);
+  }
+
+  /** The WHERE clause of the outer statement, i.e. the last one, up to ORDER BY or LIMIT. */
+  private static String outerWhereClause(String generatedSql) {
+    int start = generatedSql.lastIndexOf(" where ");
+    int end =
+        generatedSql.contains(" order by ")
+            ? generatedSql.lastIndexOf(" order by ")
+            : generatedSql.lastIndexOf(" limit ");
+    return generatedSql.substring(start, end);
+  }
+
+  /** The SELECT list of the outer statement, i.e. the one reading the enrollment table. */
+  private String outerSelectClause(String generatedSql) {
+    int from = generatedSql.indexOf(" from " + getTableName());
+    int select = generatedSql.lastIndexOf("select ", from);
+    return generatedSql.substring(select, from);
+  }
+
   private EventQueryParams createStageOuRequestParams() {
     return createStageOuRequestParamsWithHeaders(Set.of());
   }
@@ -1724,7 +2031,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   private String psdePlaceholder(ProgramIndicator pi) {
-    return "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s')"
+    return "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s', replaceNulls='true')"
         .formatted(programStage.getUid(), dataElementA.getUid(), pi.getUid());
   }
 

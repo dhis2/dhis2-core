@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.dxf2.metadata;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.List;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * Exposes a static method to fetch an Executor for the Aggregates operations
+ * The outcome of resolving the {@code objects} references of a multi-object dependency export.
+ * All-or-nothing, since a partially resolved export would silently drop objects.
  *
- * @author Luciano Fiandesio
+ * @param objects the resolved roots, in request order; empty when there are any errors
+ * @param errors every problem found, grouped by the stage that found it; empty on success
+ * @author David Mackessy
  */
-class ThreadPoolManager {
-  // Thread factory that sets a user-defined thread name (useful for debugging
-  // purposes)
-  private ThreadPoolManager() {
-    throw new IllegalStateException("only used for its static fields");
-  }
+public record MetadataDependencyRoots(List<IdentifiableObject> objects, List<ErrorReport> errors) {
 
-  private static final ThreadFactory threadFactory =
-      new ThreadFactoryBuilder().setNameFormat("TRACKER-TE-FETCH-%d").setDaemon(true).build();
-
-  /** Cached thread pool: not bound to a size, but can reuse existing threads. */
-  private static final Executor AGGREGATE_THREAD_POOL =
-      Executors.newCachedThreadPool(threadFactory);
-
-  static Executor getPool() {
-    return AGGREGATE_THREAD_POOL;
+  public boolean hasErrors() {
+    return !errors.isEmpty();
   }
 }

@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
+import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -68,6 +70,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -180,6 +183,66 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 sqlBuilder,
                 bucketResolver,
                 new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder)));
+  }
+
+  @Test
+  void verifyRegistrationOuDimensionJoinsOrgUnitStructure() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    // The SelectBuilder path renders the alias without "as"; the legacy string path uses "as".
+    assertThat(sql.getValue(), containsString("analytics_rs_orgunitstructure regous"));
+    assertThat(
+        sql.getValue(),
+        containsString("on regous.\"organisationunituid\" = ax.\"registrationou\""));
+  }
+
+  @Test
+  void verifyRegistrationOuFilterAppearsInWhereClause() {
+    OrganisationUnit ouR = createOrganisationUnit('R');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withRegistrationOuFilter(List.of(ouR))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("regous.\"uidlevel1\""));
+    assertThat(sql.getValue(), containsString(ouR.getUid()));
+  }
+
+  @Test
+  void verifyRegistrationOuDimensionProjectsUidAndName() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('R')))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("as registrationou"));
+    assertThat(sql.getValue(), containsString("as registrationouname"));
+  }
+
+  @Test
+  void verifyNoRegistrationOuArtefactsWhenUnused() {
+    subject.getEnrollments(createRequestParams(), new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), not(containsString("regous")));
+    assertThat(sql.getValue(), not(containsString("registrationou")));
   }
 
   @Test

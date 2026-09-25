@@ -1,0 +1,15 @@
+{
+  "type": "program_indicator",
+  "id": "PItrueOnly1",
+  "code": "ENROLLMENT_TRUE_ONLY_DATA_ELEMENT",
+  "aggregationType":"SUM",
+  "expression":"#{EPEcjy3FWmI.fCXKBdc27Bt}",
+  "name":"ENROLLMENT_TRUE_ONLY_DATA_ELEMENT",
+  "analyticsType":"ENROLLMENT",
+  "shortName":"ENROLLMENT_TRUE_ONLY_DE",
+  "program":{
+    "id":"ur1Edk5Oe2n"
+  },
+  "analyticsPeriodBoundaries": [],
+  "legendSets": []
+}

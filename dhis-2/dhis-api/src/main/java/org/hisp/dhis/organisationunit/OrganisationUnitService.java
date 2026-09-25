@@ -137,6 +137,12 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   List<OrganisationUnit> getOrganisationUnitsByUid(@Nonnull Collection<String> uids);
 
   /**
+   * Returns the stored paths of existing organisation units with the given UIDs, without loading
+   * their entities or descendants. Missing units and units without a stored path are omitted.
+   */
+  List<String> getOrganisationUnitPathsByUid(@Nonnull Collection<UID> uids);
+
+  /**
    * Returns an OrganisationUnit with a given name.
    *
    * @param name the name of the OrganisationUnit to return.
@@ -467,12 +473,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * </ul>
    */
   int getOfflineOrganisationUnitLevels(User user);
-
-  /** Update all OUs where paths is null. */
-  void updatePaths();
-
-  /** Update all OUs (thus forcing update of path). */
-  void forceUpdatePaths();
 
   /**
    * Returns all OrganisationUnits that the user has access to.

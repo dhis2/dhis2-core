@@ -31,15 +31,19 @@ package org.hisp.dhis.dxf2.metadata;
 
 import static org.hisp.dhis.common.collection.CollectionUtils.addAllUnique;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Lists;
-import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -85,11 +89,13 @@ public class MetadataExportParams {
   private boolean skipSharing;
 
   /**
-   * The object to be exported with dependencies. It will be handled by {@link
-   * MetadataExportService#getMetadataWithDependenciesAsNodeStream(IdentifiableObject,
-   * MetadataExportParams, OutputStream)}
+   * Indicates whether {@link BaseIdentifiableObject_#CREATED_AND_LAST_UPDATED} should be excluded
+   * from the export, at every level of the exported object graph.
    */
-  private IdentifiableObject objectExportWithDependencies;
+  private boolean skipCreatedAndLastUpdated;
+
+  /** The roots of a dependency export, merged into one de-duplicated result. */
+  private final List<IdentifiableObject> objectsExportWithDependencies = new ArrayList<>();
 
   private boolean download = false;
 
@@ -198,16 +204,42 @@ public class MetadataExportParams {
     return this.skipSharing;
   }
 
+  /** Applied during serialisation, so it takes precedence over any {@code fields} expression. */
+  public void setSkipCreatedAndLastUpdated(boolean skipCreatedAndLastUpdated) {
+    this.skipCreatedAndLastUpdated = skipCreatedAndLastUpdated;
+  }
+
+  public boolean isSkipCreatedAndLastUpdated() {
+    return this.skipCreatedAndLastUpdated;
+  }
+
   public boolean isExportWithDependencies() {
-    return objectExportWithDependencies != null;
+    return !objectsExportWithDependencies.isEmpty();
   }
 
-  public IdentifiableObject getObjectExportWithDependencies() {
-    return objectExportWithDependencies;
+  /**
+   * The roots of a dependency export, in request order. Never {@code null}, possibly empty.
+   *
+   * <p>{@link JsonIgnore} because an XML {@code Accept} header would otherwise let a generic
+   * Jackson converter reflect over this bean and serialise whole Hibernate entities.
+   */
+  @JsonIgnore
+  public List<IdentifiableObject> getObjectsExportWithDependencies() {
+    return Collections.unmodifiableList(objectsExportWithDependencies);
   }
 
+  /** Sets a single dependency export root, replacing any roots set previously. */
   public void setObjectExportWithDependencies(IdentifiableObject object) {
-    this.objectExportWithDependencies = object;
+    setObjectsExportWithDependencies(object == null ? List.of() : List.of(object));
+  }
+
+  /** Sets the dependency export roots, replacing any roots set previously. */
+  public void setObjectsExportWithDependencies(Collection<? extends IdentifiableObject> objects) {
+    objectsExportWithDependencies.clear();
+
+    if (objects != null) {
+      objects.stream().filter(Objects::nonNull).forEach(objectsExportWithDependencies::add);
+    }
   }
 
   public boolean isDownload() {

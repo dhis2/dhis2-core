@@ -29,18 +29,29 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator.ctefactory;
 
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AMPERSAND_2;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AND;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PAREN;
+
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.event.data.programindicator.BoundarySqlBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser.FilterFields;
+import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
+import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExpressionContext;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
 public class FilterCteFactory implements CteSqlFactory {
@@ -48,9 +59,11 @@ public class FilterCteFactory implements CteSqlFactory {
   private static final Pattern PATTERN = PlaceholderParser.filterPattern();
   private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_]");
 
-  private static final Pattern LONE_OP = Pattern.compile("^\\s*(AND|OR)\\s*$");
-  private static final Pattern LEADING_OP = Pattern.compile("^\\s*(AND|OR)\\s+");
-  private static final Pattern TRAILING_OP = Pattern.compile("\\s+(AND|OR)\\s*$");
+  /** Literal left behind in place of a comparison that has been lifted into a filter CTE. */
+  private static final String NEUTRAL_LITERAL = "true";
+
+  private static final Pattern NEUTRAL_TOKENS =
+      Pattern.compile("\\btrue\\b|&&|\\|\\||\\band\\b|\\bor\\b|[()\\s]");
 
   @Override
   public boolean supports(String rawSql) {
@@ -71,12 +84,17 @@ public class FilterCteFactory implements CteSqlFactory {
       return "";
     }
 
+    // Validate the original expression before changing it or registering any CTEs.
+    Map<Integer, Integer> requiredComparisons = findRequiredComparisons(rawSql);
     StringBuilder out = new StringBuilder();
     boolean simpleFound = false;
     Matcher m = PATTERN.matcher(rawSql);
 
     while (m.find()) {
-      simpleFound = true;
+      if (!Integer.valueOf(m.end()).equals(requiredComparisons.get(m.start()))) {
+        m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
+        continue;
+      }
       Optional<FilterFields> opt = parse(m);
       if (opt.isEmpty()) {
         m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
@@ -107,23 +125,67 @@ public class FilterCteFactory implements CteSqlFactory {
       String alias = ctx.getDefinitionByKey(cteKey).getAlias();
       aliasMap.put(m.group(0), alias); // placeholder-to-alias
 
-      /* Remove the simple clause from the filter string */
-      m.appendReplacement(out, "");
+      // Only conjunctive requirements can be enforced by an INNER JOIN and replaced with true.
+      m.appendReplacement(out, NEUTRAL_LITERAL);
+      simpleFound = true;
     }
     m.appendTail(out);
-
-    /* Clean dangling AND/OR */
-    String cleaned = clean(out.toString());
 
     if (!simpleFound) {
       return rawSql;
     }
-    return cleaned;
+
+    String remaining = out.toString().trim();
+
+    return carriesNoCondition(remaining) ? "" : remaining;
   }
 
   private Optional<FilterFields> parse(Matcher m) {
     String raw = m.group(0);
     return PlaceholderParser.parseFilter(raw);
+  }
+
+  /**
+   * Finds complete comparisons required by the whole filter. Comparisons under OR, negation or
+   * functions must remain in the expression, where the variable CTE's LEFT JOIN preserves their
+   * boolean context. Matching parser nodes also avoids rewriting comparison-like string literals.
+   */
+  private static Map<Integer, Integer> findRequiredComparisons(String filter) {
+    Map<Integer, Integer> comparisons = new HashMap<>();
+    Parser.listen(
+        filter,
+        new ExpressionBaseListener() {
+          @Override
+          public void enterExpr(ExprContext ctx) {
+            if (ctx.it == null || mapOperator(ctx.it.getText()) == null || !isRequired(ctx)) {
+              return;
+            }
+            String text = ctx.getText();
+            String comparison = text.trim();
+            if (PATTERN.matcher(comparison).matches()) {
+              // ANTLR indexes Unicode code points; Matcher indexes UTF-16 characters.
+              int start =
+                  filter.offsetByCodePoints(0, ctx.getStart().getStartIndex())
+                      + text.indexOf(comparison);
+              comparisons.put(start, start + comparison.length());
+            }
+          }
+        });
+    return comparisons;
+  }
+
+  private static boolean isRequired(ExprContext comparison) {
+    ParseTree parent = comparison.getParent();
+    while (parent instanceof ExprContext expr) {
+      if (expr.it != null
+          && expr.it.getType() != PAREN
+          && expr.it.getType() != AND
+          && expr.it.getType() != AMPERSAND_2) {
+        return false;
+      }
+      parent = parent.getParent();
+    }
+    return parent instanceof ExpressionContext;
   }
 
   private static String buildFilterCteSql(
@@ -140,7 +202,13 @@ public class FilterCteFactory implements CteSqlFactory {
 
     String boundaries =
         BoundarySqlBuilder.buildSql(
-            pi.getAnalyticsPeriodBoundaries(), "occurreddate", pi, start, end, qb);
+            pi.getAnalyticsPeriodBoundaries(),
+            "occurreddate",
+            pi,
+            start,
+            end,
+            qb,
+            AnalyticsType.EVENT);
 
     return String.format(
         """
@@ -188,19 +256,13 @@ public class FilterCteFactory implements CteSqlFactory {
   }
 
   /**
-   * Cleans a string by trimming whitespace and removing leading or trailing "AND" or "OR" logical
-   * operators (case-sensitive). Also removes the operator if it is the only content of the string
-   * after trimming.
+   * Tells whether an expression restricts nothing, which is the case once every comparison it held
+   * has been lifted into a filter CTE and only neutral literals and logical operators are left.
    *
-   * @param str The filter string segment to clean. Must not be null.
-   * @return The cleaned string, potentially empty if only operators/whitespace were present.
-   * @throws NullPointerException if {@code remaining} is null.
+   * @param expression the remaining filter expression. Must not be null.
+   * @return true if the expression carries no condition of its own.
    */
-  private static String clean(String str) {
-    String cleaned = str.trim();
-    cleaned = LONE_OP.matcher(cleaned).replaceAll("");
-    cleaned = LEADING_OP.matcher(cleaned).replaceAll("");
-    cleaned = TRAILING_OP.matcher(cleaned).replaceAll("");
-    return cleaned.trim();
+  private static boolean carriesNoCondition(String expression) {
+    return NEUTRAL_TOKENS.matcher(expression).replaceAll("").isEmpty();
   }
 }

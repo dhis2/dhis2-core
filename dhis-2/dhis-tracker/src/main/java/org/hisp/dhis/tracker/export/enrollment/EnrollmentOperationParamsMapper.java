@@ -98,6 +98,7 @@ class EnrollmentOperationParamsMapper {
     params.setOrder(operationParams.getOrder());
     params.setEnrollments(operationParams.getEnrollments());
     params.setIncludeAttributes(operationParams.getFields().isIncludesAttributes());
+    params.setIncludeNotes(operationParams.getFields().isIncludesNotes());
     params.setQuerySearchScope(
         QuerySearchScope.of(
             user,

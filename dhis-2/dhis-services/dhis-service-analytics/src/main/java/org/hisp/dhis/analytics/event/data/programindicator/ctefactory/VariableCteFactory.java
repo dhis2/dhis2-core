@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholde
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser.VariableFields;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
 @Slf4j
@@ -126,7 +127,8 @@ public class VariableCteFactory implements CteSqlFactory {
             pi,
             start,
             end,
-            qb);
+            qb,
+            AnalyticsType.EVENT);
 
     String cteSql =
         String.format(

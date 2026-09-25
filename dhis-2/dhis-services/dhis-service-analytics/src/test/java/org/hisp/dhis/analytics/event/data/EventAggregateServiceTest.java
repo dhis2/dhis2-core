@@ -40,6 +40,16 @@ import static org.hisp.dhis.test.TestBase.createLegendSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -47,23 +57,46 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
+import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
+import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.LocalCache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class EventAggregateServiceTest {
 
@@ -195,6 +228,293 @@ class EventAggregateServiceTest {
     assertEquals("pe", headers.get(0).getName());
     assertEquals(ColumnHeader.ENROLLMENT_OU.getItem(), headers.get(1).getName());
     assertEquals(VALUE_ID, headers.get(2).getName());
+  }
+
+  @Test
+  void shouldAddRegistrationOuHeaderAfterPeriod() throws Exception {
+    EventQueryParams params =
+        new EventQueryParams.Builder(defaultPeriodParams())
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('A')))
+            .build();
+
+    Grid grid = new ListGrid();
+    invokePrivate("addHeaders", EventQueryParams.class, Grid.class, params, grid);
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertEquals("pe", headers.get(0).getName());
+    assertEquals(ColumnHeader.REGISTRATION_OU.getItem(), headers.get(1).getName());
+    assertEquals(VALUE_ID, headers.get(2).getName());
+  }
+
+  @Test
+  void shouldCacheRegistrationOuSelectionsAndOutputShapesIndependently() {
+    AnalyticsCacheSettings cacheSettings = mock(AnalyticsCacheSettings.class);
+    when(cacheSettings.isCachingEnabled()).thenReturn(true);
+    when(cacheSettings.fixedExpirationTimeOrDefault()).thenReturn(60L);
+    CacheProvider cacheProvider = mock(CacheProvider.class);
+    SimpleCacheBuilder<Grid> cacheBuilder = new SimpleCacheBuilder<>();
+    cacheBuilder.expireAfterWrite(1L, TimeUnit.MINUTES);
+    when(cacheProvider.<Grid>createAnalyticsCache()).thenReturn(new LocalCache<>(cacheBuilder));
+    AnalyticsCache cache = new AnalyticsCache(cacheProvider, cacheSettings);
+
+    EventAnalyticsManager manager = mock(EventAnalyticsManager.class);
+    EventQueryPlanner planner = mock(EventQueryPlanner.class);
+    AnalyticsSecurityManager security = mock(AnalyticsSecurityManager.class);
+    MetadataItemsHandler metadata = mock(MetadataItemsHandler.class);
+    when(security.withUserConstraints(any(EventQueryParams.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(planner.planAggregateQuery(any()))
+        .thenAnswer(invocation -> List.of(invocation.getArgument(0, EventQueryParams.class)));
+
+    OrganisationUnit bo = createOrganisationUnit('A');
+    bo.setUid("O6uvpzGd5pu");
+    bo.setName("Bo");
+    OrganisationUnit bombali = createOrganisationUnit('B');
+    bombali.setUid("fdc6uOvgoji");
+    bombali.setName("Bombali");
+    Map<String, String> counts = Map.of(bo.getUid(), "1", bombali.getUid(), "2");
+
+    when(manager.getAggregatedEventData(any(), any(), anyInt()))
+        .thenAnswer(
+            invocation -> {
+              EventQueryParams params = invocation.getArgument(0);
+              Grid grid = invocation.getArgument(1);
+              OrganisationUnit ou = params.getAllRegistrationOuItems().get(0);
+              grid.addRow().addValue("2022");
+              if (params.hasRegistrationOuDimension()) {
+                grid.addValue(ou.getUid());
+              }
+              grid.addValue(counts.get(ou.getUid()));
+              return grid;
+            });
+    doAnswer(
+            invocation -> {
+              Grid grid = invocation.getArgument(0);
+              EventQueryParams params = invocation.getArgument(1);
+              OrganisationUnit ou = params.getAllRegistrationOuItems().get(0);
+              grid.getMetaData()
+                  .put(AnalyticsMetaDataKey.ITEMS.getKey(), Map.of(ou.getUid(), ou.getName()));
+              return null;
+            })
+        .when(metadata)
+        .addMetadata(any(), any(), anyList());
+
+    EventAggregateService cachedService =
+        new EventAggregateService(
+            null,
+            null,
+            manager,
+            null,
+            null,
+            planner,
+            cache,
+            security,
+            mock(EventQueryValidator.class),
+            metadata,
+            mock(SchemeIdHandler.class));
+
+    List<EventQueryParams> requests = new ArrayList<>();
+    for (boolean dimension : List.of(true, false)) {
+      for (OrganisationUnit ou : List.of(bo, bombali)) {
+        EventQueryParams.Builder builder =
+            new EventQueryParams.Builder()
+                .withPeriods(List.of(PeriodDimension.of("2022")), "yearly");
+        requests.add(
+            (dimension
+                    ? builder.withRegistrationOuDimension(List.of(ou))
+                    : builder.withRegistrationOuFilter(List.of(ou)))
+                .build());
+      }
+    }
+
+    // Fetch each distinct response, then repeat the requests to exercise cache hits.
+    for (int pass = 0; pass < 2; pass++) {
+      for (EventQueryParams request : requests) {
+        Grid grid = cachedService.getAggregatedData(new EventQueryParams.Builder(request).build());
+        OrganisationUnit ou = request.getAllRegistrationOuItems().get(0);
+        boolean dimension = request.hasRegistrationOuDimension();
+        assertEquals(
+            dimension ? List.of("pe", "registrationou", "value") : List.of("pe", "value"),
+            grid.getHeaders().stream().map(GridHeader::getName).toList());
+        assertEquals(
+            List.of(
+                dimension
+                    ? List.of("2022", ou.getUid(), counts.get(ou.getUid()))
+                    : List.of("2022", counts.get(ou.getUid()))),
+            grid.getRows());
+        assertEquals(
+            Map.of(ou.getUid(), ou.getName()),
+            grid.getMetaData().get(AnalyticsMetaDataKey.ITEMS.getKey()));
+      }
+    }
+
+    verify(manager, times(4)).getAggregatedEventData(any(), any(), anyInt());
+    verify(metadata, times(4)).addMetadata(any(), any(), anyList());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void shouldExportRegistrationOuAsRowsOrColumns(boolean registrationRows) {
+    OrganisationUnit bo = createOrganisationUnit('A');
+    bo.setName("Bo");
+    OrganisationUnit bombali = createOrganisationUnit('B');
+    bombali.setName("Bombali");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(List.of(PeriodDimension.of("2022")), "yearly")
+            .withRegistrationOuDimension(List.of(bo, bombali))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("pe"))
+        .addHeader(new GridHeader("registrationou"))
+        .addHeader(new GridHeader("value"));
+    grid.addRow().addValue("2022").addValue(bo.getUid()).addValue(1d);
+    grid.addRow().addValue("2022").addValue(bombali.getUid()).addValue(2d);
+
+    Grid result =
+        exportGrid(
+            params,
+            grid,
+            List.of(registrationRows ? "pe" : "registrationou"),
+            List.of(registrationRows ? "registrationou" : "pe"));
+
+    assertEquals(
+        registrationRows
+            ? List.of("registrationou", "2022")
+            : List.of("pe", "registrationou Bo", "registrationou Bombali"),
+        result.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(
+        registrationRows
+            ? List.of(List.of("Bo", 1d), List.of("Bombali", 2d))
+            : List.of(List.of("2022", 1d, 2d)),
+        result.getRows());
+  }
+
+  @Test
+  void shouldExportRegistrationOuAlongsideEventOu() {
+    OrganisationUnit registrationOu = createOrganisationUnit('A');
+    registrationOu.setName("Bo");
+    OrganisationUnit eventOu = createOrganisationUnit('B');
+    eventOu.setName("Bombali");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(List.of(PeriodDimension.of("2022")), "yearly")
+            .withOrganisationUnits(List.of(eventOu))
+            .withRegistrationOuDimension(List.of(registrationOu))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("pe"))
+        .addHeader(new GridHeader("ou"))
+        .addHeader(new GridHeader("registrationou"))
+        .addHeader(new GridHeader("value"));
+    grid.addRow()
+        .addValue("2022")
+        .addValue(eventOu.getUid())
+        .addValue(registrationOu.getUid())
+        .addValue(1d);
+
+    Grid result = exportGrid(params, grid, List.of("pe"), List.of("ou", "registrationou"));
+
+    assertEquals(
+        List.of("ou", "registrationou", "2022"),
+        result.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(List.of(List.of("Bombali", "Bo", 1d)), result.getRows());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void shouldExportOrdinaryDimensionsWithOrWithoutRegistrationOuFilter(boolean registrationFilter) {
+    OrganisationUnit eventOu = createOrganisationUnit('B');
+    eventOu.setName("Bombali");
+    EventQueryParams.Builder builder =
+        new EventQueryParams.Builder()
+            .withPeriods(List.of(PeriodDimension.of("2022")), "yearly")
+            .withOrganisationUnits(List.of(eventOu))
+            .withDisplayProperty(DisplayProperty.NAME);
+    if (registrationFilter) {
+      builder.withRegistrationOuFilter(List.of(createOrganisationUnit('A')));
+    }
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("pe"))
+        .addHeader(new GridHeader("ou"))
+        .addHeader(new GridHeader("value"));
+    grid.addRow().addValue("2022").addValue(eventOu.getUid()).addValue(1d);
+
+    Grid result = exportGrid(builder.build(), grid, List.of("pe"), List.of("ou"));
+
+    assertEquals(
+        List.of("ou", "2022"), result.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(List.of(List.of("Bombali", 1d)), result.getRows());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"CODE,true", "CODE,false", "NAME,true", "NAME,false", "UID,true", "UID,false"})
+  void shouldMatchExportValuesAfterOutputIdConversion(String scheme, boolean registrationRows) {
+    OrganisationUnit registrationOu = createOrganisationUnit('A');
+    registrationOu.setName("Bo");
+    registrationOu.setCode("OU_264");
+    OrganisationUnit eventOu = createOrganisationUnit('B');
+    eventOu.setName("Kailahun");
+    eventOu.setCode("EVENT_OU");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(List.of(PeriodDimension.of("2022")), "yearly")
+            .withOrganisationUnits(List.of(eventOu))
+            .withRegistrationOuDimension(List.of(registrationOu))
+            .withOutputIdScheme(IdScheme.from(scheme))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("pe", "Period", ValueType.TEXT, false, true))
+        .addHeader(new GridHeader("ou", "Organisation unit", ValueType.TEXT, false, true))
+        .addHeader(
+            new GridHeader("registrationou", "Registration org unit", ValueType.TEXT, false, true))
+        .addHeader(new GridHeader("value"));
+    grid.addRow()
+        .addValue("2022")
+        .addValue(eventOu.getUid())
+        .addValue(registrationOu.getUid())
+        .addValue(1d);
+    schemeHandler().applyScheme(grid, params);
+
+    Grid result =
+        exportGrid(
+            params,
+            grid,
+            List.of(registrationRows ? "pe" : "registrationou"),
+            List.of("ou", registrationRows ? "registrationou" : "pe"));
+
+    assertEquals(
+        List.of(List.of("Kailahun", registrationRows ? "Bo" : "2022", 1d)), result.getRows());
+  }
+
+  private SchemeIdHandler schemeHandler() {
+    return new SchemeIdHandler(
+        new SchemeIdResponseMapper(mock(I18nManager.class)), mock(OrganisationUnitService.class));
+  }
+
+  private Grid exportGrid(
+      EventQueryParams params, Grid grid, List<String> columns, List<String> rows) {
+    EventAggregateService exportService =
+        spy(
+            new EventAggregateService(
+                mock(DataElementService.class),
+                mock(TrackedEntityAttributeService.class),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                schemeHandler()));
+    grid.getMetaData().put(AnalyticsMetaDataKey.ITEMS.getKey(), Map.of());
+    doReturn(grid).when(exportService).getAggregatedData(params);
+
+    return exportService.getAggregatedData(params, new ArrayList<>(columns), new ArrayList<>(rows));
   }
 
   private GridHeader invokeAddDimensionHeaders(EventQueryParams params) throws Exception {

@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import java.util.Locale;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -43,6 +44,26 @@ import org.hisp.dhis.program.ProgramStage;
 public class LabelMapper {
   private LabelMapper() {
     throw new UnsupportedOperationException();
+  }
+
+  /** Returns the program's custom date label, or the display name derived from the date field. */
+  public static String getDateFieldLabel(String dateField, Program program) {
+    String defaultLabel = toDateFieldDisplayName(dateField);
+    return switch (dateField) {
+      case "ENROLLMENT_DATE" -> getEnrollmentDateLabel(program, defaultLabel);
+      case "INCIDENT_DATE" -> getIncidentDateLabel(program, defaultLabel);
+      default -> defaultLabel;
+    };
+  }
+
+  /** Converts a date field such as ENROLLMENT_DATE to its display name, Enrollment date. */
+  private static String toDateFieldDisplayName(String dateField) {
+    String[] parts = dateField.toLowerCase(Locale.ROOT).split("_");
+    if (parts.length == 0) {
+      return dateField;
+    }
+    parts[0] = parts[0].substring(0, 1).toUpperCase(Locale.ROOT) + parts[0].substring(1);
+    return String.join(" ", parts);
   }
 
   /**

@@ -61,8 +61,24 @@ class TrackedEntityAttributeConditionTest {
 
     String render = trackedEntityAttributeCondition.render();
 
-    assertEquals("\"" + attr + "\" = :1", render);
+    assertEquals("t_1.\"" + attr + "\" = :1", render);
     assertEquals("v1", queryContext.getParametersPlaceHolder().get("1"));
+  }
+
+  @Test
+  void trackedEntityFilterIsQualifiedWhenAnEventValueJoinAlsoExposesTrackedEntity() {
+    var dimension =
+        DimensionIdentifier.of(
+            emptyElementWithOffset(),
+            emptyElementWithOffset(),
+            DimensionParam.ofObject(
+                "trackedentity", DimensionParamType.FILTERS, UID, List.of("EQ:r21967Te001")));
+    var context = QueryContext.of(null, new SqlParameterManager());
+
+    assertEquals(
+        "t_1.\"trackedentity\" = :1",
+        TrackedEntityAttributeCondition.of(dimension, context).render());
+    assertEquals("r21967Te001", context.getParametersPlaceHolder().get("1"));
   }
 
   private DimensionIdentifier<DimensionParam> getProgramAttributeDimensionIdentifier(
