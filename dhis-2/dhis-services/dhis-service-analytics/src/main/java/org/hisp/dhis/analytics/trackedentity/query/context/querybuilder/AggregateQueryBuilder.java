@@ -57,7 +57,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
@@ -69,6 +68,7 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.event.data.stage.StageDatePeriodBucketSqlRenderer;
 import org.hisp.dhis.analytics.trackedentity.EventValue;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
@@ -85,6 +85,7 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
@@ -95,16 +96,17 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Order(0)
-@RequiredArgsConstructor
 public class AggregateQueryBuilder implements SqlQueryBuilder {
 
   /**
    * Renders the period bucket a grouped date is reduced to. Only {@link
    * StageDatePeriodBucketSqlRenderer#renderPeriodBucketExpression} is used, which is a pure
-   * function over a date expression; the period items are read off the dimension by {@link
-   * PeriodBucketColumn}, since this stack keeps them as the request wrote them.
+   * function over a date expression. TE analytics executes on PostgreSQL, so this renderer must use
+   * PostgreSQL even when the shared analytics renderer uses Doris or ClickHouse. The period items
+   * are read off the dimension by {@link PeriodBucketColumn}.
    */
-  private final StageDatePeriodBucketSqlRenderer periodBucketRenderer;
+  private final StageDatePeriodBucketSqlRenderer periodBucketRenderer =
+      new DefaultStageDatePeriodBucketSqlRenderer(new PostgreSqlAnalyticsSqlBuilder());
 
   /**
    * Alias of the collapsed program-stage event table joined when aggregating over an event value.

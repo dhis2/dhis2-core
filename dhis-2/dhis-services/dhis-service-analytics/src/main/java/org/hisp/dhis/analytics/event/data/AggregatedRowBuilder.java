@@ -30,6 +30,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.math.NumberUtils.createDouble;
+import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
@@ -151,7 +153,8 @@ class AggregatedRowBuilder {
               + (columnAndAlias.hasPostfix() ? columnAndAlias.getPostfix() : "");
     }
 
-    String itemName = extractStringValue(alias, queryItem.getValueType());
+    String itemName =
+        resolveOptionCode(queryItem, extractStringValue(alias, queryItem.getValueType()));
     String itemValue =
         params.isCollapseDataDimensions()
             ? QueryItemHelper.getCollapsedDataItemValue(queryItem, itemName)
@@ -162,6 +165,25 @@ class AggregatedRowBuilder {
     } else {
       row.add(resolveOutputValue(itemValue));
     }
+  }
+
+  /**
+   * Returns the option code matching the given value for a decimal item with an option set.
+   *
+   * <p>The analytics column of such an item is a double, so the option code "1" is read back as
+   * "1.0", which matches no option in the response metadata. Other items are returned unchanged.
+   *
+   * @param queryItem the {@link QueryItem} the value was read for.
+   * @param value the value as read from the row set.
+   * @return the option code when one matches, otherwise the given value.
+   */
+  private String resolveOptionCode(QueryItem queryItem, String value) {
+    if (!queryItem.hasOptionSet() || !queryItem.getValueType().isDecimal() || !isCreatable(value)) {
+      return value;
+    }
+
+    return QueryItemHelper.getMatchingOptionCode(queryItem.getOptionSet(), createDouble(value))
+        .orElse(value);
   }
 
   /**

@@ -68,6 +68,9 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataexchange.client.Dhis2ClientException;
+import org.hisp.dhis.deadline.Deadline;
+import org.hisp.dhis.deadline.DeadlineExceededException;
+import org.hisp.dhis.deadline.DeadlineHolder;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
@@ -86,7 +89,6 @@ import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
-import org.hisp.dhis.tracker.export.timeout.DeadlineExceededException;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
@@ -299,6 +301,27 @@ public class CrudControllerAdvice {
   public WebMessage blobReadTimeoutExceptionHandler(BlobReadTimeoutException ex) {
     return createWebMessage(
         "Reading the file exceeded the time allowed", Status.ERROR, HttpStatus.GATEWAY_TIMEOUT);
+  }
+
+  /**
+   * Without this a query cancelled by the deadline is a {@link PersistenceException} and reported
+   * as 409. Hibernate's own {@code QueryTimeoutException} does not extend the JPA one, so both are
+   * listed.
+   */
+  @ExceptionHandler({
+    jakarta.persistence.QueryTimeoutException.class,
+    org.hibernate.QueryTimeoutException.class
+  })
+  @ResponseBody
+  public WebMessage queryTimeoutExceptionHandler(RuntimeException ex) {
+    Deadline deadline = DeadlineHolder.get();
+    if (deadline == null) {
+      return conflict(getHelpfulMessage(ex)); // not ours to translate
+    }
+    return createWebMessage(
+        new DeadlineExceededException(deadline.budget(), ex).getMessage(),
+        Status.ERROR,
+        HttpStatus.GATEWAY_TIMEOUT);
   }
 
   @ExceptionHandler(IllegalQueryException.class)

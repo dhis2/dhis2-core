@@ -358,7 +358,7 @@ class EventQueryParamsTest extends TestBase {
     assertEquals(first.getKey(), sameSelection.getKey());
 
     // Moving the same OU down a level changes which uidlevel column the SQL uses.
-    sameOu.setPath("/" + ouB.getUid() + "/" + sameOu.getUid());
+    sameOu.setParent(ouB);
     assertNotEquals(first.getKey(), sameSelection.getKey());
   }
 

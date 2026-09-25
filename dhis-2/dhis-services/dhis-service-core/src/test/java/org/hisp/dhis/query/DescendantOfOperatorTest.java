@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.query;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import org.hisp.dhis.query.operators.DescendantOfOperator;
+import org.junit.jupiter.api.Test;
 
 /**
- * Temporary solution: pair of primary key and uid needed by the aggregate store.
- *
- * @deprecated do not use this class! This is a temporary solution that will be removed.
+ * @author Morten Svanæs
  */
-public record TrackedEntityIdentifiers(Long id, String uid) {}
+class DescendantOfOperatorTest {
+  @Test
+  void matchesRootsAndDescendantsOfAnyRoot() {
+    DescendantOfOperator scope =
+        new DescendantOfOperator(List.of("/top/first", "/top/second", "/top/first/nested"));
+
+    assertTrue(scope.test("/top/first"));
+    assertTrue(scope.test("/top/second/child"));
+    assertTrue(scope.test("/top/first/nested/child"));
+    assertFalse(scope.test("/top"));
+    assertFalse(scope.test("/top/sibling"));
+    assertFalse(scope.test("/other/first/child"));
+    assertFalse(scope.test("/top/firstSibling/child"));
+  }
+
+  @Test
+  void missingRootsAndMissingPathsDoNotMatch() {
+    assertFalse(new DescendantOfOperator(List.of()).test("/top/first"));
+    assertFalse(new DescendantOfOperator(List.of("/top")).test(null));
+  }
+}

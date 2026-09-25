@@ -53,6 +53,20 @@ public class OrgUnitHelper {
    */
   public static List<OrganisationUnit> getActiveOrganisationUnits(
       Grid grid, List<OrganisationUnit> organisationUnits) {
+    return getActiveOrganisationUnits(grid, organisationUnits, ORGUNIT_DIM_ID);
+  }
+
+  /**
+   * Selects active organisation units using the given grid column, including stage-qualified
+   * columns. Falls back to the requested units when the column or matching rows are absent.
+   *
+   * @param grid response grid
+   * @param organisationUnits requested organisation units
+   * @param columnName organisation unit column name
+   * @return active units, or the requested units when no rows match
+   */
+  public static List<OrganisationUnit> getActiveOrganisationUnits(
+      Grid grid, List<OrganisationUnit> organisationUnits, String columnName) {
     if (grid == null || organisationUnits == null) {
       return organisationUnits;
     }
@@ -60,7 +74,7 @@ public class OrgUnitHelper {
     int orgUnitIndex = -1;
 
     for (int i = 0; i < grid.getHeaders().size(); i++) {
-      if (ORGUNIT_DIM_ID.equalsIgnoreCase(grid.getHeaders().get(i).getName())) {
+      if (columnName.equalsIgnoreCase(grid.getHeaders().get(i).getName())) {
         orgUnitIndex = i;
         break;
       }

@@ -515,6 +515,15 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
+   * ClickHouse analytics tables hold empty strings where Postgres and Doris hold NULL for an absent
+   * text value, because {@code JSONExtractString} yields {@code ''} for a missing key.
+   */
+  @Override
+  public String nullIfEmpty(String column) {
+    return "nullif(" + column + ", '')";
+  }
+
+  /**
    * Converts the given {@link Map} {@link Entry} to a key value pair string.
    *
    * @param pair the {@link Entry}.

@@ -27,15 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.timeout;
+package org.hisp.dhis.deadline;
 
 import java.time.Duration;
 import java.util.function.LongSupplier;
 
 /**
- * An absolute point in time by which a tracker export request must be done. Absolute rather than a
- * duration so that passing it along cannot extend it, and based on {@link System#nanoTime()} so an
- * NTP step cannot move it.
+ * An absolute point in time by which the request on this thread must be done. Absolute rather than
+ * a duration so that passing it along cannot extend it, and based on {@link System#nanoTime()} so
+ * an NTP step cannot move it.
  *
  * @param budget what the deadline was created with, kept only so an error can name the limit the
  *     request ran into

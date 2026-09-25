@@ -105,6 +105,9 @@ class EnrollmentQueryParams {
   /** Indicates whether to include tracked entity attribute data in the enrollment */
   private boolean includeAttributes;
 
+  /** Indicates whether to include notes in the enrollment */
+  private boolean includeNotes;
+
   private CategoryOptionCombo attributeOptionCombo;
 
   private List<Order> order;

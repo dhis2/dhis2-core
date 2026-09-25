@@ -356,6 +356,34 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "numericOptionSetReturnsOptionCode",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,regOuStge01.numOptDe001&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageOuLevel2NameHierarchy",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=A03MvHHogjR.ou:LEVEL-2&dimension=pe:LAST_12_MONTHS&relativePeriodDate=2022-01-01&showHierarchy=true",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageOuLevel2Hierarchy",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=A03MvHHogjR.ou:LEVEL-2&dimension=pe:LAST_12_MONTHS&relativePeriodDate=2022-01-01&hierarchyMeta=true",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "stageOuFilterLevel2BothHierarchies",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?filter=A03MvHHogjR.ou:LEVEL-2&dimension=pe:LAST_12_MONTHS&relativePeriodDate=2022-01-01&showHierarchy=true&hierarchyMeta=true",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

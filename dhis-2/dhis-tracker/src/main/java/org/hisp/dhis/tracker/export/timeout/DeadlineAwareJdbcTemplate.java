@@ -32,6 +32,9 @@ package org.hisp.dhis.tracker.export.timeout;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
+import org.hisp.dhis.deadline.Deadline;
+import org.hisp.dhis.deadline.DeadlineExceededException;
+import org.hisp.dhis.deadline.DeadlineHolder;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -42,8 +45,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * what keeps the timeout off every other product.
  *
  * <p>Spring's own {@code DataSourceUtils.applyTimeout} cannot be reused: it reads a thread-bound
- * {@code ConnectionHolder} that the parallel branches of {@code TrackedEntityAggregate} never see,
- * and its fallback is a fixed timeout rather than a shrinking budget.
+ * {@code ConnectionHolder} that these reads do not reliably run inside, and its fallback is a fixed
+ * timeout rather than a shrinking budget.
  */
 public class DeadlineAwareJdbcTemplate extends JdbcTemplate {
 
@@ -64,7 +67,7 @@ public class DeadlineAwareJdbcTemplate extends JdbcTemplate {
       return; // feature off, or a background job rather than a request
     }
 
-    // fail fast rather than arming a 1s timeout per remaining statement only to fail anyway
+    // fail fast rather than setting a 1s timeout per remaining statement only to fail anyway
     DeadlineHolder.checkNotExpired();
 
     stmt.setQueryTimeout(deadline.remainingSecondsCeil());
