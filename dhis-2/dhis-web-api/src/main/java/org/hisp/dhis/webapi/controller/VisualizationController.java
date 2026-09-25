@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.CollectionUtils;
@@ -201,6 +202,7 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
     List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
 
     visualization.getDataDimensionItems().stream()
+        .filter(Objects::nonNull)
         .filter(ddi -> ddi.getExpressionDimensionItem() != null)
         .forEach(
             ddi -> {
