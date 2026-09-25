@@ -174,6 +174,42 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateValueDimensionAsLegendSetItemSuccess() {
+    QueryItem item = new QueryItem(deA, lsA, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .withValue(deA)
+            .addItem(item)
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsWithValueDimensionAsOptionSetItem() {
+    QueryItem item = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), osA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .withValue(deA)
+            .addItem(item)
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7203, error.getErrorCode());
+  }
+
+  @Test
   void validateValidTimeField() {
     EventQueryParams params =
         new EventQueryParams.Builder()
