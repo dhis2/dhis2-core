@@ -1,0 +1,23 @@
+{
+  "additionalProperties": true,
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "file": {},
+    "id": {
+      "type": "string"
+    },
+    "key": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "id"
+  ],
+  "type": "object"
+}
