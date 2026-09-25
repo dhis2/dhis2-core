@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
@@ -177,6 +178,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     ProgramStage ps =
         programStageService.getProgramStage(
             getStageInValue(request.getValue(), request.getStage()));
+
+    validateStagePrefixInValue(request.getValue(), pr, ps);
 
     if (StringUtils.isNotEmpty(request.getStage()) && ps == null) {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
@@ -1091,6 +1094,29 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     if (StringUtils.isNotBlank(value)
         && !RepeatableStageParamsHelper.getRepeatableStageParams(value).isDefaultObject()) {
       throwIllegalQueryEx(ErrorCode.E7264, value);
+    }
+  }
+
+  /**
+   * Rejects a "value" param whose prefix is neither a stage of the program nor the program itself,
+   * such as a mistyped stage or a stage of another program. Accepting it would silently aggregate
+   * across all stages or return an empty result.
+   *
+   * @param value the "value" request param, may be null.
+   * @param program the {@link Program} of the query.
+   * @param stage the {@link ProgramStage} resolved from the prefix, may be null.
+   */
+  private static void validateStagePrefixInValue(
+      String value, Program program, ProgramStage stage) {
+    if (StringUtils.isBlank(value) || !value.contains(DIMENSION_IDENTIFIER_SEP)) {
+      return;
+    }
+
+    String prefix = substringBefore(value, DIMENSION_IDENTIFIER_SEP);
+
+    if (!prefix.equals(program.getUid())
+        && (stage == null || !program.getProgramStages().contains(stage))) {
+      throwIllegalQueryEx(ErrorCode.E7130, prefix);
     }
   }
 

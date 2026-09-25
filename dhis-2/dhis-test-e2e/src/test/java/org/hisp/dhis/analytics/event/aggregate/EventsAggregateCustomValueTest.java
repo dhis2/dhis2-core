@@ -98,6 +98,36 @@ public class EventsAggregateCustomValueTest extends AnalyticsApiTest {
   }
 
   @Test
+  void unknownStagePrefixInValueIsRejected() {
+    QueryParamsBuilder params =
+        baseParams().add("value=" + STAGE + "X." + HEMOGLOBIN).add("aggregationType=AVERAGE");
+
+    ApiResponse response = analyticsEventActions.aggregate().get(PROGRAM, JSON, JSON, params);
+
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7130"));
+  }
+
+  @Test
+  void programPrefixInValueAggregatesTheAttribute() {
+    QueryParamsBuilder params =
+        tbParams()
+            .add("value=" + TB_PROGRAM + "." + HEIGHT_TEA_OF_TYPE_NONE)
+            .add("aggregationType=AVERAGE");
+
+    ApiResponse response = analyticsEventActions.aggregate().get(TB_PROGRAM, JSON, JSON, params);
+
+    response.validate().statusCode(200).body("rows", hasSize(equalTo(2)));
+
+    validateRow(response, List.of("ImspTQPwCqd", "2021", "169.0"));
+    validateRow(response, List.of("ImspTQPwCqd", "2022", "171.06"));
+  }
+
+  @Test
   void defaultAggregationTypeUsesTheElementsOwnAggregationType() {
     QueryParamsBuilder params =
         baseParams()
