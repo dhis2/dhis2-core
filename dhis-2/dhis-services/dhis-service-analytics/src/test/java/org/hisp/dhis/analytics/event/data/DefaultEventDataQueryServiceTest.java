@@ -1395,6 +1395,78 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestRejectsValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(element.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsDefaultAggregationTypeOnValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.DEFAULT)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsExplicitAggregationTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.NONE)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestAcceptsOverrideOnValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(AggregationType.AVERAGE, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestIgnoresValueOfTypeNoneOnQueryEndpoint() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).value(element.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(element.getUid(), params.getValue().getUid());
+  }
+
+  @Test
   void getFromRequestPromotesStagePrefixedHeaderIntoItemWhenNotInDimensions() {
     ProgramStage programStage = createProgramStage('S', program);
     DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);

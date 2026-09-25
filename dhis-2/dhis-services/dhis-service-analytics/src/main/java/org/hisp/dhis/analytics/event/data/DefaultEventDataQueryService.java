@@ -254,6 +254,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     EventQueryParams eventQueryParams = builder.build();
 
+    if (isAggregateRequest(request)) {
+      validateValueHasAggregationType(eventQueryParams);
+    }
+
     // Partitioning applies only when default period is specified
 
     // Empty period dimension means default period
@@ -1087,6 +1091,19 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     if (StringUtils.isNotBlank(value)
         && !RepeatableStageParamsHelper.getRepeatableStageParams(value).isDefaultObject()) {
       throwIllegalQueryEx(ErrorCode.E7264, value);
+    }
+  }
+
+  /**
+   * Rejects an aggregate query whose "value" resolves to aggregation type NONE, either as the value
+   * element's own aggregation type or as an explicit override. Such a query would select null for
+   * every row.
+   *
+   * @param params the {@link EventQueryParams} built from the request.
+   */
+  private static void validateValueHasAggregationType(EventQueryParams params) {
+    if (params.hasValueDimension() && params.isAggregationType(AggregationType.NONE)) {
+      throwIllegalQueryEx(ErrorCode.E7265, params.getValue().getUid());
     }
   }
 
