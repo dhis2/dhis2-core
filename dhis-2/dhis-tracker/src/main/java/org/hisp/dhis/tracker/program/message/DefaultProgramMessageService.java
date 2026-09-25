@@ -253,6 +253,10 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     // Iterate over a copy: a channel whose recipient cannot be resolved at all (e.g. a tracked
     // entity with no attribute value of the required type) is dropped from the message so that
     // the remaining deliverable channels are still sent, instead of aborting the whole send.
+    //
+    // Known inconsistency, a channel whose org unit contact detail is missing now stays on the
+    // persisted ProgramMessage.deliveryChannels instead of being removed as it was before.
+    // A channel whose tracked entity attribute is missing is still removed.
     for (DeliveryChannel channel : new HashSet<>(message.getDeliveryChannels())) {
       for (DeliveryChannelStrategy strategy : strategies) {
         if (strategy.getDeliveryChannel().equals(channel)) {

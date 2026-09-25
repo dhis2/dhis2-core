@@ -119,7 +119,9 @@ class DefaultProgramMessageServiceTest {
 
     // The channel stays configured on the message: whether a recipient could actually be
     // resolved for it is decided when the OutboundMessage is built for that channel, not by
-    // removing the channel upfront.
+    // removing the channel upfront. This differs from a tracked entity recipient, whose missing
+    // attribute still removes the channel (see DefaultProgramMessageService
+    // #setAttributesBasedOnStrategy).
     assertContainsOnly(
         Set.of(DeliveryChannel.SMS, DeliveryChannel.EMAIL), message.getDeliveryChannels());
 
