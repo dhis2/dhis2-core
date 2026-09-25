@@ -206,7 +206,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     EventQueryParams.Builder builder =
         params
-            .withValue(getValueDimension(request.getValue()))
+            .withValue(getValueDimension(request.getValue(), pr))
             .withRequestValue(request.getValue())
             .withSkipRounding(request.isSkipRounding())
             .withShowHierarchy(request.isShowHierarchy())
@@ -1090,7 +1090,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
-  private DimensionalItemObject getValueDimension(String value) {
+  private DimensionalItemObject getValueDimension(String value, Program program) {
     if (value == null) {
       return null;
     }
@@ -1099,13 +1099,17 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     DataElement de = dataElementService.getDataElement(dimValue);
 
-    if (de != null && (de.isNumericType() || de.getValueType().isBoolean())) {
+    if (de != null
+        && (de.isNumericType() || de.getValueType().isBoolean())
+        && program.getDataElements().contains(de)) {
       return de;
     }
 
     TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute(dimValue);
 
-    if (at != null && (at.isNumericType() || at.getValueType().isBoolean())) {
+    if (at != null
+        && (at.isNumericType() || at.getValueType().isBoolean())
+        && program.getTrackedEntityAttributes().contains(at)) {
       return at;
     }
 
