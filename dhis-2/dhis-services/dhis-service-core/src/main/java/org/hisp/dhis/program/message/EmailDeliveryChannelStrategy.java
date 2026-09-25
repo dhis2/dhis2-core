@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.message;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -58,8 +59,8 @@ public class EmailDeliveryChannelStrategy extends DeliveryChannelStrategy {
 
     TrackedEntity te = getTrackedEntity(message);
 
-    if (orgUnit != null) {
-      message.getRecipients().getEmailAddresses().add(getOrganisationUnitRecipient(orgUnit));
+    if (orgUnit != null && StringUtils.isNotBlank(orgUnit.getEmail())) {
+      message.getRecipients().getEmailAddresses().add(orgUnit.getEmail());
     }
 
     if (te != null) {
@@ -91,16 +92,5 @@ public class EmailDeliveryChannelStrategy extends DeliveryChannelStrategy {
 
       throw new IllegalQueryException(violation);
     }
-  }
-
-  @Override
-  public String getOrganisationUnitRecipient(OrganisationUnit orgUnit) {
-    if (orgUnit.getEmail() == null) {
-      log.error("Organisation unit does not have an email address");
-
-      throw new IllegalQueryException("Organisation unit does not have an email address");
-    }
-
-    return orgUnit.getEmail();
   }
 }
