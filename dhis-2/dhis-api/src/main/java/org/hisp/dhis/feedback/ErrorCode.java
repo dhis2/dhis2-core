@@ -443,6 +443,12 @@ public enum ErrorCode {
   E6021("AttributeValue `{0}` is an invalid phone number"),
   E6022("Object cannot reference itself by property `{0}`"),
   E6023("Type `{0}` cannot be imported via metadata"),
+  E6024("Object reference `{0}` is not of the form `type:id`"),
+  E6026("Type `{0}` is not supported as a dependency export root, supported types are: {1}"),
+  E6028("At least one `objects` parameter must be given, of the form `type:id`"),
+  E6029(
+      "Type `{0}` is not yet available for multi-object dependency export, use that type''s"
+          + " single-object metadata endpoint instead. Available types: {1}"),
 
   /* File resource */
   E6100("Filename not present"),
