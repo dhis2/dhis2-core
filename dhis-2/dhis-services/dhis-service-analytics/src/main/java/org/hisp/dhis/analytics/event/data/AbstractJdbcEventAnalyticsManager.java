@@ -44,8 +44,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.apache.commons.lang3.math.NumberUtils.createDouble;
-import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -141,7 +139,9 @@ import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlFragments;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
+import org.hisp.dhis.analytics.event.data.stage.StageSortField;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -174,14 +174,12 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -351,6 +349,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return enrollmentOuColumn.get();
     }
 
+    if (cteContext.isEnrollmentAnalytics()) {
+      Optional<String> stageSortColumn = resolveStageSortColumn(item, cteContext);
+      if (stageSortColumn.isPresent()) {
+        return stageSortColumn.get();
+      }
+    }
+
     DimensionItemType itemType = item.getItem().getDimensionItemType();
 
     if (itemType == null) {
@@ -362,6 +367,40 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       case DATA_ELEMENT -> getDataElementColumn(cteContext, item);
       default -> getDefaultColumn(params, item);
     };
+  }
+
+  /**
+   * Resolves a stage-scoped sort field ({@link StageSortField}) to the column of the stage CTE it
+   * reads from, e.g. {@code <alias>.ev_ouname} for {@code <stage>.ouname}. Fails rather than
+   * falling through to an unqualified column name, which would silently order by the enrollment's
+   * own column.
+   *
+   * @return the qualified column, or empty when the item is not a stage sort field.
+   */
+  private Optional<String> resolveStageSortColumn(QueryItem item, CteContext cteContext) {
+    Optional<StageSortField> field = stageSortField(item);
+    if (field.isEmpty()) {
+      return Optional.empty();
+    }
+    String cteKey = CteUtils.computeKey(field.get().toCanonicalItem(item));
+    CteDefinition cteDef = cteContext.getDefinitionByItemUid(cteKey);
+    if (cteDef == null) {
+      throw new IllegalQueryException(ErrorCode.E7148, item.getItemId());
+    }
+    String alias =
+        cteDef.isFilter()
+            ? cteDef.getAlias()
+            : cteDef.getAlias(computeRowNumberOffset(item.getProgramStageOffset()));
+    return Optional.of(alias + "." + field.get().getEnrollmentCteColumn());
+  }
+
+  private static Optional<StageSortField> stageSortField(QueryItem item) {
+    return item.hasProgramStage() ? StageSortField.forItemId(item.getItemId()) : Optional.empty();
+  }
+
+  private boolean hasStageSortField(EventQueryParams params) {
+    return getDistinctOrderByColumns(params).stream()
+        .anyMatch(item -> stageSortField(item).isPresent());
   }
 
   private String getProgramIndicatorColumn(CteContext cteContext, QueryItem item) {
@@ -597,6 +636,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, isGroupByClause, isAggregated, getAnalyticsType(), sqlBuilder);
+
+    RegistrationOuSqlCoordinator.dimensionSelectColumn(
+            params, isGroupByClause, isAggregated, sqlBuilder)
+        .ifPresent(columns::add);
 
     if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
       columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
@@ -1422,11 +1465,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Double value type will be added into the grid. There is special handling for Option Set (Type
-   * numeric)/Option. The code in grid/meta info and related value in row has to be the same (FE
-   * request) if possible. The string interpretation of code coming from Option/Code can vary from
-   * Option/value (double) fetched from database ("1" vs "1.0") By the equality (both are converted
-   * to double) of both the Option/Code is used as a value.
+   * Double value type will be added into the grid.
    *
    * @param number the value.
    * @param grid the {@link Grid}.
@@ -1435,33 +1474,48 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addGridDoubleTypeValue(
       Double number, Grid grid, GridHeader header, EventQueryParams params) {
-    Optional<QueryItem> programIndicatorItem =
-        params.getItems().stream()
-            .filter(
-                item -> item.isProgramIndicator() && header.getName().equals(item.getItemName()))
-            .findFirst();
+    grid.addValue(formatDouble(number, header, params));
+  }
 
+  /**
+   * Returns the string representation of the given number for the given header.
+   *
+   * <p>There is special handling for Option Set (Type numeric)/Option. The code in grid/meta info
+   * and related value in row has to be the same (FE request) if possible. The string interpretation
+   * of code coming from Option/Code can vary from Option/value (double) fetched from database ("1"
+   * vs "1.0") By the equality (both are converted to double) of both the Option/Code is used as a
+   * value. A program indicator is rounded to its own number of decimals. Any other number is
+   * rounded to the default scale.
+   *
+   * @param number the value.
+   * @param header the {@link GridHeader}.
+   * @param params the {@link EventQueryParams}.
+   * @return the value to be added to the grid.
+   */
+  String formatDouble(Double number, GridHeader header, EventQueryParams params) {
     if (header.hasOptionSet()) {
-      Optional<Option> option =
-          header.getOptionSetObject().getOptions().stream()
-              .filter(
-                  o ->
-                      isCreatable(o.getCode())
-                          && MathUtils.isEqual(createDouble(o.getCode()), number))
-              .findFirst();
-
-      if (option.isPresent()) {
-        grid.addValue(option.get().getCode());
-      } else {
-        grid.addValue(round(number, params.isSkipRounding()));
-      }
-    } else if (programIndicatorItem.isPresent()) {
-      ProgramIndicator programIndicator = (ProgramIndicator) programIndicatorItem.get().getItem();
-
-      grid.addValue(round(number, params, programIndicator.getDecimals()));
-    } else {
-      grid.addValue(round(number, params.isSkipRounding()));
+      return QueryItemHelper.getMatchingOptionCode(header.getOptionSetObject(), number)
+          .orElseGet(() -> round(number, params.isSkipRounding()));
     }
+
+    return findProgramIndicator(header, params)
+        .map(programIndicator -> round(number, params, programIndicator.getDecimals()))
+        .orElseGet(() -> round(number, params.isSkipRounding()));
+  }
+
+  /**
+   * Returns the {@link ProgramIndicator} the given header refers to, if any.
+   *
+   * @param header the {@link GridHeader}.
+   * @param params the {@link EventQueryParams}.
+   * @return the matching {@link ProgramIndicator}, or empty when the header is not one.
+   */
+  private Optional<ProgramIndicator> findProgramIndicator(
+      GridHeader header, EventQueryParams params) {
+    return params.getItems().stream()
+        .filter(item -> item.isProgramIndicator() && header.getName().equals(item.getItemName()))
+        .findFirst()
+        .map(item -> (ProgramIndicator) item.getItem());
   }
 
   /**
@@ -1475,10 +1529,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String round(Double number, EventQueryParams params, Integer decimals) {
     double roundedNumber = getRoundedValue(params, decimals, number).doubleValue();
-    String noTrailingZerosValue =
-        BigDecimal.valueOf(roundedNumber).stripTrailingZeros().toPlainString();
-
-    return noTrailingZerosValue;
+    return BigDecimal.valueOf(roundedNumber).stripTrailingZeros().toPlainString();
   }
 
   /**
@@ -2293,6 +2344,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (cteContext.isEnrollmentAnalytics()) {
       // Filter CTEs are only meaningful for Enrollment queries
       generateFilterCTEs(params, cteContext);
+      registerStageSortCtes(params, cteContext);
     }
 
     addEventProgramIndicatorCandidatesCte(params, cteContext);
@@ -2874,6 +2926,27 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return cteContext;
+  }
+
+  /**
+   * Registers the stage CTE each stage-scoped sort field ({@link StageSortField}) reads from,
+   * unless a projected or filtered item already registered it. Must run after {@link
+   * #generateFilterCTEs}: a field that is only filtered keeps its filter CTE, which ranks matching
+   * events, and the sort reads from that. Fields sharing a CTE (e.g. {@code ouname} and {@code
+   * oucode}) are mapped to their canonical item first, so one CTE serves all of them. A sort-only
+   * registration carries no filter, so it is left-joined and never restricts the result set.
+   */
+  private void registerStageSortCtes(EventQueryParams params, CteContext cteContext) {
+    for (QueryItem sortItem : getDistinctOrderByColumns(params)) {
+      Optional<StageSortField> field = stageSortField(sortItem);
+      if (field.isEmpty()) {
+        continue;
+      }
+      QueryItem canonical = field.get().toCanonicalItem(sortItem);
+      if (cteContext.getDefinitionByItemUid(CteUtils.computeKey(canonical)) == null) {
+        buildProgramStageCte(cteContext, canonical, params);
+      }
+    }
   }
 
   void handleProgramIndicatorCte(QueryItem item, CteContext cteContext, EventQueryParams params) {
@@ -3628,7 +3701,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String buildEnrollmentPrefilterSql(EventQueryParams params) {
     List<DimensionalItemObject> orgUnits = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
 
-    if (!params.hasStageSpecificItem()
+    if ((!params.hasStageSpecificItem() && !hasStageSortField(params))
         || orgUnits.isEmpty()
         || getAnalyticsType() != AnalyticsType.ENROLLMENT) {
       return "";

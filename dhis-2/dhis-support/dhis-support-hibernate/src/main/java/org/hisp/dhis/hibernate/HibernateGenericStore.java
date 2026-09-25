@@ -59,6 +59,7 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.deadline.DeadlineQueries;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -114,17 +115,19 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
    */
   @SuppressWarnings("unchecked")
   protected final Query<T> getQuery(@Language("hql") String hql) {
-    return getSession()
-        .createQuery(hql)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return DeadlineQueries.withDeadline(
+        getSession()
+            .createQuery(hql)
+            .setCacheable(cacheable)
+            .setHint(QueryHints.CACHEABLE, cacheable));
   }
 
   protected final <C> Query<C> getQuery(@Language("hql") String hql, Class<C> customClass) {
-    return getSession()
-        .createQuery(hql, customClass)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return DeadlineQueries.withDeadline(
+        getSession()
+            .createQuery(hql, customClass)
+            .setCacheable(cacheable)
+            .setHint(QueryHints.CACHEABLE, cacheable));
   }
 
   /**
@@ -135,10 +138,11 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
    */
   @SuppressWarnings("unchecked")
   protected final <V> Query<V> getTypedQuery(@Language("hql") String hql) {
-    return getSession()
-        .createQuery(hql)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+    return DeadlineQueries.withDeadline(
+        getSession()
+            .createQuery(hql)
+            .setCacheable(cacheable)
+            .setHint(QueryHints.CACHEABLE, cacheable));
   }
 
   /** Override to add additional restrictions to criteria before it is invoked. */
@@ -158,7 +162,8 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
    * @return executable TypedQuery
    */
   private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery) {
-    return entityManager.createQuery(criteriaQuery).setHint(QueryHints.CACHEABLE, cacheable);
+    return DeadlineQueries.withDeadline(
+        entityManager.createQuery(criteriaQuery).setHint(QueryHints.CACHEABLE, cacheable));
   }
 
   /** Method for adding additional Predicates into where clause */
@@ -317,9 +322,10 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
       query.where(predicates.toArray(new Predicate[0]));
     }
 
-    return getSession()
-        .createQuery(query)
-        .setHint(QueryHints.CACHEABLE, parameters.isCacheable(cacheable))
+    return DeadlineQueries.withDeadline(
+            getSession()
+                .createQuery(query)
+                .setHint(QueryHints.CACHEABLE, parameters.isCacheable(cacheable)))
         .getSingleResult();
   }
 

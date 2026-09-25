@@ -345,6 +345,71 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldOrderTrackedEntitiesByUidAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnit)
+            .orgUnitMode(SELECTED)
+            .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityType(trackedEntityType)
+            .orderBy("uid", SortDirection.ASC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByUidDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnit)
+            .orgUnitMode(SELECTED)
+            .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityType(trackedEntityType)
+            .orderBy("uid", SortDirection.DESC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByLastUpdatedDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");
+    TrackedEntity dUE514NMOlo = get(TrackedEntity.class, "dUE514NMOlo");
+
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnit)
+            .orgUnitMode(SELECTED)
+            .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityType(trackedEntityType)
+            .orderBy("lastUpdated", SortDirection.DESC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    if (QS6w44flWAf.getLastUpdated().equals(dUE514NMOlo.getLastUpdated())) {
+      // the order is non-deterministic if the last updated date is the same. we can then only
+      // assert the correct TEs are in the result. otherwise the test is flaky
+      assertContainsOnly(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+    } else {
+      List<String> expected =
+          Stream.of(QS6w44flWAf, dUE514NMOlo)
+              .sorted(Comparator.comparing(TrackedEntity::getLastUpdated).reversed()) // desc
+              .map(TrackedEntity::getUid)
+              .toList();
+      assertEquals(expected, trackedEntities);
+    }
+  }
+
+  @Test
   void shouldOrderTrackedEntitiesByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");

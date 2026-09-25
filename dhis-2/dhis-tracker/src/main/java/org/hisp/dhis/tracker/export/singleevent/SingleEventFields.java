@@ -44,16 +44,21 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 @ToString
 @EqualsAndHashCode
 public class SingleEventFields {
+  private final boolean includesNotes;
+
   private final boolean includesRelationships;
   private final RelationshipFields relationshipFields;
 
   private SingleEventFields(Builder builder) {
+    this.includesNotes = builder.includesNotes;
     this.includesRelationships = builder.includesRelationships;
     this.relationshipFields =
         builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
   }
 
   private SingleEventFields(Predicate<String> includesFields, String pathSeparator) {
+    this.includesNotes = includesFields.test("notes");
+
     if (includesFields.test("relationships")) {
       this.includesRelationships = true;
       this.relationshipFields =
@@ -87,10 +92,16 @@ public class SingleEventFields {
   }
 
   public static class Builder {
+    private boolean includesNotes;
     private boolean includesRelationships;
     private RelationshipFields relationshipFields;
 
     private Builder() {}
+
+    public Builder includeNotes() {
+      this.includesNotes = true;
+      return this;
+    }
 
     /** Indicates that relationships should be exported with the given {@code fields}. */
     public Builder includeRelationships(@Nonnull RelationshipFields fields) {

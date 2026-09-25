@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.analytics.trackedentity.query;
+
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.query.Renderable;
 
 /**
- * Temporary solution: pair of primary key and uid needed by the aggregate store.
- *
- * @deprecated do not use this class! This is a temporary solution that will be removed.
+ * Resolves a data element's value to the SQL expression a condition compares against. The default
+ * reads the value out of the event row the condition's own subquery is scoped to, which is what the
+ * row level query does. A grouped aggregate query passes a resolver that reads it from the single
+ * event chosen for each tracked entity, the same event it groups on.
  */
-public record TrackedEntityIdentifiers(Long id, String uid) {}
+@FunctionalInterface
+public interface DataValueResolver {
+
+  Renderable resolve(ValueTypeMapping valueTypeMapping);
+}

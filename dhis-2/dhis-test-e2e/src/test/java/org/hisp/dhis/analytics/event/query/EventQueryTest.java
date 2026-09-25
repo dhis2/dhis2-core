@@ -1223,4 +1223,26 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     // no rows to assert
   }
+
+  @Test
+  public void queryRejectsUnknownStageSortField() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:lY93YpCxJqf")
+            .add("stage=A03MvHHogjR")
+            .add("eventDate=202112")
+            .add("headers=A03MvHHogjR.ouname")
+            .add("asc=A03MvHHogjR.bogus");
+
+    // When
+    ApiResponse response = analyticsEventActions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("errorCode", equalTo("E7224"));
+  }
 }

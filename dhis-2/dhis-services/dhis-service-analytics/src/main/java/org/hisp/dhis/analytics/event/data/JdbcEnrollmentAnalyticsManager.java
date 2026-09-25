@@ -65,6 +65,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
@@ -74,6 +75,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.aggregate.AggregatedEnrollmentDateHeaderResolver;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
@@ -385,6 +387,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
+    sql.append(RegistrationOuSqlCoordinator.joinClause(params, sqlBuilder));
+
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
 
@@ -392,6 +396,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), "ax");
+    RegistrationOuSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
   }
 
   /**
@@ -556,6 +561,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + params.getBbox()
               + ",4326) ";
     }
+
+    sql += RegistrationOuSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
 
     return sql;
   }
@@ -734,11 +741,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     addDimensionSelectColumns(columns, params, true, true);
     removeLegacyPeriodDimensionColumns(columns, params);
 
+    // The registration OU projection is added separately, qualified and aliased, because stripping
+    // its table alias would leave a uidlevelN reference that is ambiguous once regous is joined.
+    boolean joinsRegistrationOu = params.hasRegistrationOu();
+    columns.removeIf(RegistrationOuSqlCoordinator::isRegistrationOuColumn);
+
     SelectBuilder sb = new SelectBuilder();
     sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
-      sb.addColumn(SqlColumnParser.removeTableAlias(column));
+      String stripped = SqlColumnParser.removeTableAlias(column);
+      sb.addColumn(
+          joinsRegistrationOu
+              ? RegistrationOuSqlCoordinator.preserveQualifierIfAmbiguous(column, stripped)
+              : stripped);
     }
+    RegistrationOuSqlCoordinator.baseCteSelectColumn(params, sqlBuilder).ifPresent(sb::addColumn);
 
     addNonDefaultPeriodSourceColumns(sb, params);
 
@@ -755,6 +772,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       }
       String colToAdd =
           dateHeaderResolver.normalizeHeaderKey(SqlColumnParser.removeTableAlias(column));
+      // Added above as a qualified, aliased projection; a bare copy would resolve to the raw
+      // registration OU uid instead of the requested ancestor level.
+      if (ColumnHeader.REGISTRATION_OU.getItem().equals(colToAdd)) {
+        continue;
+      }
       if (!programIndicators.contains(colToAdd)) {
         Optional<AggregatedEnrollmentDateHeaderResolver.BaseAggregationHeaderProjection>
             headerProjection =
@@ -1183,6 +1205,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       aggregatedAssembler.addAggregatedColumns(sb);
     } else {
       aggregatedAssembler.addStandardColumns(sb, cteContext, getStandardColumns(params));
+
+      RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder).forEach(sb::addColumn);
     }
 
     // Append columns from CTE definitions

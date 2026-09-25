@@ -443,6 +443,12 @@ public enum ErrorCode {
   E6021("AttributeValue `{0}` is an invalid phone number"),
   E6022("Object cannot reference itself by property `{0}`"),
   E6023("Type `{0}` cannot be imported via metadata"),
+  E6024("Object reference `{0}` is not of the form `type:id`"),
+  E6026("Type `{0}` is not supported as a dependency export root, supported types are: {1}"),
+  E6028("At least one `objects` parameter must be given, of the form `type:id`"),
+  E6029(
+      "Type `{0}` is not yet available for multi-object dependency export, use that type''s"
+          + " single-object metadata endpoint instead. Available types: {1}"),
 
   /* File resource */
   E6100("Filename not present"),
@@ -624,6 +630,15 @@ public enum ErrorCode {
   E7256("Value `{0}` is not a numeric tracked entity attribute of tracked entity type `{1}`"),
   E7257(
       "Value `{0}` does not reference a numeric data element of a program stage; expected format `programUid.programStageUid.dataElementUid`"),
+  E7258(
+      "Dimension is not supported as a group by in a tracked entity aggregate query: `{0}`. Supported dimensions are the registration organisation unit, tracked entity static fields, tracked entity attributes, and program or program stage scoped organisation units, dates, statuses and data elements"),
+  E7259("Dimension `{0}` is not supported for a program without registration"),
+  E7260("Dimension `{0}` must specify organisation units in an aggregate query"),
+  E7261(
+      "Dimension `{0}` does not support organisation units at different hierarchy levels in an aggregate query"),
+  E7262("Sorting by `{0}` requires the `{1}` dimension"),
+  E7263(
+      "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

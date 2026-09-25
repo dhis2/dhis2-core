@@ -178,6 +178,131 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateSucceedsWithRegistrationOuAsOnlyOrgUnitDimension() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withRegistrationOuDimension(List.of(ouA))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateSucceedsWithRegistrationOuAsOnlyOrgUnitFilter() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withRegistrationOuFilter(List.of(ouA))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  /**
+   * A REGISTRATION_OU dimension named without items projects columns but restricts nothing, so it
+   * must not satisfy the "at least one organisation unit" rule.
+   */
+  @Test
+  void validateFailsWithBareRegistrationOuAsOnlyOrgUnitDimension() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withRegistrationOuDimension(List.of())
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7200, error.getErrorCode());
+  }
+
+  @Test
+  void validateFailsSortingByRegistrationOuNameWithoutRegistrationOuDimension() {
+    EventQueryParams params =
+        registrationOuSortParamsBuilder()
+            .withOrganisationUnits(List.of(ouA))
+            .addDescSortItem(sortItem(ColumnHeader.REGISTRATION_OU_NAME.getItem()))
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7262, error.getErrorCode());
+  }
+
+  /**
+   * The uid variant resolves to the physical registrationou column, so it produces no database
+   * error, but it sorts by the org unit the entity was registered in rather than the requested
+   * ancestor. Rejected for the same reason.
+   */
+  @Test
+  void validateFailsSortingByRegistrationOuWithoutRegistrationOuDimension() {
+    EventQueryParams params =
+        registrationOuSortParamsBuilder()
+            .withOrganisationUnits(List.of(ouA))
+            .addAscSortItem(sortItem(ColumnHeader.REGISTRATION_OU.getItem()))
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7262, error.getErrorCode());
+  }
+
+  /** A filter joins the org unit structure table but projects no column to sort on. */
+  @Test
+  void validateFailsSortingByRegistrationOuNameWithFilterOnly() {
+    EventQueryParams params =
+        registrationOuSortParamsBuilder()
+            .withRegistrationOuFilter(List.of(ouA))
+            .addAscSortItem(sortItem(ColumnHeader.REGISTRATION_OU_NAME.getItem()))
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7262, error.getErrorCode());
+  }
+
+  @Test
+  void validateSucceedsSortingByRegistrationOuNameWithRegistrationOuDimension() {
+    EventQueryParams params =
+        registrationOuSortParamsBuilder()
+            .withRegistrationOuDimension(List.of(ouA))
+            .addDescSortItem(sortItem(ColumnHeader.REGISTRATION_OU_NAME.getItem()))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  /** A bare dimension projects both columns on the query endpoints, so its sort resolves. */
+  @Test
+  void validateSucceedsSortingByRegistrationOuNameWithBareRegistrationOuDimension() {
+    EventQueryParams params =
+        registrationOuSortParamsBuilder()
+            .withOrganisationUnits(List.of(ouA))
+            .withRegistrationOuDimension(List.of())
+            .addDescSortItem(sortItem(ColumnHeader.REGISTRATION_OU_NAME.getItem()))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  private EventQueryParams.Builder registrationOuSortParamsBuilder() {
+    return new EventQueryParams.Builder()
+        .withProgram(prA)
+        .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+        .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate());
+  }
+
+  private QueryItem sortItem(String itemName) {
+    return new QueryItem(new BaseDimensionalItemObject(itemName));
+  }
+
+  @Test
   void validateSingleDataElementMultipleProgramsQueryItemSuccess() {
     EventQueryParams params =
         new EventQueryParams.Builder()

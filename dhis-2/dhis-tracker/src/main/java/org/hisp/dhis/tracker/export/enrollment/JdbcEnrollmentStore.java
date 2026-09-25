@@ -71,16 +71,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Geometries;
+import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
+import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -102,6 +104,7 @@ class JdbcEnrollmentStore {
           "lastUpdated",
           "lastUpdatedAtClient");
 
+  @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   public List<Enrollment> getEnrollments(EnrollmentQueryParams enrollmentParams) {
@@ -120,6 +123,7 @@ class JdbcEnrollmentStore {
         sqlParams,
         new EnrollmentRowMapper(
             enrollmentParams.isIncludeAttributes(),
+            enrollmentParams.isIncludeNotes(),
             enrollmentParams.getEnrolledInTrackerProgram()));
   }
 
@@ -136,7 +140,7 @@ class JdbcEnrollmentStore {
    *   inner join organisationunit ou ...
    *   inner join organisationunit en_ou ...
    *   inner join (...) as coc ...
-   *   left join lateral (...) notes on true
+   *   left join lateral (...) notes on true   -- if includeNotes
    *   left join lateral (...) attrs on true   -- if includeAttributes
    * where ...
    * order by ...
@@ -155,7 +159,7 @@ class JdbcEnrollmentStore {
     addJoinOnOwnerOrgUnit(sql);
     addJoinOnEnrollmentOrgUnit(sql);
     addJoinOnCategoryOptionCombo(sql);
-    addLeftJoinOnNotes(sql);
+    addLeftJoinOnNotes(sql, enrollmentParams);
     addLeftJoinOnAttributes(sql, enrollmentParams);
     addWhereConditions(sql, sqlParams, enrollmentParams);
     addOrderBy(sql, enrollmentParams);
@@ -179,7 +183,6 @@ class JdbcEnrollmentStore {
           """
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
-            notes.jsonnotes as notes,
             coc.uid as coc_uid
           """);
     } else {
@@ -190,8 +193,15 @@ class JdbcEnrollmentStore {
             p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
-            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes,
+            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing,
             coc.uid as coc_uid
+          """);
+    }
+
+    if (params.isIncludeNotes()) {
+      sql.append(
+          """
+          , notes.jsonnotes as notes
           """);
     }
 
@@ -287,20 +297,12 @@ class JdbcEnrollmentStore {
     return !user.isSuper();
   }
 
-  private void addLeftJoinOnNotes(StringBuilder sql) {
-    sql.append(
-        """
-      left join lateral (
-        select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
-          'created', n.created, 'updatedByUid', u.uid,
-          'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
-          'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
-          from enrollment_notes en
-          join note n on n.noteid = en.noteid
-          join userinfo u on u.userinfoid = n.lastupdatedby
-          where en.enrollmentid = e.enrollmentid
-      ) notes on true
-    """);
+  private void addLeftJoinOnNotes(StringBuilder sql, EnrollmentQueryParams params) {
+    if (!params.isIncludeNotes()) {
+      return;
+    }
+
+    sql.append(JdbcNotes.leftJoinLateral("enrollment_notes", "enrollmentid", "e.enrollmentid"));
   }
 
   private void addLeftJoinOnAttributes(StringBuilder sql, EnrollmentQueryParams params) {
@@ -481,6 +483,7 @@ class JdbcEnrollmentStore {
             sqlParams,
             new EnrollmentRowMapper(
                 enrollmentParams.isIncludeAttributes(),
+                enrollmentParams.isIncludeNotes(),
                 enrollmentParams.getEnrolledInTrackerProgram()));
     return new Page<>(enrollments, pageParams, () -> countEnrollments(enrollmentParams));
   }
@@ -605,10 +608,13 @@ class JdbcEnrollmentStore {
 
   private static class EnrollmentRowMapper implements RowMapper<Enrollment> {
     private final boolean isIncludeAttributes;
+    private final boolean isIncludeNotes;
     private final Program program;
 
-    EnrollmentRowMapper(boolean isIncludeAttributes, @Nullable Program program) {
+    EnrollmentRowMapper(
+        boolean isIncludeAttributes, boolean isIncludeNotes, @Nullable Program program) {
       this.isIncludeAttributes = isIncludeAttributes;
+      this.isIncludeNotes = isIncludeNotes;
       this.program = program;
     }
 
@@ -673,9 +679,11 @@ class JdbcEnrollmentStore {
       enrollmentOrgUnit.setUid(rs.getString("en_org_unit_uid"));
       enrollment.setOrganisationUnit(enrollmentOrgUnit);
 
-      String jsonNotes = rs.getString("notes");
-      if (jsonNotes != null) {
-        enrollment.setNotes(mapEnrollmentNotes(jsonNotes));
+      if (isIncludeNotes) {
+        List<Note> notes = JdbcNotes.fromJson(rs.getString("notes"));
+        if (notes != null) {
+          enrollment.setNotes(notes);
+        }
       }
 
       if (isIncludeAttributes) {
@@ -708,35 +716,6 @@ class JdbcEnrollmentStore {
         log.error("Error mapping enrollment sharing: {}", jsonSharing);
         return null;
       }
-    }
-
-    private List<Note> mapEnrollmentNotes(String jsonNotes) {
-      List<JdbcNote> jdbcNotes;
-      ObjectMapper mapper = new ObjectMapper();
-      try {
-        jdbcNotes = mapper.readValue(jsonNotes, new TypeReference<>() {});
-      } catch (JsonProcessingException e) {
-        log.error("Error mapping enrollment notes: {}", jsonNotes);
-        return List.of();
-      }
-
-      List<Note> notes = new ArrayList<>();
-      for (JdbcNote jdbcNote : jdbcNotes) {
-        Note note = new Note();
-        note.setUid(jdbcNote.getUid());
-        note.setNoteText(jdbcNote.getText());
-        note.setCreated(DateUtils.safeParseDate(jdbcNote.getCreated()));
-        User user = new User();
-        user.setUid(jdbcNote.getUpdatedByUid());
-        user.setUsername(jdbcNote.getUpdatedByUsername());
-        user.setFirstName(jdbcNote.getUpdatedByFirstname());
-        user.setSurname(jdbcNote.getUpdatedBySurname());
-        user.setName(jdbcNote.getUpdatedByName());
-        note.setLastUpdatedBy(user);
-        notes.add(note);
-      }
-
-      return notes;
     }
 
     private Set<TrackedEntityAttributeValue> mapTrackedEntityAttributeValues(
@@ -782,19 +761,6 @@ class JdbcEnrollmentStore {
 
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
-  }
-
-  @Getter
-  @Setter
-  private static class JdbcNote {
-    private String uid;
-    private String text;
-    private String created;
-    private String updatedByUid;
-    private String updatedByUsername;
-    private String updatedByFirstname;
-    private String updatedBySurname;
-    private String updatedByName;
   }
 
   @Getter

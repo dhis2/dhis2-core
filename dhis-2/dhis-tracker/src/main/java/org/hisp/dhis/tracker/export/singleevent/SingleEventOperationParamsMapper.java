@@ -125,7 +125,8 @@ class SingleEventOperationParamsMapper {
         .setCategoryOptionCombo(attributeOptionCombo)
         .setEvents(operationParams.getEvents())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIdSchemeParams(operationParams.getIdSchemeParams());
+        .setIdSchemeParams(operationParams.getIdSchemeParams())
+        .setIncludeNotes(operationParams.getFields().isIncludesNotes());
   }
 
   private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, UserDetails user)

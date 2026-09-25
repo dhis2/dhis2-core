@@ -648,10 +648,10 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
           "__psde_cte_placeholder__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1')";
       // Malformed: Missing required key (e.g., deUid) - *SHOULD NOT MATCH* the defined pattern
       String malformedPlaceholder3 =
-          "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1')";
+          "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1', replaceNulls='true')";
       // Malformed: Extra comma
       String malformedPlaceholder4 =
-          "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1',, deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1')";
+          "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1',, deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='programInd1', replaceNulls='true')";
 
       String rawSql1 = "someFunction(" + malformedPlaceholder1;
       String rawSql2 = "someFunction(" + malformedPlaceholder2 + ")";
@@ -1262,7 +1262,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
   private String buildPsDePlaceholder(
       String psUid, String deUid, int offset, String boundaryHash, String piUid) {
     return String.format(
-        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
+        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s', replaceNulls='true')",
         psUid, deUid, offset, boundaryHash, piUid);
   }
 
