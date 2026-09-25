@@ -211,6 +211,9 @@ public class AuthenticationListener {
 
     if (Objects.nonNull(user) && !readOnly) {
       user.updateLastLogin();
+      if (user.isInvitation()) {
+        user.clearInvitation();
+      }
       try {
         userService.updateUser(user, new SystemUser());
       } catch (Exception e) {
