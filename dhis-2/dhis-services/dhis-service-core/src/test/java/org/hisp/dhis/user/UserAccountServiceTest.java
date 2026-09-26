@@ -30,7 +30,9 @@
 package org.hisp.dhis.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -261,17 +263,17 @@ class UserAccountServiceTest {
 
     when(settingsService.getCurrentSettings())
         .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "false")));
-    assertEquals(false, userAccountService.canUseEmailPasswordRecovery(user));
+    assertFalse(userAccountService.canUseEmailPasswordRecovery(user));
 
     when(settingsService.getCurrentSettings())
         .thenReturn(SystemSettings.of(Map.of("keyAccountRecovery", "true")));
     when(userService.validateRestore(user)).thenReturn(ErrorCode.E6203);
-    assertEquals(false, userAccountService.canUseEmailPasswordRecovery(user));
+    assertFalse(userAccountService.canUseEmailPasswordRecovery(user));
 
     when(userService.validateRestore(user)).thenReturn(null);
-    assertEquals(true, userAccountService.canUseEmailPasswordRecovery(user));
+    assertTrue(userAccountService.canUseEmailPasswordRecovery(user));
 
-    assertEquals(false, userAccountService.canUseEmailPasswordRecovery(null));
+    assertFalse(userAccountService.canUseEmailPasswordRecovery(null));
   }
 
   @Test
