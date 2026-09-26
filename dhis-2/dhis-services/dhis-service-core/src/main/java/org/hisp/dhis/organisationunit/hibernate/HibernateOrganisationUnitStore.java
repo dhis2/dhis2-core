@@ -29,23 +29,17 @@
  */
 package org.hisp.dhis.organisationunit.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.stream.Collectors.toSet;
-
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -61,19 +55,13 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.organisationunit.OrganisationUnitStore")
 public class HibernateOrganisationUnitStore
     extends HibernateIdentifiableObjectStore<OrganisationUnit> implements OrganisationUnitStore {
-  private final DbmsManager dbmsManager;
 
   public HibernateOrganisationUnitStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService,
-      DbmsManager dbmsManager) {
+      AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, OrganisationUnit.class, aclService, true);
-
-    checkNotNull(dbmsManager);
-
-    this.dbmsManager = dbmsManager;
   }
 
   // -------------------------------------------------------------------------
@@ -82,30 +70,30 @@ public class HibernateOrganisationUnitStore
 
   @Override
   public List<String> getOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "usermembership");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("usermembership");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
   @Override
   public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "userteisearchorgunits");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("userteisearchorgunits");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
   @Override
   public List<String> getDataViewOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "userdatavieworgunits");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("userdatavieworgunits");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
-  private static String getOrgUnitTablesUids(String username, String orgUnitTableName) {
+  private static String getOrgUnitTablesUids(String orgUnitTableName) {
     return """
         select ou.uid
         from organisationunit ou
         join %s um ON ou.organisationunitid = um.organisationunitid
         join userinfo ui ON um.userinfoid = ui.userinfoid
-        where ui.username = '%s';"""
-        .formatted(orgUnitTableName, username);
+        where ui.username = ?;"""
+        .formatted(orgUnitTableName);
   }
 
   @Override
@@ -129,17 +117,6 @@ public class HibernateOrganisationUnitStore
             "from OrganisationUnit o where o.parent is null and not exists "
                 + "(select 1 from OrganisationUnit io where io.parent = o.id)")
         .list();
-  }
-
-  @Override
-  public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences() {
-    return getQuery(
-            "from OrganisationUnit o where exists (select 1 from OrganisationUnit i "
-                + "where i.id <> o.id "
-                + "and i.path like concat('%', o.uid, '%') "
-                + "and o.path like concat('%', i.uid, '%'))")
-        .stream()
-        .collect(toSet());
   }
 
   @Override
@@ -308,18 +285,6 @@ public class HibernateOrganisationUnitStore
   // -------------------------------------------------------------------------
 
   @Override
-  public void updatePaths() {
-    getQuery("from OrganisationUnit ou where ou.path is null or ou.hierarchyLevel is null").list();
-  }
-
-  @Override
-  public void forceUpdatePaths() {
-    List<OrganisationUnit> organisationUnits =
-        new ArrayList<>(getQuery("from OrganisationUnit").list());
-    updatePaths(organisationUnits);
-  }
-
-  @Override
   public int getMaxLevel() {
     String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
@@ -345,20 +310,5 @@ public class HibernateOrganisationUnitStore
             OrganisationUnit.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
-  }
-
-  private void updatePaths(List<OrganisationUnit> organisationUnits) {
-    Session session = getSession();
-    int counter = 0;
-
-    for (OrganisationUnit organisationUnit : organisationUnits) {
-      session.update(organisationUnit);
-
-      if ((counter % 400) == 0) {
-        dbmsManager.flushSession();
-      }
-
-      counter++;
-    }
   }
 }

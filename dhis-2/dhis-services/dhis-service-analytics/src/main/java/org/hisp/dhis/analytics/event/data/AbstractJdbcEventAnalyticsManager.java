@@ -52,7 +52,6 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
@@ -144,6 +143,7 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlFragments;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
@@ -370,6 +370,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private String getColumnExpression(
       CteContext cteContext, EventQueryParams params, QueryItem item) {
+    // Enrollment org unit columns are read from the joined enrollment analytics table. Everything
+    // below resolves columns on the event table.
+    Optional<String> enrollmentOuColumn =
+        OrgUnitSqlFragments.sortColumn(item.getItem().getUid(), sqlBuilder);
+
+    if (enrollmentOuColumn.isPresent()) {
+      return enrollmentOuColumn.get();
+    }
+
     DimensionItemType itemType = item.getItem().getDimensionItemType();
 
     if (itemType == null) {
@@ -1273,7 +1282,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String getFilter(String filter, QueryItem item) {
     try {
-      if (!NV.equals(filter) && item.getValueType() == ValueType.DATETIME) {
+      if (!item.isNoValue(filter) && item.getValueType() == ValueType.DATETIME) {
         return DateFormatUtils.format(
             DateUtils.parseDate(
                 filter,
@@ -1859,13 +1868,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
 
       InQueryFilter inQueryFilter =
-          new InQueryFilter(prefixedField, sqlBuilder.escape(filterString), !item.isNumeric());
+          new InQueryFilter(
+              normalizeNoValueField(prefixedField, item, filter),
+              sqlBuilder.escape(filterString),
+              !item.isNumeric(),
+              item.hasOptionSet());
 
       return inQueryFilter.getSqlFilter();
     } else {
-      // NV filter has its own specific logic, so skip values
-      // comparisons when NV is set as filter
-      if (!NV.equals(filter.getFilter())) {
+      // The no-value keyword has its own specific logic, so skip value
+      // comparisons when it is set as the filter
+      if (!item.isNoValue(filter.getFilter())) {
         // Specific handling for null and empty values
         switch (filter.getOperator()) {
           case NEQ:
@@ -1879,13 +1892,40 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
 
-      return field
+      return normalizeNoValueField(field, item, filter)
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + SPACE;
     }
+  }
+
+  /**
+   * Wraps a text field in a null-normalising expression when the filter asks for the no-value
+   * keyword. ClickHouse stores an absent text value as an empty string rather than NULL, so an
+   * {@code is null} comparison against the raw column matches nothing. The select and group by
+   * clauses normalise the same column, so the filter must use the identical expression. The wrapper
+   * is a no-op on databases that store absent values as NULL.
+   *
+   * @param field the field to filter on.
+   * @param item the {@link QueryItem}.
+   * @param filter the {@link QueryFilter}.
+   * @return the field, wrapped when the filter selects the no-value keyword.
+   */
+  private String normalizeNoValueField(String field, QueryItem item, QueryFilter filter) {
+    boolean isText = item.getValueType() != null && item.getValueType().isText();
+
+    return isText && filtersOnNoValue(item, filter) ? sqlBuilder.nullIfEmpty(field) : field;
+  }
+
+  /** Indicates whether any of the filter values is the no-value keyword. */
+  private boolean filtersOnNoValue(QueryItem item, QueryFilter filter) {
+    if (filter.getFilter() == null) {
+      return false;
+    }
+
+    return QueryFilter.getFilterItems(filter.getFilter()).stream().anyMatch(item::isNoValue);
   }
 
   /**
@@ -1917,7 +1957,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + ", '') = '' or "
           + field
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + ") ";
@@ -1927,7 +1967,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + " is null or "
           + field
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + ") ";
@@ -3034,8 +3074,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       if (cteDef.isProgramStage()) {
         addProgramStageJoins(builder, itemUid, cteDef);
-      } else if (cteDef.isExists()) {
-        addExistsJoin(builder, cteDef);
       } else if (cteDef.isProgramIndicator()) {
         addProgramIndicatorJoin(builder, itemUid, cteDef, cteContext);
       } else if (cteDef.isFilter()) {
@@ -3058,11 +3096,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         builder.leftJoin(itemUid, alias, tableAlias -> joinCondition);
       }
     }
-  }
-
-  private void addExistsJoin(SelectBuilder builder, CteDefinition cteDef) {
-    builder.leftJoin(
-        cteDef.getAlias(), "ee", tableAlias -> tableAlias + ".enrollment = ax.enrollment");
   }
 
   private void addProgramIndicatorJoin(
@@ -3154,13 +3187,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         cteSql,
         computeRowNumberOffset(programStageOffset),
         hasRowContext,
-        filterBuilder.hasNonNvFilter(item),
+        filterBuilder.hasActualValueFilter(item),
         shouldProjectValueName(item));
-
-    // If row context is needed, we add an extra "exists" CTE for event checks.
-    if (hasRowContext) {
-      addExistsCte(cteContext, item, eventTableName);
-    }
   }
 
   /**
@@ -3379,7 +3407,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             : filter.getFilter();
 
     InQueryCteFilter inQueryCteFilter =
-        new InQueryCteFilter("value", resolvedFilter, !item.isNumeric(), cteDef);
+        new InQueryCteFilter(
+            "value", resolvedFilter, !item.isNumeric(), item.hasOptionSet(), cteDef);
     // Compute the offset for the row number if applicable
     Integer offset =
         cteDef.getOffsets().isEmpty() ? null : computeRowNumberOffset(item.getProgramStageOffset());
@@ -3437,7 +3466,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits(), item)
             : filter.getFilter();
 
-    if ("NV".equals(filterValue)) {
+    if (item.isNoValue(filterValue)) {
       return "NULL"; // Special case for 'null' filters
     }
 
@@ -3724,30 +3753,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Adds an "exists" CTE for event checks.
-   *
-   * @param cteContext the {@link CteContext} to which the new CTE definition(s) will be added
-   * @param item the {@link QueryItem} containing program-stage details
-   * @param eventTableName the event table name
-   */
-  private void addExistsCte(CteContext cteContext, QueryItem item, String eventTableName) {
-    String template =
-        """
-        select distinct enrollment
-        from ${eventTableName}
-        where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'
-        """;
-
-    Map<String, String> values = new HashMap<>();
-    values.put("eventTableName", eventTableName);
-    values.put("programStageUid", item.getProgramStage().getUid());
-
-    String existCte = new StringSubstitutor(values).replace(template);
-
-    cteContext.addExistsCte(item.getProgramStage(), item, existCte);
-  }
-
-  /**
    * Builds an enrollment pre-filter SQL clause that restricts events to only those whose
    * enrollments match the query's org unit constraints. This optimization prevents nested loop
    * explosion where CTEs process all events before the enrollment org unit filter is applied.
@@ -3868,12 +3873,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (isNotBlank(stageOuContext.filterCondition())) {
         filterConditions = " and " + stageOuContext.filterCondition();
       }
-    } else if (filterBuilder.hasNonNvFilter(item)) {
-      // For non-stage.ou dimensions with non-NV filters, add filter to CTE.
-      // NV (null value) filters are NOT added here - they stay in the WHERE clause
-      // because NV semantics require checking if the most recent event's value is null,
-      // not finding events with null values.
-      String conditions = filterBuilder.extractNonNvFiltersAsSql(item, colName, params);
+    } else if (filterBuilder.hasActualValueFilter(item)) {
+      // For non-stage.ou dimensions, only filters carrying actual values are added to the CTE.
+      // No-value filters are NOT added here - they stay in the WHERE clause because their
+      // semantics require checking whether the most recent event's value is null, rather than
+      // finding events with null values.
+      String conditions = filterBuilder.extractActualValueFiltersAsSql(item, colName, params);
       if (isNotBlank(conditions)) {
         filterConditions = " and " + conditions;
       }

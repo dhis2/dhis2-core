@@ -82,12 +82,24 @@ public interface JsonProgram extends JsonObject, JsonNameableObject {
     return getString("relationshipLabel");
   }
 
+  default JsonString getRelationshipsLabel() {
+    return getString("relationshipsLabel");
+  }
+
   default JsonString getNoteLabel() {
     return getString("noteLabel");
   }
 
+  default JsonString getNotesLabel() {
+    return getString("notesLabel");
+  }
+
   default JsonString getTrackedEntityAttributeLabel() {
     return getString("trackedEntityAttributeLabel");
+  }
+
+  default JsonString getTrackedEntityAttributesLabel() {
+    return getString("trackedEntityAttributesLabel");
   }
 
   default JsonString getProgramStageLabel() {

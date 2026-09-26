@@ -285,3 +285,28 @@ Example (`ind-expected-pregnancies.json`):
 Add a `List<Resource>` (or a single `Resource`) parameter to your test method; 
 the extension injects the created objects, each exposing `type`, `code`, and `uid`.
 
+
+### Seeding the e2e database with SQL
+
+`@DependsOn` provisions metadata through the API. When an
+analytics test instead needs rows the API cannot create, put a `.sql` file in
+`src/test/resources/db/seed/`. It is applied automatically at the start of an analytics run.
+
+The seeding mechanism is supposed to be used to populate run-time tables, not the system-generated
+analytics tables.
+
+`AnalyticsSetupExtension` applies the scripts in file-name order, clears the instance's application
+caches if any were applied, and only then exports the analytics tables. Seeded data therefore flows
+The seeded data is injected into Postgres tables directly and then exported, so it does not matter
+which target database you run the analytics against.
+
+Pass `-Ddb.seed.enabled=false` to skip the scripts without deleting them — useful for checking
+whether a seed script is what broke a test.
+
+The scripts write to the runtime tables over JDBC. `db.url` defaults to the `db` service of the
+compose stacks — the same Postgres database on the Doris and ClickHouse runs, which differ only in
+where analytics is exported to — so containerised runs need no configuration. A run against a
+locally started instance needs `-Ddb.url=…` of its own. When the directory holds no scripts nothing
+connects to any database, so runs against instances you cannot reach are unaffected.
+
+See `src/test/resources/db/seed/README.md` for the full contract and its limitations.

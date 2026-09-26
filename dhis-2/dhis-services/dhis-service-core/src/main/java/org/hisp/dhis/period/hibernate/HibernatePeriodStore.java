@@ -124,8 +124,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
               if (pk != null) {
                 return pk;
               }
-              session
-                  .createNativeQuery(sql2)
+              nativeSynchronizedQuery(session, sql2)
                   .setParameter("type", period.getPeriodType().getName())
                   .setParameter("start", period.getStartDate())
                   .setParameter("end", period.getEndDate())
@@ -144,8 +143,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   public void delete(@Nonnull Period period) {
     String isoDate = period.getIsoDate();
     int deleted =
-        getSession()
-            .createNativeQuery("DELETE FROM period where iso = :iso")
+        nativeSynchronizedQuery("DELETE FROM period where iso = :iso")
             .setParameter("iso", isoDate)
             .executeUpdate();
     if (deleted > 0) {
@@ -261,7 +259,12 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
               if (pk != null) {
                 return pk;
               }
-              session.createNativeQuery(sql2).setParameter("name", name).executeUpdate();
+              session
+                  .createNativeQuery(sql2)
+                  // PeriodType, not the store's own Period
+                  .addSynchronizedEntityClass(PeriodType.class)
+                  .setParameter("name", name)
+                  .executeUpdate();
               return session.createNativeQuery("SELECT lastval()").uniqueResult();
             });
     if (id instanceof Number n) {
@@ -286,6 +289,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         session ->
             session
                 .createNativeQuery(sql)
+                .addSynchronizedEntityClass(PeriodType.class)
                 .setParameter("name", name)
                 .setParameter("label", label)
                 .executeUpdate());

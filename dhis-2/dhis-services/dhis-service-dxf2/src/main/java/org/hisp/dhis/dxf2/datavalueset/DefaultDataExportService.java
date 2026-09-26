@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.function.Predicate.not;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.IdCoder.ObjectType.COC;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DE;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DEG;
@@ -39,6 +40,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -345,7 +347,7 @@ public class DefaultDataExportService implements DataExportService {
     return value == null || value.isEmpty() ? null : value;
   }
 
-  private DataExportParams decodeParams(DataExportParams.Input params) {
+  private DataExportParams decodeParams(DataExportParams.Input params) throws ConflictException {
     boolean codeFallback = Boolean.TRUE.equals(params.getInputUseCodeFallback());
     IdentifiableProperty anyIn = params.getInputIdScheme();
     IdentifiableProperty dsIn = params.getInputDataSetIdScheme();
@@ -358,44 +360,77 @@ public class DefaultDataExportService implements DataExportService {
     if (ouIn == null) ouIn = anyIn;
     if (degIn == null) degIn = anyIn;
 
-    List<UID> attributeOptionCombos = decodeIds(COC, anyIn, params.getAttributeOptionCombo());
-    if (attributeOptionCombos.isEmpty() && params.getAttributeOptions() != null) {
-      UID aoc =
-          store.getAttributeOptionCombo(
-              params.getAttributeCombo(), params.getAttributeOptions().stream());
-      if (aoc != null) attributeOptionCombos = List.of(aoc);
-    }
-
-    List<Order> orders = params.getOrder();
-    if (params.isOrderByPeriod()) {
-      if (orders == null) {
-        orders = List.of(Order.PE);
-      } else if (!orders.contains(Order.PE)) {
-        orders = new ArrayList<>(orders);
-        orders.add(0, Order.PE);
-      }
-    }
+    List<UID> dataSets = decodeIds(DS, dsIn, params.getDataSet());
 
     return DataExportParams.builder()
-        .dataSets(decodeIds(DS, dsIn, params.getDataSet()))
+        .dataSets(dataSets)
         .dataElementGroups(decodeIds(DEG, degIn, params.getDataElementGroup()))
         .dataElements(decodeIds(DE, deIn, params.getDataElement()))
         .organisationUnits(decodeIds(OU, ouIn, params.getOrgUnit()))
         .organisationUnitGroups(decodeIds(OUG, anyIn, params.getOrgUnitGroup()))
         .orgUnitLevel(params.getLevel())
         .categoryOptionCombos(decodeIds(COC, anyIn, params.getCategoryOptionCombo()))
-        .attributeOptionCombos(attributeOptionCombos)
+        .attributeOptionCombos(resolveAttributeOptionCombos(anyIn, params, dataSets))
         .periods(decodePeriods(params.getPeriod()))
         .startDate(params.getStartDate())
         .endDate(params.getEndDate())
         .includeDescendants(params.isChildren())
         .includeDeleted(params.isIncludeDeleted())
         .lastUpdated(params.getLastUpdated())
-        .lastUpdatedDuration(DateUtils.getDuration(params.getLastUpdatedDuration()))
+        .lastUpdatedDuration(resolveLastUpdatedDuration(params))
         .limit(params.getLimit())
         .offset(params.getOffset())
-        .orders(orders)
+        .orders(resolveOrders(params))
         .build();
+  }
+
+  @Nonnull
+  private List<UID> resolveAttributeOptionCombos(
+      IdentifiableProperty anyIn, DataExportParams.Input params, List<UID> dataSets) {
+    List<UID> attributeOptionCombos = decodeIds(COC, anyIn, params.getAttributeOptionCombo());
+    if (!attributeOptionCombos.isEmpty()) {
+      return attributeOptionCombos;
+    }
+    if (params.getAttributeOptions() != null) {
+      UID aoc =
+          store.getAttributeOptionCombo(
+              params.getAttributeCombo(), params.getAttributeOptions().stream());
+      return aoc == null ? attributeOptionCombos : List.of(aoc);
+    }
+    // Fast path: when the export is scoped to data set(s) only (no additional data element or
+    // data element group selectors) and all requested data sets use the default attribute
+    // category combo, the only valid attribute option combo is the default one. Applying it as an
+    // explicit filter lets the export query skip the per-row AOC data-sharing check. A data
+    // element or data element group selector can pull in values from outside those data sets that
+    // legitimately use a non-default AOC, so the fast path must not apply to mixed selectors.
+    if (!dataSets.isEmpty()
+        && isEmpty(params.getDataElement())
+        && isEmpty(params.getDataElementGroup())) {
+      UID defaultAoc = store.getDefaultAttributeOptionComboForDataSets(dataSets.stream());
+      if (defaultAoc != null) return List.of(defaultAoc);
+    }
+    return attributeOptionCombos;
+  }
+
+  private List<Order> resolveOrders(DataExportParams.Input params) {
+    List<Order> orders = params.getOrder();
+    if (!params.isOrderByPeriod()) return orders;
+    if (orders == null) return List.of(Order.PE);
+    if (orders.contains(Order.PE)) return orders;
+    orders = new ArrayList<>(orders);
+    orders.add(0, Order.PE);
+    return orders;
+  }
+
+  private Duration resolveLastUpdatedDuration(DataExportParams.Input params)
+      throws ConflictException {
+    String lastUpdatedDurationIn = params.getLastUpdatedDuration();
+    Duration lastUpdatedDuration = DateUtils.getDuration(lastUpdatedDurationIn);
+    if (lastUpdatedDurationIn != null
+        && !lastUpdatedDurationIn.isBlank()
+        && lastUpdatedDuration == null)
+      throw new ConflictException(ErrorCode.E2005, lastUpdatedDurationIn);
+    return lastUpdatedDuration;
   }
 
   @Nonnull

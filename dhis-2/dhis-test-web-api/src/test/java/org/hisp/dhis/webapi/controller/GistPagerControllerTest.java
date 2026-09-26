@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
@@ -120,5 +121,17 @@ class GistPagerControllerTest extends AbstractGistControllerTest {
     assertEquals(
         JsonNodeType.OBJECT,
         GET(baseUrl + "?headless=false", getAdminUid()).content().node().getType());
+  }
+
+  @Test
+  void testPager_NoTotal_EmptyPageHasNoNextPage() {
+    // orgUnitId has exactly one dataSet (dataSetId) at this point, from setUp()
+    String url = "/organisationUnits/{id}/dataSets/gist?pageSize=1&order=name&page=5";
+    JsonObject gist = GET(url, orgUnitId).content();
+    assertHasPager(gist, 5, 1);
+    assertNull(
+        gist.getObject("pager").getString("nextPage").string(),
+        "'nextPage' should not be present when the requested page has no results, "
+            + "even though no total/totalPages was requested");
   }
 }

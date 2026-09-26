@@ -31,6 +31,7 @@ package org.hisp.dhis.parser.expression.statement;
 
 import java.util.Date;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
 /**
@@ -53,7 +54,12 @@ public interface StatementBuilder {
       Date reportingStartDate,
       Date reportingEndDate) {
     return getBoundaryCondition(
-        boundary, programIndicator, null, reportingStartDate, reportingEndDate);
+        boundary,
+        programIndicator,
+        null,
+        reportingStartDate,
+        reportingEndDate,
+        programIndicator.getAnalyticsType());
   }
 
   /**
@@ -61,8 +67,15 @@ public interface StatementBuilder {
    *
    * @param boundary the boundary to get where-condition for
    * @param programIndicator the program indicator context
+   * @param timeField the time field to use for event date boundaries, may be null
    * @param reportingStartDate the date of the start of the reporting period
    * @param reportingEndDate the date of the end of the reporting period
+   * @param analyticsType the analytics table the condition is applied to. Boundary targets map to
+   *     different columns depending on the table, e.g. the incident date is named {@code
+   *     occurreddate} in the enrollment analytics table but {@code enrollmentoccurreddate} in the
+   *     event analytics table. Note that this is not necessarily the analytics type of the program
+   *     indicator, as an enrollment program indicator may well produce sub-queries against the
+   *     event analytics table.
    * @return SQL to use in where clause.
    */
   String getBoundaryCondition(
@@ -70,7 +83,8 @@ public interface StatementBuilder {
       ProgramIndicator programIndicator,
       String timeField,
       Date reportingStartDate,
-      Date reportingEndDate);
+      Date reportingEndDate,
+      AnalyticsType analyticsType);
 
   /**
    * Get a SQL for selecting a single data value in a program indicator expression, abiding to

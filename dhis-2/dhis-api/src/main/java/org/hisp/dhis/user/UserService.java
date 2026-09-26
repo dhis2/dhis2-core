@@ -585,6 +585,14 @@ public interface UserService {
   void invalidateUserSessions(String username);
 
   /**
+   * Returns the usernames of all users that are members of the user role with the given UID.
+   *
+   * @param roleUid the UID of the user role.
+   * @return a list of usernames.
+   */
+  List<String> getUsernamesByUserRole(@Nonnull UID roleUid);
+
+  /**
    * Register a account recovery attempt for the given user account.
    *
    * @param username the username of the user account.

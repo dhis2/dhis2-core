@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,13 @@ import org.hisp.dhis.tracker.imports.preheat.supplier.DuplicateRelationshipSuppl
 import org.hisp.dhis.tracker.imports.preheat.supplier.EnrollmentsWithAtLeastOneEventSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.EventCategoryOptionComboSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.FileResourceSupplier;
+import org.hisp.dhis.tracker.imports.preheat.supplier.OptionValueSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.OrgUnitValueTypeSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatStrategyScanner;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramOrgUnitsSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramOwnerSupplier;
+import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramStageDataElementsSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.TrackedEntityEnrollmentSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.TrackerEventProgramStageMapSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.UniqueAttributesSupplier;
@@ -56,11 +58,13 @@ public class TrackerPreheatConfig {
   private final List<Class<? extends PreheatSupplier>> preheatOrder =
       List.of(
           ClassBasedSupplier.class,
+          OptionValueSupplier.class,
           DefaultsSupplier.class,
           TrackedEntityEnrollmentSupplier.class,
           EnrollmentsWithAtLeastOneEventSupplier.class,
           TrackerEventProgramStageMapSupplier.class,
           ProgramOrgUnitsSupplier.class,
+          ProgramStageDataElementsSupplier.class,
           ProgramOwnerSupplier.class,
           UniqueAttributesSupplier.class,
           CurrentUserSupplier.class,

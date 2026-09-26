@@ -141,12 +141,6 @@ public interface OrganisationUnitStore
    */
   List<OrganisationUnit> getWithinCoordinateArea(double[] box);
 
-  /** Updates the <code>path</code> property of all org units. */
-  void updatePaths();
-
-  /** Explicitly updates the <code>path</code> property of all org units. */
-  void forceUpdatePaths();
-
   /**
    * Returns the number of organsiation unit levels in the database based on the organisation unit
    * hierarchy.

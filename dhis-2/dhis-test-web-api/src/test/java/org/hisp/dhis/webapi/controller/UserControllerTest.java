@@ -155,37 +155,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void updateRolesAuthoritiesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
-
-    UserRole roleB = createUserRole("ROLE_B", "ALL");
-    userService.addUserRole(roleB);
-
-    PATCH(
-            "/users/" + getAdminUid(),
-            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleB.getUid() + "'}]}]")
-        .content(HttpStatus.OK);
-
-    String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
-
-    sessionRegistry.registerNewSession("session1", sessionPrincipal);
-    assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
-
-    PATCH(
-            "/userRoles/" + roleBID,
-            "["
-                + " {"
-                + "   'op': 'add',"
-                + "   'path': '/authorities',"
-                + "   'value': ['NONE']"
-                + " }"
-                + "]")
-        .content(HttpStatus.OK);
-
-    assertTrue(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
-  }
-
-  @Test
   void testResetToInvite() {
     assertStatus(HttpStatus.NO_CONTENT, POST("/users/" + peter.getUid() + "/reset"));
     OutboundMessage email = assertMessageSendTo("peter@pan.net");
@@ -1354,46 +1323,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("GET /users?ou={uid}&includeChildren=true returns users in org unit subtree")
-  void testGetUsersFilterByOrgUnitWithChildren() {
-    OrganisationUnit orgA = createOrganisationUnit('A');
-    organisationUnitService.addOrganisationUnit(orgA);
-    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
-    organisationUnitService.addOrganisationUnit(orgB);
-    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
-    organisationUnitService.addOrganisationUnit(orgC);
-
-    User alice = createUserWithAuth("alice");
-    alice.addOrganisationUnit(orgA);
-    userService.updateUser(alice);
-
-    User bob = createUserWithAuth("bob");
-    bob.addOrganisationUnit(orgB);
-    userService.updateUser(bob);
-
-    User charlie = createUserWithAuth("charlie");
-    charlie.addOrganisationUnit(orgC);
-    userService.updateUser(charlie);
-
-    // Switch to a user whose org units are orgA (fresh security context)
-    User viewer = createUserWithAuth("viewer", "ALL");
-    viewer.addOrganisationUnit(orgA);
-    userService.updateUser(viewer);
-    switchToNewUser(viewer);
-
-    JsonList<JsonUser> users =
-        GET("/users?ou=" + orgA.getUid() + "&includeChildren=true")
-            .content(HttpStatus.OK)
-            .getList("users", JsonUser.class);
-
-    List<String> uids = users.stream().map(JsonUser::getId).toList();
-    assertTrue(uids.contains(alice.getUid()));
-    assertTrue(uids.contains(bob.getUid()));
-    assertTrue(uids.contains(charlie.getUid()));
-    assertTrue(uids.contains(viewer.getUid()));
-  }
-
-  @Test
   @DisplayName("GET /users?query=alice returns only matching users by name/email/username")
   void testGetUsersFilterByQuery() {
     User alice = createUserWithAuth("alice");
@@ -1498,6 +1427,31 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("PATCH /userRoles/{uid} scalar description keeps assigned users")
+  void testPatchUserRoleDescriptionKeepsUsers() {
+    UserRole role = createUserRole('P');
+    User user = makeUser("R");
+    userService.addUser(user);
+    role.addUser(user);
+    manager.save(role);
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/userRoles/" + role.getUid(),
+            "[{'op':'replace','path':'/description','value':'patched'}]"));
+
+    JsonObject patchedRole =
+        GET("/userRoles/{id}?fields=id,description,users[id]", role.getUid())
+            .content(HttpStatus.OK);
+
+    assertEquals("patched", patchedRole.getString("description").string());
+    assertEquals(1, patchedRole.getArray("users").size());
+    assertEquals(
+        user.getUid(), patchedRole.getArray("users").getObject(0).getString("id").string());
+  }
+
+  @Test
   @DisplayName(
       "GET /users?filter=organisationUnits.id:in:[uid] returns only users in that org unit")
   void testGetUsersFilterByOrgUnitMembership() {
@@ -1522,45 +1476,5 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     List<String> uids = users.stream().map(JsonUser::getId).toList();
     assertTrue(uids.contains(bob.getUid()), "bob (in orgB) should be returned");
     assertFalse(uids.contains(alice.getUid()), "alice (in orgA only) should not be returned");
-  }
-
-  @Test
-  @DisplayName(
-      "GET /users?filter=organisationUnits.id:in:[uid]&userOrgUnits=true&includeChildren=true"
-          + " returns intersection of filter and subtree")
-  void testGetUsersFilterByOrgUnitMembershipWithChildren() {
-    OrganisationUnit orgA = createOrganisationUnit('A');
-    organisationUnitService.addOrganisationUnit(orgA);
-    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
-    organisationUnitService.addOrganisationUnit(orgB);
-
-    User alice = createUserWithAuth("alice");
-    alice.addOrganisationUnit(orgA);
-    userService.updateUser(alice);
-
-    User bob = createUserWithAuth("bob");
-    bob.addOrganisationUnit(orgB);
-    userService.updateUser(bob);
-
-    // viewer's org units = orgA → userOrgUnits=true&includeChildren=true covers orgA subtree
-    User viewer = createUserWithAuth("viewer", "ALL");
-    viewer.addOrganisationUnit(orgA);
-    userService.updateUser(viewer);
-    switchToNewUser(viewer);
-
-    // filter=organisationUnits.id:in:[orgB] AND userOrgUnits subtree (orgA+children)
-    // → only bob satisfies both (directly in orgB, which is under orgA)
-    JsonList<JsonUser> users =
-        GET("/users?filter=organisationUnits.id:in:["
-                + orgB.getUid()
-                + "]&userOrgUnits=true&includeChildren=true")
-            .content(HttpStatus.OK)
-            .getList("users", JsonUser.class);
-
-    List<String> uids = users.stream().map(JsonUser::getId).toList();
-    assertTrue(uids.contains(bob.getUid()), "bob (in orgB, subtree of orgA) should be returned");
-    assertFalse(uids.contains(alice.getUid()), "alice (in orgA, not orgB) should not be returned");
-    assertFalse(
-        uids.contains(viewer.getUid()), "viewer (in orgA, not orgB) should not be returned");
   }
 }

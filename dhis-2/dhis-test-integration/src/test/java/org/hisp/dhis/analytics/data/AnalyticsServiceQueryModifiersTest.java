@@ -440,6 +440,17 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
     assertEquals(expected, result);
   }
 
+  @Test
+  void testPeriodOffsetSubExpression() {
+    expected =
+        List.of("inabcdefghA-202201-1.0", "inabcdefghA-202202-3.0", "inabcdefghA-202203-5.0");
+
+    result =
+        query("subExpression(#{deabcdefghA} + #{deabcdefghA}.periodOffset(-1))", jan, feb, mar);
+
+    assertEquals(expected, result);
+  }
+
   @AfterAll
   void cleanUpRefs() {
     cleanPeriodTypes();

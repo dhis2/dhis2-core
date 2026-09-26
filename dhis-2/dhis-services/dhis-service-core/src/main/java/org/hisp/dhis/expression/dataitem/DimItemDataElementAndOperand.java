@@ -36,7 +36,6 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.DataType.fromValueType;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
-import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.parser.expression.ParserUtils.replaceSqlNull;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 
@@ -80,7 +79,10 @@ public class DimItemDataElementAndOperand extends DimensionalItem {
     String cocUid = (ctx.uid1 == null) ? null : ctx.uid1.getText();
     String aocUid = (ctx.uid2 == null) ? null : ctx.uid2.getText();
 
-    String column = getItemColumnName(deUid, cocUid, aocUid, visitor.getState().getQueryMods());
+    String column =
+        visitor
+            .getSqlBuilder()
+            .quote(getItemColumnName(deUid, cocUid, aocUid, visitor.getState().getQueryMods()));
 
     if (visitor.getState().isReplaceNulls()) {
       column = replaceDataElementNulls(column, deUid, visitor);
@@ -130,7 +132,7 @@ public class DimItemDataElementAndOperand extends DimensionalItem {
     DataType dataType = fromValueType(dataElement.getValueType());
     if (dataType == BOOLEAN) {
       if (BOOLEAN == visitor.getParams().getDataType()) {
-        column = castSql(column, BOOLEAN);
+        column = visitor.getSqlBuilder().cast(column, BOOLEAN);
       } else {
         dataType = NUMERIC;
       }

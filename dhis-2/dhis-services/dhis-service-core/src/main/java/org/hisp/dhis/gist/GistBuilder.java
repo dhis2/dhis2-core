@@ -950,11 +950,13 @@ final class GistBuilder {
       }
     }
     String param = ":f_" + index;
+    if (operator.isCaseInsensitive()) param = "lower(" + param + ")";
+    if (operator.isMultiValue()) param = "(" + param + ")";
     Map<String, String> variables =
         Map.ofEntries(
             entry("left", replace(template, Map.of("property", field))),
             entry("op", operator.getSql()),
-            entry("right", operator.isMultiValue() ? "(" + param + ")" : param));
+            entry("right", param));
     return operator.isUnary()
         ? replace("${left} ${op}", variables)
         : replace("${left} ${op} ${right}", variables);

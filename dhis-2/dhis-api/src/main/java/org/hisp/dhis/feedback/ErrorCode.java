@@ -329,6 +329,7 @@ public enum ErrorCode {
   E4055("User needs to have at least one user role associated with it"),
   E4050(
       "One of DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`"),
+  E4093("ProgramRuleAction `{0}` must reference a program rule"),
 
   /* ProgramRuleVariable validation */
   E4051("A program rule variable with name `{0}` and program uid `{1}` already exists"),
@@ -609,6 +610,8 @@ public enum ErrorCode {
   E7243("Duplicate stage dimension identifier: `{0}`"),
   E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
   E7245("Program stage `{0}` does not belong to program `{1}`"),
+  E7246("Sorting by `{0}` requires ENROLLMENT_OU as a dimension or filter"),
+  E7247("Query filter keyword `{0}` can only be used with option set dimensions"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

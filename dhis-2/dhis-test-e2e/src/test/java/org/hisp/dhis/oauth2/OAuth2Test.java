@@ -40,8 +40,13 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +75,23 @@ import org.springframework.http.ResponseEntity;
 class OAuth2Test extends BaseE2ETest {
 
   private static WebDriver driver;
+
+  private static final String CODE_VERIFIER;
+  private static final String CODE_CHALLENGE;
+
+  static {
+    byte[] verifierBytes = new byte[32];
+    new SecureRandom().nextBytes(verifierBytes);
+    CODE_VERIFIER = Base64.getUrlEncoder().withoutPadding().encodeToString(verifierBytes);
+
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] challengeBytes = digest.digest(CODE_VERIFIER.getBytes(StandardCharsets.US_ASCII));
+      CODE_CHALLENGE = Base64.getUrlEncoder().withoutPadding().encodeToString(challengeBytes);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   // Selenium URL if running locally
   private static String seleniumUrl = "http://localhost:4444";
@@ -104,7 +126,7 @@ class OAuth2Test extends BaseE2ETest {
             "authorizationGrantTypes", "refresh_token,authorization_code",
             "redirectUris", "http://localhost:9090/oauth2/code/dhis2-client",
             "postLogoutRedirectUris", "http://127.0.0.1:8080/",
-            "scopes", "email_verified,openid,profile,email");
+            "scopes", "openid,profile,email");
 
     // Create client
     ResponseEntity<String> response = postAsAdmin(serverApiUrl + "/oAuth2Clients", clientMap);
@@ -144,7 +166,9 @@ class OAuth2Test extends BaseE2ETest {
     // Call the authorize endpoint
     driver.get(
         serverHostUrl
-            + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email");
+            + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email&code_challenge="
+            + CODE_CHALLENGE
+            + "&code_challenge_method=S256");
     wait.until(ExpectedConditions.urlContains(serverHostUrl + "/login/"));
     String currentUrl = driver.getCurrentUrl();
     assertEquals(serverHostUrl + "/login/", currentUrl);
@@ -163,7 +187,9 @@ class OAuth2Test extends BaseE2ETest {
     String consentPageUrl = driver.getCurrentUrl();
     assertEquals(
         serverHostUrl
-            + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email",
+            + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email&code_challenge="
+            + CODE_CHALLENGE
+            + "&code_challenge_method=S256",
         consentPageUrl);
 
     // Give consent
@@ -290,7 +316,9 @@ class OAuth2Test extends BaseE2ETest {
     // Start OAuth2 authorization code flow
     driver.get(
         serverHostUrl
-            + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email");
+            + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email&code_challenge="
+            + CODE_CHALLENGE
+            + "&code_challenge_method=S256");
     wait.until(ExpectedConditions.urlContains(serverHostUrl + "/login/"));
 
     // Login
@@ -345,8 +373,9 @@ class OAuth2Test extends BaseE2ETest {
   }
 
   public String getAccessToken(String code) throws JsonProcessingException {
-    String body = callTokenEndpoint(code);
-    assertNotNull(body);
+    String body = callTokenEndpoint(code, CODE_VERIFIER);
+    assertNotNull(body, "Token endpoint returned null body");
+    log.info("[getAccessToken] token endpoint response body: {}", body);
     JsonNode jsonNode = objectMapper.readTree(body);
     JsonNode accessToken = jsonNode.get("access_token");
     assertNotNull(accessToken);

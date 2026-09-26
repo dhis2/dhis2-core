@@ -305,6 +305,8 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     programNotificationTemplate.setAutoFields();
     programNotificationTemplate.setUid("PNT-1");
     programNotificationTemplateStore.save(programNotificationTemplate);
+    // the renderer reads the metadata with SQL, so flush what was built through Hibernate
+    clearSession();
   }
 
   @Test

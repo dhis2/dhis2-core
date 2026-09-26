@@ -31,17 +31,49 @@ package org.hisp.dhis.schema;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 
 import java.lang.reflect.Method;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 class DefaultSchemaServiceSafeInvokeTest {
+
+  @Test
+  void testInterfaceFallbackDoesNotInvokeBaseMethod() throws Exception {
+    Method getterMethod = BaseDimensionalItemObject.class.getMethod("getDimensionItem");
+
+    CategoryOption categoryOption = new CategoryOption("Test Option");
+    categoryOption.setUid("CatOptUid01");
+
+    try (MockedStatic<ReflectionUtils> reflectionUtils =
+        mockStatic(ReflectionUtils.class, CALLS_REAL_METHODS)) {
+      String result = DefaultSchemaService.safeInvoke(categoryOption, getterMethod);
+
+      assertEquals("CatOptUid01", result);
+      reflectionUtils.verify(
+          () -> ReflectionUtils.invokeMethod(categoryOption, getterMethod), never());
+    }
+  }
+
+  @Test
+  void testNullMethodReturnsNull() {
+    CategoryOption categoryOption = new CategoryOption("Test Option");
+
+    assertNull(DefaultSchemaService.safeInvoke(categoryOption, null));
+  }
 
   @Test
   void testNameNotNull() throws Exception {
@@ -84,10 +116,10 @@ class DefaultSchemaServiceSafeInvokeTest {
 
     Object object = new Object();
 
-    assertThrows(
-        RuntimeException.class,
-        () -> DefaultSchemaService.safeInvoke(object, getterMethod),
-        "object is not an instance of declaring class");
+    RuntimeException exception =
+        assertThrows(
+            RuntimeException.class, () -> DefaultSchemaService.safeInvoke(object, getterMethod));
+    assertEquals("Failed to invoke method getDisplayName", exception.getMessage());
   }
 
   @Test
@@ -95,9 +127,9 @@ class DefaultSchemaServiceSafeInvokeTest {
     Method getterMethod = BaseNameableObject.class.getMethod("getDisplayShortName");
     Legend legend = new Legend();
     legend.setName("test");
-    assertThrows(
-        RuntimeException.class,
-        () -> DefaultSchemaService.safeInvoke(legend, getterMethod),
-        "object is not an instance of declaring class");
+    RuntimeException exception =
+        assertThrows(
+            RuntimeException.class, () -> DefaultSchemaService.safeInvoke(legend, getterMethod));
+    assertEquals("Failed to invoke method getDisplayShortName", exception.getMessage());
   }
 }

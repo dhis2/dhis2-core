@@ -50,12 +50,36 @@ class ConstantValuesRendererTest {
   }
 
   @Test
-  void testSingleValueNV() {
+  void testSingleValueNonOptionSetNv() {
     SqlParameterManager parameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, parameterManager);
+    // Non-option-set (default): NV is the no-value keyword and is filtered out.
     String render = ConstantValuesRenderer.of("NV", ValueTypeMapping.STRING, queryContext).render();
     assertEquals("", render);
     assertNull(parameterManager.getParametersPlaceHolder().get("1"));
+  }
+
+  @Test
+  void testSingleValueOptionSetNoValue() {
+    SqlParameterManager parameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, parameterManager);
+    // Option-set: D2__NOVALUE is the no-value keyword and is filtered out.
+    String render =
+        ConstantValuesRenderer.of("D2__NOVALUE", ValueTypeMapping.STRING, queryContext, true)
+            .render();
+    assertEquals("", render);
+    assertNull(parameterManager.getParametersPlaceHolder().get("1"));
+  }
+
+  @Test
+  void testSingleValueOptionSetNvIsLiteral() {
+    SqlParameterManager parameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, parameterManager);
+    // Option-set: NV is a literal option code, not the no-value keyword.
+    String render =
+        ConstantValuesRenderer.of("NV", ValueTypeMapping.STRING, queryContext, true).render();
+    assertEquals(":1", render);
+    assertEquals("NV", parameterManager.getParametersPlaceHolder().get("1"));
   }
 
   @Test
@@ -70,12 +94,23 @@ class ConstantValuesRendererTest {
   }
 
   @Test
-  void testMultipleValuesNV() {
+  void testMultipleValuesNonOptionSetNv() {
     SqlParameterManager parameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, parameterManager);
     List<String> arguments = List.of("test1", "test2", "NV");
     String render =
         ConstantValuesRenderer.of(arguments, ValueTypeMapping.STRING, queryContext).render();
+    assertEquals(":1", render);
+    assertEquals(arguments.subList(0, 2), parameterManager.getParametersPlaceHolder().get("1"));
+  }
+
+  @Test
+  void testMultipleValuesOptionSetNoValue() {
+    SqlParameterManager parameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, parameterManager);
+    List<String> arguments = List.of("test1", "test2", "D2__NOVALUE");
+    String render =
+        ConstantValuesRenderer.of(arguments, ValueTypeMapping.STRING, queryContext, true).render();
     assertEquals(":1", render);
     assertEquals(arguments.subList(0, 2), parameterManager.getParametersPlaceHolder().get("1"));
   }

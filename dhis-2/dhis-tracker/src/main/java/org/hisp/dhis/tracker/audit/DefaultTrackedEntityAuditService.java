@@ -34,12 +34,12 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,28 +55,36 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
 
   private final TrackerAccessManager trackerAccessManager;
 
-  @Override
-  @Async
-  @Transactional
-  public void addTrackedEntityAudit(
-      AuditOperationType type, String username, TrackedEntity trackedEntity) {
-    if (username != null
-        && trackedEntity != null
-        && trackedEntity.getTrackedEntityType() != null
-        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      TrackedEntityAudit trackedEntityAudit =
-          new TrackedEntityAudit(trackedEntity.getUid(), username, type);
-      trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
-    }
-  }
+  private final AsyncTrackedEntityAuditWriter asyncTrackedEntityAuditWriter;
 
   @Override
-  @Async
-  @Transactional
+  @NonTransactional
+  public void addTrackedEntityAudit(
+      AuditOperationType type, String username, TrackedEntity trackedEntity) {
+    if (username == null || trackedEntity == null) {
+      return;
+    }
+    addTrackedEntityAudit(type, username, List.of(trackedEntity));
+  }
+
+  /**
+   * Resolves the audit values on the CALLER thread, where the Hibernate session that owns these
+   * entities is still open and single-threaded, then hands immutable values to the async writer.
+   * Dereferencing {@code getTrackedEntityType()} on the async thread instead is a race: the entity
+   * may be a proxy whose session has been closed, which throws LazyInitializationException that the
+   * async uncaught-exception handler swallows - silently losing the audit record.
+   */
+  @Override
+  @NonTransactional
   public void addTrackedEntityAudit(
       AuditOperationType type, String username, @Nonnull List<TrackedEntity> trackedEntities) {
+    if (username == null) {
+      return;
+    }
+
     List<TrackedEntityAudit> audits =
         trackedEntities.stream()
+            .filter(te -> te != null && te.getTrackedEntityType() != null)
             .filter(te -> te.getTrackedEntityType().isAllowAuditLog())
             .map(te -> new TrackedEntityAudit(te.getUid(), username, type))
             .toList();
@@ -85,7 +93,7 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
       return;
     }
 
-    trackedEntityAuditStore.addTrackedEntityAudit(audits);
+    asyncTrackedEntityAuditWriter.addTrackedEntityAudits(audits);
   }
 
   @Override

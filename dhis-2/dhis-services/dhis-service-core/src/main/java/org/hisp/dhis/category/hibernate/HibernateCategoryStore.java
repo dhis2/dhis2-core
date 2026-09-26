@@ -39,6 +39,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hibernate.LockOptions;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -118,8 +119,11 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
               delete from categories_categoryoptions c_co
               where c_co.categoryid in :sourceCategoryIds
               """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
+        // categories_categoryoptions is the Category.categoryOptions collection table. Collection
+        // regions are keyed by the collection's element entity, so CategoryOption is what reaches
+        // that region, not the owning Category.
+        .addSynchronizedEntityClass(CategoryOption.class)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();

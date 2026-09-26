@@ -29,8 +29,12 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query.context.sql;
 
+import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.feedback.ErrorCode.E7247;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,7 +64,11 @@ import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.TrackedE
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
@@ -188,6 +196,42 @@ class SqlQueryCreatorServiceTest extends TestBase {
 
     assertTrue(sql.contains("ouname"));
     assertContains("(t_1.\"program1\" or t_1.\"program2\")", sql);
+  }
+
+  @Test
+  void testRejectsReservedNoValueKeywordOnNonOptionSetDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(
+                TrackedEntityQueryParams.builder()
+                    .trackedEntityType(createTrackedEntityType('A'))
+                    .build())
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(
+                CommonParsedParams.builder()
+                    .dimensionIdentifiers(List.of(nonOptionSetDimension("IN:D2__NOVALUE")))
+                    .build())
+            .build();
+
+    IllegalQueryException error =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> sqlQueryCreatorService.getSqlQueryCreator(contextParams));
+
+    assertEquals(E7247, error.getErrorCode());
+  }
+
+  private DimensionIdentifier<DimensionParam> nonOptionSetDimension(String filter) {
+    DataElement dataElement = new DataElement("Age");
+    dataElement.setUid("de123456789");
+    dataElement.setValueType(ValueType.NUMBER);
+
+    QueryItem queryItem = new QueryItem(dataElement, null, ValueType.NUMBER, null, null);
+
+    return DimensionIdentifier.of(
+        emptyElementWithOffset(),
+        emptyElementWithOffset(),
+        DimensionParam.ofObject(queryItem, DimensionParamType.DIMENSIONS, UID, List.of(filter)));
   }
 
   private Program mockProgram(String uid) {

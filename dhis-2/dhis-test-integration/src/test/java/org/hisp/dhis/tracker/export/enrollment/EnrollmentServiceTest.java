@@ -47,6 +47,7 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -385,6 +386,42 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldGetEnrollmentWithNotesWhenNotesAreRequested() throws NotFoundException {
+    Note note = new Note();
+    note.setNoteText("text");
+    manager.save(note);
+    enrollmentA.getNotes().add(note);
+    manager.save(enrollmentA);
+    manager.flush();
+    manager.clear();
+
+    EnrollmentFields fields = EnrollmentFields.builder().includeNotes().build();
+
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
+
+    assertNotNull(enrollment);
+    assertContainsOnly(
+        List.of(note.getUid()), enrollment.getNotes().stream().map(Note::getUid).toList());
+  }
+
+  @Test
+  void shouldGetEnrollmentWithoutNotesWhenNotesAreNotRequested() throws NotFoundException {
+    Note note = new Note();
+    note.setNoteText("text");
+    manager.save(note);
+    enrollmentA.getNotes().add(note);
+    manager.save(enrollmentA);
+    manager.flush();
+    manager.clear();
+
+    Enrollment enrollment =
+        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentFields.none());
+
+    assertNotNull(enrollment);
+    assertIsEmpty(enrollment.getNotes());
+  }
+
+  @Test
   void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem() throws NotFoundException {
     EnrollmentFields fields = EnrollmentFields.builder().includeAttributes().build();
 
@@ -392,6 +429,24 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(enrollment);
     assertContainsOnly(List.of(trackedEntityAttributeA.getUid()), attributeUids(enrollment));
+  }
+
+  @Test
+  void shouldNotReturnAttributeValueWhenUserCannotReadAttribute() throws NotFoundException {
+    // Remove metadata read access to the attribute for the current user. The enrollment is still
+    // accessible, but its attribute value must not be returned.
+    trackedEntityAttributeA.getSharing().setOwner(admin);
+    trackedEntityAttributeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(trackedEntityAttributeA);
+    manager.flush();
+    manager.clear();
+
+    EnrollmentFields fields = EnrollmentFields.builder().includeAttributes().build();
+
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
+
+    assertNotNull(enrollment);
+    assertTrue(attributeUids(enrollment).isEmpty());
   }
 
   @Test
@@ -777,6 +832,30 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     List<Enrollment> enrollments =
         enrollmentService.findEnrollments(UID.of(enrollmentA, enrollmentB));
     assertIsEmpty(enrollments);
+  }
+
+  @Test
+  void shouldGetNoteWhenNoteHasNoLastUpdatedBy() throws NotFoundException {
+    // note.lastupdatedby is nullable. Saving via the manager always sets it, so null it directly.
+    Note note = new Note();
+    note.setNoteText("text");
+    manager.save(note);
+    enrollmentA.getNotes().add(note);
+    manager.save(enrollmentA);
+    manager.flush();
+    entityManager
+        .createNativeQuery("update note set lastupdatedby = null where uid = :uid")
+        .setParameter("uid", note.getUid())
+        .executeUpdate();
+    manager.clear();
+
+    Enrollment enrollment =
+        enrollmentService.getEnrollment(
+            UID.of(enrollmentA), EnrollmentFields.builder().includeNotes().build());
+
+    assertContainsOnly(
+        List.of(note.getUid()), enrollment.getNotes().stream().map(Note::getUid).toList());
+    assertNull(enrollment.getNotes().get(0).getLastUpdatedBy());
   }
 
   @Test

@@ -7,7 +7,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataelement.DataElement" table="dataelement">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="dataelementid">
       <generator class="native" />
@@ -54,19 +54,19 @@
     <property name="url" />
 
     <set name="groups" table="dataelementgroupmembers" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="dataelementid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid" />
     </set>
 
     <set name="dataSetElements" table="datasetelement" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="dataelementid" foreign-key="fk_datasetmembers_dataelementid" not-null="true" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
 
     <list name="aggregationLevels" table="dataelementaggregationlevels">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="dataelementid" foreign-key="fk_dataelementaggregationlevels_dataelementid" />
       <list-index column="sort_order" base="0" />
       <element column="aggregationlevel" type="integer" />
@@ -81,7 +81,7 @@
       foreign-key="fk_dataelement_commentoptionsetid" />
 
     <list name="legendSets" table="dataelementlegendsets">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="dataelementid" />
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataelement_legendsetid" />

@@ -84,7 +84,8 @@ class TrackedEntityStore {
       """
       select te.uid as te_uid, teav.created, teav.lastupdated, teav.storedby, teav.value,
              tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
-             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype
+             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype,
+             tea.skipsynchronization as tea_skipsynchronization
       from trackedentityattributevalue teav
       join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
       join trackedentity te on teav.trackedentityid = te.trackedentityid
@@ -98,7 +99,8 @@ class TrackedEntityStore {
       """
       select te.uid as te_uid, teav.created, teav.lastupdated, teav.storedby, teav.value,
              tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name,
-             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype
+             tea.attributevalues as tea_attributevalues, tea.valuetype as tea_valuetype,
+             tea.skipsynchronization as tea_skipsynchronization
       from trackedentityattributevalue teav
       join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
       join trackedentity te on teav.trackedentityid = te.trackedentityid
@@ -211,6 +213,7 @@ class TrackedEntityStore {
     attribute.setName(rs.getString("tea_name"));
     attribute.setAttributeValues(AttributeValues.of(rs.getString("tea_attributevalues")));
     attribute.setValueType(ValueType.fromString(rs.getString("tea_valuetype")));
+    attribute.setSkipSynchronization(rs.getBoolean("tea_skipsynchronization"));
     attributeValue.setAttribute(attribute);
 
     return attributeValue;

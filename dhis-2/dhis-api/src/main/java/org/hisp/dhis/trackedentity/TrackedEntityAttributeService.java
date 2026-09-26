@@ -172,4 +172,12 @@ public interface TrackedEntityAttributeService {
 
   @Transactional(readOnly = true)
   List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes();
+
+  /**
+   * Fetches UIDs of all {@link TrackedEntityAttribute} that have {@code skipSynchronization} set to
+   * true.
+   *
+   * @return a Set of {@link TrackedEntityAttribute} UIDs
+   */
+  Set<UID> getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
 }

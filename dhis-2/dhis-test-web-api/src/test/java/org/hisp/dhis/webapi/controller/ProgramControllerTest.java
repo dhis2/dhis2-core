@@ -106,9 +106,13 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Label for Follow Up", program.getFollowUpLabel().string());
     assertEquals("Label for Org Unit", program.getOrUnitLabel().string());
     assertEquals("Label for Relationship", program.getRelationshipLabel().string());
+    assertEquals("Label for Relationships", program.getRelationshipsLabel().string());
     assertEquals("Label for Note", program.getNoteLabel().string());
+    assertEquals("Label for Notes", program.getNotesLabel().string());
     assertEquals(
         "Label for Tracked Entity Attribute", program.getTrackedEntityAttributeLabel().string());
+    assertEquals(
+        "Label for Tracked Entity Attributes", program.getTrackedEntityAttributesLabel().string());
     assertEquals("Label for Program Stage", program.getProgramStageLabel().string());
     assertEquals("Label for Program Stages", program.getProgramStagesLabel().string());
     assertEquals("Label for Event", program.getEventLabel().string());

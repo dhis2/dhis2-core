@@ -94,7 +94,36 @@ public class FieldPathHelper {
     List<FieldPath> exclusions = fieldPaths.stream().filter(FieldPath::isExclude).toList();
     applyExclusions(exclusions, fieldPathMap);
 
+    pruneTransformerControlledSubtrees(fieldPathMap, rootKlass);
+
     return new ArrayList<>(fieldPathMap.values());
+  }
+
+  /**
+   * A property with a {@code @PropertyTransformer} (e.g. {@code UserPropertyTransformer}) always
+   * serializes a fixed shape independent of what's requested underneath it -- verified empirically
+   * (DHIS2-21856): {@code fields=users}, {@code fields=users[href]} and {@code fields=users[*]} all
+   * produce byte-identical responses. So any path beneath such a property is dead on arrival and is
+   * dropped here, before any consumer (ACL/sharing computation, href generation, ...) has a reason
+   * to walk into it -- rather than leaving every consumer to independently rediscover and skip the
+   * same pointless subtree.
+   */
+  private void pruneTransformerControlledSubtrees(
+      Map<String, FieldPath> fieldPathMap, Class<?> rootKlass) {
+    fieldPathMap.values().removeIf(fieldPath -> isBeneathPropertyTransformer(fieldPath, rootKlass));
+  }
+
+  private boolean isBeneathPropertyTransformer(FieldPath fieldPath, Class<?> rootKlass) {
+    List<String> ancestorPath = new ArrayList<>();
+    for (String segment : fieldPath.getPath()) {
+      Schema schema = getSchemaByPath(ancestorPath, rootKlass);
+      Property property = schema == null ? null : schema.getProperty(segment);
+      if (property != null && property.hasPropertyTransformer()) {
+        return true;
+      }
+      ancestorPath.add(segment);
+    }
+    return false;
   }
 
   /**
@@ -265,6 +294,13 @@ public class FieldPathHelper {
     if (property == null) {
       return;
     }
+
+    // A property with a PropertyTransformer (e.g. UserPropertyTransformer) always serializes a
+    // fixed shape regardless of what's requested underneath, so nothing below this point can ever
+    // reach the response -- invoking the getter here would only force needless (and, for
+    // Hibernate-backed collections, N+1-inducing) materialization to compute mutations that can
+    // never be observed (DHIS2-21867).
+    if (property.hasPropertyTransformer()) return;
 
     if (property.isCollection()) {
       Collection<?> currentObjects = safeInvoke(object, property.getGetterMethod());

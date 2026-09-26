@@ -513,6 +513,48 @@ class DefaultEventDataQueryServiceTest {
     assertEquals("created", params.getDesc().get(0).getItemId());
   }
 
+  @Test
+  void getFromRequestAcceptsAscendingEnrollmentOuNameSortForEventEndpoint() {
+    lenient()
+        .when(queryItemLocator.getQueryItemFromDimension(anyString(), any(), any()))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, "enrollmentouname"));
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).asc(Set.of("enrollmentouname")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getAsc().size());
+    assertEquals("enrollmentouname", params.getAsc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsDescendingEnrollmentOuSortForEventEndpoint() {
+    lenient()
+        .when(queryItemLocator.getQueryItemFromDimension(anyString(), any(), any()))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, "enrollmentou"));
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).desc(Set.of("enrollmentou")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getDesc().size());
+    assertEquals("enrollmentou", params.getDesc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestRejectsEnrollmentOuNameSortForEnrollmentEndpoint() {
+    when(queryItemLocator.getQueryItemFromDimension(
+            "enrollmentouname", program, EventOutputType.ENROLLMENT))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, "enrollmentouname"));
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).asc(Set.of("enrollmentouname")).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7224, exception.getErrorCode());
+  }
+
   private QueryItem createDateQueryItem(String columnName) {
     return new QueryItem(
         new BaseDimensionalItemObject(columnName),

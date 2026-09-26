@@ -66,8 +66,7 @@ public class HibernateDataApprovalWorkflowStore
         set categorycomboid = :targetCategoryComboId
         where categorycomboid in :sourceCategoryComboIds
         """;
-    return getSession()
-        .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
         .setParameter("targetCategoryComboId", targetCategoryComboId)
         .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))

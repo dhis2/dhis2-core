@@ -813,7 +813,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   /** Generates a sub query which provides a filter by organisation descendant level. */
   private String getOrgUnitDescendantsClause(
       OrgUnitField orgUnitField, List<DimensionalItemObject> dimensionOrFilterItems) {
-    Map<String, List<OrganisationUnit>> collect =
+    Map<String, List<OrganisationUnit>> orgUnitsMap =
         dimensionOrFilterItems.stream()
             .map(object -> (OrganisationUnit) object)
             .collect(
@@ -823,9 +823,29 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                             .withSqlBuilder(sqlBuilder)
                             .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
 
-    return collect.keySet().stream()
-        .map(org -> toInCondition(org, collect.get(org)))
-        .collect(joining(" and "));
+    return getOuInCondition(orgUnitsMap);
+  }
+
+  /**
+   * Builds a SQL filter clause from a map of org unit level columns to their matching org units.
+   * Each entry produces an {@code IN} condition, and the conditions are joined with {@code OR}.
+   *
+   * <p>Example output for two level groups:
+   *
+   * <pre>
+   * ax."uidlevel2" in ('uid1','uid2') or ax."uidlevel3" in ('uid3')
+   * </pre>
+   *
+   * @param orgUnitsMap a map where each key is a SQL column expression representing an org unit
+   *     level (e.g. {@code ax."uidlevel2"}) and each value is the list of {@link OrganisationUnit}
+   *     objects whose UIDs should appear in the {@code IN} condition for that level.
+   * @return a SQL {@code OR}-joined string of {@code IN} conditions, or an empty string if the map
+   *     is empty.
+   */
+  String getOuInCondition(Map<String, List<OrganisationUnit>> orgUnitsMap) {
+    return orgUnitsMap.keySet().stream()
+        .map(org -> toInCondition(org, orgUnitsMap.get(org)))
+        .collect(joining(" or "));
   }
 
   /**
