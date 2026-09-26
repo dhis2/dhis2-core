@@ -472,6 +472,9 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     programA.getProgramStages().add(psA);
     programA.getOrganisationUnits().addAll(level3Ous);
     programA.setUid("programA123");
+    programA.setCategoryCombo(ccA);
+    programA.setEnrollmentCategoryCombo(ccA);
+    programA.setCategoryMappings(Set.of(cmA, cmB));
     manager.save(programA);
 
     programB = createProgram('B');
@@ -479,6 +482,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     programB.getOrganisationUnits().addAll(level3Ous);
     programB.setUid("programB123");
     programB.setCategoryCombo(ccA);
+    programB.setEnrollmentCategoryCombo(ccA);
     programB.setCategoryMappings(Set.of(cmA, cmB));
     manager.save(programB);
 
@@ -509,6 +513,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     Enrollment enrollmentA = createEnrollment(programA, teiA, ouE);
     enrollmentA.setEnrollmentDate(jan1);
     enrollmentA.setOccurredDate(jan1);
+    enrollmentA.setAttributeOptionCombo(cocAC);
     manager.save(enrollmentA);
     teiA.getEnrollments().add(enrollmentA);
     manager.update(teiA);
@@ -516,6 +521,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     Enrollment enrollmentB = createEnrollment(programB, teiA, ouE);
     enrollmentB.setEnrollmentDate(jan1);
     enrollmentB.setOccurredDate(jan1);
+    enrollmentB.setAttributeOptionCombo(cocBD);
     manager.save(enrollmentB);
     teiA.getEnrollments().add(enrollmentB);
     manager.update(teiA);
@@ -662,7 +668,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     injectAdminIntoSecurityContext();
   }
 
@@ -676,7 +682,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @AfterAll
-  public void tearDown() {
+  void tearDown() {
     cleanPeriodTypes();
 
     for (AnalyticsTableService service : analyticsTableServices) {
