@@ -175,7 +175,7 @@ public class Property implements Ordered, Klass {
   /** Maximum length/size/value of this property. */
   @Setter private Integer length;
 
-  /** Minimum size/length of this property. */
+  /** Maximum size/length of this property. */
   @Setter private Double max;
 
   /** Minimum size/length of this property. */

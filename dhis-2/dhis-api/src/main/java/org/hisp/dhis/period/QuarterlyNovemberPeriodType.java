@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.period;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
@@ -48,6 +49,7 @@ public class QuarterlyNovemberPeriodType extends QuarterlyAbstractPeriodType {
   }
 
   /** n refers to the quarter, can be [1-4]. */
+  @Nonnull
   @Override
   public String getIsoFormat() {
     return ISO_FORMAT;

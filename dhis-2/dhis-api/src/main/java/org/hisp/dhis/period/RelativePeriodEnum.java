@@ -88,14 +88,14 @@ public enum RelativePeriodEnum {
   LAST_12_WEEKS(WEEKLY),
   LAST_52_WEEKS(WEEKLY);
 
-  PeriodTypeEnum periodType;
+  final PeriodTypeEnum value;
 
-  RelativePeriodEnum(PeriodTypeEnum periodType) {
-    this.periodType = periodType;
+  RelativePeriodEnum(PeriodTypeEnum value) {
+    this.value = value;
   }
 
   public PeriodTypeEnum value() {
-    return periodType;
+    return value;
   }
 
   public static boolean contains(String value) {

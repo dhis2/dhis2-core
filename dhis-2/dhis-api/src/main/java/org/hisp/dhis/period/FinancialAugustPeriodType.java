@@ -30,6 +30,7 @@
 package org.hisp.dhis.period;
 
 import java.util.Calendar;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 public class FinancialAugustPeriodType extends FinancialPeriodType {
@@ -55,11 +56,13 @@ public class FinancialAugustPeriodType extends FinancialPeriodType {
     return String.format("%dAug", dateTimeUnit.getYear());
   }
 
+  @Nonnull
   @Override
   public String getIsoFormat() {
     return ISO_FORMAT;
   }
 
+  @Nonnull
   @Override
   public String getIso8601Duration() {
     return ISO8601_DURATION;
