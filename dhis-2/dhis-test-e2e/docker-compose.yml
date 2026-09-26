@@ -16,7 +16,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
+      s3:
         condition: service_healthy
 
   db:
@@ -43,20 +43,20 @@ services:
     ports:
       - "6379"
 
-  minio:
-    image: quay.io/minio/minio
-    command: server /data --console-address ":9090"
+  s3:
+    image: chrislusf/seaweedfs:4.47
+    command: server -dir=/data -s3 -s3.port.iceberg=0 -s3.port.lance=0 -master.telemetry=false
     ports:
-      - "9000" # minio API
-      - "9090" # minio UI
+      - "8333" # S3 API
     healthcheck:
-      test: [ "CMD", "mc", "ready", "local" ]
+      test: [ "CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:8333/healthz" ]
       interval: 5s
       timeout: 5s
       retries: 5
     environment:
-      MINIO_ROOT_USER: root
-      MINIO_ROOT_PASSWORD: dhisdhis
+      # SeaweedFS registers these as the admin S3 identity
+      AWS_ACCESS_KEY_ID: root
+      AWS_SECRET_ACCESS_KEY: dhisdhis
 
   selenium:
     image: "selenium/standalone-chrome:latest"
