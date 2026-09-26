@@ -632,7 +632,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8023, ds, aocNotInDs);
 
     // - require: COC must link (belong) to the CC of the DE
-    Iterator<UID> deIter = source.dataElements().iterator();
+    Iterator<UID> deIter = source.dataElements().distinct().iterator();
     while (deIter.hasNext()) {
       UID de = deIter.next();
       List<String> cocNotInDs =
@@ -644,7 +644,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Set<String> aocOuRestricted =
         Set.copyOf(store.getAocWithOrgUnitHierarchy(source.attributeOptionCombos()));
     if (!aocOuRestricted.isEmpty()) {
-      Iterator<UID> aocIter = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
+      Iterator<UID> aocIter =
+          source.attributeOptionCombos().filter(Objects::nonNull).distinct().iterator();
       while (aocIter.hasNext()) {
         UID aoc = aocIter.next();
         if (!aocOuRestricted.contains(aoc.getValue())) continue;
