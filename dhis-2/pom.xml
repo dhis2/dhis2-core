@@ -219,7 +219,9 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
+    <!-- Surefire 3.6.0 treats groups/excludedGroups as JUnit 4 categories (not JUnit Platform tags)
+         when junit:junit is on the test classpath, which breaks the unit/integration test profiles -->
+    <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-exec-plugin.version>3.6.4</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
