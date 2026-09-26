@@ -164,7 +164,7 @@ version: "3.8"
 
 services:
   db:
-    image: postgis/postgis:14-3.3-alpine
+    image: postgis/postgis:16-3.5-alpine
     ports:
       - 127.0.0.1:6432:5432
 ```

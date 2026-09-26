@@ -321,14 +321,14 @@ for modifying them.
 ### Database Image Caching on CI
 
 Database images are cached on the CI server to avoid restoring dumps on every run. The S3 dumps are
-mutable, so cached images (e.g., `localhost/dhis2-postgres:14-3.5-sierra-leone-dev`) can become
+mutable, so cached images (e.g., `localhost/dhis2-postgres:16-3.5-sierra-leone-dev`) can become
 stale when the source dump is updated.
 
 To refresh a cached image, a `#team-devops` member must run on the CI server:
 
 ```sh
 # Remove the specific cached image (adjust tag as needed)
-docker rmi localhost/dhis2-postgres:14-3.5-sierra-leone-dev
+docker rmi localhost/dhis2-postgres:16-3.5-sierra-leone-dev
 docker builder prune -a
 ```
 
