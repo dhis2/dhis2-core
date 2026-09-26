@@ -38,6 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
@@ -64,6 +65,7 @@ public class EventChartDeletionHandler
     whenDeleting(DataElement.class, this::deleteDataElementSpecial);
     whenDeleting(ProgramStage.class, this::deleteProgramStage);
     whenDeleting(Program.class, this::deleteProgram);
+    whenDeleting(ProgramIndicator.class, this::deleteProgramIndicatorDimension);
   }
 
   private void deleteDataElementSpecial(DataElement dataElement) {

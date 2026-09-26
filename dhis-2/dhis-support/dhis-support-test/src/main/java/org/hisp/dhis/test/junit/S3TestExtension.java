@@ -35,15 +35,18 @@ import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.context.annotation.Bean;
-import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 /**
- * Use this configuration for tests relying on MinIO storage running in a Docker container. The
- * container is stopped after the tests in the class have completed. Just add to test class like
+ * Use this configuration for tests relying on S3 storage running in a Docker container. The
+ * container runs <a href="https://github.com/seaweedfs/seaweedfs">SeaweedFS</a> with only its S3
+ * gateway enabled. The container is stopped after the tests in the class have completed. Just add
+ * to test class like
  *
- * <p>@ExtendWith(MinIOTestExtension.class)
+ * <p>@ExtendWith(S3TestExtension.class)
  *
- * <p>@ContextConfiguration(classes = {MinIOConfig.class})
+ * <p>@ContextConfiguration(classes = {S3TestExtension.DhisConfig.class})
  *
  * <p>If there are many uses of this extension then it should be considered whether keeping the
  * container up for the entirety of the tests is more preferable, rather than starting/stopping
@@ -51,20 +54,33 @@ import org.testcontainers.containers.MinIOContainer;
  *
  * @author david mackessy
  */
-public class MinIOTestExtension implements AfterAllCallback {
+public class S3TestExtension implements AfterAllCallback {
+
+  private static final String S3_ACCESS_KEY = "testuser";
+  private static final String S3_SECRET_KEY = "testpassword";
+
+  private static final int S3_PORT = 8333;
 
   private static final String S3_URL;
-  private static final String MINIO_USER = "testuser";
-  private static final String MINIO_PASSWORD = "testpassword";
-  private static final MinIOContainer MIN_IO_CONTAINER;
+  private static final GenericContainer<?> S3_CONTAINER;
 
   static {
-    MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
-            .withUserName(MINIO_USER)
-            .withPassword(MINIO_PASSWORD);
-    MIN_IO_CONTAINER.start();
-    S3_URL = MIN_IO_CONTAINER.getS3URL();
+    S3_CONTAINER =
+        new GenericContainer<>("chrislusf/seaweedfs:4.47")
+            .withCommand(
+                "server",
+                "-dir=/data",
+                "-s3",
+                "-s3.port.iceberg=0",
+                "-s3.port.lance=0",
+                "-master.telemetry=false")
+            // SeaweedFS registers these as the admin S3 identity.
+            .withEnv("AWS_ACCESS_KEY_ID", S3_ACCESS_KEY)
+            .withEnv("AWS_SECRET_ACCESS_KEY", S3_SECRET_KEY)
+            .withExposedPorts(S3_PORT)
+            .waitingFor(Wait.forHttp("/healthz").forPort(S3_PORT));
+    S3_CONTAINER.start();
+    S3_URL = "http://" + S3_CONTAINER.getHost() + ":" + S3_CONTAINER.getMappedPort(S3_PORT);
   }
 
   public static class DhisConfig {
@@ -75,8 +91,8 @@ public class MinIOTestExtension implements AfterAllCallback {
       properties.put("filestore.container", "dhis2");
       properties.put("filestore.location", "eu-west-1");
       properties.put("filestore.endpoint", S3_URL);
-      properties.put("filestore.identity", MINIO_USER);
-      properties.put("filestore.secret", MINIO_PASSWORD);
+      properties.put("filestore.identity", S3_ACCESS_KEY);
+      properties.put("filestore.secret", S3_SECRET_KEY);
 
       PostgresDhisConfigurationProvider pgDhisConfig = new PostgresDhisConfigurationProvider(null);
       pgDhisConfig.addProperties(properties);
@@ -86,6 +102,6 @@ public class MinIOTestExtension implements AfterAllCallback {
 
   @Override
   public void afterAll(ExtensionContext context) {
-    MIN_IO_CONTAINER.stop();
+    S3_CONTAINER.stop();
   }
 }

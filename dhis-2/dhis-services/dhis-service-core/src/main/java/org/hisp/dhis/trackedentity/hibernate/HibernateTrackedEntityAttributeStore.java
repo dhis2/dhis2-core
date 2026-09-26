@@ -142,4 +142,14 @@ public class HibernateTrackedEntityAttributeStore
 
     return new HashSet<>(query.getResultList());
   }
+
+  @Override
+  public Set<String> getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue() {
+    TypedQuery<String> query =
+        entityManager.createQuery(
+            "select tea.uid from TrackedEntityAttribute tea where tea.skipSynchronization = true",
+            String.class);
+
+    return new HashSet<>(query.getResultList());
+  }
 }

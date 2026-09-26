@@ -115,7 +115,10 @@ public class SyncUtils {
       ResponseExtractor<T> responseExtractor,
       String syncUrl,
       int maxSyncAttempts) {
-    for (int attempt = 1; attempt <= maxSyncAttempts; attempt++) {
+    int attempts = Math.max(1, maxSyncAttempts);
+    int attempt = 0;
+    while (true) {
+      attempt++;
       try {
         return restTemplate.execute(syncUrl, HttpMethod.POST, requestCallback, responseExtractor);
       } catch (HttpClientErrorException ex) {
@@ -127,15 +130,17 @@ public class SyncUtils {
         log.error(
             "Sync server error (attempt {}/{}): {}",
             attempt,
-            maxSyncAttempts,
+            attempts,
             ex.getResponseBodyAsString(),
             ex);
-        if (attempt >= maxSyncAttempts) {
+        if (attempt >= attempts) {
           throw ex;
         }
+      } catch (ResourceAccessException ex) {
+        log.error("Exception during tracker sync push: {}", ex.getMessage(), ex);
+        throw ex;
       }
     }
-    throw new IllegalStateException("unreachable");
   }
 
   private static <T> T extractFromErrorResponse(

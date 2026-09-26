@@ -34,7 +34,9 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.alreadyDeletedOrSucceededUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedItems;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedItems;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.formatFailedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.sendTrackerRequest;
@@ -56,7 +58,6 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
@@ -71,7 +72,7 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -103,6 +104,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private record DeleteSyncResult(Set<UID> syncedTeUids, Set<UID> blockingFailedChildUids) {}
 
   private final TrackedEntityService trackedEntityService;
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
   private final ProgramStageDataElementService programStageDataElementService;
   private final SystemSettingsService systemSettingsService;
   private final RestTemplate restTemplate;
@@ -111,6 +113,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   @Getter
   private static final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
+    private final Set<String> skipSyncAttributeUids;
     // Distinct tracked entity uids fetched across all pages this run, so the run's completion can
     // report how many entities in the backlog were never attempted at all (see
     // executeSynchronizationWithPaging), e.g. because repeatedly failing entities kept occupying
@@ -118,7 +121,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     private final Set<UID> attemptedTrackedEntityUids = new HashSet<>();
 
     public TrackerSynchronizationContext(Date skipChangedBefore, int pageSize) {
-      this(skipChangedBefore, 0, null, pageSize, Map.of());
+      this(skipChangedBefore, 0, null, pageSize, Map.of(), Set.of());
     }
 
     public TrackerSynchronizationContext(
@@ -126,9 +129,11 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         long objectsToSynchronize,
         SystemInstance instance,
         int pageSize,
-        Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+        Map<String, Set<String>> skipSyncDataElementsByProgramStage,
+        Set<String> skipSyncAttributeUids) {
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
       this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
+      this.skipSyncAttributeUids = skipSyncAttributeUids;
     }
 
     public boolean hasNoObjectsToSynchronize() {
@@ -187,12 +192,18 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         trackedEntityCount,
         instance,
         pageSize,
-        getSkipSyncDataElementsByProgramStage());
+        getSkipSyncDataElementsByProgramStage(),
+        getSkipSyncAttributeUids());
   }
 
   private Map<String, Set<String>> getSkipSyncDataElementsByProgramStage() {
     return programStageDataElementService
         .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  }
+
+  private Set<String> getSkipSyncAttributeUids() {
+    return trackedEntityAttributeService
+        .getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
   }
 
   private long countTrackedEntitiesForSynchronization(Date skipChangedBefore)
@@ -352,7 +363,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
           deletedChildUidsByTe);
       stripSkipSyncFields(
           activeTrackedEntities,
-          skipSyncAttributeUids(active),
+          context.getSkipSyncAttributeUids(),
           context.getSkipSyncDataElementsByProgramStage());
     }
 
@@ -483,15 +494,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     return relationships.stream().filter(r -> !r.isDeleted()).toList();
   }
 
-  private Set<String> skipSyncAttributeUids(List<TrackedEntity> trackedEntities) {
-    return trackedEntities.stream()
-        .flatMap(te -> te.getTrackedEntityAttributeValues().stream())
-        .map(TrackedEntityAttributeValue::getAttribute)
-        .filter(a -> Boolean.TRUE.equals(a.getSkipSynchronization()))
-        .map(BaseIdentifiableObject::getUid)
-        .collect(Collectors.toSet());
-  }
-
   private void stripSkipSyncFields(
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       Set<String> skipSyncAttributeUids,
@@ -560,7 +562,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             .filter(te -> syncedTeUids.contains(te.getTrackedEntity()))
             .toList();
 
-    Set<UID> failedTeUids = blockingFailedUids(report, TrackerType.TRACKED_ENTITY);
     Set<UID> failedEnrollmentUids = blockingFailedUids(report, TrackerType.ENROLLMENT);
     Set<UID> failedEventUids = blockingFailedUids(report, TrackerType.EVENT);
     Set<UID> failedRelationshipUids = blockingFailedUids(report, TrackerType.RELATIONSHIP);
@@ -574,16 +575,16 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
             + " events={}/{} synced{}, relationships={}/{} synced{}",
         syncedTes.size(),
         deletedTrackedEntities.size(),
-        formatFailedUids(failedTeUids),
+        formatFailedUids(blockingFailedItems(report, TrackerType.TRACKED_ENTITY)),
         syncedEnrollmentUids.size(),
         deletedEnrollments.size(),
-        formatFailedUids(failedEnrollmentUids),
+        formatFailedUids(blockingFailedItems(report, TrackerType.ENROLLMENT)),
         syncedEventUids.size(),
         deletedEvents.size(),
-        formatFailedUids(failedEventUids),
+        formatFailedUids(blockingFailedItems(report, TrackerType.EVENT)),
         syncedRelationshipUids.size(),
         deletedRelationships.size(),
-        formatFailedUids(failedRelationshipUids));
+        formatFailedUids(blockingFailedItems(report, TrackerType.RELATIONSHIP)));
 
     return new DeleteSyncResult(syncedTeUids, blockingFailedChildUids);
   }
@@ -618,24 +619,22 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         trackedEntities.stream().flatMap(te -> te.getEnrollments().stream()).toList();
     List<Event> events = enrollments.stream().flatMap(e -> e.getEvents().stream()).toList();
     Set<UID> relationshipUids = getAllRelationshipUids(trackedEntities);
-    Set<UID> failedEnrollmentUids = failedUids(report, TrackerType.ENROLLMENT);
-    Set<UID> failedEventUids = failedUids(report, TrackerType.EVENT);
-    Set<UID> failedRelationshipUids = failedUids(report, TrackerType.RELATIONSHIP);
 
     log.info(
-        "Tracker create/update sync: TEs={}/{} synced, enrollments={}/{} synced{},"
+        "Tracker create/update sync: TEs={}/{} synced{}, enrollments={}/{} synced{},"
             + " events={}/{} synced{}, relationships={}/{} synced{}",
         syncedTes.size(),
         trackedEntities.size(),
+        formatFailedUids(failedItems(report, TrackerType.TRACKED_ENTITY)),
         successfullyProcessedUids(report, TrackerType.ENROLLMENT).size(),
         enrollments.size(),
-        formatFailedUids(failedEnrollmentUids),
+        formatFailedUids(failedItems(report, TrackerType.ENROLLMENT)),
         successfullyProcessedUids(report, TrackerType.EVENT).size(),
         events.size(),
-        formatFailedUids(failedEventUids),
+        formatFailedUids(failedItems(report, TrackerType.EVENT)),
         successfullyProcessedUids(report, TrackerType.RELATIONSHIP).size(),
         relationshipUids.size(),
-        formatFailedUids(failedRelationshipUids));
+        formatFailedUids(failedItems(report, TrackerType.RELATIONSHIP)));
 
     return syncedTeUids;
   }

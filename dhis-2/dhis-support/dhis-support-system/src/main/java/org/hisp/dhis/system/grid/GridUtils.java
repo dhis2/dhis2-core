@@ -75,6 +75,7 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -119,6 +120,13 @@ public class GridUtils {
   private static final String XLS_SHEET_PREFIX = "Sheet ";
 
   private static final int JXL_MAX_COLS = 256;
+
+  /**
+   * How many rows a streamed XLSX keeps in memory before flushing. POI's own default is 100; 1 000
+   * trades a little memory for far fewer flushes, and at the widths analytics grids reach it is
+   * still a fixed cost rather than one that grows with the export.
+   */
+  private static final int XLSX_ROW_WINDOW = 1000;
 
   private static final String FONT_ARIAL = "Arial";
 
@@ -298,9 +306,32 @@ public class GridUtils {
     toWorkbook(new HSSFWorkbook(), grid, out);
   }
 
-  /** Writes a XLSX (Excel workbook) representation of the given Grid to the given OutputStream. */
+  /**
+   * Writes a XLSX (Excel workbook) representation of the given Grid to the given OutputStream.
+   *
+   * <p>Streamed rather than assembled. A plain {@link XSSFWorkbook} keeps every {@code Cell} object
+   * alive until {@code write}, which on Uganda's 100 001-row line-list export was 19.9% of the
+   * request's CPU and a large share of the 132 GB it allocated; isolating it against the same query
+   * exported as XML put spreadsheet serialisation alone at ~37 s. {@link SXSSFWorkbook} keeps only
+   * {@link #XLSX_ROW_WINDOW} rows in memory and spills the rest, so peak memory is a function of
+   * the row width rather than of the result size.
+   *
+   * <p>Nothing in this path reads a row back after writing it, which is the one thing the streaming
+   * API cannot do. {@code toXls} is left on {@link org.apache.poi.hssf.usermodel.HSSFWorkbook}: the
+   * streaming API is XSSF-only, and the legacy format's own 65 536-row ceiling makes it moot.
+   */
   public static void toXlsx(Grid grid, OutputStream out) throws IOException {
-    toWorkbook(new XSSFWorkbook(), grid, out);
+    SXSSFWorkbook workbook = new SXSSFWorkbook(XLSX_ROW_WINDOW);
+    workbook.setCompressTempFiles(true);
+
+    try {
+      toWorkbook(workbook, grid, out);
+    } finally {
+      // The spilled rows are real files in the JVM's temp directory. toWorkbook closes the workbook
+      // on the happy path, but a failure part-way through a write must not leave them behind: on a
+      // server exporting hundred-thousand-row grids that fills a disk.
+      workbook.dispose();
+    }
   }
 
   /**

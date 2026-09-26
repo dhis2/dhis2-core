@@ -94,8 +94,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   }
 
   private List<String> getIfAvailable(ReservedValue reservedValue, List<String> values) {
-
-    List<?> teavOrReservedValues =
+    List<?> usedValues =
         getSession()
             .createNamedQuery("getRandomGeneratedValuesNotAvailableNamedQuery")
             .setParameter("teaId", reservedValue.getTrackedEntityAttributeId())
@@ -105,7 +104,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
             .setParameter("values", values.stream().map(String::toLowerCase).toList())
             .list();
 
-    return values.stream().filter(rv -> !teavOrReservedValues.contains(rv)).toList();
+    return values.stream().filter(v -> !usedValues.contains(v.toLowerCase())).toList();
   }
 
   @Override
@@ -161,20 +160,6 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
     getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid")
         .setParameter("uid", uid)
         .executeUpdate();
-  }
-
-  @Override
-  public boolean isReserved(String ownerObject, String ownerUID, String value) {
-    String hql =
-        "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid "
-            + "and rv.value =:value";
-
-    return !getQuery(hql)
-        .setParameter("ownerObject", ownerObject)
-        .setParameter("ownerUid", ownerUID)
-        .setParameter("value", value)
-        .getResultList()
-        .isEmpty();
   }
 
   @Override

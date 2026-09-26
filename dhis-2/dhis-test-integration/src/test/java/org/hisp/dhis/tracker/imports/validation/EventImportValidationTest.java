@@ -36,14 +36,15 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
+import static org.hisp.dhis.tracker.imports.validation.Users.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerType;
@@ -78,6 +81,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EventImportValidationTest extends PostgresIntegrationTestBase {
+  private static final String EVENT_UID = "ZwwuwNp6gVd";
+
+  private static final String ORG_UNIT_UID = "QfUVllTs6cS";
+
   @Autowired private TestSetup testSetup;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -452,6 +459,72 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
         trackerImportService.importTracker(params, deleteTrackerObjects);
     assertNoErrors(importReportDelete);
     assertEquals(1, importReportDelete.getStats().getDeleted());
+  }
+
+  @Test
+  void shouldFailDeletingEventWhenItsCompletionHasExpiredAndUserIsNotAuthorized()
+      throws IOException {
+    createExpiredCompletedEvent();
+    injectSecurityContextUser(userWithoutEditExpiredAuthority());
+
+    TrackerImportParams params = new TrackerImportParams();
+    params.setImportStrategy(DELETE);
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/event-data-delete.json"));
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1043);
+    assertNotNull(manager.get(Event.class, EVENT_UID));
+  }
+
+  @Test
+  void shouldDeleteEventWhenItsCompletionHasExpiredAndUserIsAuthorized() throws IOException {
+    createExpiredCompletedEvent();
+
+    TrackerImportParams params = new TrackerImportParams();
+    params.setImportStrategy(DELETE);
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/event-data-delete.json"));
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+  }
+
+  /**
+   * Creates an event which was completed long before the number of days its program allows changes
+   * to a completed event.
+   */
+  private void createExpiredCompletedEvent() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/events-with-registration.json")));
+    manager.flush();
+    manager.clear();
+
+    Event event = manager.get(Event.class, EVENT_UID);
+    event.setStatus(EventStatus.COMPLETED);
+    event.setCompletedDate(Date.from(Instant.now().minus(Duration.ofDays(30))));
+    manager.update(event);
+    assertTrue(
+        event.getProgramStage().getProgram().getCompleteEventsExpiryDays() > 0,
+        "the program of the event is expected to expire completed events");
+    manager.flush();
+    manager.clear();
+  }
+
+  private User userWithoutEditExpiredAuthority() {
+    User user = userService.getUser(USER_5);
+    user.addOrganisationUnit(manager.get(OrganisationUnit.class, ORG_UNIT_UID));
+    user.getUserRoles()
+        .forEach(
+            role -> {
+              role.getAuthorities().remove(Authorities.F_EDIT_EXPIRED.name());
+              manager.update(role);
+            });
+    manager.update(user);
+    return user;
   }
 
   private ImportReport createEvent(String jsonPayload) throws IOException {

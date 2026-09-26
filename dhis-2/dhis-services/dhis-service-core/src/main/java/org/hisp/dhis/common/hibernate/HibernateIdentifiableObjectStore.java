@@ -618,7 +618,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             .addPredicates(getSharingPredicates(builder))
             .addPredicate(
                 root -> builder.greaterThanOrEqualTo(root.get("lastUpdated"), lastUpdated))
-            .count(root -> builder.countDistinct(root.get("id")));
+            .count(root -> builder.count(builder.literal(1)));
 
     return getCount(builder, param).intValue();
   }

@@ -34,7 +34,9 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.alreadyDeletedOrSucceededUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedItems;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.blockingFailedUids;
+import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedItems;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.failedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.formatFailedUids;
 import static org.hisp.dhis.webapi.controller.tracker.sync.TrackerSyncReportUtils.sendTrackerRequest;
@@ -426,17 +428,16 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
             .filter(event -> syncedEventUids.contains(event.getEvent()))
             .toList();
 
-    Set<UID> failedEventUids = blockingFailedUids(report, TrackerType.EVENT);
     Set<UID> failedRelationshipUids = blockingFailedUids(report, TrackerType.RELATIONSHIP);
 
     log.info(
         "Single Event delete sync: events={}/{} synced{}, relationships={}/{} synced{}",
         syncedEvents.size(),
         deletedEventDtos.size(),
-        formatFailedUids(failedEventUids),
+        formatFailedUids(blockingFailedItems(report, TrackerType.EVENT)),
         syncedRelationshipUids.size(),
         deletedRelationships.size(),
-        formatFailedUids(failedRelationshipUids));
+        formatFailedUids(blockingFailedItems(report, TrackerType.RELATIONSHIP)));
 
     return new DeleteSyncResult(syncedEventUids, failedRelationshipUids);
   }
@@ -461,15 +462,15 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         events.stream().filter(event -> syncedEventUids.contains(event.getEvent())).toList();
 
     Set<UID> relationshipUids = getAllRelationshipUids(events);
-    Set<UID> failedRelationshipUids = failedUids(report, TrackerType.RELATIONSHIP);
 
     log.info(
-        "Single Event create/update sync: events={}/{} synced, relationships={}/{} synced{}",
+        "Single Event create/update sync: events={}/{} synced{}, relationships={}/{} synced{}",
         syncedEvents.size(),
         events.size(),
+        formatFailedUids(failedItems(report, TrackerType.EVENT)),
         successfullyProcessedUids(report, TrackerType.RELATIONSHIP).size(),
         relationshipUids.size(),
-        formatFailedUids(failedRelationshipUids));
+        formatFailedUids(failedItems(report, TrackerType.RELATIONSHIP)));
 
     return syncedEventUids;
   }

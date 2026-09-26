@@ -155,6 +155,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
         """
             .formatted(coc, cocs.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
-    entityManager.createNativeQuery(sql).executeUpdate();
+    nativeSynchronizedQuery(sql).executeUpdate();
   }
 }

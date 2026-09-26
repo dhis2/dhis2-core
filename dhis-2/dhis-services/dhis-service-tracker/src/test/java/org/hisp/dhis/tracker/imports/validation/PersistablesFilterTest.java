@@ -223,6 +223,31 @@ class PersistablesFilterTest {
   }
 
   @Test
+  void testCreateAndUpdateValidEventOfValidEnrollmentWithInvalidTrackedEntityCannotBeCreated() {
+    Setup setup =
+        new Setup.Builder()
+            .trackedEntity("xK7H53f4Hc2")
+            .isNotValid()
+            .enrollment("t1zaUjKgT3p")
+            .event("Qck4PQ7TMun")
+            .build();
+
+    PersistablesFilter.Result persistable =
+        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    assertAll(
+        () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
+        () -> assertIsEmpty(persistable.get(Enrollment.class)),
+        () -> assertIsEmpty(persistable.get(Event.class)),
+        () ->
+            assertHasError(
+                persistable, ENROLLMENT, "t1zaUjKgT3p", E5000, "trackedEntity `xK7H53f4Hc2`"),
+        () ->
+            assertHasError(
+                persistable, EVENT, "Qck4PQ7TMun", E5000, "because enrollment `t1zaUjKgT3p`"));
+  }
+
+  @Test
   void testCreateAndUpdateInvalidEventOfValidEnrollmentCannotBePersisted() {
     Setup setup =
         new Setup.Builder()

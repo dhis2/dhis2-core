@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
@@ -492,6 +493,19 @@ public class UserController
     if (existingUser == null) {
       return conflict("User not found: " + uid);
     }
+
+    // MetadataMergeService.merge() silently skips any collection that is still an
+    // uninitialized Hibernate proxy at merge time (to avoid triggering large lazy loads
+    // elsewhere), so force-initialize every collection it needs to copy here, or they get
+    // dropped from the replica with no error. "groups" is not in this list because it is
+    // re-established explicitly via userGroupService.addUserToGroups() below, independent of
+    // whatever merge() does with it.
+    Hibernate.initialize(existingUser.getOrganisationUnits());
+    Hibernate.initialize(existingUser.getDataViewOrganisationUnits());
+    Hibernate.initialize(existingUser.getTeiSearchOrganisationUnits());
+    Hibernate.initialize(existingUser.getUserRoles());
+    Hibernate.initialize(existingUser.getCogsDimensionConstraints());
+    Hibernate.initialize(existingUser.getCatDimensionConstraints());
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     validateCreateUser(existingUser, currentUser);

@@ -34,11 +34,16 @@ import static org.hisp.dhis.period.RelativePeriodEnum.LAST_14_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_MONTHS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_7_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_BIWEEK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.period.RelativePeriods;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link Report}. */
 class ReportTest {
@@ -103,5 +108,24 @@ class ReportTest {
     assertTrue(report.getRawPeriods().contains(BIMONTHS_THIS_YEAR.name()));
     assertTrue(report.getRawPeriods().contains(LAST_14_DAYS.name()));
     assertTrue(report.getRawPeriods().contains(LAST_3_MONTHS.name()));
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void testUpdateRelativesRemovesDeselectedPeriods(boolean weeksThisYear) {
+    Report report = new Report();
+    report.setRawPeriods(new ArrayList<>(List.of("THIS_MONTH")));
+
+    RelativePeriods updated = new RelativePeriods();
+    updated.setThisMonth(false);
+    updated.setWeeksThisYear(weeksThisYear);
+    report.setRelatives(updated);
+
+    // Only rawPeriods is persisted; read the updated selection as a newly loaded report would.
+    Report reloaded = new Report();
+    reloaded.setRawPeriods(report.getRawPeriods());
+    assertFalse(reloaded.getRelatives().isThisMonth());
+    assertEquals(weeksThisYear, reloaded.getRelatives().isWeeksThisYear());
+    assertEquals(!weeksThisYear, reloaded.getRelatives().isEmpty());
   }
 }

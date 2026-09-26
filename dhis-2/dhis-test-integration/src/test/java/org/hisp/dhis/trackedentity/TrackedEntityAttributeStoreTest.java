@@ -216,6 +216,18 @@ class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
     assertThat(trackedEntityAttributes.size(), is(20));
   }
 
+  @Test
+  void shouldReturnOnlyAttributeUidWhenSkipSynchronizationSetToTrue() {
+    attributeW.setSkipSynchronization(true);
+    attributeService.addTrackedEntityAttribute(attributeW);
+    attributeService.addTrackedEntityAttribute(attributeY);
+
+    Set<String> uids =
+        attributeService.getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
+
+    assertEquals(Set.of(attributeW.getUid()), uids);
+  }
+
   private List<ProgramTrackedEntityAttribute> createProgramAttributes(Program program) {
     return IntStream.range(A, T)
         .mapToObj(i -> Character.toString((char) i))

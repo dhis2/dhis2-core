@@ -34,10 +34,18 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX_ZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExtension;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -214,15 +222,41 @@ public class DataValueSetController {
     DataExportParams params = createParams.provide();
     dataValueSetService.validate(params);
 
-    response.setContentType(contentType);
+    Compression compressionType = Compression.fromValue(compression);
+    response.setContentType(contentType(contentType, compressionType));
     setNoStore(response);
 
-    try (OutputStream out =
-        compress(params, response, attachment, Compression.fromValue(compression), format)) {
+    try (OutputStream out = compress(params, response, attachment, compressionType, format)) {
       writeOutput.accept(params, out);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
+  }
+
+  /**
+   * The content type must describe the bytes actually written to the response: when the export is
+   * compressed the body is a gzip/zip container, not the plain format. Uses the same {@code
+   * +gzip}/{@code +zip} media types as the metadata and tracker exports.
+   */
+  private static String contentType(String plainContentType, Compression compression) {
+    if (compression == null) return plainContentType;
+    return switch (compression) {
+      case NONE -> plainContentType;
+      case GZIP ->
+          switch (plainContentType) {
+            case CONTENT_TYPE_XML -> CONTENT_TYPE_XML_GZIP;
+            case CONTENT_TYPE_XML_ADX -> CONTENT_TYPE_XML_ADX_GZIP;
+            case CONTENT_TYPE_CSV -> CONTENT_TYPE_CSV_GZIP;
+            default -> CONTENT_TYPE_JSON_GZIP;
+          };
+      case ZIP ->
+          switch (plainContentType) {
+            case CONTENT_TYPE_XML -> CONTENT_TYPE_XML_ZIP;
+            case CONTENT_TYPE_XML_ADX -> CONTENT_TYPE_XML_ADX_ZIP;
+            case CONTENT_TYPE_CSV -> CONTENT_TYPE_CSV_ZIP;
+            default -> CONTENT_TYPE_JSON_ZIP;
+          };
+    };
   }
 
   // -------------------------------------------------------------------------

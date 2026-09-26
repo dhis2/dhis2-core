@@ -1055,11 +1055,57 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void invalidateUserSessions(String username) {
-    User user = getUserByUsername(username);
-    UserDetails userDetails = createUserDetails(user);
-    if (userDetails != null) {
-      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
-      allSessions.forEach(SessionInformation::expireNow);
+    if (username == null) {
+      return;
+    }
+    List<SessionInformation> sessions =
+        sessionRegistry.getAllSessions(sessionLookupPrincipal(username), false);
+    sessions.forEach(SessionInformation::expireNow);
+  }
+
+  /**
+   * Creates a minimal principal used only to look up sessions in the {@link SessionRegistry}. The
+   * in-memory registry matches principals by {@link UserDetailsImpl} equality, which includes the
+   * username only, and the Redis-backed registry resolves principals by name (username). Building
+   * this instead of loading the full user avoids one user fetch plus full {@code UserDetails}
+   * hydration (groups, roles, org units) per invalidated user.
+   */
+  private static UserDetails sessionLookupPrincipal(String username) {
+    return UserDetailsImpl.builder()
+        .username(username)
+        .authorities(List.of())
+        .allAuthorities(Set.of())
+        .allRestrictions(Set.of())
+        .userGroupIds(Set.of())
+        .userOrgUnitIds(Set.of())
+        .userDataOrgUnitIds(Set.of())
+        .userSearchOrgUnitIds(Set.of())
+        .userEffectiveSearchOrgUnitIds(Set.of())
+        .userRoleIds(Set.of())
+        .managedGroupLongIds(Set.of())
+        .userRoleLongIds(Set.of())
+        .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getUsernamesByUserRole(@Nonnull UID roleUid) {
+    return userStore.getUsernamesByUserRole(roleUid);
+  }
+
+  @Override
+  public void invalidateUserSessions(Collection<String> usernames) {
+    if (usernames == null || usernames.isEmpty()) {
+      return;
+    }
+    // Resolve all users in a single query instead of one getUserByUsername per username. That
+    // per-member lookup is the N+1 behind DHIS2-21842; under FlushModeType.AUTO each call also
+    // auto-flushes the growing persistence context, making a large-membership invalidation O(n²).
+    for (User user : userStore.getUserByUsernames(usernames)) {
+      UserDetails userDetails = createUserDetails(user);
+      if (userDetails != null) {
+        sessionRegistry.getAllSessions(userDetails, false).forEach(SessionInformation::expireNow);
+      }
     }
   }
 

@@ -1,0 +1,35 @@
+{
+  "organisationUnits": [
+    {
+      "id": "OrgUnitUid1",
+      "name": "zzTest org unit",
+      "shortName": "zzTest org unit",
+      "openingDate": "2020-01-01"
+    }
+  ],
+  "programs": [
+    {
+      "id": "ProgramUid1",
+      "name": "zzTest program",
+      "shortName": "zzTest program",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [{ "id": "OrgUnitUid1" }]
+    }
+  ],
+  "programRules": [
+    {
+      "id": "PrgRuleUid1",
+      "name": "zzTest rule",
+      "condition": "true",
+      "program": { "id": "ProgramUid1" },
+      "programRuleActions": [{ "id": "PrgRuleAct1" }]
+    }
+  ],
+  "programRuleActions": [
+    {
+      "id": "PrgRuleAct1",
+      "programRuleActionType": "SHOWERROR",
+      "content": "input 1 is greater than input 2"
+    }
+  ]
+}

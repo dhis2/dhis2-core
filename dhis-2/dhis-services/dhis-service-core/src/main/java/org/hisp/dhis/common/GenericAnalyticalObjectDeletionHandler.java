@@ -98,6 +98,18 @@ public abstract class GenericAnalyticalObjectDeletionHandler<
         AnalyticalObject::removeDataDimensionItem);
   }
 
+  protected final void deleteProgramIndicatorDimension(ProgramIndicator programIndicator) {
+    List<T> analyticalObjects = service.getAnalyticalObjectsByDataDimension(programIndicator);
+
+    for (T analyticalObject : analyticalObjects) {
+      analyticalObject
+          .getProgramIndicatorDimensions()
+          .removeIf(
+              dimension ->
+                  dimension != null && programIndicator.equals(dimension.getProgramIndicator()));
+    }
+  }
+
   protected final void deletePeriod(Period period) {
     removeItem(
         service.getAnalyticalObjects(period), period, (ao, di) -> ao.getPeriods().remove(di));

@@ -2558,6 +2558,45 @@
       "username": "aaaa"
     },
     {
+      "id": "Hop98yh65pL",
+      "access": {
+        "delete": true,
+        "externalize": true,
+        "manage": true,
+        "read": true,
+        "update": true,
+        "write": true
+      },
+      "created": "2020-05-31T08:57:59.048",
+      "displayName": "single event user",
+      "email": "aaaa@dhis2.org",
+      "firstName": "single event user",
+      "name": "single event user",
+      "organisationUnits": [
+        {
+          "id": "g4w96yEMlzO"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "password": "Test123###...",
+      "passwordLastUpdated": "2020-05-31T08:57:59.060",
+      "phoneNumber": "+4740332255",
+      "surname": "single event user",
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "username": "singleEventUser"
+    },
+    {
       "id": "FIgVWzUCkpw",
       "access": {
         "delete": true,

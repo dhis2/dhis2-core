@@ -82,31 +82,31 @@ public class HibernateOrganisationUnitStore
 
   @Override
   public List<String> getOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "usermembership");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("usermembership");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
   @Override
   public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "userteisearchorgunits");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("userteisearchorgunits");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
   @Override
   public List<String> getDataViewOrganisationUnitsUidsByUser(String username) {
-    String sql = getOrgUnitTablesUids(username, "userdatavieworgunits");
-    return jdbcTemplate.queryForList(sql, String.class);
+    String sql = getOrgUnitTablesUids("userdatavieworgunits");
+    return jdbcTemplate.queryForList(sql, String.class, username);
   }
 
-  private static String getOrgUnitTablesUids(String username, String orgUnitTableName) {
+  private static String getOrgUnitTablesUids(String orgUnitTableName) {
     return """
         SELECT ou.uid
         FROM organisationunit ou
                  JOIN %s um ON ou.organisationunitid = um.organisationunitid
                  JOIN userinfo ui ON um.userinfoid = ui.userinfoid
-        WHERE ui.username = '%s';
+        WHERE ui.username = ?;
         """
-        .formatted(orgUnitTableName, username);
+        .formatted(orgUnitTableName);
   }
 
   @Override

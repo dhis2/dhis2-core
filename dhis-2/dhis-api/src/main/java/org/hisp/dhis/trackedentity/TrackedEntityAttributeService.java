@@ -186,4 +186,12 @@ public interface TrackedEntityAttributeService {
    * @return a Set of {@link TrackedEntityAttribute} UIDs
    */
   Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program);
+
+  /**
+   * Fetches UIDs of all {@link TrackedEntityAttribute} that have {@code skipSynchronization} set to
+   * true.
+   *
+   * @return a Set of {@link TrackedEntityAttribute} UIDs
+   */
+  Set<String> getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
 }

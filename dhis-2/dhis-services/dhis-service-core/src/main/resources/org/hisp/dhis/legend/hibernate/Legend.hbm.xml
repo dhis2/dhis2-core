@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.legend.Legend" table="maplegend">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="maplegendid">
       <generator class="native" />
