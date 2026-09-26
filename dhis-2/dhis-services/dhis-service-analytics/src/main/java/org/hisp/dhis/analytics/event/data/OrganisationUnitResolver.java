@@ -46,6 +46,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.analytics.util.sql.OrgUnitHierarchySql;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -67,9 +69,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class OrganisationUnitResolver {
 
   /** Column alias for stage.ou organisation unit name in CTE output. */
@@ -390,6 +394,30 @@ public class OrganisationUnitResolver {
     return StringUtils.isBlank(tableAlias)
         ? sqlBuilder.quote(column)
         : sqlBuilder.quote(tableAlias, column);
+  }
+
+  /**
+   * Returns a SQL expression resolving, for each analytics row, the UID of the parent organisation
+   * unit of the row's own organisation unit. Grouping by this expression puts sibling organisation
+   * units into the same group, which lets MIN or MAX be taken across the children of an
+   * organisation unit before the resulting values are summed up the hierarchy.
+   *
+   * <p>The expression walks the {@code uidlevelN} columns from the deepest filled level upwards and
+   * yields the level above the one matching the row's own organisation unit. Rows whose
+   * organisation unit sits at level one have no parent and resolve to the organisation unit itself.
+   *
+   * @param ouColumn the qualified and quoted column holding the row's organisation unit UID.
+   * @param levelColumn maps an organisation unit level to its qualified {@code uidlevelN} column.
+   * @return a SQL {@code case} expression, or {@code ouColumn} when only one level exists.
+   */
+  public String getParentOrgUnitExpression(String ouColumn, IntFunction<String> levelColumn) {
+    int maxLevel =
+        organisationUnitService.getFilledOrganisationUnitLevels().stream()
+            .mapToInt(OrganisationUnitLevel::getLevel)
+            .max()
+            .orElse(1);
+
+    return OrgUnitHierarchySql.getParentOrgUnitExpression(maxLevel, ouColumn, levelColumn);
   }
 
   /**
