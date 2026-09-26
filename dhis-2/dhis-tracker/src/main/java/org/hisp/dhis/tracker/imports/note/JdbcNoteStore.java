@@ -34,7 +34,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -43,64 +42,49 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class JdbcNoteStore {
+class JdbcNoteStore {
+  private static final String INSERT_ENROLLMENT_NOTE =
+      """
+      insert into note (notetext, lastupdatedby, uid, created, enrollmentid)
+      values (:text,
+              (select userinfoid from userinfo where uid = :lastUpdatedBy),
+              :uid,
+              :created,
+              (select enrollmentid from enrollment where uid = :entity))
+      """;
+
+  private static final String INSERT_TRACKER_EVENT_NOTE =
+      """
+      insert into note (notetext, lastupdatedby, uid, created, trackereventid)
+      values (:text,
+              (select userinfoid from userinfo where uid = :lastUpdatedBy),
+              :uid,
+              :created,
+              (select eventid from trackerevent where uid = :entity))
+      """;
+
+  private static final String INSERT_SINGLE_EVENT_NOTE =
+      """
+      insert into note (notetext, lastupdatedby, uid, created, singleeventid)
+      values (:text,
+              (select userinfoid from userinfo where uid = :lastUpdatedBy),
+              :uid,
+              :created,
+              (select eventid from singleevent where uid = :entity))
+      """;
+
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  public void saveEnrollmentNote(
-      @Nonnull UID enrollment, @Nonnull Note note, @Nonnull UserDetails user) {
-    long noteId = saveNote(note, user);
-    String sql =
-        """
-                INSERT INTO enrollment_notes(enrollmentid, noteid, sort_order)
-                VALUES ((select enrollmentid from enrollment where uid = :enrollment),
-                        :noteId,
-                        coalesce(
-                                    (select max(sort_order) + 1
-                                    from enrollment_notes
-                                    where enrollmentid = (select enrollmentid from enrollment where uid = :enrollment)
-                                    ),
-                                1)
-                        )
-            """;
-    jdbcTemplate.update(sql, Map.of("enrollment", enrollment.getValue(), "noteId", noteId));
+  void saveEnrollmentNote(@Nonnull UID enrollment, @Nonnull Note note, @Nonnull UserDetails user) {
+    saveNote(INSERT_ENROLLMENT_NOTE, enrollment, note, user);
   }
 
-  public void saveTrackerEventNote(
-      @Nonnull UID event, @Nonnull Note note, @Nonnull UserDetails user) {
-    long noteId = saveNote(note, user);
-    String sql =
-        """
-            INSERT INTO trackerevent_notes(eventid, noteid, sort_order)
-            VALUES ((select eventid from trackerevent where uid = :event),
-                    :noteId,
-                    coalesce(
-                                (select max(sort_order) + 1
-                                from trackerevent_notes
-                                where eventid = (select eventid from trackerevent where uid = :event)
-                                ),
-                            1)
-                    )
-        """;
-    jdbcTemplate.update(sql, Map.of("event", event.getValue(), "noteId", noteId));
+  void saveTrackerEventNote(@Nonnull UID event, @Nonnull Note note, @Nonnull UserDetails user) {
+    saveNote(INSERT_TRACKER_EVENT_NOTE, event, note, user);
   }
 
-  public void saveSingleEventNote(
-      @Nonnull UID event, @Nonnull Note note, @Nonnull UserDetails user) {
-    long noteId = saveNote(note, user);
-    String sql =
-        """
-                INSERT INTO singleevent_notes(eventid, noteid, sort_order)
-                VALUES ((select eventid from singleevent where uid = :event),
-                        :noteId,
-                        coalesce(
-                                    (select max(sort_order) + 1
-                                    from singleevent_notes
-                                    where eventid = (select eventid from singleevent where uid = :event)
-                                    ),
-                                1)
-                        )
-            """;
-    jdbcTemplate.update(sql, Map.of("event", event.getValue(), "noteId", noteId));
+  void saveSingleEventNote(@Nonnull UID event, @Nonnull Note note, @Nonnull UserDetails user) {
+    saveNote(INSERT_SINGLE_EVENT_NOTE, event, note, user);
   }
 
   boolean exists(@Nonnull UID note) {
@@ -112,30 +96,15 @@ public class JdbcNoteStore {
     return count != null && count > 0;
   }
 
-  private long saveNote(@Nonnull Note note, @Nonnull UserDetails user) {
-    String sql =
-        """
-            INSERT INTO public.note(noteid, notetext, lastupdatedby, uid, created)
-            VALUES (nextVal('note_sequence'),
-                    :text,
-                    (select userinfoid from userinfo where uid = :lastUpdatedBy),
-                    :uid,
-                    :created)
-            RETURNING noteid
-        """;
-
+  private void saveNote(
+      @Nonnull String sql, @Nonnull UID entity, @Nonnull Note note, @Nonnull UserDetails user) {
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("text", note.getValue());
     params.addValue("lastUpdatedBy", user.getUid());
     params.addValue("uid", note.getNote().getValue());
     params.addValue("created", new Date());
+    params.addValue("entity", entity.getValue());
 
-    Long noteId = jdbcTemplate.queryForObject(sql, params, Long.class);
-
-    if (noteId == null) {
-      throw new PersistenceException("Note could not be saved");
-    }
-
-    return noteId;
+    jdbcTemplate.update(sql, params);
   }
 }

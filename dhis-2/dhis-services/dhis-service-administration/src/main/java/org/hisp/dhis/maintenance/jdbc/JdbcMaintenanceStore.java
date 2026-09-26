@@ -126,11 +126,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
       String trackerEventDeleteQuery) {
     String pmSelect =
         "(select id from programmessage where trackereventid in " + trackerEventSelect + ")";
-    String noteSelect =
-        "(select noteid from trackerevent_notes where eventid in " + trackerEventSelect + ")";
     /*
-     * Delete event values, event value audits, event notes, events
-     *
+     * Delete event values, event value audits, events. Notes are deleted
+     * with their event by the foreign key cascade.
      */
     String[] sqlStmts =
         new String[] {
@@ -141,9 +139,6 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + pmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
-          // delete related events notes
-          "delete from trackerevent_notes where eventid in " + trackerEventSelect,
-          "delete from note where noteid in" + noteSelect,
           // delete other objects related to events
           "delete from relationshipitem where trackereventid in " + trackerEventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + trackerEventSelect,
@@ -167,12 +162,10 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
       List<String> singleEventsToDelete, String singleEventSelect, String singleEventDeleteQuery) {
     String pmSelect =
         "(select id from programmessage where singleeventid in " + singleEventSelect + ")";
-    String noteSelect =
-        "(select noteid from singleevent_notes where eventid in " + singleEventSelect + ")";
 
     /*
-     * Delete event values, event value audits, event notes, events
-     *
+     * Delete event values, event value audits, events. Notes are deleted
+     * with their event by the foreign key cascade.
      */
     String[] sqlStmts =
         new String[] {
@@ -183,9 +176,6 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + pmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
-          // delete related events notes
-          "delete from singleevent_notes where eventid in " + singleEventSelect,
-          "delete from note where noteid in" + noteSelect,
           // delete other objects related to events
           "delete from relationshipitem where singleeventid in " + singleEventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + singleEventSelect,
@@ -249,13 +239,10 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
     String pmSelect =
         "(select id from programmessage where enrollmentid in " + enrollmentSelect + " )";
-    String noteSelect =
-        "(select noteid from enrollment_notes where enrollmentid in " + enrollmentSelect + ")";
 
     /*
-     * Delete event values, event value audits, event notes, events,
-     * enrollment notes, enrollments
-     *
+     * Delete event values, event value audits, events, enrollments. Notes
+     * are deleted with their enrollment or event by the foreign key cascade.
      */
     String[] sqlStmts =
         new String[] {
@@ -266,10 +253,6 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + pmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
-          // delete notes linked to both enrollments and events
-          "delete from trackerevent_notes where eventid in " + eventSelect,
-          "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
-          "delete from note where noteid in" + noteSelect,
           // delete other entries linked to events
           "delete from relationshipitem where trackereventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -330,10 +313,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
         "(select id from programmessage where trackereventid in " + eventSelect + " )";
 
     /*
-     * Delete event values, event audits, event notes, events, enrollment
-     * notes, enrollments, te attribute values, te attribute value
-     * audits, tes
-     *
+     * Delete event values, event audits, events, enrollments, te attribute
+     * values, te attribute value audits, tes. Notes are deleted with their
+     * enrollment or event by the foreign key cascade.
      */
     String[] sqlStmts =
         new String[] {
@@ -358,14 +340,6 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + eventPmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + eventPmSelect,
-          // delete notes related to any obsolete enrollments or events
-          "delete from trackerevent_notes where eventid in " + eventSelect,
-          "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
-          """
-            delete from note where noteid not in
-            (select noteid from trackerevent_notes
-              union all select noteid from singleevent_notes
-              union all select noteid from enrollment_notes)""",
           // delete other objects related to obsolete events
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           "delete from trackereventchangelog where eventid in " + eventSelect,
