@@ -57,6 +57,7 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
@@ -65,6 +66,7 @@ import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.authz.SoftRefreshSecurityContextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -85,7 +87,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -152,6 +156,8 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
   @Autowired private RequestCache requestCache;
+
+  @Autowired private AuthzService authzService;
 
   private static class CustomRequestMatcher implements RequestMatcher {
     private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
@@ -274,6 +280,7 @@ public class DhisWebApiWebSecurityConfig {
     } catch (Exception ex) {
       throw new IllegalStateException("Failed to configure web security filter chain", ex);
     }
+
   }
 
   public static void setHttpHeaders(HttpSecurity http) {
@@ -299,9 +306,18 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   private void configureMatchers(HttpSecurity http) {
+    // Replicates the configurer's default repository pair, with the HttpSession delegate
+    // decorated for authz soft-refresh (session-only by construction; JWT/PAT never load
+    // through it).
     http.securityContext(
-        httpSecuritySecurityContextConfigurer ->
-            httpSecuritySecurityContextConfigurer.requireExplicitSave(true));
+        securityContext ->
+            securityContext
+                .requireExplicitSave(true)
+                .securityContextRepository(
+                    new DelegatingSecurityContextRepository(
+                        new RequestAttributeSecurityContextRepository(),
+                        new SoftRefreshSecurityContextRepository(
+                            new HttpSessionSecurityContextRepository(), authzService))));
 
     Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
     http.authorizeHttpRequests(

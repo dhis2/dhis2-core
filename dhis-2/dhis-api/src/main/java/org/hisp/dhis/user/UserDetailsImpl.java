@@ -42,10 +42,19 @@ import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.springframework.security.core.GrantedAuthority;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
 public class UserDetailsImpl implements UserDetails {
+
+  /**
+   * Pinned to the pre-stamp shape of this class (release that introduced soft-refresh). Sessions
+   * serialized by earlier code then deserialize cleanly with {@code authzCheckedEpoch} and {@code
+   * authzGen} defaulting to 0, which the soft-refresh check treats as "unknown": one refresh on the
+   * next request instead of a failed deserialization and a forced re-login. Do NOT let this value
+   * drift; guarded by {@code UserDetailsImplSerializationTest}.
+   */
+  private static final long serialVersionUID = -6804263748578733471L;
 
   private final String uid;
   @Setter private Long id;
@@ -77,6 +86,18 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Set<String> userRoleIds;
   @Nonnull private final Set<Long> managedGroupLongIds;
   @Nonnull private final Set<Long> userRoleLongIds;
+
+  /**
+   * Soft-refresh stamp: global authz epoch read BEFORE this snapshot was built. 0 = unknown (e.g.
+   * login-built or deserialized from a pre-stamp release); the next check verifies the gen.
+   */
+  private final long authzCheckedEpoch;
+
+  /**
+   * Soft-refresh stamp: effective authz generation (max of user and role gens) this snapshot
+   * reflects. 0 = unknown, which fails SAFE (one extra refresh, never stale).
+   */
+  private final long authzGen;
 
   @Override
   public boolean canModifyUser(User other) {
@@ -124,5 +145,10 @@ public class UserDetailsImpl implements UserDetails {
   @Override
   public boolean isAuthorized(@Nonnull Authorities auth) {
     return isAuthorized(auth.toString());
+  }
+
+  /** Copy with new soft-refresh stamps; all data fields unchanged. */
+  public UserDetailsImpl withAuthzStamp(long checkedEpoch, long gen) {
+    return toBuilder().authzCheckedEpoch(checkedEpoch).authzGen(gen).build();
   }
 }
