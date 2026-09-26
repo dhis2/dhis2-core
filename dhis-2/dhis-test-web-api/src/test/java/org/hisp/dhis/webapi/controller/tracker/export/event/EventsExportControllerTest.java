@@ -1282,7 +1282,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(json, "dataValues");
     assertHasMember(json, "notes");
     assertHasMember(json, "attributeOptionCombo");
-    assertHasMember(json, "attributeCategoryOptions");
+    assertHasNoMember(json, "attributeCategoryOptions");
     assertHasNoMember(json, "relationships");
   }
 }

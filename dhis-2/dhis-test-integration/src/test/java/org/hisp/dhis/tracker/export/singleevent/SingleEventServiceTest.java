@@ -363,19 +363,12 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
                 e ->
                     (Executable)
                         () ->
-                            assertAll(
-                                "category options and combo of event " + e.getUid(),
-                                () ->
-                                    assertEquals(
-                                        "cr89ebDZrac", e.getAttributeOptionCombo().getUid()),
-                                () ->
-                                    assertContainsOnly(
-                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
-                                        e.getAttributeOptionCombo().getCategoryOptions().stream()
-                                            .map(CategoryOption::getUid)
-                                            .collect(Collectors.toSet()))))
+                            assertEquals(
+                                "cr89ebDZrac",
+                                e.getAttributeOptionCombo().getUid(),
+                                "category option combo of event " + e.getUid()))
             .toList();
-    assertAll("all events should have the same category option combo and options", executables);
+    assertAll("all events should have the same category option combo", executables);
   }
 
   @Test

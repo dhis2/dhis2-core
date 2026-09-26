@@ -60,7 +60,6 @@ import org.springframework.util.Assert;
   "completedAt",
   "updatedBy",
   "attributeOptionCombo",
-  "attributeCategoryOptions",
   "assignedUser",
   "dataElement",
   "value",
@@ -113,8 +112,6 @@ class TrackerEventCsvRow {
 
   private String attributeOptionCombo;
 
-  private String attributeCategoryOptions;
-
   private String assignedUser;
 
   private String dataElement;
@@ -140,7 +137,6 @@ class TrackerEventCsvRow {
     orgUnit = dataValue.getOrgUnit();
     occurredAt = dataValue.getOccurredAt();
     attributeOptionCombo = dataValue.getAttributeOptionCombo();
-    attributeCategoryOptions = dataValue.getAttributeCategoryOptions();
     scheduledAt = dataValue.getScheduledAt();
     followUp = dataValue.isFollowUp();
     deleted = dataValue.isDeleted();

@@ -136,7 +136,6 @@ class CsvEventService implements CsvService<Event> {
         event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
     result.setCompletedBy(event.getCompletedBy());
     result.setAttributeOptionCombo(event.getAttributeOptionCombo());
-    result.setAttributeCategoryOptions(event.getAttributeCategoryOptions());
     result.setAssignedUser(
         event.getAssignedUser() == null ? null : event.getAssignedUser().getUsername());
 

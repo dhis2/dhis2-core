@@ -63,7 +63,6 @@ public class TrackerExportFileTest extends TrackerApiTest {
   private static final String PROGRAM = "f1AyMswryyQ";
   private static final String PROGRAM_STAGE = "nlXNK4b7LVr";
   private static final String CATEGORY_OPTION_COMBO = "HllvX50cXC0";
-  private static final String CATEGORY_OPTION = "xYerKDKCefk";
   private static final String DATA_ELEMENT = "BuZ5LGNfGEU";
   private static final String DATA_ELEMENT_VALUE = "20";
   private static final String ATTRIBUTE = "dIVt4l5vIOa";
@@ -400,12 +399,6 @@ public class TrackerExportFileTest extends TrackerApiTest {
               String.format(
                   "Expected categoryOptionCombo %s but got %s",
                   CATEGORY_OPTION_COMBO, eventJson.get("attributeOptionCombo").getAsString()));
-          assertEquals(
-              CATEGORY_OPTION,
-              eventJson.get("attributeCategoryOptions").getAsString(),
-              String.format(
-                  "Expected categoryOptions %s but got %s",
-                  CATEGORY_OPTION, eventJson.get("attributeCategoryOptions").getAsString()));
           assertTrue(eventJson.get("followUp").getAsBoolean(), "Expected followUp to be true");
           assertNotNull(eventJson.get("createdAt"), "Expected createdAt to be not null");
           assertNotNull(eventJson.get("updatedAt"), "Expected updatedAt to be not null");
@@ -559,13 +552,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
                 String.format(
                     "Expected categoryOptionCombo %s but got %s",
                     CATEGORY_OPTION_COMBO, record[20])), // attributeOptionCombo
-        () ->
-            assertEquals(
-                CATEGORY_OPTION,
-                record[21],
-                String.format(
-                    "Expected categoryOption %s but got %s",
-                    CATEGORY_OPTION, record[21])), // attributeCategoryOptions
+        () -> assertEquals("", record[21], "attributeCategoryOptions is no longer exported"),
         () ->
             assertEquals(
                 DATA_ELEMENT,

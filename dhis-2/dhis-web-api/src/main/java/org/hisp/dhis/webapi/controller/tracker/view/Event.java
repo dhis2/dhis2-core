@@ -101,7 +101,12 @@ public class Event {
 
   @JsonProperty private String attributeOptionCombo;
 
-  @JsonProperty private String attributeCategoryOptions;
+  /**
+   * Only used on import. The exporter no longer returns the attribute option combos category
+   * options; clients resolve them from their cached metadata instead.
+   */
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private String attributeCategoryOptions;
 
   @JsonProperty private String completedBy;
 
