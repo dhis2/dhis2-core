@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -445,7 +445,11 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         aoc_access AS MATERIALIZED (
           SELECT aoc.categoryoptioncomboid, aoc.uid
           FROM categoryoptioncombo aoc
-          WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
+          WHERE aoc.categoryoptioncomboid IN (SELECT coc_cc.categoryoptioncomboid
+          FROM categorycombos_optioncombos coc_cc
+          JOIN categorycombo cc ON cc.categorycomboid = coc_cc.categorycomboid
+          WHERE cc.datadimensiontype = 'ATTRIBUTE' OR cc.name = 'default')
+          AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
           JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
           WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT ( ( co.sharing->>'owner' is null or co.sharing->>'owner' = 'null')  or co.sharing->>'public' like '__r_____' or co.sharing->>'public' is null  or (jsonb_has_user_id( co.sharing, 'null') = true  and jsonb_check_user_access( co.sharing, 'null', '__r_____' ) = true )  ))
         )
@@ -580,9 +584,15 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
     assertTrue(
         sql.contains("JOIN categoryoptioncombo aoc ON"),
         "expected direct categoryoptioncombo join for aoc alias: " + sql);
+    assertTrue(
+        sql.contains("aoc.categoryoptioncomboid IN (SELECT coc_cc.categoryoptioncomboid"),
+        "expected aoc_access candidates scoped to ATTRIBUTE/default combos: " + sql);
+    // the ACL check must stay inside the once-computed aoc_access CTE, not repeated per row in
+    // the main query's WHERE clause (the regression this test originally guarded against)
+    String mainQuery = sql.substring(sql.indexOf("\nSELECT\n"));
     assertFalse(
-        sql.contains("AND NOT EXISTS"),
-        "NOT EXISTS should not appear inline in WHERE clause: " + sql);
+        mainQuery.contains("NOT EXISTS"),
+        "NOT EXISTS should not appear in the main query, only inside aoc_access: " + mainQuery);
   }
 
   @Test

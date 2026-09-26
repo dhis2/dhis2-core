@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -188,7 +188,12 @@ public class HibernateDataExportStore implements DataExportStore {
       aoc_access AS MATERIALIZED (
         SELECT aoc.categoryoptioncomboid, aoc.uid
         FROM categoryoptioncombo aoc
-        WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
+        -- only combos that can ever be an AOC need the sharing check below
+        WHERE aoc.categoryoptioncomboid IN (SELECT coc_cc.categoryoptioncomboid
+        FROM categorycombos_optioncombos coc_cc
+        JOIN categorycombo cc ON cc.categorycomboid = coc_cc.categorycomboid
+        WHERE cc.datadimensiontype = 'ATTRIBUTE' OR cc.name = 'default')
+        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
         JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
         WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
       ),
