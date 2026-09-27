@@ -67,7 +67,11 @@
 
     <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
 
-    <many-to-one name="avatar" class="org.hisp.dhis.fileresource.FileResource" column="avatar" foreign-key="fk_user_fileresourceid" />
+    <!-- Field access: User.setAvatar() mutates FileResource.assigned and would run during
+         property-access hydration, initializing every avatar proxy on User load. Keep the
+         public setter for explicit assign/replace/remove; only bypass it for ORM state restore. -->
+    <many-to-one name="avatar" class="org.hisp.dhis.fileresource.FileResource" column="avatar"
+      foreign-key="fk_user_fileresourceid" access="field" />
 
     <set name="groups" table="usergroupmembers" inverse="true">
       <cache usage="read-write" />

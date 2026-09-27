@@ -383,7 +383,7 @@ public class MeController {
     updatePassword(currentUser, newPassword);
     manager.update(currentUser);
 
-    userService.invalidateUserSessions(currentUser.getUid());
+    userService.invalidateUserSessions(currentUser.getUsername());
   }
 
   @PostMapping(value = "/verifyPassword", consumes = "text/*")

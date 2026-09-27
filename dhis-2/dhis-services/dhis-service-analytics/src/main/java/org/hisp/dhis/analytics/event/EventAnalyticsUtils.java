@@ -143,12 +143,13 @@ public class EventAnalyticsUtils {
    * Adds values.
    *
    * @param identifiers the list of list of identifiers.
-   * @param grid the input {@link Grid}.
+   * @param valueMap the value map of the input {@link Grid}, as returned by {@link
+   *     #getAggregatedEventDataMapping(Grid)}. It depends only on the input grid, so callers which
+   *     invoke this method repeatedly for the same grid must build it once and reuse it.
    * @param outputGrid the output {@link Grid}.
    */
-  public static void addValues(List<List<String>> identifiers, Grid grid, Grid outputGrid) {
-    Map<String, Object> valueMap = getAggregatedEventDataMapping(grid);
-
+  public static void addValues(
+      List<List<String>> identifiers, Map<String, Object> valueMap, Grid outputGrid) {
     boolean hasValues = false;
 
     for (List<String> idList : identifiers) {

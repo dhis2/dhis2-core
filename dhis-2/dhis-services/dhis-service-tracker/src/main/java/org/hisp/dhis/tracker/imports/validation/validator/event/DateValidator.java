@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.time.Duration.ofDays;
-import static java.time.Instant.now;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1031;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1043;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1046;
@@ -40,7 +37,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
@@ -49,7 +45,6 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
@@ -80,15 +75,11 @@ class DateValidator implements Validator<Event> {
 
   private void validateCompletionExpiryDays(
       Reporter reporter, TrackerPreheat preheat, Event event, Program program, UserDetails user) {
-    if (program.getCompleteEventsExpiryDays() == 0
-        || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+    if (user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 
-    Instant completedAt = getCompletedDate(preheat, event);
-
-    if (completedAt != null
-        && now().isAfter(completedAt.plus(ofDays(program.getCompleteEventsExpiryDays())))) {
+    if (EventExpiryChecker.isCompletionExpired(program, getCompletedDate(preheat, event))) {
       reporter.addError(event, E1043, event);
     }
   }
@@ -124,9 +115,10 @@ class DateValidator implements Validator<Event> {
 
   private void validateExpiryPeriodType(
       Reporter reporter, Event event, Program program, User user) {
-    checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
-    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
-
+    if (!EventExpiryChecker.hasExpiryPeriod(program)
+        || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+      return;
+    }
     PeriodType periodType = program.getExpiryPeriodType();
 
     if (periodType == null
@@ -143,16 +135,7 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    Period eventPeriod = periodType.createPeriod(Date.from(referenceDate));
-
-    if (eventPeriod
-        .getEndDate()
-        .toInstant() // This will be 00:00 time of the period end date.
-        .plus(
-            ofDays(
-                program.getExpiryDays()
-                    + 1L)) // Extra day added to account for final 24 hours of expiring day
-        .isBefore(Instant.now())) {
+    if (EventExpiryChecker.isInExpiredPeriod(program, referenceDate)) {
       reporter.addError(event, E1047, event);
     }
   }

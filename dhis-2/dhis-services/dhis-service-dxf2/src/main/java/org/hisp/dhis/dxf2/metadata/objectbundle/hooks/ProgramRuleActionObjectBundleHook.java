@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -72,6 +73,15 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<
   private ProgramRuleActionValidationResult validateProgramRuleAction(
       ProgramRuleAction ruleAction, ObjectBundle bundle) {
     ProgramRuleActionValidationResult validationResult;
+
+    // report error if no programRule
+    if (ruleAction.getProgramRule() == null) {
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(
+              new ErrorReport(ProgramRuleAction.class, ErrorCode.E4093, ruleAction.getUid()))
+          .build();
+    }
 
     ProgramRuleActionValidationContext validationContext =
         contextLoader.load(bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction);

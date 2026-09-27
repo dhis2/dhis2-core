@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.hisp.dhis.common.UID;
 
 /**
- * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
- * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
+ * Event published after the authorities of a {@link UserRole} have changed, so that active sessions
+ * of users with that role can be invalidated asynchronously, outside the updating transaction and
+ * off the request thread.
  *
- * @author david mackessy
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Configuration
-public class MinIOConfiguration {
-  @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new MinIOConfigurationProvider(
-        new TestContainerPostgresConfig().dhisConfigurationProvider().getProperties());
-  }
-}
+public record UserRoleAuthoritiesChangedEvent(UID userRoleUid) {}

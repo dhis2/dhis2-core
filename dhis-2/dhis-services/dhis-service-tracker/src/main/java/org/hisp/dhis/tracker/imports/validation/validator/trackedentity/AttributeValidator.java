@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,7 +131,7 @@ class AttributeValidator
 
       validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
       validateValueType(reporter, bundle, trackedEntity, attribute.getValue(), tea);
-      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
+      validateOptionSet(reporter, preheat, trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
           reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);

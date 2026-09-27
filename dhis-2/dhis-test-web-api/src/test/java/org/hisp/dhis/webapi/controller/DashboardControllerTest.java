@@ -27,17 +27,25 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
@@ -119,6 +127,49 @@ class DashboardControllerTest extends DhisControllerIntegrationTest {
             .findFirst();
     assertTrue(dashboardItem.isPresent());
     assertEquals("gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid());
+  }
+
+  @Test
+  void testPostContainingOver255Favorites() {
+    // Given
+    Set<String> randomUids = new HashSet<>();
+    int favoritesTotal = 300;
+
+    for (int i = 0; i < favoritesTotal; i++) {
+      randomUids.add("'" + RandomStringUtils.randomAlphanumeric(11) + "'");
+    }
+
+    String body =
+        """
+            {
+              'name': 'some name',
+              'restrictFilters': false,
+              'allowedFilters': [],
+              'favorites': [
+                _favorites
+              ],
+              'displayName': 'Antenatal Care',
+              'access': {
+                'manage': true,
+                'write': true,
+                'read': true,
+                'update': true,
+                'delete': true
+              }
+            }
+          """
+            .replaceFirst(
+                "_favorites",
+                randomUids.stream().toList().stream().collect(Collectors.joining(",")));
+
+    // When
+    String uid = assertStatus(CREATED, POST("/dashboards/", body));
+
+    // Then
+    JsonObject response = GET("/dashboards/" + uid + "?fields=favorites").content();
+
+    JsonList<JsonObject> favorites = response.getList("favorites", JsonObject.class);
+    assertEquals(favoritesTotal, favorites.size());
   }
 
   @Test

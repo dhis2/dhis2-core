@@ -25,42 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.tracker.imports.preheat;
 
-import java.util.Properties;
-import org.testcontainers.containers.MinIOContainer;
+import java.util.Set;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
- * Config provider for MinIO store usage. It extends the Postgres config to make use of that setup.
+ * Data elements of a program stage, projected instead of loaded as entities.
  *
- * @author david mackessy
+ * <p>These replace walking {@link org.hisp.dhis.program.ProgramStage#getProgramStageDataElements()}
+ * on a preheated stage, which is no longer mapped. A program can have thousands of data elements
+ * while an event references a handful, so loading them all as entities dominated preheat on wide
+ * programs. Only the data elements needed to answer the validations are projected: the compulsory
+ * ones, plus those referenced by the payload or by program rules. See {@link
+ * org.hisp.dhis.tracker.imports.preheat.supplier.ProgramStageDataElementsSupplier}.
+ *
+ * @param compulsory identifiers of the compulsory data elements, used to report a missing mandatory
+ *     value
+ * @param members identifiers of the projected data elements, used to check that a payload data
+ *     element belongs to the stage
+ * @param memberUids uids of the projected data elements. Program rules only know uids, so this is
+ *     kept separately from {@code members} which is in the requested idScheme
  */
-public class MinIOConfigurationProvider extends PostgresDhisConfigurationProvider {
-  private static final String S3_URL;
-  private static final String MINIO_USER = "testuser";
-  private static final String MINIO_PASSWORD = "testpassword";
-  private static final MinIOContainer MIN_IO_CONTAINER;
+public record ProgramStageDataElements(
+    Set<MetadataIdentifier> compulsory, Set<MetadataIdentifier> members, Set<UID> memberUids) {
 
-  static {
-    MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
-            .withUserName(MINIO_USER)
-            .withPassword(MINIO_PASSWORD);
-    MIN_IO_CONTAINER.start();
-    S3_URL = MIN_IO_CONTAINER.getS3URL();
-  }
-
-  public MinIOConfigurationProvider(Properties dhisConfig) {
-    setMinIOProperties(dhisConfig);
-  }
-
-  public void setMinIOProperties(Properties properties) {
-    properties.put("filestore.provider", "s3");
-    properties.put("filestore.container", "dhis2");
-    properties.put("filestore.location", "eu-west-1");
-    properties.put("filestore.endpoint", S3_URL);
-    properties.put("filestore.identity", MINIO_USER);
-    properties.put("filestore.secret", MINIO_PASSWORD);
-    this.properties = properties;
-  }
+  public static final ProgramStageDataElements EMPTY =
+      new ProgramStageDataElements(Set.of(), Set.of(), Set.of());
 }

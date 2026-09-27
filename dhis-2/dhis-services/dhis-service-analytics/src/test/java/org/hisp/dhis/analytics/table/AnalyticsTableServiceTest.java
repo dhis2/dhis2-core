@@ -30,20 +30,39 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -57,6 +76,14 @@ class AnalyticsTableServiceTest {
   @Mock private SystemSettingManager systemSettingManager;
 
   @Mock private SqlBuilder sqlBuilder;
+
+  @Mock private AnalyticsTableManager tableManager;
+
+  @Mock private OrganisationUnitService organisationUnitService;
+
+  @Mock private DataElementService dataElementService;
+
+  @Mock private ResourceTableService resourceTableService;
 
   @InjectMocks private DefaultAnalyticsTableService tableService;
 
@@ -107,5 +134,103 @@ class AnalyticsTableServiceTest {
     when(systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS)).thenReturn(8);
 
     assertEquals(8, tableService.getParallelJobs());
+  }
+
+  @Test
+  void testRemovesLatestPartitionOverlapForLastYearsUpdate() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withLastYears(5).build();
+
+    createTables(params);
+
+    verify(tableManager).removeLatestPartitionOverlap(anyList());
+  }
+
+  @Test
+  void testRetainsLatestPartitionForFullUpdate() {
+    AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
+
+    createTables(params);
+
+    verify(tableManager, never()).removeLatestPartitionOverlap(anyList());
+  }
+
+  @Test
+  void testRetainsLatestPartitionForLatestUpdate() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withLatestPartition().build();
+
+    createTables(params);
+
+    verify(tableManager, never()).removeLatestPartitionOverlap(anyList());
+  }
+
+  @Test
+  void testRemovesLatestPartitionOverlapAfterSwappingTables() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withLastYears(5).build();
+
+    createTables(params);
+
+    InOrder inOrder = inOrder(tableManager);
+    inOrder.verify(tableManager).swapTable(eq(params), any(AnalyticsTable.class));
+    inOrder.verify(tableManager).removeLatestPartitionOverlap(anyList());
+  }
+
+  @Test
+  void testLatestPartitionOverlapFailureAbortsUpdate() {
+    RecordingJobProgress progress =
+        new RecordingJobProgress(new JobConfiguration(JobType.ANALYTICS_TABLE));
+
+    doThrow(new IllegalStateException("Delete failed"))
+        .when(tableManager)
+        .removeLatestPartitionOverlap(anyList());
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withLastYears(5).build();
+
+    createTables(params, progress);
+
+    assertTrue(
+        progress.isCancelled(),
+        "A failed latest partition overlap removal must abort the table update, so that the "
+            + "last successful update settings are not advanced while duplicate data is live");
+  }
+
+  /** Runs a table update with the given parameters against a single partitioned table. */
+  private void createTables(AnalyticsTableUpdateParams params) {
+    createTables(params, NoopJobProgress.INSTANCE);
+  }
+
+  /** Runs a table update with the given parameters against a single partitioned table. */
+  private void createTables(AnalyticsTableUpdateParams params, JobProgress progress) {
+    when(systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT))
+        .thenReturn(1);
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(dataValueTable()));
+
+    tableService.create(params, progress);
+  }
+
+  private AnalyticsTable dataValueTable() {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("dx")
+                .dataType(TEXT)
+                .selectExpression("dx")
+                .build());
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of("year = 2022"),
+        2022,
+        new DateTime(2022, 1, 1, 0, 0).toDate(),
+        new DateTime(2023, 1, 1, 0, 0).toDate());
+
+    return table;
   }
 }

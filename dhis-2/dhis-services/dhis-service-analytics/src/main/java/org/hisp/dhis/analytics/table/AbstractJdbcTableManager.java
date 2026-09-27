@@ -250,6 +250,45 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
+  public void removeLatestPartitionOverlap(List<AnalyticsTable> tables) {
+    for (AnalyticsTable table : tables) {
+      String latestTableName = table.getMainName() + "_" + AnalyticsTablePartition.LATEST_PARTITION;
+
+      if (!tableExists(latestTableName)) {
+        continue;
+      }
+
+      String condition = getPartitionCondition(table);
+
+      if (condition.isEmpty()) {
+        log.warn(
+            "Cannot remove latest partition overlap for table: '{}', partitions have no checks",
+            table.getMainName());
+        continue;
+      }
+
+      String sql =
+          format("delete from {} where {};", sqlBuilder.qualifyTable(latestTableName), condition);
+
+      invokeTimeAndLog(sql, "Removed latest partition overlap for table: '{}'", latestTableName);
+    }
+  }
+
+  /**
+   * Returns a condition matching the data held by the partitions of the given table, based on the
+   * partition checks. Returns an empty string if no partition defines any checks.
+   *
+   * @param table the {@link AnalyticsTable}.
+   * @return a SQL condition, or an empty string.
+   */
+  private String getPartitionCondition(AnalyticsTable table) {
+    return table.getTablePartitions().stream()
+        .filter(Table::hasChecks)
+        .map(partition -> "(" + String.join(" and ", partition.getChecks()) + ")")
+        .collect(Collectors.joining(" or "));
+  }
+
+  @Override
   public void dropTable(Table table) {
     dropTable(table.getName());
   }

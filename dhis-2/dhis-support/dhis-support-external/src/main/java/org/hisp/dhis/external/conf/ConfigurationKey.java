@@ -492,6 +492,9 @@ public enum ConfigurationKey {
   /** Hibernate monitoring, do not use in production. (default: off) */
   MONITORING_HIBERNATE_ENABLED("monitoring.hibernate.enabled", Constants.OFF, false),
 
+  /** EHCache (Hibernate L2 cache) monitoring. (default: off) */
+  MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
+
   /** Uptime monitoring. (default: off) */
   MONITORING_UPTIME_ENABLED("monitoring.uptime.enabled", Constants.OFF, false),
 
