@@ -181,8 +181,8 @@ public class NigeriaTrackerTest extends Simulation {
     this.familyEq = System.getProperty("familyEq", "Yahaya");
     this.adminUser = System.getProperty("adminUser", "admin");
     this.adminPassword = System.getProperty("adminPassword", "district");
-    this.replicaUser = System.getProperty("replicaUser", "anc.sn_64a4a35d8f.1"); // clerk of orgUnit
-    this.replicaPassword = System.getProperty("replicaPassword", "Anc-Perf-2026!");
+    this.replicaUser = System.getProperty("replicaUser", "mnch.sn_64a4a35d8f.1"); // clerk of orgUnit
+    this.replicaPassword = System.getProperty("replicaPassword", "Mnch-Perf-2026!");
 
     record ProfileDefaults(
         int concurrentUsers,
