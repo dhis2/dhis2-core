@@ -33,7 +33,6 @@ import java.io.IOException;
 import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 public class UserInfoSnapshots {
@@ -57,25 +56,5 @@ public class UserInfoSnapshots {
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
-  }
-
-  /**
-   * Creates a UserInfoSnapshot from a JsonObject (lazy JSON tree).
-   *
-   * @param json JsonObject representing a UserInfoSnapshot
-   * @return UserInfoSnapshot, or null if input is null or undefined
-   */
-  @CheckForNull
-  public static UserInfoSnapshot from(@CheckForNull JsonObject json) {
-    if (json == null || json.isUndefined()) {
-      return null;
-    }
-    return UserInfoSnapshot.of(
-        json.getNumber("id").number().longValue(),
-        json.getString("code").string(null),
-        json.getString("uid").string(null),
-        json.getString("username").string(null),
-        json.getString("firstName").string(null),
-        json.getString("surname").string(null));
   }
 }

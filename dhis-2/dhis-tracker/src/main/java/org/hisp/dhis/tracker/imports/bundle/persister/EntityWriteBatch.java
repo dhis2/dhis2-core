@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -103,8 +102,8 @@ class EntityWriteBatch {
       new TrackedEntityProgramOwnerWriter();
   private final TeavWriter teavWriter = new TeavWriter();
 
-  EntityWriteBatch(ObjectMapper objectMapper) {
-    UserInfoJsonCache userInfo = new UserInfoJsonCache(objectMapper);
+  EntityWriteBatch() {
+    UserInfoJsonCache userInfo = new UserInfoJsonCache();
     this.trackedEntityWriter = new TrackedEntityWriter(userInfo);
     this.enrollmentWriter = new EnrollmentWriter(userInfo);
     this.trackerEventWriter = new TrackerEventWriter(userInfo);

@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -67,9 +66,8 @@ public class EnrollmentPersister
   public EnrollmentPersister(
       DataSource dataSource,
       FileResourceStore fileResourceStore,
-      ObjectMapper objectMapper,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(dataSource, fileResourceStore, objectMapper);
+    super(dataSource, fileResourceStore);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 

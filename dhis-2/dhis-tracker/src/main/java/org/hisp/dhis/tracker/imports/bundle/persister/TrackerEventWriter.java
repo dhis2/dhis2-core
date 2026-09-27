@@ -35,12 +35,12 @@ import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.bo
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.forEachChunk;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.geometryText;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.textArray;
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toEventDataValuesJson;
 import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.toTimestamptz;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import org.hisp.dhis.tracker.model.EventDataValuesJson;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 
 /**
@@ -186,7 +186,13 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
             ps.setArray(p++, bigintArray(conn, chunk, e -> e.getAttributeOptionCombo().getId()));
             ps.setArray(p++, bigintArray(conn, chunk, TrackerEventWriter::assignedUserId));
             ps.setArray(
-                p++, textArray(conn, chunk, e -> toEventDataValuesJson(e.getEventDataValues())));
+                p++,
+                textArray(
+                    conn,
+                    chunk,
+                    e ->
+                        EventDataValuesJson.toJson(
+                            e.getEventDataValues(), e.getCreatedByUserInfo())));
             ps.setArray(p++, textArray(conn, chunk, e -> geometryText(e.getGeometry())));
             ps.executeUpdate();
           }
@@ -248,7 +254,8 @@ final class TrackerEventWriter extends UpsertTableWriter<TrackerEvent> {
             completedDate[i] = toTimestamptz(e.getCompletedDate());
             completedBy[i] = e.getCompletedBy();
             assignedUserIds[i] = e.getAssignedUser() != null ? e.getAssignedUser().getId() : null;
-            eventDataValues[i] = toEventDataValuesJson(e.getEventDataValues());
+            eventDataValues[i] =
+                EventDataValuesJson.toJson(e.getEventDataValues(), e.getCreatedByUserInfo());
             geometry[i] = e.getGeometry() != null ? e.getGeometry().toText() : null;
           }
 

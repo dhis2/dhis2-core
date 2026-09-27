@@ -34,7 +34,6 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -109,8 +108,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   protected final FileResourceStore fileResourceStore;
 
-  protected final ObjectMapper objectMapper;
-
   /**
    * Template method that can be used by classes extending this class to execute the persistence
    * flow of Tracker entities
@@ -127,7 +124,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     List<EntityNotifications> notifications = new ArrayList<>();
     ChangeLogAccumulator changeLogs = new ChangeLogAccumulator();
-    EntityWriteBatch batch = new EntityWriteBatch(objectMapper);
+    EntityWriteBatch batch = new EntityWriteBatch();
 
     //
     // Extract the entities to persist from the Bundle

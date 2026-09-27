@@ -33,7 +33,6 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -78,9 +77,8 @@ import org.springframework.stereotype.Component;
 public class TrackerEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackerEvent, TrackerEvent> {
-  public TrackerEventPersister(
-      DataSource dataSource, FileResourceStore fileResourceStore, ObjectMapper objectMapper) {
-    super(dataSource, fileResourceStore, objectMapper);
+  public TrackerEventPersister(DataSource dataSource, FileResourceStore fileResourceStore) {
+    super(dataSource, fileResourceStore);
   }
 
   @Override

@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -43,6 +42,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
@@ -99,8 +99,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerObjectDeletionService deletionService;
 
   private final OptionValueSupplier optionValueSupplier;
-
-  private final ObjectMapper mapper;
 
   @Nonnull
   @Override
@@ -246,7 +244,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     Date lastUpdated = new Date();
     String userInfoJson;
     try {
-      userInfoJson = mapper.writeValueAsString(UserInfoSnapshot.from(bundle.getUser()));
+      userInfoJson =
+          JsonBinaryType.MAPPER.writeValueAsString(UserInfoSnapshot.from(bundle.getUser()));
     } catch (JsonProcessingException e) {
       throw new PersistenceException(e);
     }
