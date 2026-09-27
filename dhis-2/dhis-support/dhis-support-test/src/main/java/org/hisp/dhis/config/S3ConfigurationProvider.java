@@ -28,44 +28,54 @@
 package org.hisp.dhis.config;
 
 import java.util.Properties;
-import org.testcontainers.containers.MinIOContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 /**
- * Config provider for MinIO store usage. It extends the Postgres config to make use of that setup.
+ * Config provider for S3 store usage, backed by a <a
+ * href="https://github.com/seaweedfs/seaweedfs">SeaweedFS</a> container with only its S3 gateway
+ * enabled. It extends the Postgres config to make use of that setup.
  *
  * @author david mackessy
  */
-public class MinIOConfigurationProvider extends PostgresDhisConfigurationProvider {
+public class S3ConfigurationProvider extends PostgresDhisConfigurationProvider {
+  private static final String S3_ACCESS_KEY = "testuser";
+  private static final String S3_SECRET_KEY = "testpassword";
+  private static final int S3_PORT = 8333;
+
   private static final String S3_URL;
-  private static final String MINIO_USER = "testuser";
-  private static final String MINIO_PASSWORD = "testpassword";
-  private static final MinIOContainer MIN_IO_CONTAINER;
+  private static final GenericContainer<?> S3_CONTAINER;
 
   static {
-    // Docker Hub no longer serves minio/minio (404 / pull access denied). Official
-    // community images remain on quay.io; Testcontainers requires a compatible substitute.
-    MIN_IO_CONTAINER =
-        new MinIOContainer(
-                DockerImageName.parse("quay.io/minio/minio:RELEASE.2024-07-16T23-46-41Z")
-                    .asCompatibleSubstituteFor("minio/minio"))
-            .withUserName(MINIO_USER)
-            .withPassword(MINIO_PASSWORD);
-    MIN_IO_CONTAINER.start();
-    S3_URL = MIN_IO_CONTAINER.getS3URL();
+    S3_CONTAINER =
+        new GenericContainer<>("chrislusf/seaweedfs:4.47")
+            .withCommand(
+                "server",
+                "-dir=/data",
+                "-s3",
+                "-s3.port.iceberg=0",
+                "-s3.port.lance=0",
+                "-master.telemetry=false")
+            // SeaweedFS registers these as the admin S3 identity.
+            .withEnv("AWS_ACCESS_KEY_ID", S3_ACCESS_KEY)
+            .withEnv("AWS_SECRET_ACCESS_KEY", S3_SECRET_KEY)
+            .withExposedPorts(S3_PORT)
+            .waitingFor(Wait.forHttp("/healthz").forPort(S3_PORT));
+    S3_CONTAINER.start();
+    S3_URL = "http://" + S3_CONTAINER.getHost() + ":" + S3_CONTAINER.getMappedPort(S3_PORT);
   }
 
-  public MinIOConfigurationProvider(Properties dhisConfig) {
-    setMinIOProperties(dhisConfig);
+  public S3ConfigurationProvider(Properties dhisConfig) {
+    setS3Properties(dhisConfig);
   }
 
-  public void setMinIOProperties(Properties properties) {
+  public void setS3Properties(Properties properties) {
     properties.put("filestore.provider", "s3");
     properties.put("filestore.container", "dhis2");
     properties.put("filestore.location", "eu-west-1");
     properties.put("filestore.endpoint", S3_URL);
-    properties.put("filestore.identity", MINIO_USER);
-    properties.put("filestore.secret", MINIO_PASSWORD);
+    properties.put("filestore.identity", S3_ACCESS_KEY);
+    properties.put("filestore.secret", S3_SECRET_KEY);
     this.properties = properties;
   }
 }
