@@ -107,6 +107,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
         trackerObjects.getEnrollments().stream()
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
             .map(UID::getValue)
+            .distinct()
             .toArray(String[]::new);
     String[] programUids = programs.stream().map(IdentifiableObject::getUid).toArray(String[]::new);
 
