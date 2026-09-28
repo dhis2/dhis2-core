@@ -126,7 +126,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public List<User> getUsers(UserQueryParams params, @Nullable List<String> orders) {
-    Query<?> userQuery = getUserQuery(params, orders, false);
+    Query<?> userQuery = getUserQuery(params, orders, QueryMode.OBJECTS);
     return extractUserQueryUsers(userQuery.list());
   }
 
@@ -137,7 +137,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public List<User> getExpiringUsers(UserQueryParams params) {
-    return extractUserQueryUsers(getUserQuery(params, null, false).list());
+    return extractUserQueryUsers(getUserQuery(params, null, QueryMode.OBJECTS).list());
   }
 
   @Override
@@ -156,8 +156,15 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public int getUserCount(UserQueryParams params) {
-    Long count = (Long) getUserQuery(params, null, true).uniqueResult();
+    Long count = (Long) getUserQuery(params, null, QueryMode.COUNT).uniqueResult();
     return count != null ? count.intValue() : 0;
+  }
+
+  @Override
+  public List<UID> getUserIds(UserQueryParams params) {
+    return getUserQuery(params, null, QueryMode.IDS).list().stream()
+        .map(uid -> UID.of((String) uid))
+        .toList();
   }
 
   @Nonnull
@@ -177,14 +184,23 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     return users;
   }
 
-  private Query<?> getUserQuery(UserQueryParams params, List<String> orders, boolean count) {
+  private enum QueryMode {
+    OBJECTS,
+    COUNT,
+    IDS
+  }
+
+  private Query<?> getUserQuery(UserQueryParams params, List<String> orders, QueryMode mode) {
     SqlHelper hlp = new SqlHelper();
 
     List<Order> convertedOrder = null;
     String hql = null;
 
-    if (count) {
+    boolean fetch = mode == QueryMode.OBJECTS;
+    if (mode == QueryMode.COUNT) {
       hql = "select count(distinct u) ";
+    } else if (mode == QueryMode.IDS) {
+      hql = "select distinct u.uid ";
     } else {
       Schema userSchema = schemaService.getSchema(User.class);
       convertedOrder = QueryUtils.convertOrderStrings(orders, userSchema);
@@ -200,7 +216,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     hql += "from User u ";
 
-    if (params.isPrefetchUserGroups() && !count) {
+    if (params.isPrefetchUserGroups() && fetch) {
       hql += "left join fetch u.groups g ";
     } else {
       hql += "left join u.groups g ";
@@ -313,7 +329,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               + "and u.restoreExpiry < current_timestamp() ";
     }
 
-    if (!count) {
+    if (fetch) {
       String orderExpression = JpaQueryUtils.createOrderExpression(convertedOrder, "u");
       hql += "order by " + StringUtils.defaultString(orderExpression, "u.surname, u.firstName");
     }
@@ -390,7 +406,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       query.setParameterList("userGroupIds", userGroupIds);
     }
 
-    if (!count) {
+    if (fetch) {
       if (params.getFirst() != null) {
         query.setFirstResult(params.getFirst());
       }

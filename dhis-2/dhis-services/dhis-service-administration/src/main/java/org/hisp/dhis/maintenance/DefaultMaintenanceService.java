@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
@@ -42,7 +43,6 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
@@ -188,12 +188,12 @@ public class DefaultMaintenanceService implements MaintenanceService {
     UserQueryParams params = new UserQueryParams();
     params.setInvitationStatus(UserInvitationStatus.EXPIRED);
     params.setNeverLoggedIn(true);
-    List<String> expired = userService.getUsers(params).stream().map(User::getUid).toList();
+    List<UID> expired = userService.getUserIds(params);
 
     int removed = 0;
-    for (String uid : expired) {
+    for (UID uid : expired) {
       try {
-        Boolean deleted = transactionTemplate.execute(status -> removeExpiredInvitation(uid));
+        Boolean deleted = transactionTemplate.execute(status -> userService.deleteUser(uid));
         if (Boolean.TRUE.equals(deleted)) {
           removed++;
         }
@@ -204,15 +204,6 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
     log.info("Removed {} of {} expired invitations", removed, expired.size());
     return removed;
-  }
-
-  private boolean removeExpiredInvitation(String uid) {
-    User user = userService.getUser(uid);
-    if (user == null) {
-      return false;
-    }
-    userService.deleteUser(user);
-    return true;
   }
 
   @Override

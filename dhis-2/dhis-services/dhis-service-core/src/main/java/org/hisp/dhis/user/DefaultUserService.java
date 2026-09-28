@@ -230,6 +230,17 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
+  public boolean deleteUser(@Nonnull UID uid) {
+    User user = userStore.getByUidNoAcl(uid.getValue());
+    if (user == null) {
+      return false;
+    }
+    deleteUser(user);
+    return true;
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public List<User> getAllUsers() {
     return userStore.getAll();
@@ -330,6 +341,18 @@ public class DefaultUserService implements UserService {
     }
 
     return userStore.getUserCount(params);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UID> getUserIds(UserQueryParams params) {
+    handleUserQueryParams(params);
+
+    if (isNotValidUserQueryParams(params)) {
+      return List.of();
+    }
+
+    return userStore.getUserIds(params);
   }
 
   @Override

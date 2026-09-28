@@ -55,6 +55,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -185,6 +186,16 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     userService.deleteUser(userA);
     assertNull(userService.getUser(userA.getId()));
     assertNotNull(userService.getUser(userB.getId()));
+  }
+
+  @Test
+  void testDeleteUserByUid() {
+    User userA = addUser("A");
+    User userB = addUser("B");
+    assertTrue(userService.deleteUser(UID.of(userA)));
+    assertNull(userService.getUser(userA.getId()));
+    assertNotNull(userService.getUser(userB.getId()));
+    assertFalse(userService.deleteUser(UID.of(userA)));
   }
 
   @Test
@@ -560,6 +571,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     params.setNeverLoggedIn(true);
     assertContainsOnly(List.of(neverLoggedIn), userService.getUsers(params));
     assertEquals(1, userService.getUserCount(params));
+    assertEquals(List.of(UID.of(neverLoggedIn)), userService.getUserIds(params));
   }
 
   @Test
