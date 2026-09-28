@@ -40,7 +40,7 @@ import java.util.List;
  * Base for the per-entity writers that stage inserts and updates of a single top-level entity type
  * (TrackedEntity, Enrollment, TrackerEvent, SingleEvent). Owns the two staging lists and the
  * mark/rollback/clear lifecycle shared with {@link ChangeLogAccumulator}; subclasses supply the
- * type-specific {@link #flush(Connection)} (multi-row INSERT, unnest UPDATE and any notes cascade).
+ * type-specific {@link #flush(Connection)} (multi-row INSERT, unnest UPDATE and any notes).
  */
 abstract class UpsertTableWriter<E> {
 
