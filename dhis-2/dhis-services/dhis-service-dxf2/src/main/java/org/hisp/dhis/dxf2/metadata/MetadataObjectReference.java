@@ -27,54 +27,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.bundle.persister;
+package org.hisp.dhis.dxf2.metadata;
 
-import static org.hisp.dhis.tracker.imports.bundle.persister.JdbcBatchSupport.truncate;
-
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
- * Base for the per-entity writers that stage inserts and updates of a single top-level entity type
- * (TrackedEntity, Enrollment, TrackerEvent, SingleEvent). Owns the two staging lists and the
- * mark/rollback/clear lifecycle shared with {@link ChangeLogAccumulator}; subclasses supply the
- * type-specific {@link #flush(Connection)} (multi-row INSERT, unnest UPDATE and any notes).
+ * A reference to one metadata object, from an {@code objects=type:id} parameter of the multi-object
+ * dependency export. One parameter may name several objects of a type, {@code
+ * objects=optionSet:abc,def}.
+ *
+ * @author David Mackessy
  */
-abstract class UpsertTableWriter<E> {
+public record MetadataObjectReference(String type, String id) {
 
-  protected final List<E> inserts = new ArrayList<>();
-  protected final List<E> updates = new ArrayList<>();
+  /**
+   * Splits on the first colon only, so extra colons stay in the id and fail UID validation later.
+   *
+   * @param token a {@code type:id} value, where the id part may be a comma separated list
+   * @return one reference per id, in order, or empty if the token is malformed or any id is blank
+   */
+  @Nonnull
+  public static List<MetadataObjectReference> parseAll(String token) {
+    if (token == null) {
+      return List.of();
+    }
 
-  void stageInsert(E entity) {
-    inserts.add(entity);
+    String trimmed = token.trim();
+    int separator = trimmed.indexOf(':');
+
+    if (separator < 0) {
+      return List.of();
+    }
+
+    String type = trimmed.substring(0, separator).trim();
+    String ids = trimmed.substring(separator + 1);
+
+    if (type.isEmpty() || ids.isBlank()) {
+      return List.of();
+    }
+
+    List<MetadataObjectReference> references = new ArrayList<>();
+
+    for (String id : ids.split(",", -1)) {
+      String trimmedId = id.trim();
+
+      if (trimmedId.isEmpty()) {
+        return List
+            .of(); // a blank entry makes the whole token malformed, rather than silently dropped
+      }
+
+      references.add(new MetadataObjectReference(type, trimmedId));
+    }
+
+    return List.copyOf(references);
   }
 
-  void stageUpdate(E entity) {
-    updates.add(entity);
+  @Override
+  public String toString() {
+    return type + ":" + id;
   }
-
-  Mark mark() {
-    return new Mark(inserts.size(), updates.size());
-  }
-
-  void rollbackTo(Mark mark) {
-    truncate(inserts, mark.inserts());
-    truncate(updates, mark.updates());
-  }
-
-  void clear() {
-    inserts.clear();
-    updates.clear();
-  }
-
-  boolean isEmpty() {
-    return inserts.isEmpty() && updates.isEmpty();
-  }
-
-  /** Applies the staged inserts and updates via JDBC on {@code conn}. */
-  abstract void flush(Connection conn) throws SQLException;
-
-  record Mark(int inserts, int updates) {}
 }

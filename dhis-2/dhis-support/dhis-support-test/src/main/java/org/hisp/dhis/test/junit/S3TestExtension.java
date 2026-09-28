@@ -34,43 +34,53 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.junit.jupiter.api.extension.Extension;
 import org.springframework.context.annotation.Bean;
-import org.testcontainers.containers.MinIOContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 /**
- * Use this configuration for tests relying on MinIO storage running in a Docker container. The
- * container is started once per JVM and shared across all test classes that use this extension;
- * Testcontainers' Ryuk reaper handles teardown on JVM exit. Just add to test class like
+ * Use this configuration for tests relying on S3 storage running in a Docker container. The
+ * container runs <a href="https://github.com/seaweedfs/seaweedfs">SeaweedFS</a> with only its S3
+ * gateway enabled. The container is started once per JVM and shared across all test classes that
+ * use this extension; Testcontainers' Ryuk reaper handles teardown on JVM exit. Just add to test
+ * class like
  *
- * <p>@ExtendWith(MinIOTestExtension.class)
+ * <p>@ExtendWith(S3TestExtension.class)
  *
- * <p>@ContextConfiguration(classes = {MinIOConfig.class})
+ * <p>@ContextConfiguration(classes = {S3TestExtension.DhisConfig.class})
  *
  * @author david mackessy
  */
-public class MinIOTestExtension implements Extension {
+public class S3TestExtension implements Extension {
 
-  public static final String MINIO_USER = "testuser";
-  public static final String MINIO_PASSWORD = "testpassword";
+  public static final String S3_ACCESS_KEY = "testuser";
+  public static final String S3_SECRET_KEY = "testpassword";
+
+  private static final int S3_PORT = 8333;
 
   private static final String S3_URL;
-  private static final MinIOContainer MIN_IO_CONTAINER;
+  private static final GenericContainer<?> S3_CONTAINER;
 
   static {
-    // Docker Hub no longer serves minio/minio (404 / pull access denied). Official
-    // community images remain on quay.io; Testcontainers requires a compatible substitute.
-    MIN_IO_CONTAINER =
-        new MinIOContainer(
-                DockerImageName.parse("quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z")
-                    .asCompatibleSubstituteFor("minio/minio"))
-            .withUserName(MINIO_USER)
-            .withPassword(MINIO_PASSWORD);
-    MIN_IO_CONTAINER.start();
-    S3_URL = MIN_IO_CONTAINER.getS3URL();
+    S3_CONTAINER =
+        new GenericContainer<>("chrislusf/seaweedfs:4.47")
+            .withCommand(
+                "server",
+                "-dir=/data",
+                "-s3",
+                "-s3.port.iceberg=0",
+                "-s3.port.lance=0",
+                "-master.telemetry=false")
+            // SeaweedFS registers these as the admin S3 identity.
+            .withEnv("AWS_ACCESS_KEY_ID", S3_ACCESS_KEY)
+            .withEnv("AWS_SECRET_ACCESS_KEY", S3_SECRET_KEY)
+            .withExposedPorts(S3_PORT)
+            .waitingFor(Wait.forHttp("/healthz").forPort(S3_PORT));
+    S3_CONTAINER.start();
+    S3_URL = "http://" + S3_CONTAINER.getHost() + ":" + S3_CONTAINER.getMappedPort(S3_PORT);
   }
 
   /**
-   * Endpoint URL the running MinIO container is reachable on (e.g. {@code http://localhost:32812}).
+   * Endpoint URL the running S3 container is reachable on (e.g. {@code http://localhost:32812}).
    */
   public static String s3Url() {
     return S3_URL;
@@ -84,8 +94,8 @@ public class MinIOTestExtension implements Extension {
       properties.put("filestore.container", "dhis2");
       properties.put("filestore.location", "eu-west-1");
       properties.put("filestore.endpoint", S3_URL);
-      properties.put("filestore.identity", MINIO_USER);
-      properties.put("filestore.secret", MINIO_PASSWORD);
+      properties.put("filestore.identity", S3_ACCESS_KEY);
+      properties.put("filestore.secret", S3_SECRET_KEY);
 
       PostgresDhisConfigurationProvider pgDhisConfig = new PostgresDhisConfigurationProvider(null);
       pgDhisConfig.addProperties(properties);

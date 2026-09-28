@@ -46,15 +46,15 @@ import org.hisp.dhis.util.DateUtils;
  * JdbcNotes generates the SQL aggregating the notes of an enrollment or event into JSON and maps
  * that JSON back into {@link Note}s. Both live here so the SQL and its mapping cannot drift apart.
  *
- * <p>{@link #leftJoinLateral(String, String, String)} aggregates all notes of one owner into a
- * single JSON array, keeping the result at one row per owner. Select it as
+ * <p>{@link #leftJoinLateral(String, String)} aggregates all notes of one enrollment or event into
+ * a single JSON array ordered by creation, keeping the result at one row per entity. Select it as
  *
  * <pre>{@code
  * , notes.jsonnotes as notes
  * }</pre>
  *
- * join it <b>after</b> the owner it correlates on is in scope and pass the column to {@link
- * #fromJson(String)}. Owners without notes are returned with a {@code null} aggregate.
+ * join it <b>after</b> the entity it correlates on is in scope and pass the column to {@link
+ * #fromJson(String)}. Entities without notes are returned with a {@code null} aggregate.
  *
  * <p>{@link Note#getLastUpdatedBy()} is null for notes whose {@code lastupdatedby} is not set.
  */
@@ -66,26 +66,24 @@ public class JdbcNotes {
   }
 
   /**
-   * @param linkTable table linking the owner to its notes, e.g. {@code enrollment_notes}
-   * @param linkColumn column in {@code linkTable} referencing the owner, e.g. {@code enrollmentid}
-   * @param ownerColumn qualified owner id column to correlate on, e.g. {@code e.enrollmentid}
+   * @param noteColumn column in {@code note} referencing the entity, e.g. {@code enrollmentid}
+   * @param entityColumn qualified entity id column to correlate on, e.g. {@code e.enrollmentid}
    */
   @Nonnull
-  public static String leftJoinLateral(
-      @Nonnull String linkTable, @Nonnull String linkColumn, @Nonnull String ownerColumn) {
+  public static String leftJoinLateral(@Nonnull String noteColumn, @Nonnull String entityColumn) {
     return """
       left join lateral (
         select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
           'created', n.created, 'updatedByUid', u.uid,
           'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
-          'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
-          from %s ln
-          join note n on n.noteid = ln.noteid
+          'updatedBySurname', u.surname, 'updatedByName', u.name)
+          order by n.created, n.noteid) as jsonnotes
+          from note n
           left join userinfo u on u.userinfoid = n.lastupdatedby
-          where ln.%s = %s
+          where n.%s = %s
       ) notes on true
     """
-        .formatted(linkTable, linkColumn, ownerColumn);
+        .formatted(noteColumn, entityColumn);
   }
 
   /**

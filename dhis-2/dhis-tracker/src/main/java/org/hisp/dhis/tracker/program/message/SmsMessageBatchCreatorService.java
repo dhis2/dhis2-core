@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.program.message;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Slf4j
 @Service("org.hisp.dhis.tracker.program.message.SmsMessageBatchCreatorService")
 public class SmsMessageBatchCreatorService implements MessageBatchCreatorService {
   @Override
@@ -46,10 +48,23 @@ public class SmsMessageBatchCreatorService implements MessageBatchCreatorService
     List<OutboundMessage> messages =
         programMessages.parallelStream()
             .filter(pm -> pm.getDeliveryChannels().contains(DeliveryChannel.SMS))
+            .filter(this::hasPhoneNumber)
             .map(this::createSmsMessage)
             .collect(Collectors.toList());
 
     return new OutboundMessageBatch(messages, DeliveryChannel.SMS);
+  }
+
+  private boolean hasPhoneNumber(ProgramMessage programMessage) {
+    boolean hasPhoneNumber = !programMessage.getRecipients().getPhoneNumbers().isEmpty();
+
+    if (!hasPhoneNumber) {
+      log.warn(
+          "Skipping SMS for program message {}: no phone number to deliver to",
+          programMessage.getUid());
+    }
+
+    return hasPhoneNumber;
   }
 
   private OutboundMessage createSmsMessage(ProgramMessage programMessage) {
