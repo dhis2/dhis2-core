@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitRowAccess;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -474,5 +475,47 @@ class AggregatedRowBuilderTest {
     assertThat(row, hasSize(2));
     assertThat(row.get(0), is("ouUid"));
     assertThat(row.get(1), is(5));
+  }
+
+  @Test
+  void testBuildRowWithRegistrationOuDimensionReadsRegistrationOuColumn() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withRegistrationOuDimension(List.of(createOrganisationUnit('A')))
+            .build();
+
+    when(rowSet.getString(ColumnHeader.REGISTRATION_OU.getItem())).thenReturn("regOuUid");
+    when(rowSet.getInt("value")).thenReturn(7);
+
+    List<Object> row =
+        AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
+            .build();
+
+    verify(rowSet).getString(ColumnHeader.REGISTRATION_OU.getItem());
+    assertThat(row, hasSize(2));
+    assertThat(row.get(0), is("regOuUid"));
+    assertThat(row.get(1), is(7));
+  }
+
+  /**
+   * A bare dimension carries no items, so aggregate emits no column and the row must not read it.
+   */
+  @Test
+  void testBuildRowWithBareRegistrationOuDimensionReadsNoColumn() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withRegistrationOuDimension(List.of())
+            .build();
+
+    when(rowSet.getInt("value")).thenReturn(3);
+
+    List<Object> row =
+        AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
+            .build();
+
+    assertThat(row, hasSize(1));
+    assertThat(row.get(0), is(3));
   }
 }

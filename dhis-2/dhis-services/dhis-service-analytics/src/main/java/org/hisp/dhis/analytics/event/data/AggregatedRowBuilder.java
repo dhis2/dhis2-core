@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitRowAccess;
 import org.hisp.dhis.common.DimensionalObject;
@@ -204,6 +205,11 @@ class AggregatedRowBuilder {
 
     if (params.hasEnrollmentOuDimension()) {
       row.add(extractStringValue(OrgUnitRowAccess.enrollmentOuResultColumn(), ValueType.TEXT));
+    }
+
+    // A REGISTRATION_OU dimension without items emits no aggregate column, so nothing to read.
+    if (params.hasRegistrationOuAggregateColumn()) {
+      row.add(extractStringValue(ColumnHeader.REGISTRATION_OU.getItem(), ValueType.TEXT));
     }
 
     if (params.hasEnrollmentStatuses() && params.isAggregatedEvents()) {

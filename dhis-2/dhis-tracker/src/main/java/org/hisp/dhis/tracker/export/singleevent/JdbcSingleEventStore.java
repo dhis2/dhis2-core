@@ -79,6 +79,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
+import org.hisp.dhis.tracker.export.JdbcNotes;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.OrgUnitQueryBuilder;
@@ -96,25 +97,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.singleevent.EventStore")
 @RequiredArgsConstructor
 class JdbcSingleEventStore {
-  private static final String EVENT_NOTE_QUERY =
-      """
-      select evn.eventid as evn_id,\
-       n.noteid as note_id,\
-       n.notetext as note_text,\
-       n.created as note_created,\
-       n.creator as note_creator,\
-       n.uid as note_uid,\
-       userinfo.userinfoid as note_user_id,\
-       userinfo.code as note_user_code,\
-       userinfo.uid as note_user_uid,\
-       userinfo.username as note_user_username,\
-       userinfo.firstname as note_user_firstname,\
-       userinfo.surname as note_user_surname\
-       from singleevent_notes evn\
-       inner join note n\
-       on evn.noteid = n.noteid\
-       left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
-
   private static final String DEFAULT_ORDER = "ev_occurreddate desc, ev_id desc";
 
   private static final String PK_COLUMN = "ev_id";
@@ -184,7 +166,6 @@ class JdbcSingleEventStore {
         sql,
         sqlParameters,
         resultSet -> {
-          Set<String> notes = new HashSet<>();
           // data elements per event
           Map<String, Set<String>> dataElementUids = new HashMap<>();
 
@@ -314,6 +295,13 @@ class JdbcSingleEventStore {
                             resultSet.getString("ev_eventdatavalues")));
               }
 
+              if (queryParams.isIncludeNotes()) {
+                List<Note> notes = JdbcNotes.fromJson(resultSet.getString("notes"));
+                if (notes != null) {
+                  event.getNotes().addAll(notes);
+                }
+              }
+
               events.add(event);
             }
 
@@ -332,29 +320,6 @@ class JdbcSingleEventStore {
                   dataElementUids.get(eventUid).add(dataElementUid);
                 }
               }
-            }
-
-            if (resultSet.getString("note_text") != null
-                && !notes.contains(resultSet.getString("note_id"))) {
-              Note note = new Note();
-              note.setUid(resultSet.getString("note_uid"));
-              note.setNoteText(resultSet.getString("note_text"));
-              note.setCreated(resultSet.getTimestamp("note_created"));
-              note.setCreator(resultSet.getString("note_creator"));
-
-              if (resultSet.getObject("note_user_id") != null) {
-                User noteLastUpdatedBy = new User();
-                noteLastUpdatedBy.setId(resultSet.getLong("note_user_id"));
-                noteLastUpdatedBy.setCode(resultSet.getString("note_user_code"));
-                noteLastUpdatedBy.setUid(resultSet.getString("note_user_uid"));
-                noteLastUpdatedBy.setUsername(resultSet.getString("note_user_username"));
-                noteLastUpdatedBy.setFirstName(resultSet.getString("note_user_firstname"));
-                noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
-                note.setLastUpdatedBy(noteLastUpdatedBy);
-              }
-
-              event.getNotes().add(note);
-              notes.add(resultSet.getString("note_id"));
             }
           }
 
@@ -521,7 +486,10 @@ class JdbcSingleEventStore {
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       UserDetails user) {
-    StringBuilder sqlBuilder = new StringBuilder("select *");
+    StringBuilder sqlBuilder = new StringBuilder("select event.*");
+    if (queryParams.isIncludeNotes()) {
+      sqlBuilder.append(", notes.jsonnotes as notes");
+    }
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
@@ -538,9 +506,11 @@ class JdbcSingleEventStore {
       sqlBuilder.append(getLimitAndOffsetClause(pageParams));
     }
 
-    sqlBuilder.append(") as event left join (");
-    sqlBuilder.append(EVENT_NOTE_QUERY);
-    sqlBuilder.append(") as cm on event.ev_id=cm.evn_id ");
+    sqlBuilder.append(") as event ");
+
+    if (queryParams.isIncludeNotes()) {
+      sqlBuilder.append(JdbcNotes.leftJoinLateral("singleevent_notes", "eventid", "event.ev_id"));
+    }
 
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {

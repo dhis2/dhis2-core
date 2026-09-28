@@ -40,6 +40,7 @@ import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -131,41 +132,42 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     content
         .get("objectCounts")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(value -> assertTrue(value.isInteger(), "Object count values should be integers"));
     assertTrue(content.has("activeUsers"), "Active users are missing");
     content
         .get("activeUsers")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(value -> assertTrue(value.isInteger(), "Active user values should be integers"));
     content
         .get("activeUsers")
         .asMap(JsonValue.class)
         .keys()
-        .forEach(key -> assertTrue(key.matches("\\d{1,2}"), "Active user keys should be integers"));
+        .forEach(
+            key -> assertTrue(Text.of("#?#").matches(key), "Active user keys should be integers"));
     content
         .get("logins")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(value -> assertTrue(value.isInteger(), "Login values should be integers"));
     content
         .get("logins")
         .asMap(JsonValue.class)
         .keys()
-        .forEach(key -> assertTrue(key.matches("\\d{1,2}"), "Login keys should be integers"));
+        .forEach(key -> assertTrue(Text.of("#?#").matches(key), "Login keys should be integers"));
     assertTrue(content.has("userInvitations"), "User invitations are missing");
     content
         .get("activeUsers")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(
             value -> assertTrue(value.isInteger(), "User invitation values should be integers"));
     assertTrue(content.has("dataValueCount"), "Data value counts are missing");
     content
         .get("dataValueCount")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(
             value -> assertTrue(value.isInteger(), "Data value count values should be integers"));
     content
@@ -173,22 +175,25 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .asMap(JsonValue.class)
         .keys()
         .forEach(
-            key -> assertTrue(key.matches("\\d{1,2}"), "Data value count keys should be integers"));
+            key ->
+                assertTrue(
+                    Text.of("#?#").matches(key), "Data value count keys should be integers"));
     assertTrue(content.has("eventCount"), "Event counts are missing");
     content
         .get("eventCount")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(value -> assertTrue(value.isInteger(), "Event count values should be integers"));
     content
         .get("eventCount")
         .asMap(JsonValue.class)
         .keys()
-        .forEach(key -> assertTrue(key.matches("\\d{1,2}"), "Event count keys should be integers"));
+        .forEach(
+            key -> assertTrue(Text.of("#?#").matches(key), "Event count keys should be integers"));
     content
         .get("trackerEventCount")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(
             value ->
                 assertTrue(value.isInteger(), "Tracker event count values should be integers"));
@@ -198,11 +203,12 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .keys()
         .forEach(
             key ->
-                assertTrue(key.matches("\\d{1,2}"), "Tracker event count keys should be integers"));
+                assertTrue(
+                    Text.of("#?#").matches(key), "Tracker event count keys should be integers"));
     content
         .get("singleEventCount")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(
             value -> assertTrue(value.isInteger(), "Single event count values should be integers"));
     content
@@ -211,7 +217,8 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .keys()
         .forEach(
             key ->
-                assertTrue(key.matches("\\d{1,2}"), "Single event count keys should be integers"));
+                assertTrue(
+                    Text.of("#?#").matches(key), "Single event count keys should be integers"));
   }
 
   @Test

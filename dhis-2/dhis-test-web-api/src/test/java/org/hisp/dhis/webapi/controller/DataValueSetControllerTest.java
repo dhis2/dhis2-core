@@ -54,7 +54,10 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -187,6 +190,54 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
                 dsId)
             .content(HttpStatus.OK);
     assertTrue(ds.isObject());
+  }
+
+  @ParameterizedTest(name = "format={0} compression={1}")
+  @DisplayName("Content-Type reflects the (compressed) bytes written to the response")
+  @CsvSource({
+    "json,none,application/json,dataValues.json",
+    "json,gzip,application/json+gzip,dataValues.json.gz",
+    "json,zip,application/json+zip,dataValues.json.zip",
+    "csv,none,application/csv,dataValues.csv",
+    "csv,gzip,application/csv+gzip,dataValues.csv.gz",
+    "csv,zip,application/csv+zip,dataValues.csv.zip",
+    "xml,none,application/xml,dataValues.xml",
+    "xml,gzip,application/xml+gzip,dataValues.xml.gz",
+    "xml,zip,application/xml+zip,dataValues.xml.zip",
+    "adx+xml,none,application/adx+xml,dataValues.adx.xml",
+    "adx+xml,gzip,application/adx+xml+gzip,dataValues.adx.xml.gz",
+    "adx+xml,zip,application/adx+xml+zip,dataValues.adx.xml.zip",
+  })
+  void testGetDataValueSet_ContentTypeMatchesCompression(
+      String format, String compression, String expectedMediaType, String expectedFilename) {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                + " 'code':'OU1'}"));
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+
+    HttpResponse response =
+        GET(
+            "/dataValueSets?inputOrgUnitIdScheme=code&orgUnit={ou}&period=2022-01&dataSet={ds}&format={format}&compression={compression}",
+            "OU1",
+            dsId,
+            format,
+            compression);
+
+    assertEquals(HttpStatus.OK, response.status());
+    MediaType contentType = MediaType.parseMediaType(response.header("Content-Type"));
+    assertEquals(expectedMediaType, contentType.getType() + "/" + contentType.getSubtype());
+    assertEquals(
+        "attachment; filename=\"" + expectedFilename + "\"",
+        response.header("Content-Disposition"));
+    assertEquals("binary", response.header("Content-Transfer-Encoding"));
   }
 
   @Test

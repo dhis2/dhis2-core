@@ -471,7 +471,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
       assertEquals(
           expectedValue,
-          matchingJsonAttribute.getValue(),
+          matchingJsonAttribute.value(),
           "Value mismatch for attribute " + expectedAttribute);
     }
   }

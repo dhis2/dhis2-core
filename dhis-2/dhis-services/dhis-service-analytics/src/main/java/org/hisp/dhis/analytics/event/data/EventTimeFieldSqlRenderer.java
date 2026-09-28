@@ -97,7 +97,8 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
                     params.getProgramIndicator(),
                     params.getTimeFieldAsField(AnalyticsType.EVENT),
                     params.getEarliestStartDate(),
-                    params.getLatestEndDate()))
+                    params.getLatestEndDate(),
+                    AnalyticsType.EVENT))
         .collect(Collectors.joining(" and "));
   }
 

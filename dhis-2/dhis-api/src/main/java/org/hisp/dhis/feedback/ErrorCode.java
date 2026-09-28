@@ -610,12 +610,19 @@ public enum ErrorCode {
   E7243("Duplicate stage dimension identifier: `{0}`"),
   E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
   E7245("Program stage `{0}` does not belong to program `{1}`"),
+  E7246("Sorting by `{0}` requires ENROLLMENT_OU as a dimension or filter"),
+  E7247("Query filter keyword `{0}` can only be used with option set dimensions"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
   E7253(
       "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
+  E7259("Dimension `{0}` is not supported for a program without registration"),
+  E7260("Dimension `{0}` must specify organisation units in an aggregate query"),
+  E7261(
+      "Dimension `{0}` does not support organisation units at different hierarchy levels in an aggregate query"),
+  E7262("Sorting by `{0}` requires the `{1}` dimension"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

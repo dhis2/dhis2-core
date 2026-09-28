@@ -108,7 +108,8 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
                         params.getProgramIndicator(),
                         params.getTimeFieldAsField(AnalyticsType.ENROLLMENT),
                         params.getEarliestStartDate(),
-                        params.getLatestEndDate()))
+                        params.getLatestEndDate(),
+                        AnalyticsType.ENROLLMENT))
             .collect(Collectors.joining(" and "));
 
     String sqlEventCohortBoundary =
