@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,59 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.event.data.registrationou;
 
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.option.Option;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 
-/**
- * @author Henning Håkonsen
- */
-public class EventAnalyticsDimensionalItem {
-  private String parentUid;
+/** Shared identifiers for REGISTRATION_OU query and aggregate handling. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class RegistrationOuSqlConstants {
 
-  private Option option;
+  /** The dimension keyword as written in a request. */
+  public static final String DIMENSION_NAME = "REGISTRATION_OU";
 
-  private DimensionalItemObject dimensionalItemObject;
+  public static final String STRUCT_TABLE = OrganisationUnitStructureResourceTable.TABLE_NAME;
 
-  public EventAnalyticsDimensionalItem(Option option, String parentUid) {
-    this.option = option;
-    this.parentUid = parentUid;
-  }
+  /**
+   * Distinct from the {@code ous} alias used for the default org unit join, so both can appear in
+   * one query.
+   */
+  public static final String STRUCT_ALIAS = "regous";
 
-  public EventAnalyticsDimensionalItem(
-      DimensionalItemObject dimensionalItemObject, String parentUid) {
-    this.dimensionalItemObject = dimensionalItemObject;
-    this.parentUid = parentUid;
-  }
+  public static final String STRUCT_UID_COLUMN = "organisationunituid";
 
-  public String getParentUid() {
-    return parentUid;
-  }
+  public static final String STRUCT_NAME_COLUMN = "name";
 
-  public Option getOption() {
-    return option;
-  }
-
-  public String getDisplayProperty(DisplayProperty displayProperty) {
-    if (option != null) {
-      return option.getDisplayName();
-    } else {
-      if (displayProperty == DisplayProperty.NAME) {
-        return dimensionalItemObject.getName();
-      } else {
-        return dimensionalItemObject.getShortName();
-      }
-    }
-  }
-
-  @Override
-  public String toString() {
-    if (option != null) {
-      return option.getCode();
-    } else {
-      return dimensionalItemObject.getDimensionItem();
-    }
-  }
+  public static final String UID_LEVEL_PREFIX = "uidlevel";
 }
