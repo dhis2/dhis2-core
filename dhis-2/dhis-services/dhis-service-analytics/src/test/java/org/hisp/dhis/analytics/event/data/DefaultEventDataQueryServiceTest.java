@@ -2209,6 +2209,9 @@ class DefaultEventDataQueryServiceTest {
         assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
 
     assertEquals(ErrorCode.E7267, ex.getErrorCode());
+    // The type came from the element, not the request: the message must say how to override it.
+    assertTrue(ex.getMessage().contains("LAST"), ex.getMessage());
+    assertTrue(ex.getMessage().contains("`aggregationType`"), ex.getMessage());
   }
 
   @Test
