@@ -509,7 +509,7 @@ class JdbcSingleEventStore {
     sqlBuilder.append(") as event ");
 
     if (queryParams.isIncludeNotes()) {
-      sqlBuilder.append(JdbcNotes.leftJoinLateral("singleevent_notes", "eventid", "event.ev_id"));
+      sqlBuilder.append(JdbcNotes.leftJoinLateral("singleeventid", "event.ev_id"));
     }
 
     if (TrackerIdScheme.UID
