@@ -168,7 +168,8 @@ class OptionServiceTest extends TransactionalIntegrationTest {
   // OptionGroup
   // -------------------------------------------------------------------------
   @Test
-  void testAddGetOptionGroup() {
+  void testAddGetOptionGroup() throws ConflictException {
+    optionService.saveOptionSet(optionSetA);
     optionGroupA.getMembers().add(option1);
     optionGroupA.getMembers().add(option2);
     optionGroupB.getMembers().add(option3);
@@ -187,7 +188,8 @@ class OptionServiceTest extends TransactionalIntegrationTest {
   // OptionGroupSet
   // -------------------------------------------------------------------------
   @Test
-  void testAddGetOptionGroupSet() {
+  void testAddGetOptionGroupSet() throws ConflictException {
+    optionService.saveOptionSet(optionSetA);
     optionGroupA.getMembers().add(option1);
     optionGroupA.getMembers().add(option2);
     optionGroupB.getMembers().add(option3);
