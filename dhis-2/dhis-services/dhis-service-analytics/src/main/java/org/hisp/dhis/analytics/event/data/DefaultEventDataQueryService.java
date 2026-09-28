@@ -207,6 +207,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           AnalyticsAggregationType.fromAggregationType(request.getAggregationType()));
     }
 
+    boolean enrollmentEndpoint =
+        request.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT;
+
     EventQueryParams.Builder builder =
         params
             .withValue(getValueDimension(request.getValue(), pr))
@@ -219,7 +222,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withCollapseDataDimensions(request.isCollapseDataDimensions())
             .withAggregateData(request.isAggregateData())
             .withProgram(pr)
-            .withProgramStage(ps)
+            .withProgramStage(enrollmentEndpoint ? null : ps)
+            .withValueProgramStage(enrollmentEndpoint ? ps : null)
             .withStartDate(request.getStartDate())
             .withEndDate(request.getEndDate())
             .withOrganisationUnitMode(request.getOuMode())
