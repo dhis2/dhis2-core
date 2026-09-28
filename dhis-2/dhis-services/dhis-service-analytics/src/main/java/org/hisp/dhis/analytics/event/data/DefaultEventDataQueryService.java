@@ -265,6 +265,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       validateValueHasAggregationType(eventQueryParams);
     }
 
+    if (eventQueryParams.isAggregatedEnrollments()) {
+      validateEnrollmentAggregateValue(eventQueryParams, request.getAggregationType());
+    }
+
     // Partitioning applies only when default period is specified
 
     // Empty period dimension means default period
@@ -1134,6 +1138,42 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private static void validateValueHasAggregationType(EventQueryParams params) {
     if (params.hasValueDimension() && params.isAggregationType(AggregationType.NONE)) {
       throwIllegalQueryEx(ErrorCode.E7265, params.getValue().getUid());
+    }
+  }
+
+  /**
+   * Rejects an enrollment aggregate "value" that cannot be read as one value per enrollment: a data
+   * element must name a stage that contains it, an attribute must name none. Also rejects
+   * aggregation types other than plain SQL aggregate functions, whether requested or the value
+   * element's own.
+   *
+   * @param params the {@link EventQueryParams} built from the request.
+   * @param requestAggregationType the "aggregationType" request param, may be null.
+   */
+  private static void validateEnrollmentAggregateValue(
+      EventQueryParams params, AggregationType requestAggregationType) {
+    if (!params.hasValueDimension()) {
+      return;
+    }
+
+    DimensionalItemObject value = params.getValue();
+    ProgramStage stage = params.getValueProgramStage();
+
+    boolean stageDataElement =
+        value instanceof DataElement && stage != null && stage.getDataElements().contains(value);
+    boolean attribute = value instanceof TrackedEntityAttribute && stage == null;
+
+    if (!stageDataElement && !attribute) {
+      throwIllegalQueryEx(ErrorCode.E7266, params.getRequestValue());
+    }
+
+    AggregationType aggregationType =
+        requestAggregationType != null && requestAggregationType != AggregationType.DEFAULT
+            ? requestAggregationType
+            : value.getAggregationType();
+
+    if (aggregationType != null && !aggregationType.isSingleValueAggregation()) {
+      throwIllegalQueryEx(ErrorCode.E7267, aggregationType.name());
     }
   }
 
