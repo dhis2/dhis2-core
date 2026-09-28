@@ -199,6 +199,14 @@ public interface UserService {
   void deleteUser(User user);
 
   /**
+   * Deletes the user with the given UID, like {@link #deleteUser(User)}.
+   *
+   * @param uid the UID of the user to delete.
+   * @return true if the user was deleted, false if no user has the UID.
+   */
+  boolean deleteUser(@Nonnull UID uid);
+
+  /**
    * Checks if the given user represents the last user with ALL authority.
    *
    * @param user the user.

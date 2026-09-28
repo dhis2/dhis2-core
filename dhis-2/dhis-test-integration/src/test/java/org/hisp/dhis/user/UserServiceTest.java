@@ -190,6 +190,16 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testDeleteUserByUid() {
+    User userA = addUser("A");
+    User userB = addUser("B");
+    assertTrue(userService.deleteUser(UID.of(userA)));
+    assertNull(userService.getUser(userA.getId()));
+    assertNotNull(userService.getUser(userB.getId()));
+    assertFalse(userService.deleteUser(UID.of(userA)));
+  }
+
+  @Test
   void testDeleteCreatedByUser() {
     User userA = addUser("A");
 
