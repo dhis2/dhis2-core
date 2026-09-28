@@ -645,6 +645,9 @@ public enum ErrorCode {
       "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
   E7264("Repeatable stage offset is not supported in `value`: `{0}`"),
   E7265("Value `{0}` has aggregation type NONE, specify an `aggregationType`"),
+  E7266(
+      "Value `{0}` must be a data element prefixed with a program stage that contains it, or an attribute of the program without a stage prefix"),
+  E7267("Aggregation type is not supported by enrollment aggregate queries: `{0}`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
