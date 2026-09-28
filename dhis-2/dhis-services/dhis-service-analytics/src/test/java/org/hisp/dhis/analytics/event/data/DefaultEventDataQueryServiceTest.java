@@ -2048,6 +2048,45 @@ class DefaultEventDataQueryServiceTest {
     assertEquals(ErrorCode.E7223, dateException.getErrorCode());
   }
 
+  @Test
+  void getFromRequestKeepsEnrollmentValueStageOffProgramStage() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .value(programStage.getUid() + "." + element.getUid())
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertNull(params.getProgramStage());
+    assertEquals(programStage, params.getValueProgramStage());
+    assertEquals(element.getUid(), params.getValue().getUid());
+  }
+
+  @Test
+  void getFromRequestKeepsEventValueStageOnProgramStage() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "." + element.getUid())
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(programStage, params.getProgramStage());
+    assertNull(params.getValueProgramStage());
+  }
+
   /** Creates a data element and attaches it to a stage of the test program. */
   private DataElement dataElementInProgram(
       char uniqueCharacter, ValueType valueType, AggregationType aggregationType) {
