@@ -29,6 +29,7 @@ package org.hisp.dhis.email;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Slf4j
 @Service("org.hisp.dhis.email.EmailMessageBatchCreator")
 public class EmailMessageBatchCreatorService implements MessageBatchCreatorService {
   @Override
@@ -46,10 +48,23 @@ public class EmailMessageBatchCreatorService implements MessageBatchCreatorServi
     List<OutboundMessage> messages =
         programMessages.parallelStream()
             .filter(pm -> pm.getDeliveryChannels().contains(DeliveryChannel.EMAIL))
+            .filter(this::hasEmailAddress)
             .map(this::createEmailMessage)
             .collect(Collectors.toList());
 
     return new OutboundMessageBatch(messages, DeliveryChannel.EMAIL);
+  }
+
+  private boolean hasEmailAddress(ProgramMessage programMessage) {
+    boolean hasEmailAddress = !programMessage.getRecipients().getEmailAddresses().isEmpty();
+
+    if (!hasEmailAddress) {
+      log.warn(
+          "Skipping EMAIL for program message {}: no email address to deliver to",
+          programMessage.getUid());
+    }
+
+    return hasEmailAddress;
   }
 
   private OutboundMessage createEmailMessage(ProgramMessage programMessage) {
