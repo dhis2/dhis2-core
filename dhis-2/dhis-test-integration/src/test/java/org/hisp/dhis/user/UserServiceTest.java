@@ -52,6 +52,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -539,6 +540,26 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     params.setInvitationStatus(UserInvitationStatus.EXPIRED);
     assertIsEmpty(userService.getUsers(params));
     assertEquals(0, userService.getUserCount(params));
+  }
+
+  @Test
+  void testGetExpiredInvitationsNeverLoggedIn() {
+    Date yesterday = Date.from(ZonedDateTime.now().minusDays(1).toInstant());
+    Consumer<User> expiredInvitation =
+        user -> {
+          user.setInvitation(true);
+          user.setRestoreToken("token" + user.getUsername());
+          user.setRestoreExpiry(yesterday);
+        };
+    User neverLoggedIn = addUser("A", expiredInvitation);
+    User loggedIn = addUser("B", expiredInvitation.andThen(user -> user.setLastLogin(yesterday)));
+    addUser("C", User::setInvitation, true);
+    UserQueryParams params = getDefaultParams().setInvitationStatus(UserInvitationStatus.EXPIRED);
+    assertContainsOnly(List.of(neverLoggedIn, loggedIn), userService.getUsers(params));
+    assertEquals(2, userService.getUserCount(params));
+    params.setNeverLoggedIn(true);
+    assertContainsOnly(List.of(neverLoggedIn), userService.getUsers(params));
+    assertEquals(1, userService.getUserCount(params));
   }
 
   @Test
