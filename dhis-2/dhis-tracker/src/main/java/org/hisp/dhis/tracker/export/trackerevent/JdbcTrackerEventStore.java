@@ -37,9 +37,6 @@ import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectReader;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -50,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
@@ -62,8 +58,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
@@ -87,6 +81,7 @@ import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.export.timeout.TrackerExportTimeoutConfig;
 import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.EventDataValuesJson;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -101,7 +96,6 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 @Repository("org.hisp.dhis.tracker.export.trackerevent.EventStore")
 @RequiredArgsConstructor
 class JdbcTrackerEventStore {
@@ -139,11 +133,6 @@ class JdbcTrackerEventStore {
           entry("deleted", "ev_deleted"),
           entry("assignedUser", "user_assigned_username"),
           entry("assignedUser.displayName", "user_assigned_name"));
-
-  // Cannot use DefaultRenderService mapper. Does not work properly -
-  // DHIS2-6102
-  private static final ObjectReader eventDataValueJsonReader =
-      JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
   @Qualifier(TrackerExportTimeoutConfig.TRACKER_EXPORT_JDBC_TEMPLATE)
   private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -313,8 +302,9 @@ class JdbcTrackerEventStore {
                 event
                     .getEventDataValues()
                     .addAll(
-                        convertEventDataValueJsonIntoSet(
-                            resultSet.getString("ev_eventdatavalues")));
+                        EventDataValuesJson.fromJson(
+                            resultSet.getString("ev_eventdatavalues"),
+                            event.getCreatedByUserInfo()));
               }
 
               if (queryParams.isIncludeNotes()) {
@@ -336,7 +326,8 @@ class JdbcTrackerEventStore {
               // multiple times if the event also has notes.
               String dataElementUid = resultSet.getString("de_uid");
               if (!dataElementUids.get(eventUid).contains(dataElementUid)) {
-                EventDataValue eventDataValue = parseEventDataValue(dataElementIdScheme, resultSet);
+                EventDataValue eventDataValue =
+                    parseEventDataValue(dataElementIdScheme, resultSet, event);
                 if (eventDataValue != null) {
                   event.getEventDataValues().add(eventDataValue);
                   dataElementUids.get(eventUid).add(dataElementUid);
@@ -350,7 +341,8 @@ class JdbcTrackerEventStore {
   }
 
   private EventDataValue parseEventDataValue(
-      TrackerIdSchemeParam dataElementIdScheme, ResultSet resultSet) throws SQLException {
+      TrackerIdSchemeParam dataElementIdScheme, ResultSet resultSet, TrackerEvent event)
+      throws SQLException {
     String dataValueResult = resultSet.getString("ev_eventdatavalue");
     if (StringUtils.isEmpty(dataValueResult)) {
       return null;
@@ -359,28 +351,8 @@ class JdbcTrackerEventStore {
     if (StringUtils.isEmpty(dataElement)) {
       return null;
     }
-
-    EventDataValue eventDataValue = new EventDataValue();
-    eventDataValue.setDataElement(dataElement);
-    JsonObject dataValueJson = JsonMixed.of(dataValueResult).asObject();
-    eventDataValue.setValue(dataValueJson.getString("value").string(""));
-    eventDataValue.setProvidedElsewhere(
-        dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
-
-    eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
-    if (dataValueJson.has("createdByUserInfo")) {
-      eventDataValue.setCreatedByUserInfo(
-          UserInfoSnapshots.from(dataValueJson.getObject("createdByUserInfo")));
-    }
-
-    eventDataValue.setLastUpdated(
-        DateUtils.parseDate(dataValueJson.getString("lastUpdated").string("")));
-    if (dataValueJson.has("lastUpdatedByUserInfo")) {
-      eventDataValue.setLastUpdatedByUserInfo(
-          UserInfoSnapshots.from(dataValueJson.getObject("lastUpdatedByUserInfo")));
-    }
-
-    return eventDataValue;
+    return EventDataValuesJson.fromJson(
+        dataElement, JsonMixed.of(dataValueResult).asObject(), event.getCreatedByUserInfo());
   }
 
   private String getDataElementIdentifier(
@@ -1205,15 +1177,5 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private boolean isNotSuperUser(UserDetails user) {
     return user != null && !user.isSuper();
-  }
-
-  private Set<EventDataValue> convertEventDataValueJsonIntoSet(String jsonString) {
-    try {
-      Map<String, EventDataValue> data = eventDataValueJsonReader.readValue(jsonString);
-      return JsonEventDataValueSetBinaryType.convertEventDataValuesMapIntoSet(data);
-    } catch (IOException e) {
-      log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
-      throw new IllegalArgumentException(e);
-    }
   }
 }

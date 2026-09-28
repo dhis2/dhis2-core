@@ -43,6 +43,7 @@ import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramStageMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipTypeMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityTypeMapper;
 import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.EventDataValuesJson;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -51,10 +52,12 @@ import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
 @Mapper(
@@ -289,6 +292,17 @@ public interface RelationshipItemMapper {
   @Mapping(target = "program")
   @Mapping(target = "followup")
   Enrollment mapEnrollmentForEvent(Enrollment enrollment);
+
+  /** Events are loaded by Hibernate, so fill in the users of their data values as stored. */
+  @AfterMapping
+  default void fillDataValueUserInfo(@MappingTarget TrackerEvent event) {
+    EventDataValuesJson.fillUserInfo(event.getEventDataValues(), event.getCreatedByUserInfo());
+  }
+
+  @AfterMapping
+  default void fillDataValueUserInfo(@MappingTarget SingleEvent event) {
+    EventDataValuesJson.fillUserInfo(event.getEventDataValues(), event.getCreatedByUserInfo());
+  }
 
   // these are needed to make mapstruct map these collections using the entity @Mappers
   Set<EventDataValue> mapEventDataValues(Set<EventDataValue> eventDataValues);

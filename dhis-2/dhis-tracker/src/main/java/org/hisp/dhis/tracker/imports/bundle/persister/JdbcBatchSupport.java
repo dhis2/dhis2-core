@@ -29,12 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import java.io.IOException;
-import java.io.StringWriter;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -44,19 +39,17 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 /**
  * Shared JDBC mechanics for the per-entity {@code *Writer} classes that make up {@link
  * EntityWriteBatch}: id pre-allocation, multi-row INSERT SQL assembly, chunking, nullable binds,
- * date/timestamp formatting, list truncation and the JSON serializers. Centralising the serializers
- * here also centralises the invariant that {@code eventdatavalues} / {@code ObjectStyle} must be
- * written with {@link JsonBinaryType#MAPPER} (a different {@code ObjectMapper} drops fields like
- * {@code UserInfoSnapshot.id} that the JDBC reader requires).
+ * date/timestamp formatting, list truncation and the JSON serializers. {@code ObjectStyle} and
+ * {@code UserInfoSnapshot} must be written with {@link JsonBinaryType#MAPPER}, as their Hibernate
+ * types do (a different {@code ObjectMapper} drops fields like {@code UserInfoSnapshot.id}). {@code
+ * eventdatavalues} is written by {@link org.hisp.dhis.tracker.model.EventDataValuesJson}.
  */
 final class JdbcBatchSupport {
 
@@ -83,7 +76,7 @@ final class JdbcBatchSupport {
 
   /**
    * Extracts one column value from a row. Allows {@link SQLException} so JSON serializers ({@link
-   * #toJson}, {@link #toEventDataValuesJson}) can be used directly as extractors.
+   * #toJson}) can be used directly as extractors.
    */
   @FunctionalInterface
   interface RowExtractor<E, R> {
@@ -128,16 +121,15 @@ final class JdbcBatchSupport {
     return conn.createArrayOf("boolean", values);
   }
 
-  /**
-   * Fetches {@code count} ids from {@code sequenceName} in a single round-trip. The sequence name
-   * is interpolated into the SQL (not a bind parameter) because PostgreSQL's {@code nextval} takes
-   * a {@code regclass}; the value is always a static literal controlled by us.
-   */
+  private static final String ALLOCATE_IDS_SQL =
+      "select nextval(?::regclass) from generate_series(1, ?)";
+
+  /** Fetches {@code count} ids from {@code sequenceName} in a single round-trip. */
   static long[] allocateIds(Connection conn, String sequenceName, int count) throws SQLException {
     long[] ids = new long[count];
-    String sql = "select nextval('" + sequenceName + "') from generate_series(1, ?)";
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-      ps.setInt(1, count);
+    try (PreparedStatement ps = conn.prepareStatement(ALLOCATE_IDS_SQL)) {
+      ps.setString(1, sequenceName);
+      ps.setInt(2, count);
       try (ResultSet rs = ps.executeQuery()) {
         int i = 0;
         while (rs.next()) {
@@ -181,45 +173,14 @@ final class JdbcBatchSupport {
     }
   }
 
-  static String toJson(ObjectMapper objectMapper, UserInfoSnapshot info) throws SQLException {
+  static String toJson(UserInfoSnapshot info) throws SQLException {
     if (info == null) {
       return null;
     }
     try {
-      return objectMapper.writeValueAsString(info);
+      return JsonBinaryType.MAPPER.writeValueAsString(info);
     } catch (JsonProcessingException e) {
       throw new SQLException("Failed to serialize UserInfoSnapshot to JSON", e);
-    }
-  }
-
-  // Must mirror JsonEventDataValueSetBinaryType exactly: same MAPPER (configured with
-  // IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector, NON_NULL inclusion, etc.) and
-  // same per-value writer. Using a different ObjectMapper (e.g. the Spring-injected default) drops
-  // fields like UserInfoSnapshot.id that the JDBC reader requires.
-  private static final ObjectWriter EVENT_DATA_VALUE_WRITER =
-      JsonBinaryType.MAPPER.writerFor(EventDataValue.class);
-
-  /**
-   * Serializes the EventDataValues set as a JSON object keyed by {@code dataElement} uid, matching
-   * the on-disk shape produced by {@code JsonEventDataValueSetBinaryType}. An empty or null set is
-   * serialized as {@code "{}"} to match the column's NOT NULL default.
-   */
-  static String toEventDataValuesJson(Set<EventDataValue> values) throws SQLException {
-    try {
-      StringWriter sw = new StringWriter();
-      try (JsonGenerator gen = JsonBinaryType.MAPPER.getFactory().createGenerator(sw)) {
-        gen.writeStartObject();
-        if (values != null) {
-          for (EventDataValue edv : values) {
-            gen.writeFieldName(edv.getDataElement());
-            EVENT_DATA_VALUE_WRITER.writeValue(gen, edv);
-          }
-        }
-        gen.writeEndObject();
-      }
-      return sw.toString();
-    } catch (IOException e) {
-      throw new SQLException("Failed to serialize EventDataValues to JSON", e);
     }
   }
 

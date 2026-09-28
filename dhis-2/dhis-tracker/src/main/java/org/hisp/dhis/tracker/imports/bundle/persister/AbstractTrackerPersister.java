@@ -34,7 +34,6 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -109,8 +108,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   protected final FileResourceStore fileResourceStore;
 
-  protected final ObjectMapper objectMapper;
-
   /**
    * Template method that can be used by classes extending this class to execute the persistence
    * flow of Tracker entities
@@ -127,7 +124,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     List<EntityNotifications> notifications = new ArrayList<>();
     ChangeLogAccumulator changeLogs = new ChangeLogAccumulator();
-    EntityWriteBatch batch = new EntityWriteBatch(objectMapper);
+    EntityWriteBatch batch = new EntityWriteBatch();
 
     //
     // Extract the entities to persist from the Bundle
@@ -172,7 +169,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           // Save or update the entity
           //
           if (isNew(bundle, trackerDto)) {
-            if (preAllocatedIds != null) {
+            if (preAllocatedIds.length > 0) {
               assignId(convertedDto, preAllocatedIds[preAllocatedIdsCursor++]);
             }
             persistOwnership(bundle, trackerDto, convertedDto, batch);
@@ -288,11 +285,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     return new PersistResult(typeReport, notifications);
   }
 
+  private static final long[] NO_IDS = new long[0];
+
   private long[] preAllocateIds(Connection conn, TrackerBundle bundle, List<T> dtos)
       throws SQLException {
     String sequenceName = sequenceName();
     if (sequenceName == null) {
-      return null;
+      return NO_IDS;
     }
     int createCount = 0;
     for (T dto : dtos) {
@@ -301,7 +300,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       }
     }
     if (createCount == 0) {
-      return null;
+      return NO_IDS;
     }
     return allocateIds(conn, sequenceName, createCount);
   }
@@ -390,12 +389,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   /**
    * The uids of the tracked entities whose existing attribute values must be bulk-loaded before the
-   * persist loop. Empty by default (persisters that do not write tracked-entity attribute values);
-   * overridden by the TrackedEntity and Enrollment persisters.
+   * persist loop. Empty for persisters that do not write tracked-entity attribute values.
    */
-  protected Set<String> trackedEntityUidsForAttributeLoad(List<T> dtos) {
-    return Set.of();
-  }
+  protected abstract Set<String> trackedEntityUidsForAttributeLoad(List<T> dtos);
 
   /** Updates the {@link TrackerPreheat} object with the entity that has been persisted */
   protected abstract void updatePreheat(TrackerPreheat preheat, V convertedDto);
@@ -546,15 +542,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           } else if (valueChanged) {
             TrackedEntityAttributeValue persisted =
                 saveOrUpdateAttributeValue(
-                    preheat,
-                    trackedEntity,
-                    attribute,
-                    currentValue,
-                    isNew,
-                    previousValue,
-                    user,
-                    changeLogs,
-                    batch);
+                    preheat, trackedEntity, attribute, currentValue, user, changeLogs, batch);
             attributeValueById.put(attribute.getAttribute(), persisted);
           }
         });
@@ -614,11 +602,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       TrackedEntity trackedEntity,
       Attribute attribute,
       TrackedEntityAttributeValue currentValue,
-      boolean isNew,
-      String previousValue,
       UserDetails user,
       ChangeLogAccumulator changeLogs,
       EntityWriteBatch batch) {
+    boolean isNew = currentValue == null;
+    String previousValue = isNew ? null : currentValue.getValue();
     TrackedEntityAttributeValue attributeToPersist =
         Optional.ofNullable(currentValue)
             .orElseGet(

@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -68,6 +69,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -77,6 +79,8 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity;
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity;
@@ -787,6 +791,44 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 otherUser.getUid(),
                 afterUpdate.getLastUpdatedByUserInfo().getUid(),
                 "lastUpdatedByUserInfo must reflect the updating user"));
+  }
+
+  @Test
+  void shouldStoreIdAndCodeOfUserInfo() {
+    // the import user must have a code to assert that it is stored
+    assertNotNull(importUser.getCode(), "the import user needs a code for this test");
+
+    assertAll(
+        () -> assertStoredUserInfo("trackedentity", trackedEntity.getUID()),
+        () -> assertStoredUserInfo("enrollment", enrollment.getUID()),
+        () -> assertStoredUserInfo("trackerevent", event.getUID()),
+        () -> assertStoredUserInfo("singleevent", singleEventA.getUID()));
+  }
+
+  /** Asserts the user info JSON stored for an entity has the import user's id and code. */
+  private void assertStoredUserInfo(String table, UID uid) {
+    Map<String, Object> stored =
+        jdbcTemplate.queryForMap(
+            "select createdbyuserinfo ->> 'id' as createdbyid,"
+                + " createdbyuserinfo ->> 'code' as createdbycode,"
+                + " lastupdatedbyuserinfo ->> 'id' as lastupdatedbyid,"
+                + " lastupdatedbyuserinfo ->> 'code' as lastupdatedbycode from "
+                + table
+                + " where uid = ?",
+            uid.getValue());
+    String id = String.valueOf(importUser.getId());
+    assertAll(
+        table,
+        () -> assertEquals(id, stored.get("createdbyid"), "createdbyuserinfo.id"),
+        () ->
+            assertEquals(
+                importUser.getCode(), stored.get("createdbycode"), "createdbyuserinfo.code"),
+        () -> assertEquals(id, stored.get("lastupdatedbyid"), "lastupdatedbyuserinfo.id"),
+        () ->
+            assertEquals(
+                importUser.getCode(),
+                stored.get("lastupdatedbycode"),
+                "lastupdatedbyuserinfo.code"));
   }
 
   private void assertCreatedByUserInfo(

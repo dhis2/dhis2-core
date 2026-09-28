@@ -27,37 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.bundle.persister;
+package org.hisp.dhis.program;
 
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-/**
- * Memoizes {@link UserInfoSnapshot} JSON serialization for the lifetime of a single {@link
- * EntityWriteBatch}. {@code TrackerObjectsMapper} stamps a fresh {@code UserInfoSnapshot} of the
- * importing user onto the created/lastUpdated columns of every row, so without caching the same
- * string is serialized once per row per column. The importing user is constant across an import, so
- * the snapshots are equal by value and collapse to a single cache entry, leaving essentially one
- * serialization per batch.
- *
- * <p>Intentionally batch-scoped (one instance per persist() call) and not thread-safe: this bounds
- * the cache and prevents one request's user JSON from being reused by another.
- */
-final class UserInfoJsonCache {
-  private final Map<UserInfoSnapshot, String> cache = new HashMap<>();
+import org.hisp.dhis.common.IdentifiableObjectSnapshot;
+import org.junit.jupiter.api.Test;
 
-  String toJson(UserInfoSnapshot info) throws SQLException {
-    if (info == null) {
-      return null;
-    }
-    String cached = cache.get(info);
-    if (cached != null) {
-      return cached;
-    }
-    String json = JdbcBatchSupport.toJson(info);
-    cache.put(info, json);
-    return json;
+class UserInfoSnapshotTest {
+  @Test
+  void shouldBeEqualIfAllFieldsAreEqual() {
+    UserInfoSnapshot a = UserInfoSnapshot.of(1, "alice", "aliceUid001", "alice", "Alice", "Aydin");
+    UserInfoSnapshot b = UserInfoSnapshot.of(1, "alice", "aliceUid001", "alice", "Alice", "Aydin");
+
+    assertEquals(a, b);
+    assertEquals(a.hashCode(), b.hashCode());
+  }
+
+  @Test
+  void shouldNotBeEqualIfNamesDiffer() {
+    UserInfoSnapshot before =
+        UserInfoSnapshot.of(1, "alice", "aliceUid001", "alice", "Alice", "Aydin");
+    UserInfoSnapshot renamed =
+        UserInfoSnapshot.of(1, "alice", "aliceUid001", "alice", "Alice", "Okafor");
+
+    assertNotEquals(before, renamed);
+  }
+
+  @Test
+  void shouldNotBeEqualToIdentifiableObjectSnapshot() {
+    UserInfoSnapshot user = UserInfoSnapshot.of(1, "alice", "aliceUid001", null, null, null);
+    IdentifiableObjectSnapshot object = new IdentifiableObjectSnapshot();
+    object.setId(1);
+    object.setCode("alice");
+    object.setUid("aliceUid001");
+
+    assertNotEquals(object, user);
+    assertNotEquals(user, object);
   }
 }

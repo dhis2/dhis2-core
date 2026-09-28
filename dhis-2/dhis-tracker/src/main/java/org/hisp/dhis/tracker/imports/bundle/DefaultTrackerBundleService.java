@@ -30,8 +30,6 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +42,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
@@ -79,6 +78,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DefaultTrackerBundleService implements TrackerBundleService {
+  private static final String UPDATE_TRACKED_ENTITY_LAST_UPDATED_SQL =
+      "update trackedentity set lastUpdated = :lastUpdated,"
+          + " lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
+          + " where uid = any(:uids)";
+
+  private static final String UPDATE_SINGLE_EVENT_LAST_UPDATED_SQL =
+      "update singleevent set lastUpdated = :lastUpdated,"
+          + " lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
+          + " where uid = any(:uids)";
+
   private final TrackerPreheatService trackerPreheatService;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -90,8 +99,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerObjectDeletionService deletionService;
 
   private final OptionValueSupplier optionValueSupplier;
-
-  private final ObjectMapper mapper;
 
   @Nonnull
   @Override
@@ -237,40 +244,35 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     Date lastUpdated = new Date();
     String userInfoJson;
     try {
-      userInfoJson = mapper.writeValueAsString(UserInfoSnapshot.from(bundle.getUser()));
+      userInfoJson =
+          JsonBinaryType.MAPPER.writeValueAsString(UserInfoSnapshot.from(bundle.getUser()));
     } catch (JsonProcessingException e) {
       throw new PersistenceException(e);
     }
 
     updateLastUpdated(
-        "trackedentity", bundle.getUpdatedTrackedEntities(), lastUpdated, userInfoJson);
-    updateLastUpdated("singleevent", bundle.getUpdatedSingleEvents(), lastUpdated, userInfoJson);
+        UPDATE_TRACKED_ENTITY_LAST_UPDATED_SQL,
+        bundle.getUpdatedTrackedEntities(),
+        lastUpdated,
+        userInfoJson);
+    updateLastUpdated(
+        UPDATE_SINGLE_EVENT_LAST_UPDATED_SQL,
+        bundle.getUpdatedSingleEvents(),
+        lastUpdated,
+        userInfoJson);
   }
 
-  private void updateLastUpdated(
-      String table, Set<UID> uids, Date lastUpdated, String userInfoJson) {
+  private void updateLastUpdated(String sql, Set<UID> uids, Date lastUpdated, String userInfoJson) {
     if (uids.isEmpty()) {
       return;
     }
 
-    String sql =
-        "update "
-            + table
-            + " set lastUpdated = :lastUpdated,"
-            + " lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
-            + " where uid in (:uids)";
-
-    for (List<UID> partition : Lists.partition(Lists.newArrayList(uids), 20000)) {
-      if (partition.isEmpty()) {
-        continue;
-      }
-      MapSqlParameterSource params =
-          new MapSqlParameterSource()
-              .addValue("uids", UID.toValueList(partition))
-              .addValue("lastUpdated", lastUpdated)
-              .addValue("lastupdatedbyuserinfo", userInfoJson);
-      jdbcTemplate.update(sql, params);
-    }
+    MapSqlParameterSource params =
+        new MapSqlParameterSource()
+            .addValue("uids", UID.toValueList(uids).toArray(new String[0]))
+            .addValue("lastUpdated", lastUpdated)
+            .addValue("lastupdatedbyuserinfo", userInfoJson);
+    jdbcTemplate.update(sql, params);
   }
 
   @Nonnull
