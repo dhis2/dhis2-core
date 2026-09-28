@@ -290,7 +290,7 @@ public final class DataEntryInput {
     // to make the processing memory footprint smaller
     JsonArray dataValues = dvs.get("dataValues");
     if (dataValues.exists())
-      dataValues.stream(JsonNode.Index.SKIP)
+      dataValues.values(JsonNode.Index.SKIP).stream()
           .forEach(
               dv -> {
                 JsonString coc = dv.getString("categoryOptionCombo");
