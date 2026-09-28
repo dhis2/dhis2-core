@@ -47,7 +47,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
@@ -211,7 +210,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
     int removed = 0;
     for (UID uid : expired) {
       try {
-        Boolean deleted = transactionTemplate.execute(status -> removeExpiredInvitation(uid));
+        Boolean deleted = transactionTemplate.execute(status -> userService.deleteUser(uid));
         if (Boolean.TRUE.equals(deleted)) {
           removed++;
         }
@@ -222,15 +221,6 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
     log.info("Removed {} of {} expired invitations", removed, expired.size());
     return removed;
-  }
-
-  private boolean removeExpiredInvitation(UID uid) {
-    User user = userService.getUser(uid.getValue());
-    if (user == null) {
-      return false;
-    }
-    userService.deleteUser(user);
-    return true;
   }
 
   @Override
