@@ -132,13 +132,13 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     content
         .get("objectCounts")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(value -> assertTrue(value.isInteger(), "Object count values should be integers"));
     assertTrue(content.has("activeUsers"), "Active users are missing");
     content
         .get("activeUsers")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(value -> assertTrue(value.isInteger(), "Active user values should be integers"));
     content
         .get("activeUsers")
@@ -149,7 +149,7 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     content
         .get("logins")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(value -> assertTrue(value.isInteger(), "Login values should be integers"));
     content
         .get("logins")
@@ -160,14 +160,14 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     content
         .get("activeUsers")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(
             value -> assertTrue(value.isInteger(), "User invitation values should be integers"));
     assertTrue(content.has("dataValueCount"), "Data value counts are missing");
     content
         .get("dataValueCount")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(
             value -> assertTrue(value.isInteger(), "Data value count values should be integers"));
     content
@@ -182,7 +182,7 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     content
         .get("eventCount")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(value -> assertTrue(value.isInteger(), "Event count values should be integers"));
     content
         .get("eventCount")
@@ -193,7 +193,7 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     content
         .get("trackerEventCount")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(
             value ->
                 assertTrue(value.isInteger(), "Tracker event count values should be integers"));
@@ -208,7 +208,7 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     content
         .get("singleEventCount")
         .asMap(JsonValue.class)
-        .values()
+        .entries()
         .forEach(
             value -> assertTrue(value.isInteger(), "Single event count values should be integers"));
     content

@@ -33,7 +33,6 @@ import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.stripHtml;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
@@ -1171,7 +1170,7 @@ public class OpenApiRenderer {
     if (responses.isUndefined() || responses.isEmpty()) return;
 
     renderOperationSectionHeader("::", "Responses");
-    responses.values().forEach(e -> renderResponse(op, e.getKey(), e));
+    responses.entries().forEach(e -> renderResponse(op, e.getKey(), e));
   }
 
   private void renderResponse(OperationObject op, Text code, ResponseObject response) {
@@ -1198,7 +1197,7 @@ public class OpenApiRenderer {
     appendCode("mime", "=");
 
     if (content.size() == 1) {
-      MediaTypeObject common = content.values().toList().get(0);
+      MediaTypeObject common = content.entries().toList().get(0);
       appendCode("mime secondary", common.getKey());
       appendCode("mime secondary", ":");
       renderSchemaSignature(common.schema());
@@ -1206,7 +1205,7 @@ public class OpenApiRenderer {
       // they all share the same schema
       appendCode("mime secondary", "*");
       appendCode("mime secondary", ":");
-      SchemaObject common = content.values().limit(1).toList().get(0).schema();
+      SchemaObject common = content.entries().stream().limit(1).toList().get(0).schema();
       renderSchemaSignature(common);
     } else {
       // they are different, only list media types in summary
@@ -1322,7 +1321,7 @@ public class OpenApiRenderer {
       renderSchemaSignatureType(schema.additionalProperties());
       appendRaw("}");
     } else if (schema.isWrapper()) {
-      SchemaObject p0 = schema.properties().values().limit(1).toList().get(0);
+      SchemaObject p0 = schema.properties().entries().stream().limit(1).toList().get(0);
       appendRaw("{");
       appendEscaped(p0.getKey().toString());
       appendRaw(":");
@@ -1330,7 +1329,10 @@ public class OpenApiRenderer {
       appendRaw("}");
     } else if (schema.isEnvelope()) {
       SchemaObject values =
-          schema.properties().values().filter(SchemaObject::isArrayType).findFirst().orElse(null);
+          schema.properties().entries().stream()
+              .filter(SchemaObject::isArrayType)
+              .findFirst()
+              .orElse(null);
       if (values != null) {
         appendRaw("{#,"); // # short for the pager, comma for next property
         appendEscaped(values.getKey());
@@ -1409,9 +1411,7 @@ public class OpenApiRenderer {
     if (schema.isFlat()) return;
     if (schema.$type() != null) {
       Set<Text> names =
-          schema.isObjectType()
-              ? schema.properties().keys().collect(toUnmodifiableSet())
-              : Set.of();
+          schema.isObjectType() ? Set.copyOf(schema.properties().keys().toList()) : Set.of();
       appendTag("header", markdownToHTML(schema.description(), names));
       if (!skipDefault) renderLabelledValue("default", schema.$default(), "columns", 0);
       renderLabelledValue("enum", schema.$enum(), "columns", 0);

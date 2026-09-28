@@ -148,7 +148,7 @@ final class LazyAttributeValues implements AttributeValues {
 
   @Nonnull
   private static TreeMap<String, String> parseObjectJson(JsonObject map) {
-    return map.entries()
+    return map.entries().stream()
         .collect(
             Collectors.toMap(
                 e -> e.getKey().toString(),

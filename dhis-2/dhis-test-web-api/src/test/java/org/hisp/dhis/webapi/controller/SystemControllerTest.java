@@ -55,7 +55,7 @@ class SystemControllerTest extends H2ControllerIntegrationTestBase {
   void testGetTasksJson() {
     JsonObject tasks = GET("/system/tasks").content(HttpStatus.OK);
     assertTrue(tasks.isObject());
-    tasks.values().forEach(m -> assertTrue(m.isObject(), m + " is not an object"));
+    tasks.entries().forEach(m -> assertTrue(m.isObject(), m + " is not an object"));
   }
 
   @Test
