@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -61,7 +59,6 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -72,10 +69,10 @@ import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Covers the {@code swapTable()} branch for databases with declarative partitioning that do NOT
- * support continuous analytics (e.g. ClickHouse): staging data must not be inserted into the main
- * table, the staging table is simply dropped, same as before the Doris continuous-analytics
- * pipeline was wired up.
+ * Covers {@code swapTable()} for databases with declarative partitioning that do NOT support
+ * continuous analytics (e.g. ClickHouse): with no purge step available, neither a continuous nor a
+ * bounded-years update can safely publish staged data into an existing main table, so both must be
+ * rejected rather than silently discarding the staging data or corrupting the main table.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -119,13 +116,45 @@ class JdbcAnalyticsTableManagerClickHouseTest {
   }
 
   @Test
-  void testSwapTableDoesNotInsertStagingDataWhenContinuousAnalyticsNotSupported() {
+  void testSwapTableRejectsContinuousUpdateWhenNotSupported() {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
             .build()
             .withLatestPartition();
 
+    AnalyticsTable table = dataValueTableFixture();
+
+    // ClickHouse supports declarative partitioning but not continuous analytics: without the
+    // purge removeUpdatedData() would otherwise perform, neither replacing nor merging staged
+    // data into an existing main table is safe, so the update must fail rather than silently
+    // dropping the rebuilt staging data (the prior behavior) or corrupting the main table.
+    org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalStateException.class, () -> subject.swapTable(params, table));
+
+    Mockito.verify(jdbcTemplate, Mockito.never()).execute(Mockito.anyString());
+  }
+
+  @Test
+  void testSwapTableRejectsBoundedYearsUpdateOnceMainTableExists() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .lastYears(1)
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build();
+
+    AnalyticsTable table = dataValueTableFixture();
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalStateException.class, () -> subject.swapTable(params, table));
+
+    Mockito.verify(jdbcTemplate, Mockito.never()).execute(Mockito.anyString());
+  }
+
+  private AnalyticsTable dataValueTableFixture() {
     List<AnalyticsTableColumn> columns =
         List.of(
             AnalyticsTableColumn.builder()
@@ -133,27 +162,6 @@ class JdbcAnalyticsTableManagerClickHouseTest {
                 .dataType(TEXT)
                 .selectExpression("dx")
                 .build());
-    AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
-
-    // Main table already exists, and params.isPartialUpdate() (via withLatestPartition()) plus
-    // AnalyticsTableType.DATA_VALUE.isLatestPartition()==true together push swapTable() into the
-    // skipMasterTable branch. ClickHouse supports declarative partitioning but not continuous
-    // analytics, so neither the reparenting branch nor the new insert-into-main branch should
-    // fire here.
-    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
-        .thenReturn(List.of(Map.of("table_name", "analytics")));
-
-    subject.swapTable(params, table);
-
-    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    Mockito.verify(jdbcTemplate, Mockito.times(1)).execute(sql.capture());
-
-    String statement = sql.getValue();
-    assertFalse(
-        statement.startsWith("insert into"), () -> "Unexpected insert statement: " + statement);
-    assertTrue(
-        statement.contains("drop table"),
-        () -> "Expected a drop-table statement, got: " + statement);
+    return new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
   }
 }
