@@ -272,7 +272,7 @@ final class GistBuilder {
     }
 
     @Override
-    public void addTo(String name, JsonBuilder.JsonObjectBuilder obj) {
+    public void addTo(CharSequence name, JsonBuilder.JsonObjectBuilder obj) {
       obj.addObject(name, idObj -> idObj.addString("id", id));
     }
   }

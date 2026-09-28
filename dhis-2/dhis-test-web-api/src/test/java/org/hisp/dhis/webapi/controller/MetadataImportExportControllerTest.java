@@ -223,7 +223,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(1, organisationUnit.getAttributeValues().size());
     JsonAttributeValue attributeValue = organisationUnit.getAttributeValues().get(0);
     GeoJsonObject geoJSON =
-        new ObjectMapper().readValue(attributeValue.getValue(), GeoJsonObject.class);
+        new ObjectMapper().readValue(attributeValue.value(), GeoJsonObject.class);
     assertTrue(geoJSON instanceof Polygon);
     Polygon polygon = (Polygon) geoJSON;
     assertEquals(100, polygon.getCoordinates().get(0).get(0).getLongitude());
@@ -241,8 +241,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
                     + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}")
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class);
-    assertNotNull(
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6004));
+    assertTrue(message.findErrorReport(ErrorCode.E6004).exists());
   }
 
   /** Import OptionSet with two Options, sort orders are 2 and 3. */
@@ -543,10 +542,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(1, report.getStats().getIgnored());
     assertEquals(
         "Object could not be deleted because it is associated with another object: DataElement",
-        report
-            .find(
-                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E4030)
-            .getMessage());
+        report.findErrorReport(ErrorCode.E4030).getMessage());
   }
 
   @Test()
@@ -593,10 +589,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(
         "Aggregate data exchange target API must specify either access token or username and"
             + " password",
-        report
-            .find(
-                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
-            .getMessage());
+        report.findErrorReport(ErrorCode.E6305).getMessage());
   }
 
   @Test

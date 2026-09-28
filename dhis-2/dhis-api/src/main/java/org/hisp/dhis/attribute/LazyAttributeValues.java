@@ -151,7 +151,7 @@ final class LazyAttributeValues implements AttributeValues {
     return map.entries()
         .collect(
             Collectors.toMap(
-                Map.Entry::getKey,
+                e -> e.getKey().toString(),
                 e -> parseValue(e.getValue().asObject().get("value")),
                 (a, b) -> a,
                 TreeMap::new));
@@ -170,7 +170,7 @@ final class LazyAttributeValues implements AttributeValues {
   }
 
   @Nonnull
-  private static String parseValue(JsonValue value) {
+  private static String parseValue(JsonMixed value) {
     if (value.isUndefined()) return "";
     return switch (value.type()) {
       case NULL -> "";
@@ -379,7 +379,7 @@ final class LazyAttributeValues implements AttributeValues {
   }
 
   @Override
-  public void addTo(String name, JsonBuilder.JsonObjectBuilder parent) {
+  public void addTo(CharSequence name, JsonBuilder.JsonObjectBuilder parent) {
     init();
     parent.addObject(name, this::asJsonObject);
   }
@@ -397,7 +397,8 @@ final class LazyAttributeValues implements AttributeValues {
     return createObject(
             map ->
                 forEach((key, value) -> map.addObject(key, obj -> obj.addString("value", value))))
-        .getDeclaration();
+        .getDeclaration()
+        .toString();
   }
 
   @Nonnull
@@ -413,7 +414,8 @@ final class LazyAttributeValues implements AttributeValues {
                             obj ->
                                 obj.addString("value", value)
                                     .addObject("attribute", attr -> attr.addString("id", key)))))
-        .getDeclaration();
+        .getDeclaration()
+        .toString();
   }
 
   @Override

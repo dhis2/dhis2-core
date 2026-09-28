@@ -52,9 +52,8 @@ public class ImportSummariesResponseExtractor implements ResponseExtractor<Impor
     // auto-detect if it is wrapped in a WebMessage envelope
     if (body.has("httpStatus", "response")) // is a WebMessage wrapper
     {
-      return JSON_MAPPER.readValue(
-          body.getObject("response").node().getDeclaration(), ImportSummaries.class);
+      return JSON_MAPPER.readValue(body.getObject("response").toJson(), ImportSummaries.class);
     }
-    return JSON_MAPPER.readValue(body.node().getDeclaration(), ImportSummaries.class);
+    return JSON_MAPPER.readValue(body.toJson(), ImportSummaries.class);
   }
 }

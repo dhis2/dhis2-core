@@ -141,8 +141,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
         feature -> feature.getString(idProperty).string();
     JsonList<JsonObject> features =
         "Feature".equalsIgnoreCase(featureCollection.getString("type").string())
-            ? JsonValue.of("[" + featureCollection.node().getDeclaration() + "]")
-                .asList(JsonObject.class)
+            ? JsonValue.of("[" + featureCollection.toJson() + "]").asList(JsonObject.class)
             : featureCollection.getList("features", JsonObject.class);
     if (features.isUndefined() || !features.isArray()) {
       report.addConflict(
@@ -262,7 +261,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
             createConflict(
                 index,
                 GeoJsonImportConflict.COORDINATES_EMPTY,
-                coordinates.exists() ? coordinates.node().getDeclaration() : ""));
+                coordinates.exists() ? coordinates.toJson() : ""));
         return false;
       }
     }

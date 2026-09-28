@@ -55,7 +55,6 @@ import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -70,8 +69,6 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final String UID1 = "asdflksadfjlkj";
   private static final String UID2 = "kajshdfkjahsdkfhj";
-
-  @Autowired private ObjectMapper jsonMapper;
 
   @Test
   void testCONTINUOUS_ANALYTICS_TABLE() {
@@ -472,8 +469,7 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
   private JsonJobConfiguration createExpectSuccess(
       Map<String, Object> minimal, Map<String, Object> extra) {
     JsonNode json = newJsonJobConfiguration(minimal, extra);
-    String jobId =
-        assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json.getDeclaration()));
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json.toString()));
     return getJsonJobConfiguration(jobId);
   }
 
@@ -488,7 +484,7 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
 
   private JsonJobConfiguration updateExpectSuccess(String jobId, Map<String, Object> extra) {
     JsonNode config = newJsonJobConfiguration(MINIMAL_CRON_CONFIG, extra);
-    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, config.getDeclaration()));
+    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, config.toString()));
     return getJsonJobConfiguration(jobId);
   }
 
@@ -496,7 +492,7 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
     JsonJobConfiguration config = createExpectSuccess(Map.of());
     JsonNode withUpdate = config.node().addMembers(addMembers);
     String jobId = config.getId();
-    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, withUpdate.getDeclaration()));
+    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, withUpdate.toString()));
 
     return getJsonJobConfiguration(jobId);
   }
