@@ -30,8 +30,10 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,6 +49,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class MaintenanceExpiredInvitationsControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private MaintenanceService maintenanceService;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -83,13 +87,17 @@ class MaintenanceExpiredInvitationsControllerTest extends PostgresControllerInte
 
   @ParameterizedTest
   @CsvSource({
-    "true, true, false, NOT_FOUND",
-    "false, true, false, OK",
-    "true, false, false, OK",
-    "true, true, true, OK"
+    "true, true, false, 2, NOT_FOUND",
+    "false, true, false, 1, OK",
+    "true, false, false, 1, OK",
+    "true, true, true, 1, OK"
   })
   void testRemoveExpiredInvitations_OnlyRemovesUnusedExpiredInvitations(
-      boolean expired, boolean invitation, boolean loggedIn, HttpStatus expectedStatus) {
+      boolean expired,
+      boolean invitation,
+      boolean loggedIn,
+      int expectedRemoved,
+      HttpStatus expectedStatus) {
     String role = createRole();
     String control = invite("control", role);
     String subject = invite("subject", role);
@@ -103,7 +111,7 @@ class MaintenanceExpiredInvitationsControllerTest extends PostgresControllerInte
         subject);
     entityManager.clear();
 
-    assertStatus(HttpStatus.NO_CONTENT, POST("/maintenance?expiredInvitationsClear=true"));
+    assertEquals(expectedRemoved, maintenanceService.removeExpiredInvitations());
     assertStatus(HttpStatus.NOT_FOUND, GET("/users/" + control));
     assertStatus(expectedStatus, GET("/users/" + subject));
   }
