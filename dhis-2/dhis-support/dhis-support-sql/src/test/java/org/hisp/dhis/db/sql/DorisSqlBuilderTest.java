@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -374,6 +374,11 @@ class DorisSqlBuilderTest {
         and t.table_name = 'immunization';""";
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));
+  }
+
+  @Test
+  void testShowCreateTable() {
+    assertEquals("show create table `immunization`;", sqlBuilder.showCreateTable("immunization"));
   }
 
   @Test

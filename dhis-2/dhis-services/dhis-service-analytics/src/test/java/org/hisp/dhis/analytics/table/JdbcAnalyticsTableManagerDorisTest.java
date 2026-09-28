@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -313,12 +313,14 @@ class JdbcAnalyticsTableManagerDorisTest {
   }
 
   @Test
-  void testSwapTableDoesNotInsertStagingDataForBoundedYearsUpdate() {
+  void testSwapTableRejectsBoundedYearsUpdateOnceMainTableExists() {
     // lastYears(1) (a normal bounded-years rebuild) makes isPartialUpdate()==true but
     // isLatestUpdate()==false -- distinct from the "latest partition" (lastYears=0) case the
     // insert-into-main branch is scoped to. removeUpdatedData() never runs for this case (it's
     // gated on isLatestUpdate()), so merging staging data into main here would leave deleted rows
-    // behind forever. The insert branch must not fire.
+    // behind forever. Silently dropping the rebuilt staging data instead (the prior behavior)
+    // left the main table showing stale values with no indication anything went wrong, so this
+    // combination must fail loudly rather than no-op.
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .lastYears(1)
@@ -340,17 +342,70 @@ class JdbcAnalyticsTableManagerDorisTest {
     when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
         .thenReturn(List.of(Map.of("table_name", "analytics")));
 
-    subject.swapTable(params, table);
+    org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalStateException.class, () -> subject.swapTable(params, table));
 
-    org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.times(1)).execute(sql.capture());
+    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.never())
+        .execute(org.mockito.ArgumentMatchers.anyString());
+  }
 
-    String statement = sql.getValue();
-    assertFalse(
-        statement.startsWith("insert into"),
-        () -> "Unexpected insert statement for a bounded-years update: " + statement);
-    assertTrue(
-        statement.contains("drop table"),
-        () -> "Expected a drop-table statement only, got: " + statement);
+  @Test
+  void testIsReadyForContinuousUpdateWhenMainTableDoesNotExistYet() {
+    AnalyticsTable table = dataValueTableFixture();
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of());
+
+    assertTrue(subject.isReadyForContinuousUpdate(List.of(table)));
+
+    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.never())
+        .queryForList(sqlBuilder.showCreateTable(table.getMainName()));
+  }
+
+  @Test
+  void testIsReadyForContinuousUpdateWhenMainTableHasUniqueKey() {
+    AnalyticsTable table = dataValueTableFixture();
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.showCreateTable(table.getMainName())))
+        .thenReturn(
+            List.of(
+                Map.of(
+                    "Table", "analytics",
+                    "Create Table",
+                        "CREATE TABLE `analytics` (...) UNIQUE KEY (`id`,`year`) ...")));
+
+    assertTrue(subject.isReadyForContinuousUpdate(List.of(table)));
+  }
+
+  @Test
+  void testIsReadyForContinuousUpdateWhenMainTablePredatesUniqueKeySupport() {
+    // A main table built before unique-key analytics tables were introduced remains on the
+    // duplicate key model until a full rebuild recreates it. The delete step a continuous update
+    // depends on only works on unique-key tables, so it must not be attempted.
+    AnalyticsTable table = dataValueTableFixture();
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+    when(jdbcTemplate.queryForList(sqlBuilder.showCreateTable(table.getMainName())))
+        .thenReturn(
+            List.of(
+                Map.of(
+                    "Table", "analytics",
+                    "Create Table", "CREATE TABLE `analytics` (...) DUPLICATE KEY (`id`) ...")));
+
+    assertFalse(subject.isReadyForContinuousUpdate(List.of(table)));
+  }
+
+  private AnalyticsTable dataValueTableFixture() {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("dx")
+                .dataType(TEXT)
+                .selectExpression("dx")
+                .build());
+    return new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -253,6 +253,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         // removeUpdatedData().
         String fromTable = sqlBuilder.quote(table.getName());
         jdbcTemplate.execute(sqlBuilder.insertIntoSelectFrom(table.fromStaging(), fromTable));
+      } else if (sqlBuilder.supportsContinuousAnalytics()) {
+        // A bounded lastYears update (not the "latest partition" case above) targeting a main
+        // table that already exists on a continuous-analytics-capable engine. removeUpdatedData()
+        // only runs for the latest-partition case, so merging staging data here would leave stale
+        // or deleted rows behind. Rather than silently discarding the rebuilt staging data (which
+        // would leave the main table showing outdated values with no indication anything is
+        // wrong), fail loudly: only lastYears=0 (continuous) or a full rebuild are supported once
+        // the main table exists.
+        throw new IllegalStateException(
+            format(
+                "Bounded lastYears update of table '{}' is not supported once the main table "
+                    + "exists on an engine requiring unique-key analytics tables: run a full "
+                    + "analytics table rebuild or a continuous (lastYears=0) update instead",
+                table.getMainName()));
       }
       dropTable(table);
     }
@@ -372,6 +386,55 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private boolean tableExists(String name) {
     return !jdbcTemplate.queryForList(sqlBuilder.tableExists(name)).isEmpty();
+  }
+
+  @Override
+  public boolean isReadyForContinuousUpdate(List<AnalyticsTable> tables) {
+    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      return true;
+    }
+
+    return tables.stream().allMatch(this::isReadyForContinuousUpdate);
+  }
+
+  /**
+   * A main table created before unique-key analytics tables were introduced remains on its original
+   * key model until a full rebuild recreates it. A continuous update's delete step requires the
+   * unique key model, so it must not be attempted against such a table.
+   */
+  private boolean isReadyForContinuousUpdate(AnalyticsTable table) {
+    String tableName = table.getMainName();
+
+    if (!tableExists(tableName)) {
+      // No main table yet; the initial create uses the required key model.
+      return true;
+    }
+
+    if (hasUniqueKeyModel(tableName)) {
+      return true;
+    }
+
+    log.error(
+        "Table '{}' does not use the unique key model required for continuous analytics "
+            + "updates on this database; run a full analytics table rebuild to recreate it with "
+            + "the required key model before running a continuous (lastYears=0) update",
+        tableName);
+
+    return false;
+  }
+
+  private boolean hasUniqueKeyModel(String tableName) {
+    List<Map<String, Object>> rows =
+        jdbcTemplate.queryForList(sqlBuilder.showCreateTable(tableName));
+
+    if (rows.isEmpty()) {
+      return false;
+    }
+
+    String createTableSql =
+        rows.get(0).values().stream().map(String::valueOf).collect(Collectors.joining(" "));
+
+    return createTableSql.toLowerCase().contains("unique key");
   }
 
   // -------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -170,10 +170,37 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     if (params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics()) {
+      progress.startingStage(format("Validating continuous update readiness: '{}'", tableType));
+      boolean readyForContinuousUpdate = tableManager.isReadyForContinuousUpdate(tables);
+      progress.completedStage(
+          "Validated continuous update readiness with outcome: '{}'", readyForContinuousUpdate);
+
+      if (!readyForContinuousUpdate) {
+        // A main table predating unique-key analytics tables (or otherwise not in a state that
+        // supports a continuous update) must not have the delete step attempted against it, see
+        // isReadyForContinuousUpdate() for detail; the specific reason is already logged there.
+        clock.logTime("Continuous analytics update aborted, not ready: '{}'", tableType);
+        return;
+      }
+
       progress.startingStage(
           format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
-      progress.runStage(() -> tableManager.removeUpdatedData(tables));
+      boolean removedUpdatedData = progress.runStage(() -> tableManager.removeUpdatedData(tables));
       clock.logTime("Removed updated and deleted data");
+
+      if (!removedUpdatedData) {
+        // Swapping in the staged data without having removed the stale/deleted rows it is meant
+        // to replace would corrupt the main table (duplicate or orphaned rows), so the continuous
+        // update for this table type is aborted here rather than proceeding to swap. A likely
+        // cause is a main table created before unique-key analytics tables were introduced; a
+        // full analytics table rebuild recreates it with the required key type.
+        log.error(
+            "Aborting continuous analytics update for '{}': failed to remove updated and "
+                + "deleted data, see preceding error. A full analytics table rebuild may be "
+                + "required before continuous updates can run for this table.",
+            tableType);
+        return;
+      }
     }
 
     swapTables(params, tables, progress);

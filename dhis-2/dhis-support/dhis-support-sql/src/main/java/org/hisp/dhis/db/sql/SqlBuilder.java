@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -552,6 +552,16 @@ public interface SqlBuilder {
    *     the table exists.
    */
   String tableExists(String name);
+
+  /**
+   * Only meaningful for engines where {@link #requiresUniqueKeyAnalyticsTables()} is true, which
+   * may have main tables predating the introduction of unique-key analytics tables.
+   *
+   * @param name the table name.
+   * @return a statement which returns the table's create statement, which can be inspected to
+   *     determine the table's key model.
+   */
+  String showCreateTable(String name);
 
   /**
    * @param table the {@link Table}.
