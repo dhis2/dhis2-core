@@ -146,7 +146,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.22.2</jackson.version>
+    <jackson.version>2.22.3</jackson.version>
     <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -179,7 +179,7 @@
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.57.0</artemis-jakarta.version>
     <netty-all.version>4.2.18.Final</netty-all.version>
-    <classgraph.version>4.8.195</classgraph.version>
+    <classgraph.version>4.8.196</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.3.2</sms-compression.version>
