@@ -199,6 +199,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   public int removeExpiredInvitations() {
     UserQueryParams params = new UserQueryParams();
     params.setInvitationStatus(UserInvitationStatus.EXPIRED);
+    params.setNeverLoggedIn(true);
     List<UID> expired;
     try {
       expired = userService.getUserIds(params, null);
@@ -226,10 +227,6 @@ public class DefaultMaintenanceService implements MaintenanceService {
   private boolean removeExpiredInvitation(UID uid) {
     User user = userService.getUser(uid.getValue());
     if (user == null) {
-      return false;
-    }
-    if (user.getLastLogin() != null) {
-      log.warn("Not removing expired invitation of user {} because the user has logged in", uid);
       return false;
     }
     userService.deleteUser(user);
