@@ -51,7 +51,7 @@ import org.springframework.stereotype.Component;
  * @ContextConfiguration(classes = {SlowQueryDataSourceProxy.class})
  * }</pre>
  *
- * to the test class, then arm it around the code under test:
+ * to the test class, then enable it around the code under test:
  *
  * <pre>{@code
  * SlowQueryDataSourceProxy.sleepBefore("select te.trackedentityid, te.uid", Duration.ofSeconds(5));
@@ -61,7 +61,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>The matched statement is wrapped so the production SQL itself is unchanged and still yields
  * exactly one ResultSet with its original columns. The sleep runs on the same {@code Statement} as
- * the query, so a {@code setQueryTimeout} armed for that statement cancels mid-sleep, which is what
+ * the query, so a {@code setQueryTimeout} set for that statement cancels mid-sleep, which is what
  * makes the timeout observable.
  *
  * <p>Matching is a case-insensitive substring test on the SQL text, and matched statements are
@@ -77,7 +77,7 @@ public class SlowQueryDataSourceProxy implements BeanPostProcessor {
   private static final AtomicInteger MATCHES = new AtomicInteger();
 
   /**
-   * Arms the proxy: every subsequent statement whose SQL contains {@code sqlPattern}
+   * Enables the proxy: every subsequent statement whose SQL contains {@code sqlPattern}
    * (case-insensitive) is slowed down by {@code sleep}. May be called more than once to slow down
    * several different statements within one request.
    */
@@ -104,7 +104,7 @@ public class SlowQueryDataSourceProxy implements BeanPostProcessor {
     return MATCHES.get();
   }
 
-  /** The sleep armed for the first pattern this query matches, or null if none matches. */
+  /** The sleep configured for the first pattern this query matches, or null if none matches. */
   private static Double matchingSleep(String query) {
     if (SLEEPS.isEmpty()) {
       return null;

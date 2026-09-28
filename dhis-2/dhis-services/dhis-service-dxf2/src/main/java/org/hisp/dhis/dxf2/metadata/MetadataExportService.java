@@ -32,6 +32,7 @@ package org.hisp.dhis.dxf2.metadata;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,6 +85,17 @@ public interface MetadataExportService {
   MetadataExportParams getParamsFromMap(Map<String, List<String>> parameters);
 
   /**
+   * {@link #getParamsFromMap(Map)} then {@link #validate(MetadataExportParams)}, with the class
+   * selection cleared first. {@code validate} reads populated {@code classes} as "filtered export"
+   * and skips the {@code F_METADATA_EXPORT} check, so a stray {@code &dataSets=true} would slip
+   * past it.
+   *
+   * @param parameters Key-Value map of wanted parameters
+   * @return validated params, with no class selection
+   */
+  MetadataExportParams getDependencyExportParams(Map<String, List<String>> parameters);
+
+  /**
    * Exports an object including a set of selected dependencies. Only a subset of the specified
    * export parameters are used for the metadata with dependencies export.
    *
@@ -94,17 +106,37 @@ public interface MetadataExportService {
       IdentifiableObject object);
 
   /**
-   * Exports an object including a set of selected dependencies. Only a subset of the specified
-   * export parameters are used for the metadata with dependencies export. All objects are written
-   * to given outputStream
+   * The fold of {@link #getMetadataWithDependencies(IdentifiableObject)} over the given roots under
+   * set union, so an object reachable from more than one root appears exactly once.
    *
-   * @param object The {@link IdentifiableObject} to be exported with dependencies.
+   * @param objects Objects to export including dependencies
+   * @return All given objects + the union of their selected dependencies
+   */
+  Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies(
+      Collection<? extends IdentifiableObject> objects);
+
+  /**
+   * Any other type yields an empty result from {@link
+   * #getMetadataWithDependencies(IdentifiableObject)}, so callers that must not produce a silently
+   * empty payload should check this first.
+   *
+   * @return the dependency export root types
+   */
+  Set<Class<? extends IdentifiableObject>> getDependencyRootTypes();
+
+  /**
+   * Exports several objects, of possibly differing types, including their dependencies, as a single
+   * de-duplicated document written to the given outputStream.
+   *
+   * @param objects The {@link IdentifiableObject}s to be exported with dependencies.
    * @param params {@link MetadataExportParams}
    * @param outputStream Streaming target.
-   * @throws IOException
+   * @throws IOException if the document cannot be written
    */
   void getMetadataWithDependenciesAsNodeStream(
-      IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
+      Collection<? extends IdentifiableObject> objects,
+      @Nonnull MetadataExportParams params,
+      OutputStream outputStream)
       throws IOException;
 
   /**

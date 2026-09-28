@@ -51,6 +51,8 @@ import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 public class EnrollmentFields {
   private final boolean includesAttributes;
 
+  private final boolean includesNotes;
+
   private final boolean includesRelationships;
   private final RelationshipFields relationshipFields;
 
@@ -59,6 +61,7 @@ public class EnrollmentFields {
 
   private EnrollmentFields(Builder builder) {
     this.includesAttributes = builder.includesAttributes;
+    this.includesNotes = builder.includesNotes;
 
     this.includesRelationships = builder.includesRelationships;
     this.relationshipFields =
@@ -70,6 +73,7 @@ public class EnrollmentFields {
 
   private EnrollmentFields(Predicate<String> includesFields, String pathSeparator) {
     this.includesAttributes = includesFields.test("attributes");
+    this.includesNotes = includesFields.test("notes");
 
     if (includesFields.test("relationships")) {
       this.includesRelationships = true;
@@ -123,6 +127,7 @@ public class EnrollmentFields {
 
   public static class Builder {
     private boolean includesAttributes;
+    private boolean includesNotes;
 
     private boolean includesRelationships;
     private RelationshipFields relationshipFields;
@@ -134,6 +139,11 @@ public class EnrollmentFields {
 
     public Builder includeAttributes() {
       this.includesAttributes = true;
+      return this;
+    }
+
+    public Builder includeNotes() {
+      this.includesNotes = true;
       return this;
     }
 

@@ -104,6 +104,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
@@ -133,6 +134,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TestNotes testNotes;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
@@ -179,6 +182,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   private ProgramStage programStageA1;
 
   private TrackerEvent eventA;
+
+  private Note eventANote;
 
   private TrackerEvent eventB;
 
@@ -370,12 +375,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
-    Note note = new Note("note1");
-    note.setUid(generateUid());
-    note.setCreated(new Date());
-    note.setLastUpdated(new Date());
-    eventA.setNotes(List.of(note));
     manager.save(eventA, false);
+    eventANote = testNotes.save(eventA, "note1");
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setFollowup(true);
     manager.save(enrollmentA, false);
@@ -1404,7 +1405,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .findFirst();
     Set<TrackerEvent> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA), events, UidObject::getUid);
-    assertNotes(eventA.getNotes(), events.stream().findFirst().get().getNotes());
+    assertNotes(List.of(eventANote), events.stream().findFirst().get().getNotes());
   }
 
   @Test

@@ -29,9 +29,9 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
-import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.resultList;
-import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.singleResult;
-import static org.hisp.dhis.tracker.export.timeout.DeadlineQueries.withDeadline;
+import static org.hisp.dhis.deadline.DeadlineQueries.resultList;
+import static org.hisp.dhis.deadline.DeadlineQueries.singleResult;
+import static org.hisp.dhis.deadline.DeadlineQueries.withDeadline;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
