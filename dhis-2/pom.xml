@@ -96,7 +96,7 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>1.8.1</dhis-json-tree.version>
+    <dhis-json-tree.version>1.9.5</dhis-json-tree.version>
 
     <!-- Security -->
     <spring-security.version>6.5.10</spring-security.version>
@@ -1716,11 +1716,6 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>jdbc</artifactId>
-        <version>${testcontainers.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>minio</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
       <dependency>

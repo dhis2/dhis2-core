@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.note;
+package org.hisp.dhis.analytics.event.data.registrationou;
 
-import jakarta.persistence.EntityManager;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.note.Note;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 
-/**
- * @author David Katuscak
- */
-@Repository("org.hisp.dhis.tracker.export.note.NoteStore")
-class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
-  public HibernateNoteStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
-  }
+/** Shared identifiers for REGISTRATION_OU query and aggregate handling. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class RegistrationOuSqlConstants {
+
+  /** The dimension keyword as written in a request. */
+  public static final String DIMENSION_NAME = "REGISTRATION_OU";
+
+  public static final String STRUCT_TABLE = OrganisationUnitStructureResourceTable.TABLE_NAME;
+
+  /**
+   * Distinct from the {@code ous} alias used for the default org unit join, so both can appear in
+   * one query.
+   */
+  public static final String STRUCT_ALIAS = "regous";
+
+  public static final String STRUCT_UID_COLUMN = "organisationunituid";
+
+  public static final String STRUCT_NAME_COLUMN = "name";
+
+  public static final String UID_LEVEL_PREFIX = "uidlevel";
 }

@@ -144,9 +144,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(1, summary.getStats().getIgnored());
     assertEquals(0, summary.getStats().getCreated());
 
-    JsonErrorReport errorReport =
-        summary.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4000);
-    assertNotNull(errorReport);
+    JsonErrorReport errorReport = summary.findErrorReport(ErrorCode.E4000);
     assertEquals("Missing required property `locale`", errorReport.getMessage());
   }
 
@@ -297,9 +295,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
                     }""")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport errorReport =
-        validationErrorMsg.find(
-            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1121);
+    JsonErrorReport errorReport = validationErrorMsg.findErrorReport(ErrorCode.E1121);
     assertNotNull(errorReport);
     assertEquals(
         "Data element `DeUid000001` value type cannot be changed as it has associated data values",
@@ -422,10 +418,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
                     """)
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport errorReport =
-        validationErrorMsg.find(
-            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1121);
-    assertNotNull(errorReport);
+    JsonErrorReport errorReport = validationErrorMsg.findErrorReport(ErrorCode.E1121);
     assertEquals(
         "Data element `DeUid000003` value type cannot be changed as it has associated data values",
         errorReport.getMessage());

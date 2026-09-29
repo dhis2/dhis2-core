@@ -175,13 +175,15 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @MethodSource("getEnrollment")
   void shouldGetEnrollmentWithNotes(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
-    assertNotEmpty(enrollment.getNotes(), "test expects an enrollment with notes");
+    assertNotEmpty(
+        trackerObjects.findEnrollment(UID.of(enrollment)).orElseThrow().getNotes(),
+        "test expects an enrollment with notes");
 
     JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "notes");
 
     JsonNote note = jsonEnrollment.getNotes().get(0);
     assertEquals("f9423652692", note.getNote());
-    assertEquals("enrollment comment value", note.getValue());
+    assertEquals("enrollment comment value", note.value());
   }
 
   @ParameterizedTest
@@ -198,7 +200,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertHasOnlyMembers(jsonEnrollment, "attributes");
     JsonAttribute attribute = jsonEnrollment.getAttributes().get(0);
     assertEquals(ptea.getUid(), attribute.getAttribute());
-    assertEquals("Frank PTEA", attribute.getValue());
+    assertEquals("Frank PTEA", attribute.value());
     assertEquals(ValueType.TEXT.name(), attribute.getValueType());
     assertHasMember(attribute, "createdAt");
     assertHasMember(attribute, "updatedAt");
@@ -428,7 +430,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
                   eventDataValue.getDataElement());
           assertEquals(
               eventDataValue.getValue(),
-              jsonDataValue.getValue(),
+              jsonDataValue.value(),
               "data value for data element " + eventDataValue.getDataElement());
         },
         () -> assertHasMember(jsonEvent, "status"),

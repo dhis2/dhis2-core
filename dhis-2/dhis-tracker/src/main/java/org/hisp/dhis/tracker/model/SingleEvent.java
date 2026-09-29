@@ -74,6 +74,7 @@ public class SingleEvent extends SoftDeletableObject {
 
   @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
 
+  /** Notes are read and written via JDBC, see {@code JdbcNotes} and {@code NoteWriter}. */
   private List<Note> notes = new ArrayList<>();
 
   @AuditAttribute private Set<EventDataValue> eventDataValues = new HashSet<>();
