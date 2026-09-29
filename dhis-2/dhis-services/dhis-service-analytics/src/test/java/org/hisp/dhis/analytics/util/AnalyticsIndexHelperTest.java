@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -68,6 +69,49 @@ class AnalyticsIndexHelperTest {
   }
 
   @Test
+  void testGetIndexesNameIncludesColumnName() {
+    List<Index> indexes = getIndexes(List.of(stubAnalyticsTablePartition()));
+
+    String name = indexes.get(0).getName();
+    assertTrue(name.startsWith("in_column_ax_2022_"), name);
+  }
+
+  @Test
+  void testGetIndexesNameIncludesExplicitIndexColumns() {
+    AnalyticsTableColumn column =
+        AnalyticsTableColumn.builder()
+            .name("dx_co")
+            .dataType(TEXT)
+            .selectExpression("c")
+            .indexColumns(List.of("dx", "co"))
+            .build();
+
+    List<Index> indexes = getIndexes(List.of(stubAnalyticsTablePartition(column)));
+
+    String name = indexes.get(0).getName();
+    assertTrue(name.startsWith("in_dx_co_ax_2022_"), name);
+  }
+
+  @Test
+  void testGetIndexesLowerIndexNameIncludesColumnName() {
+    AnalyticsTableColumn column =
+        AnalyticsTableColumn.builder()
+            .name("YtbsuPPo010")
+            .dataType(TEXT)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
+            .selectExpression("c")
+            .build();
+
+    List<Index> indexes = getIndexes(List.of(stubAnalyticsTablePartition(column)));
+
+    assertThat(indexes, hasSize(2));
+    String name = indexes.get(0).getName();
+    String lowerName = indexes.get(1).getName();
+    assertTrue(name.startsWith("in_YtbsuPPo010_ax_2022_"), name);
+    assertThat(lowerName, is(equalTo(name + "_lower")));
+  }
+
+  @Test
   void testGetIndexNameA() {
     String statement = getIndexName("table", List.of("column"), EVENT);
 
@@ -89,22 +133,18 @@ class AnalyticsIndexHelperTest {
   }
 
   private AnalyticsTablePartition stubAnalyticsTablePartition() {
-    AnalyticsTablePartition analyticsTablePartitionStub =
-        new AnalyticsTablePartition(stubAnalyticsTable(), List.of(), 2022, new Date(), new Date());
-
-    return analyticsTablePartitionStub;
+    return stubAnalyticsTablePartition(
+        AnalyticsTableColumn.builder()
+            .name("column")
+            .dataType(TEXT)
+            .selectExpression("c")
+            .indexType(BTREE)
+            .build());
   }
 
-  private AnalyticsTable stubAnalyticsTable() {
-    List<AnalyticsTableColumn> columns =
-        List.of(
-            AnalyticsTableColumn.builder()
-                .name("column")
-                .dataType(TEXT)
-                .selectExpression("c")
-                .indexType(BTREE)
-                .build());
+  private AnalyticsTablePartition stubAnalyticsTablePartition(AnalyticsTableColumn column) {
+    AnalyticsTable table = new AnalyticsTable(EVENT, List.of(column), List.of(), Logged.UNLOGGED);
 
-    return new AnalyticsTable(EVENT, columns, List.of(), Logged.UNLOGGED);
+    return new AnalyticsTablePartition(table, List.of(), 2022, new Date(), new Date());
   }
 }
