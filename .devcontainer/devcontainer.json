@@ -1,0 +1,58 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+    "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+    "name": "dhis2-core-ubuntu",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "TZ": "${localEnv:TZ:Etc/UTC}",
+            "UBUNTU_MIRROR": "http://ftp.uni-stuttgart.de/ubuntu/"
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "17",
+            "jdkDistro": "open",
+            "installMaven": "true"
+        }
+    },
+    "containerEnv": {
+        "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+        "NPM_CONFIG_IGNORE_SCRIPTS": "true",
+        "NPM_CONFIG_AUDIT": "false",
+        "NPM_CONFIG_FUND": "false",
+        "NPM_CONFIG_SAVE_EXACT": "true",
+        "NPM_CONFIG_UPDATE_NOTIFIER": "false"
+    },
+    "remoteEnv": {
+        "SSH_AUTH_SOCK": ""
+    },
+    "mounts": [
+        "source=dhis2-core-claude-${devcontainerId},target=/home/vscode/.claude,type=volume",
+        "source=dhis2-core-config-${devcontainerId},target=/home/vscode/.config,type=volume"
+    ],
+    "postCreateCommand": {
+        "install-claude": "curl -fsSL https://claude.ai/install.sh | bash"
+    },
+    "postStartCommand": {
+        "start-postgres": "sudo service postgresql start"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "anthropic.claude-code",
+                "vmware.vscode-boot-dev-pack",
+                "vscjava.vscode-java-pack",
+                "redhat.vscode-xml",
+                "redhat.vscode-yaml"
+            ],
+            "settings": {
+                "claudeCode.allowDangerouslySkipPermissions": true,
+                "claudeCode.initialPermissionMode": "bypassPermissions",
+                "java.jdt.ls.vmargs": "-Xmx2G -XX:+UseG1GC",
+                "java.configuration.updateBuildConfiguration": "automatic"
+            }
+        }
+    }
+}
