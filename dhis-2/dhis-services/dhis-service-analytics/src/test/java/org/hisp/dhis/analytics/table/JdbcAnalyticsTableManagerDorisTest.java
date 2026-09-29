@@ -313,14 +313,14 @@ class JdbcAnalyticsTableManagerDorisTest {
   }
 
   @Test
-  void testSwapTableRejectsBoundedYearsUpdateOnceMainTableExists() {
+  void testSwapTableReplacesMainTableForBoundedYearsUpdateOnceMainTableExists() {
     // lastYears(1) (a normal bounded-years rebuild) makes isPartialUpdate()==true but
     // isLatestUpdate()==false -- distinct from the "latest partition" (lastYears=0) case the
     // insert-into-main branch is scoped to. removeUpdatedData() never runs for this case (it's
     // gated on isLatestUpdate()), so merging staging data into main here would leave deleted rows
-    // behind forever. Silently dropping the rebuilt staging data instead (the prior behavior)
-    // left the main table showing stale values with no indication anything went wrong, so this
-    // combination must fail loudly rather than no-op.
+    // behind forever, and dropping the staging data would leave stale values. The staging table
+    // holds every year on Doris (no year filter on declarative partitioning), so the whole main
+    // table is replaced instead.
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .lastYears(1)
@@ -337,16 +337,25 @@ class JdbcAnalyticsTableManagerDorisTest {
     AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
 
-    // Same skipMasterTable=true preconditions as the positive test: main table already exists,
+    // Same preconditions as the merge test: main table already exists,
     // params.isPartialUpdate()==true (via lastYears(1)), and DATA_VALUE.isLatestPartition()==true.
     when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
         .thenReturn(List.of(Map.of("table_name", "analytics")));
 
-    org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalStateException.class, () -> subject.swapTable(params, table));
+    subject.swapTable(params, table);
 
-    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.never())
-        .execute(org.mockito.ArgumentMatchers.anyString());
+    org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
+    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.atLeastOnce())
+        .execute(sql.capture());
+
+    List<String> statements = sql.getAllValues();
+    assertTrue(
+        statements.stream()
+            .anyMatch(s -> s.contains("alter table `analytics_temp` rename `analytics`;")),
+        () -> "Expected the staging table to replace the main table, got: " + statements);
+    assertTrue(
+        statements.stream().noneMatch(s -> s.startsWith("insert into")),
+        () -> "Bounded update must not merge into the main table, got: " + statements);
   }
 
   @Test

@@ -284,10 +284,21 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       return TableUpdateAction.MERGE_ROWS;
     }
 
-    // A bounded lastYears update against a main table that already exists, with no publication
-    // method available (removeUpdatedData() only runs for the latest-partition case, so merging
-    // here would leave stale/deleted rows behind). Fail loudly rather than silently discard the
-    // rebuilt staging data.
+    // A bounded lastYears update against a main table that already exists. Merging is not an option
+    // here, since removeUpdatedData() only runs for the latest-partition case and merging would
+    // leave stale/deleted rows behind. On declarative-partitioning engines the populate step does
+    // not filter by year, so the staging table holds every year and replacing the whole main table
+    // gives correct results, as it did before continuous analytics support was added for Doris.
+    // Limited to engines supporting continuous analytics (Doris); this path has not been verified
+    // on ClickHouse, which still fails loudly.
+    if (sqlBuilder.supportsContinuousAnalytics()) {
+      log.warn(
+          "Bounded lastYears update of table '{}' rebuilds the whole table with all years on this "
+              + "database, use a continuous (lastYears=0) update for incremental updates",
+          table.getMainName());
+      return TableUpdateAction.REPLACE_TABLE;
+    }
+
     throw new IllegalStateException(
         format(
             "Bounded lastYears update of table '{}' is not supported once the main table exists "
