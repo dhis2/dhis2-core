@@ -390,11 +390,15 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       if (table.hasTablePartitions() && !sqlBuilder.supportsDeclarativePartitioning()) {
         // Each partition is its own physical table, so its own real date range and name apply.
         partitions.addAll(table.getTablePartitions());
-      } else if (table.hasTablePartitions() && isLatestUpdate) {
+      } else if (table.hasTablePartitions()
+          && isLatestUpdate
+          && sqlBuilder.supportsContinuousAnalytics()) {
         // A single physical table serves every logical partition on this engine (CREATE only
         // ever builds the master table's name), so the continuous/latest-update partition must
         // target that name - while still carrying its own real date range, needed to correctly
-        // scope the populate window.
+        // scope the populate window. Engines without continuous analytics support (ClickHouse)
+        // fall through to the fake partition below, so the staging table holds all data and can
+        // replace the whole main table.
         AnalyticsTablePartition latest = table.getTablePartitions().get(0);
         partitions.add(
             new AnalyticsTablePartition(

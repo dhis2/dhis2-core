@@ -251,20 +251,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       AnalyticsTableUpdateParams params, AnalyticsTable table) {
     boolean supportsLatestPartition = table.getTableType().isLatestPartition();
 
-    if (params.isLatestUpdate()
-        && supportsLatestPartition
-        && !sqlBuilder.supportsContinuousAnalytics()) {
-      // Stale/deleted rows are only removed for the latest-partition case, and only on engines
-      // that support continuous analytics (see removeUpdatedData()); merging or replacing without
-      // that purge would corrupt or silently discard data, so refuse rather than guess.
-      throw new IllegalStateException(
-          format(
-              "Continuous (lastYears=0) update of table '{}' is not supported by this database",
-              table.getMainName()));
-    }
-
     // Full updates, and table types with no "latest partition" concept, always replace the table.
     if (!params.isPartialUpdate() || !supportsLatestPartition) {
+      return TableUpdateAction.REPLACE_TABLE;
+    }
+
+    // Without continuous analytics support (e.g. ClickHouse) there is no step removing updated and
+    // deleted rows, so a continuous update cannot be merged. The staging table holds all data on
+    // such engines (see DefaultAnalyticsTableService.getTablePartitions()), so replacing the whole
+    // main table gives correct results, as a full rebuild would.
+    if (params.isLatestUpdate() && !sqlBuilder.supportsContinuousAnalytics()) {
+      log.warn(
+          "Continuous (lastYears=0) update of table '{}' rebuilds the whole table on this "
+              + "database, which does not support incremental updates",
+          table.getMainName());
       return TableUpdateAction.REPLACE_TABLE;
     }
 
@@ -288,23 +288,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     // here, since removeUpdatedData() only runs for the latest-partition case and merging would
     // leave stale/deleted rows behind. On declarative-partitioning engines the populate step does
     // not filter by year, so the staging table holds every year and replacing the whole main table
-    // gives correct results, as it did before continuous analytics support was added for Doris.
-    // Limited to engines supporting continuous analytics (Doris); this path has not been verified
-    // on ClickHouse, which still fails loudly.
-    if (sqlBuilder.supportsContinuousAnalytics()) {
-      log.warn(
-          "Bounded lastYears update of table '{}' rebuilds the whole table with all years on this "
-              + "database, use a continuous (lastYears=0) update for incremental updates",
-          table.getMainName());
-      return TableUpdateAction.REPLACE_TABLE;
-    }
-
-    throw new IllegalStateException(
-        format(
-            "Bounded lastYears update of table '{}' is not supported once the main table exists "
-                + "on this database: run a full analytics table rebuild or a continuous "
-                + "(lastYears=0) update instead",
-            table.getMainName()));
+    // gives correct results.
+    log.warn(
+        "Bounded lastYears update of table '{}' rebuilds the whole table with all years on this "
+            + "database, use a continuous (lastYears=0) update for incremental updates",
+        table.getMainName());
+    return TableUpdateAction.REPLACE_TABLE;
   }
 
   private void replaceMainTable(AnalyticsTable table) {

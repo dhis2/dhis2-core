@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -59,6 +60,7 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -70,9 +72,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Covers {@code swapTable()} for databases with declarative partitioning that do NOT support
- * continuous analytics (e.g. ClickHouse): with no purge step available, neither a continuous nor a
- * bounded-years update can safely publish staged data into an existing main table, so both must be
- * rejected rather than silently discarding the staging data or corrupting the main table.
+ * continuous analytics (e.g. ClickHouse): with no purge step available, staged data can not be
+ * merged into an existing main table. The staging table holds all data on such engines, so both a
+ * continuous and a bounded-years update replace the whole main table, as a full rebuild would.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -116,7 +118,7 @@ class JdbcAnalyticsTableManagerClickHouseTest {
   }
 
   @Test
-  void testSwapTableRejectsContinuousUpdateWhenNotSupported() {
+  void testSwapTableReplacesMainTableForContinuousUpdateWhenNotSupported() {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
@@ -125,18 +127,16 @@ class JdbcAnalyticsTableManagerClickHouseTest {
 
     AnalyticsTable table = dataValueTableFixture();
 
-    // ClickHouse supports declarative partitioning but not continuous analytics: without the
-    // purge removeUpdatedData() would otherwise perform, neither replacing nor merging staged
-    // data into an existing main table is safe, so the update must fail rather than silently
-    // dropping the rebuilt staging data (the prior behavior) or corrupting the main table.
-    org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalStateException.class, () -> subject.swapTable(params, table));
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
 
-    Mockito.verify(jdbcTemplate, Mockito.never()).execute(Mockito.anyString());
+    subject.swapTable(params, table);
+
+    assertReplacedMainTable();
   }
 
   @Test
-  void testSwapTableRejectsBoundedYearsUpdateOnceMainTableExists() {
+  void testSwapTableReplacesMainTableForBoundedYearsUpdateOnceMainTableExists() {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .lastYears(1)
@@ -148,10 +148,22 @@ class JdbcAnalyticsTableManagerClickHouseTest {
     when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
         .thenReturn(List.of(Map.of("table_name", "analytics")));
 
-    org.junit.jupiter.api.Assertions.assertThrows(
-        IllegalStateException.class, () -> subject.swapTable(params, table));
+    subject.swapTable(params, table);
 
-    Mockito.verify(jdbcTemplate, Mockito.never()).execute(Mockito.anyString());
+    assertReplacedMainTable();
+  }
+
+  private void assertReplacedMainTable() {
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    Mockito.verify(jdbcTemplate, Mockito.atLeastOnce()).execute(sql.capture());
+
+    List<String> statements = sql.getAllValues();
+    assertTrue(
+        statements.contains("rename table \"analytics_temp\" to \"analytics\";"),
+        () -> "Expected the staging table to replace the main table, got: " + statements);
+    assertTrue(
+        statements.stream().noneMatch(s -> s.startsWith("insert into")),
+        () -> "Must not merge into the main table without a purge step, got: " + statements);
   }
 
   private AnalyticsTable dataValueTableFixture() {

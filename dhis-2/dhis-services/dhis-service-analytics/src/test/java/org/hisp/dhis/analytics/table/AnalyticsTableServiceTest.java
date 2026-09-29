@@ -33,6 +33,7 @@ import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -135,6 +136,7 @@ class AnalyticsTableServiceTest {
   @Test
   void testGetTablePartitionsUsesRealPartitionForLatestUpdateOnDeclarativePartitioningEngine() {
     when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
 
     List<AnalyticsTableColumn> columns =
         List.of(
@@ -167,6 +169,38 @@ class AnalyticsTableServiceTest {
         partition.getName(),
         "Populate/create target must be the one physical table this engine actually builds,"
             + " not a year-suffixed name nothing ever creates");
+  }
+
+  @Test
+  void testGetTablePartitionsUsesFakePartitionForLatestUpdateWithoutContinuousAnalytics() {
+    // e.g. ClickHouse: with no step removing updated and deleted rows, a continuous update
+    // replaces the whole main table, so the staging table must hold all data rather than only
+    // the rows changed within the latest partition's date range.
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(false);
+
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("dx")
+                .dataType(TEXT)
+                .selectExpression("dx")
+                .build());
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of("dx"), Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of(),
+        AnalyticsTablePartition.LATEST_PARTITION,
+        new DateTime(2026, 7, 31, 12, 48, 20).toDate(),
+        new DateTime(2026, 7, 31, 12, 55, 0).toDate());
+
+    List<AnalyticsTablePartition> partitions =
+        tableService.getTablePartitions(List.of(table), true);
+
+    assertEquals(1, partitions.size());
+    assertFalse(partitions.get(0).isLatestPartition());
+    assertNull(partitions.get(0).getStartDate());
   }
 
   @Test
