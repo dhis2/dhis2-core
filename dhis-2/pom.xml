@@ -121,7 +121,7 @@
     <spring-restdocs.version>4.0.1</spring-restdocs.version>
     <spring-ldap.version>4.1.1</spring-ldap.version>
     <cache2k-api.version>2.6.1.Final</cache2k-api.version>
-    <lettuce.version>6.8.2.RELEASE</lettuce.version>
+    <lettuce.version>7.8.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-database-postgresql.version>13.7.0</flyway-database-postgresql.version>
