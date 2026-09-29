@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
   "completedAt",
   "updatedBy",
   "attributeOptionCombo",
+  "attributeCategoryOptions",
   "assignedUser",
   "dataElement",
   "value",
@@ -99,6 +100,12 @@ class SingleEventCsvRow {
   private Double longitude;
 
   private String attributeOptionCombo;
+
+  /**
+   * Always empty. Kept so the column layout does not change now that the attribute option combos
+   * category options are no longer exported.
+   */
+  private String attributeCategoryOptions;
 
   private String assignedUser;
 
