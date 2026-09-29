@@ -36,10 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -284,12 +286,16 @@ class AnalyticsTableServiceTest {
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
     when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(false);
 
+    JobProgress progress = spy(JobProgress.noop());
+
     // e.g. a main table predating unique-key analytics tables on Doris: the delete step must
     // never even be attempted against it, not just have its failure tolerated.
-    tableService.create(params, JobProgress.noop());
+    tableService.create(params, progress);
 
     verify(tableManager, never()).removeUpdatedData(anyList());
     verify(tableManager, never()).swapTable(eq(params), any(AnalyticsTable.class));
+    // The reason must reach the job log, not only the server log.
+    verify(progress).failedStage(contains("Run a full analytics table rebuild"));
   }
 
   @Test

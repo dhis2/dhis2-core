@@ -170,18 +170,26 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     if (params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics()) {
-      progress.startingStage(format("Validating continuous update readiness: '{}'", tableType));
+      progress.startingStage(
+          format("Validating continuous update readiness: '{}'", tableType), SKIP_STAGE);
       boolean readyForContinuousUpdate = tableManager.isReadyForContinuousUpdate(tables);
-      progress.completedStage(
-          "Validated continuous update readiness with outcome: '{}'", readyForContinuousUpdate);
 
       if (!readyForContinuousUpdate) {
         // A main table predating unique-key analytics tables (or otherwise not in a state that
         // supports a continuous update) must not have the delete step attempted against it, see
-        // isReadyForContinuousUpdate() for detail; the specific reason is already logged there.
+        // isReadyForContinuousUpdate() for detail. The stage is reported as failed so the reason
+        // shows in the job log, while the remaining table types still get updated.
+        progress.failedStage(
+            format(
+                "Continuous update skipped for '{}': the analytics table was created before "
+                    + "continuous updates were supported on this database. Run a full analytics "
+                    + "table rebuild before running a continuous (lastYears=0) update",
+                tableType));
         clock.logTime("Continuous analytics update aborted, not ready: '{}'", tableType);
         return;
       }
+
+      progress.completedStage("Validated continuous update readiness: '{}'", tableType);
 
       progress.startingStage(
           format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
