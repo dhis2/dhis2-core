@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,12 +45,17 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -154,5 +161,182 @@ class JdbcEnrollmentAnalyticsManagerTest {
 
     // Assert
     assertEquals(" and  (level1 in ('OU1') or level2 in ('OU2')) ", condition);
+  }
+
+  @Test
+  void testGetWhereClauseIncludesCategoryDimension() {
+    // Arrange
+    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
+    when(sqlBuilder.quoteAx(anyString()))
+        .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
+
+    DimensionalObject categoryDimension =
+        new BaseDimensionalObject(
+            "catUid001",
+            DimensionType.CATEGORY,
+            List.of(new BaseDimensionalItemObject("catOptUid1")));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addDimension(categoryDimension).build();
+
+    // Act
+    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
+
+    // Assert
+    assertEquals("and ax.catUid001 in ('catOptUid1') ", whereClause);
+  }
+
+  @Test
+  void testGetWhereClauseIncludesCategoryOptionGroupSetDimension() {
+    // Arrange
+    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
+    when(sqlBuilder.quoteAx(anyString()))
+        .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
+
+    DimensionalObject cogsDimension =
+        new BaseDimensionalObject(
+            "cogsUid001",
+            DimensionType.CATEGORY_OPTION_GROUP_SET,
+            List.of(new BaseDimensionalItemObject("cogsOptUid1")));
+
+    EventQueryParams params = new EventQueryParams.Builder().addDimension(cogsDimension).build();
+
+    // Act
+    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
+
+    // Assert
+    assertEquals("and ax.cogsUid001 in ('cogsOptUid1') ", whereClause);
+  }
+
+  @Test
+  void testGetWhereClauseIncludesProgramStatusDimensionWithItems() {
+    // Arrange
+    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
+    when(sqlBuilder.quoteAx(anyString()))
+        .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
+
+    DimensionalObject programStatusDimension =
+        new BaseDimensionalObject(
+            "programstatus",
+            DimensionType.PROGRAM_STATUS,
+            "enrollmentstatus",
+            "Program status",
+            List.of(new BaseDimensionalItemObject("ACTIVE")));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addDimension(programStatusDimension).build();
+
+    // Act
+    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
+
+    // Assert
+    assertEquals("and ax.enrollmentstatus in ('ACTIVE') ", whereClause);
+  }
+
+  @Test
+  void testGetWhereClauseSkipsProgramStatusDimensionWithoutItems() {
+    // Arrange: a PROGRAM_STATUS dimension without items means group-by only, and must not
+    // contribute an IN-list filter to the where clause.
+    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
+
+    DimensionalObject programStatusDimension =
+        new BaseDimensionalObject(
+            "programstatus",
+            DimensionType.PROGRAM_STATUS,
+            "enrollmentstatus",
+            "Program status",
+            List.of());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addDimension(programStatusDimension).build();
+
+    // Act
+    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
+
+    // Assert
+    assertEquals("", whereClause);
+    assertFalse(whereClause.contains("enrollmentstatus"));
+  }
+
+  @Test
+  void testGetWhereClauseAddsProgramStageConditionForStageScopedDimension() {
+    // Arrange: when a category/COGS dimension is scoped to a specific program stage, the IN-list
+    // condition must be combined with a "ps = '<stageUid>'" condition.
+    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
+    when(sqlBuilder.quoteAx(anyString()))
+        .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
+
+    ProgramStage stage = createProgramStage('A', 0);
+
+    BaseDimensionalObject stageCategoryDimension =
+        new BaseDimensionalObject(
+            "catUid002",
+            DimensionType.CATEGORY,
+            List.of(new BaseDimensionalItemObject("catOptUid2")));
+    stageCategoryDimension.setProgramStage(stage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addDimension(stageCategoryDimension).build();
+
+    // Act
+    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
+
+    // Assert
+    assertEquals(
+        "and (ax.catUid002 in ('catOptUid2') and ps = '" + stage.getUid() + "') ", whereClause);
+  }
+
+  @Test
+  void testGetWhereClauseOnlyProcessesCategoryCogsAndProgramStatusAsDynamicDimensions() {
+    // Arrange: dimensions of types other than CATEGORY, CATEGORY_OPTION_GROUP_SET and
+    // PROGRAM_STATUS must not be picked up by this part of the where clause, even when combined
+    // with dimensions of the types that are.
+    when(timeFieldSqlRenderer.renderPeriodTimeFieldSql(any())).thenReturn("");
+    when(sqlBuilder.quoteAx(anyString()))
+        .thenAnswer(invocation -> "ax." + invocation.getArgument(0, String.class));
+
+    DimensionalObject categoryDimension =
+        new BaseDimensionalObject(
+            "catUid001",
+            DimensionType.CATEGORY,
+            List.of(new BaseDimensionalItemObject("catOptUid1")));
+    DimensionalObject cogsDimension =
+        new BaseDimensionalObject(
+            "cogsUid001",
+            DimensionType.CATEGORY_OPTION_GROUP_SET,
+            List.of(new BaseDimensionalItemObject("cogsOptUid1")));
+    DimensionalObject programStatusDimension =
+        new BaseDimensionalObject(
+            "programstatus",
+            DimensionType.PROGRAM_STATUS,
+            "enrollmentstatus",
+            "Program status",
+            List.of(new BaseDimensionalItemObject("ACTIVE")));
+    // Not part of the CATEGORY / CATEGORY_OPTION_GROUP_SET / PROGRAM_STATUS set, and not handled
+    // anywhere else in getWhereClause, so it must be silently ignored.
+    DimensionalObject unrelatedDimension =
+        new BaseDimensionalObject(
+            "degsUid001",
+            DimensionType.DATA_ELEMENT_GROUP_SET,
+            List.of(new BaseDimensionalItemObject("degsOptUid1")));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(categoryDimension)
+            .addDimension(cogsDimension)
+            .addDimension(programStatusDimension)
+            .addDimension(unrelatedDimension)
+            .build();
+
+    // Act
+    String whereClause = jdbcEnrollmentAnalyticsManager.getWhereClause(params);
+
+    // Assert
+    assertEquals(
+        "and ax.catUid001 in ('catOptUid1') "
+            + "and ax.cogsUid001 in ('cogsOptUid1') "
+            + "and ax.enrollmentstatus in ('ACTIVE') ",
+        whereClause);
+    assertFalse(whereClause.contains("degsUid001"));
   }
 }
