@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.merge.DataMergeStrategy;
+import org.hisp.dhis.merge.MergeLock;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -144,7 +145,7 @@ class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
 
   private void setMergeLock(Connection connection, String function) throws SQLException {
     try (PreparedStatement ps = connection.prepareStatement("select " + function + "(?)")) {
-      ps.setLong(1, DefaultOrgUnitMergeService.MERGE_LOCK_KEY);
+      ps.setLong(1, MergeLock.LOCK_KEY);
       ps.execute();
     }
   }

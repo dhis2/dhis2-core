@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,13 +38,13 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.merge.MergeLock;
 import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.DataOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.TrackerOrgUnitMergeHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,31 +56,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
-  /**
-   * Key of the Postgres advisory lock which ensures that only one org unit merge runs at a time
-   * across all instances of a clustered deployment.
-   */
-  static final long MERGE_LOCK_KEY = 0x4F52_4755_4D52_4745L; // "ORGUMRGE"
-
   private final OrgUnitMergeValidator validator;
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final JdbcTemplate jdbcTemplate;
+  private final MergeLock mergeLock;
 
   private final ImmutableList<OrgUnitMergeHandler> handlers;
 
   public DefaultOrgUnitMergeService(
       OrgUnitMergeValidator validator,
       IdentifiableObjectManager idObjectManager,
-      JdbcTemplate jdbcTemplate,
+      MergeLock mergeLock,
       MetadataOrgUnitMergeHandler metadataHandler,
       AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
       DataOrgUnitMergeHandler dataHandler,
       TrackerOrgUnitMergeHandler trackerHandler) {
     this.validator = validator;
     this.idObjectManager = idObjectManager;
-    this.jdbcTemplate = jdbcTemplate;
+    this.mergeLock = mergeLock;
     this.handlers =
         getMergeHandlers(metadataHandler, analyticalObjectHandler, dataHandler, trackerHandler);
   }
@@ -155,18 +149,14 @@ public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
   }
 
   /**
-   * Acquires a transaction scoped Postgres advisory lock which prevents concurrent org unit merges,
-   * also across instances in a clustered deployment. The lock is released automatically when the
-   * transaction commits or rolls back. Does not wait if the lock is held by another merge.
+   * Acquires the {@link MergeLock} shared by all merge types, which prevents concurrent merges,
+   * also across instances in a clustered deployment. Does not wait if the lock is held by another
+   * merge.
    *
    * @throws IllegalQueryException if another merge is in progress.
    */
   private void acquireMergeLock() throws IllegalQueryException {
-    Boolean acquired =
-        jdbcTemplate.queryForObject(
-            "select pg_try_advisory_xact_lock(?)", Boolean.class, MERGE_LOCK_KEY);
-
-    if (!Boolean.TRUE.equals(acquired)) {
+    if (!mergeLock.tryAcquire()) {
       log.warn("Org unit merge rejected as another merge is in progress");
       throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1505));
     }

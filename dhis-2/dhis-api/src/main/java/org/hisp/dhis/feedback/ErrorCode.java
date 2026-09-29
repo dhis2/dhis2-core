@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,7 +100,7 @@ public enum ErrorCode {
   E1502("Target org unit cannot be a source org unit"),
   E1503("Source org unit does not exist: `{0}`"),
   E1504("Target org unit cannot be a descendant of a source org unit"),
-  E1505("Another org unit merge is already in progress, please try again later"),
+  E1505("Another merge is already in progress, please try again later"),
 
   /* Org unit split */
   E1510("Source org unit must be specified"),
