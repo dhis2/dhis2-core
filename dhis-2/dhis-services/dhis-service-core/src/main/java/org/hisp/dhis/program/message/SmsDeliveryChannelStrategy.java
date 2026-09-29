@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.message;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -58,8 +59,8 @@ public class SmsDeliveryChannelStrategy extends DeliveryChannelStrategy {
 
     TrackedEntity te = getTrackedEntity(message);
 
-    if (orgUnit != null) {
-      message.getRecipients().getPhoneNumbers().add(getOrganisationUnitRecipient(orgUnit));
+    if (orgUnit != null && StringUtils.isNotBlank(orgUnit.getPhoneNumber())) {
+      message.getRecipients().getPhoneNumbers().add(orgUnit.getPhoneNumber());
     }
 
     if (te != null) {
@@ -91,16 +92,5 @@ public class SmsDeliveryChannelStrategy extends DeliveryChannelStrategy {
 
       throw new IllegalQueryException(violation);
     }
-  }
-
-  @Override
-  public String getOrganisationUnitRecipient(OrganisationUnit orgUnit) {
-    if (orgUnit.getPhoneNumber() == null) {
-      log.error("Organisation unit does not have phone number");
-
-      throw new IllegalQueryException("Organisation unit does not have phone number");
-    }
-
-    return orgUnit.getPhoneNumber();
   }
 }
