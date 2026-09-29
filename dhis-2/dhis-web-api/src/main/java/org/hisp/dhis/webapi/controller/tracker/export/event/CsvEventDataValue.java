@@ -64,7 +64,7 @@ import org.springframework.util.Assert;
   "dataElement",
   "value",
   "providedElsewhere",
-  "createAtDataValue",
+  "createdAtDataValue",
   "updatedAtDataValue"
 })
 class CsvEventDataValue {
