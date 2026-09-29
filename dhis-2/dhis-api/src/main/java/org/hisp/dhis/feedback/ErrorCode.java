@@ -568,7 +568,7 @@ public enum ErrorCode {
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7201("Dimensions cannot be specified more than once: `{0}`"),
   E7202("Query items cannot be specified more than once: `{0}`"),
-  E7203("Value dimension cannot also be specified as an item or item filter"),
+  E7203("Value dimension cannot also be specified as a dimension without a legend set"),
   E7204("Value dimension or aggregate data must be specified when aggregation type is specified"),
   E7205("Start and end date or at least one period must be specified"),
   E7206("Start date is after end date: `{0}`, `{1}`"),
@@ -639,6 +639,8 @@ public enum ErrorCode {
   E7262("Sorting by `{0}` requires the `{1}` dimension"),
   E7263(
       "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
+  E7264("Repeatable stage offset is not supported in `value`: `{0}`"),
+  E7265("Value `{0}` has aggregation type NONE, specify an `aggregationType`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
