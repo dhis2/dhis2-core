@@ -398,7 +398,7 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
-    when(preheat.getUniqueAttributeValues())
+    when(preheat.getUniqueAttributeValues("abc"))
         .thenReturn(
             List.of(
                 new UniqueAttributeValue(
@@ -422,6 +422,42 @@ class AttributeValidatorTest {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldPassValidationWhenOrgUnitScopedValueIsOnlyStoredForAnotherAttributeWithoutOrgUnit() {
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("uid");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
+    trackedEntityAttribute.setUnique(true);
+    trackedEntityAttribute.setOrgunitScope(true);
+
+    when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
+        .thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
+        .thenReturn(new TrackedEntityType());
+    // values of attributes unique in the whole system have no org unit
+    when(preheat.getUniqueAttributeValues("abc"))
+        .thenReturn(
+            List.of(
+                new UniqueAttributeValue(
+                    UID.generate(), MetadataIdentifier.ofUid("globalUid"), "abc", null)));
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(UID.generate())
+            .attributes(
+                Collections.singletonList(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("uid"))
+                        .value("abc")
+                        .build()))
+            .trackedEntityType(MetadataIdentifier.ofUid("trackedEntityType"))
+            .build();
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
