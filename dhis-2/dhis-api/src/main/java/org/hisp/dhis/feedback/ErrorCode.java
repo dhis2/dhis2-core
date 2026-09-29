@@ -634,6 +634,8 @@ public enum ErrorCode {
   E7261(
       "Dimension `{0}` does not support organisation units at different hierarchy levels in an aggregate query"),
   E7262("Sorting by `{0}` requires the `{1}` dimension"),
+  E7264("Repeatable stage offset is not supported in `value`: `{0}`"),
+  E7265("Value `{0}` has aggregation type NONE, specify an `aggregationType`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
