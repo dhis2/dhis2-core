@@ -75,7 +75,7 @@ public class ExpressionDimensionItemService {
    */
   public List<BaseDimensionalItemObject> getExpressionItems(DataDimensionItem dataDimensionItem) {
     if (dataDimensionItem.getExpressionDimensionItem() == null) {
-      return new ArrayList<>();
+      return List.of();
     }
 
     String expression = dataDimensionItem.getExpressionDimensionItem().getExpression();
