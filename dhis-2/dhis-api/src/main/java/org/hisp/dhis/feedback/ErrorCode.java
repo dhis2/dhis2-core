@@ -639,6 +639,8 @@ public enum ErrorCode {
   E7262("Sorting by `{0}` requires the `{1}` dimension"),
   E7263(
       "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
+  E7264("Repeatable stage offset is not supported in `value`: `{0}`"),
+  E7265("Value `{0}` has aggregation type NONE, specify an `aggregationType`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

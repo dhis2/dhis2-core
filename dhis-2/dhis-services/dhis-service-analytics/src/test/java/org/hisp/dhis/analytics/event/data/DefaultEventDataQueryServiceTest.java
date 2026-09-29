@@ -37,8 +37,12 @@ import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createProgramStageDataElement;
+import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,6 +88,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1209,15 +1214,12 @@ class DefaultEventDataQueryServiceTest {
 
   @Test
   void getFromRequestAcceptsBooleanValueWithStagePrefix() {
-    ProgramStage programStage = createProgramStage('S', program);
-    DataElement booleanElement = createDataElement('B', ValueType.BOOLEAN, AggregationType.SUM);
+    DataElement booleanElement = dataElementInProgram('B', ValueType.BOOLEAN, AggregationType.SUM);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
 
     lenient()
         .when(programStageService.getProgramStage(programStage.getUid()))
         .thenReturn(programStage);
-    lenient()
-        .when(dataElementService.getDataElement(booleanElement.getUid()))
-        .thenReturn(booleanElement);
 
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, EVENT)
@@ -1233,11 +1235,8 @@ class DefaultEventDataQueryServiceTest {
 
   @Test
   void getFromRequestAcceptsTrueOnlyValueWithoutStagePrefix() {
-    DataElement trueOnlyElement = createDataElement('T', ValueType.TRUE_ONLY, AggregationType.SUM);
-
-    lenient()
-        .when(dataElementService.getDataElement(trueOnlyElement.getUid()))
-        .thenReturn(trueOnlyElement);
+    DataElement trueOnlyElement =
+        dataElementInProgram('T', ValueType.TRUE_ONLY, AggregationType.SUM);
 
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, EVENT).value(trueOnlyElement.getUid()).build();
@@ -1246,6 +1245,273 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(trueOnlyElement.getUid(), params.getValue().getUid());
     assertTrue(params.hasBooleanValueDimension());
+  }
+
+  @Test
+  void getFromRequestRejectsOffsetInValue() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "[0]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsNegativeOffsetInValue() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "[-1]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsOffsetInValueBeforeStageLookup() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .stage(programStage.getUid())
+            .value(programStage.getUid() + "[0]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsUnknownStagePrefixInValue() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value("unknownStg1." + element.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7130, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsStagePrefixOfAnotherProgram() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage foreignStage = createProgramStage('F', createProgram('B'));
+
+    lenient()
+        .when(programStageService.getProgramStage(foreignStage.getUid()))
+        .thenReturn(foreignStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(foreignStage.getUid() + "." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7130, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestAcceptsProgramPrefixInValue() {
+    TrackedEntityAttribute attribute = attributeInProgram('H', ValueType.NUMBER);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(program.getUid() + "." + attribute.getUid())
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertNull(params.getProgramStage());
+  }
+
+  @Test
+  void getFromRequestTreatsDefaultAggregationTypeAsAbsent() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.DEFAULT)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertNull(params.getAggregationType());
+    assertEquals(AggregationType.SUM, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestKeepsExplicitAggregationTypeOverride() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(AggregationType.AVERAGE, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestIgnoresDefaultAggregationTypeWithoutValue() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).aggregationType(AggregationType.DEFAULT).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertNull(params.getAggregationType());
+    assertNull(params.getValue());
+  }
+
+  @Test
+  void getFromRequestRejectsValueDataElementOutsideProgram() {
+    DataElement foreign = createDataElement('F', ValueType.NUMBER, AggregationType.SUM);
+    lenient().when(dataElementService.getDataElement(foreign.getUid())).thenReturn(foreign);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(foreign.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7223, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsValueAttributeOutsideProgram() {
+    TrackedEntityAttribute foreign = createTrackedEntityAttribute('F', ValueType.NUMBER);
+    lenient()
+        .when(attributeService.getTrackedEntityAttribute(foreign.getUid()))
+        .thenReturn(foreign);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(foreign.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7223, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestAcceptsValueAttributeInProgram() {
+    TrackedEntityAttribute attribute = attributeInProgram('H', ValueType.NUMBER);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(attribute.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertTrue(params.hasNumericValueDimension());
+  }
+
+  @Test
+  void getFromRequestAcceptsBooleanValueAttributeInProgram() {
+    TrackedEntityAttribute attribute = attributeInProgram('B', ValueType.BOOLEAN);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(attribute.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertTrue(params.hasBooleanValueDimension());
+  }
+
+  @Test
+  void getFromRequestRejectsValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(element.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsDefaultAggregationTypeOnValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.DEFAULT)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsExplicitAggregationTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.NONE)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestAcceptsOverrideOnValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(AggregationType.AVERAGE, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestIgnoresValueOfTypeNoneOnQueryEndpoint() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).value(element.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(element.getUid(), params.getValue().getUid());
   }
 
   @Test
@@ -1780,6 +2046,35 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(ErrorCode.E7223, textException.getErrorCode());
     assertEquals(ErrorCode.E7223, dateException.getErrorCode());
+  }
+
+  /** Creates a data element and attaches it to a stage of the test program. */
+  private DataElement dataElementInProgram(
+      char uniqueCharacter, ValueType valueType, AggregationType aggregationType) {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement(uniqueCharacter, valueType, aggregationType);
+    programStage
+        .getProgramStageDataElements()
+        .add(createProgramStageDataElement(programStage, element, 1));
+    program.getProgramStages().add(programStage);
+
+    lenient().when(dataElementService.getDataElement(element.getUid())).thenReturn(element);
+
+    return element;
+  }
+
+  /** Creates a tracked entity attribute and registers it as a program attribute. */
+  private TrackedEntityAttribute attributeInProgram(char uniqueCharacter, ValueType valueType) {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute(uniqueCharacter, valueType);
+    attribute.setAggregationType(AggregationType.AVERAGE);
+    program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, attribute)));
+
+    lenient().when(dataElementService.getDataElement(attribute.getUid())).thenReturn(null);
+    lenient()
+        .when(attributeService.getTrackedEntityAttribute(attribute.getUid()))
+        .thenReturn(attribute);
+
+    return attribute;
   }
 
   private EventDataQueryRequest.EventDataQueryRequestBuilder baseRequestBuilder(
