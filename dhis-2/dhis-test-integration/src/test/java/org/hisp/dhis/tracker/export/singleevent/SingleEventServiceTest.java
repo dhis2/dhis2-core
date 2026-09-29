@@ -34,7 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.tracker.Assertions.assertNotes;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,6 +58,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -66,6 +67,7 @@ import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -95,6 +97,8 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
 
   private User importUser;
 
+  private TrackerObjects trackerObjects;
+
   private SingleEventOperationParams.SingleEventOperationParamsBuilder operationParamsBuilder;
 
   @BeforeAll
@@ -104,7 +108,7 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    testSetup.importTrackerData();
+    trackerObjects = testSetup.importTrackerData();
     orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
 
     // to test that events are only returned if the user has read access to ALL COs of an events COC
@@ -228,7 +232,13 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
-    SingleEvent event = get(SingleEvent.class, "QRYjLTiJTrA");
+    Map<String, String> notes =
+        trackerObjects.findEvent(UID.of("QRYjLTiJTrA")).orElseThrow().getNotes().stream()
+            .collect(
+                Collectors.toMap(
+                    n -> n.getNote().getValue(),
+                    org.hisp.dhis.tracker.imports.domain.Note::getValue));
+    assertNotEmpty(notes.keySet(), "test expects an event with notes");
     SingleEventOperationParams params =
         operationParamsBuilder
             .events(Set.of(UID.of("QRYjLTiJTrA")))
@@ -238,7 +248,10 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
     List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertContainsOnly(List.of("QRYjLTiJTrA"), uids(events));
-    assertNotes(event.getNotes(), events.get(0).getNotes());
+    assertEquals(
+        notes,
+        events.get(0).getNotes().stream()
+            .collect(Collectors.toMap(Note::getUid, Note::getNoteText)));
   }
 
   @Test

@@ -89,6 +89,12 @@ public class TrackerEventPersister
   }
 
   @Override
+  protected Set<String> trackedEntityUidsForAttributeLoad(
+      List<org.hisp.dhis.tracker.imports.domain.TrackerEvent> dtos) {
+    return Set.of();
+  }
+
+  @Override
   protected void assignId(TrackerEvent entity, long id) {
     entity.setId(id);
   }
