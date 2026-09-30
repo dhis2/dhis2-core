@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,11 +37,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
+import javax.sql.DataSource;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.merge.MergeLock;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
@@ -48,6 +56,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -57,6 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class OrganisationUnitControllerTest extends PostgresControllerIntegrationTestBase {
+  @Autowired private DataSource dataSource;
+
   private String ou0, ou1, ou21, ou22;
 
   @BeforeEach
@@ -425,6 +436,58 @@ class OrganisationUnitControllerTest extends PostgresControllerIntegrationTestBa
     assertEquals(List.of("L32"), toOrganisationUnitNames(second));
     assertEquals(2, first.getObject("pager").getNumber("total").intValue());
     assertEquals(2, second.getObject("pager").getNumber("total").intValue());
+  }
+
+  @Test
+  void testMergeRejectedWhileAnotherMergeHoldsTheMergeLock() throws SQLException {
+    // Simulate a merge in progress on another connection, e.g. another cluster instance
+    try (Connection other = dataSource.getConnection()) {
+      assertTrue(callMergeLockFunction(other, "pg_try_advisory_lock"));
+      try {
+        assertEquals(
+            ErrorCode.E1505,
+            POST("/organisationUnits/merge", mergeBody(ou21, ou22))
+                .error(HttpStatus.CONFLICT)
+                .getErrorCode());
+      } finally {
+        callMergeLockFunction(other, "pg_advisory_unlock");
+      }
+    }
+
+    GET("/organisationUnits/{id}", ou21).content(HttpStatus.OK);
+  }
+
+  @Test
+  void testMergeRequiresMergeAuthority() {
+    switchToNewUser("guest");
+
+    POST("/organisationUnits/merge", mergeBody(ou21, ou22)).content(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void testMerge() {
+    assertStatus(HttpStatus.OK, POST("/organisationUnits/merge", mergeBody(ou21, ou22)));
+
+    GET("/organisationUnits/{id}", ou21).content(HttpStatus.NOT_FOUND);
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/children", ou22).content(), "L22", "L31", "L32");
+  }
+
+  private static String mergeBody(String source, String target) {
+    return """
+        {"sources": ["%s"], "target": "%s", "deleteSources": true}"""
+        .formatted(source, target);
+  }
+
+  private static boolean callMergeLockFunction(Connection connection, String function)
+      throws SQLException {
+    try (PreparedStatement ps = connection.prepareStatement("select " + function + "(?)")) {
+      ps.setLong(1, MergeLock.LOCK_KEY);
+      try (ResultSet rs = ps.executeQuery()) {
+        assertTrue(rs.next());
+        return rs.getBoolean(1);
+      }
+    }
   }
 
   private void switchToHierarchyUser(

@@ -32,12 +32,14 @@ package org.hisp.dhis.merge;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Cluster-wide lock shared by all merge types, which ensures that only one merge of any type runs
- * at a time, also across instances in a clustered deployment. Backed by a transaction scoped
- * Postgres advisory lock, which is released automatically when the transaction commits or rolls
- * back.
+ * Cluster-wide lock shared by the merge types that use it (currently org unit merge), which ensures
+ * that only one of those merges runs at a time, also across instances in a clustered deployment.
+ * Backed by a transaction scoped Postgres advisory lock, which is released automatically when the
+ * transaction commits or rolls back.
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
@@ -51,10 +53,14 @@ public class MergeLock {
 
   /**
    * Attempts to acquire the merge lock for the current transaction. Does not wait if the lock is
-   * held by another merge. Must be called within a transaction.
+   * held by another merge. Must be called within a transaction, as the lock would otherwise be
+   * released as soon as it is acquired.
    *
    * @return true if the lock was acquired, false if another merge is in progress.
+   * @throws org.springframework.transaction.IllegalTransactionStateException if there is no
+   *     transaction.
    */
+  @Transactional(propagation = Propagation.MANDATORY)
   public boolean tryAcquire() {
     Boolean acquired =
         jdbcTemplate.queryForObject("select pg_try_advisory_xact_lock(?)", Boolean.class, LOCK_KEY);

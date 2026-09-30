@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.merge.MergeLock;
@@ -81,22 +82,20 @@ public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
 
   @Override
   @Transactional
-  public void merge(OrgUnitMergeRequest request) {
-    log.info("Org unit merge request: {}", request);
-
+  public void merge(OrgUnitMergeQuery query) throws ConflictException {
+    // Acquire the lock before resolving the org units, so that they reflect the state committed by
+    // any preceding merge
     acquireMergeLock();
 
-    validator.validate(request);
+    doMerge(getFromQuery(query));
+  }
 
-    handlers.forEach(handler -> handler.merge(request));
+  @Override
+  @Transactional
+  public void merge(OrgUnitMergeRequest request) throws ConflictException {
+    acquireMergeLock();
 
-    // Persistence framework will inspect and update associated objects
-
-    idObjectManager.update(request.getTarget());
-
-    handleDeleteSources(request);
-
-    log.info("Org unit merge operation done: {}", request);
+    doMerge(request);
   }
 
   @Override
@@ -118,6 +117,27 @@ public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
   // -------------------------------------------------------------------------
   // Private methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Performs the merge. The merge lock must be held by the current transaction.
+   *
+   * @param request the {@link OrgUnitMergeRequest}.
+   */
+  private void doMerge(OrgUnitMergeRequest request) {
+    log.info("Org unit merge request: {}", request);
+
+    validator.validate(request);
+
+    handlers.forEach(handler -> handler.merge(request));
+
+    // Persistence framework will inspect and update associated objects
+
+    idObjectManager.update(request.getTarget());
+
+    handleDeleteSources(request);
+
+    log.info("Org unit merge operation done: {}", request);
+  }
 
   private ImmutableList<OrgUnitMergeHandler> getMergeHandlers(
       MetadataOrgUnitMergeHandler metadataHandler,
@@ -149,16 +169,15 @@ public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
   }
 
   /**
-   * Acquires the {@link MergeLock} shared by all merge types, which prevents concurrent merges,
-   * also across instances in a clustered deployment. Does not wait if the lock is held by another
-   * merge.
+   * Acquires the {@link MergeLock}, which prevents concurrent merges, also across instances in a
+   * clustered deployment. Does not wait if the lock is held by another merge.
    *
-   * @throws IllegalQueryException if another merge is in progress.
+   * @throws ConflictException if another merge is in progress.
    */
-  private void acquireMergeLock() throws IllegalQueryException {
+  private void acquireMergeLock() throws ConflictException {
     if (!mergeLock.tryAcquire()) {
       log.warn("Org unit merge rejected as another merge is in progress");
-      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1505));
+      throw new ConflictException(ErrorCode.E1505);
     }
   }
 

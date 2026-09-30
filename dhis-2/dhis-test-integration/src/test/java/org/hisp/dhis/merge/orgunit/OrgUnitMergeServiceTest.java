@@ -30,6 +30,7 @@
 package org.hisp.dhis.merge.orgunit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Lists;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -47,6 +49,7 @@ import javax.sql.DataSource;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeLock;
@@ -129,13 +132,12 @@ class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
 
     // Simulate a merge in progress on another connection, e.g. another cluster instance
     try (Connection other = dataSource.getConnection()) {
-      setMergeLock(other, "pg_advisory_lock");
+      holdMergeLock(other);
       try {
-        IllegalQueryException ex =
-            assertThrows(IllegalQueryException.class, () -> service.merge(request));
-        assertEquals(ErrorCode.E1505, ex.getErrorCode());
+        ConflictException ex = assertThrows(ConflictException.class, () -> service.merge(request));
+        assertEquals(ErrorCode.E1505, ex.getCode());
       } finally {
-        setMergeLock(other, "pg_advisory_unlock");
+        releaseMergeLock(other);
       }
     }
 
@@ -143,15 +145,66 @@ class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(idObjectManager.get(OrganisationUnit.class, ouB.getUid()));
   }
 
-  private void setMergeLock(Connection connection, String function) throws SQLException {
-    try (PreparedStatement ps = connection.prepareStatement("select " + function + "(?)")) {
-      ps.setLong(1, MergeLock.LOCK_KEY);
-      ps.execute();
+  @Test
+  @DisplayName("Merge acquires the merge lock before the org units in the query are resolved")
+  void testMergeQueryAcquiresMergeLockBeforeResolvingOrgUnits() throws SQLException {
+    OrgUnitMergeQuery query = new OrgUnitMergeQuery();
+    query.setSources(Lists.newArrayList(BASE_OU_UID + 'A', BASE_OU_UID + 'X'));
+    query.setTarget(BASE_OU_UID + 'C');
+
+    try (Connection other = dataSource.getConnection()) {
+      holdMergeLock(other);
+      try {
+        // E1503 (source org unit does not exist) would mean the org units were resolved first
+        ConflictException ex = assertThrows(ConflictException.class, () -> service.merge(query));
+        assertEquals(ErrorCode.E1505, ex.getCode());
+      } finally {
+        releaseMergeLock(other);
+      }
     }
   }
 
   @Test
-  void testMerge() {
+  @DisplayName("A running merge holds the merge lock until its transaction ends")
+  void testMergeHoldsMergeLockUntilTransactionEnds() throws ConflictException, SQLException {
+    service.merge(
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build());
+
+    // The merge joined the test transaction, which is still open
+    assertFalse(isMergeLockFree(dataSource));
+  }
+
+  /** Holds the merge lock on the given connection until {@link #releaseMergeLock} is called. */
+  static void holdMergeLock(Connection connection) throws SQLException {
+    assertTrue(
+        callMergeLockFunction(connection, "pg_try_advisory_lock"),
+        "merge lock is held by another session");
+  }
+
+  static void releaseMergeLock(Connection connection) throws SQLException {
+    callMergeLockFunction(connection, "pg_advisory_unlock");
+  }
+
+  /** Probes the merge lock from another session; a successful probe is released at once. */
+  static boolean isMergeLockFree(DataSource dataSource) throws SQLException {
+    try (Connection other = dataSource.getConnection()) {
+      return callMergeLockFunction(other, "pg_try_advisory_xact_lock");
+    }
+  }
+
+  private static boolean callMergeLockFunction(Connection connection, String function)
+      throws SQLException {
+    try (PreparedStatement ps = connection.prepareStatement("select " + function + "(?)")) {
+      ps.setLong(1, MergeLock.LOCK_KEY);
+      try (ResultSet rs = ps.executeQuery()) {
+        assertTrue(rs.next());
+        return rs.getBoolean(1);
+      }
+    }
+  }
+
+  @Test
+  void testMerge() throws ConflictException {
     DataSet dsA = createDataSet('A', ptA);
     dsA.addOrganisationUnit(ouA);
     dsA.addOrganisationUnit(ouB);
@@ -188,7 +241,7 @@ class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName("OrgUnit merge has correct users for new merged org unit")
-  void orgUnitMergeCorrectUsersTest() {
+  void orgUnitMergeCorrectUsersTest() throws ConflictException {
     // given multiple users
     // each of which have different kinds of access to the source org units
     Set<OrganisationUnit> sources = new HashSet<>(Arrays.asList(ouA, ouB));
