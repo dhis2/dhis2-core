@@ -49,6 +49,9 @@ public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticat
 
   public Http401LoginUrlAuthenticationEntryPoint(String loginFormUrl) {
     super(loginFormUrl);
+    // A relative Location keeps the client's scheme and host behind a TLS-terminating proxy
+    // (default since Spring Security 7)
+    setFavorRelativeUris(true);
   }
 
   @Override
