@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -430,7 +431,7 @@ public class CategoryOption extends BaseMetadataObject
   @Translatable(propertyName = "formName", key = "FORM_NAME")
   public String getDisplayFormName() {
     return translations.getTranslation(
-        "FORM_NAME", getFormName() != null ? getFormName() : getDisplayName());
+        "FORM_NAME", StringUtils.isEmpty(getFormName()) ? getDisplayName() : getFormName());
   }
 
   @Override

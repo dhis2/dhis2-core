@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.deadline;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.time.Duration;
+import org.springframework.dao.DataAccessException;
 
 /**
- * Exposes a static method to fetch an Executor for the Aggregates operations
+ * Thrown when a request has used up the time budget set for it. Maps to HTTP 504 Gateway Timeout.
  *
- * @author Luciano Fiandesio
+ * <p>Extends {@link DataAccessException} so it can be returned from {@code JdbcTemplate}'s
+ * exception translation, which is where a query cancelled by the deadline surfaces.
+ *
+ * <p>The message names the budget and nothing else. The caller knows the request they sent, and
+ * what made it slow is usually something it does not name, such as ordering by a non-indexed
+ * attribute. Nothing is logged either: the access log already records the 504, and the request is
+ * an idempotent GET, so diagnosis is to reproduce it rather than to read anything captured here.
  */
-class ThreadPoolManager {
-  // Thread factory that sets a user-defined thread name (useful for debugging
-  // purposes)
-  private ThreadPoolManager() {
-    throw new IllegalStateException("only used for its static fields");
+public class DeadlineExceededException extends DataAccessException {
+
+  public DeadlineExceededException(Duration budget) {
+    super(message(budget));
   }
 
-  private static final ThreadFactory threadFactory =
-      new ThreadFactoryBuilder().setNameFormat("TRACKER-TE-FETCH-%d").setDaemon(true).build();
+  public DeadlineExceededException(Duration budget, Throwable cause) {
+    super(message(budget), cause);
+  }
 
-  /** Cached thread pool: not bound to a size, but can reuse existing threads. */
-  private static final Executor AGGREGATE_THREAD_POOL =
-      Executors.newCachedThreadPool(threadFactory);
-
-  static Executor getPool() {
-    return AGGREGATE_THREAD_POOL;
+  private static String message(Duration budget) {
+    return "Request exceeded its time budget of %ss".formatted(budget.toSeconds());
   }
 }

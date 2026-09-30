@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.timeout;
+package org.hisp.dhis.deadline;
 
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
@@ -35,13 +35,17 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Bounds tracker export queries that go through Hibernate by the remaining budget of the request on
- * the current thread.
+ * Bounds queries that go through Hibernate by the remaining budget of the request on the current
+ * thread.
  *
- * <p>The JDBC export stores get this for free from {@link DeadlineAwareJdbcTemplate}. Hibernate has
- * no such interception point, so its export stores have to ask per query. A static helper rather
- * than a base class or an interceptor on {@code HibernateGenericStore}, because that store is
- * shared by every Hibernate store in DHIS2 and a deadline check there would not be tracker scoped.
+ * <p>The tracker export JDBC stores get this from {@code DeadlineAwareJdbcTemplate}, which times
+ * out every statement it issues. Hibernate has no equivalent single interception point per query,
+ * so {@code HibernateGenericStore} passes the queries it creates through {@link #withDeadline}, and
+ * a store that builds a query some other way can ask explicitly with {@link #resultList}, {@link
+ * #singleResult} or {@link #withDeadline}.
+ *
+ * <p>Every method here is a no-op when no deadline is set on this thread, so nothing outside a
+ * request that set one is affected.
  */
 public final class DeadlineQueries {
 
@@ -68,9 +72,9 @@ public final class DeadlineQueries {
   }
 
   /**
-   * Arms {@code query} with the budget left for this request without running it. Prefer {@link
-   * #resultList} or {@link #singleResult}, which arm and run in one call. This is only for a query
-   * that needs more configuration after it is created, such as paging.
+   * Gives {@code query} a timeout of the budget left for this request, without running it. Prefer
+   * {@link #resultList} or {@link #singleResult}, which set the timeout and run in one call. This
+   * is only for a query that needs more configuration after it is created, such as paging.
    */
   public static <Q extends Query> Q withDeadline(Q query) {
     Deadline deadline = DeadlineHolder.get();

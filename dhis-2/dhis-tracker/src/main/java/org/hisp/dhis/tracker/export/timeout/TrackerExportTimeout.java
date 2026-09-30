@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export.timeout;
 
 import java.time.Duration;
 import javax.annotation.CheckForNull;
+import org.hisp.dhis.deadline.Deadline;
 
 /**
  * The configured tracker export budget, resolved once at startup.

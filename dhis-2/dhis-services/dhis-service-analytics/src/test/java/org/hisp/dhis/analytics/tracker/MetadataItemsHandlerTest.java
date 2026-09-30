@@ -77,6 +77,7 @@ import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
@@ -1298,6 +1299,167 @@ class MetadataItemsHandlerTest {
   @Nested
   @DisplayName("Organisation Unit Hierarchy Tests")
   class OrgUnitHierarchyTests {
+
+    @ParameterizedTest
+    @CsvSource({
+      "LEVEL-2, true, false",
+      "OU_GROUP-CXw2yu5fodb, false, true",
+      "LEVEL-2;ImspTQPwCqd, true, true"
+    })
+    void shouldBuildHierarchyForActiveStageOrgUnits(
+        String selector, boolean showHierarchy, boolean hierarchyMeta) {
+      OrganisationUnit root = hierarchyRoot();
+      QueryItem item = stageOrgUnit("A03MvHHogjR", selector);
+      EventQueryParams params =
+          hierarchyParams()
+              .addItem(item)
+              .withShowHierarchy(showHierarchy)
+              .withHierarchyMeta(hierarchyMeta)
+              .build();
+      resolveStageOrgUnits(params, item, List.of(orgUnitA, orgUnitB));
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      grid.addRow().addValue(orgUnitB.getUid());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      if (hierarchyMeta) {
+        assertEquals(
+            Map.of(orgUnitB.getUid(), root.getUid()),
+            grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      }
+      if (showHierarchy) {
+        assertEquals(
+            Map.of(orgUnitB.getUid(), "/Country/" + orgUnitB.getName()),
+            grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+      }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void shouldKeepResolvedHierarchyForStageFiltersAndEmptyResults(boolean asFilter) {
+      OrganisationUnit root = hierarchyRoot();
+      QueryItem item = stageOrgUnit("A03MvHHogjR", "LEVEL-2");
+      EventQueryParams.Builder builder = hierarchyParams();
+      if (asFilter) {
+        builder.addItemFilter(item);
+      } else {
+        builder.addItem(item);
+      }
+      EventQueryParams params = builder.build();
+      resolveStageOrgUnits(params, item, List.of(orgUnitA, orgUnitB));
+      Grid grid = new ListGrid();
+      if (asFilter) {
+        grid.addHeader(new GridHeader("pe"));
+        grid.addRow().addValue("2021");
+      } else {
+        grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      }
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          Map.of(orgUnitA.getUid(), root.getUid(), orgUnitB.getUid(), root.getUid()),
+          grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), "/Country/" + orgUnitA.getName(),
+              orgUnitB.getUid(), "/Country/" + orgUnitB.getName()),
+          grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+    }
+
+    @Test
+    void shouldCombineHierarchyFromBareAndMultipleStageColumns() {
+      OrganisationUnit root = hierarchyRoot();
+      OrganisationUnit orgUnitC = createOrganisationUnit('C');
+      orgUnitC.setParent(root);
+      orgUnitC.setPath(root.getPath() + "/" + orgUnitC.getUid());
+      QueryItem firstStage = stageOrgUnit("A03MvHHogjR", "LEVEL-2");
+      QueryItem secondStage = stageOrgUnit("ZkbAXlQUYJG", "LEVEL-2");
+      EventQueryParams params =
+          hierarchyParams()
+              .withOrganisationUnits(List.of(orgUnitA, orgUnitB, orgUnitC))
+              .addItem(firstStage)
+              .addItem(secondStage)
+              .build();
+      resolveStageOrgUnits(params, firstStage, List.of(orgUnitA, orgUnitB));
+      when(organisationUnitResolver.resolveOrgUnits(params, secondStage))
+          .thenReturn(List.of(orgUnitA.getUid(), orgUnitC.getUid()));
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitC.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitC);
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem("LEVEL-2", IdScheme.UID))
+          .thenReturn(null);
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("ou"));
+      grid.addHeader(new GridHeader("A03MvHHogjR.ou"));
+      grid.addHeader(new GridHeader("ZkbAXlQUYJG.ou"));
+      grid.addRow()
+          .addValue(orgUnitA.getUid())
+          .addValue(orgUnitB.getUid())
+          .addValue(orgUnitC.getUid());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), root.getUid(),
+              orgUnitB.getUid(), root.getUid(),
+              orgUnitC.getUid(), root.getUid()),
+          grid.getMetaData().get(ORG_UNIT_HIERARCHY.getKey()));
+      assertEquals(
+          Map.of(
+              orgUnitA.getUid(), "/Country/" + orgUnitA.getName(),
+              orgUnitB.getUid(), "/Country/" + orgUnitB.getName(),
+              orgUnitC.getUid(), "/Country/" + orgUnitC.getName()),
+          grid.getMetaData().get(ORG_UNIT_NAME_HIERARCHY.getKey()));
+    }
+
+    private OrganisationUnit hierarchyRoot() {
+      OrganisationUnit root = createOrganisationUnit('R');
+      root.setName("Country");
+      root.setPath("/" + root.getUid());
+      orgUnitA.setParent(root);
+      orgUnitB.setParent(root);
+      orgUnitA.setPath(root.getPath() + "/" + orgUnitA.getUid());
+      orgUnitB.setPath(root.getPath() + "/" + orgUnitB.getUid());
+      return root;
+    }
+
+    private EventQueryParams.Builder hierarchyParams() {
+      return new EventQueryParams.Builder()
+          .withProgram(programA)
+          .withEndpointAction(AGGREGATE)
+          .withPeriods(createPeriodDimensions("2021"), "yearly")
+          .withShowHierarchy(true)
+          .withHierarchyMeta(true);
+    }
+
+    private QueryItem stageOrgUnit(String stageUid, String selector) {
+      ProgramStage stage = createProgramStage('S', programA);
+      stage.setUid(stageUid);
+      QueryItem item =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(stage));
+      item.setProgramStage(stage);
+      item.addFilter(new QueryFilter(QueryOperator.IN, selector));
+      return item;
+    }
+
+    private void resolveStageOrgUnits(
+        EventQueryParams params, QueryItem item, List<OrganisationUnit> orgUnits) {
+      when(organisationUnitResolver.resolveOrgUnits(params, item))
+          .thenReturn(orgUnits.stream().map(OrganisationUnit::getUid).toList());
+      for (OrganisationUnit orgUnit : orgUnits) {
+        when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnit.getUid(), IdScheme.UID))
+            .thenReturn(orgUnit);
+      }
+    }
 
     @Test
     @DisplayName("should add org unit hierarchy when hierarchyMeta is true")
