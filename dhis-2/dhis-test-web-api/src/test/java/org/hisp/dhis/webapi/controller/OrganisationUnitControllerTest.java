@@ -461,7 +461,14 @@ class OrganisationUnitControllerTest extends PostgresControllerIntegrationTestBa
   void testMergeRequiresMergeAuthority() {
     switchToNewUser("guest");
 
-    POST("/organisationUnits/merge", mergeBody(ou21, ou22)).content(HttpStatus.FORBIDDEN);
+    JsonWebMessage response =
+        POST("/organisationUnits/merge", mergeBody(ou21, ou22))
+            .content(HttpStatus.FORBIDDEN)
+            .as(JsonWebMessage.class);
+    assertEquals(
+        "Access is denied, requires one Authority from [F_ORGANISATION_UNIT_MERGE]",
+        response.getMessage());
+    assertNotNull(manager.get(OrganisationUnit.class, ou21));
   }
 
   @Test
