@@ -124,7 +124,7 @@
     <lettuce.version>6.8.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>13.6.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>13.7.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.12.0</ehcache3.version>
     <jaxb-runtime.version>4.0.9</jaxb-runtime.version>
@@ -146,8 +146,8 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.22.2</jackson.version>
-    <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
+    <jackson.version>2.22.3</jackson.version>
+    <jackson-datatype-jts.version>2.21.0</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
     <!-- JAXB -->
@@ -179,7 +179,7 @@
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.57.0</artemis-jakarta.version>
     <netty-all.version>4.2.18.Final</netty-all.version>
-    <classgraph.version>4.8.195</classgraph.version>
+    <classgraph.version>4.8.196</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.3.2</sms-compression.version>
@@ -252,7 +252,7 @@
     <restrict-imports-enforcer.version>3.0.2</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.20.1</versions-maven-plugin.version>
     <dependency-check-maven.version>13.0.0</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.9.8.3</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.10.4.1</spotbugs-maven-plugin.version>
     <spotless.version>3.10.2</spotless.version>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
@@ -1691,11 +1691,6 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>jdbc</artifactId>
-        <version>${testcontainers.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>minio</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
       <dependency>
