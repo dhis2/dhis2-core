@@ -164,6 +164,12 @@ public class AuthorizationServerConfig {
     OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
         OAuth2AuthorizationServerConfigurer.authorizationServer();
 
+    // A relative Location keeps the client's scheme and host behind a TLS-terminating proxy
+    // (default since Spring Security 7)
+    LoginUrlAuthenticationEntryPoint loginEntryPoint =
+        new LoginUrlAuthenticationEntryPoint("/login/");
+    loginEntryPoint.setFavorRelativeUris(true);
+
     http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
         .with(
             authorizationServerConfigurer,
@@ -182,8 +188,7 @@ public class AuthorizationServerConfig {
         .exceptionHandling(
             exceptions ->
                 exceptions.defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/login/"),
-                    new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
+                    loginEntryPoint, new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
     return http.build();
   }
