@@ -36,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -61,6 +62,8 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
   private String description;
 
   private String descriptionUrl;
+
+  private String image;
 
   // -----------------------------------------------------
   // Constructor
@@ -158,6 +161,7 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = 1024)
   public String getDescription() {
     return description;
   }
@@ -168,11 +172,23 @@ public class ExternalMapLayer extends BaseIdentifiableObject implements Metadata
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = 255)
   public String getDescriptionUrl() {
     return descriptionUrl;
   }
 
   public void setDescriptionUrl(String descriptionUrl) {
     this.descriptionUrl = descriptionUrl;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = 2097152)
+  public String getImage() {
+    return image;
+  }
+
+  public void setImage(String image) {
+    this.image = image;
   }
 }
