@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -188,6 +189,54 @@ class TeTaEncryptionValidationTest extends PostgresIntegrationTestBase {
         errors.stream().noneMatch(e -> ValidationCode.E1064.name().equals(e.getErrorCode())),
         () -> "the value of an unknown org unit must not collide, got: " + errors);
     assertFalse(errors.stream().anyMatch(e -> trackedEntity.equals(e.getUid())));
+  }
+
+  @Test
+  void shouldFailWhenEnrollmentOfTrackedEntityInDbSendsOrgUnitScopedValueStoredInItsOrgUnit()
+      throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    // another tracked entity in the country, with another value
+    trackerObjects =
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_region.json");
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        trackerObjects.getTrackedEntities().get(0);
+    trackedEntity.setOrgUnit(MetadataIdentifier.ofUid("cNEZTkdAvmg"));
+    trackedEntity.getAttributes().get(0).setValue("322");
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    // only the enrollment is sent, in the region, so the country of its tracked entity is not in
+    // the payload
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(UID.generate())
+            .trackedEntity(trackedEntity.getUID())
+            .program(MetadataIdentifier.ofUid("hJUBNVQWl4e"))
+            .orgUnit(MetadataIdentifier.ofUid("cNEZTkdAvfe"))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .status(EnrollmentStatus.ACTIVE)
+            .enrolledAt(Instant.now())
+            .occurredAt(Instant.now())
+            .attributes(
+                List.of(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("p5TPww5Uhrd"))
+                        .value("9001")
+                        .build(),
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("p5TPxx5Uhrf"))
+                        .value("321")
+                        .build()))
+            .build();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1064);
   }
 
   @Test

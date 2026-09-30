@@ -328,6 +328,43 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
   }
 
   @Test
+  void shouldLookUpOrgUnitScopedValueOfEnrollmentInTheOrgUnitOfItsTrackedEntityInDbNotInPreheat() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    // only org units referenced by the payload are preheated, so not the one of a tracked entity
+    // that only an enrollment refers to
+    OrganisationUnit dbOrgUnit = createOrganisationUnit('D');
+    dbOrgUnit.setId(4);
+    trackedEntity.setOrganisationUnit(dbOrgUnit);
+    preheat.putTrackedEntities(List.of(trackedEntity));
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(scopedAttribute));
+    when(trackedEntityAttributeValueService.getUniqueAttributeValues(
+            scopedAttribute, Map.of(dbOrgUnit.getId(), Set.of("s1"))))
+        .thenReturn(List.of(new UniqueAttributeValueMatch(ANOTHER_TE_UID, "s1", 4L)));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .enrollments(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+                        .enrollment(UID.generate())
+                        .trackedEntity(TE_UID)
+                        .attributes(List.of(value(scopedAttribute, "s1")))
+                        .build()))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertEquals(
+        List.of(
+            new UniqueAttributeValue(
+                ANOTHER_TE_UID,
+                MetadataIdentifier.ofUid(scopedAttribute),
+                "s1",
+                MetadataIdentifier.ofUid(dbOrgUnit))),
+        preheat.getUniqueAttributeValues("s1"));
+  }
+
+  @Test
   void shouldNotLookUpOrgUnitScopedValueWhenOrgUnitCannotBeResolved() {
     TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
     OrganisationUnit notInPreheat = createOrganisationUnit('N');

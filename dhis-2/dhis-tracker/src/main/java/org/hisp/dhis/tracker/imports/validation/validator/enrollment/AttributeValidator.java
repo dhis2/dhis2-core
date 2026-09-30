@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,8 +71,7 @@ class AttributeValidator
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(enrollment.getProgram());
-    OrganisationUnit orgUnit =
-        preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
+    OrganisationUnit orgUnit = getOrgUnitOfTrackedEntity(bundle, enrollment.getTrackedEntity());
 
     Set<MetadataIdentifier> mandatoryProgramAttributes =
         preheat.getMandatoryProgramAttributes(program);
@@ -191,10 +191,20 @@ class AttributeValidator
                     enrollment.getEnrollment()));
   }
 
-  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, UID te) {
+  /**
+   * The org unit of the tracked entity in the payload, or of the one in the DB when only the
+   * enrollment is sent. The org unit of a tracked entity in the DB is taken from the entity, as it
+   * is not preheated when the payload does not reference it.
+   */
+  private OrganisationUnit getOrgUnitOfTrackedEntity(TrackerBundle bundle, UID te) {
+    TrackerPreheat preheat = bundle.getPreheat();
     return bundle
         .findTrackedEntityByUid(te)
-        .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit)
-        .orElse(null);
+        .map(t -> preheat.getOrganisationUnit(t.getOrgUnit()))
+        .orElseGet(
+            () -> {
+              TrackedEntity trackedEntity = preheat.getTrackedEntity(te);
+              return trackedEntity == null ? null : trackedEntity.getOrganisationUnit();
+            });
   }
 }
