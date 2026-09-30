@@ -59,6 +59,9 @@ public class FormLoginBasicAuthenticationEntryPoint extends LoginUrlAuthenticati
    */
   public FormLoginBasicAuthenticationEntryPoint(String loginFormUrl) {
     super(loginFormUrl);
+    // A relative Location keeps the client's scheme and host behind a TLS-terminating proxy
+    // (default since Spring Security 7)
+    setFavorRelativeUris(true);
   }
 
   @Override
