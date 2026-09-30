@@ -43,7 +43,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.test.context.ActiveProfiles;
@@ -88,16 +87,16 @@ class LoginRedirectTest extends ControllerWithJwtTokenAuthTestBase {
             .clientSettings(ClientSettings.builder().requireProofKey(true).build())
             .build());
 
+    // The authorization endpoint only reads GET parameters that are in the query string
     mvc.perform(
-            get("/oauth2/authorize")
-                .accept(MediaType.TEXT_HTML)
-                .param("response_type", "code")
-                .param("client_id", clientId)
-                .param("redirect_uri", redirectUri)
-                .param("scope", "openid")
-                .param("state", "state")
-                .param(PkceParameterNames.CODE_CHALLENGE, CODE_CHALLENGE)
-                .param(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256"))
+            get(
+                    "/oauth2/authorize?response_type=code&client_id={clientId}"
+                        + "&redirect_uri={redirectUri}&scope=openid&state=state"
+                        + "&code_challenge={codeChallenge}&code_challenge_method=S256",
+                    clientId,
+                    redirectUri,
+                    CODE_CHALLENGE)
+                .accept(MediaType.TEXT_HTML))
         .andExpect(status().isFound())
         .andExpect(header().string(HttpHeaders.LOCATION, "/dhis-web-login/"));
   }
