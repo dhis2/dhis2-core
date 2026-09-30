@@ -71,7 +71,10 @@ class AttributeValidator
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(enrollment.getProgram());
-    OrganisationUnit orgUnit = getOrgUnitOfTrackedEntity(bundle, enrollment.getTrackedEntity());
+    TrackedEntity te = bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+
+    OrganisationUnit orgUnit =
+        preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
 
     Set<MetadataIdentifier> mandatoryProgramAttributes =
         preheat.getMandatoryProgramAttributes(program);
@@ -95,13 +98,7 @@ class AttributeValidator
         validateOptionSet(reporter, preheat, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
-            reporter,
-            preheat,
-            enrollment,
-            attribute.getValue(),
-            teAttribute,
-            enrollment.getTrackedEntity(),
-            orgUnit);
+            reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);
       }
     }
 
@@ -191,20 +188,10 @@ class AttributeValidator
                     enrollment.getEnrollment()));
   }
 
-  /**
-   * The org unit of the tracked entity in the payload, or of the one in the DB when only the
-   * enrollment is sent. The org unit of a tracked entity in the DB is taken from the entity, as it
-   * is not preheated when the payload does not reference it.
-   */
-  private OrganisationUnit getOrgUnitOfTrackedEntity(TrackerBundle bundle, UID te) {
-    TrackerPreheat preheat = bundle.getPreheat();
+  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, UID te) {
     return bundle
         .findTrackedEntityByUid(te)
-        .map(t -> preheat.getOrganisationUnit(t.getOrgUnit()))
-        .orElseGet(
-            () -> {
-              TrackedEntity trackedEntity = preheat.getTrackedEntity(te);
-              return trackedEntity == null ? null : trackedEntity.getOrganisationUnit();
-            });
+        .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit)
+        .orElse(null);
   }
 }

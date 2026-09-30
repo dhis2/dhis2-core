@@ -258,7 +258,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         }
 
         // an org unit that cannot be resolved can't match any stored value in the validation
-        OrganisationUnit orgUnit = getOrgUnit(preheat, entry.getKey());
+        OrganisationUnit orgUnit = preheat.getOrganisationUnit(entry.getKey().getOrgUnit());
         if (orgUnit != null) {
           orgUnitsById.put(orgUnit.getId(), orgUnit);
           valuesByOrgUnitIdByAttribute
@@ -290,21 +290,6 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
                     trackedEntityAttributeValueService.getUniqueAttributeValues(
                         attribute, valuesByOrgUnitId))));
     return uniqueAttributeValues;
-  }
-
-  /**
-   * The org unit of the tracked entity, falling back to the one of the tracked entity in the DB.
-   * The latter is only preheated when the payload references it, e.g. not when only an enrollment
-   * of the tracked entity is sent.
-   */
-  private static OrganisationUnit getOrgUnit(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity te) {
-    OrganisationUnit orgUnit = preheat.getOrganisationUnit(te.getOrgUnit());
-    if (orgUnit != null) {
-      return orgUnit;
-    }
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(te.getUID());
-    return trackedEntity == null ? null : trackedEntity.getOrganisationUnit();
   }
 
   private static List<UniqueAttributeValue> toUniqueAttributeValues(

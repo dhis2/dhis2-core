@@ -462,8 +462,11 @@ class AttributeValidatorTest {
 
   @Test
   void shouldPassValidationWhenOrgUnitScopedValueIsStoredForTheSameTrackedEntity() {
-    // also covers a new tracked entity, whose own value is in the payload duplicates
     TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+    org.hisp.dhis.tracker.model.TrackedEntity storedTrackedEntity =
+        new org.hisp.dhis.tracker.model.TrackedEntity();
+    storedTrackedEntity.setUid(trackedEntity.getUID().getValue());
+    when(preheat.getTrackedEntity(trackedEntity.getUID())).thenReturn(storedTrackedEntity);
 
     validator.validate(
         reporter,
@@ -492,18 +495,17 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void shouldPassValidationWhenOrgUnitScopedValueHasNoOrgUnit() {
+  void shouldPassValidationWhenSameValueIsStoredForAnAttributeUniqueInTheSystem() {
     TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
 
-    // e.g. the value of an enrollment of a tracked entity that exists neither in the payload nor
-    // in the DB: its org unit is unknown, so it can't be in the same org unit
+    // values from the DB of an attribute unique in the whole system have no org unit
     validator.validate(
         reporter,
         bundle,
         withStoredScopedValue(
             trackedEntity,
             new UniqueAttributeValue(
-                UID.generate(), MetadataIdentifier.ofUid("uid"), "abc", null)));
+                UID.generate(), MetadataIdentifier.ofUid("globalUid"), "abc", null)));
 
     assertIsEmpty(reporter.getErrors());
   }

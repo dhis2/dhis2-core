@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -328,43 +327,6 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
   }
 
   @Test
-  void shouldLookUpOrgUnitScopedValueOfEnrollmentInTheOrgUnitOfItsTrackedEntityInDbNotInPreheat() {
-    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
-    // only org units referenced by the payload are preheated, so not the one of a tracked entity
-    // that only an enrollment refers to
-    OrganisationUnit dbOrgUnit = createOrganisationUnit('D');
-    dbOrgUnit.setId(4);
-    trackedEntity.setOrganisationUnit(dbOrgUnit);
-    preheat.putTrackedEntities(List.of(trackedEntity));
-    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
-        .thenReturn(List.of(scopedAttribute));
-    when(trackedEntityAttributeValueService.getUniqueAttributeValues(
-            scopedAttribute, Map.of(dbOrgUnit.getId(), Set.of("s1"))))
-        .thenReturn(List.of(new UniqueAttributeValueMatch(ANOTHER_TE_UID, "s1", 4L)));
-    TrackerObjects importParams =
-        TrackerObjects.builder()
-            .enrollments(
-                List.of(
-                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-                        .enrollment(UID.generate())
-                        .trackedEntity(TE_UID)
-                        .attributes(List.of(value(scopedAttribute, "s1")))
-                        .build()))
-            .build();
-
-    this.supplier.preheatAdd(importParams, preheat);
-
-    assertEquals(
-        List.of(
-            new UniqueAttributeValue(
-                ANOTHER_TE_UID,
-                MetadataIdentifier.ofUid(scopedAttribute),
-                "s1",
-                MetadataIdentifier.ofUid(dbOrgUnit))),
-        preheat.getUniqueAttributeValues("s1"));
-  }
-
-  @Test
   void shouldNotLookUpOrgUnitScopedValueWhenOrgUnitCannotBeResolved() {
     TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
     OrganisationUnit notInPreheat = createOrganisationUnit('N');
@@ -379,43 +341,6 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
 
     verifyNoInteractions(trackedEntityAttributeValueService);
     assertThat(preheat.getUniqueAttributeValues("s1"), hasSize(0));
-  }
-
-  @Test
-  void shouldAddOrgUnitScopedValueWithoutOrgUnitWhenEnrollmentTrackedEntityDoesNotExist() {
-    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
-    OrganisationUnit orgUnit1 = orgUnitInPreheat('1', 1);
-    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
-        .thenReturn(List.of(scopedAttribute));
-    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-        trackedEntity(orgUnit1, value(scopedAttribute, "s1"));
-    UID unknownTrackedEntity = UID.generate();
-    TrackerObjects importParams =
-        TrackerObjects.builder()
-            .trackedEntities(List.of(trackedEntity))
-            .enrollments(
-                List.of(
-                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-                        .enrollment(UID.generate())
-                        .trackedEntity(unknownTrackedEntity)
-                        .attributes(List.of(value(scopedAttribute, "s1")))
-                        .build()))
-            .build();
-
-    this.supplier.preheatAdd(importParams, preheat);
-
-    // the tracked entity of the enrollment is in neither the payload nor the DB, so its org unit
-    // is unknown. The validation must treat it as being in no org unit
-    assertContainsOnly(
-        List.of(
-            new UniqueAttributeValue(
-                trackedEntity.getUID(),
-                MetadataIdentifier.ofUid(scopedAttribute),
-                "s1",
-                MetadataIdentifier.ofUid(orgUnit1)),
-            new UniqueAttributeValue(
-                unknownTrackedEntity, MetadataIdentifier.ofUid(scopedAttribute), "s1", null)),
-        preheat.getUniqueAttributeValues("s1"));
   }
 
   @Test
