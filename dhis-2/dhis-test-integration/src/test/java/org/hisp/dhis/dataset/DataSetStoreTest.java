@@ -284,6 +284,37 @@ class DataSetStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("dataSetElements owns the foreign key and deletes orphaned elements after reload")
+  void testJpaDataSetElementsOwnershipAndOrphanRemoval() {
+    DataElement first = createDataElementAndSave('A');
+    DataElement second = createDataElementAndSave('B');
+    DataSet dataSet = createDataSet('A', PERIOD_TYPE);
+    dataSet.getDataSetElements().add(new DataSetElement(null, first));
+    dataSet.getDataSetElements().add(new DataSetElement(null, second));
+    dataSetStore.save(dataSet);
+    long id = dataSet.getId();
+
+    clearSession();
+
+    DataSet reloaded = dataSetStore.get(id);
+    assertContainsOnly(List.of(first, second), reloaded.getDataElements());
+    reloaded.getDataSetElements().forEach(element -> assertEquals(id, element.getDataSet().getId()));
+
+    reloaded.getDataSetElements().clear();
+    dataSetStore.update(reloaded);
+    clearSession();
+
+    assertTrue(dataSetStore.get(id).getDataSetElements().isEmpty());
+    assertEquals(
+        0L,
+        entityManager
+            .createQuery("select count(e) from DataSetElement e", Long.class)
+            .getSingleResult());
+    assertNotNull(manager.get(DataElement.class, first.getUid()));
+    assertNotNull(manager.get(DataElement.class, second.getUid()));
+  }
+
+  @Test
   @DisplayName("indicators many-to-many join table round-trips after a reload")
   void testJpaIndicators() {
     IndicatorType type = createIndicatorType('A');

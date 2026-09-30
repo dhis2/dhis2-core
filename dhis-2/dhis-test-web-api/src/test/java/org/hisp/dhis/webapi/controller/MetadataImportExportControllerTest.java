@@ -1350,6 +1350,71 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
+  @DisplayName("Imported DataSetElements belong to their DataSet without explicit back-references")
+  void importDataSetElementsWithoutBackReferencesTest() {
+    DataElement first = createDataElement('A');
+    first.setUid("DeUid0000x1");
+    DataElement second = createDataElement('B');
+    second.setUid("DeUid0000x2");
+    manager.save(first);
+    manager.save(second);
+
+    String metadata =
+        """
+        {'dataSets': [{
+          'id': 'dsUid0000x1',
+          'name': 'test ds 1',
+          'shortName': 'test ds 1',
+          'periodType': 'Monthly',
+          'dataSetElements': [%s]
+        }]}
+        """;
+    String firstElement = "{'dataElement': {'id': 'DeUid0000x1'}}";
+    String secondElement = "{'dataElement': {'id': 'DeUid0000x2'}}";
+
+    POST("/metadata", metadata.formatted(firstElement + "," + secondElement))
+        .content(HttpStatus.OK);
+    startNewRequestSession();
+
+    JsonDataSet dataSet = GET("/dataSets/dsUid0000x1").content(HttpStatus.OK).as(JsonDataSet.class);
+    assertEquals(
+        Set.of("DeUid0000x1", "DeUid0000x2"),
+        dataSet.getDatSetElements().stream()
+            .map(element -> element.getDatElement().getId())
+            .collect(Collectors.toSet()));
+
+    POST("/metadata", metadata.formatted(firstElement)).content(HttpStatus.OK);
+    startNewRequestSession();
+
+    JsonDataSet updated = GET("/dataSets/dsUid0000x1").content(HttpStatus.OK).as(JsonDataSet.class);
+    assertEquals(
+        List.of("DeUid0000x1"),
+        updated.getDatSetElements().stream().map(element -> element.getDatElement().getId()).toList());
+    assertEquals(
+        1L,
+        entityManager
+            .createQuery("select count(e) from DataSetElement e", Long.class)
+            .getSingleResult());
+    assertNotNull(manager.get(DataElement.class, "DeUid0000x2"));
+
+    POST("/metadata", metadata.formatted("")).content(HttpStatus.OK);
+    startNewRequestSession();
+
+    assertTrue(
+        GET("/dataSets/dsUid0000x1")
+            .content(HttpStatus.OK)
+            .as(JsonDataSet.class)
+            .getDatSetElements()
+            .isEmpty());
+    assertEquals(
+        0L,
+        entityManager
+            .createQuery("select count(e) from DataSetElement e", Long.class)
+            .getSingleResult());
+    assertNotNull(manager.get(DataElement.class, "DeUid0000x1"));
+  }
+
+  @Test
   void testSaveNotificationTemplateWithDeliveryChannels() {
     POST("/metadata", Path.of("program/program_notification_template.json")).content(HttpStatus.OK);
     JsonObject template =
