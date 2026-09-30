@@ -75,6 +75,14 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   int getUserCount(UserQueryParams params);
 
   /**
+   * Returns the UIDs of the users matching the given query parameters.
+   *
+   * @param params the user query parameters.
+   * @return the UIDs of the matching users.
+   */
+  List<UID> getUserIds(UserQueryParams params);
+
+  /**
    * Returns number of all users
    *
    * @return number of users

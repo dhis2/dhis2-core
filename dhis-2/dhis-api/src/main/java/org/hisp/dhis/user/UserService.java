@@ -207,6 +207,14 @@ public interface UserService {
   void deleteUser(User user);
 
   /**
+   * Deletes the user with the given UID, like {@link #deleteUser(User)}.
+   *
+   * @param uid the UID of the user to delete.
+   * @return true if the user was deleted, false if no user has the UID.
+   */
+  boolean deleteUser(@Nonnull UID uid);
+
+  /**
    * Checks if the given user represents the last user with ALL authority.
    *
    * @param user the user.
@@ -240,6 +248,14 @@ public interface UserService {
    * @return number of users.
    */
   int getUserCount(UserQueryParams params);
+
+  /**
+   * Returns the UIDs of the users matching the given query parameters.
+   *
+   * @param params the user query parameters.
+   * @return the UIDs of the matching users.
+   */
+  List<UID> getUserIds(UserQueryParams params);
 
   /**
    * Returns number of all users
