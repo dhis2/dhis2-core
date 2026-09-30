@@ -192,8 +192,7 @@ public class DataSet extends BaseMetadataObject
   /** All DataElements associated with this DataSet. */
   // The collection owns the FK; metadata import clears references to an unsaved DataSet.
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(
-      name = "datasetid", foreignKey = @ForeignKey(name = "fk_datasetmembers_datasetid"))
+  @JoinColumn(name = "datasetid", foreignKey = @ForeignKey(name = "fk_datasetmembers_datasetid"))
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<DataSetElement> dataSetElements = new HashSet<>();
 

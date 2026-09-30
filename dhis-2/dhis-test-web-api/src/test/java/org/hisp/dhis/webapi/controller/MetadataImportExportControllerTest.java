@@ -1389,7 +1389,9 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     JsonDataSet updated = GET("/dataSets/dsUid0000x1").content(HttpStatus.OK).as(JsonDataSet.class);
     assertEquals(
         List.of("DeUid0000x1"),
-        updated.getDatSetElements().stream().map(element -> element.getDatElement().getId()).toList());
+        updated.getDatSetElements().stream()
+            .map(element -> element.getDatElement().getId())
+            .toList());
     assertEquals(
         1L,
         entityManager

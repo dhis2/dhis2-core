@@ -298,7 +298,9 @@ class DataSetStoreTest extends PostgresIntegrationTestBase {
 
     DataSet reloaded = dataSetStore.get(id);
     assertContainsOnly(List.of(first, second), reloaded.getDataElements());
-    reloaded.getDataSetElements().forEach(element -> assertEquals(id, element.getDataSet().getId()));
+    reloaded
+        .getDataSetElements()
+        .forEach(element -> assertEquals(id, element.getDataSet().getId()));
 
     reloaded.getDataSetElements().clear();
     dataSetStore.update(reloaded);
