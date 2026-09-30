@@ -266,12 +266,11 @@ public interface DataEntryStore {
    * DE-DS connection.
    *
    * @param dataSet DS to check (scope)
-   * @param dataElement DE to check (scope)
-   * @param optionCombos COCs to check
+   * @param cocsByDataElement COCs by DE to check (scope)
    * @return all COCs that are not connected to the CC for the given DS-DE combination and thus
    *     illegal to use. Meaning in a successful check the result is empty.
    */
-  List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos);
+  List<String> getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement);
 
   /**
    * Checks that all given AOCs belong to the CC defined by the given DS.

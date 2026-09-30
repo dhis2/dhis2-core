@@ -34,6 +34,7 @@ import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.comparingLong;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -632,13 +633,16 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8023, ds, aocNotInDs);
 
     // - require: COC must link (belong) to the CC of the DE
-    Iterator<UID> deIter = source.dataElements().distinct().iterator();
-    while (deIter.hasNext()) {
-      UID de = deIter.next();
-      List<String> cocNotInDs =
-          store.getCocNotInDataSet(ds, de, source.categoryOptionCombosForDataElement(de));
-      if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8024, ds, de, cocNotInDs);
-    }
+    List<String> cocNotInDs =
+        store.getCocNotInDataSet(
+            ds,
+            source
+                .dataElements()
+                .distinct()
+                .collect(toMap(Function.identity(), source::categoryOptionCombosForDataElement)));
+    if (!cocNotInDs.isEmpty())
+      throw new ConflictException(
+          ErrorCode.E8024, ds, cocNotInDs.get(0), List.of(cocNotInDs.get(1)));
 
     // - require: OU must be within the hierarchy of each CO for AOC => COs => OUs
     Set<String> aocOuRestricted =
