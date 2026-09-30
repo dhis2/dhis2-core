@@ -298,6 +298,9 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
       Map<Long, OrganisationUnit> orgUnitsById,
       List<UniqueAttributeValueMatch> matches) {
     MetadataIdentifier attributeIdentifier = idSchemes.toMetadataIdentifier(attribute);
+    // only org units of org unit scoped lookups are known. The org unit of a value unique in the
+    // whole system is not needed by the validation, and resolving it would need a query
+    boolean orgUnitScoped = attribute.getOrgUnitScopeNullSafe();
     return matches.stream()
         .map(
             match ->
@@ -305,9 +308,9 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
                     match.trackedEntity(),
                     attributeIdentifier,
                     match.value(),
-                    match.orgUnitId() == null
-                        ? null
-                        : idSchemes.toMetadataIdentifier(orgUnitsById.get(match.orgUnitId()))))
+                    orgUnitScoped
+                        ? idSchemes.toMetadataIdentifier(orgUnitsById.get(match.orgUnitId()))
+                        : null))
         .toList();
   }
 

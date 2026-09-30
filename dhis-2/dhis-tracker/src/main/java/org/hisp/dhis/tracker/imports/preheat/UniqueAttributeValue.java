@@ -37,6 +37,9 @@ import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
  * Simple record used to store the data for {@link TrackedEntityAttributeValue} that are needed in
  * the Validation phase
  *
+ * @param orgUnit org unit of the tracked entity owning the value. Null when it is unknown (e.g. an
+ *     enrollment of a tracked entity that does not exist) and for values from the DB of an
+ *     attribute unique in the whole system, where the validation does not use it
  * @author Enrico Colasante
  */
 public record UniqueAttributeValue(

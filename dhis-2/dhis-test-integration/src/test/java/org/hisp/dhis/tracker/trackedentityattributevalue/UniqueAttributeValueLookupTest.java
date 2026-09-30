@@ -109,8 +109,8 @@ class UniqueAttributeValueLookupTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(
         List.of(
-            new UniqueAttributeValueMatch(UID.of(trackedEntityA), "Value1", null),
-            new UniqueAttributeValueMatch(UID.of(trackedEntityB), "value2", null)),
+            new UniqueAttributeValueMatch(UID.of(trackedEntityA), "Value1", orgUnitA.getId()),
+            new UniqueAttributeValueMatch(UID.of(trackedEntityB), "value2", orgUnitB.getId())),
         matches);
   }
 
@@ -169,7 +169,7 @@ class UniqueAttributeValueLookupTest extends PostgresIntegrationTestBase {
     valuesByOrgUnitId.put(orgUnitB.getId(), orgUnitBValues);
 
     assertContainsOnly(
-        List.of(new UniqueAttributeValueMatch(UID.of(globalMatch), "value1", null)),
+        List.of(new UniqueAttributeValueMatch(UID.of(globalMatch), "value1", orgUnitA.getId())),
         attributeValueService.getUniqueAttributeValues(globalAttribute, values));
     assertContainsOnly(
         List.of(new UniqueAttributeValueMatch(UID.of(scopedMatch), "value1", orgUnitB.getId())),

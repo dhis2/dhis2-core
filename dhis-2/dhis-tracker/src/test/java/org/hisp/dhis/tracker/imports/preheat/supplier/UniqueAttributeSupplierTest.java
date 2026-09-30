@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -341,6 +342,64 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
 
     verifyNoInteractions(trackedEntityAttributeValueService);
     assertThat(preheat.getUniqueAttributeValues("s1"), hasSize(0));
+  }
+
+  @Test
+  void shouldAddOrgUnitScopedValueWithoutOrgUnitWhenEnrollmentTrackedEntityDoesNotExist() {
+    TrackedEntityAttribute scopedAttribute = scopedUniqueAttribute();
+    OrganisationUnit orgUnit1 = orgUnitInPreheat('1', 1);
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(List.of(scopedAttribute));
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        trackedEntity(orgUnit1, value(scopedAttribute, "s1"));
+    UID unknownTrackedEntity = UID.generate();
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(List.of(trackedEntity))
+            .enrollments(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+                        .enrollment(UID.generate())
+                        .trackedEntity(unknownTrackedEntity)
+                        .attributes(List.of(value(scopedAttribute, "s1")))
+                        .build()))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    // the tracked entity of the enrollment is in neither the payload nor the DB, so its org unit
+    // is unknown. The validation must treat it as being in no org unit
+    assertContainsOnly(
+        List.of(
+            new UniqueAttributeValue(
+                trackedEntity.getUID(),
+                MetadataIdentifier.ofUid(scopedAttribute),
+                "s1",
+                MetadataIdentifier.ofUid(orgUnit1)),
+            new UniqueAttributeValue(
+                unknownTrackedEntity, MetadataIdentifier.ofUid(scopedAttribute), "s1", null)),
+        preheat.getUniqueAttributeValues("s1"));
+  }
+
+  @Test
+  void shouldAddValuesFoundInDbWithoutOrgUnitWhenAttributeIsUniqueInTheSystem() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    when(trackedEntityAttributeValueService.getUniqueAttributeValues(
+            uniqueAttribute, Set.of(UNIQUE_VALUE)))
+        .thenReturn(List.of(new UniqueAttributeValueMatch(TE_UID, UNIQUE_VALUE, 42L)));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(Collections.singletonList(anotherTrackedEntity()))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertEquals(
+        List.of(
+            new UniqueAttributeValue(
+                TE_UID, MetadataIdentifier.ofUid(uniqueAttribute), UNIQUE_VALUE, null)),
+        preheat.getUniqueAttributeValues(UNIQUE_VALUE));
   }
 
   private TrackedEntityAttribute scopedUniqueAttribute() {

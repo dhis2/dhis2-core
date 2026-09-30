@@ -65,26 +65,22 @@ final class UniqueAttributeValues {
   private final HttpClient client = HttpClient.newHttpClient();
   private final long first;
   private final long populatedValues;
-  private final boolean stored;
   private final AtomicLong next;
 
   private UniqueAttributeValues(
-      String attribute,
-      String instance,
-      String authorization,
-      long first,
-      long populatedValues,
-      boolean stored) {
+      String attribute, String instance, String authorization, long first, long populatedValues) {
     this.attribute = attribute;
     this.instance = instance;
     this.authorization = authorization;
     this.first = first;
     this.populatedValues = populatedValues;
-    this.stored = stored;
     this.next = new AtomicLong(first);
   }
 
-  /** Reads where the previous run stopped from the dataStore, starting at 1 if it never ran. */
+  /**
+   * Reads where the previous run stopped from the dataStore key written by {@code
+   * scripts/populate-unique-attribute.sh}, failing if the database was not populated.
+   */
   static UniqueAttributeValues load(
       String attribute, String instance, String username, String password)
       throws IOException, InterruptedException {
@@ -102,27 +98,27 @@ final class UniqueAttributeValues {
                     .build(),
                 HttpResponse.BodyHandlers.ofString());
 
-    UniqueAttributeValues values;
     if (response.statusCode() == 404) {
-      logger.warn(
-          "No populated values found in {}: values of {} will not collide with stored ones."
-              + " Run scripts/populate-unique-attribute.sh first.",
-          DATASTORE_PATH,
-          attribute);
-      values = new UniqueAttributeValues(attribute, instance, authorization, 1, 0, false);
-    } else if (response.statusCode() == 200) {
-      values =
-          new UniqueAttributeValues(
-              attribute,
-              instance,
-              authorization,
-              number(response.body(), "next"),
-              number(response.body(), "populatedValues"),
-              true);
-    } else {
+      // without it the attribute usually does not exist either, failing every import with E1006
+      throw new IllegalStateException(
+          "-DuniqueAttribute="
+              + attribute
+              + " is set but the database was not populated ("
+              + DATASTORE_PATH
+              + " not found). Run scripts/populate-unique-attribute.sh first, e.g. by setting"
+              + " POPULATE_SCRIPT=scripts/populate-unique-attribute.sh for run-simulation.sh.");
+    }
+    if (response.statusCode() != 200) {
       throw new IllegalStateException(
           "Failed to read " + DATASTORE_PATH + ": HTTP " + response.statusCode());
     }
+    UniqueAttributeValues values =
+        new UniqueAttributeValues(
+            attribute,
+            instance,
+            authorization,
+            number(response.body(), "next"),
+            number(response.body(), "populatedValues"));
 
     logger.info(
         "Sending values of unique attribute {} starting at {} ({} populated values)",
@@ -158,7 +154,7 @@ final class UniqueAttributeValues {
             HttpRequest.newBuilder(URI.create(instance + DATASTORE_PATH))
                 .header("Authorization", authorization)
                 .header("Content-Type", "application/json")
-                .method(stored ? "PUT" : "POST", HttpRequest.BodyPublishers.ofString(body))
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
                 .build(),
             HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() >= 300) {
@@ -172,7 +168,7 @@ final class UniqueAttributeValues {
     }
 
     logger.info("Sent values {} to {} of unique attribute {}", first, nextValue - 1, attribute);
-    if (stored && nextValue - 1 > populatedValues) {
+    if (nextValue - 1 > populatedValues) {
       logger.warn(
           "Sent values up to {} but only {} values are populated: values above it collide with no"
               + " stored value. Populate more values per org unit to keep the benchmark comparable.",

@@ -96,8 +96,7 @@ class HibernateTrackedEntityAttributeValueStore
 
   /**
    * Finds the stored values of {@code attribute} matching any of {@code values} (case-insensitive),
-   * in any org unit. The org unit is not part of the matches, as it is irrelevant for an attribute
-   * unique in the whole system.
+   * in any org unit.
    */
   public List<UniqueAttributeValueMatch> getUniqueAttributeValues(
       TrackedEntityAttribute attribute, Set<String> values) {
@@ -113,7 +112,7 @@ class HibernateTrackedEntityAttributeValueStore
               row ->
                   matches.add(
                       new UniqueAttributeValueMatch(
-                          UID.of((String) row[0]), (String) row[1], null)));
+                          UID.of((String) row[0]), (String) row[1], (Long) row[2])));
     }
     return matches;
   }
