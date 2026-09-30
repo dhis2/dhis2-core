@@ -384,6 +384,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "valueAlsoLegendSetDimension",
+      "query": "/api/analytics/events/aggregate/eBAyeGv0exc.json?dimension=pe:LAST_12_MONTHS&dimension=Zj7UnCAulEk.qrur9Dvnyt5-Yf6UHoPkdS6&filter=ou:ImspTQPwCqd&stage=Zj7UnCAulEk&value=Zj7UnCAulEk.qrur9Dvnyt5&aggregationType=AVERAGE&relativePeriodDate=2023-01-01",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
