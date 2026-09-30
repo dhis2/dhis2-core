@@ -421,12 +421,24 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   public List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos) {
     String sql =
         """
-        SELECT unnest(CAST(:coc AS varchar(11)[])) AS uid
-        EXCEPT
-        SELECT unnest(coc_uids)
-        FROM v_dataentry_cocs_of_ds_de
-        WHERE ds_uid = :ds AND de_uid = :de""";
-
+      WITH coc_list(uid) AS ( SELECT DISTINCT UNNEST(:coc) AS uid ),
+      dsde_coc AS (
+          SELECT coc_cc.categoryoptioncomboid
+          FROM categorycombos_optioncombos coc_cc
+          WHERE coc_cc.categorycomboid = (
+              SELECT COALESCE(dse.categorycomboid, de.categorycomboid)
+              FROM datasetelement dse
+              JOIN dataelement de ON de.dataelementid = dse.dataelementid
+              JOIN dataset ds ON ds.datasetid = dse.datasetid
+              WHERE ds.uid = :ds
+                AND de.uid = :de
+          )
+      )
+      SELECT coc_list.uid
+      FROM coc_list
+      LEFT JOIN categoryoptioncombo coc ON coc_list.uid = coc.uid
+      LEFT JOIN dsde_coc excluded ON coc.categoryoptioncomboid = excluded.categoryoptioncomboid
+      WHERE excluded.categoryoptioncomboid IS NULL""";
     String ds = dataSet.getValue();
     String de = dataElement.getValue();
     UID defaultCoc = getDefaultCategoryOptionComboUid();
