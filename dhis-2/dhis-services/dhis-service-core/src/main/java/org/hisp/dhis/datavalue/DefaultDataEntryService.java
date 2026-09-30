@@ -633,16 +633,16 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8023, ds, aocNotInDs);
 
     // - require: COC must link (belong) to the CC of the DE
-    List<String> cocNotInDs =
+    DataEntryStore.DeCoc cocNotInDs =
         store.getCocNotInDataSet(
             ds,
             source
                 .dataElements()
                 .distinct()
                 .collect(toMap(Function.identity(), source::categoryOptionCombosForDataElement)));
-    if (!cocNotInDs.isEmpty())
+    if (cocNotInDs != null)
       throw new ConflictException(
-          ErrorCode.E8024, ds, cocNotInDs.get(0), List.of(cocNotInDs.get(1)));
+          ErrorCode.E8024, ds, cocNotInDs.deId(), List.of(cocNotInDs.cocId()));
 
     // - require: OU must be within the hierarchy of each CO for AOC => COs => OUs
     Set<String> aocOuRestricted =

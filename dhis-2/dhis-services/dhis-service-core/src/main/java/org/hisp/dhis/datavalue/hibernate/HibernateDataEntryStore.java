@@ -418,7 +418,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public List<String> getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement) {
+  public DeCoc getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement) {
     // the core idea is that we unfold the mapping into a list of DE-COC pairs and use that a bulk
     // input we test with
     UID defaultCoc = getDefaultCategoryOptionComboUid();
@@ -441,29 +441,36 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     String sql =
         """
         WITH input(de_uid, coc_uid) AS (
-            SELECT * FROM unnest(CAST(:de AS varchar(11)[]), CAST(:coc AS varchar(11)[]))
+            SELECT * FROM unnest(CAST(:de  AS varchar(11)[]),
+                                 CAST(:coc AS varchar(11)[]))
         )
         SELECT i.de_uid, i.coc_uid
         FROM input i
-        LEFT JOIN (
-            SELECT i2.de_uid, coc.uid AS coc_uid
-            FROM input i2
-            JOIN dataelement de ON de.uid = i2.de_uid
-            JOIN datasetelement dse ON dse.dataelementid = de.dataelementid
-            JOIN dataset ds ON ds.datasetid = dse.datasetid
-            JOIN categorycombos_optioncombos coc_cc
-                ON coc_cc.categorycomboid = COALESCE(dse.categorycomboid, de.categorycomboid)
-            JOIN categoryoptioncombo coc
-                ON coc.categoryoptioncomboid = coc_cc.categoryoptioncomboid
-            WHERE ds.uid = :ds
-        ) v ON v.de_uid = i.de_uid AND v.coc_uid = i.coc_uid
-        WHERE v.coc_uid IS NULL
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM dataelement de
+                     JOIN datasetelement dse ON dse.dataelementid = de.dataelementid
+                     JOIN dataset ds ON ds.datasetid = dse.datasetid
+                     JOIN categorycombos_optioncombos coc_cc
+                          ON coc_cc.categorycomboid = COALESCE(dse.categorycomboid, de.categorycomboid)
+                     JOIN categoryoptioncombo coc
+                          ON coc.categoryoptioncomboid = coc_cc.categoryoptioncomboid
+            WHERE ds.uid  = :ds
+              AND de.uid  = i.de_uid
+              AND coc.uid = i.coc_uid
+        )
         LIMIT 1""";
     String ds = dataSet.getValue();
     String[] de = deFlat.toArray(String[]::new);
     String[] coc = cocFlat.toArray(String[]::new);
-    return listAsStrings(
-        sql, q -> q.setParameter("coc", coc).setParameter("ds", ds).setParameter("de", de));
+    List<Object[]> deCoc =
+        createNativeRawQuery(sql)
+            .setParameter("coc", coc)
+            .setParameter("ds", ds)
+            .setParameter("de", de)
+            .list();
+    if (deCoc == null || deCoc.isEmpty()) return null;
+    return new DeCoc((String) deCoc.get(0)[0], (String) deCoc.get(0)[1]);
   }
 
   @Override

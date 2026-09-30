@@ -261,8 +261,10 @@ public interface DataEntryStore {
    */
   List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
 
+  record DeCoc(String deId, String cocId) {}
+
   /**
-   * Checks that all given COCs belong to the CC used by the DE. This CC might be overridden by the
+   * Checks that all given COCs belong to the CC used by the DEs. This CC might be overridden by the
    * DE-DS connection.
    *
    * @param dataSet DS to check (scope)
@@ -270,7 +272,7 @@ public interface DataEntryStore {
    * @return all COCs that are not connected to the CC for the given DS-DE combination and thus
    *     illegal to use. Meaning in a successful check the result is empty.
    */
-  List<String> getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement);
+  DeCoc getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement);
 
   /**
    * Checks that all given AOCs belong to the CC defined by the given DS.
