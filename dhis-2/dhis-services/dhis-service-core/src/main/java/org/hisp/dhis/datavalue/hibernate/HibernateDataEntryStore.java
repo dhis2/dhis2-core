@@ -62,6 +62,7 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UIDConnection;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataEntryGroup;
@@ -363,39 +364,58 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public List<String> getOrgUnitsNotInAocHierarchy(UID attrOptionCombo, Stream<UID> orgUnits) {
-    // WITH part builds lists of paths for each CO connected to the AOC
-    // the main SELECT then checks that any OU in parameter list
-    // that does not have an exact or descendant match in each path list
-    // is included in the result
+  public UIDConnection getOrgUnitsNotInAocHierarchy(Map<UID, Stream<UID>> orgUnitsByAoc) {
+    List<String> aocFlat = new ArrayList<>();
+    List<String> ouFlat = new ArrayList<>();
+    for (var entry : orgUnitsByAoc.entrySet()) {
+      String aoc = entry.getKey().getValue();
+      entry
+          .getValue()
+          .map(UID::getValue)
+          .distinct()
+          .forEach(
+              ou -> {
+                aocFlat.add(aoc);
+                ouFlat.add(ou);
+              });
+    }
+
     String sql =
         """
-        WITH aoc_orgs AS (
-          SELECT aoc_co.categoryoptionid, array_agg(DISTINCT ou.path) AS paths
-          FROM categoryoptioncombo aoc
-          JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
-          JOIN categoryoption_organisationunits co_ou ON aoc_co.categoryoptionid = co_ou.categoryoptionid
-          JOIN organisationunit ou ON co_ou.organisationunitid = ou.organisationunitid
-          WHERE aoc.uid = :aoc
-          GROUP BY aoc_co.categoryoptionid
-        )
-        SELECT DISTINCT ou.uid
-        FROM organisationunit ou
-        JOIN unnest(:ou) AS oux(uid) ON ou.uid = oux.uid
-        WHERE EXISTS (
-          SELECT 1
-          FROM aoc_orgs
-          WHERE NOT EXISTS (
-            SELECT 1
-            FROM unnest(aoc_orgs.paths) AS org_path(path)
-            WHERE
-              ou.path = org_path.path OR         -- Exact match
-              ou.path LIKE org_path.path || '/%'  -- Descendant match
-          )
-        )""";
-    String aoc = attrOptionCombo.getValue();
-    String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStrings(sql, q -> q.setParameter("aoc", aoc).setParameter("ou", ou));
+       WITH input(aoc_uid, ou_uid) AS (
+         SELECT *
+         FROM unnest(
+             CAST(:aoc AS varchar(11)[]),
+             CAST(:ou  AS varchar(11)[])
+         )
+       )
+       SELECT i.aoc_uid, i.ou_uid
+       FROM input i
+       JOIN organisationunit ou ON ou.uid = i.ou_uid
+       WHERE EXISTS (
+           SELECT 1
+           FROM categoryoptioncombo aoc
+           JOIN categoryoptioncombos_categoryoptions aoc_co
+               ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
+           WHERE aoc.uid = i.aoc_uid
+             AND NOT EXISTS (
+               SELECT 1
+               FROM categoryoption_organisationunits co_ou
+               JOIN organisationunit org
+                   ON org.organisationunitid = co_ou.organisationunitid
+               WHERE co_ou.categoryoptionid = aoc_co.categoryoptionid
+                 AND (ou.path = org.path OR ou.path LIKE org.path || '/%')
+             )
+       )
+       LIMIT 1""";
+
+    List<Object[]> deCoc =
+        createNativeRawQuery(sql)
+            .setParameter("aoc", aocFlat.toArray(String[]::new))
+            .setParameter("ou", ouFlat.toArray(String[]::new))
+            .list();
+    if (deCoc == null || deCoc.isEmpty()) return null;
+    return new UIDConnection(UID.of((String) deCoc.get(0)[0]), UID.of((String) deCoc.get(0)[1]));
   }
 
   @Override
@@ -418,7 +438,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public DeCoc getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement) {
+  public UIDConnection getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement) {
     // the core idea is that we unfold the mapping into a list of DE-COC pairs and use that a bulk
     // input we test with
     UID defaultCoc = getDefaultCategoryOptionComboUid();
@@ -470,7 +490,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             .setParameter("de", de)
             .list();
     if (deCoc == null || deCoc.isEmpty()) return null;
-    return new DeCoc((String) deCoc.get(0)[0], (String) deCoc.get(0)[1]);
+    return new UIDConnection(UID.of((String) deCoc.get(0)[0]), UID.of((String) deCoc.get(0)[1]));
   }
 
   @Override
