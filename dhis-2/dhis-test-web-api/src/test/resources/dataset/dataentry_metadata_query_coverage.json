@@ -1,0 +1,101 @@
+{
+  "categoryOptions": [
+    { "id": "coMale00001", "name": "cov Male", "shortName": "cov M" },
+    { "id": "coFemale001", "name": "cov Female", "shortName": "cov F" },
+    { "id": "coYoung0001", "name": "cov Young", "shortName": "cov Y" },
+    { "id": "coOld000001", "name": "cov Old", "shortName": "cov O" }
+  ],
+  "categories": [
+    {
+      "id": "catSex00001",
+      "name": "cov sex",
+      "shortName": "cov sex",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [{ "id": "coMale00001" }, { "id": "coFemale001" }]
+    },
+    {
+      "id": "catAge00001",
+      "name": "cov age",
+      "shortName": "cov age",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [{ "id": "coYoung0001" }, { "id": "coOld000001" }]
+    }
+  ],
+  "categoryCombos": [
+    {
+      "id": "ccSex000001",
+      "name": "cov sexCombo",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [{ "id": "catSex00001" }]
+    },
+    {
+      "id": "ccAge000001",
+      "name": "cov ageCombo",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [{ "id": "catAge00001" }]
+    }
+  ],
+  "options": [
+    { "id": "optRed00001", "code": "RED", "name": "Red", "sortOrder": 1, "optionSet": { "id": "osColor0001" } },
+    { "id": "optBlue0001", "code": "BLUE", "name": "Blue", "sortOrder": 2, "optionSet": { "id": "osColor0001" } }
+  ],
+  "optionSets": [
+    { "id": "osColor0001", "name": "cov Colors", "valueType": "TEXT" }
+  ],
+  "dataElements": [
+    {
+      "id": "deA00000001",
+      "name": "cov de A",
+      "shortName": "cov de A",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "aggregationType": "SUM",
+      "categoryCombo": { "id": "ccSex000001" }
+    },
+    {
+      "id": "deB00000001",
+      "name": "cov de B",
+      "shortName": "cov de B",
+      "domainType": "AGGREGATE",
+      "valueType": "TEXT",
+      "aggregationType": "NONE",
+      "optionSet": { "id": "osColor0001" }
+    },
+    {
+      "id": "deC00000001",
+      "name": "cov de C",
+      "shortName": "cov de C",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "aggregationType": "SUM",
+      "categoryCombo": { "id": "ccSex000001" }
+    }
+  ],
+  "dataSets": [
+    {
+      "id": "dsOne000001",
+      "name": "cov DS One",
+      "shortName": "cov DS One",
+      "periodType": "Monthly",
+      "dataSetElements": [
+        { "dataSet": { "id": "dsOne000001" }, "dataElement": { "id": "deA00000001" } },
+        {
+          "dataSet": { "id": "dsOne000001" },
+          "dataElement": { "id": "deB00000001" },
+          "categoryCombo": { "id": "ccAge000001" }
+        }
+      ]
+    },
+    {
+      "id": "dsTwo000001",
+      "name": "cov DS Two",
+      "shortName": "cov DS Two",
+      "periodType": "Monthly",
+      "categoryCombo": { "id": "ccSex000001" },
+      "dataSetElements": [
+        { "dataSet": { "id": "dsTwo000001" }, "dataElement": { "id": "deA00000001" } },
+        { "dataSet": { "id": "dsTwo000001" }, "dataElement": { "id": "deC00000001" } }
+      ]
+    }
+  ]
+}

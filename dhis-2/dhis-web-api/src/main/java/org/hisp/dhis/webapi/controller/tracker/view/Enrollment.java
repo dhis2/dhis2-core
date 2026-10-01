@@ -87,8 +87,6 @@ public class Enrollment {
 
   @JsonProperty private boolean deleted;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private User createdBy;
 
   @JsonProperty private User updatedBy;

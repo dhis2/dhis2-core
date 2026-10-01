@@ -238,11 +238,12 @@ public class UserDatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false) Integer roll,
       @RequestParam(defaultValue = "false") boolean encrypt)
       throws BadRequestException, ConflictException {
-    UserDatastoreEntry userEntry = service.getUserEntry(getUser(username), namespace, key);
+    User user = getUser(username);
+    UserDatastoreEntry userEntry = service.getUserEntry(user, namespace, key);
 
     if (userEntry == null) return addEntry(namespace, key, username, value, encrypt);
 
-    service.updateEntry(namespace, key, value, path, roll);
+    service.updateEntry(user.getId(), namespace, key, value, path, roll);
     return ok(String.format("Key updated: '%s'", key));
   }
 

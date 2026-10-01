@@ -32,8 +32,12 @@ package org.hisp.dhis.tracker.imports.programrule;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -49,6 +53,7 @@ import org.hisp.dhis.rules.models.RuleInstant;
 import org.hisp.dhis.rules.models.RuleLocalDate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -182,14 +187,40 @@ class RuleEngineMapper {
         eventToEvaluate.getCompletedAt() == null ? null : getDate(eventToEvaluate.getCompletedAt()),
         organisationUnit.getUid(),
         organisationUnit.getCode(),
-        eventToEvaluate.getDataValues().stream()
+        getDataValues(
+            eventToEvaluate.getDataValues(),
+            event == null ? Set.of() : event.getEventDataValues(),
+            preheat));
+  }
+
+  private static List<RuleDataValue> getDataValues(
+      Set<DataValue> payloadDataValues, Set<EventDataValue> dbDataValues, TrackerPreheat preheat) {
+    // Data elements present in the payload, whether they carry a value or are explicitly cleared
+    // (null value). A cleared value must not fall back to the persisted one, so these are excluded
+    // from the DB merge below.
+    Set<String> payloadDataElements =
+        payloadDataValues.stream()
+            .filter(Objects::nonNull)
+            .map(dv -> preheat.getDataElement(dv.getDataElement()).getUid())
+            .collect(Collectors.toSet());
+
+    List<RuleDataValue> ruleDataValues =
+        payloadDataValues.stream()
             .filter(Objects::nonNull)
             .filter(dv -> dv.getValue() != null)
             .map(
                 dv ->
                     new RuleDataValue(
                         preheat.getDataElement(dv.getDataElement()).getUid(), dv.getValue()))
-            .toList());
+            .toList();
+
+    Stream<RuleDataValue> dbRuleDataValues =
+        dbDataValues.stream()
+            .filter(dv -> dv.getValue() != null)
+            .filter(dv -> !payloadDataElements.contains(dv.getDataElement()))
+            .map(dv -> new RuleDataValue(dv.getDataElement(), dv.getValue()));
+
+    return Stream.concat(ruleDataValues.stream(), dbRuleDataValues).toList();
   }
 
   private static RuleEvent mapPayloadSingleEvent(
@@ -214,14 +245,10 @@ class RuleEngineMapper {
         eventToEvaluate.getCompletedAt() == null ? null : getDate(eventToEvaluate.getCompletedAt()),
         organisationUnit.getUid(),
         organisationUnit.getCode(),
-        eventToEvaluate.getDataValues().stream()
-            .filter(Objects::nonNull)
-            .filter(dv -> dv.getValue() != null)
-            .map(
-                dv ->
-                    new RuleDataValue(
-                        preheat.getDataElement(dv.getDataElement()).getUid(), dv.getValue()))
-            .toList());
+        getDataValues(
+            eventToEvaluate.getDataValues(),
+            event == null ? Set.of() : event.getEventDataValues(),
+            preheat));
   }
 
   private static RuleEvent mapSavedEvent(TrackerEvent eventToEvaluate) {

@@ -425,16 +425,9 @@ class DateFieldPeriodBucketColumnResolverTest {
                 "ax")
             .orElseThrow();
 
-    assertEquals(
-        "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period"
-            + " where dps_period.\"dateperiod\" = toDate(date_trunc('month', toDate(ax.\"enrollmentdate\"))))"
-            + " as \"pe\"",
-        resolved.selectExpression());
-    assertEquals(
-        "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period"
-            + " where dps_period.\"dateperiod\" = toDate(date_trunc('month', toDate(ax.\"enrollmentdate\"))))",
-        resolved.groupByExpression());
-    assertTrue(resolved.joinClause().isEmpty());
+    assertEquals("dps_period_ax_enrollmentdate.\"monthly\" as \"pe\"", resolved.selectExpression());
+    assertEquals("dps_period_ax_enrollmentdate.\"monthly\"", resolved.groupByExpression());
+    assertFalse(resolved.joinClause().isEmpty());
     assertFalse(resolved.selectExpression().contains("::date"));
     assertFalse(resolved.selectExpression().contains(" interval "));
     assertFalse(resolved.selectExpression().contains("make_date"));

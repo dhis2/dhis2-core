@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static java.time.Duration.ofDays;
-import static java.time.Instant.now;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1031;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1043;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1046;
@@ -42,8 +40,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -77,7 +73,7 @@ class DateValidator implements Validator<Event> {
     }
     validateExpiryPeriodType(reporter, event, program, bundle.getUser());
     validateCompletedDateIsSetOnlyForSupportedStatus(reporter, event);
-    validateCompletionExpiryDays(reporter, event, program, bundle.getUser());
+    validateCompletionExpiryDays(reporter, preheat, event, program, bundle.getUser());
   }
 
   private void validateCompletedDateIsSetOnlyForSupportedStatus(Reporter reporter, Event event) {
@@ -87,25 +83,57 @@ class DateValidator implements Validator<Event> {
   }
 
   private void validateCompletionExpiryDays(
-      Reporter reporter, Event event, Program program, UserDetails user) {
-    if (event.getCompletedAt() == null || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+      Reporter reporter, TrackerPreheat preheat, Event event, Program program, UserDetails user) {
+    if (user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 
-    if (program.getCompleteEventsExpiryDays() > 0
-        && EventStatus.COMPLETED == event.getStatus()
-        && now()
-            .isAfter(event.getCompletedAt().plus(ofDays(program.getCompleteEventsExpiryDays())))) {
+    if (EventExpiryChecker.isCompletionExpired(program, getCompletedDate(preheat, event))) {
       reporter.addError(event, E1043, event);
     }
   }
 
+  /**
+   * Returns the completion date the expiry check should be anchored to, or {@code null} if the
+   * event is not completed.
+   *
+   * <p>When the event is already completed in the database, the persisted completion date is used.
+   * This makes the expiry check work even when the update payload does not include {@code
+   * completedAt}, and prevents the payload from resetting the expiry clock on an already completed
+   * event. Otherwise, when the payload itself completes the event, its completion date is used.
+   */
+  private Instant getCompletedDate(TrackerPreheat preheat, Event event) {
+    Date persistedCompletedDate = getPersistedCompletedDate(preheat, event);
+    if (persistedCompletedDate != null) {
+      return persistedCompletedDate.toInstant();
+    }
+
+    if (EventStatus.COMPLETED == event.getStatus()) {
+      return event.getCompletedAt();
+    }
+
+    return null;
+  }
+
+  private Date getPersistedCompletedDate(TrackerPreheat preheat, Event event) {
+    if (event instanceof TrackerEvent) {
+      org.hisp.dhis.tracker.model.TrackerEvent persisted =
+          preheat.getTrackerEvent(event.getEvent());
+      return persisted != null && EventStatus.COMPLETED == persisted.getStatus()
+          ? persisted.getCompletedDate()
+          : null;
+    } else if (event instanceof SingleEvent) {
+      org.hisp.dhis.tracker.model.SingleEvent persisted = preheat.getSingleEvent(event.getEvent());
+      return persisted != null && EventStatus.COMPLETED == persisted.getStatus()
+          ? persisted.getCompletedDate()
+          : null;
+    }
+    return null;
+  }
+
   private void validateExpiryPeriodType(
       Reporter reporter, Event event, Program program, UserDetails user) {
-    PeriodType periodType = program.getExpiryPeriodType();
-
-    if (periodType == null
-        || program.getExpiryDays() == 0
+    if (!EventExpiryChecker.hasExpiryPeriod(program)
         || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
@@ -117,16 +145,7 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    Period eventPeriod = periodType.createPeriod(Date.from(referenceDate));
-
-    if (eventPeriod
-        .getEndDate()
-        .toInstant() // This will be 00:00 time of the period end date.
-        .plus(
-            ofDays(
-                program.getExpiryDays()
-                    + 1L)) // Extra day added to account for final 24 hours of expiring day
-        .isBefore(Instant.now())) {
+    if (EventExpiryChecker.isInExpiredPeriod(program, referenceDate)) {
       reporter.addError(event, E1047, event);
     }
   }

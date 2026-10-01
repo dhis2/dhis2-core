@@ -91,6 +91,13 @@ public class TrackedEntityQueryBuilder extends SqlQueryBuilderAdaptor {
 
   @Override
   protected Stream<Field> getSelect(QueryContext queryContext) {
+    // In aggregate mode the AggregateQueryBuilder owns the SELECT; this builder's per-TEI columns
+    // (static fields, attributes, OU group-set columns, enrollments JSON) must not pollute the
+    // grouped query.
+    if (queryContext.isAggregate()) {
+      return Stream.empty();
+    }
+
     String aggregationQuery =
         SqlQueryBuilders.getJsonAggregationQuery(queryContext.getTetTableSuffix());
 
@@ -142,7 +149,7 @@ public class TrackedEntityQueryBuilder extends SqlQueryBuilderAdaptor {
    * @param dimensionIdentifier the dimension identifier
    * @return true if the given dimension identifier is either a TE dimension or a Program indicator
    */
-  private static boolean isTrackedEntity(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+  public static boolean isTrackedEntity(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return
     // Will match all dimensionIdentifiers like {dimensionUid}.
     dimensionIdentifier.getDimensionIdentifierType() == TRACKED_ENTITY

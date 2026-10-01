@@ -85,7 +85,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv.setLastUpdated(lastUpdated);
     edv.setCreatedByUserInfo(userInfo);
     edv.setLastUpdatedByUserInfo(userInfo);
-    edv.setStoredBy("admin");
     edv.setProvidedElsewhere(true);
 
     Set<EventDataValue> original = new HashSet<>();
@@ -101,7 +100,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     assertNotSame(edv, copiedEdv);
     assertEquals("de1", copiedEdv.getDataElement());
     assertEquals("value1", copiedEdv.getValue());
-    assertEquals("admin", copiedEdv.getStoredBy());
     assertTrue(copiedEdv.getProvidedElsewhere());
     assertEquals(userInfo, copiedEdv.getCreatedByUserInfo());
     assertEquals(userInfo, copiedEdv.getLastUpdatedByUserInfo());
@@ -171,7 +169,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv1.setLastUpdated(new Date(2000L));
     edv1.setCreatedByUserInfo(userInfo);
     edv1.setLastUpdatedByUserInfo(userInfo);
-    edv1.setStoredBy("admin");
     edv1.setProvidedElsewhere(false);
 
     EventDataValue edv2 = new EventDataValue();
@@ -179,7 +176,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv2.setValue("value2");
     edv2.setCreated(new Date(3000L));
     edv2.setLastUpdated(new Date(4000L));
-    edv2.setStoredBy("system");
 
     Set<EventDataValue> original = new HashSet<>();
     original.add(edv1);
@@ -200,7 +196,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv.setValue("hello");
     edv.setCreated(new Date(1000L));
     edv.setLastUpdated(new Date(2000L));
-    edv.setStoredBy("admin");
     edv.setProvidedElsewhere(false);
 
     String json = type.convertObjectToJson(Set.of(edv));
@@ -212,7 +207,6 @@ class JsonEventDataValueSetBinaryTypeTest {
 
     JsonNode entry = root.get("deABCDEF123");
     assertEquals("hello", entry.get("value").asText());
-    assertEquals("admin", entry.get("storedBy").asText());
     assertFalse(entry.get("providedElsewhere").asBoolean());
     // dataElement must NOT appear inside the value (it's the key)
     assertNull(entry.get("dataElement"));
@@ -292,7 +286,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv.setLastUpdated(new Date(2000L));
     edv.setCreatedByUserInfo(userInfo);
     edv.setLastUpdatedByUserInfo(userInfo);
-    edv.setStoredBy("admin");
     edv.setProvidedElsewhere(true);
 
     String json = type.convertObjectToJson(Set.of(edv));
@@ -306,7 +299,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     assertEquals("value1", restored.getValue());
     assertEquals(new Date(1000L), restored.getCreated());
     assertEquals(new Date(2000L), restored.getLastUpdated());
-    assertEquals("admin", restored.getStoredBy());
     assertTrue(restored.getProvidedElsewhere());
     assertEquals("admin", restored.getCreatedByUserInfo().getUsername());
     assertEquals("Admin", restored.getCreatedByUserInfo().getFirstName());
@@ -323,7 +315,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv.setLastUpdated(null);
     edv.setCreatedByUserInfo(null);
     edv.setLastUpdatedByUserInfo(null);
-    edv.setStoredBy(null);
     edv.setProvidedElsewhere(null);
 
     String json = type.convertObjectToJson(Set.of(edv));
@@ -341,7 +332,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     assertNotNull(restored.getLastUpdated());
     assertNull(restored.getCreatedByUserInfo());
     assertNull(restored.getLastUpdatedByUserInfo());
-    assertNull(restored.getStoredBy());
     // providedElsewhere defaults to false in EventDataValue field declaration
     assertFalse(restored.getProvidedElsewhere());
   }
@@ -353,7 +343,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv.setValue("value1");
     edv.setCreated(new Date(1000L));
     edv.setLastUpdated(new Date(2000L));
-    edv.setStoredBy("admin");
 
     Set<EventDataValue> set = Set.of(edv);
 
@@ -363,7 +352,7 @@ class JsonEventDataValueSetBinaryTypeTest {
     assertTrue(type.equals(snapshot, set));
   }
 
-  // EventDataValue.equals only compares dataElement, so in-place mutations to value or storedBy
+  // EventDataValue.equals only compares dataElement, so in-place mutations to value
   // are not detected by the Hibernate dirty check. This does not cause a bug because TrackerEvent
   // does not use @DynamicUpdate, so all columns are always included in UPDATE statements.
   // See the "Dirty checking" section in the PR for details.
@@ -382,24 +371,6 @@ class JsonEventDataValueSetBinaryTypeTest {
     Set<EventDataValue> snapshot = (Set<EventDataValue>) type.deepCopy(set);
 
     edv.setValue("modified");
-
-    assertTrue(type.equals(snapshot, set));
-  }
-
-  @Test
-  void equalsMissesInPlaceStoredByChange() {
-    EventDataValue edv = new EventDataValue();
-    edv.setDataElement("de1");
-    edv.setValue("value1");
-    edv.setStoredBy("admin");
-
-    Set<EventDataValue> set = new HashSet<>();
-    set.add(edv);
-
-    @SuppressWarnings("unchecked")
-    Set<EventDataValue> snapshot = (Set<EventDataValue>) type.deepCopy(set);
-
-    edv.setStoredBy("other_user");
 
     assertTrue(type.equals(snapshot, set));
   }

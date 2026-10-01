@@ -32,7 +32,6 @@ package org.hisp.dhis.fieldfiltering;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,10 +41,10 @@ class FieldPathTest {
 
   @Test
   void testFieldPathToFullPath() {
-    FieldPath fieldPath = new FieldPath("field", Lists.newArrayList("a", "b"));
-    assertEquals("field", fieldPath.getName());
+    FieldPath fieldPath = FieldPath.of("a.b.field");
+    assertEquals("field", fieldPath.getPropertyName());
     assertTrue(fieldPath.getPath().contains("a"));
     assertTrue(fieldPath.getPath().contains("b"));
-    assertEquals("a.b.field", fieldPath.toFullPath());
+    assertEquals("a.b.field", fieldPath.toString());
   }
 }

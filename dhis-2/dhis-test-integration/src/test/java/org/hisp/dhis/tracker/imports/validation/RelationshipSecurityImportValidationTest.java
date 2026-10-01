@@ -33,6 +33,10 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_11;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_12;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1001;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1323;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1325;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 
 import java.io.IOException;
@@ -128,12 +132,12 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E1323);
   }
 
   @Test
   void
-      shouldFailToCreateWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToBidirectionalBidirectionalRelationshipTo()
+      shouldFailToCreateWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToBidirectionalRelationshipTo()
           throws IOException {
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/relationship_siblings.json");
@@ -146,7 +150,7 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E1323);
   }
 
   @Test
@@ -200,12 +204,12 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
     Program program = manager.get(Program.class, "E8o1E9tAppy");
     program.getSharing().getUsers().get(USER_11).setAccess("r-r-----");
     manager.update(program);
-    injectSecurityContextUser(userService.getUser(USER_12));
+    injectSecurityContextUser(userService.getUser(USER_11));
 
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E1323);
   }
 
   @Test
@@ -227,7 +231,7 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E1323);
   }
 
   @Test
@@ -253,7 +257,7 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E4020, E1001);
   }
 
   @Test
@@ -269,7 +273,7 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E1001, E1323);
   }
 
   @Test
@@ -285,7 +289,7 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E1001, E1325, E1324);
   }
 
   @Test
@@ -323,7 +327,7 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E4020, E1001);
   }
 
   @Test
@@ -343,6 +347,6 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E1001, E1323);
   }
 }

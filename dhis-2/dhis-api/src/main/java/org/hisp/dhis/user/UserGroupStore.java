@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.Collection;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -70,4 +72,16 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
    * @param userUid the UID of the user being removed from all groups
    */
   void removeAllMemberships(@Nonnull UID userUid);
+
+  /**
+   * Returns the primary keys of all user groups managed by the given managing user groups, resolved
+   * in a single SQL query against the {@code usergroupmanaged} join table. This avoids the N+1
+   * query incurred by iterating {@code UserGroup.getManagedGroups()} once per group (e.g. when
+   * building a {@link UserDetails}'s managed-group set).
+   *
+   * @param userGroupIds the primary keys of the managing user groups
+   * @return the primary keys of the managed user groups; empty if the input is empty
+   */
+  @Nonnull
+  Set<Long> getManagedGroupIds(@Nonnull Collection<Long> userGroupIds);
 }

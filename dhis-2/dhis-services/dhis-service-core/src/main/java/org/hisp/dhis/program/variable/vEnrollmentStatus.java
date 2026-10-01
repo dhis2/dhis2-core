@@ -46,7 +46,7 @@ public class vEnrollmentStatus implements ProgramVariable {
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
     if (AnalyticsType.EVENT == visitor.getProgParams().getProgramIndicator().getAnalyticsType()) {
-      return "pistatus";
+      return "enrollmentstatus";
     }
 
     return "enrollmentstatus";

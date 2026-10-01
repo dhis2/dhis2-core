@@ -172,23 +172,8 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
     String geoGroupId =
         postNewUserGroupWithAttributeValue("gg", geoAttrId, geoJsonValue.replace("'", "\\\""));
     JsonObject group =
-        GET("/userGroups/{uid}/gist?fields=id,name,{attr}::rename(geo)", geoGroupId, geoAttrId)
-            .content();
-    assertTrue(group.get("geo").isObject());
-    assertEquals("MultiPolygon", group.getString("geo.type").string());
-  }
-
-  /** Pluck extracts the attribute value directly in the database using JSONB functions */
-  @Test
-  void testField_ObjectGeoJsonPlainValuePluck() {
-    String geoAttrId = postNewAttribute("geo", ValueType.GEOJSON, Attribute.ObjectType.USER_GROUP);
-    String geoJsonValue =
-        "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }";
-    String geoGroupId =
-        postNewUserGroupWithAttributeValue("gg", geoAttrId, geoJsonValue.replace("'", "\\\""));
-    JsonObject group =
         GET(
-                "/userGroups/{uid}/gist?fields=id,name,{attr}::rename(geo)::pluck",
+                "/userGroups/{uid}/gist?fields=id,name,{attr}::rename(geo)::attribute(true)",
                 geoGroupId,
                 geoAttrId)
             .content();

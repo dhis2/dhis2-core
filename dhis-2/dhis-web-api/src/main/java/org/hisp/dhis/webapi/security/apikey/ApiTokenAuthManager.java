@@ -29,12 +29,9 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
@@ -42,7 +39,6 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -59,22 +55,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
-  private final OrganisationUnitService organisationUnitService;
   private final UserService userService;
-  private final UserStore userStore;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
   public ApiTokenAuthManager(
-      UserStore userStore,
-      ApiTokenService apiTokenService,
-      CacheProvider cacheProvider,
-      @Lazy UserService userService,
-      OrganisationUnitService organisationUnitService) {
+      ApiTokenService apiTokenService, CacheProvider cacheProvider, @Lazy UserService userService) {
     this.userService = userService;
-    this.userStore = userStore;
     this.apiTokenService = apiTokenService;
-    this.organisationUnitService = organisationUnitService;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -118,18 +106,20 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token does not have any owner."));
     }
 
-    User user = userStore.getUserByUsername(createdBy.getUsername());
-    if (user == null) {
+    // User lookup and UserDetails creation must happen within a single transaction, so that lazy
+    // collections (e.g. User.userRoles) are accessible. This code can run on endpoints excluded
+    // from open-session-in-view, where no Hibernate session is otherwise available.
+    UserDetails userDetails = userService.createUserDetailsByUsername(createdBy.getUsername());
+    if (userDetails == null) {
       throw new ApiTokenAuthenticationException(
           ApiTokenErrors.invalidToken("The API token owner does not exists."));
     }
 
-    boolean isTwoFactorDisabled = !user.isTwoFactorEnabled();
-    boolean enabled = !user.isDisabled();
-
-    boolean credentialsNonExpired = userService.userNonExpired(user);
-    boolean accountNonLocked = !userService.isLocked(user.getUsername());
-    boolean accountNonExpired = user.isAccountNonExpired();
+    boolean isTwoFactorDisabled = !userDetails.isTwoFactorEnabled();
+    boolean enabled = userDetails.isEnabled();
+    boolean credentialsNonExpired = userDetails.isCredentialsNonExpired();
+    boolean accountNonLocked = userDetails.isAccountNonLocked();
+    boolean accountNonExpired = userDetails.isAccountNonExpired();
 
     if (ObjectUtils.anyIsFalse(
         enabled, isTwoFactorDisabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
@@ -138,20 +128,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }
 
-    List<String> organisationUnitsUidsByUser =
-        organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
-    List<String> searchOrganisationUnitsUidsByUser =
-        organisationUnitService.getSearchOrganisationUnitsUidsByUser(user.getUsername());
-    List<String> dataViewOrganisationUnitsUidsByUser =
-        organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
-
-    return UserDetails.createUserDetails(
-        user,
-        accountNonLocked,
-        credentialsNonExpired,
-        new HashSet<>(organisationUnitsUidsByUser),
-        new HashSet<>(searchOrganisationUnitsUidsByUser),
-        new HashSet<>(dataViewOrganisationUnitsUidsByUser));
+    return userDetails;
   }
 
   private static void validateTokenExpiry(Long expiry) {

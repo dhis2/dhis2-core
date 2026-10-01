@@ -58,7 +58,8 @@ public enum PeriodTypeEnum {
   WEEKLY_THURSDAY("WeeklyThursday"),
   WEEKLY_FRIDAY("WeeklyFriday"),
   WEEKLY_WEDNESDAY("WeeklyWednesday"),
-  YEARLY("Yearly");
+  YEARLY("Yearly"),
+  FINANCIAL_YEARLY("FinancialYearly");
 
   @Getter private final String name;
 

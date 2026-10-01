@@ -60,6 +60,7 @@ class DimensionFiltersTest {
           "uid", s -> DimensionResponse.builder().uid(s).build(),
           "code", s -> DimensionResponse.builder().code(s).build(),
           "valueType", s -> DimensionResponse.builder().valueType(s).build(),
+          "aggregationType", s -> DimensionResponse.builder().aggregationType(s).build(),
           "name", s -> DimensionResponse.builder().name(s).build(),
           "dimensionType", s -> DimensionResponse.builder().dimensionType(s).build(),
           "displayName", s -> DimensionResponse.builder().displayName(s).build(),
@@ -144,6 +145,29 @@ class DimensionFiltersTest {
 
     BUILDER_MAP.forEach(
         (s, builder) -> assertAllOpsOnField(s, builder.apply(STRING_TO_TEST_FILTER_ON)));
+  }
+
+  @Test
+  void testInOperator() {
+    DimensionResponse numericValueType = DimensionResponse.builder().valueType("NUMBER").build();
+    DimensionResponse integerValueType = DimensionResponse.builder().valueType("INTEGER").build();
+    DimensionResponse textValueType = DimensionResponse.builder().valueType("TEXT").build();
+
+    DimensionFilters dimensionFilters =
+        DimensionFilters.of(Collections.singleton("valueType:in:[ NUMBER, INTEGER ]"));
+
+    Assertions.assertTrue(dimensionFilters.test(numericValueType));
+    Assertions.assertTrue(dimensionFilters.test(integerValueType));
+    Assertions.assertFalse(dimensionFilters.test(textValueType));
+  }
+
+  @Test
+  void testEmptyInOperatorIsIgnored() {
+    DimensionFilters dimensionFilters =
+        DimensionFilters.of(Collections.singleton("valueType:in:[]"));
+
+    assertNull(dimensionFilters.getFilters());
+    assertThat(dimensionFilters, is(EMPTY_DATA_DIMENSION_FILTER));
   }
 
   private void assertAllOpsOnField(String fieldName, DimensionResponse response) {

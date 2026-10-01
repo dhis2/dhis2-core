@@ -118,7 +118,6 @@ public class MetadataItemsHandler {
             .collect(toSet());
     boolean includeMetadataDetails = commonRequestParams.isIncludeMetadataDetails();
     DisplayProperty displayProperty = commonRequestParams.getDisplayProperty();
-    DimensionalItemObject value = commonRequestParams.getValue();
     Map<String, MetadataItem> metadataItemMap =
         getDimensionMetadataItemMap(
             grid,
@@ -127,15 +126,6 @@ public class MetadataItemsHandler {
             programs,
             programStages,
             includeMetadataDetails);
-
-    if (value != null) {
-      metadataItemMap.put(
-          value.getUid(),
-          new MetadataItem(
-              value.getDisplayProperty(displayProperty),
-              includeMetadataDetails ? value.getUid() : null,
-              value.getCode()));
-    }
 
     itemLegends.stream()
         .filter(Objects::nonNull)

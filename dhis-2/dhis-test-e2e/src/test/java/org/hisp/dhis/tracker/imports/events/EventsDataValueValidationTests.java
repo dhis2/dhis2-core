@@ -266,9 +266,11 @@ public class EventsDataValueValidationTests extends TrackerApiTest {
 
     ApiResponse dataelements =
         dataElementActions.get(
-            "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:in:[TEXT,LONG_TEXT]&pageSize=2");
+            "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:in:[TEXT,LONG_TEXT]&pageSize=2&gist=false");
     dataelements.validate().body("dataElements", hasSize(2));
 
+    // TODO (tracker): This test fails if the order of DEs is different but the query does not
+    // enforce any particular order
     mandatoryDataElementId = dataelements.extractString("dataElements.id[0]");
     notMandatoryDataElementId = dataelements.extractString("dataElements.id[1]");
 

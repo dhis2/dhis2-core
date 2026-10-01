@@ -140,16 +140,6 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void testUpdatePassword_NonExpired() {
-    assertMessage(
-        "status",
-        "NON_EXPIRED",
-        "Account is not expired, redirecting to login.",
-        POST("/account/password?username=admin&oldPassword=xyz&password=abc")
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
   void testValidateUserNameGet_UserNameAvailable() {
     assertMessage(
         "response", "success", "", GET("/account/username?username=abcd").content(HttpStatus.OK));

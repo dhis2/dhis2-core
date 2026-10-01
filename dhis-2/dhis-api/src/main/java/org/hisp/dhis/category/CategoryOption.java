@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -76,6 +77,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.OpenApi;
@@ -111,7 +113,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 @Entity
 @Table(name = "categoryoption")
 @Setter
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
 public class CategoryOption extends BaseMetadataObject
     implements DimensionalItemObject, SystemDefaultMetadataObject, Serializable {
@@ -158,21 +160,21 @@ public class CategoryOption extends BaseMetadataObject
       name = "categoryoption_organisationunits",
       joinColumns = @JoinColumn(name = "categoryoptionid"),
       inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @BatchSize(size = 100)
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   @ManyToMany(mappedBy = "categoryOptions")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   @BatchSize(size = 100)
   private Set<Category> categories = new HashSet<>();
 
   @ManyToMany(mappedBy = "categoryOptions")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
   @ManyToMany(mappedBy = "members")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryOptionGroup> groups = new HashSet<>();
 
   @Type(type = "jsbObjectSharing")
@@ -343,6 +345,7 @@ public class CategoryOption extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public String getDimensionItem() {
     return getUid();
   }
@@ -353,11 +356,13 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.CATEGORY_OPTION;
   }
 
   @Override
+  @JsonProperty
   public AggregationType getAggregationType() {
     return (queryMods != null && queryMods.getAggregationType() != null)
         ? queryMods.getAggregationType()
@@ -365,11 +370,13 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
+  @JsonProperty
   public boolean hasAggregationType() {
     return false;
   }
 
   @Override
+  @JsonProperty
   public TotalAggregationType getTotalAggregationType() {
     return null;
   }
@@ -424,7 +431,7 @@ public class CategoryOption extends BaseMetadataObject
   @Translatable(propertyName = "formName", key = "FORM_NAME")
   public String getDisplayFormName() {
     return translations.getTranslation(
-        "FORM_NAME", getFormName() != null ? getFormName() : getDisplayName());
+        "FORM_NAME", StringUtils.isEmpty(getFormName()) ? getDisplayName() : getFormName());
   }
 
   @Override
@@ -550,7 +557,7 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categories", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "category", namespace = DxfNamespaces.DXF_2_0)
   public Set<Category> getCategories() {
@@ -558,7 +565,7 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryOptionCombo> getCategoryOptionCombos() {
@@ -566,7 +573,7 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @JsonProperty("categoryOptionGroups")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryOptionGroup> getGroups() {

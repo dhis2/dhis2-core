@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -572,6 +573,27 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, true));
     assertEquals(
         1, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, false));
+  }
+
+  @Test
+  void testGetDataValueCountCountsRowsDifferingOnlyInKeyColumns() {
+    DataValue reference = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "42");
+    DataValue differingOnlyInOrgUnit = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "42");
+    DataValue differingOnlyInDataElement =
+        new DataValue(deB, peA, ouA, optionCombo, optionCombo, "42");
+    DataValue differingOnlyInPeriod = new DataValue(deA, peC, ouA, optionCombo, optionCombo, "42");
+
+    for (DataValue dataValue :
+        List.of(
+            reference, differingOnlyInOrgUnit, differingOnlyInDataElement, differingOnlyInPeriod)) {
+      dataValue.setStoredBy("thesameuser");
+      dataValue.setComment("the same comment");
+    }
+    addDataValues(
+        reference, differingOnlyInOrgUnit, differingOnlyInDataElement, differingOnlyInPeriod);
+
+    assertEquals(
+        4, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, false));
   }
 
   @Test

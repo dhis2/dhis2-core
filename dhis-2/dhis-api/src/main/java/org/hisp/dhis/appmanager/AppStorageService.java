@@ -67,13 +67,19 @@ public interface AppStorageService {
    * @param file the zip file containing the app
    * @param appCache The app cache
    * @param bundledAppInfo bundled app info, can be null
+   * @param removeExisting whether to scan storage for and remove other already-installed apps that
+   *     share the new app's key (i.e. older versions in a different folder). Pass {@code false} to
+   *     skip this scan when it is known there can be no duplicates — e.g. installing bundled apps
+   *     into an empty store on first startup — since the scan is an expensive per-app rescan of all
+   *     installed apps.
    * @return The status of the installation
    */
   @Nonnull
   App installApp(
       @Nonnull File file,
       @Nonnull Cache<App> appCache,
-      @CheckForNull BundledAppInfo bundledAppInfo);
+      @CheckForNull BundledAppInfo bundledAppInfo,
+      boolean removeExisting);
 
   /**
    * Deletes the app from storage.

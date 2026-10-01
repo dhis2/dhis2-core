@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_10;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4016;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -162,7 +163,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY);
-    assertHasOnlyErrors(importReport, E4020);
+    assertHasOnlyErrors(importReport, E4020, E1324);
   }
 
   @Test

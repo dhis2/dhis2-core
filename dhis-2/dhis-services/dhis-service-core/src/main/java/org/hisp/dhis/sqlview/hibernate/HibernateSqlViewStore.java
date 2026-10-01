@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.RawJsonValue;
 import org.hisp.dhis.common.TransactionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.query.QueryParserException;
@@ -56,6 +57,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -141,7 +143,28 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
     log.debug("Get view SQL: " + sql + ", max limit: " + maxLimit);
 
     grid.addHeaders(rs);
-    grid.addRows(rs, maxLimit);
+    populateRows(grid, rs, maxLimit);
+  }
+
+  private static void populateRows(Grid grid, SqlRowSet rs, int maxLimit) {
+    SqlRowSetMetaData rsmd = rs.getMetaData();
+    int cols = rsmd.getColumnCount();
+    boolean[] isJson = new boolean[cols + 1];
+    for (int i = 1; i <= cols; i++) {
+      String typeName = rsmd.getColumnTypeName(i);
+      isJson[i] = "json".equalsIgnoreCase(typeName) || "jsonb".equalsIgnoreCase(typeName);
+    }
+    while (rs.next()) {
+      grid.addRow();
+      for (int i = 1; i <= cols; i++) {
+        Object value = rs.getObject(i);
+        grid.addValue(isJson[i] && value != null ? new RawJsonValue(value.toString()) : value);
+        if (maxLimit > 0 && i > maxLimit) {
+          throw new IllegalStateException(
+              "Number of rows produced by query is larger than the max limit: " + maxLimit);
+        }
+      }
+    }
   }
 
   @Override

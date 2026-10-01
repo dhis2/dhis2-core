@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
@@ -70,6 +71,7 @@ import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -122,6 +124,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   private final FirstOrLastValueSubqueryRenderer firstOrLastRenderer;
 
+  private final EventItemSelectColumnResolver eventItemSelectColumnResolver;
+
   public JdbcEventAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
@@ -156,6 +160,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         dateFieldPeriodBucketColumnResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     this.firstOrLastRenderer = firstOrLastRenderer;
+    this.eventItemSelectColumnResolver =
+        new EventItemSelectColumnResolver(
+            sqlBuilder,
+            organisationUnitResolver,
+            this::getStageOuValueColumnTableAlias,
+            (item, queryParams) -> getColumnAndAlias(item, queryParams, false, false),
+            this::handleRowContext);
   }
 
   @Override
@@ -355,6 +366,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
     OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
+    RegistrationOuSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
   }
 
   /**
@@ -371,7 +383,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         EventAnalyticsColumnName.EVENT_COLUMN_NAME,
         EventAnalyticsColumnName.PS_COLUMN_NAME,
         EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-        EventAnalyticsColumnName.STORED_BY_COLUMN_NAME,
         EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
         EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
         EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
@@ -388,8 +399,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     if (sqlBuilder.supportsGeospatialData()) {
+      columns.add(getCoordinateSelectExpression(params));
+
+      if (params.hasGeometrySources()) {
+        columns.add(getGeometrySourceSelectExpression(params));
+      }
+
       columns.add(
-          getCoordinateSelectExpression(params),
           getEnrollmentCoordinateSelectExpression(),
           EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
           EventAnalyticsColumnName.LATITUDE_COLUMN_NAME);
@@ -432,6 +448,26 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   /**
+   * Returns a geometry source select expression matching the coordinate coalesce priority.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a geometry source select expression.
+   */
+  private String getGeometrySourceSelectExpression(EventQueryParams params) {
+    String whenClauses =
+        params.getGeometrySources().stream()
+            .map(
+                geometrySource ->
+                    String.format(
+                        "when %s is not null then %s",
+                        sqlBuilder.quoteAx(geometrySource.coordinateField()),
+                        singleQuote(geometrySource.source())))
+            .collect(joining(" "));
+
+    return String.format("(case %s end) as geometrySource", whenClauses);
+  }
+
+  /**
    * Returns a from SQL clause for the given analytics table partition. If the query has a
    * non-default time field specified, a join with the {@code date period structure} resource table
    * in that field is included.
@@ -454,9 +490,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       String joinCol = quoteAlias(params.getTimeFieldAsField(AnalyticsType.EVENT));
       sql.append("left join analytics_rs_dateperiodstructure as ")
           .append(DATE_PERIOD_STRUCT_ALIAS)
-          .append(" on cast(")
-          .append(joinCol)
-          .append(" as date) = ")
+          .append(" on ")
+          .append(sqlBuilder.castAsDate(joinCol))
+          .append(" = ")
           .append(DATE_PERIOD_STRUCT_ALIAS)
           .append(".")
           .append(quote("dateperiod"))
@@ -467,6 +503,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
     OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
+    sql.append(RegistrationOuSqlCoordinator.joinClause(params, sqlBuilder));
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -552,9 +589,19 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<DimensionalObject> dynamicDimensions =
         params.getDimensionsAndFilters(
-            Set.of(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
+            Set.of(
+                DimensionType.CATEGORY,
+                DimensionType.CATEGORY_OPTION_GROUP_SET,
+                DimensionType.PROGRAM_STATUS));
 
     for (DimensionalObject dim : dynamicDimensions) {
+      // PROGRAM_STATUS without items means group-by only — the column comes from the generic
+      // dimension SELECT loop; there is no IN-list to filter on.
+      DimensionType type = dim.getDimensionType();
+      if (type == DimensionType.PROGRAM_STATUS && dim.getItems().isEmpty()) {
+        continue;
+      }
+
       String dimName = dim.getDimensionName();
       String col =
           params.isPiDisagDimension(dimName)
@@ -624,7 +671,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     if (params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter()) {
       String filter =
-          programIndicatorService.getAnalyticsSql(
+          programIndicatorService.getAnalyticsSqlAllowingNulls(
               params.getProgramIndicator().getFilter(),
               BOOLEAN,
               params.getProgramIndicator(),
@@ -674,12 +721,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     if (params.isCoordinatesOnly() || params.isGeometryOnly()) {
+      // nullIfEmpty normalises ClickHouse's empty-string "no coordinate" to NULL so the filter
+      // matches Postgres; it is a no-op for other databases.
       sql +=
           hlp.whereAnd()
               + " "
-              + getCoalesce(
-                  resolveCoordinateFieldsColumnNames(params.getCoordinateFields(), params),
-                  FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue())
+              + sqlBuilder.nullIfEmpty(
+                  getCoalesce(
+                      resolveCoordinateFieldsColumnNames(params.getCoordinateFields(), params),
+                      FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue()))
               + " is not null ";
     }
 
@@ -690,6 +740,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     StringBuilder enrollmentOuSql = new StringBuilder();
     OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
     sql += enrollmentOuSql;
+
+    sql += RegistrationOuSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
 
     if (params.hasBbox()) {
       sql +=
@@ -763,7 +815,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   /** Generates a sub query which provides a filter by organisation descendant level. */
   private String getOrgUnitDescendantsClause(
       OrgUnitField orgUnitField, List<DimensionalItemObject> dimensionOrFilterItems) {
-    Map<String, List<OrganisationUnit>> collect =
+    Map<String, List<OrganisationUnit>> orgUnitsMap =
         dimensionOrFilterItems.stream()
             .map(object -> (OrganisationUnit) object)
             .collect(
@@ -773,9 +825,29 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                             .withSqlBuilder(sqlBuilder)
                             .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
 
-    return collect.keySet().stream()
-        .map(org -> toInCondition(org, collect.get(org)))
-        .collect(joining(" and "));
+    return getOuInCondition(orgUnitsMap);
+  }
+
+  /**
+   * Builds a SQL filter clause from a map of org unit level columns to their matching org units.
+   * Each entry produces an {@code IN} condition, and the conditions are joined with {@code OR}.
+   *
+   * <p>Example output for two level groups:
+   *
+   * <pre>
+   * ax."uidlevel2" in ('uid1','uid2') or ax."uidlevel3" in ('uid3')
+   * </pre>
+   *
+   * @param orgUnitsMap a map where each key is a SQL column expression representing an org unit
+   *     level (e.g. {@code ax."uidlevel2"}) and each value is the list of {@link OrganisationUnit}
+   *     objects whose UIDs should appear in the {@code IN} condition for that level.
+   * @return a SQL {@code OR}-joined string of {@code IN} conditions, or an empty string if the map
+   *     is empty.
+   */
+  String getOuInCondition(Map<String, List<OrganisationUnit>> orgUnitsMap) {
+    return orgUnitsMap.keySet().stream()
+        .map(org -> toInCondition(org, orgUnitsMap.get(org)))
+        .collect(joining(" or "));
   }
 
   /**
@@ -851,7 +923,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
     OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
-    addEventsItemSelectColumns(columns, params, cteContext);
+    columns.addAll(RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder));
+    columns.addAll(eventItemSelectColumnResolver.resolve(params, cteContext));
 
     columns.forEach(
         column -> {
@@ -861,54 +934,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             sb.addColumn(column, "ax");
           }
         });
-    if (cteContext.hasCteDefinitions()) {
-      // if there are no CTEs, we can use the standard columns
+    // ClickHouse emits item columns (including CTE-backed program indicators) inline in items
+    // order via EventItemSelectColumnResolver, so a second CTE pass would duplicate and reorder
+    // them relative to the items-ordered grid headers. Other databases keep the existing two-pass
+    // assembly, where this pass contributes their CTE-backed columns.
+    if (cteContext.hasCteDefinitions() && sqlBuilder.supportsCorrelatedSubquery()) {
       getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
-    }
-  }
-
-  private void addEventsItemSelectColumns(
-      List<String> columns, EventQueryParams params, CteContext cteContext) {
-    for (QueryItem queryItem : params.getItems()) {
-      // Special handling for stage.ou dimensions
-      // These require 3 columns (ou, ouname, oucode) instead of 1
-      if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()
-          && OrganisationUnitResolver.isStageOuDimension(queryItem)) {
-        String stageUid = queryItem.getProgramStage().getUid();
-        // Main value column (uidlevelX), qualified to avoid ambiguity when ENROLLMENT_OU joins.
-        OrganisationUnitResolver.StageOuCteContext stageOuContext =
-            organisationUnitResolver.buildStageOuCteContext(
-                queryItem, params, getStageOuValueColumnTableAlias(params));
-        columns.add(stageOuContext.valueColumn() + " as " + quote(stageUid + ".ou"));
-        // Conditionally add ouname/oucode columns
-        if (params.hasHeaders()) {
-          if (params.getHeaders().contains(stageUid + ".ouname")) {
-            columns.add(
-                sqlBuilder.quote(
-                        getStageOuValueColumnTableAlias(params),
-                        EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
-                    + " as "
-                    + quote(stageUid + ".ouname"));
-          }
-          if (params.getHeaders().contains(stageUid + ".oucode")) {
-            columns.add(
-                sqlBuilder.quote(
-                        getStageOuValueColumnTableAlias(params),
-                        EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
-                    + " as "
-                    + quote(stageUid + ".oucode"));
-          }
-        }
-      } else {
-        ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
-
-        if (columnAndAlias != null && !cteContext.containsCte(columnAndAlias.alias)) {
-          columns.add(columnAndAlias.asSql());
-        }
-
-        // asked for row context if allowed and needed based on column and its alias
-        handleRowContext(columns, params, queryItem, columnAndAlias);
-      }
     }
   }
 
@@ -939,12 +970,17 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       cteContext = new CteContext(EndpointItem.EVENT);
     }
 
-    for (QueryItem item : params.getItems()) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      cteContext.useEventProgramIndicatorCandidateSource();
+    }
+
+    for (QueryItem item :
+        Stream.concat(params.getItems().stream(), params.getItemFilters().stream()).toList()) {
       if (item.isProgramIndicator()) {
         ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
         // Handle any program indicator CTE logic.
-        if (programIndicator.getAnalyticsType().equals(AnalyticsType.ENROLLMENT)) {
-          // CTE needed only for Enrollment type
+        if (programIndicator.getAnalyticsType().equals(AnalyticsType.ENROLLMENT)
+            || programIndicator.getAnalyticsType().equals(AnalyticsType.EVENT)) {
           handleProgramIndicatorCte(item, cteContext, params);
         }
       }

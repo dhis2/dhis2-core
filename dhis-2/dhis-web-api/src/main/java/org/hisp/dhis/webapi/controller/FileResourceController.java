@@ -170,9 +170,6 @@ public class FileResourceController
       @RequestParam(required = false) UID uid)
       throws IOException, ConflictException {
 
-    FileResourceUtils.validateFileSize(
-        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
-
     FileResource fileResource;
     String id = uid == null ? null : uid.getValue();
     if (domain.equals(FileResourceDomain.ICON)) {

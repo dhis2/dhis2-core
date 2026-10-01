@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -67,10 +66,6 @@ import org.springframework.stereotype.Component;
 class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<Enrollment> {
-
-  public AttributeValidator(DhisConfigurationProvider dhisConfigurationProvider) {
-    super(dhisConfigurationProvider);
-  }
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
@@ -98,9 +93,9 @@ class AttributeValidator
           && teAttribute != null) {
 
         attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
-        validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
+        validateAttributeValue(reporter, enrollment, attribute.getValue());
         validateValueType(reporter, bundle, enrollment, attribute.getValue(), teAttribute);
-        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
+        validateOptionSet(reporter, preheat, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
             reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);

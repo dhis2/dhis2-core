@@ -34,6 +34,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
+import org.hisp.dhis.common.RawJsonValue;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -106,5 +107,12 @@ class OutputFormatterTest {
     // Then
     assertInstanceOf(Long.class, result);
     assertThat(result, is(notSupportedObject));
+  }
+
+  @Test
+  void maybeFormatReturnsRawJsonStringForRawJsonValue() {
+    final Object result = maybeFormat(new RawJsonValue("{\"key\":\"value\"}"));
+    assertInstanceOf(String.class, result);
+    assertThat(result, is("{\"key\":\"value\"}"));
   }
 }

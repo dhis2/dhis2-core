@@ -49,7 +49,6 @@ public enum TrackedEntityStaticField implements TrackedEntityHeaderProvider {
   LAST_UPDATED_BY_DISPLAY_NAME("lastupdatedbydisplayname", "Last updated by", TEXT),
   CREATED("created", "Created", DATETIME),
   CREATED_BY_DISPLAY_NAME("createdbydisplayname", "Created by", TEXT),
-  STORED_BY("storedby", "Stored by", TEXT),
   GEOMETRY("geometry", "Geometry", TEXT),
   LONGITUDE("longitude", "Longitude", NUMBER),
   LATITUDE("latitude", "Latitude", NUMBER),

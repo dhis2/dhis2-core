@@ -65,6 +65,9 @@ public class OrganisationUnitQueryParams {
   /** Whether to fetch children eagerly. */
   private boolean fetchChildren;
 
+  /** Whether to include only organisation units that have a non-null geometry. */
+  private boolean geometryOnly;
+
   /** Property used for sorting, default value is {@link SortProperty#NAME}. */
   private SortProperty orderBy = SortProperty.NAME;
 
@@ -179,6 +182,14 @@ public class OrganisationUnitQueryParams {
 
   public void setFetchChildren(boolean fetchChildren) {
     this.fetchChildren = fetchChildren;
+  }
+
+  public boolean isGeometryOnly() {
+    return geometryOnly;
+  }
+
+  public void setGeometryOnly(boolean geometryOnly) {
+    this.geometryOnly = geometryOnly;
   }
 
   public SortProperty getOrderBy() {

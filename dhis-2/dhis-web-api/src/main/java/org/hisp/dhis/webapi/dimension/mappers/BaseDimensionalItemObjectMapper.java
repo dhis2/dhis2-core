@@ -50,17 +50,26 @@ public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper {
       Set.of(ProgramIndicator.class, TrackedEntityAttribute.class);
 
   /**
-   * adds dimensionType on top of base mapper and, if the dimension is ValueTyped it also adds
-   * valueType and OptionSet (if present)
+   * Maps a dimensional item object to a {@link DimensionResponse}.
+   *
+   * <p>The response includes the common identifiable object fields from {@link
+   * BaseDimensionMapper}, plus the dimension type and aggregation type. For {@link
+   * ValueTypedDimensionalItemObject} instances, it also includes the value type and option set UID
+   * when present.
    */
   @Override
   public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
-    DimensionItemType dimensionItemType =
-        ((DimensionalItemObject) prefixedDimension.getItem()).getDimensionItemType();
+    DimensionalItemObject dimensionalItemObject =
+        (DimensionalItemObject) prefixedDimension.getItem();
+    DimensionItemType dimensionItemType = dimensionalItemObject.getDimensionItemType();
 
     DimensionResponse responseWithDimensionType =
         super.map(prefixedDimension, prefix)
-            .withDimensionType(dimensionTypeOrElse(prefixedDimension, dimensionItemType.name()));
+            .withDimensionType(dimensionTypeOrElse(prefixedDimension, dimensionItemType.name()))
+            .withAggregationType(
+                dimensionalItemObject.getAggregationType() != null
+                    ? dimensionalItemObject.getAggregationType().name()
+                    : null);
     if (prefixedDimension.getItem()
         instanceof ValueTypedDimensionalItemObject valueTypedDimensionalItemObject) {
       return responseWithDimensionType

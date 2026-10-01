@@ -165,13 +165,17 @@ public class AnalyticsDataSourceConfig {
    * @return a {@link DataSource}.
    */
   private DataSource getAnalyticsDataSource() {
-    final String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
+    final String jdbcUrl =
+        withClickHouseConnectionSettings(
+            sqlBuilderSettings.getAnalyticsDatabase(),
+            config.getProperty(ANALYTICS_CONNECTION_URL));
     final String driverClassName = getDriverClassName();
     final String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
         DbPoolConfig.builder("analytics")
             .driverClassName(driverClassName)
+            .jdbcUrl(jdbcUrl)
             .dhisConfig(config)
             .mapper(ANALYTICS)
             .dbPoolType(dbPoolType)
@@ -201,6 +205,37 @@ public class AnalyticsDataSourceConfig {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(FETCH_SIZE);
     return jdbcTemplate;
+  }
+
+  /**
+   * Appends ClickHouse-specific connection settings to the analytics JDBC URL. Sets the {@code
+   * join_use_nulls} server setting to {@code 1} so that unmatched LEFT JOIN cells yield {@code
+   * NULL} instead of the column type default (e.g. {@code 0} for numbers), matching PostgreSQL
+   * semantics. The {@code clickhouse_setting_} prefix is required by the ClickHouse JDBC driver to
+   * forward an arbitrary server setting; an unprefixed key is rejected as an unknown config
+   * property. Returns the URL unchanged for other databases or when the setting is already present.
+   *
+   * @param database the analytics {@link Database}.
+   * @param jdbcUrl the configured analytics JDBC URL.
+   * @return the JDBC URL with ClickHouse settings applied when applicable.
+   */
+  static String withClickHouseConnectionSettings(Database database, String jdbcUrl) {
+    String setting = "clickhouse_setting_join_use_nulls=1";
+
+    if (database != Database.CLICKHOUSE
+        || jdbcUrl == null
+        || jdbcUrl.contains("clickhouse_setting_join_use_nulls=")) {
+      return jdbcUrl;
+    }
+
+    // A trailing '?' or '&' already starts the query string, so appending another separator would
+    // create an empty parameter that the driver rejects.
+    if (jdbcUrl.endsWith("?") || jdbcUrl.endsWith("&")) {
+      return jdbcUrl + setting;
+    }
+
+    String separator = jdbcUrl.contains("?") ? "&" : "?";
+    return jdbcUrl + separator + setting;
   }
 
   /**

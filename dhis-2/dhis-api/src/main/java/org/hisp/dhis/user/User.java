@@ -55,9 +55,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
@@ -393,12 +393,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     Set<DimensionalObject> constraints = new HashSet<>();
 
     for (CategoryOptionGroupSet cogs : cogsDimensionConstraints) {
-      cogs.setDimensionType(DimensionType.CATEGORY_OPTION_GROUP_SET);
+      // getDimensionType() returns CATEGORY_OPTION_GROUP_SET by definition (see Category above).
       constraints.add(cogs);
     }
 
     for (Category cat : catDimensionConstraints) {
-      cat.setDimensionType(DimensionType.CATEGORY);
       constraints.add(cat);
     }
 
@@ -501,7 +500,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(
       localName = "catDimensionConstraints",
       namespace = DxfNamespaces.DXF_2_0)
@@ -515,7 +514,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(
       localName = "cogsDimensionConstraints",
       namespace = DxfNamespaces.DXF_2_0)

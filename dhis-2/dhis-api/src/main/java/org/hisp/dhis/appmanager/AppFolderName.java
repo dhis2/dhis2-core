@@ -100,7 +100,7 @@ public record AppFolderName(String path) {
    * org.hisp.dhis.storage.BlobStoreService#deleteDirectory}.
    */
   public BlobKeyPrefix asPrefix() {
-    return new BlobKeyPrefix(path);
+    return BlobKeyPrefix.of(path);
   }
 
   @Nonnull

@@ -60,6 +60,7 @@ public class EventValidator implements Validator<TrackerBundle> {
                     new MetaValidator(),
                     new UpdatableFieldsValidator(),
                     new DataRelationsValidator(),
+                    new BlockEntryFormAfterCompletionValidator(),
                     new CategoryOptionComboValidator(),
                     new StatusValidator(),
                     all(
@@ -70,6 +71,7 @@ public class EventValidator implements Validator<TrackerBundle> {
                     all(
                         categoryOptValidator,
                         new DateValidator(),
+                        new ExpiredEventDeletionValidator(),
                         new GeoValidator(),
                         new NoteValidator(),
                         new DataValuesValidator(),

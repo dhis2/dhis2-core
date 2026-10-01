@@ -49,12 +49,14 @@ public interface StageDatePeriodBucketSqlRenderer {
   Optional<String> resolvePeriodBucketColumn(QueryItem item);
 
   /**
-   * Renders the SQL expression used to derive the period bucket from the stage date column.
+   * Renders the SQL expression used to derive the period bucket from the given stage date column.
    *
-   * @param item the stage date query item
+   * @param stageDateColumn the SQL column holding the stage date (for example {@code
+   *     ax."occurreddate"} on the event path or {@code latest_events_uid.ev_occurreddate} on the
+   *     enrollment-aggregate path)
    * @param periodBucketColumn the target bucket column (for example {@code yearly}, {@code
    *     monthly})
    * @return SQL expression for SELECT/GROUP BY
    */
-  String renderPeriodBucketExpression(QueryItem item, String periodBucketColumn);
+  String renderPeriodBucketExpression(String stageDateColumn, String periodBucketColumn);
 }

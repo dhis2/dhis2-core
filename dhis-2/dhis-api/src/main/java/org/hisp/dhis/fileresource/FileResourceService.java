@@ -43,6 +43,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.storage.BlobReadOptions;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -168,8 +169,17 @@ public interface FileResourceService {
   byte[] copyImageContent(FileResource fileResource, ImageFileDimension dimension)
       throws BadRequestException, IOException;
 
+  /** {@link #copyImageContent(FileResource, ImageFileDimension)} bounded by {@code options}. */
+  byte[] copyImageContent(
+      FileResource fileResource, ImageFileDimension dimension, BlobReadOptions options)
+      throws BadRequestException, IOException;
+
   /** Opens a stream to the file resource content. */
   InputStream openContentStream(FileResource fileResource)
+      throws IOException, NoSuchElementException;
+
+  /** {@link #openContentStream(FileResource)} bounded by {@code options}. */
+  InputStream openContentStream(FileResource fileResource, BlobReadOptions options)
       throws IOException, NoSuchElementException;
 
   /**
@@ -182,6 +192,13 @@ public interface FileResourceService {
    *     dimensions or does not have multiple dimension files stored
    */
   InputStream openContentStreamToImage(FileResource fileResource, ImageFileDimension dimension)
+      throws IOException, NoSuchElementException, BadRequestException;
+
+  /**
+   * {@link #openContentStreamToImage(FileResource, ImageFileDimension)} bounded by {@code options}.
+   */
+  InputStream openContentStreamToImage(
+      FileResource fileResource, ImageFileDimension dimension, BlobReadOptions options)
       throws IOException, NoSuchElementException, BadRequestException;
 
   boolean fileResourceExists(String uid);

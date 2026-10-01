@@ -31,9 +31,11 @@ package org.hisp.dhis.webapi.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWKSet;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.oauth2.OAuth2Constants;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -41,6 +43,7 @@ import org.springframework.security.oauth2.server.authorization.oidc.OidcClientR
 import org.springframework.security.oauth2.server.authorization.oidc.converter.OidcClientRegistrationRegisteredClientConverter;
 import org.springframework.security.oauth2.server.authorization.oidc.converter.RegisteredClientOidcClientRegistrationConverter;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 
 /**
  * Support for inline JWKS in OIDC Dynamic Client Registration (DCR).
@@ -64,6 +67,12 @@ final class InlineJwksClientMetadataConfig {
     private final OidcClientRegistrationRegisteredClientConverter delegate =
         new OidcClientRegistrationRegisteredClientConverter();
 
+    private final Duration refreshTokenTtl;
+
+    public RegisteredClientConverter(Duration refreshTokenTtl) {
+      this.refreshTokenTtl = refreshTokenTtl;
+    }
+
     @Override
     public RegisteredClient convert(OidcClientRegistration reg) {
       // Let SAS map standard fields first
@@ -73,8 +82,11 @@ final class InlineJwksClientMetadataConfig {
       // Override the SAS default of requireAuthorizationConsent(true) — DCR-registered clients
       // are first-party (e.g. Android app) authenticating with their own DHIS2 server,
       // so no end-user consent prompt is needed.
+      // requireProofKey(true) is SAS 7's builder default but is set explicitly: DCR-registered
+      // authorization-code clients (Android devices) must use S256 PKCE (PR-H).
       ClientSettings.Builder cs = ClientSettings.withSettings(rc.getClientSettings().getSettings());
       cs.requireAuthorizationConsent(false);
+      cs.requireProofKey(true);
       Map<String, Object> claims = reg.getClaims();
 
       // Accept optional "token_endpoint_auth_signing_alg": "RS256"
@@ -98,7 +110,31 @@ final class InlineJwksClientMetadataConfig {
         throw new IllegalArgumentException("'jwks' must be provided in registration");
       }
 
-      return RegisteredClient.from(rc).clientSettings(cs.build()).build();
+      // The SAS delegate leaves token settings at framework defaults: refresh token TTL 60
+      // minutes with reuseRefreshTokens(true), i.e. no rotation and no expiry extension on
+      // refresh, which forces re-authentication one hour after the initial login. DCR-registered
+      // clients are long-lived native apps (Android devices), so use the configured TTL
+      // (oauth2.server.dcr.refresh-token-ttl) and rotate the refresh token on every use, as
+      // required for public clients by OAuth 2.1. Rotation makes the TTL a sliding window.
+      TokenSettings tokenSettings =
+          TokenSettings.withSettings(rc.getTokenSettings().getSettings())
+              .refreshTokenTimeToLive(refreshTokenTtl)
+              .reuseRefreshTokens(false)
+              .build();
+
+      // SAS 7 forbids "scope" on DCR requests; assign the server-side first-party defaults
+      // (openid, profile, username — see OAuth2Constants.DCR_DEFAULT_SCOPES) so authorize and
+      // token requests have usable scopes. Defense-in-depth: any scopes that somehow arrive on
+      // the registration are filtered against the allowed-client-scope set.
+      RegisteredClient.Builder builder =
+          RegisteredClient.from(rc).clientSettings(cs.build()).tokenSettings(tokenSettings);
+      if (rc.getScopes() == null || rc.getScopes().isEmpty()) {
+        OAuth2Constants.DCR_DEFAULT_SCOPES.forEach(builder::scope);
+      } else {
+        builder.scopes(
+            scopes -> scopes.removeIf(scope -> !OAuth2Constants.isAllowedClientScope(scope)));
+      }
+      return builder.build();
     }
   }
 

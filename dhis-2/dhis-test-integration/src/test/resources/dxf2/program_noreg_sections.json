@@ -481,7 +481,6 @@
       "unique": false,
       "inherit": false,
       "created": "2016-03-10T07:25:57.406+0000",
-      "confidential": false,
       "shortName": "TrackedEntityAttributeA",
       "lastUpdated": "2016-03-10T07:26:32.131+0000",
       "displayOnVisitSchedule": false,

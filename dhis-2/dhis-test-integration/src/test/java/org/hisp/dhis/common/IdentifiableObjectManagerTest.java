@@ -295,21 +295,6 @@ class IdentifiableObjectManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void getAllOrderedName() {
-    idObjectManager.save(createDataElement('D'));
-    idObjectManager.save(createDataElement('B'));
-    idObjectManager.save(createDataElement('C'));
-    idObjectManager.save(createDataElement('A'));
-    List<DataElement> dataElements =
-        new ArrayList<>(idObjectManager.getAllSorted(DataElement.class));
-    assertEquals(4, dataElements.size());
-    assertEquals("DataElementA", dataElements.get(0).getName());
-    assertEquals("DataElementB", dataElements.get(1).getName());
-    assertEquals("DataElementC", dataElements.get(2).getName());
-    assertEquals("DataElementD", dataElements.get(3).getName());
-  }
-
-  @Test
   void userIsCurrentIfNoUserSet() {
     User user = createUserAndInjectSecurityContext(true);
     DataElement dataElement = createDataElement('A');

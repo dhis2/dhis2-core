@@ -30,13 +30,17 @@
 package org.hisp.dhis.security.oauth2.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -266,6 +270,73 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
     ClientSettings clientSettings = foundClient.getClientSettings();
 
     assertTrue(clientSettings.isRequireAuthorizationConsent());
+  }
+
+  @Test
+  void testApplyCreateDefaultsRequiresProofKeyAndConsent() {
+    // Given: an entity without clientSettings/tokenSettings (see testEntityToDomainConversion
+    // for the entity-construction pattern).
+    Dhis2OAuth2Client entity = new Dhis2OAuth2Client();
+    entity.setUid(CodeGenerator.generateUid());
+    entity.setName("Defaults Client");
+    entity.setClientId("defaults-client-" + UUID.randomUUID());
+    entity.setClientSecret("defaults-secret");
+    entity.setClientAuthenticationMethods(
+        ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
+    entity.setAuthorizationGrantTypes(AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
+    entity.setRedirectUris("https://defaults.example.com/callback");
+    entity.setScopes("openid");
+
+    // When: applyCreateDefaults fills in clientSettings since none was supplied.
+    clientRepository.applyCreateDefaults(entity);
+
+    // Then: PR-H removed the temporary requireProofKey(false) bridge -- both PKCE and consent
+    // must default to true.
+    ClientSettings clientSettings = clientRepository.toObject(entity).getClientSettings();
+    assertTrue(clientSettings.isRequireProofKey());
+    assertTrue(clientSettings.isRequireAuthorizationConsent());
+  }
+
+  @Test
+  void testValidateCreateRejectsReservedScope() {
+    Dhis2OAuth2Client entity = new Dhis2OAuth2Client();
+    entity.setUid(CodeGenerator.generateUid());
+    entity.setName("Reserved Scope Client");
+    entity.setClientId("reserved-scope-client-" + UUID.randomUUID());
+    entity.setClientSecret("secret");
+    entity.setClientAuthenticationMethods(
+        ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
+    entity.setAuthorizationGrantTypes(AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
+    entity.setRedirectUris("https://reserved.example.com/callback");
+    entity.setScopes("client.create");
+
+    List<ErrorReport> errors = new ArrayList<>();
+    clientRepository.validateCreate(entity, errors::add);
+
+    assertFalse(errors.isEmpty());
+    assertTrue(
+        errors.stream().anyMatch(e -> e.getMessage().contains("reserved")),
+        "Expected a reserved-scope error, got: " + errors);
+  }
+
+  @Test
+  void testValidateCreateRejectsMalformedClientSettings() {
+    Dhis2OAuth2Client entity = new Dhis2OAuth2Client();
+    entity.setUid(CodeGenerator.generateUid());
+    entity.setName("Malformed Settings Client");
+    entity.setClientId("malformed-settings-client-" + UUID.randomUUID());
+    entity.setClientSecret("secret");
+    entity.setClientAuthenticationMethods(
+        ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue());
+    entity.setAuthorizationGrantTypes(AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
+    entity.setRedirectUris("https://malformed.example.com/callback");
+    entity.setScopes("openid");
+    entity.setClientSettings("{not json");
+
+    List<ErrorReport> errors = new ArrayList<>();
+    clientRepository.validateCreate(entity, errors::add);
+
+    assertFalse(errors.isEmpty());
   }
 
   /** Creates a test client with basic attributes for testing. */

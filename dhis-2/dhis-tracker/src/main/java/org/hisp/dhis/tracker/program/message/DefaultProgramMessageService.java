@@ -34,10 +34,11 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -60,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.program.message.ProgramMessageService")
 public class DefaultProgramMessageService implements ProgramMessageService {
@@ -248,12 +250,26 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   }
 
   private ProgramMessage setAttributesBasedOnStrategy(ProgramMessage message) {
-    Set<DeliveryChannel> channels = message.getDeliveryChannels();
-
-    for (DeliveryChannel channel : channels) {
+    // Iterate over a copy: a channel whose recipient cannot be resolved at all (e.g. a tracked
+    // entity with no attribute value of the required type) is dropped from the message so that
+    // the remaining deliverable channels are still sent, instead of aborting the whole send.
+    //
+    // Known inconsistency, a channel whose org unit contact detail is missing now stays on the
+    // persisted ProgramMessage.deliveryChannels instead of being removed as it was before.
+    // A channel whose tracked entity attribute is missing is still removed.
+    for (DeliveryChannel channel : new HashSet<>(message.getDeliveryChannels())) {
       for (DeliveryChannelStrategy strategy : strategies) {
         if (strategy.getDeliveryChannel().equals(channel)) {
-          strategy.setAttributes(message);
+          try {
+            strategy.setAttributes(message);
+          } catch (IllegalQueryException ex) {
+            log.warn(
+                "Skipping delivery channel {} for program message {}: {}",
+                channel,
+                message.getUid(),
+                ex.getMessage());
+            message.getDeliveryChannels().remove(channel);
+          }
         }
       }
     }

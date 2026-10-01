@@ -162,25 +162,21 @@ class MinMaxDataElementStoreTest extends PostgresIntegrationTestBase {
     minMaxDataElementStore.save(valueB);
     minMaxDataElementStore.save(valueC);
     minMaxDataElementStore.save(valueD);
-    MinMaxDataElementQueryParams params = new MinMaxDataElementQueryParams();
     List<String> filters = Lists.newArrayList();
     filters.add("dataElement.id:eq:" + deA.getUid());
-    params.setFilters(filters);
-    List<MinMaxDataElement> result = minMaxDataElementStore.query(params);
+    List<MinMaxDataElement> result =
+        minMaxDataElementStore.query(new MinMaxDataElementParams(filters));
 
     assertNotNull(result);
     assertEquals(1, result.size());
-    params = new MinMaxDataElementQueryParams();
     filters.clear();
     filters.add("min:eq:0");
-    params.setFilters(filters);
-    result = minMaxDataElementStore.query(params);
+    result = minMaxDataElementStore.query(new MinMaxDataElementParams(filters));
     assertNotNull(result);
     assertEquals(4, result.size());
     filters.clear();
     filters.add("dataElement.id:in:[" + deA.getUid() + "," + deB.getUid() + "]");
-    params.setFilters(filters);
-    result = minMaxDataElementStore.query(params);
+    result = minMaxDataElementStore.query(new MinMaxDataElementParams(filters));
     assertNotNull(result);
     assertEquals(2, result.size());
   }

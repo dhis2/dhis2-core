@@ -60,8 +60,6 @@ public class EventDataValue implements Serializable {
 
   private Boolean providedElsewhere = false;
 
-  private String storedBy;
-
   // -------------------------------------------------------------------------
   // Transient properties
   // -------------------------------------------------------------------------
@@ -86,7 +84,6 @@ public class EventDataValue implements Serializable {
     this.lastUpdatedByUserInfo = other.lastUpdatedByUserInfo;
     this.value = other.value;
     this.providedElsewhere = other.providedElsewhere;
-    this.storedBy = other.storedBy;
   }
 
   public EventDataValue(String dataElement, String value) {
@@ -96,7 +93,6 @@ public class EventDataValue implements Serializable {
 
   public EventDataValue(String dataElement, String value, UserInfoSnapshot userInfo) {
     this.dataElement = dataElement;
-    this.storedBy = userInfo.getUsername();
     this.createdByUserInfo = userInfo;
     this.lastUpdatedByUserInfo = userInfo;
     setValue(value);
@@ -206,15 +202,6 @@ public class EventDataValue implements Serializable {
     return value;
   }
 
-  @JsonProperty
-  public String getStoredBy() {
-    return storedBy;
-  }
-
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-  }
-
   @JsonIgnore
   public String getAuditValue() {
     return auditValue;
@@ -234,9 +221,6 @@ public class EventDataValue implements Serializable {
         + '\''
         + ", providedElsewhere="
         + providedElsewhere
-        + ", storedBy='"
-        + storedBy
-        + '\''
         + '}';
   }
 }

@@ -168,7 +168,7 @@ class EnrollmentQueryHelperTest {
 
     String[] columns = periodColumns.toArray(String[]::new);
     assertEquals(1, columns.length);
-    assertEquals("t1.Monthly", columns[0]);
+    assertEquals("t1.monthly", columns[0]);
   }
 
   @Test

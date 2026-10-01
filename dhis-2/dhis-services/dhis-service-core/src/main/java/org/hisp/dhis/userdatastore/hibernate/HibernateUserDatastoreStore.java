@@ -158,21 +158,23 @@ public class HibernateUserDatastoreStore
 
   @Override
   public boolean updateEntry(
+      long userId,
       @Nonnull String ns,
       @Nonnull String key,
       @Nullable String value,
       @Nullable String path,
       @Nullable Integer roll) {
     boolean rootIsTarget = path == null || path.isEmpty();
-    if (value == null && rootIsTarget) return updateEntryRootDelete(ns, key);
-    if (value == null) return updateEntryPathSetToNull(ns, key, path);
-    if (roll == null && rootIsTarget) return updateEntryRootSetToValue(ns, key, value);
-    if (roll == null) return updateEntryPathSetToValue(ns, key, value, path);
-    if (rootIsTarget) return updateEntryRootRollValue(ns, key, value, roll);
-    return updateEntryPathRollValue(ns, key, value, path, roll);
+    if (value == null && rootIsTarget) return updateEntryRootDelete(userId, ns, key);
+    if (value == null) return updateEntryPathSetToNull(userId, ns, key, path);
+    if (roll == null && rootIsTarget) return updateEntryRootSetToValue(userId, ns, key, value);
+    if (roll == null) return updateEntryPathSetToValue(userId, ns, key, value, path);
+    if (rootIsTarget) return updateEntryRootRollValue(userId, ns, key, value, roll);
+    return updateEntryPathRollValue(userId, ns, key, value, path, roll);
   }
 
   private boolean updateEntryPathRollValue(
+      long userId,
       @Nonnull String ns,
       @Nonnull String key,
       @Nonnull String value,
@@ -194,8 +196,9 @@ public class HibernateUserDatastoreStore
           when 'null'    then jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)])) \
           else jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)])) \
           end \
-        where namespace = :ns and userkey = :key""";
+        where userid = :userid and namespace = :ns and userkey = :key""";
     return nativeSynchronizedQuery(sql)
+            .setParameter("userid", userId)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -206,7 +209,11 @@ public class HibernateUserDatastoreStore
   }
 
   private boolean updateEntryRootRollValue(
-      @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull Integer roll) {
+      long userId,
+      @Nonnull String ns,
+      @Nonnull String key,
+      @Nonnull String value,
+      @Nonnull Integer roll) {
     String sql =
         """
         update userkeyjsonvalue \
@@ -219,8 +226,9 @@ public class HibernateUserDatastoreStore
             end \
           else cast(:value as jsonb) \
           end \
-        where namespace = :ns and userkey = :key""";
+        where userid = :userid and namespace = :ns and userkey = :key""";
     return nativeSynchronizedQuery(sql)
+            .setParameter("userid", userId)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -230,9 +238,14 @@ public class HibernateUserDatastoreStore
   }
 
   private boolean updateEntryPathSetToValue(
-      @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull String path) {
+      long userId,
+      @Nonnull String ns,
+      @Nonnull String key,
+      @Nonnull String value,
+      @Nonnull String path) {
     return nativeSynchronizedQuery(
-                "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where namespace = :ns and userkey = :key")
+                "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where userid = :userid and namespace = :ns and userkey = :key")
+            .setParameter("userid", userId)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -242,9 +255,10 @@ public class HibernateUserDatastoreStore
   }
 
   private boolean updateEntryRootSetToValue(
-      @Nonnull String ns, @Nonnull String key, @Nonnull String value) {
+      long userId, @Nonnull String ns, @Nonnull String key, @Nonnull String value) {
     return nativeSynchronizedQuery(
-                "update userkeyjsonvalue set jbvalue = cast(:value as jsonb) where namespace = :ns and userkey = :key")
+                "update userkeyjsonvalue set jbvalue = cast(:value as jsonb) where userid = :userid and namespace = :ns and userkey = :key")
+            .setParameter("userid", userId)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -253,9 +267,10 @@ public class HibernateUserDatastoreStore
   }
 
   private boolean updateEntryPathSetToNull(
-      @Nonnull String ns, @Nonnull String key, @Nonnull String path) {
+      long userId, @Nonnull String ns, @Nonnull String key, @Nonnull String path) {
     return nativeSynchronizedQuery(
-                "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where namespace = :ns and userkey = :key")
+                "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where userid = :userid and namespace = :ns and userkey = :key")
+            .setParameter("userid", userId)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("path", toJsonbPath(path))
@@ -263,10 +278,11 @@ public class HibernateUserDatastoreStore
         > 0;
   }
 
-  private boolean updateEntryRootDelete(@Nonnull String ns, @Nonnull String key) {
+  private boolean updateEntryRootDelete(long userId, @Nonnull String ns, @Nonnull String key) {
     // delete
     return nativeSynchronizedQuery(
-                "delete from userkeyjsonvalue where namespace = :ns and userkey = :key")
+                "delete from userkeyjsonvalue where userid = :userid and namespace = :ns and userkey = :key")
+            .setParameter("userid", userId)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .executeUpdate()

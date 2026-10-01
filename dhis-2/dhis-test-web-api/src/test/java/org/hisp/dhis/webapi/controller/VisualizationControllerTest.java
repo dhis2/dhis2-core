@@ -40,6 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
@@ -420,5 +422,52 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(columnNode.get("dataDimension").booleanValue());
     assertEquals("PROGRAM_DATA_ELEMENT_OPTION", itemsNode.get("dimensionItemType").string());
     assertEquals("SUM", itemsNode.get("aggregationType").string());
+  }
+
+  @Test
+  void testPostAndGetCategoryOptionItemInColumn() {
+    // Given
+    CategoryOption categoryOption = createCategoryOption("Female", "qkPbeWaFsnU");
+    manager.save(categoryOption);
+
+    Category category = createCategory("Gender", "fMZEcRHuamy", categoryOption);
+    manager.save(category);
+
+    String categoryUid = category.getUid();
+    String optionUid = categoryOption.getUid();
+    String jsonBody =
+"""
+{
+    "type": "PIE",
+    "columns": [
+        {
+            "id": "${categoryUid}",
+            "items": [
+                {
+                    "id": "${optionUid}",
+                    "dimensionItemType": "CATEGORY_OPTION"
+                }
+            ]
+        }
+    ],
+    "name": "CategoryOption - Test"
+}
+"""
+            .replace("${categoryUid}", categoryUid)
+            .replace("${optionUid}", optionUid);
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
+
+    // Then
+    String getParams = "?fields=columns[:all,items[:all]]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    JsonObject columnNode = response.getList("columns", JsonObject.class).get(0);
+    JsonObject itemsNode = columnNode.getList("items", JsonObject.class).get(0);
+
+    assertEquals(categoryUid, columnNode.get("id").string());
+    assertEquals("CATEGORY_OPTION", itemsNode.get("dimensionItemType").string());
+    assertEquals(optionUid, itemsNode.get("dimensionItem").string());
   }
 }

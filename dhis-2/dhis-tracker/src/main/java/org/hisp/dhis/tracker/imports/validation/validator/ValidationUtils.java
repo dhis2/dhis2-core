@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -52,7 +54,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -77,6 +78,7 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public class ValidationUtils {
   private ValidationUtils() {
     throw new IllegalStateException("Utility class");
@@ -118,7 +120,7 @@ public class ValidationUtils {
   public static List<MetadataIdentifier> validateDeletionMandatoryDataValue(
       Event event,
       @Nonnull ProgramStage programStage,
-      List<MetadataIdentifier> mandatoryDataElements) {
+      Collection<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
@@ -136,7 +138,7 @@ public class ValidationUtils {
       TrackerBundle bundle,
       Event event,
       @Nonnull ProgramStage programStage,
-      List<MetadataIdentifier> mandatoryDataElements) {
+      Collection<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
@@ -249,22 +251,33 @@ public class ValidationUtils {
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
-      Reporter reporter, TrackerDto dto, T optionalObject, @Nonnull String value) {
+      Reporter reporter,
+      TrackerPreheat preheat,
+      TrackerDto dto,
+      T optionalObject,
+      @Nonnull String value) {
     if (!optionalObject.hasOptionSet()) {
       return;
     }
-
-    Set<String> validCodes =
-        optionalObject.getOptionSet().getOptions().stream()
-            .map(Option::getCode)
-            .collect(Collectors.toSet());
 
     List<String> codes =
         optionalObject.getValueType().isMultiText()
             ? ValueType.splitMultiText(value)
             : List.of(value);
 
-    if (!validCodes.containsAll(codes)) {
+    Long optionSetId = optionalObject.getOptionSet().getId();
+    boolean allCodesValid =
+        codes.stream().allMatch(code -> preheat.isValidOptionCode(optionSetId, code));
+
+    if (!allCodesValid) {
+      if (!preheat.isOptionSetResolved(optionSetId)) {
+        // Diagnostic only, the validation outcome below is unchanged. An unresolved option set
+        // means the supplier never checked it, which is an internal bug rather than user error.
+        log.warn(
+            "Option set {} was never resolved during preheat; treating code {} as invalid",
+            optionalObject.getOptionSet().getUid(),
+            value);
+      }
       reporter.addError(dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid());
     }
   }

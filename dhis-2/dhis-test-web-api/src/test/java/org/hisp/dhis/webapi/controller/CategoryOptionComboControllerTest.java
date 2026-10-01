@@ -71,7 +71,9 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
   void getAllCatOptionCombosIncludingDefaultsTest() {
     TestCategoryMetadata categoryMetadata = setupCategoryMetadata("dcoc1");
     JsonArray categoryCombos =
-        GET("/categoryOptionCombos").content(HttpStatus.OK).getArray("categoryOptionCombos");
+        GET("/categoryOptionCombos?gist=false")
+            .content(HttpStatus.OK)
+            .getArray("categoryOptionCombos");
 
     Set<String> cocNames = new HashSet<>(categoryMetadata.getCocNames());
     cocNames.add("default");

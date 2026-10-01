@@ -31,8 +31,13 @@ package org.hisp.dhis.sqlview.hibernate;
 
 import static org.hisp.dhis.common.TransactionMode.READ;
 import static org.hisp.dhis.common.TransactionMode.WRITE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,9 +45,11 @@ import static org.mockito.Mockito.when;
 import jakarta.persistence.EntityManager;
 import java.util.Map;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.RawJsonValue;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +58,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 @ExtendWith(MockitoExtension.class)
 class HibernateSqlViewStoreTest {
@@ -75,6 +84,15 @@ class HibernateSqlViewStoreTest {
             aclService,
             readOnlyJdbcTemplate,
             settingsProvider);
+
+    SqlRowSetMetaData emptyMeta = mock(SqlRowSetMetaData.class);
+    lenient().when(emptyMeta.getColumnCount()).thenReturn(0);
+    SqlRowSet emptyRowSet = mock(SqlRowSet.class);
+    lenient().when(emptyRowSet.getMetaData()).thenReturn(emptyMeta);
+    lenient().when(jdbcTemplate.queryForRowSet(anyString(), isNull())).thenReturn(emptyRowSet);
+    lenient()
+        .when(readOnlyJdbcTemplate.queryForRowSet(anyString(), isNull()))
+        .thenReturn(emptyRowSet);
   }
 
   @Test
@@ -97,5 +115,52 @@ class HibernateSqlViewStoreTest {
     // then
     verify(readOnlyJdbcTemplate, times(1)).queryForRowSet(anyString(), isNull());
     verify(jdbcTemplate, times(0)).queryForRowSet(anyString(), isNull());
+  }
+
+  @Test
+  @DisplayName("jsonb column values are wrapped as RawJsonValue in the grid")
+  void populateSqlViewGridWrapsJsonbValuesAsRawJson() {
+    SqlRowSetMetaData metadata = mock(SqlRowSetMetaData.class);
+    when(metadata.getColumnCount()).thenReturn(2);
+    when(metadata.getColumnLabel(1)).thenReturn("name");
+    when(metadata.getColumnTypeName(1)).thenReturn("text");
+    when(metadata.getColumnLabel(2)).thenReturn("style");
+    when(metadata.getColumnTypeName(2)).thenReturn("jsonb");
+
+    SqlRowSet rowSet = mock(SqlRowSet.class);
+    when(rowSet.getMetaData()).thenReturn(metadata);
+    when(rowSet.next()).thenReturn(true, false);
+    when(rowSet.getObject(1)).thenReturn("Malaria RDT");
+    when(rowSet.getObject(2)).thenReturn("{\"icon\":\"star\"}");
+
+    when(jdbcTemplate.queryForRowSet(anyString(), isNull())).thenReturn(rowSet);
+
+    Grid result = new ListGrid();
+    store.populateSqlViewGrid(result, "sql", null, WRITE);
+
+    assertEquals("Malaria RDT", result.getRow(0).get(0));
+    assertInstanceOf(RawJsonValue.class, result.getRow(0).get(1));
+    assertEquals("{\"icon\":\"star\"}", ((RawJsonValue) result.getRow(0).get(1)).value());
+  }
+
+  @Test
+  @DisplayName("null jsonb column values remain null in the grid")
+  void populateSqlViewGridKeepsNullJsonbAsNull() {
+    SqlRowSetMetaData metadata = mock(SqlRowSetMetaData.class);
+    when(metadata.getColumnCount()).thenReturn(1);
+    when(metadata.getColumnLabel(1)).thenReturn("style");
+    when(metadata.getColumnTypeName(1)).thenReturn("jsonb");
+
+    SqlRowSet rowSet = mock(SqlRowSet.class);
+    when(rowSet.getMetaData()).thenReturn(metadata);
+    when(rowSet.next()).thenReturn(true, false);
+    // getObject(1) returns null by default - no stub needed
+
+    when(jdbcTemplate.queryForRowSet(anyString(), isNull())).thenReturn(rowSet);
+
+    Grid result = new ListGrid();
+    store.populateSqlViewGrid(result, "sql", null, WRITE);
+
+    assertNull(result.getRow(0).get(0));
   }
 }

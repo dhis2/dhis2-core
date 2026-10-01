@@ -92,6 +92,8 @@ public class Property implements Ordered, Klass {
    */
   @Setter private boolean persisted;
 
+  @Getter @Setter private boolean isTransient;
+
   /** Name of collection wrapper. */
   @Setter private String collectionName;
 
@@ -541,6 +543,10 @@ public class Property implements Ordered, Klass {
     return this.translatable;
   }
 
+  public boolean canBeTranslated() {
+    return isTranslatable() && getTranslationKey() != null;
+  }
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public GistPreferences getGistPreferences() {
@@ -716,5 +722,20 @@ public class Property implements Ordered, Klass {
         .add("constants", constants)
         .add("defaultValue", defaultValue)
         .toString();
+  }
+
+  /**
+   * Maps display property names to their base property names by removing the "display" prefix.
+   *
+   * @param displayPropertyName the display property name (e.g., "displayName")
+   * @return the base property name (e.g., "name")
+   */
+  public static String resolveTranslationBasePropertyName(String displayPropertyName) {
+    if (displayPropertyName.startsWith("display")
+        && displayPropertyName.length() > "display".length()) {
+      String basePropertyName = displayPropertyName.substring("display".length());
+      return basePropertyName.substring(0, 1).toLowerCase() + basePropertyName.substring(1);
+    }
+    return displayPropertyName;
   }
 }

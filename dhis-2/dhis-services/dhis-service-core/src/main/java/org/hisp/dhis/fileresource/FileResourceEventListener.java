@@ -140,7 +140,7 @@ public class FileResourceEventListener {
           .forEach(
               d ->
                   fileResourceContentStore.deleteFileResourceContent(
-                      new BlobKey(baseKey + d.getDimension())));
+                      BlobKey.of(baseKey + d.getDimension())));
     } else {
       fileResourceContentStore.deleteFileResourceContent(deleteFileEvent.storageKey());
     }

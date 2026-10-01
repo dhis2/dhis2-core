@@ -207,8 +207,8 @@ class HibernatePotentialDuplicateStore
               if (originalAttributeValueMap.containsKey(dav.getAttribute().getUid())) {
                 // Teav exists in original, overwrite the value
                 updatedTeav = originalAttributeValueMap.get(dav.getAttribute().getUid());
-                previousValue = updatedTeav.getPlainValue();
-                updatedTeav.setValue(dav.getPlainValue());
+                previousValue = updatedTeav.getValue();
+                updatedTeav.setValue(dav.getValue());
                 changeLogType = UPDATE;
               } else {
                 // teav does not exist in original, so create new and attach
@@ -216,7 +216,7 @@ class HibernatePotentialDuplicateStore
                 updatedTeav = new TrackedEntityAttributeValue();
                 updatedTeav.setAttribute(dav.getAttribute());
                 updatedTeav.setTrackedEntity(original);
-                updatedTeav.setValue(dav.getPlainValue());
+                updatedTeav.setValue(dav.getValue());
                 changeLogType = CREATE;
               }
               getSession().delete(dav);
@@ -244,7 +244,7 @@ class HibernatePotentialDuplicateStore
               createOrUpdateTeav.getTrackedEntity(),
               createOrUpdateTeav.getAttribute(),
               previousValue,
-              createOrUpdateTeav.getPlainValue(),
+              createOrUpdateTeav.getValue(),
               changeLogType,
               new Date(),
               currentUsername);

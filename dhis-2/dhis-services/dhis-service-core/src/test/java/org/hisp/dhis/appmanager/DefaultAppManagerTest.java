@@ -62,7 +62,7 @@ class DefaultAppManagerTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
   @Mock private AppHubService appHubService;
-  @Mock private AppStorageService jCloudsAppStorageService;
+  @Mock private AppStorageService blobStoreAppStorageService;
   @Mock private DatastoreService datastoreService;
   @Mock private Cache<App> appCache;
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
@@ -125,7 +125,7 @@ class DefaultAppManagerTest {
         new DefaultAppManager(
             dhisConfigurationProvider,
             appHubService,
-            jCloudsAppStorageService,
+            blobStoreAppStorageService,
             datastoreService,
             cacheBuilderProvider,
             i18nManager,

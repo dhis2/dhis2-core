@@ -35,6 +35,8 @@ import static org.hisp.dhis.webapi.filter.SessionIdFilter.hashToBase64;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.FilterChain;
@@ -42,8 +44,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +74,11 @@ class SessionIdFilterTest {
     MDC.clear();
   }
 
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
+  }
+
   @Test
   void testIsDisabled() throws Exception {
     init(false);
@@ -80,34 +89,56 @@ class SessionIdFilterTest {
 
   @Test
   void testIsEnabled() throws Exception {
+    authenticate();
 
+    init(true);
+    AtomicReference<String> inChain =
+        doFilter(
+            request -> {
+              HttpSession session = mock(HttpSession.class);
+              when(request.getSession(false)).thenReturn(session);
+              when(session.getId()).thenReturn("ABCDEFGHILMNO");
+            });
+
+    assertEquals("ID" + hashToBase64("ABCDEFGHILMNO"), inChain.get());
+    assertNull(MDC.get(MDC_SESSION_ID), "session ID must be removed from MDC after the request");
+  }
+
+  @Test
+  void testDoesNotCreateSessionWhenNoneExists() throws Exception {
+    authenticate();
+
+    init(true);
+    AtomicReference<String> inChain =
+        doFilter(request -> when(request.getSession(false)).thenReturn(null));
+
+    assertNull(inChain.get());
+    assertNull(MDC.get(MDC_SESSION_ID));
+  }
+
+  private void authenticate() {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             "admin", "admin", List.of((GrantedAuthority) () -> "ALL"));
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
-
     SecurityContextHolder.setContext(context);
-
-    init(true);
-    doFilter(
-        request -> {
-          HttpSession session = mock(HttpSession.class);
-          when(request.getSession()).thenReturn(session);
-          when(session.getId()).thenReturn("ABCDEFGHILMNO");
-        });
-
-    assertEquals("ID" + hashToBase64("ABCDEFGHILMNO"), MDC.get(MDC_SESSION_ID));
   }
 
-  private void doFilter(Consumer<HttpServletRequest> withRequest) throws Exception {
+  private AtomicReference<String> doFilter(Consumer<HttpServletRequest> withRequest)
+      throws Exception {
     HttpServletRequest req = mock(HttpServletRequest.class);
     HttpServletResponse res = mock(HttpServletResponse.class);
-    FilterChain filterChain = mock(FilterChain.class);
+    AtomicReference<String> inChain = new AtomicReference<>();
+    FilterChain filterChain = (request, response) -> inChain.set(MDC.get(MDC_SESSION_ID));
 
     withRequest.accept(req);
 
     subject.doFilter(req, res, filterChain);
+
+    verify(req, never()).getSession();
+    verify(req, never()).getSession(true);
+    return inChain;
   }
 
   private void init(boolean enabled) {

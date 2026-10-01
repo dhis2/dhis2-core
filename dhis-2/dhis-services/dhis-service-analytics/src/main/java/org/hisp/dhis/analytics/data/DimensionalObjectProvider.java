@@ -377,6 +377,24 @@ public class DimensionalObjectProvider {
       DisplayProperty displayProperty,
       List<OrganisationUnit> userOrgUnits,
       IdScheme inputIdScheme) {
+    return getOrgUnitDimension(items, displayProperty, userOrgUnits, inputIdScheme, false);
+  }
+
+  /**
+   * Same as {@link #getOrgUnitDimension(List, DisplayProperty, List, IdScheme)} but, when {@code
+   * geometryOnly} is true, restricts level- and group-resolved organisation units to those that
+   * have a non-null geometry. Used by the geoFeatures endpoint, which only renders units that have
+   * geometry. When {@code geometryOnly} is true an empty result is allowed (it does not raise
+   * {@code E7143}), since "no units have geometry" is a valid empty response rather than an error.
+   *
+   * @param geometryOnly whether to include only organisation units that have a non-null geometry.
+   */
+  public DimensionalObject getOrgUnitDimension(
+      List<String> items,
+      DisplayProperty displayProperty,
+      List<OrganisationUnit> userOrgUnits,
+      IdScheme inputIdScheme,
+      boolean geometryOnly) {
     List<Integer> levels = new ArrayList<>();
     List<OrganisationUnitGroup> groups = new ArrayList<>();
     List<DimensionalItemObject> ous =
@@ -386,8 +404,11 @@ public class DimensionalObjectProvider {
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
     if (!levels.isEmpty()) {
-      orgUnitAtLevels.addAll(
-          sort(organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList)));
+      List<OrganisationUnit> atLevels =
+          geometryOnly
+              ? organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList, true)
+              : organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList);
+      orgUnitAtLevels.addAll(sort(atLevels));
 
       dimensionalKeywords.addKeywords(
           levels.stream()
@@ -397,7 +418,11 @@ public class DimensionalObjectProvider {
     }
 
     if (!groups.isEmpty()) {
-      orgUnitAtLevels.addAll(sort(organisationUnitService.getOrganisationUnits(groups, ousList)));
+      List<OrganisationUnit> inGroups =
+          geometryOnly
+              ? organisationUnitService.getOrganisationUnits(groups, ousList, true)
+              : organisationUnitService.getOrganisationUnits(groups, ousList);
+      orgUnitAtLevels.addAll(sort(inGroups));
 
       dimensionalKeywords.addKeywords(
           groups.stream()
@@ -420,7 +445,9 @@ public class DimensionalObjectProvider {
       dimensionalKeywords.addKeywords(ousList);
     }
 
-    if (orgUnitAtLevels.isEmpty()) {
+    // When geometryOnly is set, an empty result is a valid empty response (e.g. no unit at the
+    // level has geometry), not a query error, so the E7143 guard is skipped in that case.
+    if (orgUnitAtLevels.isEmpty() && !geometryOnly) {
       throwIllegalQueryEx(E7143, ORGUNIT_DIM_ID);
     }
 
@@ -459,18 +486,50 @@ public class DimensionalObjectProvider {
    *     its keywords.
    * @param userOrgUnits the list of organisation units associated with the current user.
    * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
-   *     This is needed for SQL filtering but should be false for metadata generation.
+   *     Explicit org units are kept in the result (union semantics). This is needed for SQL
+   *     filtering but should be false for metadata generation.
    * @return a list of {@link OrganisationUnit} UIDs.
    */
   public List<String> getOrgUnitDimensionUid(
       List<String> items, List<OrganisationUnit> userOrgUnits, boolean expandGroupsAndLevels) {
+    return getOrgUnitDimensionUid(items, userOrgUnits, expandGroupsAndLevels, false);
+  }
+
+  /**
+   * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
+   * user organisation units.
+   *
+   * @param items the list of items that might be included into the resulting organisation unit and
+   *     its keywords.
+   * @param userOrgUnits the list of organisation units associated with the current user.
+   * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
+   *     This is needed for SQL filtering but should be false for metadata generation.
+   * @param orgUnitsAsBoundaries if true and LEVEL-X / OU_GROUP-X selectors are present, explicit
+   *     org units only scope the expansion and are not included in the result (stage.ou dimension
+   *     semantics). If false, explicit org units are kept alongside the expanded members (union
+   *     semantics, used by org unit typed data element filters). Only relevant when
+   *     expandGroupsAndLevels is true.
+   * @return a list of {@link OrganisationUnit} UIDs.
+   */
+  public List<String> getOrgUnitDimensionUid(
+      List<String> items,
+      List<OrganisationUnit> userOrgUnits,
+      boolean expandGroupsAndLevels,
+      boolean orgUnitsAsBoundaries) {
     List<Integer> levels = new ArrayList<>();
     List<OrganisationUnitGroup> groups = new ArrayList<>();
 
     List<DimensionalItemObject> ous =
         getOrgUnitDimensionItems(items, userOrgUnits, IdScheme.UID, levels, groups);
 
-    List<String> result = new ArrayList<>(ous.stream().map(DimensionalItemObject::getUid).toList());
+    boolean hasLevelsOrGroups = !levels.isEmpty() || !groups.isEmpty();
+
+    List<String> result = new ArrayList<>();
+
+    // With boundary semantics, OUs combined with levels / groups only scope the expansion
+    if (!(expandGroupsAndLevels && orgUnitsAsBoundaries && hasLevelsOrGroups)) {
+      result.addAll(ous.stream().map(DimensionalItemObject::getUid).toList());
+    }
 
     if (expandGroupsAndLevels) {
       List<OrganisationUnit> ousList = asTypedList(ous);

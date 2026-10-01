@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.analytics.common.processing.MetadataDimensionsHandler.getDistinctPeriodUids;
+import static org.hisp.dhis.analytics.tracker.SchemeIdHandler.getValidScheme;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getCocNameMap;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDimensionMetadataItemMap;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.handleGridForDataValueSet;
@@ -198,12 +199,12 @@ public class MetadataHandler {
         .build();
   }
 
-  private Settings schemeSettings(DataQueryParams params) {
+  Settings schemeSettings(DataQueryParams params) {
     return Settings.builder()
-        .outputDataElementIdScheme(params.getOutputDataElementIdScheme())
-        .outputDataItemIdScheme(params.getOutputDataItemIdScheme())
-        .outputIdScheme(params.getOutputIdScheme())
-        .outputOrgUnitIdScheme(params.getOutputOrgUnitIdScheme())
+        .outputDataElementIdScheme(getValidScheme(params.getOutputDataElementIdScheme()))
+        .outputDataItemIdScheme(getValidScheme(params.getOutputDataItemIdScheme()))
+        .outputIdScheme(getValidScheme(params.getOutputIdScheme()))
+        .outputOrgUnitIdScheme(getValidScheme(params.getOutputOrgUnitIdScheme()))
         .outputFormat(params.getOutputFormat())
         .build();
   }

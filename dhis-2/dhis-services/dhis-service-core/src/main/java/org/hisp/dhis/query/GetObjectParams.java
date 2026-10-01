@@ -31,8 +31,6 @@ package org.hisp.dhis.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
@@ -56,12 +54,6 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
 @OpenApi.Shared
 public class GetObjectParams {
 
-  /**
-   * Fields allow {@code property[sub,sub]} syntax where a comma occurs as part of the property
-   * name. These commas need to be ignored when splitting a {@code fields} parameter list.
-   */
-  private static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
-
   @OpenApi.Description(
       """
     Limit the response to specific field(s).\s
@@ -71,24 +63,22 @@ public class GetObjectParams {
   @OpenApi.Property(OpenApi.PropertyNames[].class)
   @JsonProperty
   @CheckForNull
-  List<String> fields;
+  @Setter
+  String fields;
 
   @Setter @JsonProperty @Nonnull Defaults defaults = Defaults.INCLUDE;
 
-  /**
-   * Since splitting on comma is too unsophisticated to be correct this needs custom split code when
-   * called by spring injecting URL parmaeters
-   *
-   * @param fields field expression
-   */
-  public void setFields(String fields) {
-    this.fields = fields == null ? null : List.of(fields.split(FIELD_SPLIT));
-  }
+  @Setter
+  @JsonProperty
+  @OpenApi.Description(
+      "Force to use (`true`) or not use (`false`) gist API backend for metadata API, default (`null`) auto-detect based on `fields` and `filter`s")
+  @OpenApi.Since(44)
+  Boolean gist;
 
-  public GetObjectParams addField(String field) {
-    if (fields == null) fields = new ArrayList<>();
-    fields.add(field);
-    return this;
+  public void addField(String field) {
+    if (fields == null || fields.isEmpty()) {
+      fields = field;
+    } else fields += "," + field;
   }
 
   /**
@@ -96,8 +86,8 @@ public class GetObjectParams {
    */
   @Nonnull
   @JsonIgnore
-  public List<String> getFieldsObject() {
-    if (fields == null || fields.isEmpty()) return List.of("*");
+  public String getFieldsObject() {
+    if (fields == null || fields.isEmpty()) return "*";
     return fields;
   }
 
@@ -106,8 +96,9 @@ public class GetObjectParams {
    */
   @Nonnull
   @JsonIgnore
-  public List<String> getFieldsJsonList() {
-    if (fields == null || fields.isEmpty()) return FieldPreset.defaultPreset().getFields();
+  public String getFieldsJsonList() {
+    if (fields == null || fields.isEmpty())
+      return String.join(",", FieldPreset.defaultPreset().getFields());
     return fields;
   }
 
@@ -116,11 +107,13 @@ public class GetObjectParams {
    */
   @Nonnull
   @JsonIgnore
-  public List<String> getFieldsCsvList() {
-    List<String> res = new ArrayList<>();
-    if (fields != null) res.addAll(fields);
-    if (res.isEmpty() || res.contains("*") || res.contains(":all"))
-      res.addAll(FieldPreset.defaultPreset().getFields());
+  public String getFieldsCsvList() {
+    String res = fields;
+    if (res == null || res.isEmpty()) res = "*";
+    if (res.contains("*"))
+      res = res.replace("*", String.join(",", FieldPreset.defaultPreset().getFields()));
+    if (res.contains(":all"))
+      res = res.replace(":all", String.join(",", FieldPreset.defaultPreset().getFields()));
     return res;
   }
 
@@ -130,7 +123,7 @@ public class GetObjectParams {
    */
   public GetObjectListParams toListParams() {
     GetObjectListParams res = new GetObjectListParams();
-    if (fields != null) fields.forEach(res::addField);
+    res.setFields(fields);
     res.setDefaults(defaults);
     return res;
   }

@@ -101,7 +101,6 @@ class CsvTrackedEntityService implements CsvService<TrackedEntity> {
       trackedEntityValue.setInactive(trackedEntity.isInactive());
       trackedEntityValue.setDeleted(trackedEntity.isDeleted());
       trackedEntityValue.setPotentialDuplicate(trackedEntity.isPotentialDuplicate());
-      trackedEntityValue.setStoredBy(trackedEntity.getStoredBy());
       trackedEntityValue.setCreatedBy(
           trackedEntity.getCreatedBy() == null ? null : trackedEntity.getCreatedBy().getUsername());
       trackedEntityValue.setUpdatedBy(

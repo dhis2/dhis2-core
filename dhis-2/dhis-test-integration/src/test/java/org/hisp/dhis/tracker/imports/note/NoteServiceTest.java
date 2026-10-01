@@ -42,8 +42,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventFields;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -100,7 +104,9 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
     manager.flush();
 
-    Enrollment dbEnrollment = enrollmentService.getEnrollment(UID.of("nxP7UnKhomJ"));
+    Enrollment dbEnrollment =
+        enrollmentService.getEnrollment(
+            UID.of("nxP7UnKhomJ"), EnrollmentFields.builder().includeNotes().build());
     assertNotes(List.of(note), dbEnrollment.getNotes(), userDetails);
   }
 
@@ -153,7 +159,11 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
     manager.flush();
 
-    TrackerEvent dbEvent = trackerEventService.getEvent(UID.of("pTzf9KYMk72"));
+    TrackerEvent dbEvent =
+        trackerEventService.getEvent(
+            UID.of("pTzf9KYMk72"),
+            TrackerIdSchemeParams.builder().build(),
+            TrackerEventFields.builder().includeNotes().build());
     assertNotes(List.of(note), dbEvent.getNotes(), userDetails);
   }
 
@@ -166,7 +176,11 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
     manager.flush();
 
-    SingleEvent dbEvent = singleEventService.getEvent(UID.of("QRYjLTiJTrA"));
+    SingleEvent dbEvent =
+        singleEventService.getEvent(
+            UID.of("QRYjLTiJTrA"),
+            TrackerIdSchemeParams.builder().build(),
+            SingleEventFields.builder().includeNotes().build());
     assertNotes(List.of(note), dbEvent.getNotes(), userDetails);
   }
 
@@ -227,7 +241,6 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
               .orElse(null);
       assertNotNull(dbNote);
       assertEquals(note.getValue(), dbNote.getNoteText());
-      assertEquals(note.getStoredBy(), dbNote.getCreator());
       assertEquals(updatedBy.getUid(), dbNote.getLastUpdatedBy().getUid());
       assertEquals(updatedBy.getUsername(), dbNote.getLastUpdatedBy().getUsername());
       assertEquals(updatedBy.getFirstName(), dbNote.getLastUpdatedBy().getFirstName());
@@ -236,10 +249,6 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   }
 
   private Note note() {
-    return Note.builder()
-        .note(UID.generate())
-        .storedBy("This is the creator")
-        .value("This is a note")
-        .build();
+    return Note.builder().note(UID.generate()).value("This is a note").build();
   }
 }

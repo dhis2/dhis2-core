@@ -34,15 +34,11 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.gist.GistLogic.effectiveTransform;
-import static org.hisp.dhis.gist.GistLogic.isAttributePath;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isIncludedField;
-import static org.hisp.dhis.gist.GistLogic.isNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
-import static org.hisp.dhis.gist.GistLogic.parentPath;
-import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
 import static org.hisp.dhis.schema.PropertyType.COLLECTION;
 
 import java.util.ArrayList;
@@ -56,11 +52,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
+import org.hisp.dhis.common.input.Fields;
+import org.hisp.dhis.common.input.Fields.Field;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.gist.GistQuery.Comparison;
-import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
@@ -86,14 +85,13 @@ final class GistPlanner {
   }
 
   private List<Field> planFields() {
-    List<Field> fields = query.getFields();
+    List<Field> fields = query.getFields().fields();
     if (fields.isEmpty()) {
-      fields = singletonList(Field.ALL);
+      fields = singletonList(Fields.Field.ALL);
     }
     fields = withPresetFields(fields); // 1:n
     fields = withAttributeFields(fields); // 1:1
-    fields = withDisplayAsTranslatedFields(fields); // 1:1
-    fields = withInnerAsSeparateFields(fields); // 1:n
+    fields = withTranslatedFields(fields); // 1:1
     fields = withCollectionItemPropertyAsTransformation(fields); // 1:1
     fields = withEffectiveTransformation(fields); // 1:1
     fields = withEndpointsField(fields); // 1:1+1
@@ -119,8 +117,8 @@ final class GistPlanner {
   }
 
   private boolean isUnboundSubSelect(@Nonnull Filter f) {
-    String path = f.getPropertyPath();
-    if (!path.contains(".")) return false;
+    PropertyPath path = f.getPropertyPath();
+    if (!path.isNested()) return false;
     if (context.resolve(path) == null) return false;
     List<Property> segments = context.resolvePath(path);
     if (segments.size() != 2) return false;
@@ -130,7 +128,10 @@ final class GistPlanner {
   private List<Filter> withAttributeIdAsPropertyFilters(List<Filter> filters) {
     return map1to1(
         filters,
-        f -> isAttributePath(f.getPropertyPath()) && context.resolve(f.getPropertyPath()) == null,
+        f ->
+            !f.getPropertyPath().isNested()
+                && f.getPropertyPath().isUID()
+                && context.resolve(f.getPropertyPath()) == null,
         Filter::asAttribute);
   }
 
@@ -142,7 +143,8 @@ final class GistPlanner {
     return map1to1(
         filters,
         f ->
-            f.getPropertyPath().equals("attributeValues.attribute.id")
+            isAttributeValuesAttributePropertyPath(f.getPropertyPath())
+                && f.getPropertyPath().segment().contentEquals("id")
                 && f.getOperator() == Comparison.EQ,
         f -> new Filter(f.getValue()[0], Comparison.NOT_NULL).asAttribute());
   }
@@ -209,14 +211,16 @@ final class GistPlanner {
   }
 
   private Field withEffectiveTransformation(Field field) {
-    return field.isAttribute()
-        ? field.withTransformation(
-            field.getTransformation() == Transform.PLUCK ? Transform.PLUCK : Transform.NONE)
-        : field.withTransformation(
-            effectiveTransform(
-                context.resolveMandatory(field.getPropertyPath()),
-                query.getDefaultTransformation(),
-                field.getTransformation()));
+    if (field.isAttribute()) return field;
+    Transform transformation = field.transformation();
+    if (transformation == Transform.TRANSLATE) return field;
+    Transform transform =
+        effectiveTransform(
+            context.resolveMandatory(field.propertyPath()),
+            query.getDefaultTransformation(),
+            transformation);
+    if (transform == transformation) return field;
+    return field.withTransformation(transform);
   }
 
   /**
@@ -224,11 +228,15 @@ final class GistPlanner {
    * account.
    */
   private List<Field> withPresetFields(List<Field> fields) {
-    Set<String> explicit = fields.stream().map(Field::getPropertyPath).collect(toSet());
+    Set<String> explicit =
+        fields.stream()
+            .map(Fields.Field::propertyPath)
+            .map(PropertyPath::toString)
+            .collect(toSet());
     List<Field> expanded = new ArrayList<>();
     for (Field f : fields) {
-      String path = f.getPropertyPath();
-      if (isPresetField(path)) {
+      PropertyPath path = f.propertyPath();
+      if (path.isPreset()) {
         Schema schema = context.getHome();
         Predicate<Property> canRead = getAccessFilter(schema);
         schema.getProperties().stream()
@@ -245,8 +253,10 @@ final class GistPlanner {
                     addReferenceFields(expanded, path, schema, p);
                   }
                 });
-      } else if (isExcludeField(path)) {
-        expanded.removeIf(field -> field.getPropertyPath().equals(path.substring(1)));
+      } else if (path.isExclude()) {
+        // note that property() always returns just the name without exclude
+        PropertyPath excluded = path.withTail(path.property());
+        expanded.removeIf(field -> field.propertyPath().equals(excluded));
       } else {
         expanded.add(f);
       }
@@ -254,7 +264,8 @@ final class GistPlanner {
     return expanded;
   }
 
-  private void addReferenceFields(List<Field> expanded, String path, Schema schema, Property p) {
+  private void addReferenceFields(
+      List<Field> expanded, PropertyPath path, Schema schema, Property p) {
     Schema propertySchema = context.switchedTo(p.getKlass()).getHome();
     if (isPersistentReferenceField(p) && propertySchema.getRelativeApiEndpoint() == null) {
       // reference to an object with no endpoint API
@@ -286,71 +297,52 @@ final class GistPlanner {
   private List<Field> withAttributeFields(List<Field> fields) {
     return map1to1(
         fields,
-        f -> isAttributePath(f.getPropertyPath()) && context.resolve(f.getPropertyPath()) == null,
-        Field::asAttribute);
+        f ->
+            f.isAuto()
+                && !f.propertyPath().isNested()
+                && f.propertyPath().isUID()
+                && context.resolve(f.propertyPath()) == null,
+        Fields.Field::asAttribute);
   }
 
-  private List<Field> withDisplayAsTranslatedFields(List<Field> fields) {
-    fields =
-        map1to1(
-            fields,
-            f -> isDisplayNameField(f.getPropertyPath()),
-            f ->
-                f.withAlias(f.getName())
-                    .withTranslate()
-                    .withPropertyPath(pathOnSameParent(f.getPropertyPath(), "name")));
+  private List<Field> withTranslatedFields(List<Field> fields) {
     return map1to1(
         fields,
-        f -> isDisplayShortName(f.getPropertyPath()),
-        f ->
-            f.withAlias(f.getName())
-                .withTranslate()
-                .withPropertyPath(pathOnSameParent(f.getPropertyPath(), "shortName")));
-  }
-
-  /** Transforms {@code field[a,b]} syntax to {@code field.a,field.b} */
-  private List<Field> withInnerAsSeparateFields(List<Field> fields) {
-    List<Field> expanded = new ArrayList<>();
-    for (Field f : fields) {
-      String path = f.getPropertyPath();
-      if (path.indexOf('[') >= 0) {
-        String outerPath = path.substring(0, path.indexOf('['));
-        String innerList = path.substring(path.indexOf('[') + 1, path.lastIndexOf(']'));
-        for (String innerFieldName : innerList.split(GistQuery.FIELD_SPLIT)) {
-          Field child = Field.parse(innerFieldName);
-          expanded.add(
-              child
-                  .withPropertyPath(outerPath + "." + child.getPropertyPath())
-                  .withAlias(
-                      (f.getAlias().isEmpty() ? outerPath : f.getAlias()) + "." + child.getName()));
-        }
-      } else {
-        expanded.add(f);
-      }
-    }
-    return expanded;
+        Field::isAuto,
+        f -> {
+          PropertyPath path = f.propertyPath();
+          Property p = context.resolve(path);
+          if (p == null) return f;
+          String name = Property.resolveTranslationBasePropertyName(p.getName());
+          PropertyPath basePath = path.withTail(name);
+          Property b = context.resolve(basePath);
+          if (b == null || !b.isTranslatable()) return f;
+          if (name.equals(p.getName())) return f;
+          return f.withPropertyPath(basePath)
+              .withRenamedPath(f.path())
+              .withTransformation(Transform.TRANSLATE);
+        });
   }
 
   private List<Field> withCollectionItemPropertyAsTransformation(List<Field> fields) {
     List<Field> mapped = new ArrayList<>();
     for (Field f : fields) {
-      String path = f.getPropertyPath();
-      if (isNestedPath(path) && context.resolveMandatory(parentPath(path)).isCollection()) {
-        String parentPath = parentPath(path);
-        String propertyName = path.substring(path.lastIndexOf('.') + 1);
+      PropertyPath path = f.propertyPath();
+      PropertyPath parentPath = path.parent();
+      if (parentPath != null && context.resolveMandatory(parentPath).isCollection()) {
+        Text propertyName = path.segment();
         Property collection = context.resolveMandatory(parentPath);
-        if ("id".equals(propertyName)
+        if (propertyName.contentEquals("id")
             && PrimaryKeyObject.class.isAssignableFrom(collection.getItemKlass())) {
           mapped.add(
-              f.withPropertyPath(parentPath).withAlias(path).withTransformation(Transform.IDS));
+              f.withPropertyPath(parentPath)
+                  .withRenamedPath(f.path())
+                  .withTransformation(Transform.IDS));
         } else {
           mapped.add(
-              Field.builder()
-                  .propertyPath(parentPath)
-                  .alias(path)
-                  .transformation(Transform.PLUCK)
-                  .transformationArgument(propertyName)
-                  .build());
+              f.withPropertyPath(parentPath)
+                  .withRenamedPath(f.path())
+                  .withTransformation(Transform.PLUCK, List.of(propertyName.toString())));
         }
       } else {
         mapped.add(f);
@@ -367,10 +359,8 @@ final class GistPlanner {
         fields.stream()
             .anyMatch(
                 field -> {
-                  if (field.isAttribute()) {
-                    return false;
-                  }
-                  Property p = context.resolveMandatory(field.getPropertyPath());
+                  if (field.isAttribute()) return false;
+                  Property p = context.resolveMandatory(field.propertyPath());
                   return isPersistentReferenceField(p) && p.isIdentifiableObject()
                       || isPersistentCollectionField(p);
                 });
@@ -378,26 +368,19 @@ final class GistPlanner {
       return fields;
     }
     ArrayList<Field> extended = new ArrayList<>(fields);
-    extended.add(new Field(Field.REFS_PATH, Transform.NONE).withAlias("apiEndpoints"));
+    extended.add(Field.REFS);
     return extended;
   }
 
-  private Predicate<Property> getPresetFilter(String path) {
-    if (isAllField(path)) {
+  private Predicate<Property> getPresetFilter(PropertyPath path) {
+    if (path.isAll()) {
       return p -> isIncludedField(p, query.getAutoType());
     }
-    if (":identifiable".equals(path)) {
-      return getPresetFilter(IdentifiableObject.class);
-    }
-    if (":nameable".equals(path)) {
-      return getPresetFilter(NameableObject.class);
-    }
-    if (":persisted".equals(path)) {
-      return Property::isPersisted;
-    }
-    if (":owner".equals(path)) {
-      return p -> p.isPersisted() && p.isOwner();
-    }
+    Text preset = path.segment();
+    if (preset.contentEquals(":identifiable")) return getPresetFilter(IdentifiableObject.class);
+    if (preset.contentEquals(":nameable")) return getPresetFilter(NameableObject.class);
+    if (preset.contentEquals(":persisted")) return Property::isPersisted;
+    if (preset.contentEquals(":owner")) return p -> p.isPersisted() && p.isOwner();
     throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2038, path));
   }
 
@@ -409,26 +392,6 @@ final class GistPlanner {
                     m.getName().equals(p.getGetterMethod().getName())
                         && m.getParameterCount() == 0
                         && p.isPersisted());
-  }
-
-  private static boolean isPresetField(String path) {
-    return path.startsWith(":") || Field.ALL_PATH.equals(path);
-  }
-
-  private static boolean isExcludeField(String path) {
-    return path.startsWith("-") || path.startsWith("!");
-  }
-
-  private static boolean isAllField(String path) {
-    return Field.ALL_PATH.equals(path) || ":*".equals(path) || ":all".equals(path);
-  }
-
-  private boolean isDisplayShortName(String path) {
-    return path.equals("displayShortName") || path.endsWith(".displayShortName");
-  }
-
-  private boolean isDisplayNameField(String path) {
-    return path.equals("displayName") || path.endsWith(".displayName");
   }
 
   private static <T> List<T> map1to1(List<T> from, Predicate<T> when, UnaryOperator<T> then) {

@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
@@ -108,7 +107,7 @@ class ResponseHandler {
     CollectionNode collectionNode =
         fieldFilterService.toConcreteClassCollectionNode(
             DataItem.class,
-            new FieldFilterParams(dimensionalItemsFound, newArrayList(fields)),
+            new FieldFilterParams(dimensionalItemsFound, String.join(",", fields)),
             "dataItems",
             DXF_2_0);
 

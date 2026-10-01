@@ -1,0 +1,1 @@
+alter table note drop column if exists creator;

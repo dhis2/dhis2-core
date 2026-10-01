@@ -1,0 +1,291 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.analytics.trackedentity.query;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
+import org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.AggregateQueryBuilder;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlParameterManager;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.junit.jupiter.api.Test;
+
+class TrackedEntityFieldsTest {
+
+  @Test
+  void getAggregateGridHeadersOmitsStaticFieldsAndKeepsOuDimension() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        aggregateContextParamsWithOuDimension();
+
+    Set<GridHeader> headers = TrackedEntityFields.getAggregateGridHeaders(contextParams);
+
+    assertEquals(1, headers.size());
+    assertEquals("ou", headers.iterator().next().getName());
+    // No per-TEI static header leaked in:
+    assertTrue(headers.stream().map(GridHeader::getName).noneMatch("ouname"::equals));
+  }
+
+  /**
+   * Grounded test: the aggregate {@code ou} group-by column is produced at runtime by the real
+   * {@link AggregateQueryBuilder} (via {@code Field.ofDimensionIdentifier}), which yields a select
+   * field carrying neither a field alias nor a dimension identifier key. This test reproduces that
+   * runtime representation - a select field that cannot be matched back to its dimension via {@code
+   * Field.getDimensionIdentifier()} - and asserts that {@link
+   * TrackedEntityFields#getAggregateGridHeaders} still emits an {@code ou} header. The header must
+   * be named {@code ou} to line up with the SQL result column consumed by the aggregate grid.
+   */
+  @Test
+  void getAggregateGridHeadersKeepsOuDimensionFromRealSelectFields() {
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        aggregateContextParamsWithOuDimension();
+
+    // Exercise the real aggregate select-field construction so the ou field matches runtime.
+    QueryContext queryContext = QueryContext.of(contextParams, new SqlParameterManager());
+    RenderableSqlQuery renderableSqlQuery =
+        new AggregateQueryBuilder()
+            .buildSqlQuery(
+                queryContext,
+                List.of(),
+                contextParams.getCommonParsed().getDimensionIdentifiers(),
+                List.of());
+    List<Field> selectFields = renderableSqlQuery.getSelectFields();
+    // Guard: the ou select field really is alias-free (this is what hid the bug).
+    assertTrue(
+        selectFields.stream().anyMatch(f -> isBlank(f.getDimensionIdentifier())),
+        "expected an alias-free aggregate select field from the real AggregateQueryBuilder");
+
+    Set<GridHeader> headers = TrackedEntityFields.getAggregateGridHeaders(contextParams);
+
+    assertTrue(
+        headers.stream().map(GridHeader::getName).anyMatch("ou"::equals),
+        "aggregate headers should include the requested ou dimension, but were: "
+            + headers.stream().map(GridHeader::getName).toList());
+  }
+
+  /**
+   * Renaming a grouped header to its stage scoped form must not lose what the header carries.
+   * Option set metadata in particular decides whether downstream option discovery can map stored
+   * codes to their display labels.
+   */
+  @Test
+  void getAggregateGridHeadersKeepsOptionSetAndStageWhenRenamingAGroupedDataElement() {
+    OptionSet optionSet = new OptionSet();
+    optionSet.setUid("optionSet1");
+
+    DataElement dataElement = new DataElement();
+    dataElement.setUid("UXz7xuGCEhU");
+    dataElement.setValueType(ValueType.TEXT);
+    dataElement.setOptionSet(optionSet);
+
+    QueryItem queryItem = new QueryItem(dataElement, null, ValueType.TEXT, null, optionSet);
+
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(queryItem, DimensionParamType.DIMENSIONS, UID, List.of());
+
+    Program program = new Program();
+    program.setUid("IpHINAT79UW");
+
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("A03MvHHogjR");
+    programStage.setProgram(program);
+
+    DimensionIdentifier<DimensionParam> dimension =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program), ElementWithOffset.of(programStage), dimensionParam);
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedParsed(TrackedEntityQueryParams.builder().aggregate(true).build())
+            .commonRaw(new CommonRequestParams().withDimension(Set.of("A03MvHHogjR.UXz7xuGCEhU")))
+            .commonParsed(
+                CommonParsedParams.builder().dimensionIdentifiers(List.of(dimension)).build())
+            .build();
+
+    Set<GridHeader> headers = TrackedEntityFields.getAggregateGridHeaders(contextParams);
+
+    assertEquals(1, headers.size());
+    GridHeader header = headers.iterator().next();
+    assertEquals("A03MvHHogjR.UXz7xuGCEhU", header.getName());
+    assertTrue(header.hasOptionSet(), "the renamed header must keep its option set");
+    assertEquals("optionSet1", header.getOptionSetObject().getUid());
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>
+      aggregateContextParamsWithOuDimension() {
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().aggregate(true).build();
+
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(trackedEntityQueryParams)
+        .commonRaw(new CommonRequestParams().withDimension(Set.of("ou")))
+        .commonParsed(
+            CommonParsedParams.builder()
+                .dimensionIdentifiers(List.of(stubOuDimension("ou1")))
+                .build())
+        .build();
+  }
+
+  private DimensionIdentifier<DimensionParam> stubOuDimension(String ou) {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(ou);
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(orgUnit)),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of(ou));
+    return DimensionIdentifier.of(
+            ElementWithOffset.emptyElementWithOffset(),
+            ElementWithOffset.emptyElementWithOffset(),
+            dimensionParam)
+        .withDefaultGroupId();
+  }
+
+  /**
+   * An event-level dimension is reported under its short stage scoped name, {@code
+   * programStageUid.dimensionName}, which is the form the request addresses it by.
+   */
+  @Test
+  void getGridHeadersNamesAnEventLevelDateByItsStage() {
+    DimensionIdentifier<DimensionParam> eventDate =
+        stageScopedStaticDimension(StaticDimension.EVENT_DATE);
+
+    Set<GridHeader> headers =
+        TrackedEntityFields.getGridHeaders(
+            rowLevelContextParams(eventDate), List.of(fieldFor(eventDate)));
+
+    assertEquals(
+        List.of("A03MvHHogjR.eventdate"), headers.stream().map(GridHeader::getName).toList());
+  }
+
+  @Test
+  void getGridHeadersNamesAnEventLevelOrgUnitByItsStage() {
+    DimensionIdentifier<DimensionParam> eventOrgUnit = stageScopedOrgUnitDimension();
+
+    Set<GridHeader> headers =
+        TrackedEntityFields.getGridHeaders(
+            rowLevelContextParams(eventOrgUnit), List.of(fieldFor(eventOrgUnit)));
+
+    assertEquals(List.of("A03MvHHogjR.ou"), headers.stream().map(GridHeader::getName).toList());
+  }
+
+  /** A dimension that is not event-level has no stage to be named by, so it keeps its own name. */
+  @Test
+  void getGridHeadersKeepsTheNameOfADimensionWithoutAStage() {
+    DimensionIdentifier<DimensionParam> teOrgUnit = stubOuDimension("ou1");
+
+    Set<GridHeader> headers =
+        TrackedEntityFields.getGridHeaders(
+            rowLevelContextParams(teOrgUnit), List.of(fieldFor(teOrgUnit)));
+
+    assertEquals(List.of("ou"), headers.stream().map(GridHeader::getName).toList());
+  }
+
+  private Field fieldFor(DimensionIdentifier<DimensionParam> dimension) {
+    return Field.of("t", () -> "column", dimension);
+  }
+
+  private ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> rowLevelContextParams(
+      DimensionIdentifier<DimensionParam> dimension) {
+    return ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+        .typedParsed(TrackedEntityQueryParams.builder().build())
+        .commonRaw(new CommonRequestParams().withDimension(Set.of(dimension.getKey())))
+        .commonParsed(CommonParsedParams.builder().dimensionIdentifiers(List.of(dimension)).build())
+        .build();
+  }
+
+  private DimensionIdentifier<DimensionParam> stageScopedStaticDimension(
+      StaticDimension staticDimension) {
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            staticDimension.name(), DimensionParamType.DIMENSIONS, UID, List.of());
+
+    return DimensionIdentifier.of(
+        ElementWithOffset.of(stubProgram()),
+        ElementWithOffset.of(stubProgramStage()),
+        dimensionParam);
+  }
+
+  private DimensionIdentifier<DimensionParam> stageScopedOrgUnitDimension() {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("ou1");
+
+    DimensionParam dimensionParam =
+        DimensionParam.ofObject(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(orgUnit)),
+            DimensionParamType.DIMENSIONS,
+            UID,
+            List.of("ou1"));
+
+    return DimensionIdentifier.of(
+        ElementWithOffset.of(stubProgram()),
+        ElementWithOffset.of(stubProgramStage()),
+        dimensionParam);
+  }
+
+  private Program stubProgram() {
+    Program program = new Program();
+    program.setUid("IpHINAT79UW");
+    return program;
+  }
+
+  private ProgramStage stubProgramStage() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("A03MvHHogjR");
+    programStage.setProgram(stubProgram());
+    return programStage;
+  }
+}

@@ -65,8 +65,6 @@ public class TrackerEvent implements Event {
 
   @JsonProperty private Instant scheduledAt;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private Instant createdAtClient;
 
   @JsonProperty private Instant updatedAtClient;

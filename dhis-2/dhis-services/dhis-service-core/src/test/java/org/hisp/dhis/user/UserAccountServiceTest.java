@@ -31,6 +31,11 @@ package org.hisp.dhis.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -39,7 +44,10 @@ import java.util.Map;
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -59,6 +67,8 @@ class UserAccountServiceTest {
   @Mock private TwoFactorAuthenticationProvider twoFactorAuthProvider;
   @Mock private SystemSettingsService settingsService;
   @Mock private PasswordValidationService passwordValidationService;
+  @Mock private DhisConfigurationProvider configProvider;
+  @Mock private PasswordManager passwordManager;
 
   @BeforeEach
   public void init() {
@@ -68,7 +78,9 @@ class UserAccountServiceTest {
             configService,
             twoFactorAuthProvider,
             settingsService,
-            passwordValidationService);
+            passwordValidationService,
+            configProvider,
+            passwordManager);
   }
 
   @Test
@@ -93,6 +105,116 @@ class UserAccountServiceTest {
             () -> userAccountService.validateUserRegistration(regParams, "ip1"));
     assertEquals(
         "Recaptcha validation failed: [invalid challenge received]", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("updateExpiredPassword with unknown username is generic and burns one verification")
+  void updateExpiredPasswordUnknownUserTest() {
+    when(userService.getUserByUsername("ghost")).thenReturn(null);
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> userAccountService.updateExpiredPassword("ghost", "Old_pw1!", "New_pw1!"));
+
+    assertEquals("Invalid username or password", exception.getMessage());
+    // The timing-equalization verification must run, so unknown and known usernames respond in
+    // similar time; no recovery attempt is registered for a nonexistent account.
+    verify(passwordManager).matches(eq("Old_pw1!"), anyString());
+    verify(userService, never()).registerRecoveryAttempt(anyString());
+  }
+
+  @Test
+  @DisplayName("updateExpiredPassword rejects a recovery-locked account before checking passwords")
+  void updateExpiredPasswordLockedTest() {
+    User user = expiredPasswordUser();
+    when(userService.getUserByUsername("mia")).thenReturn(user);
+    when(userService.isRecoveryLocked("mia")).thenReturn(true);
+
+    assertThrows(
+        ForbiddenException.class,
+        () -> userAccountService.updateExpiredPassword("mia", "Old_pw1!", "New_pw1!"));
+
+    verify(userService, never()).registerRecoveryAttempt(anyString());
+    verify(passwordManager, never()).matches(anyString(), anyString());
+  }
+
+  @Test
+  @DisplayName("updateExpiredPassword with wrong old password is generic and registers an attempt")
+  void updateExpiredPasswordWrongOldPasswordTest() {
+    User user = expiredPasswordUser();
+    when(userService.getUserByUsername("mia")).thenReturn(user);
+    when(userService.isRecoveryLocked("mia")).thenReturn(false);
+    when(passwordManager.matches("Wrong_pw1!", "encoded-old")).thenReturn(false);
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> userAccountService.updateExpiredPassword("mia", "Wrong_pw1!", "New_pw1!"));
+
+    assertEquals("Invalid username or password", exception.getMessage());
+    verify(userService).registerRecoveryAttempt("mia");
+    // Guard order: expiry state must not be consulted before the password is verified, so
+    // "Account is not expired" is only observable by a caller who knows the password.
+    verify(userService, never()).userNonExpired(any(User.class));
+  }
+
+  @Test
+  @DisplayName("updateExpiredPassword rejects a non-expired account")
+  void updateExpiredPasswordNonExpiredTest() {
+    User user = expiredPasswordUser();
+    when(userService.getUserByUsername("mia")).thenReturn(user);
+    when(userService.isRecoveryLocked("mia")).thenReturn(false);
+    when(passwordManager.matches("Old_pw1!", "encoded-old")).thenReturn(true);
+    when(userService.userNonExpired(user)).thenReturn(true);
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> userAccountService.updateExpiredPassword("mia", "Old_pw1!", "New_pw1!"));
+
+    assertEquals("Account is not expired", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("updateExpiredPassword rejects a new password equal to the old one")
+  void updateExpiredPasswordSameAsOldTest() {
+    User user = expiredPasswordUser();
+    when(userService.getUserByUsername("mia")).thenReturn(user);
+    when(userService.isRecoveryLocked("mia")).thenReturn(false);
+    when(passwordManager.matches("Old_pw1!", "encoded-old")).thenReturn(true);
+    when(userService.userNonExpired(user)).thenReturn(false);
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> userAccountService.updateExpiredPassword("mia", "Old_pw1!", "Old_pw1!"));
+
+    assertEquals("New password must be different from the old password", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("updateExpiredPassword sets and persists a valid new password")
+  void updateExpiredPasswordOkTest() throws BadRequestException, ForbiddenException {
+    User user = expiredPasswordUser();
+    when(userService.getUserByUsername("mia")).thenReturn(user);
+    when(userService.isRecoveryLocked("mia")).thenReturn(false);
+    when(passwordManager.matches("Old_pw1!", "encoded-old")).thenReturn(true);
+    when(userService.userNonExpired(user)).thenReturn(false);
+    when(passwordValidationService.validate(any(CredentialsInfo.class)))
+        .thenReturn(PasswordValidationResult.VALID);
+
+    userAccountService.updateExpiredPassword("mia", "Old_pw1!", "New_pw1!");
+
+    verify(userService).encodeAndSetPassword(user, "New_pw1!");
+    verify(userService).updateUser(eq(user), any(SystemUser.class));
+  }
+
+  private User expiredPasswordUser() {
+    User user = new User();
+    user.setUsername("mia");
+    user.setPassword("encoded-old");
+    return user;
   }
 
   @Test

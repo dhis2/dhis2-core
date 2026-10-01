@@ -30,11 +30,14 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -165,6 +168,37 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertNumberOfChanges(1, changeLogs);
     assertDataElementCreate(dataElement, "value00001", changeLogs.get(0));
+  }
+
+  @Test
+  void shouldNotReturnChangeLogsForDataElementWhenUserCannotReadDataElement()
+      throws NotFoundException {
+    String event = "pTzf9KYMk72";
+
+    // Remove metadata read access to DATAEL00001 for the basic user. The event is accessible but
+    // the user cannot read that data element, so its change logs must not be returned while change
+    // logs of the other (readable) data elements of the event still are.
+    DataElement dataElement = manager.get(DataElement.class, "DATAEL00001");
+    dataElement.getSharing().setPublicAccess(DEFAULT);
+    manager.updateNoAcl(dataElement);
+    manager.flush();
+    manager.clear();
+
+    injectSecurityContextUser(manager.get(User.class, "Z7870757a75"));
+
+    Page<EventChangeLog> changeLogs =
+        trackerEventChangeLogService.getEventChangeLog(
+            UID.of(event), defaultOperationParams, defaultPageParams);
+
+    List<EventChangeLog> dataElementChangeLogs =
+        changeLogs.getItems().stream().filter(cl -> cl.dataElement() != null).toList();
+    assertFalse(
+        dataElementChangeLogs.isEmpty(),
+        "expected change logs of the other readable data elements to be returned");
+    assertTrue(
+        dataElementChangeLogs.stream()
+            .noneMatch(cl -> "DATAEL00001".equals(cl.dataElement().getUid())),
+        "expected no change logs of the restricted data element to be returned");
   }
 
   @Test
@@ -470,6 +504,7 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
                       TrackerImportParams.builder().build(),
                       TrackerObjects.builder().events(List.of(e)).build()));
             });
+    clearSession();
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {

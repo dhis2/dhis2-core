@@ -30,17 +30,16 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
-import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
-import static org.hisp.dhis.gist.GistLogic.isNestedPath;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.PropertyPath;
+import org.hisp.dhis.common.input.Fields.Field;
 import org.hisp.dhis.gist.GistQuery.Comparison;
-import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.schema.Property;
@@ -56,10 +55,9 @@ import org.springframework.security.access.AccessDeniedException;
  */
 @AllArgsConstructor
 final class GistValidator {
+
   private final GistQuery query;
-
   private final RelativePropertyContext context;
-
   private final GistAccessControl access;
 
   public void validateQuery() {
@@ -99,12 +97,10 @@ final class GistValidator {
   }
 
   private void validateField(Field f, RelativePropertyContext context) {
-    String path = f.getPropertyPath();
-    if (Field.REFS_PATH.equals(path) || f.isAttribute()) {
-      return;
-    }
+    if (f.isRefs() || f.isAttribute()) return;
+    PropertyPath path = f.propertyPath();
     Property field = context.resolveMandatory(path);
-    if (isNestedPath(path)) {
+    if (path.isNested()) {
       List<Property> pathElements = context.resolvePath(path);
       Property head = pathElements.get(0);
       if (head.isCollection() && head.isPersisted()) {
@@ -113,16 +109,21 @@ final class GistValidator {
             "Property `%s` computes to many values and therefore cannot be used as a field.");
       }
     }
-    Transform transformation = f.getTransformation();
-    String transArgs = f.getTransformationArgument();
-    if (transformation == Transform.PLUCK && transArgs != null) {
-      for (String arg : transArgs.split(",")) {
+    Transform transformation = f.transformation();
+    List<String> transArgs = f.args();
+    if (transformation == Transform.PLUCK && !transArgs.isEmpty()) {
+      for (String arg : transArgs) {
         Property plucked = context.switchedTo(getBaseType(field)).resolveMandatory(arg);
         if (!plucked.isPersisted()) {
           throw createIllegalProperty(
               plucked, "Property `%s` cannot be plucked as it is not a persistent field.");
         }
       }
+    }
+    if (transformation == Transform.MEMBER || transformation == Transform.NOT_MEMBER) {
+      if (f.args().isEmpty())
+        throw new IllegalArgumentException(
+            "Member field transformation requires 1 argument for: " + f);
     }
     if (transformation == Transform.FROM) {
       validateFromTransformation(context, field, transArgs);
@@ -134,7 +135,7 @@ final class GistValidator {
   }
 
   private void validateFromTransformation(
-      RelativePropertyContext context, Property field, String transArgs) {
+      RelativePropertyContext context, Property field, List<String> transArgs) {
     if (stream(query.getElementType().getConstructors())
         .noneMatch(c -> c.getParameterCount() == 0)) {
       throw createIllegalProperty(
@@ -145,12 +146,12 @@ final class GistValidator {
       throw createIllegalProperty(
           field, "Property `%s` is persistent an cannot be computed using transformation from.");
     }
-    if (transArgs == null || transArgs.isEmpty()) {
+    if (transArgs.isEmpty()) {
       throw createIllegalProperty(
           field,
           "Property `%s` requires one or more source fields when used with transformation from.");
     }
-    for (String fromPropertyName : transArgs.split(",")) {
+    for (String fromPropertyName : transArgs) {
       Property fromField = context.resolve(fromPropertyName);
       if (fromField == null) {
         throw createIllegalProperty(
@@ -169,12 +170,12 @@ final class GistValidator {
    * type but there are fields that are generally visible.
    */
   private void validateFieldAccess(Field f, RelativePropertyContext context) {
-    String path = f.getPropertyPath();
+    PropertyPath path = f.propertyPath();
     Property field = context.resolveMandatory(path);
-    if (!access.canRead(query.getElementType(), path)) {
+    if (!access.canRead(query.getElementType(), path.toString())) {
       throw createNoReadAccess(f, query.getElementType());
     }
-    if (isNestedPath(path)) {
+    if (path.isNested()) {
       Schema fieldOwner = context.switchedTo(path).getHome();
       @SuppressWarnings("unchecked")
       Class<? extends PrimaryKeyObject> ownerType =
@@ -195,10 +196,9 @@ final class GistValidator {
   }
 
   private void validateFilterPath(Filter f, RelativePropertyContext context) {
-    String propertyPath = f.getPropertyPath();
+    PropertyPath propertyPath = f.getPropertyPath();
     if (isAttributeValuesAttributePropertyPath(propertyPath)) {
-      Property p =
-          context.switchedTo(Attribute.class).resolveMandatory(attributePath(propertyPath));
+      Property p = context.switchedTo(Attribute.class).resolveMandatory(propertyPath.property());
       if (!p.isPersisted())
         throw createIllegalProperty(
             p, "Property `%s` cannot be used as an attribute filter property");
@@ -256,9 +256,12 @@ final class GistValidator {
   }
 
   private void validateOrder(Property order) {
-    if (!order.isPersisted() || !order.isSimple()) {
-      throw createIllegalProperty(order, "Property `%s` cannot be used as order property.");
+    if (order.isSimple()) {
+      if (order.isPersisted()) return;
+      Property base = context.resolve(Property.resolveTranslationBasePropertyName(order.getName()));
+      if (base != null && base.isPersisted() && base.canBeTranslated()) return;
     }
+    throw createIllegalProperty(order, "Property `%s` cannot be used as order property.");
   }
 
   private IllegalArgumentException createIllegalProperty(Property property, String message) {
@@ -277,11 +280,11 @@ final class GistValidator {
       Field field, Class<? extends PrimaryKeyObject> ownerType) {
     if (ownerType == null) {
       return new AccessDeniedException(
-          String.format("Property `%s` is not readable.", field.getPropertyPath()));
+          String.format("Property `%s` is not readable.", field.propertyPath()));
     }
     return new AccessDeniedException(
         String.format(
             "Field `%s` is not readable as user is not allowed to view objects of type %s.",
-            field.getPropertyPath(), ownerType.getSimpleName()));
+            field.propertyPath(), ownerType.getSimpleName()));
   }
 }

@@ -42,17 +42,14 @@ import org.hisp.dhis.common.DxfNamespaces;
 public class Note extends BaseIdentifiableObject {
   private String noteText;
 
-  private String creator;
-
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
 
   public Note() {}
 
-  public Note(String noteText, String creator) {
+  public Note(String noteText) {
     this.noteText = noteText;
-    this.creator = creator;
   }
 
   // -------------------------------------------------------------------------
@@ -67,15 +64,5 @@ public class Note extends BaseIdentifiableObject {
 
   public void setNoteText(String noteText) {
     this.noteText = noteText;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCreator() {
-    return creator;
-  }
-
-  public void setCreator(String creator) {
-    this.creator = creator;
   }
 }

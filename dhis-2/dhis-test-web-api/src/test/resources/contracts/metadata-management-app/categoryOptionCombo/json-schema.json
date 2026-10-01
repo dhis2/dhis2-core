@@ -1,0 +1,54 @@
+{
+  "additionalProperties": true,
+  "properties": {
+    "attributeValues": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "attribute": {
+            "additionalProperties": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id"
+            ],
+            "type": "object"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "attribute"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "code": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "ignoreApproval": {
+      "type": "boolean"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "attributeValues"
+  ],
+  "type": "object"
+}

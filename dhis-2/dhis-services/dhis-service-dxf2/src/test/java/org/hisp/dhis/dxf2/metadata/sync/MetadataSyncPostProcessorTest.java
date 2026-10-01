@@ -32,7 +32,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -47,7 +46,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.retry.RetryContext;
 
 /**
  * @author aamerm
@@ -65,7 +63,7 @@ class MetadataSyncPostProcessorTest {
   private MetadataSyncSummary metadataSyncSummary;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
 
     dataVersion = new MetadataVersion();
     dataVersion.setType(VersionType.BEST_EFFORT);
@@ -109,9 +107,7 @@ class MetadataSyncPostProcessorTest {
     metadataSyncSummary.getImportReport().setStatus(Status.ERROR);
     metadataSyncSummary.setMetadataVersion(dataVersion);
     MetadataRetryContext mockMetadataRetryContext = mock(MetadataRetryContext.class);
-    RetryContext mockRetryContext = mock(RetryContext.class);
 
-    when(mockMetadataRetryContext.getRetryContext()).thenReturn(mockRetryContext);
     boolean status =
         metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus(
             metadataSyncSummary, mockMetadataRetryContext, dataVersion);

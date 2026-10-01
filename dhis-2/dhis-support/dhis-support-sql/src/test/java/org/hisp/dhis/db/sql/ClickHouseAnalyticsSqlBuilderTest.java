@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.stream.Stream;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -179,5 +180,10 @@ class ClickHouseAnalyticsSqlBuilderTest {
                 + "), toYear("
                 + dateExpr
                 + ") - 1)), '-01-01')), (11) - 1)"));
+  }
+
+  @Test
+  void shouldWrapColumnInNullIfEmpty() {
+    assertEquals("nullif(evt.\"pOe0ogW4OWd\", '')", sqlBuilder.nullIfEmpty("evt.\"pOe0ogW4OWd\""));
   }
 }

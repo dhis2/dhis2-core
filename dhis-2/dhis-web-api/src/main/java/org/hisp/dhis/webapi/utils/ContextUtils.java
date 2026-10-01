@@ -48,7 +48,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -81,6 +80,14 @@ public class ContextUtils {
   public static final String CONTENT_TYPE_XML = "application/xml; charset=UTF-8";
 
   public static final String CONTENT_TYPE_XML_ADX = "application/adx+xml; charset=UTF-8";
+
+  public static final String CONTENT_TYPE_XML_GZIP = "application/xml+gzip";
+
+  public static final String CONTENT_TYPE_XML_ZIP = "application/xml+zip";
+
+  public static final String CONTENT_TYPE_XML_ADX_GZIP = "application/adx+xml+gzip";
+
+  public static final String CONTENT_TYPE_XML_ADX_ZIP = "application/adx+xml+zip";
 
   public static final String CONTENT_TYPE_CSV = "application/csv; charset=UTF-8";
 
@@ -318,7 +325,7 @@ public class ContextUtils {
       return null;
     }
 
-    String value = String.format("%s-%s", DateUtils.toLongDate(lastModified), user.getUid());
+    String value = String.format("%d-%s", lastModified.getTime(), user.getUid());
 
     return HashUtils.hashMD5(value.getBytes());
   }

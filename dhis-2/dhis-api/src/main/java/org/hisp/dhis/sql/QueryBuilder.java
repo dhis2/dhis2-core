@@ -87,7 +87,8 @@ public final class QueryBuilder {
   private static final Pattern WHERE_AND =
       Pattern.compile("([\n\t ]+)WHERE[\n\t ]+(?:1=1)?[\n\t ]+AND[\n\t ]+");
 
-  private static final Pattern WITH_START = Pattern.compile("^\\s*[a-z_]{1,30}\\s+AS\\s*\\(\\s*$");
+  private static final Pattern WITH_START =
+      Pattern.compile("^\\s*[a-z_]{1,30}\\s+AS(?:\\s+MATERIALIZED)?\\s*\\(\\s*$");
   private static final Pattern WITH_END_COMMA = Pattern.compile("^\\s*\\)\\s*,\\s*$");
   private static final Pattern WITH_END_SELECT = Pattern.compile("^\\s*\\)\\s*$");
   private static final Pattern WITH_END_COMMA_SELECT =

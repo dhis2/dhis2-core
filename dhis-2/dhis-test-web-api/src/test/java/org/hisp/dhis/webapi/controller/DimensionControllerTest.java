@@ -81,7 +81,9 @@ class DimensionControllerTest extends H2ControllerIntegrationTestBase {
                 "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly', 'categoryCombo':{'id':'"
                     + categoryCombo.getUid()
                     + "'}}"));
-    JsonObject response = GET("/dimensions/dataSet/{ds}", dsId).content();
+    HttpResponse res = GET("/dimensions/dataSet/{ds}", dsId);
+
+    JsonObject response = res.content();
     JsonArray dimensions = response.getArray("dimensions");
     assertEquals(1, dimensions.size());
     JsonObject gender = dimensions.getObject(0);

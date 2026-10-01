@@ -278,22 +278,22 @@ public class TrackerExportFileTest extends TrackerApiTest {
                 POLYGON,
                 record[10],
                 String.format("Expected polygon %s but got %s", POLYGON, record[10])), // polygon
-        () -> assertNotNull(record[14], "Expected createdBy to be not null"), // createdBy
-        () -> assertNotNull(record[15], "Expected updatedBy to be not null"), // updatedBy
+        () -> assertNotNull(record[13], "Expected createdBy to be not null"), // createdBy
+        () -> assertNotNull(record[14], "Expected updatedBy to be not null"), // updatedBy
         () ->
             assertEquals(
                 ATTRIBUTE,
-                record[18],
+                record[17],
                 String.format(
                     "Expected attribute  %s but got %s",
-                    ATTRIBUTE, record[18])), // attributes -> attribute
+                    ATTRIBUTE, record[17])), // attributes -> attribute
         () ->
             assertEquals(
                 ATTRIBUTE_VALUE,
-                record[20],
+                record[19],
                 String.format(
                     "Expected attribute value %s but got %s",
-                    ATTRIBUTE_VALUE, record[20])) // attributes -> value
+                    ATTRIBUTE_VALUE, record[19])) // attributes -> value
         );
   }
 

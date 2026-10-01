@@ -344,6 +344,27 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void shouldReturnUpdatedByOnAttributeWhenTrackedEntityAttributeValueIsExported() {
+    TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
+
+    JsonList<JsonAttribute> attributes =
+        GET(
+                "/tracker/trackedEntities/{id}?fields=attributes[attribute,value,updatedBy]",
+                te.getUid())
+            .content(HttpStatus.OK)
+            .getList("attributes", JsonAttribute.class);
+
+    assertNotEmpty(attributes.stream().toList());
+    attributes.stream()
+        .forEach(
+            a ->
+                assertEquals(
+                    "trackeradmin",
+                    a.updatedBy(),
+                    "updatedBy mismatch on attribute " + a.getAttribute()));
+  }
+
+  @Test
   void
       shouldGetTrackedEntityWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
     TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
@@ -576,7 +597,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
     assertStartsWith(
         """
-    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
+    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
     """,
         csvResponse);
     // TEAV order is not deterministic
@@ -601,7 +622,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             Boolean.toString(te.isInactive()),
             Boolean.toString(te.isDeleted()),
             Boolean.toString(te.isPotentialDuplicate()),
-            ",,,",
+            ",,",
             importUser.getUsername(),
             importUser.getUsername())
         + ","

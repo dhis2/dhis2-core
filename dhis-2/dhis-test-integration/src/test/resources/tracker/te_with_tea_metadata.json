@@ -43,7 +43,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "DATE",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -82,7 +81,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "INTEGER",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
@@ -120,7 +118,6 @@
       "displayOnVisitSchedule": false,
       "valueType": "TEXT",
       "orgunitScope": false,
-      "confidential": false,
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {

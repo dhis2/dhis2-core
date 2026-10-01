@@ -137,6 +137,12 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   List<OrganisationUnit> getOrganisationUnitsByUid(@Nonnull Collection<String> uids);
 
   /**
+   * Returns the stored paths of existing organisation units with the given UIDs, without loading
+   * their entities or descendants. Missing units and units without a stored path are omitted.
+   */
+  List<String> getOrganisationUnitPathsByUid(@Nonnull Collection<UID> uids);
+
+  /**
    * Returns an OrganisationUnit with a given name.
    *
    * @param name the name of the OrganisationUnit to return.
@@ -164,6 +170,21 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    */
   List<OrganisationUnit> getOrganisationUnits(
       Collection<OrganisationUnitGroup> groups, Collection<OrganisationUnit> parents);
+
+  /**
+   * Returns the intersection of the members of the given OrganisationUnitGroups and the
+   * OrganisationUnits which are children of the given collection of parents in the hierarchy,
+   * optionally restricted to units that have a non-null geometry.
+   *
+   * @param groups the collection of OrganisationUnitGroups.
+   * @param parents the collection of OrganisationUnit parents in the hierarchy.
+   * @param geometryOnly whether to include only OrganisationUnits that have a non-null geometry.
+   * @return A list of OrganisationUnits.
+   */
+  List<OrganisationUnit> getOrganisationUnits(
+      Collection<OrganisationUnitGroup> groups,
+      Collection<OrganisationUnit> parents,
+      boolean geometryOnly);
 
   /**
    * Returns an OrganisationUnit and all its children.
@@ -288,6 +309,21 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    */
   List<OrganisationUnit> getOrganisationUnitsAtLevels(
       Collection<Integer> levels, Collection<OrganisationUnit> parents);
+
+  /**
+   * Returns all OrganisationUnits which are children of the given unit and are at the given
+   * hierarchical levels, optionally restricted to units that have a non-null geometry. The root
+   * OrganisationUnits are at level 1.
+   *
+   * @param levels the hierarchical levels.
+   * @param parents the parent units.
+   * @param geometryOnly whether to include only OrganisationUnits that have a non-null geometry.
+   * @return all OrganisationUnits which are children of the given unit and are at the given
+   *     hierarchical level.
+   * @throws IllegalArgumentException if the level is illegal.
+   */
+  List<OrganisationUnit> getOrganisationUnitsAtLevels(
+      Collection<Integer> levels, Collection<OrganisationUnit> parents, boolean geometryOnly);
 
   /**
    * Returns the number of levels in the OrganisationUnit hierarchy.
@@ -437,12 +473,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * </ul>
    */
   int getOfflineOrganisationUnitLevels(User user);
-
-  /** Update all OUs where paths is null. */
-  void updatePaths();
-
-  /** Update all OUs (thus forcing update of path). */
-  void forceUpdatePaths();
 
   /**
    * Returns all OrganisationUnits that the user has access to.

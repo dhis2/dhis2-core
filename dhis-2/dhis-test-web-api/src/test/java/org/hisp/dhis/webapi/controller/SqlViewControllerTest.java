@@ -53,11 +53,13 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -79,6 +81,14 @@ class SqlViewControllerTest extends H2ControllerIntegrationTestBase {
   @Mock private DhisConfigurationProvider config;
 
   @InjectMocks private SqlViewController controller;
+
+  @BeforeEach
+  void injectInheritedMocks() {
+    // contextService is an inherited @Autowired field on AbstractCrudController, not a
+    // constructor argument, so Mockito's @InjectMocks (which uses constructor injection here)
+    // does not populate it. Set it explicitly for the tests that call the controller directly.
+    ReflectionTestUtils.setField(controller, "contextService", contextService);
+  }
 
   @Test
   void testExecuteView_NoSuchView() {

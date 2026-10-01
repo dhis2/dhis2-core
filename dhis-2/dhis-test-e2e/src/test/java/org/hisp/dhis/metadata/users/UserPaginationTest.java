@@ -32,52 +32,61 @@ package org.hisp.dhis.metadata.users;
 import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FIELDS;
 import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FILTER;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.Collections;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.PasswordGenerator;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
-import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.UserRoleActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.test.e2e.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class UserPaginationTest extends ApiTest {
+class UserPaginationTest extends ApiTest {
   private MetadataPaginationActions paginationActions;
 
-  private UserActions userActions;
+  private final int startPage = 2;
 
-  private int startPage = 2;
+  private final int pageSize = 5;
 
-  private int pageSize = 5;
+  private final int total = 50;
 
-  private int total = 50;
-
-  @BeforeEach
-  public void setUp() {
-    LoginActions loginActions = new LoginActions();
-    userActions = new UserActions();
-
+  @BeforeAll
+  void setUp() {
+    new LoginActions().loginAsSuperUser();
     paginationActions = new MetadataPaginationActions("/users");
-    loginActions.loginAsSuperUser();
 
-    // Creates Users
+    // Create all users once for the whole class, sharing a single role, in one bulk import.
+    String roleUid = new UserRoleActions().createWithAuthorities();
+    JsonArray users = new JsonArray();
     for (int i = 0; i < total; i++) {
-      userActions.addUserFull(
-          DataGenerator.randomString() + i,
-          DataGenerator.randomString() + i,
-          (DataGenerator.randomString() + i).toLowerCase(),
-          new String(PasswordGenerator.generateValidPassword(12)));
+      users.add(
+          new JsonObjectBuilder()
+              .addProperty("firstName", DataGenerator.randomString() + i)
+              .addProperty("surname", DataGenerator.randomString() + i)
+              .addProperty("username", (DataGenerator.randomString() + i).toLowerCase())
+              .addProperty("password", new String(PasswordGenerator.generateValidPassword(12)))
+              .addArray("userRoles", new JsonObjectBuilder().addProperty("id", roleUid).build())
+              .build());
     }
+
+    JsonObject metadata = new JsonObject();
+    metadata.add("users", users);
+
+    new MetadataActions().importAndValidateMetadata(metadata);
   }
 
   @Test
-  public void checkPaginationResultsForcingInMemoryPagination() {
+  void checkPaginationResultsForcingInMemoryPagination() {
     // this test forces the metadata query engine to execute an "in memory"
     // sorting and pagination
     // since the sort ("order") value is set to 'displayName' that is a
@@ -96,7 +105,7 @@ public class UserPaginationTest extends ApiTest {
   }
 
   @Test
-  public void checkPaginationResultsWithBothDatabaseAndInMemory() {
+  void checkPaginationResultsWithBothDatabaseAndInMemory() {
     ApiResponse response =
         paginationActions.getPaginatedWithFiltersOnly(
             Arrays.asList(DEFAULT_METADATA_FILTER.split(",")), startPage, pageSize);
@@ -108,7 +117,7 @@ public class UserPaginationTest extends ApiTest {
   }
 
   @Test
-  public void checkPaginationResultsForcingDatabaseOnlyPagination() {
+  void checkPaginationResultsForcingDatabaseOnlyPagination() {
     // this test forces the metadata query engine to execute the query
     // (including pagination) on the database only.
     // The sort ("order") value is set to 'id' that is mapped to a DB

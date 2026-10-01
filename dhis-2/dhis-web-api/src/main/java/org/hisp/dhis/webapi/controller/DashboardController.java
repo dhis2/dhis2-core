@@ -66,7 +66,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/dashboards")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class DashboardController extends AbstractCrudController<Dashboard, GetObjectListParams> {
+public class DashboardController extends AbstractCrudController<Dashboard, GetObjectListParams>
+    implements FavoritableOperations<Dashboard> {
+
   @Autowired private DashboardService dashboardService;
 
   @Autowired private CascadeSharingService cascadeSharingService;

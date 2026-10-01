@@ -29,21 +29,33 @@
  */
 package org.hisp.dhis.test.e2e.actions;
 
-import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import java.security.SecureRandom;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class IdGenerator extends RestApiActions {
+  private static final String LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final String ALLOWED_CHARS = "0123456789" + LETTERS;
+  private static final int CODE_SIZE = 11;
+  private static final SecureRandom RANDOM = new SecureRandom();
+
   public IdGenerator() {
     super("/system");
   }
 
+  /**
+   * Generates a DHIS2 UID client-side, matching the server's {@code CodeGenerator} format: 11
+   * characters, the first a letter and the remaining alphanumeric. This avoids a server round-trip
+   * (previously {@code GET /api/system/id}) per generated id.
+   */
   public String generateUniqueId() {
-    return get("id.json", new QueryParamsBuilder().add("limit=1"))
-        .validate()
-        .statusCode(200)
-        .extract()
-        .path("codes[0]");
+    char[] uid = new char[CODE_SIZE];
+    // First char is a letter so the uid is a valid XML/HTML identifier, as required by DHIS2.
+    uid[0] = LETTERS.charAt(RANDOM.nextInt(LETTERS.length()));
+    for (int i = 1; i < CODE_SIZE; i++) {
+      uid[i] = ALLOWED_CHARS.charAt(RANDOM.nextInt(ALLOWED_CHARS.length()));
+    }
+    return new String(uid);
   }
 }

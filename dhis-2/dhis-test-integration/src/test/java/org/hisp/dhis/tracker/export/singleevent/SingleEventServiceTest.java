@@ -31,8 +31,10 @@ package org.hisp.dhis.tracker.export.singleevent;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.tracker.Assertions.assertNotes;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -51,15 +53,21 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -89,6 +97,8 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
 
   private User importUser;
 
+  private TrackerObjects trackerObjects;
+
   private SingleEventOperationParams.SingleEventOperationParamsBuilder operationParamsBuilder;
 
   @BeforeAll
@@ -98,7 +108,7 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    testSetup.importTrackerData();
+    trackerObjects = testSetup.importTrackerData();
     orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
 
     // to test that events are only returned if the user has read access to ALL COs of an events COC
@@ -222,14 +232,26 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
-    SingleEvent event = get(SingleEvent.class, "QRYjLTiJTrA");
+    Map<String, String> notes =
+        trackerObjects.findEvent(UID.of("QRYjLTiJTrA")).orElseThrow().getNotes().stream()
+            .collect(
+                Collectors.toMap(
+                    n -> n.getNote().getValue(),
+                    org.hisp.dhis.tracker.imports.domain.Note::getValue));
+    assertNotEmpty(notes.keySet(), "test expects an event with notes");
     SingleEventOperationParams params =
-        operationParamsBuilder.events(Set.of(UID.of("QRYjLTiJTrA"))).build();
+        operationParamsBuilder
+            .events(Set.of(UID.of("QRYjLTiJTrA")))
+            .fields(SingleEventFields.builder().includeNotes().build())
+            .build();
 
     List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertContainsOnly(List.of("QRYjLTiJTrA"), uids(events));
-    assertNotes(event.getNotes(), events.get(0).getNotes());
+    assertEquals(
+        notes,
+        events.get(0).getNotes().stream()
+            .collect(Collectors.toMap(Note::getUid, Note::getNoteText)));
   }
 
   @Test
@@ -367,6 +389,42 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
                                             .collect(Collectors.toSet()))))
             .toList();
     assertAll("all events should have the same category option combo and options", executables);
+  }
+
+  @Test
+  void shouldNotReturnDataElementValueWhenUserCannotReadDataElement()
+      throws ForbiddenException, BadRequestException {
+    // Give a non-superuser read access to the single event program and stage but remove metadata
+    // read access to GieVkTxp4HH. The event stays accessible, but the value of the restricted data
+    // element must not be returned while the other data elements of the event still are.
+    grantPublicAccess(get(Program.class, "iS7eutanDry"), READ_ONLY);
+    grantPublicAccess(get(ProgramStage.class, "qLZC0lvvxQH"), READ_ONLY);
+    grantPublicAccess(get(DataElement.class, "GieVkTxp4HH"), DEFAULT);
+    manager.flush();
+    manager.clear();
+
+    injectSecurityContextUser(userService.getUser("Hop98yh65pL"));
+
+    SingleEventOperationParams params =
+        SingleEventOperationParams.builderForEvent(UID.of("kWjSezkXHVp"))
+            .orgUnitMode(ACCESSIBLE)
+            .build();
+
+    List<SingleEvent> events = singleEventService.findEvents(params);
+
+    assertContainsOnly(
+        Set.of("GieVkTxp4HG", "DATAEL00005", "DATAEL00007"), dataElements(events.get(0)));
+  }
+
+  private void grantPublicAccess(IdentifiableObject object, String access) {
+    object.getSharing().setPublicAccess(access);
+    manager.updateNoAcl(object);
+  }
+
+  private static Set<String> dataElements(SingleEvent event) {
+    return event.getEventDataValues().stream()
+        .map(EventDataValue::getDataElement)
+        .collect(Collectors.toSet());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

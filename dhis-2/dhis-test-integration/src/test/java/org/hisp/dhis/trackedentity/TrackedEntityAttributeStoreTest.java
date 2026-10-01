@@ -37,8 +37,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -48,10 +50,12 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
+@Transactional
 class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService attributeService;
@@ -197,6 +201,18 @@ class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
     attributes = attributeService.getTrackedEntityAttributesByDisplayOnVisitSchedule(false);
     assertEquals(21, attributes.size());
     assertTrue(attributes.contains(attributeZ));
+  }
+
+  @Test
+  void shouldReturnOnlyAttributeUidWhenSkipSynchronizationSetToTrue() {
+    attributeW.setSkipSynchronization(true);
+    attributeService.addTrackedEntityAttribute(attributeW);
+    attributeService.addTrackedEntityAttribute(attributeY);
+
+    Set<UID> uids =
+        attributeService.getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
+
+    assertEquals(Set.of(UID.of(attributeW.getUid())), uids);
   }
 
   private List<ProgramTrackedEntityAttribute> createProgramAttributes(Program program) {

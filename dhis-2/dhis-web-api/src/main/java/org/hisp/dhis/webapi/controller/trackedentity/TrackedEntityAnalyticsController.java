@@ -47,7 +47,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
@@ -59,6 +58,7 @@ import org.hisp.dhis.analytics.common.processing.CommonQueryRequestValidator;
 import org.hisp.dhis.analytics.common.processing.Parser;
 import org.hisp.dhis.analytics.common.processing.Validator;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityAggregateService;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityAnalyticsQueryService;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
@@ -108,6 +108,8 @@ class TrackedEntityAnalyticsController {
   @Nonnull private final TrackedEntityQueryRequestMapper mapper;
 
   @Nonnull private final ContextUtils contextUtils;
+
+  @Nonnull private final TrackedEntityAggregateService trackedEntityAggregateService;
 
   @GetMapping(
       value = "/query/{trackedEntityType}",
@@ -232,6 +234,129 @@ class TrackedEntityAnalyticsController {
         response.getWriter());
   }
 
+  @GetMapping(
+      value = "/aggregate/{trackedEntityType}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  Grid aggregate(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams) {
+    return getAggregateGrid(
+        trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+        commonRequestParams,
+        trackedEntityAggregateService::getGrid);
+  }
+
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
+  @GetMapping(
+      value = "/aggregate/{trackedEntityType}/explain",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  Grid aggregateExplain(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams) {
+    return getAggregateGrid(
+        trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+        commonRequestParams,
+        trackedEntityAggregateService::getGridExplain);
+  }
+
+  @GetMapping(value = "/aggregate/{trackedEntityType}.xml")
+  public void aggregateXml(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams,
+      HttpServletResponse response)
+      throws IOException {
+    prepareForDownload(response, CONTENT_TYPE_XML, "trackedEntities.xml");
+    toXml(
+        getAggregateGrid(
+            trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
+            trackedEntityAggregateService::getGrid),
+        response.getOutputStream());
+  }
+
+  @GetMapping(value = "/aggregate/{trackedEntityType}.xls")
+  public void aggregateXls(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams,
+      HttpServletResponse response)
+      throws IOException {
+    prepareForDownload(response, CONTENT_TYPE_EXCEL, "trackedEntities.xls");
+    toXls(
+        getAggregateGrid(
+            trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
+            trackedEntityAggregateService::getGrid),
+        response.getOutputStream());
+  }
+
+  @GetMapping(value = "/aggregate/{trackedEntityType}.xlsx")
+  public void aggregateXlsx(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams,
+      HttpServletResponse response)
+      throws IOException {
+    prepareForDownload(response, CONTENT_TYPE_EXCEL, "trackedEntities.xlsx");
+    toXlsx(
+        getAggregateGrid(
+            trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
+            trackedEntityAggregateService::getGrid),
+        response.getOutputStream());
+  }
+
+  @GetMapping(value = "/aggregate/{trackedEntityType}.csv")
+  public void aggregateCsv(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams,
+      HttpServletResponse response)
+      throws IOException {
+    prepareForDownload(response, CONTENT_TYPE_CSV, "trackedEntities.csv");
+    toCsv(
+        getAggregateGrid(
+            trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
+            trackedEntityAggregateService::getGrid),
+        response.getWriter());
+  }
+
+  @GetMapping(value = "/aggregate/{trackedEntityType}.html")
+  public void aggregateHtml(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams,
+      HttpServletResponse response)
+      throws IOException {
+    prepareForDownload(response, CONTENT_TYPE_HTML, "trackedEntities.html");
+    toHtml(
+        getAggregateGrid(
+            trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
+            trackedEntityAggregateService::getGrid),
+        response.getWriter());
+  }
+
+  @GetMapping(value = "/aggregate/{trackedEntityType}.html+css")
+  public void aggregateHtmlCss(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams,
+      HttpServletResponse response)
+      throws IOException {
+    prepareForDownload(response, CONTENT_TYPE_HTML, "trackedEntities.html");
+    toHtmlCss(
+        getAggregateGrid(
+            trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
+            trackedEntityAggregateService::getGrid),
+        response.getWriter());
+  }
+
   private Grid getGrid(
       TrackedEntityRequestParams trackedEntityRequestParams,
       CommonRequestParams commonRequestParams,
@@ -242,6 +367,37 @@ class TrackedEntityAnalyticsController {
     // the TE and not from the request param.
     TrackedEntityQueryParams trackedEntityQueryParams =
         mapper.map(trackedEntityRequestParams.getTrackedEntityType(), commonRequestParams);
+
+    commonQueryRequestValidator.validate(commonRequestParams);
+    trackedEntityQueryRequestValidator.validate(trackedEntityRequestParams);
+
+    CommonParsedParams commonParsedParams = commonRequestParamsParser.parse(commonRequestParams);
+
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .typedRaw(trackedEntityRequestParams)
+            .typedParsed(trackedEntityQueryParams)
+            .commonRaw(commonRequestParams)
+            .commonParsed(commonParsedParams)
+            .build();
+
+    return executor.apply(contextParams);
+  }
+
+  private Grid getAggregateGrid(
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams,
+      Function<ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams>, Grid>
+          executor) {
+
+    // This happens first because of the particularity of TE, where the programs be loaded come from
+    // the TE and not from the request param.
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        mapper
+            .map(trackedEntityRequestParams.getTrackedEntityType(), commonRequestParams)
+            .toBuilder()
+            .aggregate(true)
+            .build();
 
     commonQueryRequestValidator.validate(commonRequestParams);
     trackedEntityQueryRequestValidator.validate(trackedEntityRequestParams);
@@ -279,7 +435,7 @@ class TrackedEntityAnalyticsController {
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
       @RequestParam String trackedEntityType,
       @RequestParam(required = false) Set<String> program,
-      @RequestParam(defaultValue = "*") List<String> fields,
+      @RequestParam(defaultValue = "*") String fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);

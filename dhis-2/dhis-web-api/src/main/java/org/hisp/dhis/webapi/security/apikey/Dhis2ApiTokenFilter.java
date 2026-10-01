@@ -209,7 +209,9 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter {
     return (request, response, exception) -> {
       defaultAuthenticationEventPublisher.publishAuthenticationFailure(
           exception,
-          new AbstractAuthenticationToken(null) {
+          new AbstractAuthenticationToken(
+              (java.util.Collection<? extends org.springframework.security.core.GrantedAuthority>)
+                  null) {
             @Override
             public Object getCredentials() {
               return null;

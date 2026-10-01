@@ -32,25 +32,30 @@ package org.hisp.dhis.translation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.Setter;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Setter
 @JacksonXmlRootElement(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
 public class Translation implements Serializable {
-  private String locale;
 
+  public static Translation ofLanguage(Locale locale, String property, String value) {
+    return new Translation(Locale.of(locale.language()), property, value);
+  }
+
+  private Locale locale;
   private String property;
-
   private String value;
 
   public Translation() {}
 
-  public Translation(String locale, String property, String value) {
+  public Translation(Locale locale, String property, String value) {
     this.locale = locale;
     this.property = property;
     this.value = value;
@@ -63,19 +68,10 @@ public class Translation implements Serializable {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final Translation other = (Translation) obj;
-
-    return Objects.equals(this.locale, other.locale)
-        && Objects.equals(this.property, other.property)
-        && Objects.equals(this.value, other.value);
+    return obj instanceof Translation other
+        && Objects.equals(locale, other.locale)
+        && Objects.equals(property, other.property)
+        && Objects.equals(value, other.value);
   }
 
   /**
@@ -86,7 +82,7 @@ public class Translation implements Serializable {
    * @return a unique cache key valid for a given translated objects, or null if either locale or
    *     property is null.
    */
-  public static String getCacheKey(String locale, String property) {
+  public static String getCacheKey(Locale locale, String property) {
     return locale != null && property != null ? (locale + property) : null;
   }
 
@@ -96,12 +92,8 @@ public class Translation implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
-  public String getLocale() {
+  public Locale getLocale() {
     return locale;
-  }
-
-  public void setLocale(String locale) {
-    this.locale = locale;
   }
 
   @JsonProperty
@@ -110,26 +102,14 @@ public class Translation implements Serializable {
     return property;
   }
 
-  public void setProperty(String property) {
-    this.property = property;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public String getValue() {
     return value;
   }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
-
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("locale", locale)
-        .add("property", property)
-        .add("value", value)
-        .toString();
+    return "%s(%s)=%s".formatted(property, locale, value);
   }
 }
