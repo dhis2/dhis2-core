@@ -385,8 +385,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 		WITH input(aoc_uid, ou_uid) AS (
 		  SELECT *
 		  FROM unnest(
-			  CAST(:aoc_flat AS varchar(11)[]),
-			  CAST(:ou_flat  AS varchar(11)[])
+			  CAST(:aoc AS varchar(11)[]),
+			  CAST(:ou  AS varchar(11)[])
 		  )
 		)
 		SELECT i.aoc_uid, i.ou_uid
