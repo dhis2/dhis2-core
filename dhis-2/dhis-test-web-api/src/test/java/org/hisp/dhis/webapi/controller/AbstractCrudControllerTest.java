@@ -348,9 +348,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
     JsonErrorReport error = message.findErrorReport(ErrorCode.E1106);
     assertEquals(
-        String.format(
-            "There are duplicate translation records for property `name` and locale `sv` on DataSet `%s`",
-            id),
+        "There are duplicate translation records for property `name` and locale `sv`",
         error.getMessage());
     assertEquals("name", error.getErrorProperties().get(0));
   }
