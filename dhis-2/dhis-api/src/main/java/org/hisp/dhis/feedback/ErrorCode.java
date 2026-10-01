@@ -98,6 +98,9 @@ public enum ErrorCode {
   E1522("User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`"),
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
+  /* Generic merge errors */
+  E1505("Another merge is already in progress, please try again later"),
+
   /* Indicator Type merge */
   E1530("At least one source indicator type must be specified"),
   E1531("Target indicator type must be specified"),
