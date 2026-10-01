@@ -34,6 +34,7 @@ import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.comparingLong;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -68,6 +69,7 @@ import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UIDConnection;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.DataSetCompletion;
@@ -632,26 +634,29 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8023, ds, aocNotInDs);
 
     // - require: COC must link (belong) to the CC of the DE
-    Iterator<UID> deIter = source.dataElements().iterator();
-    while (deIter.hasNext()) {
-      UID de = deIter.next();
-      List<String> cocNotInDs =
-          store.getCocNotInDataSet(ds, de, source.categoryOptionCombosForDataElement(de));
-      if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8024, ds, de, cocNotInDs);
-    }
+    UIDConnection cocNotInDs =
+        store.getCocNotInDataSet(
+            ds,
+            source
+                .dataElements()
+                .distinct()
+                .collect(toMap(Function.identity(), source::categoryOptionCombosForDataElement)));
+    if (cocNotInDs != null)
+      throw new ConflictException(ErrorCode.E8024, ds, cocNotInDs.from(), List.of(cocNotInDs.to()));
 
     // - require: OU must be within the hierarchy of each CO for AOC => COs => OUs
     Set<String> aocOuRestricted =
         Set.copyOf(store.getAocWithOrgUnitHierarchy(source.attributeOptionCombos()));
     if (!aocOuRestricted.isEmpty()) {
-      Iterator<UID> aocIter = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
-      while (aocIter.hasNext()) {
-        UID aoc = aocIter.next();
-        if (!aocOuRestricted.contains(aoc.getValue())) continue;
-        List<String> ouNotInAoc =
-            store.getOrgUnitsNotInAocHierarchy(aoc, source.orgUnitsForAttributeOptionCombo(aoc));
-        if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E8025, aoc, ouNotInAoc);
-      }
+      UIDConnection ouNotInAoc =
+          store.getOrgUnitsNotInAocHierarchy(
+              source
+                  .attributeOptionCombos()
+                  .filter(Objects::nonNull)
+                  .distinct()
+                  .collect(toMap(Function.identity(), source::orgUnitsForAttributeOptionCombo)));
+      if (ouNotInAoc != null)
+        throw new ConflictException(ErrorCode.E8025, ouNotInAoc.from(), ouNotInAoc.to());
     }
 
     // - require: PEs must be within the OU's operational span
