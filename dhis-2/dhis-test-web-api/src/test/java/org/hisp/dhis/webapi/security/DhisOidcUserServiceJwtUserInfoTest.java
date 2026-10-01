@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.webapi.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -48,7 +48,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
+import org.hisp.dhis.security.oidc.DhisOidcUser;
+import org.hisp.dhis.security.oidc.DhisOidcUserService;
+import org.hisp.dhis.security.oidc.JwkSourceCache;
+import org.hisp.dhis.security.oidc.SignedJwtUserInfoLoader;
+import org.hisp.dhis.security.oidc.UserInfoResponseType;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -79,7 +86,7 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Transactional
-class DhisOidcUserServiceJwtUserInfoTest extends PostgresIntegrationTestBase {
+class DhisOidcUserServiceJwtUserInfoTest extends PostgresControllerIntegrationTestBase {
 
   private static final String CLIENT_ID = "dhis2-client";
 
