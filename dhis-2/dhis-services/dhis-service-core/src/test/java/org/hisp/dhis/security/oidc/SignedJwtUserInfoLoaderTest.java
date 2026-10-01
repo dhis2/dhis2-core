@@ -29,11 +29,15 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -43,8 +47,6 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.time.Instant;
@@ -59,17 +61,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
 
 /**
  * Unit tests for {@link SignedJwtUserInfoLoader}.
@@ -80,8 +82,12 @@ import org.springframework.web.client.RestTemplate;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SignedJwtUserInfoLoaderTest {
 
+  private static final String USER_INFO_URI = "https://idp.test/userinfo";
+
+  private static final MediaType APPLICATION_JWT = new MediaType("application", "jwt");
+
   @Mock private UserService userService;
-  @Mock private RestTemplate restTemplate;
+  @Mock private JwkSourceCache jwkSourceCache;
   @Mock private OidcUserRequest userRequest;
   @Mock private OAuth2AccessToken accessToken;
   @Mock private OidcIdToken idToken;
@@ -89,27 +95,16 @@ class SignedJwtUserInfoLoaderTest {
   @Mock private ClientRegistration.ProviderDetails providerDetails;
   @Mock private ClientRegistration.ProviderDetails.UserInfoEndpoint userInfoEndpoint;
 
-  /** Stub for {@link JwkSourceCache}: returns the correct public JWK source by default. */
-  private JwkSourceCache jwkSourceCacheStub;
-
   private RSAKey rsaJwk;
   private DhisOidcClientRegistration registration;
+  private MockRestServiceServer idp;
   private SignedJwtUserInfoLoader loader;
 
   @BeforeEach
   void setUp() throws Exception {
     rsaJwk = new RSAKeyGenerator(2048).keyID("test-key").generate();
-    JWKSource<SecurityContext> source = new ImmutableJWKSet<>(new JWKSet(rsaJwk.toPublicJWK()));
-
-    // Hand-rolled stub: avoids Byte Buddy inline-mock limitations on Java 21
-    // for concrete Spring @Component classes.
-    jwkSourceCacheStub =
-        new JwkSourceCache() {
-          @Override
-          public JWKSource<SecurityContext> get(String registrationId, String jwkSetUri) {
-            return source;
-          }
-        };
+    when(jwkSourceCache.get("esignet", "https://idp.test/jwks"))
+        .thenReturn(new ImmutableJWKSet<>(new JWKSet(rsaJwk.toPublicJWK())));
 
     when(userRequest.getClientRegistration()).thenReturn(clientRegistration);
     when(userRequest.getAccessToken()).thenReturn(accessToken);
@@ -118,7 +113,7 @@ class SignedJwtUserInfoLoaderTest {
     when(clientRegistration.getRegistrationId()).thenReturn("esignet");
     when(clientRegistration.getProviderDetails()).thenReturn(providerDetails);
     when(providerDetails.getUserInfoEndpoint()).thenReturn(userInfoEndpoint);
-    when(userInfoEndpoint.getUri()).thenReturn("https://idp.test/userinfo");
+    when(userInfoEndpoint.getUri()).thenReturn(USER_INFO_URI);
     when(providerDetails.getJwkSetUri()).thenReturn("https://idp.test/jwks");
 
     registration =
@@ -129,18 +124,18 @@ class SignedJwtUserInfoLoaderTest {
             .userInfoJwsAlgorithm(JWSAlgorithm.RS256)
             .build();
 
-    loader = new SignedJwtUserInfoLoader(userService, jwkSourceCacheStub, restTemplate);
+    RestClient.Builder restClientBuilder = RestClient.builder();
+    idp = MockRestServiceServer.bindTo(restClientBuilder).build();
+    loader = new SignedJwtUserInfoLoader(userService, jwkSourceCache, restClientBuilder.build());
   }
 
   @Test
   void happyPathReturnsDhisOidcUser() throws Exception {
-    String jwt = signJwt(claims("user-123"));
-    when(restTemplate.exchange(
-            eq("https://idp.test/userinfo"),
-            eq(HttpMethod.GET),
-            any(HttpEntity.class),
-            eq(String.class)))
-        .thenReturn(ResponseEntity.ok(jwt));
+    idp.expect(requestTo(USER_INFO_URI))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer at-value"))
+        .andExpect(header(HttpHeaders.ACCEPT, APPLICATION_JWT.toString()))
+        .andRespond(withSuccess(signJwt(claims("user-123")), APPLICATION_JWT));
 
     User user = new User();
     user.setExternalAuth(true);
@@ -149,15 +144,14 @@ class SignedJwtUserInfoLoaderTest {
 
     OidcUser result = loader.load(userRequest, registration);
 
+    idp.verify();
     assertNotNull(result);
     assertEquals("user-123", result.getAttributes().get("sub"));
   }
 
   @Test
   void httpFailureRaisesInvalidUserInfoResponse() {
-    when(restTemplate.exchange(
-            anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenThrow(new RestClientException("boom"));
+    idp.expect(requestTo(USER_INFO_URI)).andRespond(withServerError());
 
     OAuth2AuthenticationException ex =
         assertThrows(
@@ -168,10 +162,7 @@ class SignedJwtUserInfoLoaderTest {
   @Test
   void badSignatureRaisesJwtProcessingError() throws Exception {
     RSAKey other = new RSAKeyGenerator(2048).keyID("other").generate();
-    String jwt = signJwt(claims("user-123"), other);
-    when(restTemplate.exchange(
-            anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenReturn(ResponseEntity.ok(jwt));
+    respondWith(signJwt(claims("user-123"), other));
 
     OAuth2AuthenticationException ex =
         assertThrows(
@@ -181,11 +172,7 @@ class SignedJwtUserInfoLoaderTest {
 
   @Test
   void missingMappingClaimRaisesError() throws Exception {
-    JWTClaimsSet noSub = new JWTClaimsSet.Builder().issuer("idp").build();
-    String jwt = signJwt(noSub);
-    when(restTemplate.exchange(
-            anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenReturn(ResponseEntity.ok(jwt));
+    respondWith(signJwt(new JWTClaimsSet.Builder().issuer("idp").build()));
 
     OAuth2AuthenticationException ex =
         assertThrows(
@@ -195,10 +182,7 @@ class SignedJwtUserInfoLoaderTest {
 
   @Test
   void unknownUserRaisesError() throws Exception {
-    String jwt = signJwt(claims("nobody"));
-    when(restTemplate.exchange(
-            anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenReturn(ResponseEntity.ok(jwt));
+    respondWith(signJwt(claims("nobody")));
     when(userService.getUserByOpenId("nobody")).thenReturn(null);
 
     OAuth2AuthenticationException ex =
@@ -209,10 +193,7 @@ class SignedJwtUserInfoLoaderTest {
 
   @Test
   void disabledUserRaisesUserDisabled() throws Exception {
-    String jwt = signJwt(claims("user-123"));
-    when(restTemplate.exchange(
-            anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenReturn(ResponseEntity.ok(jwt));
+    respondWith(signJwt(claims("user-123")));
     User user = new User();
     user.setExternalAuth(true);
     user.setDisabled(true);
@@ -225,6 +206,10 @@ class SignedJwtUserInfoLoaderTest {
   }
 
   // helpers
+
+  private void respondWith(String jwt) {
+    idp.expect(requestTo(USER_INFO_URI)).andRespond(withSuccess(jwt, APPLICATION_JWT));
+  }
 
   private JWTClaimsSet claims(String sub) {
     return new JWTClaimsSet.Builder()

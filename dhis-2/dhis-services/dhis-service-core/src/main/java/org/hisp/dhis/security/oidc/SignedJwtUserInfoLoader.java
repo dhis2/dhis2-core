@@ -38,27 +38,26 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import java.util.List;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Loads OIDC userinfo from providers that respond with a signed JWT ({@code application/jwt})
@@ -76,30 +75,42 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class SignedJwtUserInfoLoader {
 
-  private static final int CONNECT_TIMEOUT_MS = 5_000;
-  private static final int READ_TIMEOUT_MS = 10_000;
+  /** Connect timeout for the IdP UserInfo request, same as the preceding token exchange. */
+  private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+
+  /** Read timeout for the IdP UserInfo request, same as the preceding token exchange. */
+  private static final Duration READ_TIMEOUT = Duration.ofSeconds(15);
+
+  private static final MediaType APPLICATION_JWT = new MediaType("application", "jwt");
 
   private final UserService userService;
   private final JwkSourceCache jwkSourceCache;
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
   @Autowired
   SignedJwtUserInfoLoader(UserService userService, JwkSourceCache jwkSourceCache) {
-    this(userService, jwkSourceCache, createRestTemplate());
+    this(userService, jwkSourceCache, buildRestClient());
   }
 
   SignedJwtUserInfoLoader(
-      UserService userService, JwkSourceCache jwkSourceCache, RestTemplate restTemplate) {
+      UserService userService, JwkSourceCache jwkSourceCache, RestClient restClient) {
     this.userService = userService;
     this.jwkSourceCache = jwkSourceCache;
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
   }
 
-  private static RestTemplate createRestTemplate() {
-    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-    factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
-    factory.setReadTimeout(READ_TIMEOUT_MS);
-    return new RestTemplate(factory);
+  /**
+   * Builds the {@link RestClient} for the UserInfo request the same way {@link
+   * DhisAuthorizationCodeTokenResponseClient} builds the one for the token exchange: pinned to the
+   * JDK {@link HttpClient} with explicit connect and read timeouts, so a hung IdP UserInfo endpoint
+   * cannot block a login request thread indefinitely.
+   */
+  private static RestClient buildRestClient() {
+    JdkClientHttpRequestFactory requestFactory =
+        new JdkClientHttpRequestFactory(
+            HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build());
+    requestFactory.setReadTimeout(READ_TIMEOUT);
+    return RestClient.builder().requestFactory(requestFactory).build();
   }
 
   /**
@@ -120,7 +131,7 @@ public class SignedJwtUserInfoLoader {
     var providerDetails = userRequest.getClientRegistration().getProviderDetails();
     String userInfoUri = providerDetails.getUserInfoEndpoint().getUri();
     String idpJwkSetUri = providerDetails.getJwkSetUri();
-    String jwt = fetchJwt(userRequest, userInfoUri);
+    String jwt = fetchJwt(userInfoUri, userRequest.getAccessToken());
     JWTClaimsSet claims =
         verify(jwt, reg, userRequest.getClientRegistration().getRegistrationId(), idpJwkSetUri);
     String mappingValue = requireMappingClaim(claims, reg);
@@ -130,26 +141,28 @@ public class SignedJwtUserInfoLoader {
         details, claims.toJSONObject(), IdTokenClaimNames.SUB, userRequest.getIdToken());
   }
 
-  private String fetchJwt(OidcUserRequest userRequest, String userInfoUri) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setBearerAuth(userRequest.getAccessToken().getTokenValue());
-    headers.setAccept(List.of(MediaType.valueOf("application/jwt")));
-    HttpEntity<String> entity = new HttpEntity<>("", headers);
+  private String fetchJwt(String userInfoUri, OAuth2AccessToken accessToken) {
+    String body;
     try {
-      ResponseEntity<String> response =
-          restTemplate.exchange(userInfoUri, HttpMethod.GET, entity, String.class);
-      String body = response.getBody();
-      if (body == null || body.isBlank()) {
-        throw new OAuth2AuthenticationException(
-            new OAuth2Error("invalid_user_info_response"), "Empty UserInfo JWT response");
-      }
-      return body;
+      body =
+          restClient
+              .get()
+              .uri(URI.create(userInfoUri))
+              .headers(headers -> headers.setBearerAuth(accessToken.getTokenValue()))
+              .accept(APPLICATION_JWT)
+              .retrieve()
+              .body(String.class);
     } catch (RestClientException ex) {
       throw new OAuth2AuthenticationException(
           new OAuth2Error("invalid_user_info_response"),
           "Failed to fetch UserInfo response: " + ex.getMessage(),
           ex);
     }
+    if (body == null || body.isBlank()) {
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("invalid_user_info_response"), "Empty UserInfo JWT response");
+    }
+    return body;
   }
 
   private JWTClaimsSet verify(
