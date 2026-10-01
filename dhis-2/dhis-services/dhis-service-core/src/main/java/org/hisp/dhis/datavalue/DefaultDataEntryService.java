@@ -650,9 +650,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!aocOuRestricted.isEmpty()) {
       UIDConnection ouNotInAoc =
           store.getOrgUnitsNotInAocHierarchy(
-              source
-                  .attributeOptionCombos()
-                  .filter(Objects::nonNull)
+              aocOuRestricted.stream()
+                  .map(UID::of)
                   .distinct()
                   .collect(toMap(Function.identity(), source::orgUnitsForAttributeOptionCombo)));
       if (ouNotInAoc != null)
