@@ -184,10 +184,7 @@ class DhisOidcUserServiceJwtUserInfoTest extends PostgresControllerIntegrationTe
     RSAKey rogueKey = new RSAKeyGenerator(2048).keyID(idpSigningKey.getKeyID()).generate();
     idpRespondsWithUserInfo(signedUserInfo(rogueKey));
 
-    OAuth2AuthenticationException ex =
-        assertThrows(
-            OAuth2AuthenticationException.class, () -> dhisOidcUserService.loadUser(userRequest()));
-    assertEquals("jwt_processing_error", ex.getError().getErrorCode());
+    assertLoginFails("jwt_processing_error");
   }
 
   @Test
@@ -195,10 +192,15 @@ class DhisOidcUserServiceJwtUserInfoTest extends PostgresControllerIntegrationTe
     idp.when(request().withMethod("GET").withPath("/userinfo"))
         .respond(response().withStatusCode(500));
 
+    assertLoginFails("invalid_user_info_response");
+  }
+
+  private void assertLoginFails(String expectedErrorCode) {
+    OidcUserRequest userRequest = userRequest();
     OAuth2AuthenticationException ex =
         assertThrows(
-            OAuth2AuthenticationException.class, () -> dhisOidcUserService.loadUser(userRequest()));
-    assertEquals("invalid_user_info_response", ex.getError().getErrorCode());
+            OAuth2AuthenticationException.class, () -> dhisOidcUserService.loadUser(userRequest));
+    assertEquals(expectedErrorCode, ex.getError().getErrorCode());
   }
 
   /** Answers only requests carrying the access token and asking for a JWT, as eSignet expects. */

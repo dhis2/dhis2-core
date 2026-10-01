@@ -32,7 +32,7 @@ package org.hisp.dhis.security.oidc;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.junit.jupiter.api.Named.named;
 import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -62,10 +62,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -176,18 +176,17 @@ class SignedJwtUserInfoLoaderTest {
     assertEquals(SUBJECT, oidcUser.getName());
   }
 
-  static Stream<Arguments> userInfoNotAboutThisLogin() {
+  static Stream<Named<JWTClaimsSet>> userInfoNotAboutThisLogin() {
     return Stream.of(
-        arguments("no sub", new JWTClaimsSet.Builder().claim("email", "user@dhis2.org").build()),
-        arguments("sub of another user", userInfo().subject("psut-other").build()),
-        arguments("iss of another IdP", userInfo().issuer("https://other-idp.test").build()),
-        arguments("aud of another client", userInfo().audience("other-client").build()));
+        named("no sub", new JWTClaimsSet.Builder().claim("email", "user@dhis2.org").build()),
+        named("sub of another user", userInfo().subject("psut-other").build()),
+        named("iss of another IdP", userInfo().issuer("https://other-idp.test").build()),
+        named("aud of another client", userInfo().audience("other-client").build()));
   }
 
-  @ParameterizedTest(name = "{0}")
+  @ParameterizedTest
   @MethodSource("userInfoNotAboutThisLogin")
-  void loadUserRejectsUserInfoNotAboutThisLogin(String reason, JWTClaimsSet claims)
-      throws JOSEException {
+  void loadUserRejectsUserInfoNotAboutThisLogin(JWTClaimsSet claims) throws JOSEException {
     respondWith(sign(claims, idpSigningKey));
 
     assertLoginFails("invalid_user_info_response");
