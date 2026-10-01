@@ -652,7 +652,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           store.getOrgUnitsNotInAocHierarchy(
               source
                   .attributeOptionCombos()
-                  .filter(Objects::nonNull)
+                  .filter(aoc -> aoc != null && aocOuRestricted.contains(aoc.getValue()))
                   .distinct()
                   .collect(toMap(Function.identity(), source::orgUnitsForAttributeOptionCombo)));
       if (ouNotInAoc != null)

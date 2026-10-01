@@ -382,36 +382,36 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
     String sql =
         """
-		WITH input(aoc_uid, ou_uid) AS (
-		  SELECT *
-		  FROM unnest(
-			  CAST(:aoc AS varchar(11)[]),
-			  CAST(:ou  AS varchar(11)[])
-		  )
-		)
-		SELECT i.aoc_uid, i.ou_uid
-		FROM input i
-		JOIN organisationunit ou ON ou.uid = i.ou_uid
-		WHERE EXISTS (
-			SELECT 1
-			FROM categoryoptioncombo aoc
-			JOIN categoryoptioncombos_categoryoptions aoc_co
-				ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
-			WHERE aoc.uid = i.aoc_uid
-			  AND EXISTS (
-				  SELECT 1 FROM categoryoption_organisationunits
-				  WHERE categoryoptionid = aoc_co.categoryoptionid
-			  )
-			  AND NOT EXISTS (
-				  SELECT 1
-				  FROM categoryoption_organisationunits co_ou
-				  JOIN organisationunit org
-					  ON org.organisationunitid = co_ou.organisationunitid
-				  WHERE co_ou.categoryoptionid = aoc_co.categoryoptionid
-					AND org.uid = ANY(ou.patharray)
-			  )
-		)
-		LIMIT 1""";
+        WITH input(aoc_uid, ou_uid) AS (
+          SELECT *
+          FROM unnest(
+            CAST(:aoc AS varchar(11)[]),
+            CAST(:ou  AS varchar(11)[])
+          )
+        )
+        SELECT i.aoc_uid, i.ou_uid
+        FROM input i
+        JOIN organisationunit ou ON ou.uid = i.ou_uid
+        WHERE EXISTS (
+          SELECT 1
+          FROM categoryoptioncombo aoc
+          JOIN categoryoptioncombos_categoryoptions aoc_co
+            ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
+          WHERE aoc.uid = i.aoc_uid
+            AND EXISTS (
+              SELECT 1 FROM categoryoption_organisationunits
+              WHERE categoryoptionid = aoc_co.categoryoptionid
+            )
+            AND NOT EXISTS (
+              SELECT 1
+              FROM categoryoption_organisationunits co_ou
+              JOIN organisationunit org
+                ON org.organisationunitid = co_ou.organisationunitid
+              WHERE co_ou.categoryoptionid = aoc_co.categoryoptionid
+              AND org.uid = ANY(ou.patharray)
+            )
+        )
+        LIMIT 1""";
 
     List<Object[]> deCoc =
         createNativeRawQuery(sql)
