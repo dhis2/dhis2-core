@@ -462,9 +462,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * #populateTable} already does). Instead, the matching rows' {@code event} UID is first
    * materialized into a small native staging table via that proven-fast federated {@code select},
    * and the actual delete runs entirely locally against that staging table. Unlike the aggregate
-   * ({@code DATA_VALUE}) case, the analytics event table's natural key is {@code event} alone (see
-   * {@link #PRIMARY_KEY}) - one physical table per program, one row per event UID - so the staging
-   * table only needs to carry that single column.
+   * ({@code DATA_VALUE}) case, an analytics event row is identified by its {@code event} UID alone
+   * (one physical table per program, one row per event). {@link #PRIMARY_KEY} also includes {@code
+   * year} only because Doris requires the partition column in a unique key. The staging table
+   * therefore carries just {@code event}, and the delete matches on it across all years, so an
+   * event whose date moved to a different year is still removed.
    */
   private void removeUpdatedDataViaStagingKeys(
       AnalyticsTable table, Program program, AnalyticsTablePartition partition) {
