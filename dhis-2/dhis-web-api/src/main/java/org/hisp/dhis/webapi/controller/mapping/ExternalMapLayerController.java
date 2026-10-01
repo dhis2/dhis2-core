@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.mapping;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.feedback.ErrorCode.E1552;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,12 +68,6 @@ public class ExternalMapLayerController
   private boolean validate(ExternalMapLayer externalMapLayer) {
     if (externalMapLayer != null && externalMapLayer.getImage() != null) {
       String base64image = externalMapLayer.getImage();
-
-      boolean hasWhiteSpacesOnly = isBlank(base64image) && base64image.length() > 0;
-
-      if (hasWhiteSpacesOnly) {
-        return false;
-      }
 
       if (!base64image.startsWith("data:image/")) {
         return false;
