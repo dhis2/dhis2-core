@@ -74,7 +74,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Experimental copy of {@link TrackerTest} for the synthetic Nigeria database of <a
- * href="https://github.com/teleivo/dhis2-perf-db-starsim">dhis2-perf-db-starsim</a> (DHIS2-21406),
+ * href="https://github.com/teleivo/dhis2-db-nigeria-mnch">dhis2-db-nigeria-mnch</a> (DHIS2-21406),
  * with the WHO Antenatal Care Registry (ANC) and Electronic Immunization Registry (EIR) packages.
  *
  * <p>It runs the export scenario of {@link TrackerTest}'s tracker program (Child Programme) against
@@ -90,7 +90,8 @@ import org.slf4j.LoggerFactory;
  *   <li>EIR needs two attributes to search outside the capture scope, so every name search filters
  *       on the given and the family name, where {@link TrackerTest} filters on the first name.
  *   <li>The filter values are names of the database: {@code like:an} on both names matches about 1%
- *       of the children, {@code eq} a given and family name pair of 78 children.
+ *       of the children, {@code eq} a given and family name pair of 63 children in the LGA, 6 of
+ *       them in the clerk's facility.
  *   <li>EIR is PROTECTED. The requests stay within what a clerk owns, as in {@link TrackerTest}.
  *   <li>A child is linked to its mother by a Mother and child relationship when she is enrolled in
  *       ANC, so the relationships of a tracked entity are not always empty. Events have none.
@@ -99,14 +100,14 @@ import org.slf4j.LoggerFactory;
  * <p>The p95 thresholds are {@link TrackerTest}'s, calibrated on Sierra Leone, so a run shows where
  * this database behaves differently.
  *
- * <p>Every UID and filter value is a system property, with the defaults of the {@code lga} build
- * (Gezawa, seed 42): {@code -Dprogram}, {@code -DbirthStage}, {@code -DorgUnit}, {@code
- * -DgivenName}, {@code -DfamilyName}, {@code -DnameLike}, {@code -DgivenEq}, {@code -DfamilyEq},
- * {@code -DreplicaUser} and {@code -DreplicaPassword}. Profiles and their parameters are those of
- * {@link TrackerTest}.
+ * <p>Every UID and filter value is a system property, with the defaults of the {@code
+ * nigeria-mnch-NG020017} build (Gezawa, seed 42): {@code -Dprogram}, {@code -DbirthStage}, {@code
+ * -DorgUnit}, {@code -DgivenName}, {@code -DfamilyName}, {@code -DnameLike}, {@code -DgivenEq},
+ * {@code -DfamilyEq}, {@code -DreplicaUser} and {@code -DreplicaPassword}. Profiles and their
+ * parameters are those of {@link TrackerTest}.
  */
-public class NigeriaTrackerTest extends Simulation {
-  private static final Logger logger = LoggerFactory.getLogger(NigeriaTrackerTest.class);
+public class NigeriaMnchTrackerTest extends Simulation {
+  private static final Logger logger = LoggerFactory.getLogger(NigeriaMnchTrackerTest.class);
 
   private static final AtomicLong REQUEST_COUNTER = new AtomicLong();
 
@@ -168,7 +169,7 @@ public class NigeriaTrackerTest extends Simulation {
 
   private record ScenarioWithRequests(ScenarioBuilder scenario, List<Request> requests) {}
 
-  public NigeriaTrackerTest() {
+  public NigeriaMnchTrackerTest() {
     this.profile = Profile.fromString(System.getProperty("profile", "smoke"));
     this.instance = System.getProperty("instance", "http://localhost:8080");
     this.program = System.getProperty("program", "SSLpOM0r1U7"); // Electronic Immunization Registry
@@ -177,11 +178,12 @@ public class NigeriaTrackerTest extends Simulation {
     this.givenName = System.getProperty("givenName", "sB1IHYu2xQT"); // GEN - Given name
     this.familyName = System.getProperty("familyName", "ENRjVGxVL6l"); // GEN - Family name
     this.nameLike = System.getProperty("nameLike", "an");
-    this.givenEq = System.getProperty("givenEq", "Musa");
-    this.familyEq = System.getProperty("familyEq", "Yahaya");
+    this.givenEq = System.getProperty("givenEq", "Muhammad");
+    this.familyEq = System.getProperty("familyEq", "Abubakar");
     this.adminUser = System.getProperty("adminUser", "admin");
     this.adminPassword = System.getProperty("adminPassword", "district");
-    this.replicaUser = System.getProperty("replicaUser", "mnch.sn_64a4a35d8f.1"); // clerk of orgUnit
+    this.replicaUser =
+        System.getProperty("replicaUser", "mnch.sn_64a4a35d8f.1"); // clerk of orgUnit
     this.replicaPassword = System.getProperty("replicaPassword", "Mnch-Perf-2026!");
 
     record ProfileDefaults(
