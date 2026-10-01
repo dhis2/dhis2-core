@@ -63,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -1047,7 +1048,26 @@ public class MetadataItemsHandler {
   private List<OrganisationUnit> getActiveOrgUnits(Grid grid, EventQueryParams params) {
     List<OrganisationUnit> organisationUnits =
         asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
-    return OrgUnitHelper.getActiveOrganisationUnits(grid, organisationUnits);
+    Map<String, OrganisationUnit> activeOrgUnits = new LinkedHashMap<>();
+    OrgUnitHelper.getActiveOrganisationUnits(grid, organisationUnits)
+        .forEach(orgUnit -> activeOrgUnits.putIfAbsent(orgUnit.getUid(), orgUnit));
+
+    for (QueryItem item : params.getItemsAndItemFilters()) {
+      if (!isStageOuDimension(item)) {
+        continue;
+      }
+
+      List<OrganisationUnit> stageOrgUnits =
+          organisationUnitResolver.resolveOrgUnits(params, item).stream()
+              .map(uid -> organisationUnitResolver.loadOrgUnitDimensionalItem(uid, IdScheme.UID))
+              .filter(OrganisationUnit.class::isInstance)
+              .map(OrganisationUnit.class::cast)
+              .toList();
+      OrgUnitHelper.getActiveOrganisationUnits(grid, stageOrgUnits, getItemUid(item))
+          .forEach(orgUnit -> activeOrgUnits.putIfAbsent(orgUnit.getUid(), orgUnit));
+    }
+
+    return new ArrayList<>(activeOrgUnits.values());
   }
 
   /**

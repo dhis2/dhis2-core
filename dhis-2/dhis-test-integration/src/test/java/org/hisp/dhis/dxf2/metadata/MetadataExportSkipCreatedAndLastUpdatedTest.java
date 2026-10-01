@@ -39,6 +39,7 @@ import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -124,7 +125,7 @@ class MetadataExportSkipCreatedAndLastUpdatedTest extends PostgresIntegrationTes
 
   private String exportWithDependencies(MetadataExportParams params) throws IOException {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    metadataExportService.getMetadataWithDependenciesAsNodeStream(program, params, out);
+    metadataExportService.getMetadataWithDependenciesAsNodeStream(List.of(program), params, out);
     return out.toString(StandardCharsets.UTF_8);
   }
 

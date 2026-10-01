@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.note;
+package org.hisp.dhis.dxf2.metadata;
 
-import jakarta.persistence.EntityManager;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.note.Note;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import java.util.List;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * @author David Katuscak
+ * The outcome of resolving the {@code objects} references of a multi-object dependency export.
+ * All-or-nothing, since a partially resolved export would silently drop objects.
+ *
+ * @param objects the resolved roots, in request order; empty when there are any errors
+ * @param errors every problem found, grouped by the stage that found it; empty on success
+ * @author David Mackessy
  */
-@Repository("org.hisp.dhis.tracker.export.note.NoteStore")
-class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
-  public HibernateNoteStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
+public record MetadataDependencyRoots(List<IdentifiableObject> objects, List<ErrorReport> errors) {
+
+  public boolean hasErrors() {
+    return !errors.isEmpty();
   }
 }
