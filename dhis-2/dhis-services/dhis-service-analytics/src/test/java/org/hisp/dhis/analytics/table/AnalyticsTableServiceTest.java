@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -295,6 +296,7 @@ class AnalyticsTableServiceTest {
     when(sqlBuilder.supportsAnalyze()).thenReturn(false);
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
     when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(true);
+    when(tableManager.mainTableExists(table)).thenReturn(true);
 
     assertTrue(tableService.create(params, JobProgress.noop()));
 
@@ -350,6 +352,7 @@ class AnalyticsTableServiceTest {
     when(sqlBuilder.supportsAnalyze()).thenReturn(false);
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
     when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(true);
+    when(tableManager.mainTableExists(table)).thenReturn(true);
     doThrow(new IllegalStateException("Delete failed"))
         .when(tableManager)
         .removeUpdatedData(anyList());
@@ -405,6 +408,79 @@ class AnalyticsTableServiceTest {
     assertFalse(tableService.create(params, progress));
 
     verify(tableManager, never()).getAnalyticsTables(any());
+  }
+
+  @Test
+  void testRemoveUpdatedDataSkipsTableWithoutMainTable() {
+    // e.g. the event table of a program created after the last full rebuild
+    AnalyticsTable existing = latestPartitionEventTableFixture('A');
+    AnalyticsTable created = latestPartitionEventTableFixture('C');
+    List<AnalyticsTable> tables = List.of(existing, created);
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    stubContinuousUpdate(params, tables);
+    when(tableManager.mainTableExists(existing)).thenReturn(true);
+    when(tableManager.mainTableExists(created)).thenReturn(false);
+
+    assertTrue(tableService.create(params, JobProgress.noop()));
+
+    verify(tableManager).removeUpdatedData(List.of(existing));
+    verify(tableManager).swapTable(params, existing);
+    verify(tableManager).swapTable(params, created);
+  }
+
+  @Test
+  void testRemoveUpdatedDataNotRunWhenNoMainTableExists() {
+    AnalyticsTable created = latestPartitionEventTableFixture('C');
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    stubContinuousUpdate(params, List.of(created));
+    when(tableManager.mainTableExists(created)).thenReturn(false);
+
+    assertTrue(tableService.create(params, JobProgress.noop()));
+
+    verify(tableManager, never()).removeUpdatedData(anyList());
+    verify(tableManager).swapTable(params, created);
+  }
+
+  private void stubContinuousUpdate(
+      AnalyticsTableUpdateParams params, List<AnalyticsTable> tables) {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.EVENT);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(tables);
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+    when(tableManager.isReadyForContinuousUpdate(tables)).thenReturn(true);
+  }
+
+  private AnalyticsTable latestPartitionEventTableFixture(char programCharacter) {
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("event")
+                .dataType(TEXT)
+                .selectExpression("event")
+                .build());
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.EVENT, columns, Logged.UNLOGGED, createProgram(programCharacter));
+    table.addTablePartition(
+        List.of(),
+        AnalyticsTablePartition.LATEST_PARTITION,
+        new DateTime(2020, 1, 1, 0, 0).toDate(),
+        new DateTime(2020, 3, 1, 10, 0).toDate());
+    return table;
   }
 
   private AnalyticsTable latestPartitionTableFixture() {

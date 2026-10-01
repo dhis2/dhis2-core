@@ -177,6 +177,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   public void removeUpdatedData(List<AnalyticsTable> tables) {}
 
   @Override
+  public boolean mainTableExists(AnalyticsTable table) {
+    return tableExists(table.getMainName());
+  }
+
+  @Override
   public void createTable(AnalyticsTable table) {
     createAnalyticsTable(table);
 
@@ -450,7 +455,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param name the table name.
    * @return true if a table with the given name exists.
    */
-  private boolean tableExists(String name) {
+  protected boolean tableExists(String name) {
     return !jdbcTemplate.queryForList(sqlBuilder.tableExists(name)).isEmpty();
   }
 

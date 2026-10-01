@@ -261,7 +261,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             : idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {
-      boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate, program);
+      // A program without a main table yet (e.g. created after the last full rebuild) gets all of
+      // its data, since its staging table becomes the main table when swapped. A window starting
+      // at the last update would leave out its events last updated before then.
+      boolean hasMainTable =
+          tableExists(AnalyticsTable.getTableName(getAnalyticsTableType(), program));
+      Date programStartDate = hasMainTable ? startDate : new Date(0L);
+      Date updatedSince = hasMainTable ? lastAnyTableUpdate : new Date(0L);
+
+      boolean hasUpdatedData = hasUpdatedLatestData(updatedSince, endDate, program);
 
       if (hasUpdatedData) {
         AnalyticsTable table =
@@ -272,19 +280,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 logged,
                 program);
         table.addTablePartition(
-            List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
+            List.of(), AnalyticsTablePartition.LATEST_PARTITION, programStartDate, endDate);
         tables.add(table);
 
         log.info(
             "Added latest event analytics partition for program: '{}', start: '{}' and end: '{}'",
             program.getUid(),
-            toLongDate(startDate),
+            toLongDate(programStartDate),
             toLongDate(endDate));
       } else {
         log.info(
             "No updated latest event data found for program: '{}', start: '{}' and end: '{}",
             program.getUid(),
-            toLongDate(lastAnyTableUpdate),
+            toLongDate(updatedSince),
             toLongDate(endDate));
       }
     }

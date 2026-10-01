@@ -195,9 +195,17 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
       progress.completedStage("Validated continuous update readiness: '{}'", tableType);
 
+      // A table without a main table yet (e.g. the event table of a program created after the
+      // last full rebuild) has no stale rows to remove, and the delete would fail on the missing
+      // table. Its staging table becomes the main table when swapped.
+      List<AnalyticsTable> existingTables =
+          tables.stream().filter(tableManager::mainTableExists).toList();
+
       progress.startingStage(
           format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
-      boolean removedUpdatedData = progress.runStage(() -> tableManager.removeUpdatedData(tables));
+      boolean removedUpdatedData =
+          existingTables.isEmpty()
+              || progress.runStage(() -> tableManager.removeUpdatedData(existingTables));
       clock.logTime("Removed updated and deleted data");
 
       if (!removedUpdatedData) {

@@ -332,6 +332,46 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Test
   @DisplayName(
+      "A program without a main table yet gets all its data in a continuous update, since its"
+          + " staging table becomes the main table; a program with one gets the continuous window")
+  void testLatestTableOfProgramWithoutMainTableStartsAtEpoch() {
+    Program existing = createProgram('A');
+    Program created = createProgram('C');
+
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("eventid", 1));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT))
+        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT))
+        .thenReturn(lastLatestPartitionUpdate);
+    when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(
+            sqlBuilder.tableExists(AnalyticsTable.getTableName(AnalyticsTableType.EVENT, created))))
+        .thenReturn(List.of());
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(existing, created));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+    assertThat(tables, hasSize(2));
+
+    assertEquals(lastLatestPartitionUpdate, tables.get(0).getLatestTablePartition().getStartDate());
+    assertEquals(new Date(0L), tables.get(1).getLatestTablePartition().getStartDate());
+    assertEquals(startTime, tables.get(1).getLatestTablePartition().getEndDate());
+  }
+
+  @Test
+  @DisplayName(
       "removeUpdatedData materializes event keys natively for a registration program on Doris,"
           + " instead of a federated join inside DELETE")
   void testRemoveUpdatedDataMaterializesKeysNativelyForRegistration() {

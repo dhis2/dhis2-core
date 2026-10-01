@@ -108,6 +108,16 @@ public interface AnalyticsTableManager {
   }
 
   /**
+   * Checks whether the main table of the given analytics table exists.
+   *
+   * @param table the {@link AnalyticsTable}.
+   * @return true if the main table exists.
+   */
+  default boolean mainTableExists(AnalyticsTable table) {
+    return true;
+  }
+
+  /**
    * Removes updated and deleted data from the given tables for "latest" partition update.
    *
    * @param tables the list of {@link AnalyticsTable}.
