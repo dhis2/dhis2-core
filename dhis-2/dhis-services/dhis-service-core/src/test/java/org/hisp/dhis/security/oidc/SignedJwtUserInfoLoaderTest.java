@@ -40,17 +40,24 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -195,6 +202,40 @@ class SignedJwtUserInfoLoaderTest {
   }
 
   @Test
+  void loadUserRejectsUnsignedUserInfo() {
+    respondWith(new PlainJWT(userInfo().build()).serialize());
+
+    assertLoginFails("jwt_processing_error");
+  }
+
+  @Test
+  void loadUserRejectsUserInfoSignedWithAnotherAlgorithm() throws JOSEException {
+    // the IdP key, but PS256 instead of the configured RS256
+    respondWith(sign(userInfo().build(), idpSigningKey, JWSAlgorithm.PS256));
+
+    assertLoginFails("jwt_processing_error");
+  }
+
+  @Test
+  void loadUserRejectsExpiredUserInfo() throws JOSEException {
+    Date twoMinutesAgo = Date.from(Instant.now().minusSeconds(120));
+    respondWith(sign(userInfo().expirationTime(twoMinutesAgo).build(), idpSigningKey));
+
+    assertLoginFails("jwt_processing_error");
+  }
+
+  @Test
+  void loadUserRejectsEncryptedUserInfo() throws JOSEException {
+    EncryptedJWT encrypted =
+        new EncryptedJWT(
+            new JWEHeader(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A256GCM), userInfo().build());
+    encrypted.encrypt(new RSAEncrypter(idpSigningKey.toRSAPublicKey()));
+    respondWith(encrypted.serialize());
+
+    assertLoginFails("jwt_processing_error");
+  }
+
+  @Test
   void loadUserFailsWhenUserInfoEndpointFails() {
     idp.expect(requestTo(USER_INFO_URI)).andRespond(withServerError());
 
@@ -241,9 +282,14 @@ class SignedJwtUserInfoLoaderTest {
   }
 
   private static String sign(JWTClaimsSet claims, RSAKey signingKey) throws JOSEException {
+    return sign(claims, signingKey, JWSAlgorithm.RS256);
+  }
+
+  private static String sign(JWTClaimsSet claims, RSAKey signingKey, JWSAlgorithm algorithm)
+      throws JOSEException {
     SignedJWT jwt =
         new SignedJWT(
-            new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(signingKey.getKeyID()).build(), claims);
+            new JWSHeader.Builder(algorithm).keyID(signingKey.getKeyID()).build(), claims);
     jwt.sign(new RSASSASigner(signingKey));
     return jwt.serialize();
   }
