@@ -67,7 +67,13 @@ import org.springframework.transaction.annotation.Transactional;
  * └── O
  * </pre>
  *
- * Category option A is restricted to D; category options B and C are not restricted.
+ * Category option A is restricted to D; category options B and C are not restricted. Category
+ * option E is restricted to both D and O; category option G is restricted to O.
+ *
+ * <p>The expected semantics (matching {@link CategoryOptionCombo#getOrganisationUnits()}) are: an
+ * org unit is valid for an AOC if, for <em>every</em> org unit restricted option of the AOC, it is
+ * within the hierarchy of <em>any</em> of that option's org units. Unrestricted options are
+ * ignored.
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
@@ -87,6 +93,8 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
 
   private DataElement deSingle;
   private DataElement deMixed;
+  private DataElement deMultiOu;
+  private DataElement deCross;
 
   /** AOC of only the restricted option A. */
   private CategoryOptionCombo aocRestricted;
@@ -96,6 +104,15 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
 
   /** AOC of the restricted option A and the unrestricted option C. */
   private CategoryOptionCombo aocMixed;
+
+  /** AOC of only option E, which is restricted to two org units (D and O). */
+  private CategoryOptionCombo aocMultiOu;
+
+  /** AOC of options A (restricted to D) and G (restricted to O), which have no OU in common. */
+  private CategoryOptionCombo aocDisjoint;
+
+  /** AOC of options A (restricted to D) and E (restricted to D and O), overlapping in D. */
+  private CategoryOptionCombo aocOverlap;
 
   @BeforeEach
   void setUp() {
@@ -115,6 +132,13 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     manager.save(coA);
     manager.save(coB);
     manager.save(coC);
+    CategoryOption coE = createCategoryOption('E');
+    coE.addOrganisationUnit(ouD);
+    coE.addOrganisationUnit(ouO);
+    CategoryOption coG = createCategoryOption('G');
+    coG.addOrganisationUnit(ouO);
+    manager.save(coE);
+    manager.save(coG);
 
     Category categoryAB = createCategory('X', coA, coB);
     categoryAB.setDataDimensionType(DataDimensionType.ATTRIBUTE);
@@ -122,6 +146,9 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     categoryC.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     manager.save(categoryAB);
     manager.save(categoryC);
+    Category categoryEG = createCategory('Z', coE, coG);
+    categoryEG.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    manager.save(categoryEG);
 
     CategoryCombo comboSingle = createCategoryCombo('S', categoryAB);
     comboSingle.setDataDimensionType(DataDimensionType.ATTRIBUTE);
@@ -129,17 +156,32 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     comboMixed.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     manager.save(comboSingle);
     manager.save(comboMixed);
+    CategoryCombo comboMultiOu = createCategoryCombo('U', categoryEG);
+    comboMultiOu.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    CategoryCombo comboCross = createCategoryCombo('V', categoryAB, categoryEG);
+    comboCross.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    manager.save(comboMultiOu);
+    manager.save(comboCross);
     categoryOptionComboGenerateService.addAndPruneOptionCombos(comboSingle);
     categoryOptionComboGenerateService.addAndPruneOptionCombos(comboMixed);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(comboMultiOu);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(comboCross);
 
     aocRestricted = getOptionCombo(comboSingle, coA);
     aocUnrestricted = getOptionCombo(comboSingle, coB);
     aocMixed = getOptionCombo(comboMixed, coA, coC);
+    aocMultiOu = getOptionCombo(comboMultiOu, coE);
+    aocDisjoint = getOptionCombo(comboCross, coA, coG);
+    aocOverlap = getOptionCombo(comboCross, coA, coE);
 
     deSingle = createDataElement('S');
     deMixed = createDataElement('M');
     manager.save(deSingle);
     manager.save(deMixed);
+    deMultiOu = createDataElement('U');
+    deCross = createDataElement('V');
+    manager.save(deMultiOu);
+    manager.save(deCross);
 
     DataSet dsSingle = createDataSet('S', new MonthlyPeriodType());
     dsSingle.setCategoryCombo(comboSingle);
@@ -153,6 +195,18 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     dsMixed.addOrganisationUnit(ouO);
     dataSetService.addDataSet(dsSingle);
     dataSetService.addDataSet(dsMixed);
+    DataSet dsMultiOu = createDataSet('U', new MonthlyPeriodType());
+    dsMultiOu.setCategoryCombo(comboMultiOu);
+    dsMultiOu.addDataSetElement(deMultiOu);
+    dsMultiOu.addOrganisationUnit(ouF);
+    dsMultiOu.addOrganisationUnit(ouO);
+    DataSet dsCross = createDataSet('V', new MonthlyPeriodType());
+    dsCross.setCategoryCombo(comboCross);
+    dsCross.addDataSetElement(deCross);
+    dsCross.addOrganisationUnit(ouF);
+    dsCross.addOrganisationUnit(ouO);
+    dataSetService.addDataSet(dsMultiOu);
+    dataSetService.addDataSet(dsCross);
   }
 
   @Test
@@ -181,6 +235,33 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
   @Test
   void rejectsAocMixingRestrictedAndUnrestrictedOptionsOutsideHierarchy() {
     assertAocNotUsableWithOrgUnit(value(deMixed, ouO, aocMixed));
+  }
+
+  @Test
+  void acceptsOptionRestrictedToMultipleOrgUnitsAtAnyOfThem() throws Exception {
+    assertEquals(
+        2,
+        upsert(value(deMultiOu, ouF, aocMultiOu), value(deMultiOu, ouO, aocMultiOu)).succeeded());
+  }
+
+  @Test
+  void rejectsAocWithDisjointRestrictedOptionsInsideFirstOptionHierarchy() {
+    assertAocNotUsableWithOrgUnit(value(deCross, ouF, aocDisjoint));
+  }
+
+  @Test
+  void rejectsAocWithDisjointRestrictedOptionsInsideSecondOptionHierarchy() {
+    assertAocNotUsableWithOrgUnit(value(deCross, ouO, aocDisjoint));
+  }
+
+  @Test
+  void acceptsAocWithOverlappingRestrictedOptionsWithinIntersection() throws Exception {
+    assertEquals(1, upsert(value(deCross, ouF, aocOverlap)).succeeded());
+  }
+
+  @Test
+  void rejectsAocWithOverlappingRestrictedOptionsOutsideIntersection() {
+    assertAocNotUsableWithOrgUnit(value(deCross, ouO, aocOverlap));
   }
 
   private void assertAocNotUsableWithOrgUnit(DataEntryValue.Input value) {
