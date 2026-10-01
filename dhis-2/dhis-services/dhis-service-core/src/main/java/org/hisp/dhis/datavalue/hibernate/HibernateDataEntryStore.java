@@ -391,13 +391,21 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         FROM input i
         JOIN organisationunit ou ON ou.uid = i.ou_uid
         JOIN categoryoptioncombo aoc ON aoc.uid = i.aoc_uid
-        JOIN categoryoptioncombos_categoryoptions aoc_co
-            ON aoc_co.categoryoptioncomboid = aoc.categoryoptioncomboid
-        JOIN categoryoption_organisationunits co_ou
-            ON co_ou.categoryoptionid = aoc_co.categoryoptionid
-        JOIN organisationunit root
-            ON root.organisationunitid = co_ou.organisationunitid
-        WHERE NOT (root.uid = ANY(ou.patharray))
+        JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc_co.categoryoptioncomboid = aoc.categoryoptioncomboid
+        -- is there any OU restriction?
+        WHERE EXISTS (
+          SELECT 1
+          FROM categoryoption_organisationunits co_ou
+          WHERE co_ou.categoryoptionid = aoc_co.categoryoptionid
+        )
+        -- and we cannot find one where the imported OU is in the subtree of the restriction
+        AND NOT EXISTS (
+          SELECT 1
+          FROM categoryoption_organisationunits co_ou
+          JOIN organisationunit root ON root.organisationunitid = co_ou.organisationunitid
+          WHERE co_ou.categoryoptionid = aoc_co.categoryoptionid
+            AND root.uid = ANY(ou.patharray)
+        )
         LIMIT 1""";
 
     List<Object[]> deCoc =
