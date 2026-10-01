@@ -208,4 +208,11 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
         .filter(TrackedEntityAttribute::isUnique)
         .collect(toList());
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<UID> getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue() {
+    return trackedEntityAttributeStore
+        .getTrackedEntityAttributeUidsWithSkipSynchronizationSetToTrue();
+  }
 }

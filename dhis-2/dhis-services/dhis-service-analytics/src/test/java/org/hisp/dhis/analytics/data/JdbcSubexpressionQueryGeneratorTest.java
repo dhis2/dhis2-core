@@ -57,6 +57,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -119,11 +120,12 @@ class JdbcSubexpressionQueryGeneratorTest {
 
     List<DimensionalItemObject> items = List.of(deA, deoA, deoB, deoC, deE);
 
-    String deACol = getItemColumnName(deA.getUid(), null, null, null);
-    String deoACol = getItemColumnName(deB.getUid(), cocA.getUid(), null, null);
-    String deoBCol = getItemColumnName(deC.getUid(), cocB.getUid(), cocC.getUid(), null);
-    String deoCCol = getItemColumnName(deD.getUid(), null, cocD.getUid(), null);
-    String deECol = getItemColumnName(deE.getUid(), null, null, queryModsMin);
+    String deACol = sqlBuilder.quote(getItemColumnName(deA.getUid(), null, null, null));
+    String deoACol = sqlBuilder.quote(getItemColumnName(deB.getUid(), cocA.getUid(), null, null));
+    String deoBCol =
+        sqlBuilder.quote(getItemColumnName(deC.getUid(), cocB.getUid(), cocC.getUid(), null));
+    String deoCCol = sqlBuilder.quote(getItemColumnName(deD.getUid(), null, cocD.getUid(), null));
+    String deECol = sqlBuilder.quote(getItemColumnName(deE.getUid(), null, null, queryModsMin));
 
     String subexSql = deACol + "*(" + deoACol + "+" + deoBCol + ")+" + deoCCol + "-" + deECol;
 
@@ -145,7 +147,7 @@ class JdbcSubexpressionQueryGeneratorTest {
             .build();
 
     JdbcSubexpressionQueryGenerator target =
-        new JdbcSubexpressionQueryGenerator(manager, params, DATA_VALUE);
+        new JdbcSubexpressionQueryGenerator(manager, sqlBuilder, params, DATA_VALUE);
 
     String expected =
         "select ax.\"pe\",'subexprxUID' as \"dx\","
@@ -206,7 +208,7 @@ class JdbcSubexpressionQueryGeneratorTest {
             .build();
 
     JdbcSubexpressionQueryGenerator target =
-        new JdbcSubexpressionQueryGenerator(manager, params, DATA_VALUE);
+        new JdbcSubexpressionQueryGenerator(manager, sqlBuilder, params, DATA_VALUE);
 
     String expected =
         """
@@ -222,15 +224,10 @@ class JdbcSubexpressionQueryGeneratorTest {
             from \
             analytics as ax  \
             join (\
-            values(-1,\
-            '202305',\
-            '202304'),\
-            (0,\
-            '202305',\
-            '202305')) as shift ("delta", \
-            "reportperiod", \
-            "dataperiod") on \
-            "dataperiod" = "monthly"\
+            select -1 as "delta", '202305' as "reportperiod", '202304' as "dataperiod" \
+            union all select 0, '202305', '202305'\
+            ) as shift on \
+            shift."dataperiod" = ax."monthly"\
             where ax."monthly" in ('202304', '202305') \
             and ( ax."pe" in ('202305') ) \
             and ( ax."ou" in ('ouabcdefghA') ) \
@@ -275,11 +272,12 @@ class JdbcSubexpressionQueryGeneratorTest {
 
     List<DimensionalItemObject> items = List.of(deA, deoA, deoB, deoC, deE);
 
-    String deACol = getItemColumnName(deA.getUid(), null, null, null);
-    String deoACol = getItemColumnName(deB.getUid(), cocA.getUid(), null, null);
-    String deoBCol = getItemColumnName(deC.getUid(), cocB.getUid(), cocC.getUid(), null);
-    String deoCCol = getItemColumnName(deD.getUid(), null, cocD.getUid(), null);
-    String deECol = getItemColumnName(deE.getUid(), null, null, queryModsMin);
+    String deACol = sqlBuilder.quote(getItemColumnName(deA.getUid(), null, null, null));
+    String deoACol = sqlBuilder.quote(getItemColumnName(deB.getUid(), cocA.getUid(), null, null));
+    String deoBCol =
+        sqlBuilder.quote(getItemColumnName(deC.getUid(), cocB.getUid(), cocC.getUid(), null));
+    String deoCCol = sqlBuilder.quote(getItemColumnName(deD.getUid(), null, cocD.getUid(), null));
+    String deECol = sqlBuilder.quote(getItemColumnName(deE.getUid(), null, null, queryModsMin));
 
     String subexSql = deACol + "*(" + deoACol + "+" + deoBCol + ")+" + deoCCol + "-" + deECol;
 
@@ -301,7 +299,7 @@ class JdbcSubexpressionQueryGeneratorTest {
             .build();
 
     JdbcSubexpressionQueryGenerator target =
-        new JdbcSubexpressionQueryGenerator(manager, params, DATA_VALUE);
+        new JdbcSubexpressionQueryGenerator(manager, sqlBuilder, params, DATA_VALUE);
 
     String expected =
         "select 'subexprxUID' as \"dx\","
@@ -318,6 +316,63 @@ class JdbcSubexpressionQueryGeneratorTest {
             + "and ax.\"dx\" in ('deabcdefghA','deabcdefghB','deabcdefghC','deabcdefghD','deabcdefghE')  "
             + "group by ax.\"monthly\",ax.\"ou\") as ax "
             + "where \"deabcdefghA\"*(\"deabcdefghB_cuabcdefghA\"+\"deabcdefghC_cuabcdefghB_cuabcdefghC\")+\"deabcdefghD__cuabcdefghD\"-\"deabcdefghE_agg_MIN\" is not null ";
+
+    String actual = anonymize(target.getSql());
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void testGetSqlWithDoris() {
+    SqlBuilder dorisSqlBuilder = new DorisSqlBuilder("dhis2", "driver");
+    JdbcAnalyticsManager dorisManager =
+        new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore, dorisSqlBuilder);
+
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    PeriodDimension peA = PeriodDimension.of(createPeriod("202305"));
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('B');
+    CategoryOptionCombo cocA = createCategoryOptionCombo('A');
+    CategoryOptionCombo aocA = createCategoryOptionCombo('B');
+    DataElementOperand deoA = new DataElementOperand(deB, cocA, aocA);
+
+    String deAColumn = dorisSqlBuilder.quote(getItemColumnName(deA.getUid(), null, null, null));
+    String deoAColumn =
+        dorisSqlBuilder.quote(getItemColumnName(deB.getUid(), cocA.getUid(), aocA.getUid(), null));
+    SubexpressionDimensionItem subex =
+        new SubexpressionDimensionItem(deAColumn + "+" + deoAColumn, List.of(deA, deoA), null);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataType(DataType.NUMERIC)
+            .withTableName("analytics")
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(subex)))
+            .addFilter(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)))
+            .addDimension(
+                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA)))
+            .withPeriodType("monthly")
+            .build();
+
+    JdbcSubexpressionQueryGenerator target =
+        new JdbcSubexpressionQueryGenerator(dorisManager, dorisSqlBuilder, params, DATA_VALUE);
+
+    String expected =
+        "select ax.`pe`,'subexprxUID' as `dx`,"
+            + "sum(`deabcdefghA`+`deabcdefghB_cuabcdefghA_cuabcdefghB`) as `value` "
+            + "from (select ax.`pe`, "
+            + "sum(case when ax.`dx`='deabcdefghA' then CAST(`value` AS DECIMAL) else null end) as `deabcdefghA`,"
+            + "sum(case when ax.`dx`='deabcdefghB' and ax.`co`='cuabcdefghA' and ax.`ao`='cuabcdefghB' then CAST(`value` AS DECIMAL) else null end) as `deabcdefghB_cuabcdefghA_cuabcdefghB` "
+            + "from analytics as ax "
+            + "where ax.`monthly` in ('202305') "
+            + "and ( ax.`ou` in ('ouabcdefghA') ) "
+            + "and ax.`dx` in ('deabcdefghA','deabcdefghB')  "
+            + "group by ax.`monthly`,ax.`ou`) as ax "
+            + "where `deabcdefghA`+`deabcdefghB_cuabcdefghA_cuabcdefghB` is not null "
+            + "group by ax.`pe` ";
 
     String actual = anonymize(target.getSql());
 

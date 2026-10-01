@@ -112,7 +112,7 @@ public class NotificationTemplateMapper {
                         template.getRecipientDataElement(),
                         IdentifiableObjectSnapshot::new,
                         Collections.emptyList())),
-            t -> t.setSendRepeatable(t.isSendRepeatable()),
+            t -> t.setSendRepeatable(template.isSendRepeatable()),
             t -> t.setRecipientUserGroup(toUserGroupSnapshot(template.getRecipientUserGroup()))));
   }
 

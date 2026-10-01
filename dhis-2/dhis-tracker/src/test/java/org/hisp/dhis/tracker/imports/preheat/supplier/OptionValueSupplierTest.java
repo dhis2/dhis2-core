@@ -32,9 +32,17 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
@@ -54,6 +62,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 class OptionValueSupplierTest {
@@ -237,5 +246,96 @@ class OptionValueSupplierTest {
     supplier.collectCandidates(trackerObjects, preheat);
 
     assertFalse(preheat.isOptionSetResolved(1L));
+  }
+
+  @Test
+  void shouldNotValidateAFabricatedCrossOptionSetPairEvenWhenBothHalvesExistSeparately()
+      throws SQLException {
+    OptionSet optionSetA = new OptionSet();
+    optionSetA.setId(1L);
+    OptionSet optionSetB = new OptionSet();
+    optionSetB.setId(2L);
+    OptionSet optionSetC = new OptionSet();
+    optionSetC.setId(3L);
+
+    DataElement dataElementA = new DataElement();
+    dataElementA.setUid("dataElementA");
+    dataElementA.setValueType(ValueType.TEXT);
+    dataElementA.setOptionSet(optionSetA);
+
+    DataElement dataElementB = new DataElement();
+    dataElementB.setUid("dataElementB");
+    dataElementB.setValueType(ValueType.TEXT);
+    dataElementB.setOptionSet(optionSetB);
+
+    DataElement dataElementC = new DataElement();
+    dataElementC.setUid("dataElementC");
+    dataElementC.setValueType(ValueType.TEXT);
+    dataElementC.setOptionSet(optionSetC);
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(dataElementA);
+    preheat.put(dataElementB);
+    preheat.put(dataElementC);
+
+    // The payload asks about (1,"A00") and (2,"B00") - neither actually exists - and (3,"C00"),
+    // which does.
+    DataValue dataValueA =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid("dataElementA"))
+            .value("A00")
+            .build();
+    DataValue dataValueB =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid("dataElementB"))
+            .value("B00")
+            .build();
+    DataValue dataValueC =
+        DataValue.builder()
+            .dataElement(MetadataIdentifier.ofUid("dataElementC"))
+            .value("C00")
+            .build();
+    TrackerEvent event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .dataValues(Set.of(dataValueA, dataValueB, dataValueC))
+            .build();
+    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
+
+    // The database actually contains (1,"B00"), (2,"A00") and (3,"C00"): every optionSetId and
+    // every code the query's two IN-lists ask for is present in some row, but the fabricated
+    // pairs (1,"A00") and (2,"B00") never co-occur on the same row.
+    mockQueryResult(Pair.of(1L, "B00"), Pair.of(2L, "A00"), Pair.of(3L, "C00"));
+
+    supplier.preheatAdd(trackerObjects, preheat);
+
+    assertFalse(
+        preheat.isValidOptionCode(1L, "A00"),
+        "fabricated cross-option-set pair must not be validated");
+    assertFalse(
+        preheat.isValidOptionCode(2L, "B00"),
+        "fabricated cross-option-set pair must not be validated");
+    assertTrue(preheat.isValidOptionCode(3L, "C00"), "a genuine pair must still be validated");
+  }
+
+  @SafeVarargs
+  @SuppressWarnings("unchecked")
+  private void mockQueryResult(Pair<Long, String>... rows) throws SQLException {
+    Connection connection = mock(Connection.class);
+    PreparedStatement ps = mock(PreparedStatement.class);
+    ResultSet rs = mock(ResultSet.class);
+    when(connection.prepareStatement(anyString())).thenReturn(ps);
+    when(connection.createArrayOf(anyString(), any())).thenReturn(mock(Array.class));
+    when(ps.executeQuery()).thenReturn(rs);
+
+    int[] index = {0};
+    when(rs.next()).thenAnswer(invocation -> index[0]++ < rows.length);
+    when(rs.getLong("optionsetid")).thenAnswer(invocation -> rows[index[0] - 1].getLeft());
+    when(rs.getString("code")).thenAnswer(invocation -> rows[index[0] - 1].getRight());
+
+    when(jdbcTemplate.execute(any(ConnectionCallback.class)))
+        .thenAnswer(
+            invocation ->
+                invocation.<ConnectionCallback<?>>getArgument(0).doInConnection(connection));
   }
 }

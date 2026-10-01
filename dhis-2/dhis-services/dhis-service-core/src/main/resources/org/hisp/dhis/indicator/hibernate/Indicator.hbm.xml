@@ -8,7 +8,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.indicator.Indicator" table="indicator">
 
-    <cache usage="read-write" />
+    <cache usage="nonstrict-read-write" />
 
     <id name="id" column="indicatorid">
       <generator class="native" />
@@ -45,19 +45,19 @@
     <property name="style" type="jbObjectStyle" column="style" />
 
     <set name="groups" table="indicatorgroupmembers" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="indicatorid" />
       <many-to-many class="org.hisp.dhis.indicator.IndicatorGroup" column="indicatorgroupid" />
     </set>
 
     <set name="dataSets" table="datasetindicators" inverse="true">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="indicatorid" />
       <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
     </set>
 
     <list name="legendSets" table="indicatorlegendsets">
-      <cache usage="read-write" />
+      <cache usage="nonstrict-read-write" />
       <key column="indicatorid" />
       <list-index column="sort_order" base="0" />
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_indicator_legendsetid"></many-to-many>

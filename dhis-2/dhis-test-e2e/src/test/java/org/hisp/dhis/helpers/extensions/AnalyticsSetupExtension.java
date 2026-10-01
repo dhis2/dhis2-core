@@ -38,8 +38,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.MaintenanceActions;
 import org.hisp.dhis.test.e2e.actions.ResourceTableActions;
 import org.hisp.dhis.test.e2e.actions.SystemActions;
+import org.hisp.dhis.test.e2e.db.SqlSeeder;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -64,39 +66,59 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
 
   @Override
   public void beforeAll(ExtensionContext context) {
-    boolean shouldRunExport =
-        Optional.ofNullable(TestConfiguration.get().shouldRunAnalyticsExport()).orElse(true);
-
-    if (shouldRunExport && run.compareAndSet(false, true)) {
-      logger.info("Starting analytics table export.");
-
-      // Login into the current DHIS2 instance.
-      new LoginActions().loginAsAdmin();
-
-      StopWatch watcher = new StopWatch();
-      watcher.start();
-
-      // Invoke the analytics table generation process.
-      String analyticsApiPath = "/analytics";
-      String queryParams = System.getProperty("analytics.api.query.params");
-
-      if (queryParams != null && !queryParams.isEmpty()) {
-        analyticsApiPath += "?" + queryParams;
-        logger.info("Appending analytics query parameters: {}", queryParams);
-      }
-
-      ApiResponse response =
-          new ResourceTableActions().post(analyticsApiPath, new JsonObject()).validateStatus(200);
-
-      String analyticsTaskId = response.extractString("response.id");
-
-      // Wait until the process is completed.
-      new SystemActions().waitUntilTaskCompleted("ANALYTICS_TABLE", analyticsTaskId, TIMEOUT);
-
-      watcher.stop();
-
-      logger.info("Concluding analytics table export in {} minutes", watcher.getTime(MINUTES));
+    if (!run.compareAndSet(false, true)) {
+      return;
     }
+
+    if (SqlSeeder.applySeedScripts() > 0) {
+      clearApplicationCaches();
+    }
+
+    if (Optional.ofNullable(TestConfiguration.get().shouldRunAnalyticsExport()).orElse(true)) {
+      exportAnalyticsTables();
+    }
+  }
+
+  /**
+   * The seed scripts write straight to the database, so the instance under test still holds what it
+   * cached before they ran.
+   */
+  private void clearApplicationCaches() {
+    logger.info("Clearing application caches.");
+
+    new LoginActions().loginAsAdmin();
+    new MaintenanceActions().post("cacheClear", new JsonObject()).validateStatus(200);
+  }
+
+  private void exportAnalyticsTables() {
+    logger.info("Starting analytics table export.");
+
+    // Login into the current DHIS2 instance.
+    new LoginActions().loginAsAdmin();
+
+    StopWatch watcher = new StopWatch();
+    watcher.start();
+
+    // Invoke the analytics table generation process.
+    String analyticsApiPath = "/analytics";
+    String queryParams = System.getProperty("analytics.api.query.params");
+
+    if (queryParams != null && !queryParams.isEmpty()) {
+      analyticsApiPath += "?" + queryParams;
+      logger.info("Appending analytics query parameters: {}", queryParams);
+    }
+
+    ApiResponse response =
+        new ResourceTableActions().post(analyticsApiPath, new JsonObject()).validateStatus(200);
+
+    String analyticsTaskId = response.extractString("response.id");
+
+    // Wait until the process is completed.
+    new SystemActions().waitUntilTaskCompleted("ANALYTICS_TABLE", analyticsTaskId, TIMEOUT);
+
+    watcher.stop();
+
+    logger.info("Concluding analytics table export in {} minutes", watcher.getTime(MINUTES));
   }
 
   private static long minutes(int minutes) {

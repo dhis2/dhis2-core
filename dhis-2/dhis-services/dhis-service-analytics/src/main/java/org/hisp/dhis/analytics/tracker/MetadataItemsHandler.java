@@ -39,8 +39,11 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.QueryKey.NO_VALUE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_OU;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.common.ColumnHeader.REGISTRATION_OU;
+import static org.hisp.dhis.analytics.event.LabelMapper.getDateFieldLabel;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
@@ -60,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +75,8 @@ import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.common.NoValueDimensions;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -95,7 +99,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -207,11 +210,43 @@ public class MetadataItemsHandler {
    * @return a map of dimension items.
    */
   private Map<String, List<String>> buildDimensionItems(Grid grid, EventQueryParams params) {
+    Map<String, List<String>> dimensionItems;
+
     if (params.isComingFromQuery()) {
       Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, params.getItems());
-      return getDimensionItems(params, Optional.of(optionsPresentInGrid));
+      dimensionItems = getDimensionItems(params, Optional.of(optionsPresentInGrid));
+    } else {
+      dimensionItems = getDimensionItems(params, empty());
     }
-    return getDimensionItems(params, empty());
+
+    addNoValueToDimensions(dimensionItems, params);
+
+    return dimensionItems;
+  }
+
+  /**
+   * Appends the no-value keyword to the dimension item list of every option-set dimension whose
+   * filter explicitly contains the keyword (filter-scoped). The keyword is added to the dimensions
+   * only; rows and {@code metaData.items} are unaffected.
+   *
+   * @param dimensionItems the dimension items map.
+   * @param params the {@link EventQueryParams}.
+   */
+  private void addNoValueToDimensions(
+      Map<String, List<String>> dimensionItems, EventQueryParams params) {
+    for (QueryItem item : params.getItemsAndItemFilters()) {
+      if (!item.hasOptionSet() || !isFilteredByNoValue(item)) {
+        continue;
+      }
+
+      NoValueDimensions.append(dimensionItems, getItemUid(item));
+    }
+  }
+
+  /** Indicates whether any of the item's filters contains the reserved no-value keyword. */
+  private boolean isFilteredByNoValue(QueryItem item) {
+    return item.getFilters().stream()
+        .anyMatch(filter -> QueryFilter.getFilterItems(filter.getFilter()).contains(NO_VALUE));
   }
 
   /**
@@ -256,6 +291,7 @@ public class MetadataItemsHandler {
     addPeriodDimensionValueMetadata(metadataItemMap, params, includeDetails);
     addDateFieldDimensionMetadata(metadataItemMap, params);
     addEnrollmentOuMetadata(metadataItemMap, params, includeDetails);
+    addRegistrationOuMetadata(metadataItemMap, params, includeDetails);
     addProgramStatusMetadata(metadataItemMap, params);
 
     return metadataItemMap;
@@ -593,32 +629,6 @@ public class MetadataItemsHandler {
   }
 
   /**
-   * Returns the display label for a date field, using the program's custom label if available, or
-   * falling back to the default display name.
-   */
-  private static String getDateFieldLabel(String dateField, Program program) {
-    return switch (dateField) {
-      case "ENROLLMENT_DATE" ->
-          LabelMapper.getEnrollmentDateLabel(program, toDateFieldDisplayName(dateField));
-      case "INCIDENT_DATE" ->
-          LabelMapper.getIncidentDateLabel(program, toDateFieldDisplayName(dateField));
-      default -> toDateFieldDisplayName(dateField);
-    };
-  }
-
-  /**
-   * Converts a dateField name (e.g. "ENROLLMENT_DATE") to a display name (e.g. "Enrollment date").
-   */
-  static String toDateFieldDisplayName(String dateField) {
-    String[] parts = dateField.toLowerCase().split("_");
-    if (parts.length == 0) {
-      return dateField;
-    }
-    parts[0] = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
-    return String.join(" ", parts);
-  }
-
-  /**
    * Adds metadata entries for enrollment org unit dimension items. Each item gets a MetadataItem
    * with its display name.
    */
@@ -643,6 +653,25 @@ public class MetadataItemsHandler {
   // API contract requires the abbreviated form "org." while the column header uses "org".
   private String getEnrollmentOuDisplayName() {
     return "Enrollment org. unit";
+  }
+
+  private void addRegistrationOuMetadata(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params, boolean includeDetails) {
+    List<OrganisationUnit> items = params.getRegistrationOuDimensionItems();
+
+    if (items.isEmpty()) {
+      return;
+    }
+
+    metadataItemMap.putIfAbsent(
+        REGISTRATION_OU.getItem(), new MetadataItem(REGISTRATION_OU.getName()));
+
+    for (OrganisationUnit item : items) {
+      metadataItemMap.put(
+          item.getUid(),
+          new MetadataItem(
+              item.getDisplayProperty(params.getDisplayProperty()), includeDetails ? item : null));
+    }
   }
 
   private void addProgramStatusMetadata(
@@ -736,6 +765,7 @@ public class MetadataItemsHandler {
     addQueryItemDimensions(dimensionItems, params, itemOptions);
     addItemFiltersToDimensionItems(params.getItemFilters(), dimensionItems);
     addEnrollmentOuDimensionItems(dimensionItems, params);
+    addRegistrationOuDimensionItems(dimensionItems, params);
     addProgramStatusDimensionItems(dimensionItems, params);
 
     return dimensionItems;
@@ -816,6 +846,16 @@ public class MetadataItemsHandler {
     if (params.hasEnrollmentOuDimension()) {
       dimensionItems.put(
           "enrollmentou", getDimensionalItemIds(params.getEnrollmentOuDimensionItems()));
+    }
+  }
+
+  private void addRegistrationOuDimensionItems(
+      Map<String, List<String>> dimensionItems, EventQueryParams params) {
+    List<OrganisationUnit> items = params.getRegistrationOuDimensionItems();
+
+    if (!items.isEmpty()) {
+      dimensionItems.put(
+          REGISTRATION_OU.getItem(), items.stream().map(OrganisationUnit::getUid).toList());
     }
   }
 
@@ -1008,7 +1048,26 @@ public class MetadataItemsHandler {
   private List<OrganisationUnit> getActiveOrgUnits(Grid grid, EventQueryParams params) {
     List<OrganisationUnit> organisationUnits =
         asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
-    return OrgUnitHelper.getActiveOrganisationUnits(grid, organisationUnits);
+    Map<String, OrganisationUnit> activeOrgUnits = new LinkedHashMap<>();
+    OrgUnitHelper.getActiveOrganisationUnits(grid, organisationUnits)
+        .forEach(orgUnit -> activeOrgUnits.putIfAbsent(orgUnit.getUid(), orgUnit));
+
+    for (QueryItem item : params.getItemsAndItemFilters()) {
+      if (!isStageOuDimension(item)) {
+        continue;
+      }
+
+      List<OrganisationUnit> stageOrgUnits =
+          organisationUnitResolver.resolveOrgUnits(params, item).stream()
+              .map(uid -> organisationUnitResolver.loadOrgUnitDimensionalItem(uid, IdScheme.UID))
+              .filter(OrganisationUnit.class::isInstance)
+              .map(OrganisationUnit.class::cast)
+              .toList();
+      OrgUnitHelper.getActiveOrganisationUnits(grid, stageOrgUnits, getItemUid(item))
+          .forEach(orgUnit -> activeOrgUnits.putIfAbsent(orgUnit.getUid(), orgUnit));
+    }
+
+    return new ArrayList<>(activeOrgUnits.values());
   }
 
   /**

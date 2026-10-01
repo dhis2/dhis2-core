@@ -585,4 +585,19 @@ public interface SqlBuilder {
    * @return an SQL fragment that casts {@code literal} to {@code DECIMAL(precision, scale)}
    */
   String decimalLiteral(String literal, int precision, int scale);
+
+  /**
+   * Returns an SQL expression that yields {@code NULL} when {@code column} holds an empty string,
+   * and the column value otherwise. This normalises empty text to {@code NULL} so that absent and
+   * empty text values are treated the same way across analytics databases.
+   *
+   * <p>The default returns the column unchanged. Engines that store empty strings where other
+   * engines store {@code NULL} (ClickHouse) override this to wrap the column in a {@code nullif}.
+   *
+   * @param column the text SQL column or expression.
+   * @return a NULL-normalising SQL fragment.
+   */
+  default String nullIfEmpty(String column) {
+    return column;
+  }
 }

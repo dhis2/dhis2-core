@@ -37,8 +37,12 @@ import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createProgramStageDataElement;
+import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,6 +87,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -502,6 +508,32 @@ class DefaultEventDataQueryServiceTest {
     assertEquals("completeddate", params.getAsc().get(0).getItemId());
   }
 
+  /**
+   * The registration OU columns are projected under their own aliases, so sorting resolves to the
+   * alias rather than an analytics table column.
+   */
+  @Test
+  void getFromRequestAcceptsRegistrationOuNameSort() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).desc(Set.of("registrationouname")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getDesc().size());
+    assertEquals("registrationouname", params.getDesc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsRegistrationOuSortForEnrollmentEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).asc(Set.of("registrationou")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getAsc().size());
+    assertEquals("registrationou", params.getAsc().get(0).getItemId());
+  }
+
   @Test
   void getFromRequestAcceptsDescendingCreatedSortForEventEndpoint() {
     EventDataQueryRequest request =
@@ -511,6 +543,48 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(1, params.getDesc().size());
     assertEquals("created", params.getDesc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsAscendingEnrollmentOuNameSortForEventEndpoint() {
+    lenient()
+        .when(queryItemLocator.getQueryItemFromDimension(anyString(), any(), any()))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, "enrollmentouname"));
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).asc(Set.of("enrollmentouname")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getAsc().size());
+    assertEquals("enrollmentouname", params.getAsc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsDescendingEnrollmentOuSortForEventEndpoint() {
+    lenient()
+        .when(queryItemLocator.getQueryItemFromDimension(anyString(), any(), any()))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, "enrollmentou"));
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).desc(Set.of("enrollmentou")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getDesc().size());
+    assertEquals("enrollmentou", params.getDesc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestRejectsEnrollmentOuNameSortForEnrollmentEndpoint() {
+    when(queryItemLocator.getQueryItemFromDimension(
+            "enrollmentouname", program, EventOutputType.ENROLLMENT))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, "enrollmentouname"));
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).asc(Set.of("enrollmentouname")).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7224, exception.getErrorCode());
   }
 
   private QueryItem createDateQueryItem(String columnName) {
@@ -752,6 +826,317 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestResolvesRegistrationOuAsDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    BaseDimensionalObject ouDimension =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB));
+
+    when(dataQueryService.getDimension(
+            eq("ou"),
+            eq(List.of(ouA.getUid(), ouB.getUid())),
+            any(),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(ouDimension);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:" + ouA.getUid() + ";" + ouB.getUid())))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertTrue(params.hasRegistrationOuRestriction());
+    assertEquals(2, params.getRegistrationOuDimensionItems().size());
+    assertFalse(params.hasEnrollmentOuDimension());
+  }
+
+  @Test
+  void getFromRequestResolvesRegistrationOuAsFilter() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+
+    BaseDimensionalObject ouDimension =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA));
+
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of(ouA.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(ouDimension);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .filter(Set.of(Set.of("REGISTRATION_OU:" + ouA.getUid())))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.hasRegistrationOuFilter());
+    assertFalse(params.hasRegistrationOuDimension());
+    assertEquals(1, params.getRegistrationOuFilterItems().size());
+  }
+
+  /**
+   * The dimension keyword is spelled in upper case, and a lower case spelling is a different
+   * dimension that must not resolve as REGISTRATION_OU. The org unit dimension is stubbed so that a
+   * keyword match would produce a populated filter, which is what makes this assertion
+   * discriminate: without the stub the filter comes back empty either way. The stub is lenient
+   * because, once the comparison is exact, it is correctly never reached.
+   */
+  @Test
+  void getFromRequestDoesNotResolveRegistrationOuSpelledInLowerCase() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+
+    lenient()
+        .when(
+            dataQueryService.getDimension(
+                eq("ou"), eq(List.of(ouA.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA)));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .filter(Set.of(Set.of("registration_ou:" + ouA.getUid())))
+            .build();
+
+    assertFalse(subject.getFromRequest(request).hasRegistrationOuFilter());
+  }
+
+  /**
+   * REGISTRATION_OU delegates keyword expansion wholesale to the "ou" dimension, so LEVEL-n arrives
+   * back as concrete org units. This is the deliberate difference from ENROLLMENT_OU, which strips
+   * levels out and tracks them separately.
+   */
+  @Test
+  void getFromRequestDelegatesRegistrationOuLevelKeywordToOuDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+
+    BaseDimensionalObject ouDimension =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA));
+
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of("LEVEL-m9lBJogzE95")), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(ouDimension);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:LEVEL-m9lBJogzE95")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertEquals(1, params.getRegistrationOuDimensionItems().size());
+  }
+
+  @Test
+  void getFromRequestKeepsRegistrationOuIndependentOfEnrollmentOu() {
+    OrganisationUnit registrationOu = createOrganisationUnit('B');
+    OrganisationUnit enrollmentOu = createOrganisationUnit('C');
+
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of(registrationOu.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(
+            new BaseDimensionalObject(
+                "ou", DimensionType.ORGANISATION_UNIT, List.of(registrationOu)));
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of(enrollmentOu.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(
+            new BaseDimensionalObject(
+                "ou", DimensionType.ORGANISATION_UNIT, List.of(enrollmentOu)));
+
+    Set<Set<String>> dimensions = new LinkedHashSet<>();
+    dimensions.add(Set.of("REGISTRATION_OU:" + registrationOu.getUid()));
+    dimensions.add(Set.of("ENROLLMENT_OU:" + enrollmentOu.getUid()));
+
+    EventQueryParams params =
+        subject.getFromRequest(baseRequestBuilder(AGGREGATE, EVENT).dimension(dimensions).build());
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertTrue(params.hasEnrollmentOuDimension());
+    assertEquals(
+        List.of(registrationOu.getUid()),
+        params.getRegistrationOuDimensionItems().stream().map(OrganisationUnit::getUid).toList());
+    assertEquals(
+        List.of(enrollmentOu.getUid()),
+        params.getEnrollmentOuDimensionItems().stream().map(item -> item.getUid()).toList());
+  }
+
+  @Test
+  void getFromRequestRejectsRepeatedRegistrationOuDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    Set<Set<String>> dimensions = new LinkedHashSet<>();
+    dimensions.add(Set.of("REGISTRATION_OU:" + ouA.getUid()));
+    dimensions.add(Set.of("REGISTRATION_OU:" + ouB.getUid()));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).dimension(dimensions).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7201, exception.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsRepeatedRegistrationOuFilter() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    Set<Set<String>> filters = new LinkedHashSet<>();
+    filters.add(Set.of("REGISTRATION_OU:" + ouA.getUid()));
+    filters.add(Set.of("REGISTRATION_OU:" + ouB.getUid()));
+
+    EventDataQueryRequest request = baseRequestBuilder(AGGREGATE, EVENT).filter(filters).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7201, exception.getErrorCode());
+  }
+
+  /** Two occurrences can also arrive inside a single "_OR_" separated dimension group. */
+  @Test
+  void getFromRequestRejectsRepeatedRegistrationOuWithinOneGroup() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(
+                Set.of(
+                    Set.of("REGISTRATION_OU:" + ouA.getUid(), "REGISTRATION_OU:" + ouB.getUid())))
+            .build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7201, exception.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsRepeatedEnrollmentOuDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    Set<Set<String>> dimensions = new LinkedHashSet<>();
+    dimensions.add(Set.of("ENROLLMENT_OU:" + ouA.getUid()));
+    dimensions.add(Set.of("ENROLLMENT_OU:" + ouB.getUid()));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).dimension(dimensions).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7201, exception.getErrorCode());
+  }
+
+  /** Several org units in one dimension is one occurrence, and must not be rejected. */
+  @Test
+  void getFromRequestAcceptsSeveralOrgUnitsInOneRegistrationOuDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('B');
+    OrganisationUnit ouB = createOrganisationUnit('C');
+
+    when(dataQueryService.getDimension(
+            eq("ou"),
+            eq(List.of(ouA.getUid(), ouB.getUid())),
+            any(),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB)));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:" + ouA.getUid() + ";" + ouB.getUid())))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(2, params.getRegistrationOuDimensionItems().size());
+  }
+
+  /** The same dimension as both a dimension and a filter is a supported shape. */
+  @Test
+  void getFromRequestAcceptsRegistrationOuAsDimensionAndFilterTogether() {
+    OrganisationUnit dimensionOu = createOrganisationUnit('B');
+    OrganisationUnit filterOu = createOrganisationUnit('C');
+
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of(dimensionOu.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(dimensionOu)));
+    when(dataQueryService.getDimension(
+            eq("ou"), eq(List.of(filterOu.getUid())), any(), anyList(), anyBoolean(), any()))
+        .thenReturn(
+            new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of(filterOu)));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:" + dimensionOu.getUid())))
+            .filter(Set.of(Set.of("REGISTRATION_OU:" + filterOu.getUid())))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(
+        List.of(dimensionOu.getUid()),
+        params.getRegistrationOuDimensionItems().stream().map(OrganisationUnit::getUid).toList());
+    assertEquals(
+        List.of(filterOu.getUid()),
+        params.getRegistrationOuFilterItems().stream().map(OrganisationUnit::getUid).toList());
+  }
+
+  @Test
+  void getFromRequestRejectsRegistrationOuForProgramWithoutRegistration() {
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    OrganisationUnit ouA = createOrganisationUnit('B');
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("REGISTRATION_OU:" + ouA.getUid())))
+            .build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7259, exception.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsBareRegistrationOuOnAggregate() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).dimension(Set.of(Set.of("REGISTRATION_OU"))).build();
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7260, exception.getErrorCode());
+  }
+
+  /**
+   * A bare REGISTRATION_OU is legal on the query endpoints — it only projects the columns. It does
+   * not count as an org unit condition, so the query validator still has to see no items.
+   */
+  @Test
+  void getFromRequestAcceptsBareRegistrationOuOnQueryWithoutContributingItems() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).dimension(Set.of(Set.of("REGISTRATION_OU"))).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.hasRegistrationOuDimension());
+    assertFalse(params.hasRegistrationOuRestriction());
+    assertTrue(params.getRegistrationOuDimensionItems().isEmpty());
+  }
+
+  @Test
   void getFromRequestMergesMultiplePeriodDimensions() {
     BaseDimensionalObject peDimension =
         new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of());
@@ -829,15 +1214,12 @@ class DefaultEventDataQueryServiceTest {
 
   @Test
   void getFromRequestAcceptsBooleanValueWithStagePrefix() {
-    ProgramStage programStage = createProgramStage('S', program);
-    DataElement booleanElement = createDataElement('B', ValueType.BOOLEAN, AggregationType.SUM);
+    DataElement booleanElement = dataElementInProgram('B', ValueType.BOOLEAN, AggregationType.SUM);
+    ProgramStage programStage = program.getProgramStages().iterator().next();
 
     lenient()
         .when(programStageService.getProgramStage(programStage.getUid()))
         .thenReturn(programStage);
-    lenient()
-        .when(dataElementService.getDataElement(booleanElement.getUid()))
-        .thenReturn(booleanElement);
 
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, EVENT)
@@ -853,11 +1235,8 @@ class DefaultEventDataQueryServiceTest {
 
   @Test
   void getFromRequestAcceptsTrueOnlyValueWithoutStagePrefix() {
-    DataElement trueOnlyElement = createDataElement('T', ValueType.TRUE_ONLY, AggregationType.SUM);
-
-    lenient()
-        .when(dataElementService.getDataElement(trueOnlyElement.getUid()))
-        .thenReturn(trueOnlyElement);
+    DataElement trueOnlyElement =
+        dataElementInProgram('T', ValueType.TRUE_ONLY, AggregationType.SUM);
 
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, EVENT).value(trueOnlyElement.getUid()).build();
@@ -866,6 +1245,273 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(trueOnlyElement.getUid(), params.getValue().getUid());
     assertTrue(params.hasBooleanValueDimension());
+  }
+
+  @Test
+  void getFromRequestRejectsOffsetInValue() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "[0]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsNegativeOffsetInValue() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "[-1]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsOffsetInValueBeforeStageLookup() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .stage(programStage.getUid())
+            .value(programStage.getUid() + "[0]." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7264, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsUnknownStagePrefixInValue() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value("unknownStg1." + element.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7130, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsStagePrefixOfAnotherProgram() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+    ProgramStage foreignStage = createProgramStage('F', createProgram('B'));
+
+    lenient()
+        .when(programStageService.getProgramStage(foreignStage.getUid()))
+        .thenReturn(foreignStage);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(foreignStage.getUid() + "." + element.getUid())
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7130, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestAcceptsProgramPrefixInValue() {
+    TrackedEntityAttribute attribute = attributeInProgram('H', ValueType.NUMBER);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(program.getUid() + "." + attribute.getUid())
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertNull(params.getProgramStage());
+  }
+
+  @Test
+  void getFromRequestTreatsDefaultAggregationTypeAsAbsent() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.DEFAULT)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertNull(params.getAggregationType());
+    assertEquals(AggregationType.SUM, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestKeepsExplicitAggregationTypeOverride() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(AggregationType.AVERAGE, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestIgnoresDefaultAggregationTypeWithoutValue() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).aggregationType(AggregationType.DEFAULT).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertNull(params.getAggregationType());
+    assertNull(params.getValue());
+  }
+
+  @Test
+  void getFromRequestRejectsValueDataElementOutsideProgram() {
+    DataElement foreign = createDataElement('F', ValueType.NUMBER, AggregationType.SUM);
+    lenient().when(dataElementService.getDataElement(foreign.getUid())).thenReturn(foreign);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(foreign.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7223, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsValueAttributeOutsideProgram() {
+    TrackedEntityAttribute foreign = createTrackedEntityAttribute('F', ValueType.NUMBER);
+    lenient()
+        .when(attributeService.getTrackedEntityAttribute(foreign.getUid()))
+        .thenReturn(foreign);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(foreign.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7223, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestAcceptsValueAttributeInProgram() {
+    TrackedEntityAttribute attribute = attributeInProgram('H', ValueType.NUMBER);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(attribute.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertTrue(params.hasNumericValueDimension());
+  }
+
+  @Test
+  void getFromRequestAcceptsBooleanValueAttributeInProgram() {
+    TrackedEntityAttribute attribute = attributeInProgram('B', ValueType.BOOLEAN);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(attribute.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(attribute.getUid(), params.getValue().getUid());
+    assertTrue(params.hasBooleanValueDimension());
+  }
+
+  @Test
+  void getFromRequestRejectsValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(element.getUid()).build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsDefaultAggregationTypeOnValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.DEFAULT)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestRejectsExplicitAggregationTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.SUM);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.NONE)
+            .build();
+
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+
+    assertEquals(ErrorCode.E7265, ex.getErrorCode());
+  }
+
+  @Test
+  void getFromRequestAcceptsOverrideOnValueOfTypeNone() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(element.getUid())
+            .aggregationType(AggregationType.AVERAGE)
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(AggregationType.AVERAGE, params.getAggregationTypeFallback().getAggregationType());
+  }
+
+  @Test
+  void getFromRequestIgnoresValueOfTypeNoneOnQueryEndpoint() {
+    DataElement element = dataElementInProgram('N', ValueType.NUMBER, AggregationType.NONE);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).value(element.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(element.getUid(), params.getValue().getUid());
   }
 
   @Test
@@ -1400,6 +2046,35 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(ErrorCode.E7223, textException.getErrorCode());
     assertEquals(ErrorCode.E7223, dateException.getErrorCode());
+  }
+
+  /** Creates a data element and attaches it to a stage of the test program. */
+  private DataElement dataElementInProgram(
+      char uniqueCharacter, ValueType valueType, AggregationType aggregationType) {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement element = createDataElement(uniqueCharacter, valueType, aggregationType);
+    programStage
+        .getProgramStageDataElements()
+        .add(createProgramStageDataElement(programStage, element, 1));
+    program.getProgramStages().add(programStage);
+
+    lenient().when(dataElementService.getDataElement(element.getUid())).thenReturn(element);
+
+    return element;
+  }
+
+  /** Creates a tracked entity attribute and registers it as a program attribute. */
+  private TrackedEntityAttribute attributeInProgram(char uniqueCharacter, ValueType valueType) {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute(uniqueCharacter, valueType);
+    attribute.setAggregationType(AggregationType.AVERAGE);
+    program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, attribute)));
+
+    lenient().when(dataElementService.getDataElement(attribute.getUid())).thenReturn(null);
+    lenient()
+        .when(attributeService.getTrackedEntityAttribute(attribute.getUid()))
+        .thenReturn(attribute);
+
+    return attribute;
   }
 
   private EventDataQueryRequest.EventDataQueryRequestBuilder baseRequestBuilder(
