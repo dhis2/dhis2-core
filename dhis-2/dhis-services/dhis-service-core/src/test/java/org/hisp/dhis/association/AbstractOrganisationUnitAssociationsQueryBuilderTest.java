@@ -45,6 +45,9 @@ import org.junit.jupiter.api.Test;
  */
 class AbstractOrganisationUnitAssociationsQueryBuilderTest {
 
+  private final DataSetOrganisationUnitAssociationsQueryBuilder builder =
+      new DataSetOrganisationUnitAssociationsQueryBuilder();
+
   @BeforeEach
   void setUp() {
     CurrentUserUtil.injectUserInSecurityContext(
@@ -57,18 +60,47 @@ class AbstractOrganisationUnitAssociationsQueryBuilderTest {
   }
 
   @Test
-  void buildSqlQueryUsesPatharrayContainmentNotPathLike() {
-    DataSetOrganisationUnitAssociationsQueryBuilder builder =
-        new DataSetOrganisationUnitAssociationsQueryBuilder();
-    User nonSuperUser = new User();
-
+  void buildSqlQueryRestrictsJoinedOrgUnitsToUserHierarchy() {
     String sql =
         builder.buildSqlQuery(
-            Set.of("ds123456789"), Set.of("/AoCaBHBeXTs/qLiKWoddwFu/uid1234567"), nonSuperUser);
+            Set.of("ds123456789"),
+            Set.of("/AoCaBHBeXTs/qLiKWoddwFu/uid1234567", "/AoCaBHBeXTs/uid7654321"),
+            new User());
 
     assertTrue(
-        sql.contains("ou.patharray @> ARRAY['AoCaBHBeXTs','qLiKWoddwFu','uid1234567']::varchar[]"),
-        () -> "expected patharray containment condition in: " + sql);
-    assertFalse(sql.contains("path like"), () -> "should not use path like anymore: " + sql);
+        sql.contains(
+            " join organisationunit ou on relationship_table_alias.sourceid = ou.organisationunitid"
+                + " and ou.patharray && ARRAY["),
+        () -> "expected the hierarchy condition in the org unit join: " + sql);
+    assertTrue(
+        sql.contains("ARRAY['uid1234567','uid7654321']::varchar[]")
+            || sql.contains("ARRAY['uid7654321','uid1234567']::varchar[]"),
+        () -> "expected only the user org unit UIDs: " + sql);
+    assertTrue(
+        sql.contains(
+            "(ou.organisationunitid is not null or not exists (select 1 from datasetsource"),
+        () -> "expected objects without org units to be kept: " + sql);
+    assertFalse(sql.contains("path like"), () -> "should not use path like: " + sql);
+  }
+
+  @Test
+  void buildSqlQueryMatchesNoOrgUnitsForUserWithoutOrgUnits() {
+    String sql = builder.buildSqlQuery(Set.of("ds123456789"), Set.of(), new User());
+
+    assertTrue(
+        sql.contains("= ou.organisationunitid and false)"),
+        () -> "expected no org units to be joined: " + sql);
+  }
+
+  @Test
+  void buildSqlQueryForRawAssociationJoinsAllOrgUnits() {
+    String sql = builder.buildSqlQueryForRawAssociation(Set.of("ds123456789"));
+
+    assertTrue(
+        sql.contains(
+            " left join organisationunit ou on relationship_table_alias.sourceid"
+                + " = ou.organisationunitid where"),
+        () -> "expected an unrestricted org unit join: " + sql);
+    assertFalse(sql.contains("patharray"), () -> "should not filter by hierarchy: " + sql);
   }
 }

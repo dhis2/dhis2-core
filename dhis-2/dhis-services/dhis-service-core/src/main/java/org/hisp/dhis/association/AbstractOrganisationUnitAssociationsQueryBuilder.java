@@ -63,7 +63,7 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
   private static final String INNER_QUERY_GROUPING_BY =
       "group by " + T_ALIAS + ".uid, " + T_ALIAS + ".sharing";
 
-  private String getInnerQuerySql() {
+  private String getInnerQuerySql(String orgUnitJoin) {
     return "select "
         + T_ALIAS
         + ".uid, "
@@ -74,25 +74,53 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
         + getBaseTableName()
         + " "
         + T_ALIAS
-        + " left join "
-        + getRelationshipTableName()
-        + " "
-        + REL_TABLE_ALIAS
-        + " on "
-        + T_ALIAS
+        + orgUnitJoin
+        + " where";
+  }
+
+  private String getRelationshipJoinCondition() {
+    return T_ALIAS
         + "."
         + getJoinColumnName()
         + " = "
         + REL_TABLE_ALIAS
         + "."
-        + getJoinColumnName()
-        + " left join organisationunit ou "
-        + " on "
+        + getJoinColumnName();
+  }
+
+  private String getOrgUnitJoinCondition() {
+    return REL_TABLE_ALIAS + "." + getOrgUnitJoinColumnName() + " = ou.organisationunitid";
+  }
+
+  /** Joins all associated org units. */
+  private String getOrgUnitJoin() {
+    return " left join "
+        + getRelationshipTableName()
+        + " "
         + REL_TABLE_ALIAS
-        + "."
-        + getOrgUnitJoinColumnName()
-        + " = ou.organisationunitid "
-        + "where";
+        + " on "
+        + getRelationshipJoinCondition()
+        + " left join organisationunit ou on "
+        + getOrgUnitJoinCondition();
+  }
+
+  /**
+   * Joins only the associated org units within the user hierarchy. The hierarchy condition is part
+   * of the join, rather than a filter applied after an outer join, so that Postgres can start from
+   * the user's subtree via the GIN index on {@code patharray} instead of joining every associated
+   * org unit and filtering afterwards.
+   */
+  private String getUserHierarchyOrgUnitJoin(Set<String> userOrgUnitPaths) {
+    return " left join ("
+        + getRelationshipTableName()
+        + " "
+        + REL_TABLE_ALIAS
+        + " join organisationunit ou on "
+        + getOrgUnitJoinCondition()
+        + " and "
+        + getUserHierarchyCondition(userOrgUnitPaths)
+        + ") on "
+        + getRelationshipJoinCondition();
   }
 
   protected abstract String getRelationshipTableName();
@@ -129,16 +157,17 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
 
   private String innerQueryProvider(
       Set<String> uids, Set<String> userOrgUnitPaths, User currentUser) {
-    Stream<String> queryParts = Stream.of(getInnerQuerySql(), getUidsFilter(uids));
-
     if (nonSuperUser(currentUser)) {
-      queryParts =
-          Stream.concat(queryParts, Stream.of("and", getUserOrgUnitPathsFilter(userOrgUnitPaths)));
+      return String.join(
+          " ",
+          getInnerQuerySql(getUserHierarchyOrgUnitJoin(userOrgUnitPaths)),
+          getUidsFilter(uids),
+          "and",
+          getUserHierarchyOrNoOrgUnitsFilter(),
+          INNER_QUERY_GROUPING_BY);
     }
-
-    queryParts = Stream.concat(queryParts, Stream.of(INNER_QUERY_GROUPING_BY));
-
-    return queryParts.collect(joining(" "));
+    return String.join(
+        " ", getInnerQuerySql(getOrgUnitJoin()), getUidsFilter(uids), INNER_QUERY_GROUPING_BY);
   }
 
   private String getSharingConditions(String access) {
@@ -206,26 +235,32 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
         + ")";
   }
 
-  private String getUserOrgUnitPathsFilter(Set<String> userOrgUnitPaths) {
-    return Stream.concat(
-            Stream.of("ou.organisationunitid is null"),
-            userOrgUnitPaths.stream().map(this::patharrayContainsCondition))
-        .collect(joining(" or ", "(", ")"));
+  /**
+   * Keeps objects with at least one associated org unit within the user hierarchy, and objects
+   * without any associated org units (returned with a single null org unit).
+   */
+  private String getUserHierarchyOrNoOrgUnitsFilter() {
+    return "(ou.organisationunitid is not null or not exists (select 1 from "
+        + getRelationshipTableName()
+        + " "
+        + REL_TABLE_ALIAS
+        + " where "
+        + getRelationshipJoinCondition()
+        + "))";
   }
 
   /**
-   * Descendant-or-self test for a user org unit, expressed as array containment against the {@code
-   * patharray} column instead of a {@code path like '<path>%'} prefix match. {@code patharray} is
-   * GIN-indexed (see {@code organisationunit_patharray_gin}), whereas a per-row LIKE prefix can
-   * never use an index since the pattern isn't a plan-time constant — same fix already applied to
-   * the dataValueSets export descendant query.
+   * Descendant-or-self test for the user org units: the {@code patharray} of an org unit contains
+   * the UID of each of its ancestors, so it overlaps the user org unit UIDs exactly when it is
+   * within the user hierarchy. Only the UID of each user org unit is needed, not its full path.
    */
-  private String patharrayContainsCondition(String userOrgUnitPath) {
-    String patharrayLiteral =
-        Arrays.stream(userOrgUnitPath.split("/"))
-            .filter(uid -> !uid.isEmpty())
-            .map(SqlUtils::singleQuote)
-            .collect(joining(",", "ARRAY[", "]::varchar[]"));
-    return "ou.patharray @> " + patharrayLiteral;
+  private String getUserHierarchyCondition(Set<String> userOrgUnitPaths) {
+    if (CollectionUtils.isEmpty(userOrgUnitPaths)) {
+      return "false";
+    }
+    return userOrgUnitPaths.stream()
+        .map(path -> path.substring(path.lastIndexOf('/') + 1))
+        .map(SqlUtils::singleQuote)
+        .collect(joining(",", "ou.patharray && ARRAY[", "]::varchar[]"));
   }
 }
