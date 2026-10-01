@@ -35,6 +35,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimNames;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
@@ -43,6 +44,7 @@ import java.net.http.HttpClient;
 import java.text.ParseException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -55,6 +57,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -86,6 +89,8 @@ public class SignedJwtUserInfoLoader {
   private static final Duration READ_TIMEOUT = Duration.ofSeconds(15);
 
   private static final MediaType APPLICATION_JWT = new MediaType("application", "jwt");
+
+  private static final String INVALID_USER_INFO_RESPONSE = "invalid_user_info_response";
 
   private final JwkSourceCache jwkSourceCache;
   private final RestClient restClient;
@@ -120,7 +125,8 @@ public class SignedJwtUserInfoLoader {
    * @param userRequest the OIDC user request produced after the code-for-token exchange
    * @param registration the DHIS2 registration of the provider
    * @return the OIDC user holding the ID token and the verified UserInfo claims
-   * @throws OAuth2AuthenticationException if the UserInfo JWT cannot be fetched or verified
+   * @throws OAuth2AuthenticationException if the UserInfo JWT cannot be fetched or verified, or is
+   *     not about the subject of the ID token
    */
   public OidcUser loadUser(OidcUserRequest userRequest, DhisOidcClientRegistration registration) {
     JWSAlgorithm jwsAlgorithm = registration.getUserInfoJwsAlgorithm();
@@ -139,6 +145,7 @@ public class SignedJwtUserInfoLoader {
             jwsAlgorithm,
             clientRegistration.getRegistrationId(),
             providerDetails.getJwkSetUri());
+    validateClaims(claims, userRequest.getIdToken(), clientRegistration.getClientId());
     return new DefaultOidcUser(
         List.of(),
         userRequest.getIdToken(),
@@ -159,13 +166,12 @@ public class SignedJwtUserInfoLoader {
               .body(String.class);
     } catch (RestClientException ex) {
       throw new OAuth2AuthenticationException(
-          new OAuth2Error("invalid_user_info_response"),
+          new OAuth2Error(INVALID_USER_INFO_RESPONSE),
           "Failed to fetch UserInfo response: " + ex.getMessage(),
           ex);
     }
     if (body == null || body.isBlank()) {
-      throw new OAuth2AuthenticationException(
-          new OAuth2Error("invalid_user_info_response"), "Empty UserInfo JWT response");
+      throw invalidUserInfoResponse("Empty UserInfo JWT response");
     }
     return body;
   }
@@ -184,5 +190,32 @@ public class SignedJwtUserInfoLoader {
           "Failed to verify UserInfo JWT: " + ex.getMessage(),
           ex);
     }
+  }
+
+  /**
+   * Validates the UserInfo claims as required by OpenID Connect Core 1.0, section 5.3.2. {@code
+   * sub} must be present and equal the {@code sub} of the ID token, otherwise the response may
+   * describe another user (token substitution, section 16.11). A signed response must also name the
+   * OP in {@code iss} and this client in {@code aud}; eSignet leaves both out, so they are only
+   * checked when present, against the issuer of the ID token and the client id.
+   */
+  private static void validateClaims(JWTClaimsSet claims, OidcIdToken idToken, String clientId) {
+    String subject = claims.getSubject();
+    if (subject == null || !subject.equals(idToken.getSubject())) {
+      throw invalidUserInfoResponse(
+          "UserInfo JWT sub claim is missing or does not match the ID token");
+    }
+    if (claims.getClaim(JWTClaimNames.ISSUER) != null
+        && !Objects.equals(claims.getIssuer(), idToken.getClaimAsString(IdTokenClaimNames.ISS))) {
+      throw invalidUserInfoResponse("UserInfo JWT iss claim does not match the ID token issuer");
+    }
+    if (claims.getClaim(JWTClaimNames.AUDIENCE) != null
+        && !claims.getAudience().contains(clientId)) {
+      throw invalidUserInfoResponse("UserInfo JWT aud claim does not include the client id");
+    }
+  }
+
+  private static OAuth2AuthenticationException invalidUserInfoResponse(String message) {
+    return new OAuth2AuthenticationException(new OAuth2Error(INVALID_USER_INFO_RESPONSE), message);
   }
 }

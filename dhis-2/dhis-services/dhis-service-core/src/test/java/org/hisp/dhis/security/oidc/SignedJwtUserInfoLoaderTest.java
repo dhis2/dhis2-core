@@ -32,6 +32,7 @@ package org.hisp.dhis.security.oidc;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -52,9 +53,13 @@ import com.nimbusds.jwt.SignedJWT;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
@@ -150,6 +155,35 @@ class SignedJwtUserInfoLoaderTest {
     assertEquals("user@dhis2.org", oidcUser.getAttributes().get("email"));
     assertEquals(SUBJECT, oidcUser.getName());
     assertSame(userRequest.getIdToken(), oidcUser.getIdToken());
+  }
+
+  @Test
+  void loadUserAcceptsIssuerAndAudienceOfThisLogin() throws JOSEException {
+    respondWith(
+        sign(
+            userInfo().issuer(ISSUER).audience(List.of(CLIENT_ID, "other-client")).build(),
+            idpSigningKey));
+
+    OidcUser oidcUser = loader.loadUser(userRequest(), registration);
+
+    assertEquals(SUBJECT, oidcUser.getName());
+  }
+
+  static Stream<Arguments> userInfoNotAboutThisLogin() {
+    return Stream.of(
+        arguments("no sub", new JWTClaimsSet.Builder().claim("email", "user@dhis2.org").build()),
+        arguments("sub of another user", userInfo().subject("psut-other").build()),
+        arguments("iss of another IdP", userInfo().issuer("https://other-idp.test").build()),
+        arguments("aud of another client", userInfo().audience("other-client").build()));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("userInfoNotAboutThisLogin")
+  void loadUserRejectsUserInfoNotAboutThisLogin(String reason, JWTClaimsSet claims)
+      throws JOSEException {
+    respondWith(sign(claims, idpSigningKey));
+
+    assertLoginFails("invalid_user_info_response");
   }
 
   @Test
