@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -129,7 +130,9 @@ class JdbcCompletenessTableManagerDorisTest {
     queryResp.add(Map.of("datasetid", 1));
 
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
-    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.COMPLETENESS))
+        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.COMPLETENESS))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
 
@@ -168,7 +171,9 @@ class JdbcCompletenessTableManagerDorisTest {
     queryResp.add(Map.of("datasetid", 1));
 
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
-    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.COMPLETENESS))
+        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.COMPLETENESS))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
 

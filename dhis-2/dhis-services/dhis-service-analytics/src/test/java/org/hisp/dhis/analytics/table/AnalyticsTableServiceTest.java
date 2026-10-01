@@ -296,7 +296,7 @@ class AnalyticsTableServiceTest {
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
     when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(true);
 
-    tableService.create(params, JobProgress.noop());
+    assertTrue(tableService.create(params, JobProgress.noop()));
 
     verify(tableManager).removeUpdatedData(List.of(table));
   }
@@ -324,7 +324,7 @@ class AnalyticsTableServiceTest {
 
     // e.g. a main table predating unique-key analytics tables on Doris: the delete step must
     // never even be attempted against it, not just have its failure tolerated.
-    tableService.create(params, progress);
+    assertFalse(tableService.create(params, progress));
 
     verify(tableManager, never()).removeUpdatedData(anyList());
     verify(tableManager, never()).swapTable(eq(params), any(AnalyticsTable.class));
@@ -358,9 +358,53 @@ class AnalyticsTableServiceTest {
     // cancel the job (other table types must still be able to proceed). The table update must
     // instead explicitly stop itself before swapping staged data into a main table it was unable
     // to purge stale/deleted rows from.
-    tableService.create(params, JobProgress.noop());
+    assertFalse(tableService.create(params, JobProgress.noop()));
 
     verify(tableManager, never()).swapTable(eq(params), any(AnalyticsTable.class));
+  }
+
+  @Test
+  void testCreateReturnsTrueWhenThereIsNoSourceData() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().build().withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(false);
+
+    // Nothing to publish, so the update is complete and must be recorded as such.
+    assertTrue(tableService.create(params, JobProgress.noop()));
+
+    verify(tableManager, never()).getAnalyticsTables(any());
+  }
+
+  @Test
+  void testCreateReturnsTrueWhenThereIsNothingToUpdate() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().build().withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of());
+
+    assertTrue(tableService.create(params, JobProgress.noop()));
+  }
+
+  @Test
+  void testCreateReturnsFalseWhenCancelled() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().build().withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    JobProgress progress = spy(JobProgress.noop());
+    when(progress.isCancelled()).thenReturn(true);
+
+    assertFalse(tableService.create(params, progress));
+
+    verify(tableManager, never()).getAnalyticsTables(any());
   }
 
   private AnalyticsTable latestPartitionTableFixture() {

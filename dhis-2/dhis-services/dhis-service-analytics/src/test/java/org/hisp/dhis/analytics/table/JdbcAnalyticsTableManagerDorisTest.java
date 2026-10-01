@@ -35,6 +35,7 @@ import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -172,7 +173,9 @@ class JdbcAnalyticsTableManagerDorisTest {
     queryResp.add(Map.of("dataelementid", 1));
 
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
-    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE))
+        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
         .thenReturn(lastLatestPartitionUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
     when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
@@ -192,6 +195,42 @@ class JdbcAnalyticsTableManagerDorisTest {
   }
 
   @Test
+  @DisplayName(
+      "Doris latest-partition window starts at this table type's own last update, not the shared"
+          + " one, which also advances when this type was skipped or its update was aborted")
+  void testGetLatestAnalyticsTableUsesPerTypeLastUpdateNotShared() {
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastDataValueUpdate = new DateTime(2019, 3, 1, 5, 0).toDate();
+    Date lastSharedUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("dataelementid", 1));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    lenient()
+        .when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastSharedUpdate);
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE))
+        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
+        .thenReturn(lastDataValueUpdate);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.UNLOGGED);
+    when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+    assertEquals(lastDataValueUpdate, tables.get(0).getLatestTablePartition().getStartDate());
+  }
+
+  @Test
   void testRemoveUpdatedDataMaterializesKeysNatively() {
     Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
     Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
@@ -204,7 +243,9 @@ class JdbcAnalyticsTableManagerDorisTest {
     queryResp.add(Map.of("dataelementid", 1));
 
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
-    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.DATA_VALUE))
+        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.DATA_VALUE))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(org.mockito.Mockito.anyString())).thenReturn(queryResp);
     when(configurationService.getConfiguration()).thenReturn(configuration);

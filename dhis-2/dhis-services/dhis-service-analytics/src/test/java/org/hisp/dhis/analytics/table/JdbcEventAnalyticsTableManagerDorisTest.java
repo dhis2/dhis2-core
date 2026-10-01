@@ -349,7 +349,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     queryResp.add(Map.of("eventid", 1));
 
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
-    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT))
+        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
@@ -424,7 +426,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     queryResp.add(Map.of("eventid", 1));
 
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
-    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate(AnalyticsTableType.EVENT))
+        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(AnalyticsTableType.EVENT))
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));

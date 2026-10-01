@@ -584,8 +584,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       List<String> primaryKey) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     Date lastFullTableUpdate = settings.getLastSuccessfulAnalyticsTablesUpdate();
-    Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
-    Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
+    Date lastAnyTableUpdate = getLastAnyTableUpdate(settings);
 
     Assert.isTrue(
         lastFullTableUpdate.getTime() > 0L,
@@ -622,6 +621,28 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     }
 
     return table;
+  }
+
+  /**
+   * Returns the time of the last successful analytics table update of any kind, full or continuous.
+   * Engines with a unique key on analytics tables (Doris) start the continuous update window at
+   * this time, so it is read from the settings of this table type: the shared settings are also
+   * written when this table type was skipped or its update was aborted, and a window starting there
+   * would never pick up the changes that update did not publish.
+   *
+   * @param settings the current {@link SystemSettings}.
+   */
+  protected Date getLastAnyTableUpdate(SystemSettings settings) {
+    if (sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      AnalyticsTableType tableType = getAnalyticsTableType();
+      return DateUtils.getLatest(
+          settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(tableType),
+          settings.getLastSuccessfulAnalyticsTablesUpdate(tableType));
+    }
+
+    return DateUtils.getLatest(
+        settings.getLastSuccessfulLatestAnalyticsPartitionUpdate(),
+        settings.getLastSuccessfulAnalyticsTablesUpdate());
   }
 
   /**

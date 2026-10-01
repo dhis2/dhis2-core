@@ -83,7 +83,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   @Override
-  public void create(AnalyticsTableUpdateParams params, JobProgress progress) {
+  public boolean create(AnalyticsTableUpdateParams params, JobProgress progress) {
     final int parallelJobs = getParallelJobs();
     int tableUpdates = 0;
 
@@ -102,8 +102,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     boolean validState = tableManager.validState();
     progress.completedStage("Validated analytics tables with outcome: {}", validState);
 
-    if (!validState || progress.isCancelled()) {
-      return;
+    if (progress.isCancelled()) {
+      return false;
+    }
+
+    if (!validState) {
+      return true;
     }
 
     List<AnalyticsTable> tables = tableManager.getAnalyticsTables(params);
@@ -112,7 +116,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Table update aborted, nothing to update: '{}'", tableType.getTableName());
       progress.startingStage("Table update of type: '{}'", tableType);
       progress.completedStage("Table updated aborted, no table or partitions to be updated");
-      return;
+      return true;
     }
 
     clock.logTime(
@@ -186,7 +190,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
                     + "table rebuild before running a continuous (lastYears=0) update",
                 tableType));
         clock.logTime("Continuous analytics update aborted, not ready: '{}'", tableType);
-        return;
+        return false;
       }
 
       progress.completedStage("Validated continuous update readiness: '{}'", tableType);
@@ -207,7 +211,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
                 + "deleted data, see preceding error. A full analytics table rebuild may be "
                 + "required before continuous updates can run for this table.",
             tableType);
-        return;
+        return false;
       }
     }
 
@@ -220,6 +224,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     clock.logTime("Table update done: '{}'", tableType.getTableName());
+    return true;
   }
 
   @Override
