@@ -58,7 +58,24 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests that data entry only accepts an attribute option combo (AOC) at org units within the
- * hierarchy of each of its org unit restricted category options. Org unit tree used by all tests:
+ * hierarchy of each of its org unit restricted category options.
+ *
+ * <h2>Rule under test</h2>
+ *
+ * An org unit is valid for an AOC if, for <em>every</em> org unit restricted category option of the
+ * AOC, the org unit is (or is a descendant of) <em>any</em> of that option's org units. Category
+ * options without org units are ignored; they neither restrict nor grant anything. This matches
+ * {@link CategoryOptionCombo#getOrganisationUnits()}, which intersects the org unit sets of the
+ * restricted options.
+ *
+ * <ul>
+ *   <li>OR within one option: an option assigned to D and O is valid under either.
+ *   <li>AND across options: an AOC of two restricted options is only valid where both are.
+ * </ul>
+ *
+ * <h2>Fixture</h2>
+ *
+ * Org unit tree. Data is always entered at the leaf F (under D) or at O:
  *
  * <pre>
  * R
@@ -67,13 +84,32 @@ import org.springframework.transaction.annotation.Transactional;
  * └── O
  * </pre>
  *
- * Category option A is restricted to D; category options B and C are not restricted. Category
- * option E is restricted to both D and O; category option G is restricted to O.
+ * Category options and their org unit restrictions:
  *
- * <p>The expected semantics (matching {@link CategoryOptionCombo#getOrganisationUnits()}) are: an
- * org unit is valid for an AOC if, for <em>every</em> org unit restricted option of the AOC, it is
- * within the hierarchy of <em>any</em> of that option's org units. Unrestricted options are
- * ignored.
+ * <pre>
+ * option | restricted to | think of it as
+ * -------+---------------+-----------------------------------------------
+ * A      | D             | mechanism only implemented in one country
+ * B      | (none)        | mechanism usable everywhere
+ * C      | (none)        | option of a second, unrestricted category
+ * E      | D and O       | mechanism implemented in two countries
+ * G      | O             | mechanism only implemented in the other country
+ * </pre>
+ *
+ * Categories, attribute category combos and the AOCs used by the tests. Each combo gets its own
+ * data element and data set (assigned to both F and O) so that only the AOC-OU check can reject a
+ * value:
+ *
+ * <pre>
+ * category combo         | AOC field          | options | valid at F | valid at O
+ * -----------------------+--------------------+---------+------------+-----------
+ * S = [X(A,B)]           | aocRestricted      | A       | yes        | no
+ *                        | aocUnrestricted    | B       | yes        | yes
+ * M = [X(A,B), Y(C)]     | aocMixed           | A, C    | yes        | no
+ * U = [Z(E,G)]           | aocMultiOu         | E       | yes        | yes
+ * V = [X(A,B), Z(E,G)]   | aocDisjoint        | A, G    | no         | no
+ *                        | aocOverlap         | A, E    | yes        | no
+ * </pre>
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
@@ -96,26 +132,42 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
   private DataElement deMultiOu;
   private DataElement deCross;
 
-  /** AOC of only the restricted option A. */
+  /** AOC of only option A (restricted to D). Valid at F, not at O. */
   private CategoryOptionCombo aocRestricted;
 
-  /** AOC of only the unrestricted option B, of the same category combo as {@link #aocRestricted} */
+  /**
+   * AOC of only the unrestricted option B, of the same category combo as {@link #aocRestricted}.
+   * Valid everywhere.
+   */
   private CategoryOptionCombo aocUnrestricted;
 
-  /** AOC of the restricted option A and the unrestricted option C. */
+  /**
+   * AOC of the restricted option A and the unrestricted option C. C adds no restriction, so this
+   * behaves like A alone: valid at F, not at O.
+   */
   private CategoryOptionCombo aocMixed;
 
-  /** AOC of only option E, which is restricted to two org units (D and O). */
+  /**
+   * AOC of only option E, which is restricted to two org units (D and O). Valid at F (via D) and at
+   * O.
+   */
   private CategoryOptionCombo aocMultiOu;
 
-  /** AOC of options A (restricted to D) and G (restricted to O), which have no OU in common. */
+  /**
+   * AOC of options A (restricted to D) and G (restricted to O). The two options have no org unit in
+   * common, so the AOC is valid nowhere; this is a metadata misconfiguration.
+   */
   private CategoryOptionCombo aocDisjoint;
 
-  /** AOC of options A (restricted to D) and E (restricted to D and O), overlapping in D. */
+  /**
+   * AOC of options A (restricted to D) and E (restricted to D and O). The options overlap only in
+   * D, so the AOC is valid at F but not at O, even though E alone would allow O.
+   */
   private CategoryOptionCombo aocOverlap;
 
   @BeforeEach
   void setUp() {
+    // org unit tree: R > D > F and R > O
     OrganisationUnit ouR = createOrganisationUnit('R');
     OrganisationUnit ouD = createOrganisationUnit('D', ouR);
     ouF = createOrganisationUnit('F', ouD);
@@ -125,6 +177,7 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     manager.save(ouF);
     manager.save(ouO);
 
+    // category options; see the class Javadoc for what each restriction represents
     CategoryOption coA = createCategoryOption('A');
     coA.addOrganisationUnit(ouD);
     CategoryOption coB = createCategoryOption('B');
@@ -140,6 +193,7 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     manager.save(coE);
     manager.save(coG);
 
+    // attribute categories: X(A,B), Y(C), Z(E,G)
     Category categoryAB = createCategory('X', coA, coB);
     categoryAB.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     Category categoryC = createCategory('Y', coC);
@@ -150,6 +204,11 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     categoryEG.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     manager.save(categoryEG);
 
+    // attribute category combos:
+    // S = one restricted-capable category
+    // M = a restricted-capable category plus an unrestricted one
+    // U = one category whose options have multiple org units
+    // V = two categories that both have restricted options
     CategoryCombo comboSingle = createCategoryCombo('S', categoryAB);
     comboSingle.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     CategoryCombo comboMixed = createCategoryCombo('M', categoryAB, categoryC);
@@ -167,6 +226,7 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     categoryOptionComboGenerateService.addAndPruneOptionCombos(comboMultiOu);
     categoryOptionComboGenerateService.addAndPruneOptionCombos(comboCross);
 
+    // pick the AOCs used by the tests out of the generated combos
     aocRestricted = getOptionCombo(comboSingle, coA);
     aocUnrestricted = getOptionCombo(comboSingle, coB);
     aocMixed = getOptionCombo(comboMixed, coA, coC);
@@ -174,6 +234,8 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     aocDisjoint = getOptionCombo(comboCross, coA, coG);
     aocOverlap = getOptionCombo(comboCross, coA, coE);
 
+    // one data element and data set per combo; every data set is assigned to both F and O so the
+    // data set assignment never rejects a value, leaving the AOC-OU check as the only one at play
     deSingle = createDataElement('S');
     deMixed = createDataElement('M');
     manager.save(deSingle);
@@ -209,16 +271,23 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
     dataSetService.addDataSet(dsCross);
   }
 
+  /** One restricted option (A, restricted to D): data at F is accepted because F is under D. */
   @Test
   void acceptsRestrictedAocWithinHierarchy() throws Exception {
     assertEquals(1, upsert(value(deSingle, ouF, aocRestricted)).succeeded());
   }
 
+  /** One restricted option (A, restricted to D): data at O is rejected because O is not under D. */
   @Test
   void rejectsRestrictedAocOutsideHierarchy() {
     assertAocNotUsableWithOrgUnit(value(deSingle, ouO, aocRestricted));
   }
 
+  /**
+   * A restricted AOC (A at F) and an unrestricted AOC (B at O) in the same import. Both are
+   * accepted: B has no org units, so it can be used anywhere, and skipping unrestricted AOCs must
+   * not cause the restricted one to be skipped as well (or vice versa).
+   */
   @Test
   void acceptsUnrestrictedAocAlongsideRestrictedAoc() throws Exception {
     assertEquals(
@@ -227,16 +296,30 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
             .succeeded());
   }
 
+  /**
+   * Two categories, one restricted option (A, restricted to D) and one unrestricted option (C).
+   * Data at F is accepted: C is ignored, and F satisfies A.
+   */
   @Test
   void acceptsAocMixingRestrictedAndUnrestrictedOptionsWithinHierarchy() throws Exception {
     assertEquals(1, upsert(value(deMixed, ouF, aocMixed)).succeeded());
   }
 
+  /**
+   * Two categories, one restricted option (A, restricted to D) and one unrestricted option (C).
+   * Data at O is rejected: the unrestricted C must not be read as "no restriction" for the whole
+   * AOC, so A's restriction still applies.
+   */
   @Test
   void rejectsAocMixingRestrictedAndUnrestrictedOptionsOutsideHierarchy() {
     assertAocNotUsableWithOrgUnit(value(deMixed, ouO, aocMixed));
   }
 
+  /**
+   * One option (E) restricted to two org units, D and O, such as a mechanism implemented in two
+   * countries. Data is accepted at F (under D) and at O: the org unit only needs to be under
+   * <em>one</em> of the option's org units, not all of them.
+   */
   @Test
   void acceptsOptionRestrictedToMultipleOrgUnitsAtAnyOfThem() throws Exception {
     assertEquals(
@@ -244,21 +327,39 @@ class DataEntryAocOrgUnitValidationTest extends PostgresIntegrationTestBase {
         upsert(value(deMultiOu, ouF, aocMultiOu), value(deMultiOu, ouO, aocMultiOu)).succeeded());
   }
 
+  /**
+   * Two restricted options with no org unit in common: A (restricted to D) and G (restricted to O).
+   * Data at F is rejected even though F satisfies A, because it does not satisfy G. Every
+   * restricted option of the AOC must be satisfied, not just one of them.
+   */
   @Test
   void rejectsAocWithDisjointRestrictedOptionsInsideFirstOptionHierarchy() {
     assertAocNotUsableWithOrgUnit(value(deCross, ouF, aocDisjoint));
   }
 
+  /**
+   * Same disjoint AOC as above (A restricted to D, G restricted to O), now with data at O. Rejected
+   * because O satisfies G but not A. Together with the previous test this shows the AOC is valid
+   * nowhere.
+   */
   @Test
   void rejectsAocWithDisjointRestrictedOptionsInsideSecondOptionHierarchy() {
     assertAocNotUsableWithOrgUnit(value(deCross, ouO, aocDisjoint));
   }
 
+  /**
+   * Two restricted options that overlap: A (restricted to D) and E (restricted to D and O). Data at
+   * F is accepted because F is under D, which satisfies both options.
+   */
   @Test
   void acceptsAocWithOverlappingRestrictedOptionsWithinIntersection() throws Exception {
     assertEquals(1, upsert(value(deCross, ouF, aocOverlap)).succeeded());
   }
 
+  /**
+   * Two restricted options that overlap: A (restricted to D) and E (restricted to D and O). Data at
+   * O is rejected: O satisfies E, but not A. The AOC is only valid where the options overlap.
+   */
   @Test
   void rejectsAocWithOverlappingRestrictedOptionsOutsideIntersection() {
     assertAocNotUsableWithOrgUnit(value(deCross, ouO, aocOverlap));
