@@ -55,8 +55,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.condition.AuthorizationServerEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.security.oidc.KeyStoreUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -83,7 +81,9 @@ import org.springframework.security.oauth2.server.authorization.authentication.J
 import org.springframework.security.oauth2.server.authorization.authentication.JwtClientAssertionDecoderFactory;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcClientConfigurationAuthenticationProvider;
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcClientRegistrationAuthenticationContext;
 import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcClientRegistrationAuthenticationProvider;
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcClientRegistrationAuthenticationValidator;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
@@ -144,13 +144,15 @@ public class AuthorizationServerConfig {
    *
    * <p>This configuration includes client authentication using JWT client assertions with inline
    * JWKS, and customizes the client registration endpoint to use specific converters for reading
-   * and writing client details.
+   * and writing client details and to enforce the DCR registration policy ({@link
+   * DcrRegistrationPolicyValidator}).
    *
    * <p>All requests to the authorization server endpoints require authentication, and HTML requests
    * are redirected to a login page.
    *
    * @param http the {@link HttpSecurity} to configure
    * @param customClaimValidator the custom DHIS2 claim validator to include in JWT validation
+   * @param userService checks that the subject of an Initial Access Token is an active user
    * @return a {@link SecurityFilterChain} configured for the authorization server
    * @throws Exception if an error occurs while configuring the security filter chain
    */
@@ -159,7 +161,8 @@ public class AuthorizationServerConfig {
   public SecurityFilterChain authorizationServerSecurityFilterChain(
       HttpSecurity http,
       CustomClaimValidator<Jwt> customClaimValidator,
-      DhisConfigurationProvider dhisConfig) {
+      DhisConfigurationProvider dhisConfig,
+      UserService userService) {
     OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
         new OAuth2AuthorizationServerConfigurer();
 
@@ -178,7 +181,7 @@ public class AuthorizationServerConfig {
                               oidc.clientRegistrationEndpoint(
                                   cr ->
                                       cr.authenticationProviders(
-                                          customizeDcrProviders(dhisConfig)))))
+                                          customizeDcrProviders(dhisConfig, userService)))))
           .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
           .exceptionHandling(
               exceptions ->
@@ -226,24 +229,30 @@ public class AuthorizationServerConfig {
 
   /**
    * Customizes the Dynamic Client Registration (DCR) authentication providers to use our custom
-   * client converters.
+   * client converters, and to run the DCR registration policy after Spring AS's default
+   * registration validation.
    *
    * @param dhisConfig the system configuration, used for the DCR refresh token time-to-live
+   * @param userService checks that the subject of an Initial Access Token is an active user
    * @return a consumer that customizes the DCR authentication providers.
    */
   private Consumer<List<AuthenticationProvider>> customizeDcrProviders(
-      DhisConfigurationProvider dhisConfig) {
+      DhisConfigurationProvider dhisConfig, UserService userService) {
     Duration refreshTokenTtl =
         Duration.ofSeconds(
             dhisConfig.getIntProperty(ConfigurationKey.OAUTH2_SERVER_DCR_REFRESH_TOKEN_TTL));
     RegisteredClientConverter regConverter = new RegisteredClientConverter(refreshTokenTtl);
     ClientRegistrationConverter readConverter = new ClientRegistrationConverter();
+    Consumer<OidcClientRegistrationAuthenticationContext> registrationValidator =
+        new OidcClientRegistrationAuthenticationValidator()
+            .andThen(new DcrRegistrationPolicyValidator(userService));
     return providers ->
         providers.forEach(
             p -> {
               if (p instanceof OidcClientRegistrationAuthenticationProvider cr) {
                 cr.setRegisteredClientConverter(regConverter);
                 cr.setClientRegistrationConverter(readConverter);
+                cr.setAuthenticationValidator(registrationValidator);
               }
               if (p instanceof OidcClientConfigurationAuthenticationProvider cp) {
                 cp.setClientRegistrationConverter(readConverter);
@@ -257,14 +266,11 @@ public class AuthorizationServerConfig {
    * <p>If the "email" scope is authorized, the user's email is added as a claim. If the "username"
    * scope is authorized, the username is added as a claim.
    *
-   * <p>For client credentials grant type, the username of the user who created the client is added.
-   *
    * @param userService the service to retrieve user information
    * @return an {@link OAuth2TokenCustomizer} that adds custom claims to the JWT token
    */
   @Bean
-  public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(
-      UserService userService, Dhis2OAuth2ClientService oAuth2ClientService) {
+  public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService) {
     return context -> {
       Builder claims = context.getClaims();
       OAuth2TokenType tokenType = context.getTokenType();
@@ -287,25 +293,15 @@ public class AuthorizationServerConfig {
           }
         }
 
-        if (authorizedScopes.contains(USERNAME_CLAIM)) {
-          // CLIENT_CREDENTIALS is used in DCR with JWT client assertions.
-          // In this flow there is no end-user, so we include the username of the user
-          // who created the client.
-          if (authorizationGrantType.equals(AuthorizationGrantType.CLIENT_CREDENTIALS)) {
-            String clientId = context.getPrincipal().getName();
-            Dhis2OAuth2Client registeredClient =
-                oAuth2ClientService.getAsDhis2OAuth2ClientByClientId(clientId);
-            User createdBy = registeredClient.getCreatedBy();
-            claims.claim(USERNAME_CLAIM, createdBy.getUsername());
+        if (authorizedScopes.contains(USERNAME_CLAIM)
+            && !AuthorizationGrantType.CLIENT_CREDENTIALS.equals(authorizationGrantType)) {
+          String username = context.getPrincipal().getName();
+          if (!username.isEmpty()) {
+            claims.claim(USERNAME_CLAIM, username);
           } else {
-            String username = context.getPrincipal().getName();
-            if (!username.isEmpty()) {
-              claims.claim(USERNAME_CLAIM, username);
-            } else {
-              log.error("Principal has no name, cannot include 'username' claim");
-              throw new IllegalStateException(
-                  "Principal has no username, cannot include 'username' claim");
-            }
+            log.error("Principal has no name, cannot include 'username' claim");
+            throw new IllegalStateException(
+                "Principal has no username, cannot include 'username' claim");
           }
         }
       }

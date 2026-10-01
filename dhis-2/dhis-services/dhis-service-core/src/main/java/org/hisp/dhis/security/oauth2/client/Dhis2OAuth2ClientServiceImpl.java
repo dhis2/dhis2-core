@@ -58,7 +58,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.security.oauth2.OAuth2GrantTypes;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
@@ -133,7 +132,10 @@ public class Dhis2OAuth2ClientServiceImpl
    *
    * <p>If the current security context's principal is a {@link Jwt} (the DCR Initial Access Token),
    * the token's {@code sub} claim is resolved to a DHIS2 user and passed as {@code createdBy} so
-   * the new client is owned by the enrolling user.
+   * the new client is owned by the enrolling user. That user must be active, and the client must
+   * pass the admin grant-type and scope rules, so a DCR client never holds {@code
+   * client_credentials} or a reserved scope. The full DCR registration policy is enforced before
+   * this point by {@code DcrRegistrationPolicyValidator}.
    */
   @Transactional
   @Override
@@ -143,11 +145,26 @@ public class Dhis2OAuth2ClientServiceImpl
 
     // Check if we are doing a DCR request, then we are authenticated with the IAT token.
     if (CurrentUserUtil.getAuthentication().getPrincipal() instanceof Jwt jwt) {
-      String username = jwt.getClaimAsString("sub");
-      User user = userService.getUserByUsername(username);
-      UserDetails userDetails = UserDetails.fromUserDontLoadOrgUnits(user);
+      String username = jwt.getSubject();
+      UserDetails user =
+          username == null ? null : userService.createUserDetailsByUsername(username);
+      if (user == null
+          || !user.isEnabled()
+          || !user.isAccountNonLocked()
+          || !user.isAccountNonExpired()
+          || !user.isCredentialsNonExpired()) {
+        throw new IllegalStateException("Initial access token subject is not an active user");
+      }
+      List<ErrorReport> errors = new ArrayList<>();
+      validateGrantTypes(client, errors::add);
+      validateScopes(client, errors::add);
+      if (!errors.isEmpty()) {
+        throw new IllegalArgumentException(
+            "Invalid dynamically registered client: "
+                + errors.stream().map(ErrorReport::getMessage).collect(Collectors.joining(" ")));
+      }
       // Save with created by as 'sub'/username from IAT token
-      this.clientStore.save(client, userDetails, true);
+      this.clientStore.save(client, user, true);
     } else {
       this.clientStore.save(client);
     }
