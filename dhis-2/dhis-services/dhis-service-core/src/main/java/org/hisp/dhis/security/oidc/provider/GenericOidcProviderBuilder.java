@@ -204,9 +204,15 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
     return null;
   }
 
-  private static boolean isPrivateKeyJwt(Map<String, String> config) {
-    String method = config.get(CLIENT_AUTHENTICATION_METHOD);
-    return ClientAuthenticationMethod.PRIVATE_KEY_JWT.getValue().equalsIgnoreCase(method);
+  /**
+   * @param config per-provider key/value map
+   * @return whether the provider authenticates to the token endpoint with a {@code private_key_jwt}
+   *     client assertion instead of a client secret
+   */
+  public static boolean isPrivateKeyJwt(Map<String, String> config) {
+    return ClientAuthenticationMethod.PRIVATE_KEY_JWT
+        .getValue()
+        .equals(config.get(CLIENT_AUTHENTICATION_METHOD));
   }
 
   private static ClientRegistration buildClientRegistration(

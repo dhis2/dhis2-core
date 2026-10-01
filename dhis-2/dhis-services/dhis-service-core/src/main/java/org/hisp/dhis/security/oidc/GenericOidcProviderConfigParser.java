@@ -78,7 +78,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
 /**
  * Parses {@code dhis.conf} for generic OIDC provider configurations under the {@code
@@ -150,6 +149,14 @@ public final class GenericOidcProviderConfigParser {
   }
 
   private static final Set<String> VALID_KEY_NAMES = KEY_REQUIRED_MAP.keySet();
+
+  /** Keys a provider must set to sign {@code private_key_jwt} client assertions. */
+  private static final List<String> PRIVATE_KEY_JWT_KEYS =
+      List.of(
+          JWT_PRIVATE_KEY_KEYSTORE_PATH,
+          JWT_PRIVATE_KEY_KEYSTORE_PASSWORD,
+          JWT_PRIVATE_KEY_ALIAS,
+          JWT_PRIVATE_KEY_PASSWORD);
 
   public static final Predicate<String> IS_EXTERNAL_CLIENT =
       s -> s.contains(EXTERNAL_CLIENT_PREFIX);
@@ -412,7 +419,10 @@ public final class GenericOidcProviderConfigParser {
     Objects.requireNonNull(providerConfig);
 
     String providerId = providerConfig.get(PROVIDER_ID);
-    boolean privateKeyJwt = isPrivateKeyJwt(providerConfig);
+    boolean privateKeyJwt = GenericOidcProviderBuilder.isPrivateKeyJwt(providerConfig);
+    if (privateKeyJwt && !validatePrivateKeyJwtKeys(providerId, providerConfig)) {
+      return false;
+    }
 
     for (Map.Entry<String, Boolean> entry : KEY_REQUIRED_MAP.entrySet()) {
       String key = entry.getKey();
@@ -420,7 +430,7 @@ public final class GenericOidcProviderConfigParser {
       String value = providerConfig.get(key);
 
       if (CLIENT_SECRET.equals(key) && privateKeyJwt) {
-        // client_secret is not used when authenticating with private_key_jwt
+        // private_key_jwt authenticates with the keystore key, not with a client_secret
         continue;
       }
 
@@ -448,15 +458,20 @@ public final class GenericOidcProviderConfigParser {
     return validateUserInfoResponseType(providerId, providerConfig);
   }
 
-  private static boolean isPrivateKeyJwt(Map<String, String> providerConfig) {
-    String method = providerConfig.get(CLIENT_AUTHENTICATION_METHOD);
-    if (!ClientAuthenticationMethod.PRIVATE_KEY_JWT.getValue().equalsIgnoreCase(method)) {
-      return false;
+  private static boolean validatePrivateKeyJwtKeys(
+      String providerId, Map<String, String> providerConfig) {
+    for (String key : PRIVATE_KEY_JWT_KEYS) {
+      if (Strings.isNullOrEmpty(providerConfig.get(key))) {
+        log.error(
+            "OpenId Connect (OIDC) configuration for provider: '{}' uses client_authentication_method "
+                + "'private_key_jwt' but is missing the required property: '{}'. "
+                + "Failed to configure the provider successfully!",
+            providerId,
+            key);
+        return false;
+      }
     }
-    return !Strings.isNullOrEmpty(providerConfig.get(JWT_PRIVATE_KEY_KEYSTORE_PATH))
-        && !Strings.isNullOrEmpty(providerConfig.get(JWT_PRIVATE_KEY_KEYSTORE_PASSWORD))
-        && !Strings.isNullOrEmpty(providerConfig.get(JWT_PRIVATE_KEY_ALIAS))
-        && !Strings.isNullOrEmpty(providerConfig.get(JWT_PRIVATE_KEY_PASSWORD));
+    return true;
   }
 
   private static boolean validateUserInfoResponseType(

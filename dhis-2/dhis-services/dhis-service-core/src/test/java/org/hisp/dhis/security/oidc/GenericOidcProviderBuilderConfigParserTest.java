@@ -32,10 +32,13 @@ package org.hisp.dhis.security.oidc;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -196,7 +199,7 @@ class GenericOidcProviderBuilderConfigParserTest {
     assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(0));
   }
 
-  // --- conditional client_secret relaxation ---
+  // --- client_secret / private_key_jwt ---
 
   @Test
   void parseRejectsMissingClientSecretWithoutPrivateKeyJwt() {
@@ -206,22 +209,22 @@ class GenericOidcProviderBuilderConfigParserTest {
   }
 
   @Test
-  void parseAcceptsMissingClientSecretWithPrivateKeyJwt() {
-    Properties p = baseValidProvider("idporten");
+  void parseDoesNotRequireClientSecretWithPrivateKeyJwt() {
+    Properties p = privateKeyJwtProvider("idporten");
     p.remove("oidc.provider.idporten.client_secret");
-    p.put("oidc.provider.idporten.client_authentication_method", "private_key_jwt");
-    p.put("oidc.provider.idporten.keystore_path", "/tmp/does-not-need-to-exist.p12");
-    p.put("oidc.provider.idporten.keystore_password", "x");
-    p.put("oidc.provider.idporten.key_alias", "x");
-    p.put("oidc.provider.idporten.key_password", "x");
-    p.put("oidc.provider.idporten.jwk_set_url", "https://oidc-ver2.difi.no/jwks");
-    // Builder may still fail to load the keystore from disk; we only assert the
-    // *parser* accepts the config. Wrap to ignore loader-time IO errors.
-    try {
-      assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(1));
-    } catch (IllegalStateException expected) {
-      // builder can throw when reading non-existent keystore
-    }
+
+    // validation passes, so the builder runs and fails on the keystore file this test lacks
+    IllegalStateException ex =
+        assertThrows(IllegalStateException.class, () -> GenericOidcProviderConfigParser.parse(p));
+    assertEquals("Could not load key from keystore", ex.getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"keystore_path", "keystore_password", "key_alias", "key_password"})
+  void parseRejectsPrivateKeyJwtWithoutKeystoreSetting(String missingKey) {
+    Properties p = privateKeyJwtProvider("idporten");
+    p.remove("oidc.provider.idporten." + missingKey);
+    assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(0));
   }
 
   @Test
@@ -241,6 +244,18 @@ class GenericOidcProviderBuilderConfigParserTest {
     p.put(pre + "token_uri", "https://oidc-ver2.difi.no/token");
     p.put(pre + "user_info_uri", "https://oidc-ver2.difi.no/userinfo");
     p.put(pre + "jwk_uri", "https://oidc-ver2.difi.no/jwk");
+    return p;
+  }
+
+  private static Properties privateKeyJwtProvider(String id) {
+    Properties p = baseValidProvider(id);
+    String pre = "oidc.provider." + id + ".";
+    p.put(pre + "client_authentication_method", "private_key_jwt");
+    p.put(pre + "keystore_path", "/nonexistent/dhis2-oidc-client.p12");
+    p.put(pre + "keystore_password", "keystore-password");
+    p.put(pre + "key_alias", "dhis2-oidc-client");
+    p.put(pre + "key_password", "key-password");
+    p.put(pre + "jwk_set_url", "https://dhis2.example.org/api/publicKeys/" + id + "/jwks.json");
     return p;
   }
 }
