@@ -30,9 +30,9 @@
 package org.hisp.dhis.security.oidc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -50,185 +50,167 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.time.Instant;
-import java.util.Date;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 /**
- * Unit tests for {@link SignedJwtUserInfoLoader}.
+ * Unit tests for {@link SignedJwtUserInfoLoader}. The IdP's UserInfo endpoint is replaced by a
+ * {@link MockRestServiceServer} and its JWKS by an in-memory key set.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class SignedJwtUserInfoLoaderTest {
 
-  private static final String USER_INFO_URI = "https://idp.test/userinfo";
+  private static final String ISSUER = "https://idp.test";
+
+  private static final String USER_INFO_URI = ISSUER + "/userinfo";
+
+  private static final String JWK_SET_URI = ISSUER + "/jwks";
+
+  private static final String CLIENT_ID = "dhis2-client";
+
+  private static final String SUBJECT = "psut-4711";
 
   private static final MediaType APPLICATION_JWT = new MediaType("application", "jwt");
 
-  @Mock private UserService userService;
   @Mock private JwkSourceCache jwkSourceCache;
-  @Mock private OidcUserRequest userRequest;
-  @Mock private OAuth2AccessToken accessToken;
-  @Mock private OidcIdToken idToken;
-  @Mock private ClientRegistration clientRegistration;
-  @Mock private ClientRegistration.ProviderDetails providerDetails;
-  @Mock private ClientRegistration.ProviderDetails.UserInfoEndpoint userInfoEndpoint;
 
-  private RSAKey rsaJwk;
+  private RSAKey idpSigningKey;
+
   private DhisOidcClientRegistration registration;
+
   private MockRestServiceServer idp;
+
   private SignedJwtUserInfoLoader loader;
 
   @BeforeEach
-  void setUp() throws Exception {
-    rsaJwk = new RSAKeyGenerator(2048).keyID("test-key").generate();
-    when(jwkSourceCache.get("esignet", "https://idp.test/jwks"))
-        .thenReturn(new ImmutableJWKSet<>(new JWKSet(rsaJwk.toPublicJWK())));
-
-    when(userRequest.getClientRegistration()).thenReturn(clientRegistration);
-    when(userRequest.getAccessToken()).thenReturn(accessToken);
-    when(userRequest.getIdToken()).thenReturn(idToken);
-    when(accessToken.getTokenValue()).thenReturn("at-value");
-    when(clientRegistration.getRegistrationId()).thenReturn("esignet");
-    when(clientRegistration.getProviderDetails()).thenReturn(providerDetails);
-    when(providerDetails.getUserInfoEndpoint()).thenReturn(userInfoEndpoint);
-    when(userInfoEndpoint.getUri()).thenReturn(USER_INFO_URI);
-    when(providerDetails.getJwkSetUri()).thenReturn("https://idp.test/jwks");
+  void setUp() throws JOSEException {
+    idpSigningKey = new RSAKeyGenerator(2048).keyID("idp-key").generate();
+    // keys of the IdP's jwk_uri; never fetched when the UserInfo request itself fails
+    lenient()
+        .when(jwkSourceCache.get("esignet", JWK_SET_URI))
+        .thenReturn(new ImmutableJWKSet<>(new JWKSet(idpSigningKey.toPublicJWK())));
 
     registration =
         DhisOidcClientRegistration.builder()
-            .clientRegistration(clientRegistration)
-            .mappingClaimKey("sub")
+            .clientRegistration(
+                ClientRegistration.withRegistrationId("esignet")
+                    .clientId(CLIENT_ID)
+                    .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                    .redirectUri("{baseUrl}/oauth2/code/{registrationId}")
+                    .scope("openid", "profile")
+                    .authorizationUri(ISSUER + "/authorize")
+                    .tokenUri(ISSUER + "/token")
+                    .jwkSetUri(JWK_SET_URI)
+                    .userInfoUri(USER_INFO_URI)
+                    .userNameAttributeName(IdTokenClaimNames.SUB)
+                    .build())
+            .mappingClaimKey("email")
             .userInfoResponseType(UserInfoResponseType.JWT)
             .userInfoJwsAlgorithm(JWSAlgorithm.RS256)
             .build();
 
     RestClient.Builder restClientBuilder = RestClient.builder();
     idp = MockRestServiceServer.bindTo(restClientBuilder).build();
-    loader = new SignedJwtUserInfoLoader(userService, jwkSourceCache, restClientBuilder.build());
+    loader = new SignedJwtUserInfoLoader(jwkSourceCache, restClientBuilder.build());
   }
 
   @Test
-  void happyPathReturnsDhisOidcUser() throws Exception {
+  void loadUserCombinesVerifiedUserInfoWithIdToken() throws JOSEException {
     idp.expect(requestTo(USER_INFO_URI))
         .andExpect(method(HttpMethod.GET))
-        .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer at-value"))
+        .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
         .andExpect(header(HttpHeaders.ACCEPT, APPLICATION_JWT.toString()))
-        .andRespond(withSuccess(signJwt(claims("user-123")), APPLICATION_JWT));
+        .andRespond(withSuccess(sign(userInfo().build(), idpSigningKey), APPLICATION_JWT));
+    OidcUserRequest userRequest = userRequest();
 
-    User user = new User();
-    user.setExternalAuth(true);
-    when(userService.getUserByOpenId("user-123")).thenReturn(user);
-    when(userService.createUserDetails(user)).thenReturn(UserDetails.fromUser(user));
-
-    OidcUser result = loader.load(userRequest, registration);
+    OidcUser oidcUser = loader.loadUser(userRequest, registration);
 
     idp.verify();
-    assertNotNull(result);
-    assertEquals("user-123", result.getAttributes().get("sub"));
+    assertEquals("user@dhis2.org", oidcUser.getUserInfo().getEmail());
+    assertEquals("user@dhis2.org", oidcUser.getAttributes().get("email"));
+    assertEquals(SUBJECT, oidcUser.getName());
+    assertSame(userRequest.getIdToken(), oidcUser.getIdToken());
   }
 
   @Test
-  void httpFailureRaisesInvalidUserInfoResponse() {
+  void loadUserRejectsUserInfoSignedWithKeyOutsideIdpJwks() throws JOSEException {
+    RSAKey rogueKey = new RSAKeyGenerator(2048).keyID(idpSigningKey.getKeyID()).generate();
+    respondWith(sign(userInfo().build(), rogueKey));
+
+    assertLoginFails("jwt_processing_error");
+  }
+
+  @Test
+  void loadUserFailsWhenUserInfoEndpointFails() {
     idp.expect(requestTo(USER_INFO_URI)).andRespond(withServerError());
 
-    OAuth2AuthenticationException ex =
-        assertThrows(
-            OAuth2AuthenticationException.class, () -> loader.load(userRequest, registration));
-    assertEquals("invalid_user_info_response", ex.getError().getErrorCode());
+    assertLoginFails("invalid_user_info_response");
   }
 
-  @Test
-  void badSignatureRaisesJwtProcessingError() throws Exception {
-    RSAKey other = new RSAKeyGenerator(2048).keyID("other").generate();
-    respondWith(signJwt(claims("user-123"), other));
-
+  private void assertLoginFails(String expectedErrorCode) {
+    OidcUserRequest userRequest = userRequest();
     OAuth2AuthenticationException ex =
         assertThrows(
-            OAuth2AuthenticationException.class, () -> loader.load(userRequest, registration));
-    assertEquals("jwt_processing_error", ex.getError().getErrorCode());
+            OAuth2AuthenticationException.class, () -> loader.loadUser(userRequest, registration));
+    assertEquals(expectedErrorCode, ex.getError().getErrorCode());
   }
-
-  @Test
-  void missingMappingClaimRaisesError() throws Exception {
-    respondWith(signJwt(new JWTClaimsSet.Builder().issuer("idp").build()));
-
-    OAuth2AuthenticationException ex =
-        assertThrows(
-            OAuth2AuthenticationException.class, () -> loader.load(userRequest, registration));
-    assertEquals("missing_mapping_claim", ex.getError().getErrorCode());
-  }
-
-  @Test
-  void unknownUserRaisesError() throws Exception {
-    respondWith(signJwt(claims("nobody")));
-    when(userService.getUserByOpenId("nobody")).thenReturn(null);
-
-    OAuth2AuthenticationException ex =
-        assertThrows(
-            OAuth2AuthenticationException.class, () -> loader.load(userRequest, registration));
-    assertEquals("user_not_found", ex.getError().getErrorCode());
-  }
-
-  @Test
-  void disabledUserRaisesUserDisabled() throws Exception {
-    respondWith(signJwt(claims("user-123")));
-    User user = new User();
-    user.setExternalAuth(true);
-    user.setDisabled(true);
-    when(userService.getUserByOpenId("user-123")).thenReturn(user);
-
-    OAuth2AuthenticationException ex =
-        assertThrows(
-            OAuth2AuthenticationException.class, () -> loader.load(userRequest, registration));
-    assertEquals("user_disabled", ex.getError().getErrorCode());
-  }
-
-  // helpers
 
   private void respondWith(String jwt) {
     idp.expect(requestTo(USER_INFO_URI)).andRespond(withSuccess(jwt, APPLICATION_JWT));
   }
 
-  private JWTClaimsSet claims(String sub) {
-    return new JWTClaimsSet.Builder()
-        .subject(sub)
-        .issuer("idp")
-        .issueTime(Date.from(Instant.now()))
-        .expirationTime(Date.from(Instant.now().plusSeconds(60)))
-        .build();
+  private OidcUserRequest userRequest() {
+    Instant now = Instant.now();
+    OAuth2AccessToken accessToken =
+        new OAuth2AccessToken(
+            OAuth2AccessToken.TokenType.BEARER,
+            "access-token",
+            now,
+            now.plusSeconds(60),
+            Set.of("openid", "profile"));
+    OidcIdToken idToken =
+        OidcIdToken.withTokenValue("id-token")
+            .issuer(ISSUER)
+            .subject(SUBJECT)
+            .audience(List.of(CLIENT_ID))
+            .issuedAt(now)
+            .expiresAt(now.plusSeconds(60))
+            .build();
+    return new OidcUserRequest(registration.getClientRegistration(), accessToken, idToken);
   }
 
-  private String signJwt(JWTClaimsSet claims) throws JOSEException {
-    return signJwt(claims, rsaJwk);
+  /**
+   * eSignet-shaped UserInfo: {@code sub} and the consented claims, no {@code iss} or {@code aud}.
+   */
+  private static JWTClaimsSet.Builder userInfo() {
+    return new JWTClaimsSet.Builder().subject(SUBJECT).claim("email", "user@dhis2.org");
   }
 
-  private String signJwt(JWTClaimsSet claims, RSAKey signingKey) throws JOSEException {
-    SignedJWT signed =
+  private static String sign(JWTClaimsSet claims, RSAKey signingKey) throws JOSEException {
+    SignedJWT jwt =
         new SignedJWT(
             new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(signingKey.getKeyID()).build(), claims);
-    signed.sign(new RSASSASigner(signingKey));
-    return signed.serialize();
+    jwt.sign(new RSASSASigner(signingKey));
+    return jwt.serialize();
   }
 }
