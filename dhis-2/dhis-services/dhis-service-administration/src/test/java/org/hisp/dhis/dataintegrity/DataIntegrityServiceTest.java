@@ -209,7 +209,7 @@ class DataIntegrityServiceTest {
   private final BeanRandomizer rnd = BeanRandomizer.create(DataSet.class, "periodType", "workflow");
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     setUpFixtures();
   }
 
@@ -343,13 +343,6 @@ class DataIntegrityServiceTest {
     subject.getIndicatorsWithoutGroups();
     verify(indicatorService).getIndicatorsWithoutGroups();
     verifyNoMoreInteractions(dataElementService);
-  }
-
-  @Test
-  void testGetOrganisationUnitsWithCyclicReferences() {
-    subject.getOrganisationUnitsWithCyclicReferences();
-    verify(organisationUnitService).getOrganisationUnitsWithCyclicReferences();
-    verifyNoMoreInteractions(organisationUnitService);
   }
 
   @Test

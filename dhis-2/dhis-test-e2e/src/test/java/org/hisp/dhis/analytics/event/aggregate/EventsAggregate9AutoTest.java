@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
@@ -444,5 +445,80 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values in any order.
     validateRow(response, List.of("Njandama MCHP", "1"));
+  }
+
+  @Test
+  public void numericOptionSetReturnsOptionCode() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("dimension=pe:2022,regOuStge01.numOptDe001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("regOuProg01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        3,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"numOptThr01\":{\"code\":\"3\",\"name\":\"Three\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"regOuStge01.numOptDe001\":{\"name\":\"DHIS2-22038 numeric option set element\"},\"numOptOne01\":{\"code\":\"1\",\"name\":\"One\"},\"pe\":{\"name\":\"Period\"},\"ou\":{},\"regOuProg01\":{\"name\":\"Registration OU test program\"},\"2022\":{\"name\":\"2022\"},\"numOptTwo01\":{\"code\":\"2\",\"name\":\"Two\"},\"numOptDe001\":{\"name\":\"DHIS2-22038 numeric option set element\"},\"regOuStge01\":{\"name\":\"Registration OU test stage\"}},\"dimensions\":{\"pe\":[\"2022\"],\"ou\":[\"ImspTQPwCqd\"],\"regOuStge01.numOptDe001\":[\"numOptOne01\",\"numOptTwo01\",\"numOptThr01\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "regOuStge01.numOptDe001",
+        "DHIS2-22038 numeric option set element",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("regOuStge01.numOptDe001", "3", "pe", "2022", "value", "1"));
+
+    // Validate row exists with values from original row index 2
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("regOuStge01.numOptDe001", "1", "pe", "2022", "value", "3"));
   }
 }

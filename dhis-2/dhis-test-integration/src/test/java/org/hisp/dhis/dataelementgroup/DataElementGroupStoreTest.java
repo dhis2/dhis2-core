@@ -30,13 +30,20 @@
 package org.hisp.dhis.dataelementgroup;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -91,5 +98,105 @@ class DataElementGroupStoreTest extends PostgresIntegrationTestBase {
     DataElementGroup deg = createDataElementGroup(c);
     for (DataElement d : de) deg.addDataElement(d);
     manager.save(deg);
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA migration verification (HBM -> annotations)
+  // -------------------------------------------------------------------------
+
+  @Test
+  @DisplayName("JPA: members round-trip through the dataelementgroupmembers join table")
+  void testJpaMembersJoinTable() {
+    DataElement deA = createDataElementAndSave('A');
+    DataElement deB = createDataElementAndSave('B');
+    DataElementGroup deg = createDataElementGroup('M', deA, deB);
+    store.save(deg);
+    long id = deg.getId();
+
+    clearSession(); // force reload from DB
+
+    DataElementGroup reloaded = store.get(id);
+    assertNotNull(reloaded);
+    Set<String> memberUids = new HashSet<>();
+    reloaded.getMembers().forEach(de -> memberUids.add(de.getUid()));
+    assertEquals(2, memberUids.size());
+    assertTrue(memberUids.containsAll(Set.of(deA.getUid(), deB.getUid())));
+  }
+
+  @Test
+  @DisplayName(
+      "JPA: groupSets (inverse mappedBy) round-trips against the still-HBM-mapped "
+          + "DataElementGroupSet owning side")
+  void testJpaGroupSetsInverseSide() {
+    DataElementGroup deg = createDataElementGroup('G');
+    manager.save(deg);
+
+    DataElementGroupSet degs = createDataElementGroupSet('S');
+    degs.addDataElementGroup(deg);
+    manager.save(degs);
+    long id = deg.getId();
+
+    clearSession(); // force reload from DB
+
+    DataElementGroup reloaded = store.get(id);
+    assertNotNull(reloaded);
+    assertEquals(1, reloaded.getGroupSets().size());
+    assertEquals(degs.getUid(), reloaded.getGroupSets().iterator().next().getUid());
+  }
+
+  @Test
+  @DisplayName("JPA: createdBy IS persisted (dataelementgroup has a userid column)")
+  void testJpaCreatedByPersisted() {
+    DataElementGroup deg = createDataElementGroup('U');
+    deg.setCreatedBy(getAdminUser());
+    store.save(deg);
+    long id = deg.getId();
+
+    clearSession();
+
+    DataElementGroup reloaded = store.get(id);
+    assertNotNull(reloaded.getCreatedBy(), "createdBy must persist to the userid column");
+    assertEquals(getAdminUser().getUid(), reloaded.getCreatedBy().getUid());
+  }
+
+  @Test
+  @DisplayName("JPA: name, shortName and description (text) round-trip")
+  void testJpaScalarFieldsPersist() {
+    DataElementGroup deg = createDataElementGroup('T');
+    deg.setDescription("a description");
+    store.save(deg);
+    long id = deg.getId();
+
+    clearSession();
+
+    DataElementGroup reloaded = store.get(id);
+    assertEquals(deg.getName(), reloaded.getName());
+    assertEquals(deg.getShortName(), reloaded.getShortName());
+    assertEquals("a description", reloaded.getDescription());
+  }
+
+  @Test
+  @DisplayName("JPA: attributeValues (jsonb) round-trip")
+  void testJpaAttributeValuesPersisted() {
+    DataElementGroup deg = createDataElementGroup('V');
+    deg.setAttributeValues(
+        AttributeValues.of(Map.<CharSequence, CharSequence>of("hQKI6KcEu5t", "avalue")));
+    store.save(deg);
+    long id = deg.getId();
+
+    clearSession();
+
+    DataElementGroup reloaded = store.get(id);
+    assertFalse(reloaded.getAttributeValues().isEmpty());
+    assertEquals("avalue", reloaded.getAttributeValues().get("hQKI6KcEu5t"));
+  }
+
+  @Test
+  @DisplayName("JPA: id is generated (SEQUENCE) on save")
+  void testJpaIdGeneration() {
+    DataElementGroup deg = createDataElementGroup('I');
+    store.save(deg);
+    assertTrue(deg.getId() > 0, "id must be generated on save");
+    assertNotNull(deg.getUid());
   }
 }

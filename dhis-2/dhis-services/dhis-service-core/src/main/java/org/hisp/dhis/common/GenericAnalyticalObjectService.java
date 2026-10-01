@@ -101,6 +101,12 @@ public abstract class GenericAnalyticalObjectService<T extends AnalyticalObject>
 
   @Override
   @Transactional(readOnly = true)
+  public List<T> getAnalyticalObjectsByDataDimension(ProgramIndicator programIndicator) {
+    return getAnalyticalObjectStore().getAnalyticalObjectsByDataDimension(programIndicator);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<T> getAnalyticalObjects(Period period) {
     return getAnalyticalObjectStore().getAnalyticalObjects(period);
   }

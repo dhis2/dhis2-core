@@ -66,6 +66,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -103,6 +104,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestNotes;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
@@ -132,6 +134,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TestNotes testNotes;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
@@ -178,6 +182,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   private ProgramStage programStageA1;
 
   private TrackerEvent eventA;
+
+  private Note eventANote;
 
   private TrackerEvent eventB;
 
@@ -369,12 +375,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
-    Note note = new Note("note1");
-    note.setUid(generateUid());
-    note.setCreated(new Date());
-    note.setLastUpdated(new Date());
-    eventA.setNotes(List.of(note));
     manager.save(eventA, false);
+    eventANote = testNotes.save(eventA, "note1");
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setFollowup(true);
     manager.save(enrollmentA, false);
@@ -1403,7 +1405,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .findFirst();
     Set<TrackerEvent> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA), events, UidObject::getUid);
-    assertNotes(eventA.getNotes(), events.stream().findFirst().get().getNotes());
+    assertNotes(List.of(eventANote), events.stream().findFirst().get().getNotes());
   }
 
   @Test
@@ -1683,7 +1685,35 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     Relationship actual = relOpt.get().getRelationship();
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
-        () -> assertEquals(trackedEntityB.getUid(), actual.getTo().getTrackedEntity().getUid()));
+        () -> assertEquals(trackedEntityB.getUid(), actual.getTo().getTrackedEntity().getUid()),
+        () -> assertFalse(actual.isDeleted()));
+  }
+
+  @Test
+  void shouldReturnRelationshipDeletedTrueWhenSoftDeleted()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    manager.delete(relationshipA);
+
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeRelationships(RelationshipFields.all()).build();
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .orgUnitMode(SELECTED)
+            .trackedEntities(trackedEntityA)
+            .fields(fields)
+            .includeDeleted(true)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    Optional<RelationshipItem> relOpt =
+        trackedEntity.getRelationshipItems().stream()
+            .filter(i -> i.getRelationship().getUid().equals(relationshipA.getUid()))
+            .findFirst();
+    assertTrue(relOpt.isPresent());
+    assertTrue(relOpt.get().getRelationship().isDeleted());
   }
 
   @Test
@@ -2249,6 +2279,28 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         Set.of(tetavA, tetavB),
         trackedEntity.getTrackedEntityAttributeValues(),
         TrackedEntityAttributeValue::getValue);
+  }
+
+  @Test
+  void shouldReturnAttributeSkipSynchronizationFlagReflectingItsCurrentMetadataValue()
+      throws ForbiddenException, NotFoundException {
+    injectAdminIntoSecurityContext();
+    teaA.setSkipSynchronization(true);
+    manager.update(teaA);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
+
+    Map<String, Boolean> skipSynchronizationByAttribute =
+        trackedEntity.getTrackedEntityAttributeValues().stream()
+            .collect(
+                Collectors.toMap(
+                    tav -> tav.getAttribute().getUid(),
+                    tav -> tav.getAttribute().getSkipSynchronization()));
+
+    assertEquals(Boolean.TRUE, skipSynchronizationByAttribute.get(teaA.getUid()));
+    assertEquals(Boolean.FALSE, skipSynchronizationByAttribute.get(teaB.getUid()));
   }
 
   @Test

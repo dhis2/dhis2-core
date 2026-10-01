@@ -38,14 +38,12 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -86,11 +84,8 @@ class DataValuesValidator implements Validator<Event> {
 
   private void validateMandatoryDataValues(
       Reporter reporter, TrackerBundle bundle, Event event, ProgramStage programStage) {
-    final List<MetadataIdentifier> mandatoryDataElements =
-        programStage.getProgramStageDataElements().stream()
-            .filter(ProgramStageDataElement::isCompulsory)
-            .map(de -> bundle.getPreheat().getIdSchemes().toMetadataIdentifier(de.getDataElement()))
-            .toList();
+    final Set<MetadataIdentifier> mandatoryDataElements =
+        bundle.getPreheat().getProgramStageDataElements(programStage).compulsory();
 
     validateMandatoryDataValue(bundle, event, programStage, mandatoryDataElements)
         .forEach(de -> reporter.addError(event, E1303, de));
@@ -121,9 +116,7 @@ class DataValuesValidator implements Validator<Event> {
       Reporter reporter, TrackerBundle bundle, Event event, ProgramStage programStage) {
     TrackerPreheat preheat = bundle.getPreheat();
     final Set<MetadataIdentifier> dataElements =
-        programStage.getProgramStageDataElements().stream()
-            .map(de -> preheat.getIdSchemes().toMetadataIdentifier(de.getDataElement()))
-            .collect(Collectors.toSet());
+        preheat.getProgramStageDataElements(programStage).members();
 
     Set<MetadataIdentifier> payloadDataElements =
         event.getDataValues().stream().map(DataValue::getDataElement).collect(Collectors.toSet());

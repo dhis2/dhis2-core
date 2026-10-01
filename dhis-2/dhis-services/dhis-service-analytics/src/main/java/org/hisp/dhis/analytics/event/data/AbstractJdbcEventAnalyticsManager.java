@@ -44,15 +44,12 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.apache.commons.lang3.math.NumberUtils.createDouble;
-import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
@@ -138,10 +135,13 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlFragments;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
+import org.hisp.dhis.analytics.event.data.stage.StageSortField;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -174,14 +174,12 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -342,6 +340,22 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private String getColumnExpression(
       CteContext cteContext, EventQueryParams params, QueryItem item) {
+    // Enrollment org unit columns are read from the joined enrollment analytics table. Everything
+    // below resolves columns on the event table.
+    Optional<String> enrollmentOuColumn =
+        OrgUnitSqlFragments.sortColumn(item.getItem().getUid(), sqlBuilder);
+
+    if (enrollmentOuColumn.isPresent()) {
+      return enrollmentOuColumn.get();
+    }
+
+    if (cteContext.isEnrollmentAnalytics()) {
+      Optional<String> stageSortColumn = resolveStageSortColumn(item, cteContext);
+      if (stageSortColumn.isPresent()) {
+        return stageSortColumn.get();
+      }
+    }
+
     DimensionItemType itemType = item.getItem().getDimensionItemType();
 
     if (itemType == null) {
@@ -353,6 +367,40 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       case DATA_ELEMENT -> getDataElementColumn(cteContext, item);
       default -> getDefaultColumn(params, item);
     };
+  }
+
+  /**
+   * Resolves a stage-scoped sort field ({@link StageSortField}) to the column of the stage CTE it
+   * reads from, e.g. {@code <alias>.ev_ouname} for {@code <stage>.ouname}. Fails rather than
+   * falling through to an unqualified column name, which would silently order by the enrollment's
+   * own column.
+   *
+   * @return the qualified column, or empty when the item is not a stage sort field.
+   */
+  private Optional<String> resolveStageSortColumn(QueryItem item, CteContext cteContext) {
+    Optional<StageSortField> field = stageSortField(item);
+    if (field.isEmpty()) {
+      return Optional.empty();
+    }
+    String cteKey = CteUtils.computeKey(field.get().toCanonicalItem(item));
+    CteDefinition cteDef = cteContext.getDefinitionByItemUid(cteKey);
+    if (cteDef == null) {
+      throw new IllegalQueryException(ErrorCode.E7148, item.getItemId());
+    }
+    String alias =
+        cteDef.isFilter()
+            ? cteDef.getAlias()
+            : cteDef.getAlias(computeRowNumberOffset(item.getProgramStageOffset()));
+    return Optional.of(alias + "." + field.get().getEnrollmentCteColumn());
+  }
+
+  private static Optional<StageSortField> stageSortField(QueryItem item) {
+    return item.hasProgramStage() ? StageSortField.forItemId(item.getItemId()) : Optional.empty();
+  }
+
+  private boolean hasStageSortField(EventQueryParams params) {
+    return getDistinctOrderByColumns(params).stream()
+        .anyMatch(item -> stageSortField(item).isPresent());
   }
 
   private String getProgramIndicatorColumn(CteContext cteContext, QueryItem item) {
@@ -588,6 +636,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, isGroupByClause, isAggregated, getAnalyticsType(), sqlBuilder);
+
+    RegistrationOuSqlCoordinator.dimensionSelectColumn(
+            params, isGroupByClause, isAggregated, sqlBuilder)
+        .ifPresent(columns::add);
 
     if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
       columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
@@ -1242,7 +1294,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String getFilter(String filter, QueryItem item) {
     try {
-      if (!NV.equals(filter) && item.getValueType() == ValueType.DATETIME) {
+      if (!item.isNoValue(filter) && item.getValueType() == ValueType.DATETIME) {
         return DateFormatUtils.format(
             DateUtils.parseDate(
                 filter,
@@ -1413,11 +1465,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Double value type will be added into the grid. There is special handling for Option Set (Type
-   * numeric)/Option. The code in grid/meta info and related value in row has to be the same (FE
-   * request) if possible. The string interpretation of code coming from Option/Code can vary from
-   * Option/value (double) fetched from database ("1" vs "1.0") By the equality (both are converted
-   * to double) of both the Option/Code is used as a value.
+   * Double value type will be added into the grid.
    *
    * @param number the value.
    * @param grid the {@link Grid}.
@@ -1426,33 +1474,48 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addGridDoubleTypeValue(
       Double number, Grid grid, GridHeader header, EventQueryParams params) {
-    Optional<QueryItem> programIndicatorItem =
-        params.getItems().stream()
-            .filter(
-                item -> item.isProgramIndicator() && header.getName().equals(item.getItemName()))
-            .findFirst();
+    grid.addValue(formatDouble(number, header, params));
+  }
 
+  /**
+   * Returns the string representation of the given number for the given header.
+   *
+   * <p>There is special handling for Option Set (Type numeric)/Option. The code in grid/meta info
+   * and related value in row has to be the same (FE request) if possible. The string interpretation
+   * of code coming from Option/Code can vary from Option/value (double) fetched from database ("1"
+   * vs "1.0") By the equality (both are converted to double) of both the Option/Code is used as a
+   * value. A program indicator is rounded to its own number of decimals. Any other number is
+   * rounded to the default scale.
+   *
+   * @param number the value.
+   * @param header the {@link GridHeader}.
+   * @param params the {@link EventQueryParams}.
+   * @return the value to be added to the grid.
+   */
+  String formatDouble(Double number, GridHeader header, EventQueryParams params) {
     if (header.hasOptionSet()) {
-      Optional<Option> option =
-          header.getOptionSetObject().getOptions().stream()
-              .filter(
-                  o ->
-                      isCreatable(o.getCode())
-                          && MathUtils.isEqual(createDouble(o.getCode()), number))
-              .findFirst();
-
-      if (option.isPresent()) {
-        grid.addValue(option.get().getCode());
-      } else {
-        grid.addValue(round(number, params.isSkipRounding()));
-      }
-    } else if (programIndicatorItem.isPresent()) {
-      ProgramIndicator programIndicator = (ProgramIndicator) programIndicatorItem.get().getItem();
-
-      grid.addValue(round(number, params, programIndicator.getDecimals()));
-    } else {
-      grid.addValue(round(number, params.isSkipRounding()));
+      return QueryItemHelper.getMatchingOptionCode(header.getOptionSetObject(), number)
+          .orElseGet(() -> round(number, params.isSkipRounding()));
     }
+
+    return findProgramIndicator(header, params)
+        .map(programIndicator -> round(number, params, programIndicator.getDecimals()))
+        .orElseGet(() -> round(number, params.isSkipRounding()));
+  }
+
+  /**
+   * Returns the {@link ProgramIndicator} the given header refers to, if any.
+   *
+   * @param header the {@link GridHeader}.
+   * @param params the {@link EventQueryParams}.
+   * @return the matching {@link ProgramIndicator}, or empty when the header is not one.
+   */
+  private Optional<ProgramIndicator> findProgramIndicator(
+      GridHeader header, EventQueryParams params) {
+    return params.getItems().stream()
+        .filter(item -> item.isProgramIndicator() && header.getName().equals(item.getItemName()))
+        .findFirst()
+        .map(item -> (ProgramIndicator) item.getItem());
   }
 
   /**
@@ -1466,10 +1529,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String round(Double number, EventQueryParams params, Integer decimals) {
     double roundedNumber = getRoundedValue(params, decimals, number).doubleValue();
-    String noTrailingZerosValue =
-        BigDecimal.valueOf(roundedNumber).stripTrailingZeros().toPlainString();
-
-    return noTrailingZerosValue;
+    return BigDecimal.valueOf(roundedNumber).stripTrailingZeros().toPlainString();
   }
 
   /**
@@ -1748,13 +1808,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
 
       InQueryFilter inQueryFilter =
-          new InQueryFilter(prefixedField, sqlBuilder.escape(filterString), !item.isNumeric());
+          new InQueryFilter(
+              normalizeNoValueField(prefixedField, item, filter),
+              sqlBuilder.escape(filterString),
+              !item.isNumeric(),
+              item.hasOptionSet());
 
       return inQueryFilter.getSqlFilter();
     } else {
-      // NV filter has its own specific logic, so skip values
-      // comparisons when NV is set as filter
-      if (!NV.equals(filter.getFilter())) {
+      // The no-value keyword has its own specific logic, so skip value
+      // comparisons when it is set as the filter
+      if (!item.isNoValue(filter.getFilter())) {
         // Specific handling for null and empty values
         switch (filter.getOperator()) {
           case NEQ:
@@ -1768,13 +1832,40 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
 
-      return field
+      return normalizeNoValueField(field, item, filter)
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + SPACE;
     }
+  }
+
+  /**
+   * Wraps a text field in a null-normalising expression when the filter asks for the no-value
+   * keyword. ClickHouse stores an absent text value as an empty string rather than NULL, so an
+   * {@code is null} comparison against the raw column matches nothing. The select and group by
+   * clauses normalise the same column, so the filter must use the identical expression. The wrapper
+   * is a no-op on databases that store absent values as NULL.
+   *
+   * @param field the field to filter on.
+   * @param item the {@link QueryItem}.
+   * @param filter the {@link QueryFilter}.
+   * @return the field, wrapped when the filter selects the no-value keyword.
+   */
+  private String normalizeNoValueField(String field, QueryItem item, QueryFilter filter) {
+    boolean isText = item.getValueType() != null && item.getValueType().isText();
+
+    return isText && filtersOnNoValue(item, filter) ? sqlBuilder.nullIfEmpty(field) : field;
+  }
+
+  /** Indicates whether any of the filter values is the no-value keyword. */
+  private boolean filtersOnNoValue(QueryItem item, QueryFilter filter) {
+    if (filter.getFilter() == null) {
+      return false;
+    }
+
+    return QueryFilter.getFilterItems(filter.getFilter()).stream().anyMatch(item::isNoValue);
   }
 
   /**
@@ -1806,7 +1897,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + ", '') = '' or "
           + field
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + ") ";
@@ -1816,7 +1907,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + " is null or "
           + field
           + SPACE
-          + filter.getSqlOperator(true)
+          + filter.getSqlOperator(true, item.hasOptionSet())
           + SPACE
           + getSqlFilter(filter, item)
           + ") ";
@@ -2253,6 +2344,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (cteContext.isEnrollmentAnalytics()) {
       // Filter CTEs are only meaningful for Enrollment queries
       generateFilterCTEs(params, cteContext);
+      registerStageSortCtes(params, cteContext);
     }
 
     addEventProgramIndicatorCandidatesCte(params, cteContext);
@@ -2836,6 +2928,27 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return cteContext;
   }
 
+  /**
+   * Registers the stage CTE each stage-scoped sort field ({@link StageSortField}) reads from,
+   * unless a projected or filtered item already registered it. Must run after {@link
+   * #generateFilterCTEs}: a field that is only filtered keeps its filter CTE, which ranks matching
+   * events, and the sort reads from that. Fields sharing a CTE (e.g. {@code ouname} and {@code
+   * oucode}) are mapped to their canonical item first, so one CTE serves all of them. A sort-only
+   * registration carries no filter, so it is left-joined and never restricts the result set.
+   */
+  private void registerStageSortCtes(EventQueryParams params, CteContext cteContext) {
+    for (QueryItem sortItem : getDistinctOrderByColumns(params)) {
+      Optional<StageSortField> field = stageSortField(sortItem);
+      if (field.isEmpty()) {
+        continue;
+      }
+      QueryItem canonical = field.get().toCanonicalItem(sortItem);
+      if (cteContext.getDefinitionByItemUid(CteUtils.computeKey(canonical)) == null) {
+        buildProgramStageCte(cteContext, canonical, params);
+      }
+    }
+  }
+
   void handleProgramIndicatorCte(QueryItem item, CteContext cteContext, EventQueryParams params) {
     ProgramIndicator pi = (ProgramIndicator) item.getItem();
     // EVENT-type PI CTEs aggregate over events filtered only by the PI's own predicate,
@@ -3004,7 +3117,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         cteSql,
         computeRowNumberOffset(programStageOffset),
         hasRowContext,
-        filterBuilder.hasNonNvFilter(item),
+        filterBuilder.hasActualValueFilter(item),
         shouldProjectValueName(item));
   }
 
@@ -3224,7 +3337,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             : filter.getFilter();
 
     InQueryCteFilter inQueryCteFilter =
-        new InQueryCteFilter("value", resolvedFilter, !item.isNumeric(), cteDef);
+        new InQueryCteFilter(
+            "value", resolvedFilter, !item.isNumeric(), item.hasOptionSet(), cteDef);
     // Compute the offset for the row number if applicable
     Integer offset =
         cteDef.getOffsets().isEmpty() ? null : computeRowNumberOffset(item.getProgramStageOffset());
@@ -3282,7 +3396,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits(), item)
             : filter.getFilter();
 
-    if ("NV".equals(filterValue)) {
+    if (item.isNoValue(filterValue)) {
       return "NULL"; // Special case for 'null' filters
     }
 
@@ -3587,7 +3701,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String buildEnrollmentPrefilterSql(EventQueryParams params) {
     List<DimensionalItemObject> orgUnits = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
 
-    if (!params.hasStageSpecificItem()
+    if ((!params.hasStageSpecificItem() && !hasStageSortField(params))
         || orgUnits.isEmpty()
         || getAnalyticsType() != AnalyticsType.ENROLLMENT) {
       return "";
@@ -3689,12 +3803,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (isNotBlank(stageOuContext.filterCondition())) {
         filterConditions = " and " + stageOuContext.filterCondition();
       }
-    } else if (filterBuilder.hasNonNvFilter(item)) {
-      // For non-stage.ou dimensions with non-NV filters, add filter to CTE.
-      // NV (null value) filters are NOT added here - they stay in the WHERE clause
-      // because NV semantics require checking if the most recent event's value is null,
-      // not finding events with null values.
-      String conditions = filterBuilder.extractNonNvFiltersAsSql(item, colName, params);
+    } else if (filterBuilder.hasActualValueFilter(item)) {
+      // For non-stage.ou dimensions, only filters carrying actual values are added to the CTE.
+      // No-value filters are NOT added here - they stay in the WHERE clause because their
+      // semantics require checking whether the most recent event's value is null, rather than
+      // finding events with null values.
+      String conditions = filterBuilder.extractActualValueFiltersAsSql(item, colName, params);
       if (isNotBlank(conditions)) {
         filterConditions = " and " + conditions;
       }

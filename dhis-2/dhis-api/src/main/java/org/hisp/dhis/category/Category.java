@@ -113,7 +113,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "category")
 @Setter
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @JacksonXmlRootElement(localName = "category", namespace = DxfNamespaces.DXF_2_0)
 public class Category extends BaseMetadataObject
     implements DimensionalObject, SystemDefaultMetadataObject {
@@ -155,11 +155,11 @@ public class Category extends BaseMetadataObject
               name = "categoryoptionid",
               foreignKey = @ForeignKey(name = "fk_category_categoryoptionid")))
   @OrderColumn(name = "sort_order")
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private List<CategoryOption> categoryOptions = new ArrayList<>();
 
   @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
-  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
   private Set<CategoryCombo> categoryCombos = new HashSet<>();
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
