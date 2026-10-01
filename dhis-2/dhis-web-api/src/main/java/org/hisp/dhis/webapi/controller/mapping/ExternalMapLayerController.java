@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ExternalMapLayerController
     extends AbstractCrudController<ExternalMapLayer, GetObjectListParams> {
 
-  private static final List VALID_IMAGE_EXTENSIONS = List.of("jpeg", "jpg", "png", "webp");
+  private static final List<String> VALID_IMAGE_EXTENSIONS = List.of("jpeg", "jpg", "png", "webp");
 
   @Override
   protected ExternalMapLayer deserializeJsonEntity(HttpServletRequest request) throws IOException {

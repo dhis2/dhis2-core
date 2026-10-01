@@ -73,7 +73,9 @@ class ExternalMapLayerControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Test", layer.getString("name").string());
     assertEquals("http://test", layer.getString("url").string());
     assertEquals("Test description url", layer.getString("descriptionUrl").string());
-    assertEquals("imageTest", layer.getString("image").string());
+    assertEquals(
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCA",
+        layer.getString("image").string());
   }
 
   @Test
