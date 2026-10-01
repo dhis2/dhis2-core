@@ -91,7 +91,9 @@ public class PublicKeysController {
   }
 
   private static JwsAlgorithm resolveAlgorithm(JWK jwk) {
-    if (jwk == null) return null;
+    if (jwk == null) {
+      return null;
+    }
 
     JwsAlgorithm jwsAlgorithm = null;
 

@@ -167,7 +167,7 @@ class GenericOidcProviderBuilderTest {
     Map<String, String> cfg = baseConfig();
     cfg.remove(CLIENT_SECRET);
     cfg.put(CLIENT_AUTHENTICATION_METHOD, "private_key_jwt");
-    // No keystore configured here — getJWK() returns null, so build() should
+    // No keystore configured here, so getJWK() returns null and build() should
     // succeed and produce a registration without a secret.
     DhisOidcClientRegistration reg = GenericOidcProviderBuilder.build(cfg, Map.of());
     assertNotNull(reg);

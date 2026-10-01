@@ -32,6 +32,7 @@ package org.hisp.dhis.security.oidc;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -90,6 +91,7 @@ public class DhisOidcUserService extends OidcUserService {
    * @throws OAuth2AuthenticationException if the claim cannot be mapped to a valid DHIS2 user
    */
   @Override
+  @NonTransactional // calls the IdP over HTTP; the user lookups run in UserService transactions
   public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
     ClientRegistration clientRegistration = userRequest.getClientRegistration();
 

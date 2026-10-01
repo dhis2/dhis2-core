@@ -29,11 +29,12 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.nimbusds.jose.JWSAlgorithm;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -43,14 +44,11 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class SupportedJwsAlgorithmsTest {
 
-  @Test
-  void parsesNullAsRs256Default() {
-    assertEquals(JWSAlgorithm.RS256, SupportedJwsAlgorithms.parseOrDefault(null));
-  }
-
-  @Test
-  void parsesBlankAsRs256Default() {
-    assertEquals(JWSAlgorithm.RS256, SupportedJwsAlgorithms.parseOrDefault("  "));
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"  "})
+  void unsetAlgorithmDefaultsToRs256(String value) {
+    assertEquals(JWSAlgorithm.RS256, SupportedJwsAlgorithms.parseOrDefault(value));
   }
 
   @ParameterizedTest
@@ -60,17 +58,9 @@ class SupportedJwsAlgorithmsTest {
     assertEquals(name, SupportedJwsAlgorithms.parseOrDefault(name).getName());
   }
 
-  @Test
-  void rejectsUnsupportedAlgorithm() {
-    IllegalArgumentException ex =
-        assertThrows(
-            IllegalArgumentException.class, () -> SupportedJwsAlgorithms.parseOrDefault("HS256"));
-    assertTrue(ex.getMessage().contains("HS256"));
-  }
-
-  @Test
-  void rejectsNonsense() {
-    assertThrows(
-        IllegalArgumentException.class, () -> SupportedJwsAlgorithms.parseOrDefault("nope"));
+  @ParameterizedTest
+  @ValueSource(strings = {"HS256", "HS384", "HS512", "none", "rs256", "nope"})
+  void rejectsAlgorithmsOutsideAllowList(String name) {
+    assertThrows(IllegalArgumentException.class, () -> SupportedJwsAlgorithms.parseOrDefault(name));
   }
 }

@@ -71,7 +71,8 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
  * AbstractOidcProvider}):
  *
  * <ul>
- *   <li>{@code client_id}, {@code client_secret} (required)
+ *   <li>{@code client_id} (required), {@code client_secret} (required unless {@code
+ *       client_authentication_method} is {@code private_key_jwt})
  *   <li>{@code authorization_uri}, {@code token_uri}, {@code user_info_uri}, {@code jwk_uri},
  *       {@code issuer_uri}
  *   <li>{@code mapping_claim} (defaults to {@link AbstractOidcProvider#DEFAULT_MAPPING_CLAIM})
@@ -85,6 +86,8 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
  *   <li>{@code extra_request_parameters}
  *   <li>Keys for {@code private_key_jwt} client authentication: {@code keystore_path}, {@code
  *       keystore_password}, {@code key_alias}, {@code key_password}, {@code jwk_set_url}
+ *   <li>{@code user_info_response_type} ({@code json} by default, {@code jwt} for a signed JWT
+ *       userinfo response) with {@code user_info_jws_algorithm} (defaults to {@code RS256})
  * </ul>
  *
  * <p>Unknown keys inside a provider block are logged at startup, together with the closest
@@ -106,7 +109,8 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
    *     tokens issued by this provider, keyed by external client id
    * @return the built registration, or {@code null} when the block is effectively empty (missing
    *     {@code provider_id} or {@code client_id})
-   * @throws IllegalArgumentException if {@code client_secret} is missing
+   * @throws IllegalArgumentException if {@code client_secret} is missing and the provider does not
+   *     authenticate with {@code private_key_jwt}
    */
   public static DhisOidcClientRegistration build(
       Map<String, String> config, Map<String, Map<String, String>> externalClients) {

@@ -34,7 +34,7 @@ import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.util.DefaultResourceRetriever;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Component;
@@ -72,8 +72,8 @@ public class JwkSourceCache {
       DefaultResourceRetriever retriever =
           new DefaultResourceRetriever(
               CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS, JWKSourceBuilder.DEFAULT_HTTP_SIZE_LIMIT);
-      return JWKSourceBuilder.create(new URL(jwkSetUri), retriever).build();
-    } catch (MalformedURLException ex) {
+      return JWKSourceBuilder.create(URI.create(jwkSetUri).toURL(), retriever).build();
+    } catch (MalformedURLException | IllegalArgumentException ex) {
       throw new IllegalArgumentException("Invalid JWKS URL: " + jwkSetUri, ex);
     }
   }

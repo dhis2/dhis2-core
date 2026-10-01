@@ -29,16 +29,17 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import java.util.Locale;
 import javax.annotation.CheckForNull;
 
 /**
  * Selects how DHIS2 should consume the OIDC userinfo response for a given provider.
  *
  * <ul>
- *   <li>{@link #JSON} — Spring Security's default: userinfo endpoint returns {@code
+ *   <li>{@link #JSON}: Spring Security's default, the userinfo endpoint returns {@code
  *       application/json}.
- *   <li>{@link #JWT} — userinfo endpoint returns a signed JWT ({@code application/jwt}); used by
- *       MOSIP eSignet and similar IdPs.
+ *   <li>{@link #JWT}: the userinfo endpoint returns a signed JWT ({@code application/jwt}), as
+ *       MOSIP eSignet and similar IdPs do.
  * </ul>
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -56,6 +57,6 @@ public enum UserInfoResponseType {
     if (value == null || value.isBlank()) {
       return JSON;
     }
-    return UserInfoResponseType.valueOf(value.trim().toUpperCase());
+    return UserInfoResponseType.valueOf(value.trim().toUpperCase(Locale.ROOT));
   }
 }
