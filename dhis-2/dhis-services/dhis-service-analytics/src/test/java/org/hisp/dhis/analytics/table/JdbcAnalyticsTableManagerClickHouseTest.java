@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -72,10 +71,10 @@ import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Covers the {@code swapTable()} branch for databases with declarative partitioning that do NOT
- * support continuous analytics (e.g. ClickHouse): staging data must not be inserted into the main
- * table, the staging table is simply dropped, same as before the Doris continuous-analytics
- * pipeline was wired up.
+ * Covers {@code swapTable()} for databases with declarative partitioning that do NOT support
+ * continuous analytics (e.g. ClickHouse): with no purge step available, staged data can not be
+ * merged into an existing main table. The staging table holds all data on such engines, so both a
+ * continuous and a bounded-years update replace the whole main table, as a full rebuild would.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -119,13 +118,55 @@ class JdbcAnalyticsTableManagerClickHouseTest {
   }
 
   @Test
-  void testSwapTableDoesNotInsertStagingDataWhenContinuousAnalyticsNotSupported() {
+  void testSwapTableReplacesMainTableForContinuousUpdateWhenNotSupported() {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
             .build()
             .withLatestPartition();
 
+    AnalyticsTable table = dataValueTableFixture();
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+
+    subject.swapTable(params, table);
+
+    assertReplacedMainTable();
+  }
+
+  @Test
+  void testSwapTableReplacesMainTableForBoundedYearsUpdateOnceMainTableExists() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .lastYears(1)
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build();
+
+    AnalyticsTable table = dataValueTableFixture();
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of(Map.of("table_name", "analytics")));
+
+    subject.swapTable(params, table);
+
+    assertReplacedMainTable();
+  }
+
+  private void assertReplacedMainTable() {
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    Mockito.verify(jdbcTemplate, Mockito.atLeastOnce()).execute(sql.capture());
+
+    List<String> statements = sql.getAllValues();
+    assertTrue(
+        statements.contains("rename table \"analytics_temp\" to \"analytics\";"),
+        () -> "Expected the staging table to replace the main table, got: " + statements);
+    assertTrue(
+        statements.stream().noneMatch(s -> s.startsWith("insert into")),
+        () -> "Must not merge into the main table without a purge step, got: " + statements);
+  }
+
+  private AnalyticsTable dataValueTableFixture() {
     List<AnalyticsTableColumn> columns =
         List.of(
             AnalyticsTableColumn.builder()
@@ -133,27 +174,6 @@ class JdbcAnalyticsTableManagerClickHouseTest {
                 .dataType(TEXT)
                 .selectExpression("dx")
                 .build());
-    AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
-
-    // Main table already exists, and params.isPartialUpdate() (via withLatestPartition()) plus
-    // AnalyticsTableType.DATA_VALUE.isLatestPartition()==true together push swapTable() into the
-    // skipMasterTable branch. ClickHouse supports declarative partitioning but not continuous
-    // analytics, so neither the reparenting branch nor the new insert-into-main branch should
-    // fire here.
-    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
-        .thenReturn(List.of(Map.of("table_name", "analytics")));
-
-    subject.swapTable(params, table);
-
-    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    Mockito.verify(jdbcTemplate, Mockito.times(1)).execute(sql.capture());
-
-    String statement = sql.getValue();
-    assertFalse(
-        statement.startsWith("insert into"), () -> "Unexpected insert statement: " + statement);
-    assertTrue(
-        statement.contains("drop table"),
-        () -> "Expected a drop-table statement, got: " + statement);
+    return new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
   }
 }

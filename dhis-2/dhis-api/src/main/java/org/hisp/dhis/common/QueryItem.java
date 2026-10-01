@@ -332,22 +332,26 @@ public class QueryItem implements GroupableItem {
 
   /**
    * Returns option filter items. Options are specified by code but returned as identifiers, so the
-   * codes are mapped to options and then to identifiers.
+   * codes are mapped to options and then to identifiers. The no-value keyword is retained in its
+   * requested position.
    *
    * <p>//TODO clean up and standardize on identifier.
    */
   private List<String> getOptionSetQueryFilterItems() {
     return getQueryFilterItems().stream()
-        .map(this::getOptionByCode)
+        .map(this::getOptionUidByCode)
         .filter(Objects::nonNull)
-        .map(IdentifiableObject::getUid)
         .collect(Collectors.toList());
   }
 
-  private Option getOptionByCode(String code) {
+  private String getOptionUidByCode(String code) {
+    if (isNoValue(code)) {
+      return code;
+    }
+
     for (Option option : optionSet.getOptions()) {
       if (option != null && option.getCode().equals(code)) {
-        return option;
+        return option.getUid();
       }
     }
     return null;

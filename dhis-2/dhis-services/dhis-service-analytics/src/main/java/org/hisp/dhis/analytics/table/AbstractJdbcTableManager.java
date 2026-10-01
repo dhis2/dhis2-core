@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -222,40 +222,120 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     jdbcTemplate.execute(sql);
   }
 
+  /** How staged data for a table update is published to the main table. */
+  private enum TableUpdateAction {
+    REPLACE_TABLE,
+    REPLACE_PARTITIONS,
+    MERGE_ROWS
+  }
+
   @Override
   public void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table) {
-    boolean tableExists = tableExists(table.getMainName());
-    boolean skipMasterTable =
-        params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
+    TableUpdateAction action = resolveUpdateAction(params, table);
 
-    log.info("Swapping table: '{}'", table.getMainName());
-    log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
+    log.info("Swapping table: '{}', action: '{}'", table.getMainName(), action);
 
-    List<Table> swappedPartitions = new UniqueArrayList<>();
+    switch (action) {
+      case REPLACE_TABLE -> replaceMainTable(table);
+      case REPLACE_PARTITIONS -> replaceAndAttachPartitions(table);
+      case MERGE_ROWS -> mergeIntoMainTable(table);
+    }
+  }
 
+  /**
+   * Determines how staged data for the given table should be published to the main table, based on
+   * the update type, whether the table type supports a "latest partition", whether a main table
+   * already exists, and how the target database manages partitions.
+   */
+  private TableUpdateAction resolveUpdateAction(
+      AnalyticsTableUpdateParams params, AnalyticsTable table) {
+    boolean supportsLatestPartition = table.getTableType().isLatestPartition();
+
+    // Full updates, and table types with no "latest partition" concept, always replace the table.
+    if (!params.isPartialUpdate() || !supportsLatestPartition) {
+      return TableUpdateAction.REPLACE_TABLE;
+    }
+
+    // Without continuous analytics support (e.g. ClickHouse) there is no step removing updated and
+    // deleted rows, so a continuous update cannot be merged. The staging table holds all data on
+    // such engines (see DefaultAnalyticsTableService.getTablePartitions()), so replacing the whole
+    // main table gives correct results, as a full rebuild would.
+    if (params.isLatestUpdate() && !sqlBuilder.supportsContinuousAnalytics()) {
+      log.warn(
+          "Continuous (lastYears=0) update of table '{}' rebuilds the whole table on this "
+              + "database, which does not support incremental updates",
+          table.getMainName());
+      return TableUpdateAction.REPLACE_TABLE;
+    }
+
+    // No existing table to preserve; treat as the initial build.
+    if (!tableExists(table.getMainName())) {
+      return TableUpdateAction.REPLACE_TABLE;
+    }
+
+    // Postgres publishes partial updates by replacing physical (inheritance-based) partitions.
     if (!sqlBuilder.supportsDeclarativePartitioning()) {
-      table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
-      table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
+      return TableUpdateAction.REPLACE_PARTITIONS;
     }
 
-    if (!skipMasterTable) {
-      // Full replace update and main table exist, swap main table
-      swapTable(table, table.getMainName());
-    } else {
-      // Incremental append update, update parent of partitions to existing main table
-      if (!sqlBuilder.supportsDeclarativePartitioning()) {
-        swappedPartitions.forEach(
-            partition -> swapParentTable(partition, table.getName(), table.getMainName()));
-      } else if (params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics()) {
-        // For databases with declarative partitioning that support continuous analytics (e.g.
-        // Doris): staging data must be inserted directly into the main table since there is no
-        // inheritance-based partition attachment. Stale rows are already removed by
-        // removeUpdatedData().
-        String fromTable = sqlBuilder.quote(table.getName());
-        jdbcTemplate.execute(sqlBuilder.insertIntoSelectFrom(table.fromStaging(), fromTable));
-      }
-      dropTable(table);
+    // Declarative-partitioning engines with no inheritance-based partition attachment (e.g.
+    // Doris) publish a continuous update by merging staged rows into the persistent main table.
+    if (params.isLatestUpdate()) {
+      return TableUpdateAction.MERGE_ROWS;
     }
+
+    // A bounded lastYears update against a main table that already exists. Merging is not an option
+    // here, since removeUpdatedData() only runs for the latest-partition case and merging would
+    // leave stale/deleted rows behind. On declarative-partitioning engines the populate step does
+    // not filter by year, so the staging table holds every year and replacing the whole main table
+    // gives correct results.
+    log.warn(
+        "Bounded lastYears update of table '{}' rebuilds the whole table with all years on this "
+            + "database, use a continuous (lastYears=0) update for incremental updates",
+        table.getMainName());
+    return TableUpdateAction.REPLACE_TABLE;
+  }
+
+  private void replaceMainTable(AnalyticsTable table) {
+    replacePhysicalPartitions(table);
+    swapTable(table, table.getMainName());
+  }
+
+  private void replaceAndAttachPartitions(AnalyticsTable table) {
+    List<Table> partitions = replacePhysicalPartitions(table);
+
+    partitions.forEach(
+        partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+
+    dropTable(table);
+  }
+
+  private void mergeIntoMainTable(AnalyticsTable table) {
+    String fromTable = sqlBuilder.quote(table.getName());
+    jdbcTemplate.execute(sqlBuilder.insertIntoSelectFrom(table.fromStaging(), fromTable));
+    dropTable(table);
+  }
+
+  /**
+   * Swaps each of the table's physical (inheritance-based) partitions from staging to main. A no-op
+   * for declarative-partitioning engines, which have no separate physical partition tables.
+   *
+   * @return the swapped partitions, for a caller that needs to reparent them onto an existing main
+   *     table.
+   */
+  private List<Table> replacePhysicalPartitions(AnalyticsTable table) {
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      return List.of();
+    }
+
+    List<Table> partitions = new UniqueArrayList<>();
+
+    for (AnalyticsTablePartition partition : table.getTablePartitions()) {
+      swapTable(partition, partition.getMainName());
+      partitions.add(partition.fromStaging());
+    }
+
+    return partitions;
   }
 
   @Override
@@ -372,6 +452,55 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private boolean tableExists(String name) {
     return !jdbcTemplate.queryForList(sqlBuilder.tableExists(name)).isEmpty();
+  }
+
+  @Override
+  public boolean isReadyForContinuousUpdate(List<AnalyticsTable> tables) {
+    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      return true;
+    }
+
+    return tables.stream().allMatch(this::isReadyForContinuousUpdate);
+  }
+
+  /**
+   * A main table created before unique-key analytics tables were introduced remains on its original
+   * key model until a full rebuild recreates it. A continuous update's delete step requires the
+   * unique key model, so it must not be attempted against such a table.
+   */
+  private boolean isReadyForContinuousUpdate(AnalyticsTable table) {
+    String tableName = table.getMainName();
+
+    if (!tableExists(tableName)) {
+      // No main table yet; the initial create uses the required key model.
+      return true;
+    }
+
+    if (hasUniqueKeyModel(tableName)) {
+      return true;
+    }
+
+    log.error(
+        "Table '{}' does not use the unique key model required for continuous analytics "
+            + "updates on this database; run a full analytics table rebuild to recreate it with "
+            + "the required key model before running a continuous (lastYears=0) update",
+        tableName);
+
+    return false;
+  }
+
+  private boolean hasUniqueKeyModel(String tableName) {
+    List<Map<String, Object>> rows =
+        jdbcTemplate.queryForList(sqlBuilder.showCreateTable(tableName));
+
+    if (rows.isEmpty()) {
+      return false;
+    }
+
+    String createTableSql =
+        rows.get(0).values().stream().map(String::valueOf).collect(Collectors.joining(" "));
+
+    return createTableSql.toLowerCase().contains("unique key");
   }
 
   // -------------------------------------------------------------------------

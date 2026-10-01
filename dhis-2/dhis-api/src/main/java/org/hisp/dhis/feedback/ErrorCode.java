@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,6 +117,7 @@ public enum ErrorCode {
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
   /* Generic merge errors */
+  E1505("Another merge is already in progress, please try again later"),
   E1530("At least one source {0} must be specified"),
   E1531("Target {0} must be specified"),
   E1532("Target {0} cannot be a source {1}"),
@@ -443,6 +444,12 @@ public enum ErrorCode {
   E6021("AttributeValue `{0}` is an invalid phone number"),
   E6022("Object cannot reference itself by property `{0}`"),
   E6023("Type `{0}` cannot be imported via metadata"),
+  E6024("Object reference `{0}` is not of the form `type:id`"),
+  E6026("Type `{0}` is not supported as a dependency export root, supported types are: {1}"),
+  E6028("At least one `objects` parameter must be given, of the form `type:id`"),
+  E6029(
+      "Type `{0}` is not yet available for multi-object dependency export, use that type''s"
+          + " single-object metadata endpoint instead. Available types: {1}"),
 
   /* File resource */
   E6100("Filename not present"),
@@ -562,7 +569,7 @@ public enum ErrorCode {
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7201("Dimensions cannot be specified more than once: `{0}`"),
   E7202("Query items cannot be specified more than once: `{0}`"),
-  E7203("Value dimension cannot also be specified as an item or item filter"),
+  E7203("Value dimension cannot also be specified as a dimension without a legend set"),
   E7204("Value dimension or aggregate data must be specified when aggregation type is specified"),
   E7205("Start and end date or at least one period must be specified"),
   E7206("Start date is after end date: `{0}`, `{1}`"),
@@ -624,6 +631,17 @@ public enum ErrorCode {
   E7256("Value `{0}` is not a numeric tracked entity attribute of tracked entity type `{1}`"),
   E7257(
       "Value `{0}` does not reference a numeric data element of a program stage; expected format `programUid.programStageUid.dataElementUid`"),
+  E7258(
+      "Dimension is not supported as a group by in a tracked entity aggregate query: `{0}`. Supported dimensions are the registration organisation unit, tracked entity static fields, tracked entity attributes, and program or program stage scoped organisation units, dates, statuses and data elements"),
+  E7259("Dimension `{0}` is not supported for a program without registration"),
+  E7260("Dimension `{0}` must specify organisation units in an aggregate query"),
+  E7261(
+      "Dimension `{0}` does not support organisation units at different hierarchy levels in an aggregate query"),
+  E7262("Sorting by `{0}` requires the `{1}` dimension"),
+  E7263(
+      "Dimensions `{0}` and `{1}` are reported under the same name `{2}` in a tracked entity aggregate query. Request one offset of a program stage dimension at a time"),
+  E7264("Repeatable stage offset is not supported in `value`: `{0}`"),
+  E7265("Value `{0}` has aggregation type NONE, specify an `aggregationType`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

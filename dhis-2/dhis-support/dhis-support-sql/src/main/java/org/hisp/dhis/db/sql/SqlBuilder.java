@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -554,6 +554,16 @@ public interface SqlBuilder {
   String tableExists(String name);
 
   /**
+   * Only meaningful for engines where {@link #requiresUniqueKeyAnalyticsTables()} is true, which
+   * may have main tables predating the introduction of unique-key analytics tables.
+   *
+   * @param name the table name.
+   * @return a statement which returns the table's create statement, which can be inspected to
+   *     determine the table's key model.
+   */
+  String showCreateTable(String name);
+
+  /**
    * @param table the {@link Table}.
    * @return a count rows statement.
    */
@@ -600,4 +610,19 @@ public interface SqlBuilder {
    * @return an SQL fragment that casts {@code literal} to {@code DECIMAL(precision, scale)}
    */
   String decimalLiteral(String literal, int precision, int scale);
+
+  /**
+   * Returns an SQL expression that yields {@code NULL} when {@code column} holds an empty string,
+   * and the column value otherwise. This normalises empty text to {@code NULL} so that absent and
+   * empty text values are treated the same way across analytics databases.
+   *
+   * <p>The default returns the column unchanged. Engines that store empty strings where other
+   * engines store {@code NULL} (ClickHouse) override this to wrap the column in a {@code nullif}.
+   *
+   * @param column the text SQL column or expression.
+   * @return a NULL-normalising SQL fragment.
+   */
+  default String nullIfEmpty(String column) {
+    return column;
+  }
 }

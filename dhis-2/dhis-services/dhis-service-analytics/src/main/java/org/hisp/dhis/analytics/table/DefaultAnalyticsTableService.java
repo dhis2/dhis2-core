@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -171,9 +171,44 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     if (params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics()) {
       progress.startingStage(
+          format("Validating continuous update readiness: '{}'", tableType), SKIP_STAGE);
+      boolean readyForContinuousUpdate = tableManager.isReadyForContinuousUpdate(tables);
+
+      if (!readyForContinuousUpdate) {
+        // A main table predating unique-key analytics tables (or otherwise not in a state that
+        // supports a continuous update) must not have the delete step attempted against it, see
+        // isReadyForContinuousUpdate() for detail. The stage is reported as failed so the reason
+        // shows in the job log, while the remaining table types still get updated.
+        progress.failedStage(
+            format(
+                "Continuous update skipped for '{}': the analytics table was created before "
+                    + "continuous updates were supported on this database. Run a full analytics "
+                    + "table rebuild before running a continuous (lastYears=0) update",
+                tableType));
+        clock.logTime("Continuous analytics update aborted, not ready: '{}'", tableType);
+        return;
+      }
+
+      progress.completedStage("Validated continuous update readiness: '{}'", tableType);
+
+      progress.startingStage(
           format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
-      progress.runStage(() -> tableManager.removeUpdatedData(tables));
+      boolean removedUpdatedData = progress.runStage(() -> tableManager.removeUpdatedData(tables));
       clock.logTime("Removed updated and deleted data");
+
+      if (!removedUpdatedData) {
+        // Swapping in the staged data without having removed the stale/deleted rows it is meant
+        // to replace would corrupt the main table (duplicate or orphaned rows), so the continuous
+        // update for this table type is aborted here rather than proceeding to swap. A likely
+        // cause is a main table created before unique-key analytics tables were introduced; a
+        // full analytics table rebuild recreates it with the required key type.
+        log.error(
+            "Aborting continuous analytics update for '{}': failed to remove updated and "
+                + "deleted data, see preceding error. A full analytics table rebuild may be "
+                + "required before continuous updates can run for this table.",
+            tableType);
+        return;
+      }
     }
 
     swapTables(params, tables, progress);
@@ -355,11 +390,15 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       if (table.hasTablePartitions() && !sqlBuilder.supportsDeclarativePartitioning()) {
         // Each partition is its own physical table, so its own real date range and name apply.
         partitions.addAll(table.getTablePartitions());
-      } else if (table.hasTablePartitions() && isLatestUpdate) {
+      } else if (table.hasTablePartitions()
+          && isLatestUpdate
+          && sqlBuilder.supportsContinuousAnalytics()) {
         // A single physical table serves every logical partition on this engine (CREATE only
         // ever builds the master table's name), so the continuous/latest-update partition must
         // target that name - while still carrying its own real date range, needed to correctly
-        // scope the populate window.
+        // scope the populate window. Engines without continuous analytics support (ClickHouse)
+        // fall through to the fake partition below, so the staging table holds all data and can
+        // replace the whole main table.
         AnalyticsTablePartition latest = table.getTablePartitions().get(0);
         partitions.add(
             new AnalyticsTablePartition(

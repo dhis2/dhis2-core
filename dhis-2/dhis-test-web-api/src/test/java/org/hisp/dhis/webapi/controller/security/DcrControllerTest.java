@@ -47,6 +47,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import jakarta.servlet.http.HttpSession;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
@@ -77,6 +78,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -98,6 +100,7 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -432,6 +435,40 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
             > Instant.now().plus(30, ChronoUnit.SECONDS).getEpochSecond());
     assertNotNull(claims.get("jti"));
     assertNotNull(claims.get("iat"));
+  }
+
+  @Test
+  @DisplayName("Unauthenticated enroll request is saved and resumed after form login")
+  void testEnrollEndpointIsResumedAfterLogin() throws Exception {
+    // Given an unauthenticated call to the enroll endpoint, like the Android Capture app does
+    MvcResult result =
+        mvc.perform(
+                get("/api/auth/enrollDevice?redirectUri=dhis2oauth://oauth&state=abc")
+                    .accept(MediaType.TEXT_HTML))
+            // Then the user is sent to the login page
+            .andExpect(status().is3xxRedirection())
+            .andReturn();
+    String location = result.getResponse().getHeader(HttpHeaders.LOCATION);
+    assertNotNull(location);
+    assertTrue(location.contains("login"), location);
+
+    // And the request is saved in a session so it can be resumed after login. Without this the
+    // login app has no saved request and sends the user to the dashboard instead of the device.
+    HttpSession session = result.getRequest().getSession(false);
+    assertNotNull(session, "enroll request must create a session holding the saved request");
+
+    // When the user logs in on that session
+    mvc.perform(
+            post("/api/auth/login")
+                .session((MockHttpSession) session)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"admin\",\"password\":\"district\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.loginStatus").value("SUCCESS"))
+        // Then the login response points back to the enroll endpoint, not the dashboard
+        .andExpect(
+            jsonPath("$.redirectUrl")
+                .value("/api/auth/enrollDevice?redirectUri=dhis2oauth://oauth&state=abc"));
   }
 
   private String doClientRegistrationRequest(String iat, KeyPair keyPair) throws Exception {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,16 @@ import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -133,6 +136,7 @@ class AnalyticsTableServiceTest {
   @Test
   void testGetTablePartitionsUsesRealPartitionForLatestUpdateOnDeclarativePartitioningEngine() {
     when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
 
     List<AnalyticsTableColumn> columns =
         List.of(
@@ -165,6 +169,38 @@ class AnalyticsTableServiceTest {
         partition.getName(),
         "Populate/create target must be the one physical table this engine actually builds,"
             + " not a year-suffixed name nothing ever creates");
+  }
+
+  @Test
+  void testGetTablePartitionsUsesFakePartitionForLatestUpdateWithoutContinuousAnalytics() {
+    // e.g. ClickHouse: with no step removing updated and deleted rows, a continuous update
+    // replaces the whole main table, so the staging table must hold all data rather than only
+    // the rows changed within the latest partition's date range.
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(false);
+
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("dx")
+                .dataType(TEXT)
+                .selectExpression("dx")
+                .build());
+
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of("dx"), Logged.UNLOGGED);
+    table.addTablePartition(
+        List.of(),
+        AnalyticsTablePartition.LATEST_PARTITION,
+        new DateTime(2026, 7, 31, 12, 48, 20).toDate(),
+        new DateTime(2026, 7, 31, 12, 55, 0).toDate());
+
+    List<AnalyticsTablePartition> partitions =
+        tableService.getTablePartitions(List.of(table), true);
+
+    assertEquals(1, partitions.size());
+    assertFalse(partitions.get(0).isLatestPartition());
+    assertNull(partitions.get(0).getStartDate());
   }
 
   @Test
@@ -258,10 +294,73 @@ class AnalyticsTableServiceTest {
     when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
     when(sqlBuilder.supportsAnalyze()).thenReturn(false);
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+    when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(true);
 
     tableService.create(params, JobProgress.noop());
 
     verify(tableManager).removeUpdatedData(List.of(table));
+  }
+
+  @Test
+  void testRemoveUpdatedDataNotRunWhenNotReadyForContinuousUpdate() {
+    AnalyticsTable table = latestPartitionTableFixture();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+    when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(false);
+
+    JobProgress progress = spy(JobProgress.noop());
+
+    // e.g. a main table predating unique-key analytics tables on Doris: the delete step must
+    // never even be attempted against it, not just have its failure tolerated.
+    tableService.create(params, progress);
+
+    verify(tableManager, never()).removeUpdatedData(anyList());
+    verify(tableManager, never()).swapTable(eq(params), any(AnalyticsTable.class));
+    // The reason must reach the job log, not only the server log.
+    verify(progress).failedStage(contains("Run a full analytics table rebuild"));
+  }
+
+  @Test
+  void testSwapTableNotRunWhenRemoveUpdatedDataFails() {
+    AnalyticsTable table = latestPartitionTableFixture();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+    when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(true);
+    doThrow(new IllegalStateException("Delete failed"))
+        .when(tableManager)
+        .removeUpdatedData(anyList());
+
+    // removeUpdatedData()'s stage uses FailurePolicy.SKIP_STAGE, so its failure alone does not
+    // cancel the job (other table types must still be able to proceed). The table update must
+    // instead explicitly stop itself before swapping staged data into a main table it was unable
+    // to purge stale/deleted rows from.
+    tableService.create(params, JobProgress.noop());
+
+    verify(tableManager, never()).swapTable(eq(params), any(AnalyticsTable.class));
   }
 
   private AnalyticsTable latestPartitionTableFixture() {

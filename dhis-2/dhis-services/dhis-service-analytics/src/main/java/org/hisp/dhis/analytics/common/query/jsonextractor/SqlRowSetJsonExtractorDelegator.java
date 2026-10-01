@@ -36,6 +36,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.SUPPORTED_EVENT_STATIC_DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelOrgUnitObject;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OffsetHelper.getItemBasedOnOffset;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
@@ -162,7 +163,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
                   + DIMENSION_IDENTIFIER_SEP
                   + dimensionIdentifier.getDimension().getStaticDimension().getHeaderName();
           dimIdByKey.put(shortFormatKey, dimensionIdentifier);
-        } else if (isEventLevelOuDimensionalObject(dimensionIdentifier)) {
+        } else if (isEventLevelOrgUnitObject(dimensionIdentifier)) {
           // For stage-specific OU dimensions that went through DimensionalObject resolution,
           // also add short format key alias to support headers like programStageUid.ou
           String shortFormatKey =
@@ -184,19 +185,6 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     // we need to know which columns are in the sqlrowset, so that when a column is not present, we
     // can check if it is present in the json string
     this.existingColumnsInRowSet = Arrays.asList(sqlRowSet.getMetaData().getColumnNames());
-  }
-
-  /**
-   * Checks if the dimension identifier is a stage-specific OU dimension that has a
-   * DimensionalObject (i.e., went through org unit resolution rather than being treated as a static
-   * dimension).
-   */
-  private static boolean isEventLevelOuDimensionalObject(
-      DimensionIdentifier<DimensionParam> dimIdentifier) {
-    return dimIdentifier.isEventDimension()
-        && dimIdentifier.getDimension().isDimensionalObject()
-        && dimIdentifier.getDimension().getDimensionParamObjectType()
-            == DimensionParamObjectType.ORGANISATION_UNIT;
   }
 
   private static boolean isEventLevelDataElementDimension(
