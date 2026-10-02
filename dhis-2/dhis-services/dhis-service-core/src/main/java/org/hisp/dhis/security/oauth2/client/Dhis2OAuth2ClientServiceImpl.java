@@ -229,15 +229,7 @@ public class Dhis2OAuth2ClientServiceImpl
     RegisteredClient.Builder builder =
         RegisteredClient.withId(client.getUid())
             .clientId(client.getClientId())
-            .clientIdIssuedAt(
-                client.getClientIdIssuedAt() != null
-                    ? client.getClientIdIssuedAt().toInstant()
-                    : null)
             .clientSecret(client.getClientSecret())
-            .clientSecretExpiresAt(
-                client.getClientSecretExpiresAt() != null
-                    ? client.getClientSecretExpiresAt().toInstant()
-                    : null)
             .clientName(client.getName())
             .clientAuthenticationMethods(
                 authenticationMethods ->
@@ -252,6 +244,12 @@ public class Dhis2OAuth2ClientServiceImpl
             .redirectUris(uris -> uris.addAll(redirectUris))
             .postLogoutRedirectUris(uris -> uris.addAll(postLogoutRedirectUris))
             .scopes(scopes -> scopes.addAll(clientScopes));
+    if (client.getClientIdIssuedAt() != null) {
+      builder.clientIdIssuedAt(client.getClientIdIssuedAt().toInstant());
+    }
+    if (client.getClientSecretExpiresAt() != null) {
+      builder.clientSecretExpiresAt(client.getClientSecretExpiresAt().toInstant());
+    }
 
     Map<String, Object> clientSettingsMap = parseMap(client.getClientSettings());
     builder.clientSettings(ClientSettings.withSettings(clientSettingsMap).build());
@@ -289,8 +287,7 @@ public class Dhis2OAuth2ClientServiceImpl
     if (existingClient != null) {
       entity.setUid(existingClient.getUid());
       entity.setCreated(existingClient.getCreated());
-    } else if (registeredClient.getId() != null
-        && CodeGenerator.isValidUid(registeredClient.getId())) {
+    } else if (CodeGenerator.isValidUid(registeredClient.getId())) {
       entity.setUid(registeredClient.getId());
     } else {
       entity.setUid(CodeGenerator.generateUid());
@@ -300,9 +297,7 @@ public class Dhis2OAuth2ClientServiceImpl
     // internal id when not set explicitly, so getClientName() is never null.
     String clientName = registeredClient.getClientName();
     entity.setName(
-        clientName != null && !clientName.equals(registeredClient.getId())
-            ? clientName
-            : registeredClient.getClientId());
+        clientName.equals(registeredClient.getId()) ? registeredClient.getClientId() : clientName);
     entity.setClientId(registeredClient.getClientId());
     entity.setClientIdIssuedAt(
         registeredClient.getClientIdIssuedAt() != null

@@ -194,7 +194,7 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
     // When the client refreshes the tokens of an authorization, authenticating with
     // private_key_jwt. The authorization_code + PKCE exchange is covered by
     // OAuth2PkceEnforcementTest.
-    String refreshToken = UUID.randomUUID().toString();
+    String refreshToken = "inline-jwks-refresh-token";
     saveAuthorizationWithRefreshToken(
         client, refreshToken, Instant.now(), Instant.now().plus(Duration.ofDays(30)));
     String tokenResponse =

@@ -74,7 +74,6 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet.Builder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.authentication.JwtClientAssertionAuthenticationProvider;
@@ -272,40 +271,42 @@ public class AuthorizationServerConfig {
   @Bean
   public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService) {
     return context -> {
-      Builder claims = context.getClaims();
       OAuth2TokenType tokenType = context.getTokenType();
+      if (!OAuth2TokenType.ACCESS_TOKEN.equals(tokenType)
+          && !OidcParameterNames.ID_TOKEN.equals(tokenType.getValue())) {
+        return;
+      }
+
       Set<String> authorizedScopes = context.getAuthorizedScopes();
-      AuthorizationGrantType authorizationGrantType = context.getAuthorizationGrantType();
-
-      if (OAuth2TokenType.ACCESS_TOKEN.equals(tokenType)
-          || OidcParameterNames.ID_TOKEN.equals(tokenType.getValue())) {
-
-        if (authorizedScopes.contains(EMAIL_CLAIM)) {
-          String username = context.getPrincipal().getName();
-          User user = userService.getUserByUsername(username);
-          String email = user.getEmail();
-          if (email != null && !email.isEmpty()) {
-            claims.claim(EMAIL_CLAIM, email);
-          } else {
-            log.error("User '{}' has no email address, cannot include 'email' claim", username);
-            throw new IllegalStateException(
-                "User has no email address, cannot include 'email' claim");
-          }
-        }
-
-        if (authorizedScopes.contains(USERNAME_CLAIM)
-            && !AuthorizationGrantType.CLIENT_CREDENTIALS.equals(authorizationGrantType)) {
-          String username = context.getPrincipal().getName();
-          if (!username.isEmpty()) {
-            claims.claim(USERNAME_CLAIM, username);
-          } else {
-            log.error("Principal has no name, cannot include 'username' claim");
-            throw new IllegalStateException(
-                "Principal has no username, cannot include 'username' claim");
-          }
-        }
+      if (authorizedScopes.contains(EMAIL_CLAIM)) {
+        addEmailClaim(context, userService);
+      }
+      if (authorizedScopes.contains(USERNAME_CLAIM)
+          && !AuthorizationGrantType.CLIENT_CREDENTIALS.equals(
+              context.getAuthorizationGrantType())) {
+        addUsernameClaim(context);
       }
     };
+  }
+
+  private static void addEmailClaim(JwtEncodingContext context, UserService userService) {
+    String username = context.getPrincipal().getName();
+    User user = userService.getUserByUsername(username);
+    String email = user.getEmail();
+    if (email == null || email.isEmpty()) {
+      log.error("User '{}' has no email address, cannot include 'email' claim", username);
+      throw new IllegalStateException("User has no email address, cannot include 'email' claim");
+    }
+    context.getClaims().claim(EMAIL_CLAIM, email);
+  }
+
+  private static void addUsernameClaim(JwtEncodingContext context) {
+    String username = context.getPrincipal().getName();
+    if (username.isEmpty()) {
+      log.error("Principal has no name, cannot include 'username' claim");
+      throw new IllegalStateException("Principal has no username, cannot include 'username' claim");
+    }
+    context.getClaims().claim(USERNAME_CLAIM, username);
   }
 
   /**

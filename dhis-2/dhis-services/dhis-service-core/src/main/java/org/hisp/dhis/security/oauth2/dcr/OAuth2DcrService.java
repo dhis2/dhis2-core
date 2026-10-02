@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.CheckForNull;
@@ -171,7 +172,9 @@ public class OAuth2DcrService {
   @Nonnull
   @Transactional
   public IatPair createIat(@Nonnull String redirectUri) {
-    String issuer = authorizationServerSettings.getIssuer();
+    String issuer =
+        Objects.requireNonNull(
+            authorizationServerSettings.getIssuer(), "Authorization server issuer is not set");
     int ttlSeconds = systemSettingsService.getCurrentSettings().getDeviceEnrollmentIATTtlSeconds();
     IatPair iaToken =
         createIaToken(registeredClient, redirectUri, issuer, ttlSeconds, objectMapper, jwtEncoder);
@@ -266,7 +269,7 @@ public class OAuth2DcrService {
     // Ensure 'scope' is present as Collection<String> in the claims map.
     // Use a mutable, Jackson-friendly type to avoid the deserialization problems.
     Collection<String> tokenScopes = accessToken.getScopes();
-    if (tokenScopes != null && !tokenScopes.isEmpty()) {
+    if (!tokenScopes.isEmpty()) {
       safe.put(OAuth2ParameterNames.SCOPE, new ArrayList<>(tokenScopes));
     }
 
