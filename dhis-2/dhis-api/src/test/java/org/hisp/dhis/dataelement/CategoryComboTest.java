@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,6 +97,41 @@ class CategoryComboTest {
     categoryCombo.getCategories().add(categoryA);
     categoryCombo.getCategories().add(categoryB);
     categoryCombo.getCategories().add(categoryC);
+  }
+
+  @Test
+  void testGenerateOptionCombosSetNamesCombosInCategoryOrder() {
+    Set<CategoryOptionCombo> set = categoryCombo.generateOptionCombosSet();
+
+    assertTrue(
+        set.stream().anyMatch(coc -> "OptionB, OptionC, OptionF".equals(coc.getName())),
+        "option combo names must list the option names in category order");
+    set.forEach(coc -> assertEquals(computedName(coc), coc.getName()));
+  }
+
+  @Test
+  void testGenerateOptionCombosSetNamesMatchComputedNamesWithSharedOption() {
+    // an option shared by two categories appears once per category in a computed name
+    Category categoryD = new Category("CategoryD", DataDimensionType.DISAGGREGATION);
+    categoryD.getCategoryOptions().add(categoryOptionA);
+    categoryD.getCategoryOptions().add(categoryOptionC);
+    CategoryCombo shared = new CategoryCombo("Shared", DataDimensionType.DISAGGREGATION);
+    shared.getCategories().add(categoryA);
+    shared.getCategories().add(categoryD);
+
+    Set<CategoryOptionCombo> set = shared.generateOptionCombosSet();
+
+    assertEquals(4, set.size());
+    assertTrue(set.stream().anyMatch(coc -> "OptionA, OptionA".equals(coc.getName())));
+    set.forEach(coc -> assertEquals(computedName(coc), coc.getName()));
+  }
+
+  /** The name an unnamed option combo computes for itself from its combo's categories. */
+  private static String computedName(CategoryOptionCombo coc) {
+    CategoryOptionCombo unnamed = new CategoryOptionCombo();
+    unnamed.setCategoryCombo(coc.getCategoryCombo());
+    unnamed.setCategoryOptions(coc.getCategoryOptions());
+    return unnamed.getName();
   }
 
   @Test

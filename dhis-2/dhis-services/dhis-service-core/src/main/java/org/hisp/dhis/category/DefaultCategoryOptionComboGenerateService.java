@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,10 @@
  */
 package org.hisp.dhis.category;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.function.BiPredicate;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -130,42 +131,25 @@ public class DefaultCategoryOptionComboGenerateService
   @CheckForNull
   private ImportSummaries addAndPruneOptionCombo(
       @Nonnull CategoryCombo categoryCombo, ImportSummaries importSummaries) {
+    // Load the persisted COCs first: the lookup query flushes the session, which is cheap before
+    // generating loads every category option, and costly after
+    Set<CategoryOptionCombo> persistedCocs = getPersistedCocs(categoryCombo);
     Set<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosSet();
-    CategoryCombo catCombo = categoryComboStore.getByUid(categoryCombo.getUid());
-    Set<CategoryOptionCombo> persistedCocs =
-        catCombo != null ? Set.copyOf(catCombo.getOptionCombos()) : Set.of();
+    GeneratedCocs generated = GeneratedCocs.of(generatedCocs);
 
     // Persisted COC checks (update name or delete)
     for (CategoryOptionCombo persistedCoc : persistedCocs) {
-      generatedCocs.stream()
-          .filter(generatedCoc -> equalOrSameUid.test(persistedCoc, generatedCoc))
-          .findFirst()
-          .ifPresentOrElse(
-              generatedCoc -> updateNameIfNotEqual(persistedCoc, generatedCoc, importSummaries),
-              () -> deleteObsoleteCoc(persistedCoc, categoryCombo, importSummaries));
+      CategoryOptionCombo match = generated.findMatch(persistedCoc);
+      if (match != null) {
+        updateNameIfNotEqual(persistedCoc, match, importSummaries);
+      } else {
+        deleteObsoleteCoc(persistedCoc, categoryCombo, importSummaries);
+      }
     }
 
     // Generated COC check (add if missing and not empty)
     for (CategoryOptionCombo generatedCoc : generatedCocs) {
-      if (generatedCoc.getCategoryOptions().isEmpty()) {
-        log.warn(
-            "Generated category option combo %S has 0 options, skip adding for category combo `%s` as this is an invalid category option combo. Consider cleaning up the metadata model."
-                .formatted(generatedCoc.getName(), categoryCombo.getName()));
-      } else if (!persistedCocs.contains(generatedCoc)
-          && (categoryCombo.getOptionCombos().add(generatedCoc))) {
-        categoryService.addCategoryOptionCombo(generatedCoc);
-
-        String msg =
-            "Added missing category option combo: `%s` for category combo: `%s`"
-                .formatted(generatedCoc.getName(), categoryCombo.getName());
-        log.info(msg);
-        if (importSummaries != null) {
-          ImportSummary importSummary = new ImportSummary();
-          importSummary.setDescription(msg);
-          importSummary.incrementImported();
-          importSummaries.addImportSummary(importSummary);
-        }
-      }
+      addIfMissing(generatedCoc, persistedCocs, categoryCombo, importSummaries);
     }
     return importSummaries;
   }
@@ -203,8 +187,84 @@ public class DefaultCategoryOptionComboGenerateService
     }
   }
 
-  private final BiPredicate<CategoryOptionCombo, CategoryOptionCombo> equalOrSameUid =
-      (coc1, coc2) -> coc1.equals(coc2) || coc1.getUid().equals(coc2.getUid());
+  private Set<CategoryOptionCombo> getPersistedCocs(CategoryCombo categoryCombo) {
+    CategoryCombo catCombo = categoryComboStore.getByUid(categoryCombo.getUid());
+    if (catCombo == null) {
+      return Set.of();
+    }
+    // Load the persisted COCs and their category options in a few queries, rather than one query
+    // per COC when each one is hashed or compared
+    categoryComboStore.preloadCategoryComboAssociations(List.of(catCombo));
+    return Set.copyOf(catCombo.getOptionCombos());
+  }
+
+  private void addIfMissing(
+      CategoryOptionCombo generatedCoc,
+      Set<CategoryOptionCombo> persistedCocs,
+      CategoryCombo categoryCombo,
+      ImportSummaries importSummaries) {
+    if (generatedCoc.getCategoryOptions().isEmpty()) {
+      log.warn(
+          "Generated category option combo %S has 0 options, skip adding for category combo `%s` as this is an invalid category option combo. Consider cleaning up the metadata model."
+              .formatted(generatedCoc.getName(), categoryCombo.getName()));
+      return;
+    }
+    if (persistedCocs.contains(generatedCoc)
+        || !categoryCombo.getOptionCombos().add(generatedCoc)) {
+      return;
+    }
+    categoryService.addCategoryOptionCombo(generatedCoc);
+    // Keep the inverse side in step, only for COCs actually added
+    for (CategoryOption categoryOption : generatedCoc.getCategoryOptions()) {
+      categoryOption.getCategoryOptionCombos().add(generatedCoc);
+    }
+
+    String msg =
+        "Added missing category option combo: `%s` for category combo: `%s`"
+            .formatted(generatedCoc.getName(), categoryCombo.getName());
+    log.info(msg);
+    if (importSummaries != null) {
+      ImportSummary importSummary = new ImportSummary();
+      importSummary.setDescription(msg);
+      importSummary.incrementImported();
+      importSummaries.addImportSummary(importSummary);
+    }
+  }
+
+  /**
+   * Generated COCs indexed so each persisted COC is matched with a lookup instead of a scan of all
+   * generated COCs, which is quadratic in the number of COCs.
+   */
+  private record GeneratedCocs(
+      Map<Set<CategoryOption>, CategoryOptionCombo> byOptions,
+      Map<String, CategoryOptionCombo> byUid) {
+
+    static GeneratedCocs of(Set<CategoryOptionCombo> generatedCocs) {
+      Map<Set<CategoryOption>, CategoryOptionCombo> byOptions =
+          new HashMap<>(generatedCocs.size() * 2);
+      Map<String, CategoryOptionCombo> byUid = new HashMap<>();
+      for (CategoryOptionCombo generatedCoc : generatedCocs) {
+        byOptions.putIfAbsent(generatedCoc.getCategoryOptions(), generatedCoc);
+        if (generatedCoc.getUid() != null) {
+          byUid.putIfAbsent(generatedCoc.getUid(), generatedCoc);
+        }
+      }
+      return new GeneratedCocs(byOptions, byUid);
+    }
+
+    /**
+     * Finds the generated COC matching a persisted COC: one that is equal (same category combo and
+     * category options), otherwise one with the same UID.
+     */
+    @CheckForNull
+    CategoryOptionCombo findMatch(CategoryOptionCombo persistedCoc) {
+      CategoryOptionCombo match = byOptions.get(persistedCoc.getCategoryOptions());
+      if (match != null && persistedCoc.equals(match)) {
+        return match;
+      }
+      return persistedCoc.getUid() != null ? byUid.get(persistedCoc.getUid()) : null;
+    }
+  }
 
   private void updateNameIfNotEqual(
       CategoryOptionCombo coc1, CategoryOptionCombo coc2, ImportSummaries summaries) {
