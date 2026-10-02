@@ -83,6 +83,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -372,6 +373,7 @@ class EventsExportController {
   }
 
   @GetMapping("/{event}/dataValues/{dataElement}/file")
+  @CspUserUploadedContent
   ResponseEntity<InputStreamResource> getEventDataValueFile(
       @OpenApi.Param({UID.class, TrackerEvent.class}) @PathVariable UID event,
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
@@ -392,6 +394,7 @@ class EventsExportController {
     return requestHandler.serve(request, fileResource);
   }
 
+  @CspUserUploadedContent
   @GetMapping("/{event}/dataValues/{dataElement}/image")
   ResponseEntity<InputStreamResource> getEventDataValueImage(
       @OpenApi.Param({UID.class, TrackerEvent.class}) @PathVariable UID event,
