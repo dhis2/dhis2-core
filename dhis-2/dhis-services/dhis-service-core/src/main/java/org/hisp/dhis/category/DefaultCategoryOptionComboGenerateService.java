@@ -131,8 +131,10 @@ public class DefaultCategoryOptionComboGenerateService
   @CheckForNull
   private ImportSummaries addAndPruneOptionCombo(
       @Nonnull CategoryCombo categoryCombo, ImportSummaries importSummaries) {
-    Set<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosSet();
+    // Load the persisted COCs first: the lookup query flushes the session, which is cheap before
+    // generating loads every category option, and costly after
     Set<CategoryOptionCombo> persistedCocs = getPersistedCocs(categoryCombo);
+    Set<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosSet();
     GeneratedCocs generated = GeneratedCocs.of(generatedCocs);
 
     // Persisted COC checks (update name or delete)
