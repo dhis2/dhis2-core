@@ -183,7 +183,7 @@ public class HibernateDataExportStore implements DataExportStore {
         SELECT DISTINCT ou.organisationunitid
         FROM ou_ids
         JOIN organisationunit root USING (organisationunitid)
-        JOIN organisationunit ou ON ou.patharray @> root.patharray
+        JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
       ),
       aoc_access AS MATERIALIZED (
         SELECT aoc.categoryoptioncomboid, aoc.uid
