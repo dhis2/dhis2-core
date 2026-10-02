@@ -64,7 +64,7 @@ import org.springframework.util.Assert;
   "dataElement",
   "value",
   "providedElsewhere",
-  "createAtDataValue",
+  "createdAtDataValue",
   "updatedAtDataValue"
 })
 class CsvEventDataValue {
@@ -110,6 +110,10 @@ class CsvEventDataValue {
 
   private String attributeOptionCombo;
 
+  /**
+   * Only used on import. The exporter no longer writes the attribute option combos category
+   * options; the column is kept so headerless CSV import keeps working.
+   */
   private String attributeCategoryOptions;
 
   private String assignedUser;
