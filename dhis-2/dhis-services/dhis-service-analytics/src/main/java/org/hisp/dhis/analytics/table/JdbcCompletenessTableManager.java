@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -269,6 +269,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             .name("id")
             .dataType(TEXT)
             .selectExpression(idColAlias)
+            .skipIndex(skipIndex("id"))
             .build());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
