@@ -148,6 +148,9 @@ public enum ErrorCode {
   E1551(
       "All source DataElementDomains must match target DataElementDomain: `{0}`. Other DataElementDomains found: `{1}`"),
 
+  /* ExternalMapLayer */
+  E1552("Invalid image"),
+
   /* Data */
   E2000("Query parameters cannot be null"),
   E2001("At least one data element, data set or data element group must be specified"),
