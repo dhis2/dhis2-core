@@ -626,7 +626,8 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private String postNewOrganisationUnit(String name) {
-    return postNewOrganisationUnit(name, name, name.substring(0, 3).toUpperCase());
+    return postNewOrganisationUnit(
+        name, name, StringUtils.deleteWhitespace(name).substring(0, 3).toUpperCase());
   }
 
   private String postNewOrganisationUnit(String name, String id, String code) {
