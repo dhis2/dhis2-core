@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,6 +117,7 @@ public enum ErrorCode {
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
   /* Generic merge errors */
+  E1505("Another merge is already in progress, please try again later"),
   E1530("At least one source {0} must be specified"),
   E1531("Target {0} must be specified"),
   E1532("Target {0} cannot be a source {1}"),
