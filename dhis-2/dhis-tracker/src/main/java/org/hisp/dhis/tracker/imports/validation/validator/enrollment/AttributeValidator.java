@@ -56,7 +56,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,8 +70,6 @@ class AttributeValidator
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(enrollment.getProgram());
-    TrackedEntity te = bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
-
     OrganisationUnit orgUnit =
         preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
 
@@ -98,7 +95,13 @@ class AttributeValidator
         validateOptionSet(reporter, preheat, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
-            reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);
+            reporter,
+            preheat,
+            enrollment,
+            attribute.getValue(),
+            teAttribute,
+            enrollment.getTrackedEntity(),
+            orgUnit);
       }
     }
 

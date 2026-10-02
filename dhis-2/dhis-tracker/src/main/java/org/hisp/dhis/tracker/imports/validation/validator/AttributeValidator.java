@@ -31,8 +31,8 @@ package org.hisp.dhis.tracker.imports.validation.validator;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1077;
 
-import java.util.List;
 import java.util.Objects;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -41,7 +41,6 @@ import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
  * @author Luciano Fiandesio
@@ -66,24 +65,24 @@ public abstract class AttributeValidator {
       TrackerDto dto,
       String value,
       TrackedEntityAttribute trackedEntityAttribute,
-      TrackedEntity trackedEntity,
+      UID trackedEntity,
       OrganisationUnit organisationUnit) {
     if (Boolean.FALSE.equals(trackedEntityAttribute.isUnique())) return;
 
-    List<UniqueAttributeValue> uniqueAttributeValues = preheat.getUniqueAttributeValues();
+    for (UniqueAttributeValue uniqueAttributeValue : preheat.getUniqueAttributeValues(value)) {
+      boolean isTheSameTea = uniqueAttributeValue.attribute().isEqualTo(trackedEntityAttribute);
+      boolean hasTheSameValue = value.equalsIgnoreCase(uniqueAttributeValue.value());
+      // compared with the tracked entity of the payload, as a new one is in the payload
+      // duplicates too
+      boolean isNotSameTei = !Objects.equals(trackedEntity, uniqueAttributeValue.te());
+      // a value unique within an org unit only conflicts in the same org unit. An entry without org
+      // unit (e.g. from an enrollment of a tracked entity that does not exist) is in no org unit
+      boolean isInUniquenessScope =
+          !trackedEntityAttribute.getOrgUnitScopeNullSafe()
+              || (uniqueAttributeValue.orgUnit() != null
+                  && uniqueAttributeValue.orgUnit().isEqualTo(organisationUnit));
 
-    for (UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues) {
-      boolean isTeaUniqueInOrgUnitScope =
-          !trackedEntityAttribute.getOrgunitScope()
-              || uniqueAttributeValue.getOrgUnit().isEqualTo(organisationUnit);
-
-      boolean isTheSameTea = uniqueAttributeValue.getAttribute().isEqualTo(trackedEntityAttribute);
-      boolean hasTheSameValue = value.equalsIgnoreCase(uniqueAttributeValue.getValue());
-      boolean isNotSameTei =
-          trackedEntity == null
-              || !Objects.equals(trackedEntity.getUID(), uniqueAttributeValue.getTe());
-
-      if (isTeaUniqueInOrgUnitScope && isTheSameTea && hasTheSameValue && isNotSameTei) {
+      if (isTheSameTea && hasTheSameValue && isNotSameTei && isInUniquenessScope) {
         reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);
         return;
       }

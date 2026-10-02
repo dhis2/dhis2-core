@@ -29,16 +29,26 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.Error;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -87,6 +97,97 @@ class TeTaEncryptionValidationTest extends PostgresIntegrationTestBase {
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldFailWhenOrgUnitScopedUniqueValueExistsForAnotherTrackedEntityInTheSameOrgUnit()
+      throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    // another tracked entity with the same value, moved to the org unit of the first one
+    trackerObjects =
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_region.json");
+    trackerObjects.getTrackedEntities().get(0).setOrgUnit(MetadataIdentifier.ofUid("cNEZTkdAvmg"));
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasOnlyErrors(importReport, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldImportNewTrackedEntitiesWithTheSameOrgUnitScopedValueInDifferentOrgUnits()
+      throws IOException {
+    TrackerObjects trackerObjects = countryAndRegionTrackedEntitiesWithTheSameValue();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects);
+
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldRejectNewTrackedEntitiesWithTheSameOrgUnitScopedValueInTheSameOrgUnit()
+      throws IOException {
+    TrackerObjects trackerObjects = countryAndRegionTrackedEntitiesWithTheSameValue();
+    trackerObjects.getTrackedEntities().get(1).setOrgUnit(MetadataIdentifier.ofUid("cNEZTkdAvmg"));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects);
+
+    assertHasErrors(importReport, 2, ValidationCode.E1064);
+  }
+
+  /** Two new tracked entities, in the country and in the region, with the same value 321. */
+  private TrackerObjects countryAndRegionTrackedEntitiesWithTheSameValue() throws IOException {
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
+    trackerObjects
+        .getTrackedEntities()
+        .addAll(
+            testSetup
+                .fromJson("tracker/validations/te-program_with_tea_unique_data_in_region.json")
+                .getTrackedEntities());
+    return trackerObjects;
+  }
+
+  @Test
+  void shouldOnlyRejectEnrollmentWhenItsUnknownTrackedEntitySendsTheSameOrgUnitScopedValue()
+      throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
+    UID trackedEntity = trackerObjects.getTrackedEntities().get(0).getUID();
+    Attribute scopedValue = trackerObjects.getTrackedEntities().get(0).getAttributes().get(0);
+    // the tracked entity of this enrollment exists neither in the payload nor in the DB, so the org
+    // unit of its value is unknown
+    UID enrollment = UID.generate();
+    trackerObjects
+        .getEnrollments()
+        .add(
+            Enrollment.builder()
+                .enrollment(enrollment)
+                .trackedEntity(UID.generate())
+                .program(MetadataIdentifier.ofUid("hJUBNVQWl4e"))
+                .orgUnit(MetadataIdentifier.ofUid("cNEZTkdAvmg"))
+                .enrolledAt(Instant.now())
+                .occurredAt(Instant.now())
+                .attributes(List.of(scopedValue))
+                .build());
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    List<Error> errors = importReport.getValidationReport().getErrors();
+    assertFalse(errors.isEmpty(), "the enrollment of an unknown tracked entity must be rejected");
+    assertTrue(
+        errors.stream().allMatch(e -> enrollment.equals(e.getUid())),
+        () -> "only the enrollment must be rejected, got: " + errors);
+    assertTrue(
+        errors.stream().noneMatch(e -> ValidationCode.E1064.name().equals(e.getErrorCode())),
+        () -> "the value of an unknown org unit must not collide, got: " + errors);
+    assertFalse(errors.stream().anyMatch(e -> trackedEntity.equals(e.getUid())));
   }
 
   @Test
