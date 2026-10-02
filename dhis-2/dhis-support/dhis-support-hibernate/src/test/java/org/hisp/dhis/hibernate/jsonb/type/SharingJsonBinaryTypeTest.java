@@ -97,6 +97,51 @@ class SharingJsonBinaryTypeTest {
   }
 
   @Test
+  void differentUserGroupAccessIsNotEqual() {
+    Sharing other = sharing();
+    other.getUserGroups().get("groupA00001").setAccess("rw------");
+
+    assertFalse(type.equals(sharing(), other));
+  }
+
+  @Test
+  void differentAccessIdUnderSameKeyIsNotEqual() {
+    Sharing other = sharing();
+    other.getUsers().get("userA000001").setId("userB000001");
+
+    assertFalse(type.equals(sharing(), other));
+  }
+
+  @Test
+  void displayNameIsNotPersistedSoItsCopyIsNotEqual() {
+    // displayName is written to the JSON but not read back, so the snapshot never has it
+    Sharing sharing = sharing();
+    sharing.getUsers().get("userA000001").setDisplayName("User A");
+
+    assertFalse(type.equals(sharing, type.deepCopy(sharing)));
+  }
+
+  @Test
+  void nullAccessIsNotEqual() {
+    Sharing withNullAccess = sharing();
+    withNullAccess.getUsers().put("userA000001", null);
+
+    assertFalse(type.equals(withNullAccess, sharing()));
+    assertFalse(type.equals(sharing(), withNullAccess));
+  }
+
+  @Test
+  void nullKeyIsLeftToContentBasedComparison() {
+    // A null key cannot be serialised, so the content based comparison treats it as not equal
+    Sharing a = sharing();
+    a.getUsers().put(null, new UserAccess("rw------", "userB000001"));
+    Sharing b = sharing();
+    b.getUsers().put(null, new UserAccess("rw------", "userB000001"));
+
+    assertFalse(type.equals(a, b));
+  }
+
+  @Test
   void agreesWithContentBasedComparison() {
     JsonBinaryType contentBased = new JsonBinaryType();
     contentBased.init(Sharing.class);
@@ -104,10 +149,24 @@ class SharingJsonBinaryTypeTest {
     withoutUsers.setUsers(null);
     Sharing withEmptyUsers = sharing();
     withEmptyUsers.setUsers(new HashMap<>());
+    Sharing withoutUserGroups = sharing();
+    withoutUserGroups.setUserGroups(null);
+    Sharing withEmptyUserGroups = sharing();
+    withEmptyUserGroups.setUserGroups(new HashMap<>());
     Sharing otherOwner = sharing();
     otherOwner.setOwner("otherOwner1");
+    Sharing withDisplayName = sharing();
+    withDisplayName.getUserGroups().get("groupA00001").setDisplayName("Group A");
 
-    List<Sharing> values = List.of(sharing(), withoutUsers, withEmptyUsers, otherOwner);
+    List<Sharing> values =
+        List.of(
+            sharing(),
+            withoutUsers,
+            withEmptyUsers,
+            withoutUserGroups,
+            withEmptyUserGroups,
+            otherOwner,
+            withDisplayName);
     for (Sharing x : values) {
       for (Sharing y : values) {
         Object copy = type.deepCopy(y);

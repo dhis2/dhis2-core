@@ -47,8 +47,9 @@ public class SharingJsonBinaryType extends JsonBinaryType {
   /**
    * {@link Sharing} does not implement {@code equals}, and the snapshot Hibernate keeps for dirty
    * checking is a deep copy, so the inherited check would serialise and parse both values on every
-   * flush of every entity with sharing. Compare the persisted fields directly first, and only fall
-   * back to the content based comparison when they differ.
+   * flush of every entity with sharing. Compare the fields that make up the persisted JSON directly
+   * first, and only fall back to the content based comparison when they differ (or a value could
+   * not be serialised, such as an access map with a null key).
    */
   @Override
   public boolean equals(Object x, Object y) {
@@ -74,6 +75,9 @@ public class SharingJsonBinaryType extends JsonBinaryType {
       return false;
     }
     for (Map.Entry<String, ? extends AccessObject> e : a.entrySet()) {
+      if (e.getKey() == null) {
+        return false; // cannot be serialised, leave it to the content based comparison
+      }
       AccessObject other = b.get(e.getKey());
       AccessObject access = e.getValue();
       if (access == null
