@@ -29,13 +29,17 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -173,6 +177,39 @@ class SharingJsonBinaryTypeTest {
         assertEquals(contentBased.equals(x, copy), type.equals(x, copy), x + " vs " + y);
       }
     }
+  }
+
+  /**
+   * {@link SharingJsonBinaryType#equals} lists the persisted fields by hand. If a field is added to
+   * the JSON without being compared there, a change to only that field would never be saved. Update
+   * {@code sameFields} or {@code sameAccess} together with the expected names below.
+   */
+  @Test
+  void comparesEveryPersistedProperty() {
+    assertEquals(
+        Set.of("owner", "public", "users", "userGroups"),
+        persistedProperties(Sharing.class),
+        "Sharing properties changed, update SharingJsonBinaryType.sameFields");
+    Set<String> accessProperties = Set.of("id", "access", "displayName");
+    assertEquals(
+        accessProperties,
+        persistedProperties(UserAccess.class),
+        "UserAccess properties changed, update SharingJsonBinaryType.sameAccess");
+    assertEquals(
+        accessProperties,
+        persistedProperties(UserGroupAccess.class),
+        "UserGroupAccess properties changed, update SharingJsonBinaryType.sameAccess");
+  }
+
+  private static Set<String> persistedProperties(Class<?> type) {
+    BeanDescription description =
+        JsonBinaryType.MAPPER
+            .getSerializationConfig()
+            .introspect(JsonBinaryType.MAPPER.constructType(type));
+    return description.findProperties().stream()
+        .filter(BeanPropertyDefinition::couldSerialize)
+        .map(BeanPropertyDefinition::getName)
+        .collect(toSet());
   }
 
   private static Sharing sharing() {
