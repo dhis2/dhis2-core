@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -305,7 +305,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           SELECT DISTINCT ou.organisationunitid
           FROM ou_ids
           JOIN organisationunit root USING (organisationunitid)
-          JOIN organisationunit ou ON ou.path LIKE root.path || '%'
+          JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
         )
         SELECT
           de.uid AS deid,
@@ -330,7 +330,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("ou", "deleted"), createExportQuery(params, createSpyQuery(), new SystemUser()));
+        Set.of("ou", "deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
   @Test
@@ -397,7 +398,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           SELECT DISTINCT ou.organisationunitid
           FROM ou_ids
           JOIN organisationunit root USING (organisationunitid)
-          JOIN organisationunit ou ON ou.path LIKE root.path || '%'
+          JOIN organisationunit ou ON ou.patharray && ARRAY[root.uid]
         )
         SELECT
           de.uid AS deid,
