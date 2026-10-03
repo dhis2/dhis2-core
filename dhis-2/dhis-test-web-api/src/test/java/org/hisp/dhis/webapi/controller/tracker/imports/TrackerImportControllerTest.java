@@ -30,10 +30,11 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -43,6 +44,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -74,20 +76,41 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
 
   @Test
   void shouldImportAsyncByDefault() {
+    HttpResponse httpResponse = POST("/tracker?importMode=VALIDATE", "{}");
     JsonWebMessage jsonWebMessage =
-        assertWebMessage(
-            "OK",
-            200,
-            "OK",
-            "Tracker job added",
-            POST("/tracker?importMode=VALIDATE", "{}").content(HttpStatus.OK));
+        assertWebMessage("OK", 200, "OK", "Tracker job added", httpResponse.content(HttpStatus.OK));
 
     JsonObject response = jsonWebMessage.getResponse();
-    String location = response.getString("location").string();
-    assertContains("/tracker/jobs/", location);
-    String jobId = location.substring(location.lastIndexOf('/') + 1);
-    assertEquals(jobId, response.getString("id").string());
+    String expectedLocation =
+        "http://localhost/api/tracker/jobs/" + response.getString("id").string();
+    assertAll(
+        () ->
+            assertEquals(
+                expectedLocation, response.getString("location").string(), "response.location"),
+        () -> assertEquals(expectedLocation, httpResponse.location(), "Location header"));
     assertEquals("TrackerJob", response.getString("responseType").string());
+  }
+
+  @Test
+  void shouldIncludeContextPathInAsyncJobLocation() {
+    HttpResponse httpResponse =
+        perform(
+            post("/dhis/api/tracker")
+                .contextPath("/dhis")
+                .queryParam("async", "true")
+                .queryParam("importMode", "VALIDATE")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"));
+
+    JsonObject response =
+        httpResponse.content(HttpStatus.OK).as(JsonWebMessage.class).getResponse();
+    String expectedLocation =
+        "http://localhost/dhis/api/tracker/jobs/" + response.getString("id").string();
+    assertAll(
+        () ->
+            assertEquals(
+                expectedLocation, response.getString("location").string(), "response.location"),
+        () -> assertEquals(expectedLocation, httpResponse.location(), "Location header"));
   }
 
   @Test
