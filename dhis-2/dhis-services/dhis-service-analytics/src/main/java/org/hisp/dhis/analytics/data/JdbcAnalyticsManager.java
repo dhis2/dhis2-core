@@ -77,6 +77,7 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.analytics.util.sql.OrgUnitHierarchySql;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -89,6 +90,8 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -134,6 +137,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
   private static final String TEXTVALUE = "textvalue";
 
+  private static final String PARENT_OU_ALIAS = "parentou";
+
   private static final String APPROVALLEVEL = "approvallevel";
 
   private static final int LAST_VALUE_YEARS_OFFSET = -10;
@@ -157,6 +162,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   private final ExecutionPlanStore executionPlanStore;
 
   private final SqlBuilder sqlBuilder;
+
+  private final OrganisationUnitService organisationUnitService;
 
   // -------------------------------------------------------------------------
   // AnalyticsManager implementation
@@ -622,42 +629,89 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   }
 
   /**
-   * Generates a sub query which finds the minimum or maximum value of data over periods within each
-   * organisation unit. This is useful when the main query uses a different aggregation type across
-   * organisation units.
+   * Generates a sub query which resolves MIN or MAX in the organisation unit hierarchy. Aggregation
+   * happens in three steps:
+   *
+   * <ol>
+   *   <li>the value held by each organisation unit is summed,
+   *   <li>the MIN or MAX is taken across the children of each parent organisation unit,
+   *   <li>the outer query sums those values up to the requested output organisation units.
+   * </ol>
+   *
+   * <p>So within an organisation unit the value is the MIN or MAX across its children, and only
+   * above that level are values summed.
    *
    * @param params the {@link DataQueryParams}.
    * @param tableType the type of analytics table.
    * @return a SQL minimum or maximum value sub query.
    */
   private String getMinOrMaxValueSubquerySql(DataQueryParams params, AnalyticsTableType tableType) {
-    String dimensionColumns = getMinOrMaxValueSubqueryDimensionColumns(params);
-    String valueColumns = getMinOrMaxValueSubqueryValueColumns(params);
+    List<String> dimensionColumns = getMinOrMaxValueSubqueryDimensionColumns(params);
+    String parentExpression = getParentOrgUnitExpression();
+    String ouColumn = quoteAlias(OU);
+    String parentColumn = quoteAlias(PARENT_OU_ALIAS);
     String fromSourceClause = getFromSourceClause(params) + " as " + ANALYTICS_TBL_ALIAS;
     String whereClause = getWhereClause(params, tableType);
 
+    List<String> childSelect =
+        concat(
+            List.of(parentExpression + " as " + quote(PARENT_OU_ALIAS), ouColumn),
+            dimensionColumns);
+    List<String> childGroupBy =
+        concat(List.of(parentExpression, ouColumn), dimensionColumns).stream().distinct().toList();
+    List<String> siblingColumns = concat(List.of(parentColumn), dimensionColumns);
+
     // spotless:off
-    return "(select " + dimensionColumns + "," + valueColumns + " " + 
-        "from " + fromSourceClause + " " + whereClause + 
-        "group by " + dimensionColumns + ")";
+    return "(select " + join(",", siblingColumns) + "," + getMinOrMaxValueSubqueryValueColumns(params) + " " +
+        "from (" +
+            "select " + join(",", childSelect) + "," + getMinOrMaxValueSubqueryChildValueColumns() + " " +
+            "from " + fromSourceClause + " " + whereClause +
+            "group by " + join(",", childGroupBy) +
+        ") as " + ANALYTICS_TBL_ALIAS + " " +
+        "group by " + join(",", siblingColumns) + ")";
     // spotless:on
   }
 
   /**
-   * Gets a string with the dimension columns for a min or max value subquery quoted and separated
-   * with commas. OU (organisation unit) is included to find min or max within each organisation
-   * unit,
+   * Returns a SQL expression resolving the parent organisation unit of the organisation unit of
+   * each row, used to group sibling organisation units together.
+   *
+   * @return a SQL expression.
+   */
+  private String getParentOrgUnitExpression() {
+    int maxLevel =
+        organisationUnitService.getFilledOrganisationUnitLevels().stream()
+            .mapToInt(OrganisationUnitLevel::getLevel)
+            .max()
+            .orElse(1);
+
+    return OrgUnitHierarchySql.getParentOrgUnitExpression(
+        maxLevel, quoteAlias(OU), level -> quoteAlias(LEVEL_PREFIX + level));
+  }
+
+  /**
+   * Gets the value columns for the innermost min or max value sub query, which aggregates the value
+   * held by a single organisation unit. Numeric columns are summed. The text value column cannot be
+   * summed and is reduced with max to keep the column list stable.
+   *
+   * @return the value columns string.
+   */
+  private String getMinOrMaxValueSubqueryChildValueColumns() {
+    return toQuotedFunctionString("sum", List.of(DAYSXVALUE, DAYSNO, VALUE))
+        + ","
+        + toQuotedFunctionString("max", List.of(TEXTVALUE));
+  }
+
+  /**
+   * Gets the dimension columns for a min or max value sub query, quoted. The organisation unit and
+   * parent organisation unit columns are added separately by each level of the sub query.
    *
    * @param params the {@link DataQueryParams}.
-   * @return the dimension columns string.
+   * @return the dimension columns.
    */
-  private String getMinOrMaxValueSubqueryDimensionColumns(DataQueryParams params) {
-    return join(
-        ",",
-        concat(
-            List.of(quoteAlias(OU)),
-            getSubqueryDataApprovalColumns(params),
-            getQuotedDimensionColumns(params.getDimensions())));
+  private List<String> getMinOrMaxValueSubqueryDimensionColumns(DataQueryParams params) {
+    return concat(
+        getSubqueryDataApprovalColumns(params), getQuotedDimensionColumns(params.getDimensions()));
   }
 
   /**
