@@ -44,6 +44,7 @@ import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.authz.AuthzService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -109,6 +110,7 @@ public class Dhis2JwtAuthenticationManagerResolver
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
   @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
   @Autowired private UserService userService;
+  @Autowired private AuthzService authzService;
 
   private final Map<String, AuthenticationManager> authenticationManagers =
       new ConcurrentHashMap<>();
@@ -218,7 +220,7 @@ public class Dhis2JwtAuthenticationManagerResolver
       String mappingValue = jwt.getClaim(mappingClaimKey);
       UserDetails currentUserDetails =
           switch (mappingClaimKey) {
-            case "username" -> userService.createUserDetailsByUsername(mappingValue);
+            case "username" -> authzService.getFreshUserDetails(mappingValue);
             case "email" -> userService.createUserDetailsByOpenId(mappingValue);
             default -> throw new InvalidBearerTokenException("Invalid mapping claim");
           };

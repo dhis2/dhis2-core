@@ -45,7 +45,9 @@ import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.test.authz.InMemoryAuthzVersionStore;
 import org.hisp.dhis.test.h2.H2SqlFunction;
+import org.hisp.dhis.user.authz.AuthzVersionStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,6 +63,19 @@ public class H2TestConfig {
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider() {
     return new H2DhisConfigurationProvider();
+  }
+
+  /**
+   * The production {@link org.hisp.dhis.user.authz.JdbcAuthzVersionStore} SQL is PostgreSQL-only;
+   * soft-refresh feature coverage runs against Postgres. H2 contexts still need a functional
+   * epoch/gen double (not a no-op): {@code DefaultAuthzService} invalidates its per-username
+   * UserDetails cache only when the epoch moves, so a frozen epoch would leak stale principals
+   * across tests in the same context.
+   */
+  @Bean
+  @Primary
+  public AuthzVersionStore authzVersionStore() {
+    return new InMemoryAuthzVersionStore();
   }
 
   public static class NoOpFlyway {}

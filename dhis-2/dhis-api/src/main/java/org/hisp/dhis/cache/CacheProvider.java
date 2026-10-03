@@ -96,6 +96,8 @@ public interface CacheProvider {
 
   <V> Cache<V> createApiKeyCache();
 
+  <V> Cache<V> createUserDetailsAuthzCache();
+
   <V> Cache<V> createTeAttributesCache();
 
   <V> Cache<V> createProgramTeAttributesCache();
