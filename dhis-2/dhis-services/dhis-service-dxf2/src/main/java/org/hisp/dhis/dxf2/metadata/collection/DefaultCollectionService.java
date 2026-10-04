@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,13 @@
 package org.hisp.dhis.dxf2.metadata.collection;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -240,9 +242,22 @@ public class DefaultCollectionService implements CollectionService {
         validateUpdate(
             object, propertyName, "Only identifiable object collections can be replaced.");
 
-    TypeReport deletions =
-        delCollectionItems(object, propertyName, getCollection(object, property));
-    TypeReport additions = addCollectionItems(object, propertyName, objects);
+    // Only remove and add the difference: items already in the collection are left untouched, as
+    // for non-owned collections each touched item loads and updates its full owning collection
+    Collection<IdentifiableObject> current = getCollection(object, property);
+    Set<String> currentUids = current.stream().map(IdentifiableObject::getUid).collect(toSet());
+    Set<String> requestedUids = objects.stream().map(IdentifiableObject::getUid).collect(toSet());
+
+    List<IdentifiableObject> removed =
+        current.stream().filter(item -> !requestedUids.contains(item.getUid())).toList();
+    List<IdentifiableObject> added =
+        objects.stream()
+            .filter(item -> !currentUids.contains(item.getUid()))
+            .map(IdentifiableObject.class::cast)
+            .toList();
+
+    TypeReport deletions = delCollectionItems(object, propertyName, removed);
+    TypeReport additions = addCollectionItems(object, propertyName, added);
     return deletions.mergeAllowEmpty(additions);
   }
 
