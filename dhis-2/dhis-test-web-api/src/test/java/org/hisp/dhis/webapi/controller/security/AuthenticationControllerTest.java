@@ -182,8 +182,63 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
   @Test
   void testLoginWithCredentialsExpiredUser() {
     systemSettingManager.saveSystemSetting(SettingKey.CREDENTIALS_EXPIRES, 1);
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, false);
 
     User admin = userService.getUserByUsername("admin");
+
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(admin.getPasswordLastUpdated());
+    calendar.add(Calendar.MONTH, -2);
+
+    admin.setPasswordLastUpdated(calendar.getTime());
+    userService.updateUser(admin);
+
+    JsonLoginResponse loginResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("PASSWORD_EXPIRED", loginResponse.getLoginStatus());
+    assertNull(loginResponse.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginWithCredentialsExpiredUserEmailRecovery() {
+    systemSettingManager.saveSystemSetting(SettingKey.CREDENTIALS_EXPIRES, 1);
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_HOST_NAME, "mail.example.com");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_USERNAME, "noreply");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_PASSWORD, "secret");
+
+    User admin = userService.getUserByUsername("admin");
+    admin.setEmail("admin@dhis2.org");
+
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(admin.getPasswordLastUpdated());
+    calendar.add(Calendar.MONTH, -2);
+
+    admin.setPasswordLastUpdated(calendar.getTime());
+    userService.updateUser(admin);
+
+    JsonLoginResponse loginResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("PASSWORD_EXPIRED_EMAIL_RECOVERY", loginResponse.getLoginStatus());
+    assertNull(loginResponse.getRedirectUrl());
+  }
+
+  @Test
+  void testLoginWithCredentialsExpiredUserNoEmailKeepsOldPasswordPath() {
+    systemSettingManager.saveSystemSetting(SettingKey.CREDENTIALS_EXPIRES, 1);
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_HOST_NAME, "mail.example.com");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_USERNAME, "noreply");
+    systemSettingManager.saveSystemSetting(SettingKey.EMAIL_PASSWORD, "secret");
+
+    User admin = userService.getUserByUsername("admin");
+    admin.setEmail(null);
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(admin.getPasswordLastUpdated());
