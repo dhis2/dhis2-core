@@ -1780,6 +1780,114 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(sqlBuilder).renderTimestamp("2024-01-15");
   }
 
+  @Test
+  void verifyEventQuerySortByStageScopedEventDateOrdersByEventOccurredDate() {
+    String actual =
+        eventQuerySql(
+            stageScopedSortItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, ValueType.DATE),
+            true);
+
+    assertEventSortsOnOwnColumn(actual, "\"occurreddate\" asc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByStageScopedScheduledDateOrdersByEventScheduledDate() {
+    String actual =
+        eventQuerySql(
+            stageScopedSortItem(
+                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, ValueType.DATE),
+            false);
+
+    assertEventSortsOnOwnColumn(actual, "\"scheduleddate\" desc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByStageScopedOrgUnitOrdersByEventOrgUnit() {
+    String actual =
+        eventQuerySql(
+            stageScopedSortItem(
+                EventAnalyticsColumnName.OU_COLUMN_NAME, ValueType.ORGANISATION_UNIT),
+            true);
+
+    assertEventSortsOnOwnColumn(actual, "\"ou\" asc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByBareOrgUnitNameOrdersByEventOrgUnitName() {
+    String actual = eventQuerySql(bareSortItem(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME), true);
+
+    assertEventSortsOnOwnColumn(actual, "\"ouname\" asc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByBareOrgUnitCodeOrdersByEventOrgUnitCode() {
+    String actual =
+        eventQuerySql(bareSortItem(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME), false);
+
+    assertEventSortsOnOwnColumn(actual, "\"oucode\" desc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByBareEventDateOrdersByEventOccurredDate() {
+    String actual =
+        eventQuerySql(bareSortItem(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME), true);
+
+    assertEventSortsOnOwnColumn(actual, "\"occurreddate\" asc nulls last");
+  }
+
+  @Test
+  void verifyEventQuerySortByBareScheduledDateOrdersByEventScheduledDate() {
+    String actual =
+        eventQuerySql(bareSortItem(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME), false);
+
+    assertEventSortsOnOwnColumn(actual, "\"scheduleddate\" desc nulls last");
+  }
+
+  /**
+   * Event sorting must read the event row's own column: no stage predicate and no join may be
+   * introduced by the sort alone.
+   */
+  private void assertEventSortsOnOwnColumn(String sql, String expectedOrderBy) {
+    assertThat(sql, containsString("order by " + expectedOrderBy));
+    assertThat(sql, not(containsString("ax.\"ps\" = ")));
+    assertThat(sql, not(containsString(" join ")));
+  }
+
+  private String eventQuerySql(QueryItem sortItem, boolean ascending) {
+    mockEmptyRowSet();
+    EventQueryParams.Builder params = createRequestParamsBuilder().withEndpointAction(QUERY);
+    if (ascending) {
+      params.addAscSortItem(sortItem);
+    } else {
+      params.addDescSortItem(sortItem);
+    }
+
+    subject.getEvents(params.build(), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    return sql.getValue();
+  }
+
+  /**
+   * Mirrors the item {@code DefaultQueryItemLocator} produces for {@code <stage>.EVENT_DATE} etc.
+   */
+  private QueryItem stageScopedSortItem(String columnName, ValueType valueType) {
+    QueryItem item =
+        new QueryItem(
+            new BaseDimensionalItemObject(columnName),
+            programA,
+            null,
+            valueType,
+            AggregationType.NONE,
+            null);
+    item.setProgramStage(programStage);
+    return item;
+  }
+
+  private QueryItem bareSortItem(String columnName) {
+    return new QueryItem(new BaseDimensionalItemObject(columnName));
+  }
+
   private EventQueryParams createRequestParamsWithFilter(ValueType queryItemValueType) {
     EventQueryParams.Builder params =
         new EventQueryParams.Builder(createRequestParams(queryItemValueType));

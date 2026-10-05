@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -207,8 +207,9 @@ public class OrganisationUnitController
   @ResponseStatus(HttpStatus.OK)
   @RequiresAuthority(anyOf = F_ORGANISATION_UNIT_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody WebMessage mergeOrgUnits(@RequestBody OrgUnitMergeQuery query) {
-    orgUnitMergeService.merge(orgUnitMergeService.getFromQuery(query));
+  public @ResponseBody WebMessage mergeOrgUnits(@RequestBody OrgUnitMergeQuery query)
+      throws ConflictException {
+    orgUnitMergeService.merge(query);
 
     return ok("Organisation units merged");
   }

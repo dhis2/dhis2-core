@@ -53,6 +53,8 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOption;
+import static org.hisp.dhis.test.TestBase.createOptionSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
@@ -123,6 +125,7 @@ import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -1099,6 +1102,46 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
 
     assertTrue(grid.getColumn(0).contains(EMPTY), "Should contain empty value");
+  }
+
+  @Test
+  void testFormatDoubleReturnsMatchingOptionCode() {
+    OptionSet optionSet = createOptionSet('A', createOption("1"), createOption("2"));
+    GridHeader header =
+        new GridHeader("header-1", "header-1", NUMBER, false, true, optionSet, null);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("1", eventSubject.formatDouble(1.0d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleRoundsWhenNoOptionCodeMatches() {
+    OptionSet optionSet = createOptionSet('A', createOption("1"), createOption("2"));
+    GridHeader header =
+        new GridHeader("header-1", "header-1", NUMBER, false, true, optionSet, null);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("3.5", eventSubject.formatDouble(3.5d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleAppliesProgramIndicatorDecimals() {
+    ProgramIndicator programIndicator = createProgramIndicator('A', programA, "9.0", null);
+    programIndicator.setDecimals(3);
+
+    EventQueryParams queryParams =
+        new EventQueryParams.Builder().addItem(new QueryItem(programIndicator)).build();
+    GridHeader header = new GridHeader(programIndicator.getUid(), NUMBER);
+
+    assertEquals("1.235", eventSubject.formatDouble(1.23456d, header, queryParams));
+  }
+
+  @Test
+  void testFormatDoubleAppliesDefaultRoundingWithoutOptionSetOrProgramIndicator() {
+    GridHeader header = new GridHeader("header-1", NUMBER);
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    assertEquals("1.23", eventSubject.formatDouble(1.23456d, header, queryParams));
   }
 
   @Test

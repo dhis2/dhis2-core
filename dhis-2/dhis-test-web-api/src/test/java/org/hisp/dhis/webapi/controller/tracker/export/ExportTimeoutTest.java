@@ -128,8 +128,8 @@ class ExportTimeoutTest extends PostgresControllerIntegrationTestBase {
   private static final String ID_QUERY = "select te.trackedentityid, te.uid";
 
   /**
-   * Projection unique to {@code TrackedEntityStore}, run by the aggregate branches on {@code
-   * TrackedEntityAggregate}'s thread pool rather than on the request thread.
+   * Projection unique to {@code TrackedEntityStore}, run by {@code TrackedEntityAggregate} after
+   * the id query.
    */
   private static final String AGGREGATE_QUERY = "te.uid as te_uid";
 
@@ -165,8 +165,8 @@ class ExportTimeoutTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldShareOneBudgetAcrossSequentialStatementsOfOneRequest() {
-    // Either statement fits the budget alone, the two together cannot. They also run on different
-    // threads, so this covers the deadline reaching the aggregate's pool.
+    // Either statement fits the budget alone, the two together cannot, so this covers one budget
+    // being shared across the id query and the aggregate's fetches.
     Duration overHalfTheBudget = BUDGET.dividedBy(2).plusSeconds(1);
     SlowQueryDataSourceProxy.sleepBefore(ID_QUERY, overHalfTheBudget);
     SlowQueryDataSourceProxy.sleepBefore(AGGREGATE_QUERY, overHalfTheBudget);
@@ -200,7 +200,7 @@ class ExportTimeoutTest extends PostgresControllerIntegrationTestBase {
    *       than a list, and an unbounded one surfaces as a bare {@code PersistenceException} that
    *       the advice turns into 409 rather than 504
    *   <li>tracked entity change logs, a sub path of an export controller, so the interceptor
-   *       already arms a deadline for it
+   *       already sets a deadline for it
    * </ul>
    */
   private static Stream<Arguments> hibernateExportPaths() {
@@ -272,6 +272,41 @@ class ExportTimeoutTest extends PostgresControllerIntegrationTestBase {
         0,
         countBackendsRunningSleep(),
         "a PostgreSQL backend is still running the cancelled query");
+  }
+
+  /**
+   * The metadata an export mapper resolves before any export query, on the Hibernate stores shared
+   * with every other product rather than on a tracker owned one.
+   */
+  @Test
+  void shouldBoundAMetadataQueryRunByTheMapperBeforeTheExportQuery() {
+    // the org unit lookup validateOrgUnits runs per requested uid, on the shared org unit store
+    SlowQueryDataSourceProxy.sleepBefore("from organisationunit", BUDGET.multipliedBy(3));
+
+    long startNanos = System.nanoTime();
+    HttpStatus status;
+    try {
+      status =
+          GET(
+                  "/tracker/trackedEntities?program={program}&orgUnits={ou}",
+                  "BFcipDERJnf",
+                  "h4w96yEMlzO")
+              .status();
+    } finally {
+      SlowQueryDataSourceProxy.disarm();
+    }
+    Duration elapsed = Duration.ofNanos(System.nanoTime() - startNanos);
+
+    assertEquals(HttpStatus.GATEWAY_TIMEOUT, status);
+    assertTrue(
+        SlowQueryDataSourceProxy.matches() > 0,
+        "no statement was slowed down, so this would pass without any timeout being enforced");
+    assertTrue(
+        elapsed.compareTo(BUDGET.multipliedBy(2)) < 0,
+        "request took "
+            + elapsed
+            + ", so the metadata query ran unbounded rather than being cancelled at the budget of "
+            + BUDGET);
   }
 
   /**

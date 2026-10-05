@@ -30,23 +30,34 @@
 package org.hisp.dhis.analytics.event.data.programindicator.ctefactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
+import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.test.TestBase;
@@ -160,6 +171,58 @@ class ProgramStageDataElementCteFactoryTest extends TestBase {
 
     // getDataElement runs an uncached query against the transactional database.
     verify(dataElementService, times(1)).getDataElement("deUid00001A");
+  }
+
+  /**
+   * The CTE selects from the event analytics table, where the incident date of the owning
+   * enrollment is stored in "enrollmentoccurreddate" - "occurreddate" holds the event date.
+   * Filtering on "occurreddate" makes incident date bounded program indicators return no events.
+   */
+  @Test
+  void incidentDateBoundariesFilterOnEnrollmentOccurredDate() throws ParseException {
+    DataElement dataElement = createDataElement('A');
+    dataElement.setValueType(ValueType.NUMBER);
+    lenient().when(dataElementService.getDataElement("deUid00001A")).thenReturn(dataElement);
+
+    Program program = createProgram('A');
+    ProgramIndicator programIndicator =
+        createProgramIndicator('A', AnalyticsType.ENROLLMENT, program, "1+1", null);
+    programIndicator.setAnalyticsPeriodBoundaries(
+        Set.of(
+            incidentDateBoundary(AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD),
+            incidentDateBoundary(AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD)));
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat(Period.DEFAULT_DATE_FORMAT);
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+
+    factory.process(
+        "select " + PLACEHOLDER_TEMPLATE + " as col",
+        programIndicator,
+        dateFormat.parse("2026-01-01"),
+        dateFormat.parse("2026-12-31"),
+        cteContext,
+        aliasMap,
+        sqlBuilder);
+
+    CteDefinition definition =
+        cteContext.getDefinitionByKey("psdecte_psUid00001A_deUid00001A_0_hash_piUid00001A");
+    assertNotNull(definition);
+
+    String cteSql = definition.getCteDefinition();
+    assertTrue(cteSql.contains("\"enrollmentoccurreddate\" >= '2026-01-01'"), cteSql);
+    assertTrue(cteSql.contains("\"enrollmentoccurreddate\" < '2027-01-01'"), cteSql);
+    assertFalse(cteSql.contains("\"occurreddate\" >="), cteSql);
+    assertFalse(cteSql.contains("\"occurreddate\" <"), cteSql);
+    // events within the enrollment are still ranked by their own event date
+    assertTrue(cteSql.contains("order by \"occurreddate\" desc"), cteSql);
+  }
+
+  private AnalyticsPeriodBoundary incidentDateBoundary(AnalyticsPeriodBoundaryType boundaryType) {
+    AnalyticsPeriodBoundary boundary = new AnalyticsPeriodBoundary();
+    boundary.setUid("incident" + boundaryType.name().charAt(0));
+    boundary.setAnalyticsPeriodBoundaryType(boundaryType);
+    boundary.setBoundaryTarget(AnalyticsPeriodBoundary.INCIDENT_DATE);
+    return boundary;
   }
 
   private String cteBody(ValueType valueType, SqlBuilder builder) {
