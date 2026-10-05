@@ -242,6 +242,14 @@ public class DefaultCollectionService implements CollectionService {
         validateUpdate(
             object, propertyName, "Only identifiable object collections can be replaced.");
 
+    if (!property.isOwner()) {
+      // Hibernate does not evict a cached inverse collection when only the owning side changes,
+      // so a stale copy would make a re-sent item look unchanged and skip it. The copy may already
+      // be loaded into this session, so evicting the cache entry is not enough: refresh re-reads
+      // the object's row and leaves its collections to be loaded again from the database
+      entityManager.refresh(object);
+    }
+
     // Only remove and add the difference: items already in the collection are left untouched, as
     // for non-owned collections each touched item loads and updates its full owning collection
     Collection<IdentifiableObject> current = getCollection(object, property);
