@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.webapi.json.domain;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.translation.JsonTranslations;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.OK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Olav Hansen
- */
-public interface JsonPeriodType extends JsonObject {
-  default String getName() {
-    return getString("name").string();
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
+import org.junit.jupiter.api.Test;
+
+class RelativePeriodControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Test
+  void putLabel_Body() {
+    String body =
+        """
+          {
+            "name": "TODAY",
+            "locale": "de",
+            "label": "Heute"
+          }
+        """;
+
+    assertStatus(OK, PUT("/relativePeriods/", body));
+
+    JsonPeriodType daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
+
+    assertEquals(
+        "Heute", daily.getRelativePeriods().get("TODAY").getString("displayName").string());
   }
 
-  default String getIsoDuration() {
-    return getString("isoDuration").string();
-  }
+  @Test
+  void putLabel_URL() {
+    assertStatus(OK, PUT("/relativePeriods/YESTERDAY?locale=de&value=Gestern"));
 
-  default String getIsoFormat() {
-    return getString("isoFormat").string();
-  }
+    JsonPeriodType daily = GET("/periodTypes/Daily?locale=de").content().as(JsonPeriodType.class);
 
-  default Number getFrequencyOrder() {
-    return getNumber("frequencyOrder").number();
-  }
-
-  default String getDefaultName() {
-    return getString("defaultName").string();
-  }
-
-  default String getLabel() {
-    return getString("label").string();
-  }
-
-  default String getDisplayLabel() {
-    return getString("displayLabel").string();
-  }
-
-  default String getDisplayName() {
-    return getString("displayName").string();
-  }
-
-  default JsonTranslations getTranslations() {
-    return get("translations", JsonTranslations.class);
-  }
-
-  default JsonMap<JsonObject> getRelativePeriods() {
-    return getMap("relativePeriods", JsonObject.class);
+    assertEquals(
+        "Gestern", daily.getRelativePeriods().get("YESTERDAY").getString("displayName").string());
   }
 }
