@@ -63,6 +63,15 @@ import org.hisp.dhis.common.DxfNamespaces;
  * <p>The {@code write} operation implies the {@code read} operation and is represented with
  * characters {@code rw}. The read operation implis read-only as is represented with characters
  * {@code r-}.
+ *
+ * <p>Examples:
+ *
+ * <ul>
+ *   <li>Metadata read: {@code r-------}
+ *   <li>Metadata write: {@code rw------}
+ *   <li>Metadata read and data read: {@link r-r-----}
+ *   <li>Metadata write and data read: {@link rwr-----}
+ * </ul>
  */
 @NoArgsConstructor
 public abstract class AccessObject implements Serializable {
