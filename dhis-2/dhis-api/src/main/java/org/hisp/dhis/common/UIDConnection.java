@@ -31,6 +31,7 @@ package org.hisp.dhis.common;
 
 import static java.util.Objects.requireNonNull;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -40,10 +41,9 @@ import javax.annotation.Nonnull;
  * @param from one object
  * @param to another object
  */
-public record UIDConnection(@Nonnull UID from, @Nonnull UID to) {
+public record UIDConnection(@Nonnull UID from, @CheckForNull UID to) {
 
   public UIDConnection {
     requireNonNull(from);
-    requireNonNull(to);
   }
 }

@@ -246,11 +246,12 @@ public interface DataEntryStore {
    * <p>For an OU to be valid it must be identical or a descended of at least one of the OUs linked
    * to each CO that is linked to the provided AOC.
    *
-   * @return the first pair of AOC-OU that is invalid. Meaning in a successful check the result is
-   *     null.
+   * @param ouAocPairs OU-AOC pairs to check (from data values)
+   * @return the first OU-AOC pair found that is invalid (no specific testing order). Meaning in a
+   *     successful check the result is null.
    */
   @CheckForNull
-  UIDConnection getOrgUnitsNotInAocHierarchy(Map<UID, Stream<UID>> orgUnitsByAoc);
+  UIDConnection getOrgUnitsNotInAocHierarchy(Stream<UIDConnection> ouAocPairs);
 
   /**
    * Checks that all provided OUs are explicitly linked to the given DS and thus a valid target for
@@ -268,12 +269,12 @@ public interface DataEntryStore {
    * DE-DS connection) and returns the first that can NOT be used.
    *
    * @param dataSet DS to check (scope)
-   * @param cocsByDataElement COCs by DE to check (scope)
-   * @return the first DE-COC combination that is not valid to use in the context of the given DS.
-   *     Meaning in a successful check the result null.
+   * @param deCocPairs DE-COC pairs to check (from data values)
+   * @return the first DE-COC pair found that is invalid in the context of the given DS (no specific
+   *     testing order). Meaning in a successful check the result null.
    */
   @CheckForNull
-  UIDConnection getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement);
+  UIDConnection getCocNotInDataSet(UID dataSet, Stream<UIDConnection> deCocPairs);
 
   /**
    * Checks that all given AOCs belong to the CC defined by the given DS.

@@ -34,7 +34,6 @@ import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.comparingLong;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -634,28 +633,27 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8023, ds, aocNotInDs);
 
     // - require: COC must link (belong) to the CC of the DE
-    UIDConnection cocNotInDs =
+    UIDConnection deCocNotInDs =
         store.getCocNotInDataSet(
             ds,
-            source
-                .dataElements()
-                .distinct()
-                .collect(toMap(Function.identity(), source::categoryOptionCombosForDataElement)));
-    if (cocNotInDs != null)
-      throw new ConflictException(ErrorCode.E8024, ds, cocNotInDs.from(), List.of(cocNotInDs.to()));
+            source.values().stream()
+                .map(dv -> new UIDConnection(dv.dataElement(), dv.categoryOptionCombo())));
+    if (deCocNotInDs != null)
+      throw new ConflictException(
+          ErrorCode.E8024, ds, deCocNotInDs.from(), List.of(deCocNotInDs.to()));
 
     // - require: OU must be within the hierarchy of each CO for AOC => COs => OUs
     Set<String> aocOuRestricted =
         Set.copyOf(store.getAocWithOrgUnitHierarchy(source.attributeOptionCombos()));
     if (!aocOuRestricted.isEmpty()) {
-      UIDConnection ouNotInAoc =
+      UIDConnection ouAocNotInHierarchy =
           store.getOrgUnitsNotInAocHierarchy(
-              aocOuRestricted.stream()
-                  .map(UID::of)
-                  .distinct()
-                  .collect(toMap(Function.identity(), source::orgUnitsForAttributeOptionCombo)));
-      if (ouNotInAoc != null)
-        throw new ConflictException(ErrorCode.E8025, ouNotInAoc.from(), ouNotInAoc.to());
+              source.values().stream()
+                  .filter(dv -> aocOuRestricted.contains(dv.orgUnit().getValue()))
+                  .map(dv -> new UIDConnection(dv.orgUnit(), dv.attributeOptionCombo())));
+      if (ouAocNotInHierarchy != null)
+        throw new ConflictException(
+            ErrorCode.E8025, ouAocNotInHierarchy.to(), List.of(ouAocNotInHierarchy.from()));
     }
 
     // - require: PEs must be within the OU's operational span
@@ -874,7 +872,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     // - require: DS not already approved (data approval)
     Set<String> aocInApproval = Set.copyOf(store.getDataSetAocInApproval(ds));
     if (!aocInApproval.isEmpty()) {
-      Iterator<UID> iterAoc = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
+      Iterator<UID> iterAoc =
+          source.attributeOptionCombos().filter(Objects::nonNull).distinct().iterator();
       while (iterAoc.hasNext()) {
         UID aoc = iterAoc.next();
         if (!aocInApproval.contains(aoc.getValue())) continue;
@@ -996,12 +995,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Stream<Map.Entry<UID, Period>> attributeOptionComboPeriodPairs();
 
     /**
-     * @param de filter
-     * @return all COCs used in combination with the given DE (must maintain nulls, no duplicates)
-     */
-    Stream<UID> categoryOptionCombosForDataElement(UID de);
-
-    /**
      * @param aoc filter
      * @return all org units used in combination with the given AOC (no nulls, no duplicates)
      */
@@ -1055,15 +1048,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     }
 
     @Override
-    public Stream<UID> categoryOptionCombosForDataElement(UID de) {
-      return values.stream()
-          .filter(dv -> dv.dataElement().equals(de))
-          .map(DataEntryValue::categoryOptionCombo)
-          .filter(Objects::nonNull)
-          .distinct();
-    }
-
-    @Override
     public Stream<UID> orgUnitsForAttributeOptionCombo(UID aoc) {
       return values.stream()
           .filter(dv -> Objects.equals(dv.attributeOptionCombo(), aoc))
@@ -1112,14 +1096,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           .map(DataEntryGroup.Scope.Element::attributeOptionCombo)
           .filter(Objects::nonNull)
           .flatMap(aoc -> scope.periods().stream().map(pe -> Map.entry(aoc, pe)))
-          .distinct();
-    }
-
-    @Override
-    public Stream<UID> categoryOptionCombosForDataElement(UID de) {
-      return scope.elements().stream()
-          .filter(e -> e.dataElement().equals(de))
-          .map(DataEntryGroup.Scope.Element::categoryOptionCombo)
           .distinct();
     }
 

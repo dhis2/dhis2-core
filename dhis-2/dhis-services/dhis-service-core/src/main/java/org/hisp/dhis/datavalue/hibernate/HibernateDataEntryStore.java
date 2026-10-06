@@ -364,21 +364,16 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public UIDConnection getOrgUnitsNotInAocHierarchy(Map<UID, Stream<UID>> orgUnitsByAoc) {
+  public UIDConnection getOrgUnitsNotInAocHierarchy(Stream<UIDConnection> ouAocPairs) {
     List<String> aocFlat = new ArrayList<>();
     List<String> ouFlat = new ArrayList<>();
-    for (var entry : orgUnitsByAoc.entrySet()) {
-      String aoc = entry.getKey().getValue();
-      entry
-          .getValue()
-          .map(UID::getValue)
-          .distinct()
-          .forEach(
-              ou -> {
-                aocFlat.add(aoc);
-                ouFlat.add(ou);
-              });
-    }
+    ouAocPairs
+        .distinct()
+        .forEach(
+            pair -> {
+              ouFlat.add(pair.from().getValue());
+              aocFlat.add(pair.to().getValue());
+            });
 
     String sql =
         """
@@ -387,7 +382,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           FROM unnest(CAST(:aoc AS varchar(11)[]),
                       CAST(:ou  AS varchar(11)[]))
         )
-        SELECT i.aoc_uid, i.ou_uid
+        SELECT i.ou_uid, i.aoc_uid
         FROM input i
         JOIN organisationunit ou ON ou.uid = i.ou_uid
         JOIN categoryoptioncombo aoc ON aoc.uid = i.aoc_uid
@@ -408,13 +403,13 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         )
         LIMIT 1""";
 
-    List<Object[]> deCoc =
+    List<Object[]> ouAoc =
         createNativeRawQuery(sql)
             .setParameter("aoc", aocFlat.toArray(String[]::new))
             .setParameter("ou", ouFlat.toArray(String[]::new))
             .list();
-    if (deCoc == null || deCoc.isEmpty()) return null;
-    return new UIDConnection(UID.of((String) deCoc.get(0)[0]), UID.of((String) deCoc.get(0)[1]));
+    if (ouAoc == null || ouAoc.isEmpty()) return null;
+    return new UIDConnection(UID.of((String) ouAoc.get(0)[0]), UID.of((String) ouAoc.get(0)[1]));
   }
 
   @Override
@@ -437,25 +432,20 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public UIDConnection getCocNotInDataSet(UID dataSet, Map<UID, Stream<UID>> cocsByDataElement) {
+  public UIDConnection getCocNotInDataSet(UID dataSet, Stream<UIDConnection> deCocPairs) {
     // the core idea is that we unfold the mapping into a list of DE-COC pairs and use that a bulk
     // input we test with
     UID defaultCoc = getDefaultCategoryOptionComboUid();
     List<String> deFlat = new ArrayList<>();
     List<String> cocFlat = new ArrayList<>();
-    for (var entry : cocsByDataElement.entrySet()) {
-      String de = entry.getKey().getValue();
-      entry
-          .getValue()
-          .map(id -> id == null ? defaultCoc : id)
-          .map(UID::getValue)
-          .distinct()
-          .forEach(
-              coc -> {
-                deFlat.add(de);
-                cocFlat.add(coc);
-              });
-    }
+    deCocPairs
+        .distinct()
+        .forEach(
+            pair -> {
+              deFlat.add(pair.from().getValue());
+              UID coc = pair.to();
+              cocFlat.add(coc == null ? defaultCoc.getValue() : coc.getValue());
+            });
 
     String sql =
         """
