@@ -649,7 +649,11 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       UIDConnection ouAocNotInHierarchy =
           store.getOrgUnitsNotInAocHierarchy(
               source.values().stream()
-                  .filter(dv -> aocOuRestricted.contains(dv.orgUnit().getValue()))
+                  .filter(
+                      dv -> {
+                        UID aoc = dv.attributeOptionCombo();
+                        return aoc != null && aocOuRestricted.contains(aoc.getValue());
+                      })
                   .map(dv -> new UIDConnection(dv.orgUnit(), dv.attributeOptionCombo())));
       if (ouAocNotInHierarchy != null)
         throw new ConflictException(
