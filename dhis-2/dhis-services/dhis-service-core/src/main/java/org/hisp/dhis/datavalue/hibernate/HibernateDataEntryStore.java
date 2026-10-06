@@ -42,6 +42,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -849,30 +850,48 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   public int upsertValues(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
 
-    List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
-    if (internalValues.isEmpty()) return 0;
+    List<DataEntryRow> rows = upsertValuesResolveIds(values);
+    if (rows.isEmpty()) return 0;
 
-    int size = internalValues.size();
+    List<DataEntryRow> upserts = rows.stream().filter(not(DataEntryRow::deleted)).toList();
+    List<DataEntryRow> deletions = rows.stream().filter(DataEntryRow::deleted).toList();
+
     Session session = entityManager.unwrap(Session.class);
 
     @Language("sql")
-    String sql1 =
+    String sqlUpsert1 =
         """
-      INSERT INTO datavalue
-      (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
-      DO UPDATE SET
-        value = EXCLUDED.value,
-        comment = CASE
-          WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
-          ELSE EXCLUDED.comment
-        END,
-        deleted = EXCLUDED.deleted,
-        followup = EXCLUDED.followup,
-        lastupdated = now(),
-        storedby = current_setting('dhis2.user')
-        """;
+        INSERT INTO datavalue
+          (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
+        VALUES
+          (?, ?, ?, ?, ?, ?, ?, ?, false)
+        ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
+        DO UPDATE SET
+          value      = EXCLUDED.value,
+          comment    = EXCLUDED.comment,
+          deleted    = false,
+          followup   = EXCLUDED.followup,
+          lastupdated = now(),
+          storedby   = current_setting('dhis2.user')""";
+
+    @Language("sql")
+    String sqlDelete1 =
+        """
+        UPDATE datavalue d
+        SET value       = v.value,
+            comment     = CASE WHEN d.deleted = false THEN d.comment ELSE v.comment END,
+            deleted     = true,
+            followup    = v.followup,
+            lastupdated = now(),
+            storedby    = current_setting('dhis2.user')
+        FROM (VALUES
+          (?, ?, ?, ?, ?, ?, ?, ?)
+        ) AS v(dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup)
+        WHERE d.dataelementid           = v.dataelementid
+          AND d.periodid                = v.periodid
+          AND d.sourceid                = v.sourceid
+          AND d.categoryoptioncomboid   = v.categoryoptioncomboid
+          AND d.attributeoptioncomboid  = v.attributeoptioncomboid""";
 
     String user = getCurrentUsername();
     AtomicInteger imported = new AtomicInteger();
@@ -884,32 +903,57 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             stmt.execute();
           }
           int from = 0;
-          while (from < size) {
-            int n = min(MAX_ROWS_PER_INSERT, size - from);
-            int to = from + n;
-            try (PreparedStatement stmt = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
-              int p = 0;
-              for (DataEntryRow value : internalValues.subList(from, to)) {
-                stmt.setLong(p + 1, value.de());
-                stmt.setLong(p + 2, value.pe());
-                stmt.setLong(p + 3, value.ou());
-                stmt.setLong(p + 4, value.coc());
-                stmt.setLong(p + 5, value.aoc());
-                stmt.setString(p + 6, value.value());
-                stmt.setString(p + 7, value.comment());
-                stmt.setObject(p + 8, value.followup());
-                stmt.setBoolean(p + 9, value.deleted());
-                p += 9;
+          if (!upserts.isEmpty()) {
+            int size = upserts.size();
+            while (from < size) {
+              int n = min(MAX_ROWS_PER_INSERT, size - from);
+              int to = from + n;
+              try (PreparedStatement stmt =
+                  conn.prepareStatement(upsertNValuesSql(sqlUpsert1, n))) {
+                int pOffset = 0;
+                for (DataEntryRow value : upserts.subList(from, to)) {
+                  applyEntryParameters(value, stmt, pOffset);
+                  pOffset += 8;
+                }
+                imported.addAndGet(stmt.executeUpdate());
               }
-              imported.addAndGet(stmt.executeUpdate());
+              from += n;
             }
-            from += n;
+          }
+          if (!deletions.isEmpty()) {
+            int size = deletions.size();
+            while (from < size) {
+              int n = min(MAX_ROWS_PER_INSERT, size - from);
+              int to = from + n;
+              try (PreparedStatement stmt =
+                  conn.prepareStatement(deleteNValuesSql(sqlDelete1, n))) {
+                int pOffset = 0;
+                for (DataEntryRow value : deletions.subList(from, to)) {
+                  applyEntryParameters(value, stmt, pOffset);
+                  pOffset += 8;
+                }
+                imported.addAndGet(stmt.executeUpdate());
+              }
+              from += n;
+            }
           }
         });
 
     session.clear();
 
     return imported.get();
+  }
+
+  private static void applyEntryParameters(DataEntryRow value, PreparedStatement stmt, int offset)
+      throws SQLException {
+    stmt.setLong(offset + 1, value.de());
+    stmt.setLong(offset + 2, value.pe());
+    stmt.setLong(offset + 3, value.ou());
+    stmt.setLong(offset + 4, value.coc());
+    stmt.setLong(offset + 5, value.aoc());
+    stmt.setString(offset + 6, value.value());
+    stmt.setString(offset + 7, value.comment());
+    stmt.setObject(offset + 8, value.followup());
   }
 
   @Nonnull
@@ -944,8 +988,16 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   private static String upsertNValuesSql(String sql1, int n) {
     if (n == 1) return sql1;
     return sql1.replace(
-        "(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        "(?, ?, ?, ?, ?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?, ?, ?, ?, ?)".repeat(n - 1));
+        "(?, ?, ?, ?, ?, ?, ?, ?, false)",
+        "(?, ?, ?, ?, ?, ?, ?, ?, false)" + ", (?, ?, ?, ?, ?, ?, ?, ?, false)".repeat(n - 1));
+  }
+
+  @Nonnull
+  private static String deleteNValuesSql(String sql1, int n) {
+    if (n == 1) return sql1;
+    return sql1.replace(
+        "(?, ?, ?, ?, ?, ?, ?, ?)",
+        "(?, ?, ?, ?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?, ?, ?, ?)".repeat(n - 1));
   }
 
   private Map<String, Long> getDataElementIdMap(Stream<UID> ids) {
