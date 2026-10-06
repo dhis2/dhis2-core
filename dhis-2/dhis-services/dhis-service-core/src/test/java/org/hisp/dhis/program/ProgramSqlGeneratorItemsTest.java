@@ -215,13 +215,13 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
   // -------------------------------------------------------------------------
 
   private String testNumeric(String expression) {
-    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL));
+    return castString(test(expression, new SqlLiteral(new PostgreSqlBuilder()), ITEM_GET_SQL));
   }
 
   private String test(String expression) {
     test(expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS);
 
-    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL));
+    return castString(test(expression, new SqlLiteral(new PostgreSqlBuilder()), ITEM_GET_SQL));
   }
 
   private Object test(

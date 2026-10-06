@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,38 +29,34 @@
  */
 package org.hisp.dhis.parser.expression.literal;
 
-import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
-import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
-import static org.hisp.dhis.system.util.SqlUtils.escape;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.antlr.AntlrExprLiteral;
-import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser.NumericLiteralContext;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
+import org.junit.jupiter.api.Test;
 
-/** Gets literal value Strings from an ANTLR parse tree for use in SQL queries. */
-public class SqlLiteral implements AntlrExprLiteral {
+class SqlLiteralTest {
 
-  private final SqlBuilder sqlBuilder;
+  @Test
+  void getNumericLiteralCastsForPostgres() {
+    SqlLiteral subject = new SqlLiteral(new PostgreSqlBuilder());
 
-  public SqlLiteral(SqlBuilder sqlBuilder) {
-    this.sqlBuilder = sqlBuilder;
+    assertEquals("1::numeric", subject.getNumericLiteral(numericLiteral("1")));
   }
 
-  @Override
-  public Object getNumericLiteral(NumericLiteralContext ctx) {
-    return sqlBuilder.cast(ctx.getText(), DataType.NUMERIC);
+  @Test
+  void getNumericLiteralCastsForDoris() {
+    SqlLiteral subject = new SqlLiteral(new DorisSqlBuilder("", ""));
+
+    assertEquals("CAST(1 AS DECIMAL)", subject.getNumericLiteral(numericLiteral("1")));
   }
 
-  @Override
-  public Object getStringLiteral(StringLiteralContext ctx) {
-    return "'" + escape(unescapeJava(trimQuotes(ctx.getText()))) + "'";
-  }
-
-  @Override
-  public Object getBooleanLiteral(BooleanLiteralContext ctx) {
-    return ctx.getText();
+  private NumericLiteralContext numericLiteral(String text) {
+    NumericLiteralContext ctx = mock(NumericLiteralContext.class);
+    when(ctx.getText()).thenReturn(text);
+    return ctx;
   }
 }

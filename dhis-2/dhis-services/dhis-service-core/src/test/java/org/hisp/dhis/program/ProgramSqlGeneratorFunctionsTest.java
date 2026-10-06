@@ -773,7 +773,8 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   private String test(String expression, DataType dataType) {
     test(expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS, dataType);
 
-    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL, dataType));
+    return castString(
+        test(expression, new SqlLiteral(new PostgreSqlBuilder()), ITEM_GET_SQL, dataType));
   }
 
   private Object test(
