@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -39,7 +38,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.Property;
@@ -70,9 +69,8 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   private final AclService aclService;
 
   @Override
-  public void validate(
-      IdentifiableObject object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    trimTextFields(object);
+  public void normalize(IdentifiableObject object, ObjectBundleParams params) {
+    trimTextFields(object, params.getPreheatIdentifier());
   }
 
   @Override
@@ -98,11 +96,20 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
    * {@code code}, {@code shortName}, {@code description}). A value made up entirely of whitespace
    * (e.g. {@code " "}) is trimmed down to an empty string rather than left untouched.
    *
+   * <p>{@code code} is not trimmed when it is the preheat identifier, since it is then the key the
+   * object is matched against persisted objects by; trimming it would no longer match a persisted
+   * object whose stored code has surrounding whitespace.
+   *
    * @param identifiableObject object to normalize text properties on
+   * @param preheatIdentifier identifier the bundle uses to match objects against persisted ones
    */
-  private void trimTextFields(IdentifiableObject identifiableObject) {
+  private void trimTextFields(
+      IdentifiableObject identifiableObject, PreheatIdentifier preheatIdentifier) {
     identifiableObject.setName(trim(identifiableObject.getName()));
-    identifiableObject.setCode(trim(identifiableObject.getCode()));
+
+    if (preheatIdentifier != PreheatIdentifier.CODE) {
+      identifiableObject.setCode(trim(identifiableObject.getCode()));
+    }
 
     for (String property : REFLECTIVE_TRIMMABLE_PROPERTIES) {
       if (ReflectionUtils.findSetterMethod(property, identifiableObject) == null) {

@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -43,6 +44,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,6 +140,54 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
 
     assertTrue(report.hasErrorReports());
     assertEquals(1, report.getErrorReportsCount(ErrorCode.E5003));
+  }
+
+  @Test
+  void updateByCodeDoesNotTrimCodeUsedAsIdentifier() {
+    Constant constant = createConstant('G', 1.0);
+    constant.setCode("CODE_G ");
+    manager.save(constant);
+
+    Constant update = createConstant('H', 2.0);
+    update.setCode("CODE_G ");
+    update.setName("  Renamed  ");
+
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.UPDATE);
+    params.setPreheatIdentifier(PreheatIdentifier.CODE);
+    params.addObject(update);
+
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport report = objectBundleValidationService.validate(bundle);
+    assertFalse(report.hasErrorReports());
+    objectBundleService.commit(bundle);
+
+    Constant persisted = manager.get(Constant.class, constant.getUid());
+    assertEquals("Renamed", persisted.getName());
+    assertEquals("CODE_G ", persisted.getCode());
+    assertEquals(2.0, persisted.getValue());
+  }
+
+  @Test
+  void createWithSkipValidationTrimsSurroundingWhitespaceFromTextFields() {
+    Constant constant = createConstant('I', 1.0);
+    constant.setName("  Skipped Validation  ");
+    constant.setCode("  CODE_I  ");
+
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setSkipValidation(true);
+    params.addObject(constant);
+
+    ObjectBundle bundle = objectBundleService.create(params);
+    assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
+    objectBundleService.commit(bundle);
+
+    Constant persisted = manager.get(Constant.class, constant.getUid());
+    assertEquals("Skipped Validation", persisted.getName());
+    assertEquals("CODE_I", persisted.getCode());
   }
 
   private void commit(ImportStrategy importStrategy, DataElement dataElement) {
