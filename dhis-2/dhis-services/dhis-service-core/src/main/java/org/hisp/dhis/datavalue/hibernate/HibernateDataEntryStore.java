@@ -902,8 +902,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             stmt.setString(1, user);
             stmt.execute();
           }
-          int from = 0;
           if (!upserts.isEmpty()) {
+            int from = 0;
             int size = upserts.size();
             while (from < size) {
               int n = min(MAX_ROWS_PER_INSERT, size - from);
@@ -921,6 +921,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             }
           }
           if (!deletions.isEmpty()) {
+            int from = 0;
             int size = deletions.size();
             while (from < size) {
               int n = min(MAX_ROWS_PER_INSERT, size - from);

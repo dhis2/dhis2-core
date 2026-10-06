@@ -589,7 +589,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     validateUserAccess(ds, source);
     boolean canSkip = force && getCurrentUserDetails().isSuper();
-    if (canSkip && deletionsOnly) validateKeyConsistency(ds, source);
+    if (!canSkip || !deletionsOnly) validateKeyConsistency(ds, source);
     if (!canSkip) validateEntryTimeliness(ds, source);
 
     return new DataEntryGroup(ds, null, null, validateValues(ds, source.values(), errors));
