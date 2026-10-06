@@ -42,17 +42,24 @@ import org.hisp.dhis.user.UserGroup;
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0)
 public class UserGroupAccess extends AccessObject {
-
-  // ------------------------------------------------------------------------------------------
-  // Constructors
-  // ------------------------------------------------------------------------------------------
-
-  public UserGroupAccess(UserGroup userGroup, String access) {
-    super(access, userGroup.getUid());
-  }
-
+  /**
+   * Constructor.
+   *
+   * @param access the access string.
+   * @param id the user UID.
+   */
   public UserGroupAccess(String access, String id) {
     super(access, id);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param userGroup the {@link UserGroup}.
+   * @param access the access string.
+   */
+  public UserGroupAccess(UserGroup userGroup, String access) {
+    super(access, userGroup.getUid());
   }
 
   // ------------------------------------------------------------------------------------------
@@ -71,6 +78,7 @@ public class UserGroupAccess extends AccessObject {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public UserGroupAccess copy() {
     return new UserGroupAccess(this.access, this.id);
   }
