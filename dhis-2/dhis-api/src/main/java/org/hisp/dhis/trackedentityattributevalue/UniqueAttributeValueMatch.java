@@ -25,19 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat;
+package org.hisp.dhis.trackedentityattributevalue;
 
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * Simple record used to store the data for {@link TrackedEntityAttributeValue} that are needed in
- * the Validation phase
+ * A stored value of a unique tracked entity attribute that matches a value being imported.
  *
- * @param orgUnit org unit of the tracked entity owning the value. Null when it is unknown (e.g. an
- *     enrollment of a tracked entity that does not exist) and for values from the DB of an
- *     attribute unique in the whole system, where the validation does not use it
- * @author Enrico Colasante
+ * @param trackedEntity the tracked entity owning the value
+ * @param value the stored value, as persisted (not normalized to lower case)
+ * @param orgUnitId the id of the org unit of the tracked entity owning the value, only set for an
+ *     attribute unique within an org unit
  */
-public record UniqueAttributeValue(
-    String te, MetadataIdentifier attribute, String value, MetadataIdentifier orgUnit) {}
+public record UniqueAttributeValueMatch(
+    @Nonnull UID trackedEntity, @Nonnull String value, @CheckForNull Long orgUnitId) {}
