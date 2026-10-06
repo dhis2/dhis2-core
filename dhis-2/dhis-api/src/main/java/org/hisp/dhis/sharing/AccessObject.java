@@ -60,8 +60,8 @@ import org.hisp.dhis.common.DxfNamespaces;
  *
  * <p>An entity can have 1) no sharing 2) metadata sharing or 3) data sharing enabled.
  *
- * <p>The {@code write} operation implies the {@code read} operation and is represented with
- * characters {@code rw}. The read operation implis read-only as is represented with characters
+ * <p>The {@code write} operation implies the {@code read} operation and is represented by
+ * characters {@code rw}. The read operation implies read-only and is represented by characters
  * {@code r-}.
  *
  * <p>Examples:
