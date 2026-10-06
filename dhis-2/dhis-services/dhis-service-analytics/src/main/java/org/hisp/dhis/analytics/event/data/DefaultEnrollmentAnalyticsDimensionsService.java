@@ -44,6 +44,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.DimensionsServiceCommon;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -78,10 +80,19 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                                 .filter(pi -> aclService.canRead(currentUserDetails, pi))
                                 .collect(Collectors.toSet())),
                         getProgramStageDataElements(QUERY, program),
+                        ofItemsWithProgram(program, getCategories(program)),
                         filterByValueType(
                             QUERY,
                             ofItemsWithProgram(
                                 program, getTeasIfRegistrationAndNotSkipped(program))))))
+        .orElse(List.of());
+  }
+
+  private List<Category> getCategories(Program program) {
+    return Optional.of(program)
+        .filter(Program::hasNonDefaultCategoryCombo)
+        .map(Program::getCategoryCombo)
+        .map(CategoryCombo::getCategories)
         .orElse(List.of());
   }
 
