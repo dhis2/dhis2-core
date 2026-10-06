@@ -31,12 +31,14 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -193,6 +195,44 @@ class UniqueAttributeSupplierTest extends TrackerTestBase {
     this.supplier.preheatAdd(importParams, preheat);
 
     assertThat(preheat.getUniqueAttributeValues(UNIQUE_VALUE), hasSize(2));
+  }
+
+  @Test
+  void shouldFlagAsDuplicateWhenPayloadHasManyTrackedEntitiesWithDistinctUniqueValues() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
+        new ArrayList<>(sameUniqueAttributeTrackedEntities(UNIQUE_VALUE));
+    for (int i = 0; i < 20; i++) {
+      trackedEntities.add(trackedEntityWithAttributeValue(UID.generate(), "value " + i));
+    }
+    TrackerObjects importParams = TrackerObjects.builder().trackedEntities(trackedEntities).build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertContainsOnly(
+        List.of(
+            new UniqueAttributeValue(
+                TE_UID, MetadataIdentifier.ofUid(uniqueAttribute), UNIQUE_VALUE, null),
+            new UniqueAttributeValue(
+                ANOTHER_TE_UID, MetadataIdentifier.ofUid(uniqueAttribute), UNIQUE_VALUE, null)),
+        preheat.getUniqueAttributeValues(UNIQUE_VALUE));
+  }
+
+  @Test
+  void shouldNotFlagAsDuplicateWhenTeAndItsEnrollmentHaveUniqueValueWithDifferentCasing() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerObjects importParams =
+        TrackerObjects.builder()
+            .trackedEntities(
+                List.of(trackedEntityWithAttributeValue(TE_UID, UNIQUE_VALUE.toUpperCase())))
+            .enrollments(Collections.singletonList(enrollment(TE_UID)))
+            .build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertThat(preheat.getUniqueAttributeValues(UNIQUE_VALUE), hasSize(0));
   }
 
   @Test

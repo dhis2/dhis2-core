@@ -650,7 +650,7 @@ public class TrackerPreheat {
    * case, then lower case), so two values have the same key exactly when they are equal ignoring
    * case. Lower casing alone would not do, e.g. for the Greek final sigma.
    */
-  private static String caseInsensitiveKey(String value) {
+  public static String caseInsensitiveKey(@Nonnull String value) {
     StringBuilder key = new StringBuilder(value.length());
     value
         .codePoints()

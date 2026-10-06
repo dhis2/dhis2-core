@@ -72,7 +72,7 @@ public abstract class AttributeValidator {
     for (UniqueAttributeValue uniqueAttributeValue : preheat.getUniqueAttributeValues(value)) {
       boolean isTheSameTea = uniqueAttributeValue.attribute().isEqualTo(trackedEntityAttribute);
       boolean hasTheSameValue = value.equalsIgnoreCase(uniqueAttributeValue.value());
-      boolean isNotSameTei =
+      boolean isNotSameTe =
           trackedEntity == null
               || !Objects.equals(trackedEntity.getUID(), uniqueAttributeValue.te());
 
@@ -80,7 +80,7 @@ public abstract class AttributeValidator {
       // unique in the whole system have none
       if (isTheSameTea
           && hasTheSameValue
-          && isNotSameTei
+          && isNotSameTe
           && (!trackedEntityAttribute.getOrgunitScope()
               || uniqueAttributeValue.orgUnit().isEqualTo(organisationUnit))) {
         reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);
