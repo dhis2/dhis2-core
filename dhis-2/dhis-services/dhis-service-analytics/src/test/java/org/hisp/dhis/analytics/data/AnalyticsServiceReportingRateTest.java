@@ -74,7 +74,7 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     injectSecurityContextNoSettings(new SystemUser());
   }
 
