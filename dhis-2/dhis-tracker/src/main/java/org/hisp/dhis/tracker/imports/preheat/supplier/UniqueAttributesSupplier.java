@@ -30,24 +30,22 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -57,8 +55,8 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.UniqueAttributeValueMatch;
 import org.springframework.stereotype.Component;
 
 /**
@@ -89,9 +87,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
 
     List<UniqueAttributeValue> uniqueAttributeValuesFromDB =
         getAlreadyPresentInDbUniqueValues(
-            preheat.getIdSchemes(),
-            allUniqueAttributesByTrackedEntity,
-            uniqueTrackedEntityAttributes);
+            preheat, allUniqueAttributesByTrackedEntity, uniqueTrackedEntityAttributes);
 
     List<UniqueAttributeValue> uniqueAttributeValues =
         Stream.concat(
@@ -187,76 +183,126 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
                 }));
   }
 
+  /**
+   * Finds the unique values sent for more than one tracked entity in the payload. Values are
+   * compared ignoring case, like the validation does, so the case folded value is the one added to
+   * the preheat.
+   */
   private List<UniqueAttributeValue> getDuplicatedUniqueValuesInPayload(
       Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> allAttributes) {
-
-    // TE grouped by attribute and value.
-    // Two attributes with the same value and uid are considered equals
-    TreeMap<Attribute, List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>>
-        teByAttributeValue =
-            new TreeMap<>(
-                (o1, o2) -> {
-                  if (o1.getValue().equalsIgnoreCase(o2.getValue())
-                      && Objects.equals(o1.getAttribute(), o2.getAttribute())) {
-                    return 0;
-                  }
-                  return 1;
-                });
+    Map<AttributeValueKey, Set<org.hisp.dhis.tracker.imports.domain.TrackedEntity>>
+        trackedEntitiesByAttributeValue = new HashMap<>();
 
     for (Map.Entry<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> entry :
         allAttributes.entrySet()) {
       for (Attribute attribute : entry.getValue()) {
-        if (!teByAttributeValue.containsKey(attribute)) {
-          teByAttributeValue.put(attribute, Lists.newArrayList());
-        }
-        teByAttributeValue.get(attribute).add(entry.getKey());
+        trackedEntitiesByAttributeValue
+            .computeIfAbsent(
+                new AttributeValueKey(
+                    attribute.getAttribute(),
+                    TrackerPreheat.caseInsensitiveKey(attribute.getValue())),
+                k -> new HashSet<>())
+            .add(entry.getKey());
       }
     }
 
-    // If an attribute and value appear in 2 or more tracked entities
-    // it means that is not unique
-    return teByAttributeValue.entrySet().stream()
+    return trackedEntitiesByAttributeValue.entrySet().stream()
         .filter(e -> e.getValue().size() > 1)
-        .flatMap(av -> buildUniqueAttributeValues(av.getKey(), av.getValue()).stream())
+        .flatMap(
+            e ->
+                e.getValue().stream()
+                    .map(
+                        te ->
+                            new UniqueAttributeValue(
+                                te.getUID(),
+                                e.getKey().attribute(),
+                                e.getKey().value(),
+                                te.getOrgUnit())))
         .toList();
   }
 
-  private Collection<UniqueAttributeValue> buildUniqueAttributeValues(
-      Attribute attribute, List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> teList) {
-    return teList.stream()
-        .map(
-            te ->
-                new UniqueAttributeValue(
-                    te.getUID(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
-        .toList();
-  }
+  private record AttributeValueKey(MetadataIdentifier attribute, String value) {}
 
+  /**
+   * Finds the values in the DB that collide with the unique values in the payload. Values of an
+   * attribute unique within an org unit are only looked up in the org unit of the tracked entity
+   * they are sent for, as the validation only compares them within that org unit. Values of an
+   * attribute unique in the whole system get no org unit, as the validation does not use it.
+   */
   private List<UniqueAttributeValue> getAlreadyPresentInDbUniqueValues(
-      TrackerIdSchemeParams idSchemes,
+      TrackerPreheat preheat,
       Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>>
           allAttributesByTrackedEntity,
       List<TrackedEntityAttribute> uniqueTrackedEntityAttributes) {
+    Map<TrackedEntityAttribute, Set<String>> valuesByAttribute = new HashMap<>();
+    Map<TrackedEntityAttribute, Map<Long, Set<String>>> valuesByOrgUnitIdByAttribute =
+        new HashMap<>();
+    Map<Long, OrganisationUnit> orgUnitsById = new HashMap<>();
 
-    Map<TrackedEntityAttribute, List<String>> uniqueValuesByAttribute =
-        allAttributesByTrackedEntity.values().stream()
-            .flatMap(Collection::stream)
-            .distinct()
-            .collect(
-                groupingBy(
-                    a -> extractAttribute(a.getAttribute(), uniqueTrackedEntityAttributes),
-                    mapping(Attribute::getValue, toList())));
+    for (Map.Entry<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> entry :
+        allAttributesByTrackedEntity.entrySet()) {
+      for (Attribute attribute : entry.getValue()) {
+        TrackedEntityAttribute tea =
+            extractAttribute(attribute.getAttribute(), uniqueTrackedEntityAttributes);
+        if (tea != null && !tea.getOrgUnitScopeNullSafe()) {
+          valuesByAttribute.computeIfAbsent(tea, k -> new HashSet<>()).add(attribute.getValue());
+          continue;
+        }
 
-    List<TrackedEntityAttributeValue> uniqueAttributeAlreadyPresentInDB =
-        trackedEntityAttributeValueService.getUniqueAttributeByValues(uniqueValuesByAttribute);
+        // an org unit that cannot be resolved can't match any stored value in the validation
+        OrganisationUnit orgUnit = preheat.getOrganisationUnit(entry.getKey().getOrgUnit());
+        if (orgUnit != null) {
+          orgUnitsById.put(orgUnit.getId(), orgUnit);
+          valuesByOrgUnitIdByAttribute
+              .computeIfAbsent(tea, k -> new HashMap<>())
+              .computeIfAbsent(orgUnit.getId(), k -> new HashSet<>())
+              .add(attribute.getValue());
+        }
+      }
+    }
 
-    return uniqueAttributeAlreadyPresentInDB.stream()
+    TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+    List<UniqueAttributeValue> uniqueAttributeValues = new ArrayList<>();
+    valuesByAttribute.forEach(
+        (attribute, values) ->
+            uniqueAttributeValues.addAll(
+                toUniqueAttributeValues(
+                    idSchemes,
+                    attribute,
+                    orgUnitsById,
+                    trackedEntityAttributeValueService.getUniqueAttributeValues(
+                        attribute, values))));
+    valuesByOrgUnitIdByAttribute.forEach(
+        (attribute, valuesByOrgUnitId) ->
+            uniqueAttributeValues.addAll(
+                toUniqueAttributeValues(
+                    idSchemes,
+                    attribute,
+                    orgUnitsById,
+                    trackedEntityAttributeValueService.getUniqueAttributeValues(
+                        attribute, valuesByOrgUnitId))));
+    return uniqueAttributeValues;
+  }
+
+  private static List<UniqueAttributeValue> toUniqueAttributeValues(
+      TrackerIdSchemeParams idSchemes,
+      TrackedEntityAttribute attribute,
+      Map<Long, OrganisationUnit> orgUnitsById,
+      List<UniqueAttributeValueMatch> matches) {
+    MetadataIdentifier attributeIdentifier = idSchemes.toMetadataIdentifier(attribute);
+    // only org units of org unit scoped lookups are known. The org unit of a value unique in the
+    // whole system is not needed by the validation, and resolving it would need a query
+    boolean orgUnitScoped = attribute.getOrgUnitScopeNullSafe();
+    return matches.stream()
         .map(
-            av ->
+            match ->
                 new UniqueAttributeValue(
-                    av.getTrackedEntity().getUID(),
-                    idSchemes.toMetadataIdentifier(av.getAttribute()),
-                    av.getValue(),
-                    idSchemes.toMetadataIdentifier(av.getTrackedEntity().getOrganisationUnit())))
+                    match.trackedEntity(),
+                    attributeIdentifier,
+                    match.value(),
+                    orgUnitScoped
+                        ? idSchemes.toMetadataIdentifier(orgUnitsById.get(match.orgUnitId()))
+                        : null))
         .toList();
   }
 
