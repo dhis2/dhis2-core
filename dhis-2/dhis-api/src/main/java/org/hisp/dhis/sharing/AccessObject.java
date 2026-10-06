@@ -36,8 +36,8 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
- * Representing access to objects. The access string format is eight characters. Allowed characters
- * are:
+ * Representing access to objects. The {@code access} string format is eight characters. Allowed
+ * characters are:
  *
  * <ul>
  *   <li>{@code -}: None
