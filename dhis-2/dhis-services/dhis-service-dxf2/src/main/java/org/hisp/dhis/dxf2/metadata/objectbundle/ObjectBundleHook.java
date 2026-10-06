@@ -81,7 +81,7 @@ public interface ObjectBundleHook<T> {
   }
 
   /**
-   * Hook to normalize an object (e.g. trim text fields) before the bundle is created. Runs before
+   * Hook to normalize an object (e.g. trim its name) before the bundle is created. Runs before
    * preheat, so persisted objects are matched, validated and committed using the normalized values.
    * Runs for every import, including those with skip validation enabled.
    *

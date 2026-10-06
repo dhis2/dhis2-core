@@ -51,9 +51,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Integration test of {@link IdentifiableObjectBundleHook}'s whitespace trimming of metadata text
- * properties ({@code name}, {@code shortName}, {@code description}), run through the real {@link
- * ObjectBundleService} create/validate/commit pipeline. {@code code} is never trimmed.
+ * Integration test of {@link IdentifiableObjectBundleHook}'s whitespace trimming of the metadata
+ * {@code name}, run through the real {@link ObjectBundleService} create/validate/commit pipeline.
+ * Other text properties ({@code code}, {@code shortName}, {@code description}) are not trimmed.
  */
 @Transactional
 class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
@@ -65,7 +65,7 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Test
-  void createTrimsSurroundingWhitespaceFromTextFieldsButNotCode() {
+  void createTrimsSurroundingWhitespaceFromNameOnly() {
     DataElement dataElement = createDataElement('A');
     dataElement.setName("  Trimmed Name  ");
     dataElement.setShortName("  Trimmed Short  ");
@@ -76,20 +76,20 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
 
     DataElement persisted = manager.get(DataElement.class, dataElement.getUid());
     assertEquals("Trimmed Name", persisted.getName());
-    assertEquals("Trimmed Short", persisted.getShortName());
+    assertEquals("  Trimmed Short  ", persisted.getShortName());
     assertEquals("  CODE1  ", persisted.getCode());
-    assertEquals("Some description", persisted.getDescription());
+    assertEquals("  Some description  ", persisted.getDescription());
   }
 
   @Test
-  void createTrimsWhitespaceOnlyDescriptionToEmptyString() {
+  void createKeepsWhitespaceOnlyDescription() {
     DataElement dataElement = createDataElement('B');
     dataElement.setDescription("   ");
 
     commit(ImportStrategy.CREATE, dataElement);
 
     DataElement persisted = manager.get(DataElement.class, dataElement.getUid());
-    assertEquals("", persisted.getDescription());
+    assertEquals("   ", persisted.getDescription());
   }
 
   @Test
@@ -104,7 +104,7 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void updateTrimsSurroundingWhitespaceFromTextFields() {
+  void updateTrimsSurroundingWhitespaceFromNameOnly() {
     DataElement dataElement = createDataElement('D');
     manager.save(dataElement);
 
@@ -117,8 +117,8 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
 
     DataElement persisted = manager.get(DataElement.class, dataElement.getUid());
     assertEquals("Updated Name", persisted.getName());
-    assertEquals("Updated Short", persisted.getShortName());
-    assertEquals("Updated description", persisted.getDescription());
+    assertEquals("  Updated Short  ", persisted.getShortName());
+    assertEquals("  Updated description  ", persisted.getDescription());
   }
 
   @Test
@@ -170,7 +170,7 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void createWithSkipValidationTrimsSurroundingWhitespaceFromTextFields() {
+  void createWithSkipValidationTrimsSurroundingWhitespaceFromName() {
     Constant constant = createConstant('I', 1.0);
     constant.setName("  Skipped Validation  ");
 

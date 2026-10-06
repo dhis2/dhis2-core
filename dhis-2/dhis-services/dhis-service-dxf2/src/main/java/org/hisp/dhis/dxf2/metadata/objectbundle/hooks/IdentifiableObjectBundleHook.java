@@ -30,7 +30,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -56,22 +55,11 @@ import org.springframework.stereotype.Component;
 @Order(0)
 @AllArgsConstructor
 public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject> {
-  /**
-   * Text properties that are trimmed of leading/trailing whitespace, so that values differing only
-   * by whitespace (e.g. {@code "Name"} vs {@code "Name "}) do not appear as near-duplicate
-   * metadata. {@code name} is set directly through the {@link IdentifiableObject} interface; the
-   * remaining properties are not declared on the interface and are set reflectively, only if
-   * present on the given object's schema. {@code code} is deliberately not trimmed, since it is an
-   * identifier that existing objects and references are matched by.
-   */
-  private static final List<String> REFLECTIVE_TRIMMABLE_PROPERTIES =
-      List.of("shortName", "description");
-
   private final AclService aclService;
 
   @Override
   public void normalize(IdentifiableObject object, ObjectBundleParams params) {
-    trimTextFields(object);
+    trimName(object);
   }
 
   @Override
@@ -93,31 +81,18 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   }
 
   /**
-   * Trims leading and trailing whitespace from common metadata text properties ({@code name},
-   * {@code shortName}, {@code description}). A value made up entirely of whitespace (e.g. {@code "
-   * "}) is trimmed down to an empty string rather than left untouched.
+   * Trims leading and trailing whitespace from {@code name}, so that names differing only by
+   * whitespace (e.g. {@code "Name"} vs {@code "Name "}) do not appear as near-duplicate metadata. A
+   * name made up entirely of whitespace is trimmed down to an empty string.
    *
-   * @param identifiableObject object to normalize text properties on
+   * @param identifiableObject object to trim the name of
    */
-  private void trimTextFields(IdentifiableObject identifiableObject) {
-    identifiableObject.setName(trim(identifiableObject.getName()));
+  private void trimName(IdentifiableObject identifiableObject) {
+    String name = identifiableObject.getName();
 
-    for (String property : REFLECTIVE_TRIMMABLE_PROPERTIES) {
-      if (ReflectionUtils.findSetterMethod(property, identifiableObject) == null) {
-        continue;
-      }
-
-      String value = ReflectionUtils.invokeGetterMethod(property, identifiableObject);
-      String trimmed = trim(value);
-
-      if (!Objects.equals(value, trimmed)) {
-        ReflectionUtils.invokeSetterMethod(property, identifiableObject, trimmed);
-      }
+    if (name != null) {
+      identifiableObject.setName(name.strip());
     }
-  }
-
-  private String trim(String value) {
-    return value == null ? null : value.strip();
   }
 
   /**
