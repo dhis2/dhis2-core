@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.imports.validation.validator;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1077;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1112;
 
-import java.util.List;
 import java.util.Objects;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -88,20 +87,20 @@ public abstract class AttributeValidator {
       OrganisationUnit organisationUnit) {
     if (Boolean.FALSE.equals(trackedEntityAttribute.isUnique())) return;
 
-    List<UniqueAttributeValue> uniqueAttributeValues = preheat.getUniqueAttributeValues();
-
-    for (UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues) {
-      boolean isTeaUniqueInOrgUnitScope =
-          !trackedEntityAttribute.getOrgunitScope()
-              || uniqueAttributeValue.getOrgUnit().isEqualTo(organisationUnit);
-
-      boolean isTheSameTea = uniqueAttributeValue.getAttribute().isEqualTo(trackedEntityAttribute);
-      boolean hasTheSameValue = value.equalsIgnoreCase(uniqueAttributeValue.getValue());
-      boolean isNotSameTei =
+    for (UniqueAttributeValue uniqueAttributeValue : preheat.getUniqueAttributeValues(value)) {
+      boolean isTheSameTea = uniqueAttributeValue.attribute().isEqualTo(trackedEntityAttribute);
+      boolean hasTheSameValue = value.equalsIgnoreCase(uniqueAttributeValue.value());
+      boolean isNotSameTe =
           trackedEntity == null
-              || !Objects.equals(trackedEntity.getUID(), uniqueAttributeValue.getTe());
+              || !Objects.equals(trackedEntity.getUID(), uniqueAttributeValue.te());
 
-      if (isTeaUniqueInOrgUnitScope && isTheSameTea && hasTheSameValue && isNotSameTei) {
+      // the org unit is only compared for entries of this attribute, as values of an attribute
+      // unique in the whole system have none
+      if (isTheSameTea
+          && hasTheSameValue
+          && isNotSameTe
+          && (!trackedEntityAttribute.getOrgunitScope()
+              || uniqueAttributeValue.orgUnit().isEqualTo(organisationUnit))) {
         reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);
         return;
       }

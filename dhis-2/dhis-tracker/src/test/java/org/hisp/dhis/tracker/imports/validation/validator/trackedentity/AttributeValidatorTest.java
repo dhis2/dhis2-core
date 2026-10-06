@@ -50,6 +50,7 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -83,6 +84,8 @@ class AttributeValidatorTest {
   private static final UID TE_UID = UID.of("fdsf9e90rei");
 
   private static final String MANDATORY_ATTRIBUTE_UID = "cFr94jf03AA";
+
+  private static final MetadataIdentifier ORG_UNIT_ID = MetadataIdentifier.ofUid("orgUnitUid1");
 
   @InjectMocks private AttributeValidator validator;
 
@@ -404,7 +407,7 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
-    when(preheat.getUniqueAttributeValues())
+    when(preheat.getUniqueAttributeValues("abc"))
         .thenReturn(
             List.of(
                 new UniqueAttributeValue(
@@ -428,6 +431,125 @@ class AttributeValidatorTest {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldFailValidationWhenOrgUnitScopedValueIsStoredForAnotherTrackedEntityInSameOrgUnit() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValue(
+                UID.generate(), MetadataIdentifier.ofUid("uid"), "ABC", ORG_UNIT_ID)));
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldPassValidationWhenOrgUnitScopedValueIsStoredInAnotherOrgUnit() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValue(
+                UID.generate(),
+                MetadataIdentifier.ofUid("uid"),
+                "abc",
+                MetadataIdentifier.ofUid("otherOrgUni"))));
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassValidationWhenOrgUnitScopedValueIsStoredForTheSameTrackedEntity() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+    org.hisp.dhis.tracker.model.TrackedEntity storedTrackedEntity =
+        new org.hisp.dhis.tracker.model.TrackedEntity();
+    storedTrackedEntity.setUid(trackedEntity.getUID().getValue());
+    when(preheat.getTrackedEntity(trackedEntity.getUID())).thenReturn(storedTrackedEntity);
+
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValue(
+                trackedEntity.getUID(), MetadataIdentifier.ofUid("uid"), "abc", ORG_UNIT_ID)));
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassValidationWhenSameValueIsStoredForAnotherAttributeInSameOrgUnit() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValue(
+                UID.generate(), MetadataIdentifier.ofUid("otherUid"), "abc", ORG_UNIT_ID)));
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassValidationWhenSameValueIsStoredForAnAttributeUniqueInTheSystem() {
+    TrackedEntity trackedEntity = trackedEntityWithScopedValue("abc");
+
+    // values from the DB of an attribute unique in the whole system have no org unit
+    validator.validate(
+        reporter,
+        bundle,
+        withStoredScopedValue(
+            trackedEntity,
+            new UniqueAttributeValue(
+                UID.generate(), MetadataIdentifier.ofUid("globalUid"), "abc", null)));
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  /** A tracked entity in {@link #ORG_UNIT_ID} sending a value of an org unit scoped attribute. */
+  private TrackedEntity trackedEntityWithScopedValue(String value) {
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("uid");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
+    trackedEntityAttribute.setUnique(true);
+    trackedEntityAttribute.setOrgunitScope(true);
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(ORG_UNIT_ID.getIdentifier());
+
+    when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
+        .thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
+        .thenReturn(new TrackedEntityType());
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+
+    return TrackedEntity.builder()
+        .trackedEntity(UID.generate())
+        .orgUnit(ORG_UNIT_ID)
+        .attributes(
+            List.of(
+                Attribute.builder()
+                    .attribute(MetadataIdentifier.ofUid("uid"))
+                    .value(value)
+                    .build()))
+        .trackedEntityType(MetadataIdentifier.ofUid("trackedEntityType"))
+        .build();
+  }
+
+  private TrackedEntity withStoredScopedValue(
+      TrackedEntity trackedEntity, UniqueAttributeValue uniqueAttributeValue) {
+    when(preheat.getUniqueAttributeValues(trackedEntity.getAttributes().get(0).getValue()))
+        .thenReturn(List.of(uniqueAttributeValue));
+    return trackedEntity;
   }
 
   @Test
