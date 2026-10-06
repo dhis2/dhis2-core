@@ -12,10 +12,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:
