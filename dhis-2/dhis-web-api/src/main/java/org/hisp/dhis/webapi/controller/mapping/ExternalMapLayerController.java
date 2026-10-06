@@ -29,6 +29,13 @@
  */
 package org.hisp.dhis.webapi.controller.mapping;
 
+import static org.hisp.dhis.feedback.ErrorCode.E1552;
+
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -43,4 +50,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/externalMapLayers")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class ExternalMapLayerController
-    extends AbstractCrudController<ExternalMapLayer, GetObjectListParams> {}
+    extends AbstractCrudController<ExternalMapLayer, GetObjectListParams> {
+
+  private static final List<String> VALID_IMAGE_EXTENSIONS = List.of("jpeg", "jpg", "png", "webp");
+
+  @Override
+  protected ExternalMapLayer deserializeJsonEntity(HttpServletRequest request) throws IOException {
+    ExternalMapLayer externalMapLayer = super.deserializeJsonEntity(request);
+
+    if (!validate(externalMapLayer)) {
+      throw new IllegalQueryException(E1552);
+    }
+
+    return externalMapLayer;
+  }
+
+  private boolean validate(ExternalMapLayer externalMapLayer) {
+    if (externalMapLayer != null && externalMapLayer.getImage() != null) {
+      String base64image = externalMapLayer.getImage();
+
+      if (!base64image.startsWith("data:image/")) {
+        return false;
+      }
+
+      String extension = StringUtils.substringBetween(base64image, "data:image/", ";");
+
+      if (!VALID_IMAGE_EXTENSIONS.contains(extension)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
