@@ -371,7 +371,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
     CommonExpressionVisitor visitor = newVisitor(ITEM_GET_SQL, params, progParams, replaceNulls);
 
-    visitor.setExpressionLiteral(new SqlLiteral());
+    visitor.setExpressionLiteral(new SqlLiteral(visitor.getSqlBuilder()));
 
     String sql = castString(Parser.visit(expression, visitor));
 
