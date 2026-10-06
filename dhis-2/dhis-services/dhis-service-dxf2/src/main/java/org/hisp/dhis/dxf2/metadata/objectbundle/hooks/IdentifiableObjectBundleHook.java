@@ -59,9 +59,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   /**
    * Text properties that are trimmed of leading/trailing whitespace, so that values differing only
    * by whitespace (e.g. {@code "Name"} vs {@code "Name "}) do not appear as near-duplicate
-   * metadata. {@code name} and {@code code} are set directly through the {@link IdentifiableObject}
-   * interface; the remaining properties are not declared on the interface and are set reflectively,
-   * only if present on the given object's schema.
+   * metadata. {@code name} is set directly through the {@link IdentifiableObject} interface; the
+   * remaining properties are not declared on the interface and are set reflectively, only if
+   * present on the given object's schema. {@code code} is deliberately not trimmed, since it is an
+   * identifier that existing objects and references are matched by.
    */
   private static final List<String> REFLECTIVE_TRIMMABLE_PROPERTIES =
       List.of("shortName", "description");
@@ -70,7 +71,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
   @Override
   public void normalize(IdentifiableObject object, ObjectBundleParams params) {
-    trimTextFields(object, params.getPreheatIdentifier());
+    trimTextFields(object);
   }
 
   @Override
@@ -93,23 +94,13 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
   /**
    * Trims leading and trailing whitespace from common metadata text properties ({@code name},
-   * {@code code}, {@code shortName}, {@code description}). A value made up entirely of whitespace
-   * (e.g. {@code " "}) is trimmed down to an empty string rather than left untouched.
-   *
-   * <p>{@code code} is not trimmed when it is the preheat identifier, since it is then the key the
-   * object is matched against persisted objects by; trimming it would no longer match a persisted
-   * object whose stored code has surrounding whitespace.
+   * {@code shortName}, {@code description}). A value made up entirely of whitespace (e.g. {@code "
+   * "}) is trimmed down to an empty string rather than left untouched.
    *
    * @param identifiableObject object to normalize text properties on
-   * @param preheatIdentifier identifier the bundle uses to match objects against persisted ones
    */
-  private void trimTextFields(
-      IdentifiableObject identifiableObject, PreheatIdentifier preheatIdentifier) {
+  private void trimTextFields(IdentifiableObject identifiableObject) {
     identifiableObject.setName(trim(identifiableObject.getName()));
-
-    if (preheatIdentifier != PreheatIdentifier.CODE) {
-      identifiableObject.setCode(trim(identifiableObject.getCode()));
-    }
 
     for (String property : REFLECTIVE_TRIMMABLE_PROPERTIES) {
       if (ReflectionUtils.findSetterMethod(property, identifiableObject) == null) {

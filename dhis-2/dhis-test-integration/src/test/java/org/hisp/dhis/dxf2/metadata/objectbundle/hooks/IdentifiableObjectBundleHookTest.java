@@ -52,8 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration test of {@link IdentifiableObjectBundleHook}'s whitespace trimming of metadata text
- * properties ({@code name}, {@code code}, {@code shortName}, {@code description}), run through the
- * real {@link ObjectBundleService} create/validate/commit pipeline.
+ * properties ({@code name}, {@code shortName}, {@code description}), run through the real {@link
+ * ObjectBundleService} create/validate/commit pipeline. {@code code} is never trimmed.
  */
 @Transactional
 class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
@@ -65,7 +65,7 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Test
-  void createTrimsSurroundingWhitespaceFromTextFields() {
+  void createTrimsSurroundingWhitespaceFromTextFieldsButNotCode() {
     DataElement dataElement = createDataElement('A');
     dataElement.setName("  Trimmed Name  ");
     dataElement.setShortName("  Trimmed Short  ");
@@ -77,7 +77,7 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
     DataElement persisted = manager.get(DataElement.class, dataElement.getUid());
     assertEquals("Trimmed Name", persisted.getName());
     assertEquals("Trimmed Short", persisted.getShortName());
-    assertEquals("CODE1", persisted.getCode());
+    assertEquals("  CODE1  ", persisted.getCode());
     assertEquals("Some description", persisted.getDescription());
   }
 
@@ -124,10 +124,10 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
   @Test
   void createDetectsUniquenessCollisionThatOnlyEmergesAfterTrimming() {
     DataElement dataElementOne = createDataElement('E');
-    dataElementOne.setCode("SHARED");
+    dataElementOne.setName("SHARED");
 
     DataElement dataElementTwo = createDataElement('F');
-    dataElementTwo.setCode("  SHARED  ");
+    dataElementTwo.setName("  SHARED  ");
 
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
@@ -143,7 +143,7 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void updateByCodeDoesNotTrimCodeUsedAsIdentifier() {
+  void updateByCodeMatchesUntrimmedCode() {
     Constant constant = createConstant('G', 1.0);
     constant.setCode("CODE_G ");
     manager.save(constant);
@@ -173,7 +173,6 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
   void createWithSkipValidationTrimsSurroundingWhitespaceFromTextFields() {
     Constant constant = createConstant('I', 1.0);
     constant.setName("  Skipped Validation  ");
-    constant.setCode("  CODE_I  ");
 
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
@@ -187,7 +186,6 @@ class IdentifiableObjectBundleHookTest extends PostgresIntegrationTestBase {
 
     Constant persisted = manager.get(Constant.class, constant.getUid());
     assertEquals("Skipped Validation", persisted.getName());
-    assertEquals("CODE_I", persisted.getCode());
   }
 
   private void commit(ImportStrategy importStrategy, DataElement dataElement) {
