@@ -40,13 +40,6 @@ jobs:
       - name: Run dependency analysis
         run: mvn dependency:analyze --file ./dhis-2/pom.xml
         timeout-minutes: 2
-      - name: Report coverage to codecov
-        uses: codecov/codecov-action@v3
-        with:
-          directory: ./dhis-2
-          flags: unit
-          fail_ci_if_error: false
-          verbose: true
       # delete the next 2 steps once we are confident in the coverage setup
       - name: Tar jacoco coverage report to debug
         run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
@@ -91,13 +84,6 @@ jobs:
           path: "**/target/test.log"
           if-no-files-found: error # check our logging configuration if that happens
           retention-days: 3
-      - name: Report coverage to codecov
-        uses: codecov/codecov-action@v3
-        with:
-          directory: ./dhis-2
-          flags: integration
-          fail_ci_if_error: false
-          verbose: true
       # delete the next 2 steps once we are confident in the coverage setup
       - name: Tar jacoco coverage report to debug
         run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
@@ -142,13 +128,6 @@ jobs:
           path: "**/target/test.log"
           if-no-files-found: error # check our logging configuration if that happens
           retention-days: 3
-      - name: Report coverage to codecov
-        uses: codecov/codecov-action@v3
-        with:
-          directory: ./dhis-2
-          flags: integration-h2
-          fail_ci_if_error: false
-          verbose: true
       # delete the next 2 steps once we are confident in the coverage setup
       - name: Tar jacoco coverage report to debug
         run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate

@@ -12,10 +12,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:
@@ -92,10 +88,6 @@ updates:
       prefix: "chore"
       include: "scope"
     target-branch: "2.42"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:
@@ -173,10 +165,6 @@ updates:
       prefix: "chore"
       include: "scope"
     target-branch: "2.41"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
   - package-ecosystem: "maven"
     directory: "/dhis-2"
     schedule:
@@ -262,10 +250,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    ignore:
-      - dependency-name: "codecov/codecov-action"
-        versions:
-          - ">= 4.0" # is breaking the build probably due to https://github.com/codecov/codecov-action/issues/837
     target-branch: "2.40"
   - package-ecosystem: "maven"
     directory: "/dhis-2"
