@@ -885,7 +885,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             lastupdated = now(),
             storedby    = current_setting('dhis2.user')
         FROM (VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?)
+          (?::bigint, ?::bigint, ?::bigint, ?::bigint, ?::bigint, ?::text, ?::text, ?::boolean)
         ) AS v(dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup)
         WHERE d.dataelementid           = v.dataelementid
           AND d.periodid                = v.periodid
@@ -996,8 +996,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   private static String deleteNValuesSql(String sql1, int n) {
     if (n == 1) return sql1;
     return sql1.replace(
-        "(?, ?, ?, ?, ?, ?, ?, ?)",
-        "(?, ?, ?, ?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?, ?, ?, ?)".repeat(n - 1));
+        "(?::bigint, ?::bigint, ?::bigint, ?::bigint, ?::bigint, ?::text, ?::text, ?::boolean)",
+        "(?::bigint, ?::bigint, ?::bigint, ?::bigint, ?::bigint, ?::text, ?::text, ?::boolean)"
+            + ", (?, ?, ?, ?, ?, ?, ?, ?)".repeat(n - 1));
   }
 
   private Map<String, Long> getDataElementIdMap(Stream<UID> ids) {
