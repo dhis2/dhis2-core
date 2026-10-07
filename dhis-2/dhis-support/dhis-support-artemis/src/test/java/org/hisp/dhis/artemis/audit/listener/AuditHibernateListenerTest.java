@@ -37,6 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,6 +158,33 @@ public class AuditHibernateListenerTest {
             postInsertAuditListener.createAuditEntry(group, state, session, 1, persister);
 
     assertEquals(List.of("ouabcdefghA"), auditObjectMap.get("members"));
+  }
+
+  /**
+   * A collection that was loaded and is empty (e.g. every member removed) is written as an empty
+   * list, so that a missing key only ever means "not loaded".
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  void testLoadedEmptyCollectionIsIncludedAsEmptyList() {
+    OrganisationUnitGroup group = new OrganisationUnitGroup("groupA");
+    PersistentSet members = new PersistentSet(null, new HashSet<>());
+
+    Object[] state = new Object[] {"groupA", members};
+    EventSource session = mock(EventSource.class);
+    EntityPersister persister = mock(EntityPersister.class);
+    when(persister.getPropertyNames()).thenReturn(new String[] {"name", "members"});
+
+    mockSchema(
+        OrganisationUnitGroup.class,
+        createProperty("name", true),
+        createCollectionProperty("members", OrganisationUnit.class));
+
+    Map<String, Object> auditObjectMap =
+        (Map<String, Object>)
+            postInsertAuditListener.createAuditEntry(group, state, session, 1, persister);
+
+    assertEquals(List.of(), auditObjectMap.get("members"));
   }
 
   private void mockSchema(Class<?> klass, Property... properties) {
