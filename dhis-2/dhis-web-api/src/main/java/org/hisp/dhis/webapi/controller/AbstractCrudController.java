@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -515,7 +516,7 @@ public abstract class AbstractCrudController<
     preUpdateItems(object, items);
     TypeReport report = collectionService.mergeCollectionItems(object, property, items);
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -544,7 +545,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.replaceCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -564,7 +565,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.addCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -593,7 +594,7 @@ public abstract class AbstractCrudController<
     TypeReport report =
         collectionService.delCollectionItems(object, property, items.getIdentifiableObjects());
     postUpdateItems(object, items);
-    hibernateCacheManager.clearCache();
+    clearCacheIfChanged(report);
     return typeReport(report);
   }
 
@@ -667,6 +668,14 @@ public abstract class AbstractCrudController<
   protected void prePatchEntity(T entity, T newEntity) throws ConflictException {}
 
   protected void postPatchEntity(JsonPatch patch, T entityAfter) {}
+
+  /** Collection updates that changed nothing leave the Hibernate caches intact. */
+  private void clearCacheIfChanged(TypeReport report) {
+    Stats stats = report.getStats();
+    if (stats.created() + stats.updated() + stats.deleted() > 0) {
+      hibernateCacheManager.clearCache();
+    }
+  }
 
   protected void preUpdateItems(T entity, IdentifiableObjects items) throws ConflictException {}
 

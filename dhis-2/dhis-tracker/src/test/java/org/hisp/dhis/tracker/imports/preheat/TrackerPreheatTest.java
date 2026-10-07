@@ -101,6 +101,43 @@ class TrackerPreheatTest extends TrackerTestBase {
   }
 
   @Test
+  void shouldReturnUniqueAttributeValuesEqualToValueIgnoringCase() {
+    UniqueAttributeValue upper = uniqueAttributeValue("ABC");
+    UniqueAttributeValue lower = uniqueAttributeValue("abc");
+    UniqueAttributeValue other = uniqueAttributeValue("abd");
+    preheat.setUniqueAttributeValues(List.of(upper, lower, other));
+
+    assertEquals(List.of(upper, lower), preheat.getUniqueAttributeValues("aBc"));
+    assertEquals(List.of(other), preheat.getUniqueAttributeValues("ABD"));
+  }
+
+  @Test
+  void shouldReturnUniqueAttributeValuesEqualIgnoringCaseWhenLowerCaseDiffers() {
+    // final and non-final sigma lower case differently but are equal ignoring case
+    UniqueAttributeValue finalSigma = uniqueAttributeValue("σας");
+    preheat.setUniqueAttributeValues(List.of(finalSigma));
+
+    assertTrue("σασ".equalsIgnoreCase("σας"));
+    assertEquals(List.of(finalSigma), preheat.getUniqueAttributeValues("σασ"));
+  }
+
+  @Test
+  void shouldReturnNoUniqueAttributeValuesWhenNoneHasTheValue() {
+    preheat.setUniqueAttributeValues(List.of(uniqueAttributeValue("abc")));
+
+    assertEquals(List.of(), preheat.getUniqueAttributeValues("abcd"));
+    assertEquals(List.of(), new TrackerPreheat().getUniqueAttributeValues("abc"));
+  }
+
+  private static UniqueAttributeValue uniqueAttributeValue(String value) {
+    return new UniqueAttributeValue(
+        UID.generate(),
+        MetadataIdentifier.ofUid(CodeGenerator.generateUid()),
+        value,
+        MetadataIdentifier.ofUid(CodeGenerator.generateUid()));
+  }
+
+  @Test
   void shouldReturnFalseForOptionSetThatWasNeverResolved() {
     assertFalse(preheat.isOptionSetResolved(1L));
   }
