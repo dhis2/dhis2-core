@@ -291,11 +291,10 @@ public class TrackerPreheat {
   private final Map<String, User> users = Maps.newHashMap();
 
   /**
-   * A list of all unique attribute values that are both present in the payload and in the database.
-   * This is going to be used to validate the uniqueness of attribute values in the Validation
-   * phase.
+   * {@link UniqueAttributeValue}s grouped by {@link #caseInsensitiveKey(String)} of their value, so
+   * the validation only compares a value against the few entries sharing it instead of all of them.
    */
-  @Getter @Setter private List<UniqueAttributeValue> uniqueAttributeValues = Lists.newArrayList();
+  private Map<String, List<UniqueAttributeValue>> uniqueAttributeValuesByValue = Map.of();
 
   /** A list of all Enrollment UID having at least one Event that is not deleted. */
   @Getter @Setter private List<UID> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
@@ -629,6 +628,35 @@ public class TrackerPreheat {
 
   public Optional<User> getUserByUid(String uid) {
     return this.users.values().stream().filter(u -> Objects.equals(uid, u.getUid())).findAny();
+  }
+
+  public void setUniqueAttributeValues(List<UniqueAttributeValue> uniqueAttributeValues) {
+    this.uniqueAttributeValuesByValue =
+        uniqueAttributeValues.stream()
+            .collect(Collectors.groupingBy(v -> caseInsensitiveKey(v.value())));
+  }
+
+  /**
+   * Returns the unique attribute values whose value is equal, ignoring case, to {@code value}. The
+   * entries can belong to any unique attribute and org unit.
+   */
+  @Nonnull
+  public List<UniqueAttributeValue> getUniqueAttributeValues(@Nonnull String value) {
+    return uniqueAttributeValuesByValue.getOrDefault(caseInsensitiveKey(value), List.of());
+  }
+
+  /**
+   * Folds each code point the same way {@link String#equalsIgnoreCase(String)} compares them (upper
+   * case, then lower case), so two values have the same key exactly when they are equal ignoring
+   * case. Lower casing alone would not do, e.g. for the Greek final sigma.
+   */
+  public static String caseInsensitiveKey(@Nonnull String value) {
+    StringBuilder key = new StringBuilder(value.length());
+    value
+        .codePoints()
+        .map(cp -> Character.toLowerCase(Character.toUpperCase(cp)))
+        .forEach(key::appendCodePoint);
+    return key.toString();
   }
 
   public OrganisationUnit getOrganisationUnit(MetadataIdentifier id) {

@@ -215,7 +215,7 @@ public class CompleteDataSetRegistration implements Serializable {
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataSet getDataSet() {
     return dataSet;
