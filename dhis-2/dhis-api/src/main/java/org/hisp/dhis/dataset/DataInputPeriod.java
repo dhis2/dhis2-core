@@ -74,7 +74,7 @@ public class DataInputPeriod implements EmbeddedObject {
   private int id;
 
   /** Period data must belong to */
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "periodid",
       nullable = false,
