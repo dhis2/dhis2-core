@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -220,6 +220,40 @@ class JdbcAnalyticsTableManagerTest {
     assertTrue(partitionB.isUnlogged());
     assertEquals(
         partitionB.getYear().intValue(), new DateTime(partitionB.getStartDate()).getYear());
+  }
+
+  @Test
+  void testIdColumnIsIndexedByDefault() {
+    assertFalse(getIdColumn().isSkipIndex());
+  }
+
+  @Test
+  void testIdColumnIndexSkippedWhenConfigured() {
+    when(analyticsTableSettings.getSkipIndexDimensions()).thenReturn(Set.of("id"));
+
+    assertTrue(getIdColumn().isSkipIndex());
+  }
+
+  private AnalyticsTableColumn getIdColumn() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2019, 3, 1, 10, 0).toDate())
+            .build();
+
+    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(List.of(2019));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+
+    return tables.get(0).getAnalyticsTableColumns().stream()
+        .filter(c -> "id".equals(c.getName()))
+        .findFirst()
+        .orElseThrow();
   }
 
   @Test
