@@ -61,6 +61,7 @@ import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.user.SystemUser;
@@ -469,7 +470,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
         .forEach(
             x ->
                 periods.add(
-                    PeriodDimension.of(
+                    new Period(
                         new MonthlyPeriodType()
                             .createPeriod(new DateTime(2014, x, 1, 0, 0).toDate()))));
 
