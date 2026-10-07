@@ -92,7 +92,11 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
 
     String description = programStage.getDisplayName() + "." + dataElement.getDisplayName();
 
-    visitor.getItemDescriptions().put(ctx.getText(), description);
+    // Key by the item text, not ctx.getText(): for d2:hasValue(#{...}) and similar functions ctx
+    // is the whole function call, so the function name would be replaced too
+    visitor
+        .getItemDescriptions()
+        .put("#{" + programStageId + "." + dataElementId + "}", description);
 
     return getNullReplacementValue(dataElement.getValueType());
   }

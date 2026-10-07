@@ -32,6 +32,8 @@ package org.hisp.dhis.program.dataitem;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DATE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.Interval;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
@@ -55,7 +57,15 @@ public class ProgramItemPsEventdate extends ProgramExpressionItem {
       throw new ParserExceptionWithoutContext("Program stage " + ctx.uid0.getText() + " not found");
     }
 
-    visitor.getItemDescriptions().put(programStageUid, programStage.getDisplayName());
+    // Key by the whole PS_EVENTDATE:uid item, not the bare UID, which would also replace the
+    // program stage UID inside other items such as #{programStageUid.dataElementUid}
+    Token prefix = ctx.psEventDate != null ? ctx.psEventDate : ctx.it;
+    String itemText =
+        prefix
+            .getInputStream()
+            .getText(Interval.of(prefix.getStartIndex(), ctx.uid0.getStopIndex()));
+
+    visitor.getItemDescriptions().put(itemText, prefix.getText() + programStage.getDisplayName());
 
     return DEFAULT_DATE_VALUE;
   }

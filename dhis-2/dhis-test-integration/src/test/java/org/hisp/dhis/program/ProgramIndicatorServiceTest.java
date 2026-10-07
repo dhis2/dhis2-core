@@ -75,6 +75,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -476,6 +478,34 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         "StageA.DataElementA > 10",
         programIndicatorService.getFilterDescription(stageDataElement + " > 10"));
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = '|',
+      value = {
+        "d2:count(#{ProgrmStagA.DataElmentA}) | d2:count(StageA.DataElementA)",
+        "d2:countIfValue(#{ProgrmStagA.DataElmentA}, 5) | d2:countIfValue(StageA.DataElementA, 5)",
+        "d2:maxValue(#{ProgrmStagA.DataElmentA}) | d2:maxValue(StageA.DataElementA)",
+        "d2:daysBetween(d2:minValue(PS_EVENTDATE:ProgrmStagA), V{enrollment_date})"
+            + " | d2:daysBetween(d2:minValue(PS_EVENTDATE:StageA), Enrollment date)",
+        "#{ProgrmStagA.DataElmentA} + d2:daysBetween(V{enrollment_date}, PS_EVENTDATE:ProgrmStagA)"
+            + " | StageA.DataElementA + d2:daysBetween(Enrollment date, PS_EVENTDATE:StageA)"
+      })
+  void testGetExpressionDescriptionKeepsProgramFunctions(String expression, String expected) {
+    assertEquals(expected, programIndicatorService.getExpressionDescription(expression));
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+      delimiter = '|',
+      value = {
+        "d2:hasValue(#{ProgrmStagA.DataElmentA}) | d2:hasValue(StageA.DataElementA)",
+        "d2:hasValue(A{Attribute0A}) | d2:hasValue(AttributeA)",
+        "d2:hasValue(V{enrollment_date}) | d2:hasValue(Enrollment date)"
+      })
+  void testGetFilterDescriptionKeepsProgramFunctions(String filter, String expected) {
+    assertEquals(expected, programIndicatorService.getFilterDescription(filter));
   }
 
   @Test
