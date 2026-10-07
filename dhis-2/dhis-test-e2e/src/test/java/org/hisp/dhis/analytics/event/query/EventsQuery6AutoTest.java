@@ -4093,7 +4093,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-    System.out.println(response.prettyPrint());
     // Then
     response.validate().statusCode(200).body("headers", hasSize(2));
 
