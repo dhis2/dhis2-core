@@ -57,8 +57,8 @@ public class ProgramItemPsEventdate extends ProgramExpressionItem {
       throw new ParserExceptionWithoutContext("Program stage " + ctx.uid0.getText() + " not found");
     }
 
-    // Key by the whole PS_EVENTDATE:uid item, not the bare UID, which would also replace the
-    // program stage UID inside other items such as #{programStageUid.dataElementUid}
+    // Key by the whole item text rather than the bare program stage UID, so the UID is not also
+    // replaced where it appears inside other items of the expression
     Token prefix = ctx.psEventDate != null ? ctx.psEventDate : ctx.it;
     String itemText =
         prefix
