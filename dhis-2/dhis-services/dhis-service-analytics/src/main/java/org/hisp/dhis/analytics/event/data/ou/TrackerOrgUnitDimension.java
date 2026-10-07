@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import lombok.Getter;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -63,14 +64,28 @@ public enum TrackerOrgUnitDimension {
       EventQueryParams::getRegistrationOuFilterItems,
       EventQueryParams::hasRegistrationOuDimension);
 
+  @Getter
+  /* The dimension keyword as written in the request. */
   private final String dimensionName;
 
+  @Getter
+  /* The column of the event analytics table holding the org unit UID. */
   private final String analyticsColumn;
 
+  @Getter
+  /*
+   * The alias of the org unit structure table joined for this dimension. Distinct from the {@code
+   * ous} alias of the default org unit join and from the other dimensions, so all can appear in one
+   * query.
+   */
   private final String structAlias;
 
+  @Getter
+  /* The output column holding the org unit UID. */
   private final ColumnHeader uidHeader;
 
+  @Getter
+  /* The output column holding the org unit name. */
   private final ColumnHeader nameHeader;
 
   private final Function<EventQueryParams, List<OrganisationUnit>> dimensionItems;
@@ -96,35 +111,6 @@ public enum TrackerOrgUnitDimension {
     this.dimensionItems = dimensionItems;
     this.filterItems = filterItems;
     this.dimensionRequested = dimensionRequested;
-  }
-
-  /** The dimension keyword as written in a request. */
-  public String getDimensionName() {
-    return dimensionName;
-  }
-
-  /** The column of the event analytics table holding the org unit UID. */
-  public String getAnalyticsColumn() {
-    return analyticsColumn;
-  }
-
-  /**
-   * The alias of the org unit structure table joined for this dimension. Distinct from the {@code
-   * ous} alias of the default org unit join and from the other dimensions, so all can appear in one
-   * query.
-   */
-  public String getStructAlias() {
-    return structAlias;
-  }
-
-  /** The output column holding the org unit UID. */
-  public ColumnHeader getUidHeader() {
-    return uidHeader;
-  }
-
-  /** The query output column holding the org unit name. */
-  public ColumnHeader getNameHeader() {
-    return nameHeader;
   }
 
   /** The output columns of the query endpoint, holding the org unit UID and name. */
