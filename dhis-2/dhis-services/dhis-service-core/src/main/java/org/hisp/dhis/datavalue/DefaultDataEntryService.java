@@ -442,7 +442,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public void upsertValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException {
     List<DataEntryError> errors = new ArrayList<>(1);
-    ValidationSource source = new ValuesValidationSource(List.of(value));
+    ValidationSource source = ValidationSource.of(List.of(value));
     DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     int n = store.upsertValues(List.of(value));
@@ -460,7 +460,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     List<DataEntryError> errors = new ArrayList<>();
     DataEntryGroup.Scope deletion = group.deletion();
     if (deletion != null) {
-      ValidationSource source = new ScopeValidationSource(deletion);
+      ValidationSource source = ValidationSource.of(deletion);
       progress.startingStage("Validating deletion scope " + deletion);
       progress.runStageAndRethrow(
           ConflictException.class,
@@ -634,10 +634,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     // - require: COC must link (belong) to the CC of the DE
     UIDConnection deCocNotInDs =
-        store.getCocNotInDataSet(
-            ds,
-            source.values().stream()
-                .map(dv -> new UIDConnection(dv.dataElement(), dv.categoryOptionCombo())));
+        store.getCocNotInDataSet(ds, source.dataElementCategoryOptionComboPairs());
     if (deCocNotInDs != null)
       throw new ConflictException(
           ErrorCode.E8024, ds, deCocNotInDs.from(), List.of(deCocNotInDs.to()));
@@ -648,13 +645,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!aocOuRestricted.isEmpty()) {
       UIDConnection ouAocNotInHierarchy =
           store.getOrgUnitsNotInAocHierarchy(
-              source.values().stream()
-                  .filter(
-                      dv -> {
-                        UID aoc = dv.attributeOptionCombo();
-                        return aoc != null && aocOuRestricted.contains(aoc.getValue());
-                      })
-                  .map(dv -> new UIDConnection(dv.orgUnit(), dv.attributeOptionCombo())));
+              source.orgUnitAttributeOptionComboPairs(aocOuRestricted));
       if (ouAocNotInHierarchy != null)
         throw new ConflictException(
             ErrorCode.E8025, ouAocNotInHierarchy.to(), List.of(ouAocNotInHierarchy.from()));
@@ -957,7 +948,15 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     return new DateRange(start, end);
   }
 
-  private sealed interface ValidationSource {
+  sealed interface ValidationSource {
+
+    static ValidationSource of(List<DataEntryValue> values) {
+      return new ValuesValidationSource(values);
+    }
+
+    static ValidationSource of(DataEntryGroup.Scope scope) {
+      return new ScopeValidationSource(scope);
+    }
 
     /**
      * @return all data elements in the source (no nulls; not necessarily distinct yet)
@@ -1003,6 +1002,19 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
      * @return all org units used in combination with the given AOC (no nulls, no duplicates)
      */
     Stream<UID> orgUnitsForAttributeOptionCombo(UID aoc);
+
+    /**
+     * @return all pairs of DE-COC found in the source (may include duplicates, must include default
+     *     COC as null)
+     */
+    Stream<UIDConnection> dataElementCategoryOptionComboPairs();
+
+    /**
+     * @param aocOuRestricted set of AOCs to consider (include)
+     * @return all pairs of OU-AOC found in the source (may include duplicates, must not include
+     *     default AOC nulls)
+     */
+    Stream<UIDConnection> orgUnitAttributeOptionComboPairs(Set<String> aocOuRestricted);
 
     /**
      * @return all values for value level validation (value, comment)
@@ -1058,6 +1070,23 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           .map(DataEntryValue::orgUnit)
           .distinct();
     }
+
+    @Override
+    public Stream<UIDConnection> dataElementCategoryOptionComboPairs() {
+      return values.stream()
+          .map(dv -> new UIDConnection(dv.dataElement(), dv.categoryOptionCombo()));
+    }
+
+    @Override
+    public Stream<UIDConnection> orgUnitAttributeOptionComboPairs(Set<String> aocOuRestricted) {
+      return values.stream()
+          .filter(
+              dv -> {
+                UID aoc = dv.attributeOptionCombo();
+                return aoc != null && aocOuRestricted.contains(aoc.getValue());
+              })
+          .map(dv -> new UIDConnection(dv.orgUnit(), dv.attributeOptionCombo()));
+    }
   }
 
   private record ScopeValidationSource(DataEntryGroup.Scope scope) implements ValidationSource {
@@ -1104,8 +1133,28 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     }
 
     @Override
+    public Stream<UIDConnection> dataElementCategoryOptionComboPairs() {
+      return scope.elements().stream()
+          .map(e -> new UIDConnection(e.dataElement(), e.categoryOptionCombo()));
+    }
+
+    @Override
     public Stream<UID> orgUnitsForAttributeOptionCombo(UID aoc) {
       return scope.orgUnits().stream();
+    }
+
+    @Override
+    public Stream<UIDConnection> orgUnitAttributeOptionComboPairs(Set<String> aocOuRestricted) {
+      return scope.elements().stream()
+          .filter(
+              e -> {
+                UID aoc = e.attributeOptionCombo();
+                return aoc != null && aocOuRestricted.contains(aoc.getValue());
+              })
+          .flatMap(
+              e ->
+                  scope.orgUnits().stream()
+                      .map(ou -> new UIDConnection(ou, e.attributeOptionCombo())));
     }
 
     @Override

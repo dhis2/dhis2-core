@@ -365,8 +365,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Override
   public UIDConnection getOrgUnitsNotInAocHierarchy(Stream<UIDConnection> ouAocPairs) {
-    List<String> aocFlat = new ArrayList<>();
     List<String> ouFlat = new ArrayList<>();
+    List<String> aocFlat = new ArrayList<>();
     ouAocPairs
         .distinct()
         .forEach(
