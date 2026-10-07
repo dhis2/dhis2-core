@@ -81,7 +81,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfo;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
@@ -274,20 +274,14 @@ public class EventQueryParams extends DataQueryParams {
 
   @Getter protected List<OrganisationUnit> userOrgUnits = new ArrayList<>();
 
-  /** Items when ENROLLMENT_OU is used as a dimension. */
-  private List<DimensionalItemObject> enrollmentOuDimensionItems = new ArrayList<>();
+  /**
+   * Org units when ENROLLMENT_OU is used as a dimension, already expanded from any keyword form and
+   * therefore carrying their hierarchy level.
+   */
+  private List<OrganisationUnit> enrollmentOuDimensionItems = new ArrayList<>();
 
-  /** Items when ENROLLMENT_OU is used as a filter. */
-  private List<DimensionalItemObject> enrollmentOuFilterItems = new ArrayList<>();
-
-  /** Level constraints when ENROLLMENT_OU is used as a dimension. */
-  private Set<Integer> enrollmentOuDimensionLevels = new LinkedHashSet<>();
-
-  /** Level constraints when ENROLLMENT_OU is used as a filter. */
-  private Set<Integer> enrollmentOuFilterLevels = new LinkedHashSet<>();
-
-  /** Whether ENROLLMENT_OU dimension was requested via relative keywords (e.g. USER_ORGUNIT). */
-  private boolean enrollmentOuDimensionHierarchical = false;
+  /** Org units when ENROLLMENT_OU is used as a filter. */
+  private List<OrganisationUnit> enrollmentOuFilterItems = new ArrayList<>();
 
   /**
    * Org units when REGISTRATION_OU is used as a dimension, already expanded from any keyword form
@@ -382,9 +376,6 @@ public class EventQueryParams extends DataQueryParams {
     params.piDisagInfo = this.piDisagInfo;
     params.enrollmentOuDimensionItems = new ArrayList<>(this.enrollmentOuDimensionItems);
     params.enrollmentOuFilterItems = new ArrayList<>(this.enrollmentOuFilterItems);
-    params.enrollmentOuDimensionLevels = new LinkedHashSet<>(this.enrollmentOuDimensionLevels);
-    params.enrollmentOuFilterLevels = new LinkedHashSet<>(this.enrollmentOuFilterLevels);
-    params.enrollmentOuDimensionHierarchical = this.enrollmentOuDimensionHierarchical;
     params.registrationOuDimensionItems = new ArrayList<>(this.registrationOuDimensionItems);
     params.registrationOuFilterItems = new ArrayList<>(this.registrationOuFilterItems);
     params.registrationOuDimensionRequested = this.registrationOuDimensionRequested;
@@ -638,7 +629,13 @@ public class EventQueryParams extends DataQueryParams {
     asc.forEach(e -> e.getItem().getUid());
     desc.forEach(e -> e.getItem().getUid());
 
-    // Registration OU selections are stored outside the generic dimensions and filters.
+    // Enrollment and registration OU selections are stored outside the generic dimensions and
+    // filters.
+    enrollmentOuDimensionItems.forEach(
+        ou -> key.add("enrollmentOuDimension", ou.getUid() + ":" + ou.getLevel()));
+    enrollmentOuFilterItems.forEach(
+        ou -> key.add("enrollmentOuFilter", ou.getUid() + ":" + ou.getLevel()));
+
     if (hasRegistrationOu()) {
       key.add("registrationOuDimensionRequested", registrationOuDimensionRequested);
       registrationOuDimensionItems.forEach(
@@ -1321,7 +1318,7 @@ public class EventQueryParams extends DataQueryParams {
   }
 
   public boolean hasEnrollmentOuDimension() {
-    return isNotEmpty(enrollmentOuDimensionItems) || !enrollmentOuDimensionLevels.isEmpty();
+    return isNotEmpty(enrollmentOuDimensionItems);
   }
 
   /** Returns true if REGISTRATION_OU was named as a dimension, with or without items. */
@@ -1370,7 +1367,7 @@ public class EventQueryParams extends DataQueryParams {
   }
 
   public boolean hasEnrollmentOuFilter() {
-    return isNotEmpty(enrollmentOuFilterItems) || !enrollmentOuFilterLevels.isEmpty();
+    return isNotEmpty(enrollmentOuFilterItems);
   }
 
   public boolean hasEnrollmentOu() {
@@ -1381,47 +1378,21 @@ public class EventQueryParams extends DataQueryParams {
   public Optional<String> getEnrollmentOuSortColumn() {
     return Stream.concat(asc.stream(), desc.stream())
         .map(QueryItem::getItemId)
-        .filter(OrgUnitSqlConstants.RESULT_ALIASES::contains)
+        .filter(TrackerOrgUnitDimension.ENROLLMENT_OU.outputColumns()::contains)
         .findFirst();
   }
 
-  public List<DimensionalItemObject> getEnrollmentOuDimensionItems() {
+  public List<OrganisationUnit> getEnrollmentOuDimensionItems() {
     return enrollmentOuDimensionItems;
   }
 
-  public List<DimensionalItemObject> getEnrollmentOuFilterItems() {
+  public List<OrganisationUnit> getEnrollmentOuFilterItems() {
     return enrollmentOuFilterItems;
   }
 
   /** Returns all enrollment OU items from both dimension and filter. */
-  public List<DimensionalItemObject> getAllEnrollmentOuItems() {
+  public List<OrganisationUnit> getAllEnrollmentOuItems() {
     return ListUtils.union(enrollmentOuDimensionItems, enrollmentOuFilterItems);
-  }
-
-  public Set<Integer> getEnrollmentOuDimensionLevels() {
-    return enrollmentOuDimensionLevels;
-  }
-
-  public Set<Integer> getEnrollmentOuFilterLevels() {
-    return enrollmentOuFilterLevels;
-  }
-
-  public boolean isEnrollmentOuDimensionHierarchical() {
-    return enrollmentOuDimensionHierarchical;
-  }
-
-  public boolean hasEnrollmentOuLevelConstraint() {
-    return !enrollmentOuDimensionLevels.isEmpty() || !enrollmentOuFilterLevels.isEmpty();
-  }
-
-  public Set<Integer> getAllEnrollmentOuLevelsForSql() {
-    Set<Integer> levels = new LinkedHashSet<>(enrollmentOuDimensionLevels);
-    levels.addAll(enrollmentOuFilterLevels);
-    return levels;
-  }
-
-  public List<DimensionalItemObject> getAllEnrollmentOuItemsForSql() {
-    return getAllEnrollmentOuItems();
   }
 
   /**
@@ -2011,23 +1982,13 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
-    public Builder withEnrollmentOuDimension(List<DimensionalItemObject> items) {
-      this.params.enrollmentOuDimensionItems = items;
+    public Builder withEnrollmentOuDimension(List<OrganisationUnit> items) {
+      this.params.enrollmentOuDimensionItems = new ArrayList<>(items);
       return this;
     }
 
-    public Builder withEnrollmentOuFilter(List<DimensionalItemObject> items) {
-      this.params.enrollmentOuFilterItems = items;
-      return this;
-    }
-
-    public Builder withEnrollmentOuDimensionLevels(Set<Integer> levels) {
-      this.params.enrollmentOuDimensionLevels = new LinkedHashSet<>(levels);
-      return this;
-    }
-
-    public Builder withEnrollmentOuFilterLevels(Set<Integer> levels) {
-      this.params.enrollmentOuFilterLevels = new LinkedHashSet<>(levels);
+    public Builder withEnrollmentOuFilter(List<OrganisationUnit> items) {
+      this.params.enrollmentOuFilterItems = new ArrayList<>(items);
       return this;
     }
 
@@ -2039,11 +2000,6 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withRegistrationOuFilter(List<OrganisationUnit> items) {
       this.params.registrationOuFilterItems = new ArrayList<>(items);
-      return this;
-    }
-
-    public Builder withEnrollmentOuDimensionHierarchical(boolean hierarchical) {
-      this.params.enrollmentOuDimensionHierarchical = hierarchical;
       return this;
     }
 

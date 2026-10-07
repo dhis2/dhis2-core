@@ -75,7 +75,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.LocalCache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -218,7 +217,7 @@ class EventAggregateServiceTest {
   void shouldKeepValueAndEnrollmentOuHeadersUnchanged() throws Exception {
     EventQueryParams params =
         new EventQueryParams.Builder(defaultPeriodParams())
-            .withEnrollmentOuDimension(List.<DimensionalItemObject>of(createOrganisationUnit('A')))
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
             .build();
 
     Grid grid = new ListGrid();

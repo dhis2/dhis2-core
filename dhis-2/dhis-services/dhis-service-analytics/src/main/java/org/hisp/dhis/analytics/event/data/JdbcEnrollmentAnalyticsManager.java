@@ -73,9 +73,10 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.aggregate.AggregatedEnrollmentDateHeaderResolver;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
-import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
@@ -387,7 +388,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
-    sql.append(RegistrationOuSqlCoordinator.joinClause(params, sqlBuilder));
+    sql.append(
+        OrgUnitSqlCoordinator.joinClause(
+            TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder));
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -396,7 +399,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), "ax");
-    RegistrationOuSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
+    OrgUnitSqlCoordinator.addJoinIfNeeded(
+        TrackerOrgUnitDimension.REGISTRATION_OU, sb, params, sqlBuilder);
   }
 
   /**
@@ -562,7 +566,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + ",4326) ";
     }
 
-    sql += RegistrationOuSqlCoordinator.wherePredicate(params, hlp, sqlBuilder);
+    sql +=
+        OrgUnitSqlCoordinator.wherePredicate(
+            TrackerOrgUnitDimension.REGISTRATION_OU, params, hlp, sqlBuilder);
 
     return sql;
   }
@@ -744,7 +750,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // The registration OU projection is added separately, qualified and aliased, because stripping
     // its table alias would leave a uidlevelN reference that is ambiguous once regous is joined.
     boolean joinsRegistrationOu = params.hasRegistrationOu();
-    columns.removeIf(RegistrationOuSqlCoordinator::isRegistrationOuColumn);
+    columns.removeIf(OrgUnitSqlCoordinator::isRegistrationOuColumn);
 
     SelectBuilder sb = new SelectBuilder();
     sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
@@ -752,10 +758,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       String stripped = SqlColumnParser.removeTableAlias(column);
       sb.addColumn(
           joinsRegistrationOu
-              ? RegistrationOuSqlCoordinator.preserveQualifierIfAmbiguous(column, stripped)
+              ? OrgUnitSqlCoordinator.preserveQualifierIfAmbiguous(column, stripped)
               : stripped);
     }
-    RegistrationOuSqlCoordinator.baseCteSelectColumn(params, sqlBuilder).ifPresent(sb::addColumn);
+    OrgUnitSqlCoordinator.baseCteSelectColumn(params, sqlBuilder).ifPresent(sb::addColumn);
 
     addNonDefaultPeriodSourceColumns(sb, params);
 
@@ -1206,7 +1212,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       aggregatedAssembler.addStandardColumns(sb, cteContext, getStandardColumns(params));
 
-      RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder).forEach(sb::addColumn);
+      OrgUnitSqlCoordinator.querySelectColumns(
+              TrackerOrgUnitDimension.REGISTRATION_OU, params, sqlBuilder)
+          .forEach(sb::addColumn);
     }
 
     // Append columns from CTE definitions
