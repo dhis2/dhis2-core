@@ -509,7 +509,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
 
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
   }
 
@@ -521,7 +521,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update
@@ -539,7 +539,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportAddAndReverseDeletedValuesXml() {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertImported(12, 0, summary);
+    assertImported(8, 4, summary);
     assertDataValuesCount(8);
 
     // Reverse deletion and update

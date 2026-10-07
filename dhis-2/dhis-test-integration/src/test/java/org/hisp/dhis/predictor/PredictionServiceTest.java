@@ -487,7 +487,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataDumpService.upsertValues(values) != values.length)
+    if (dataDumpService.upsertValuesForJdbcTest(values) != values.length)
       fail("Failed to insert test data: " + values);
   }
 
