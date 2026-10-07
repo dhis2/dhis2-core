@@ -40,7 +40,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.program.ProgramExpressionItem;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.util.SqlUtils;
