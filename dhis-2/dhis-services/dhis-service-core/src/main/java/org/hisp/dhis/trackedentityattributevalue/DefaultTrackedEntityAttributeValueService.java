@@ -31,7 +31,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
@@ -217,10 +217,21 @@ public class DefaultTrackedEntityAttributeValueService
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValue> getUniqueAttributeByValues(
-      Map<TrackedEntityAttribute, List<String>> uniqueAttributes) {
-    return uniqueAttributes.entrySet().stream()
-        .flatMap(entry -> this.attributeValueStore.get(entry.getKey(), entry.getValue()).stream())
-        .collect(Collectors.toList());
+  public List<UniqueAttributeValueMatch> getUniqueAttributeValues(
+      TrackedEntityAttribute attribute, Set<String> values) {
+    if (values.isEmpty()) {
+      return List.of();
+    }
+    return attributeValueStore.getUniqueAttributeValues(attribute, values);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UniqueAttributeValueMatch> getUniqueAttributeValues(
+      TrackedEntityAttribute attribute, Map<Long, Set<String>> valuesByOrgUnitId) {
+    if (valuesByOrgUnitId.isEmpty()) {
+      return List.of();
+    }
+    return attributeValueStore.getUniqueAttributeValues(attribute, valuesByOrgUnitId);
   }
 }
