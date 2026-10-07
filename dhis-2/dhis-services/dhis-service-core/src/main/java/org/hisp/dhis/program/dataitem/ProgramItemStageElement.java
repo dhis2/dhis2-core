@@ -90,10 +90,7 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
       throw new ParserException(getErrorMessage(programStageId));
     }
 
-    String description =
-        programStage.getDisplayName()
-            + ProgramIndicator.SEPARATOR_ID
-            + dataElement.getDisplayName();
+    String description = programStage.getDisplayName() + "." + dataElement.getDisplayName();
 
     visitor.getItemDescriptions().put(ctx.getText(), description);
 
