@@ -250,9 +250,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "24.82",
             "983.0",
             "3960.0",
+            "100.0",
             "100",
-            "",
-            ""));
+            "1"));
 
     validateRow(
         response,
@@ -262,9 +262,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "24.71",
             "1542.0",
             "6240.0",
+            "100.0",
             "100",
-            "",
-            ""));
+            "1"));
 
     validateRow(
         response,
@@ -274,9 +274,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "24.71",
             "1542.0",
             "6240.0",
+            "100.0",
             "100",
-            "",
-            ""));
+            "1"));
   }
 
   @Test
@@ -401,9 +401,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
             "25.11",
             "1401.0",
             "5580.0",
+            "100.0",
             "100",
-            "",
-            ""));
+            "1"));
   }
 
   @Test

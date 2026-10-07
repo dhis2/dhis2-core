@@ -65,6 +65,11 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -75,6 +80,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
@@ -88,6 +94,8 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * @author Lars Helge Overland
@@ -736,5 +744,203 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     assertEquals("", AnalyticsUtils.getClosingParentheses(""));
     assertEquals(")", AnalyticsUtils.getClosingParentheses("from(select(select (*))"));
     assertEquals("))", AnalyticsUtils.getClosingParentheses("(("));
+  }
+
+  // -------------------------------------------------------------------------
+  // getDimensionMetadataItemMap with ReportingRate items
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateKeysAndNames() {
+    DataSet dataSetA = createDataSet('A');
+    List<DimensionalItemObject> reportingRates = createReportingRates(dataSetA);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, reportingRates))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    // One entry per reporting rate item plus one for the dx dimension
+    assertEquals(ReportingRateMetric.values().length + 1, result.size());
+    assertTrue(result.containsKey(DATA_X_DIM_ID));
+
+    for (ReportingRateMetric metric : ReportingRateMetric.values()) {
+      String key = dataSetA.getUid() + "." + metric.name();
+
+      assertTrue(result.containsKey(key), "Missing key: " + key);
+      assertEquals("DataSetA - " + metric.displayName(), result.get(key).getName());
+    }
+
+    // The plain data set uid is not used as a key
+    assertFalse(result.containsKey(dataSetA.getUid()));
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateWithShortName() {
+    DataSet dataSetA = createDataSet('A');
+    List<DimensionalItemObject> reportingRates = createReportingRates(dataSetA);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, reportingRates))
+            .withDisplayProperty(DisplayProperty.SHORTNAME)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    for (ReportingRateMetric metric : ReportingRateMetric.values()) {
+      String key = dataSetA.getUid() + "." + metric.name();
+
+      assertEquals("DataSetShortA - " + metric.displayName(), result.get(key).getName());
+    }
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateWithoutMetadataDetails() {
+    DataSet dataSetA = createDataSet('A');
+    ReportingRate reportingRate = new ReportingRate(dataSetA, ReportingRateMetric.REPORTING_RATE);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(reportingRate)))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .withIncludeMetadataDetails(false)
+            .build();
+
+    MetadataItem item =
+        AnalyticsUtils.getDimensionMetadataItemMap(params).get(reportingRate.getDimensionItem());
+
+    assertNotNull(item);
+    assertEquals("DataSetA - Reporting rate", item.getName());
+    assertNull(item.getUid());
+    assertNull(item.getCode());
+    assertNull(item.getDimensionItemType());
+    assertNull(item.getValueType());
+    assertNull(item.getTotalAggregationType());
+    assertNull(item.getStyle());
+  }
+
+  @ParameterizedTest
+  @EnumSource(ReportingRateMetric.class)
+  void testGetDimensionMetadataItemMapReportingRateWithMetadataDetails(ReportingRateMetric metric) {
+    DataSet dataSetA = createDataSet('A');
+    ObjectStyle style = new ObjectStyle();
+    style.setColor("#FF0000");
+    style.setIcon("icon-name");
+    dataSetA.setStyle(style);
+
+    ReportingRate reportingRate = new ReportingRate(dataSetA, metric);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(reportingRate)))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .withIncludeMetadataDetails(true)
+            .build();
+
+    MetadataItem item =
+        AnalyticsUtils.getDimensionMetadataItemMap(params)
+            .get(dataSetA.getUid() + "." + metric.name());
+
+    assertNotNull(item);
+    assertEquals("DataSetA - " + metric.displayName(), item.getName());
+    assertEquals(dataSetA.getUid(), item.getUid());
+    assertEquals(DimensionItemType.REPORTING_RATE, item.getDimensionItemType());
+    assertEquals(ValueType.NUMBER, item.getValueType());
+    assertEquals(
+        metric.isSum() ? TotalAggregationType.SUM : TotalAggregationType.AVERAGE,
+        item.getTotalAggregationType());
+    assertNull(item.getAggregationType());
+    assertNotNull(item.getStyle());
+    assertEquals("#FF0000", item.getStyle().getColor());
+    assertEquals("icon-name", item.getStyle().getIcon());
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRatesFromMultipleDataSetsInFilter() {
+    DataSet dataSetA = createDataSet('A');
+    DataSet dataSetB = createDataSet('B');
+
+    ReportingRate rateA = new ReportingRate(dataSetA, ReportingRateMetric.REPORTING_RATE);
+    ReportingRate rateB = new ReportingRate(dataSetB, ReportingRateMetric.EXPECTED_REPORTS);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addFilter(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(rateA, rateB)))
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    assertEquals(3, result.size());
+    assertEquals(
+        "DataSetA - Reporting rate", result.get(dataSetA.getUid() + ".REPORTING_RATE").getName());
+    assertEquals(
+        "DataSetB - Expected reports",
+        result.get(dataSetB.getUid() + ".EXPECTED_REPORTS").getName());
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateHasNoCategoryOptionCombos() {
+    DataSet dataSetA = createDataSet('A');
+    ReportingRate reportingRate = new ReportingRate(dataSetA, ReportingRateMetric.ACTUAL_REPORTS);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(reportingRate)))
+            .withIncludeMetadataDetails(true)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+
+    // Unlike data elements, reporting rates do not add category option combo entries
+    assertEquals(2, result.size());
+    assertTrue(result.containsKey(reportingRate.getDimensionItem()));
+    assertTrue(result.containsKey(DATA_X_DIM_ID));
+  }
+
+  @Test
+  void testGetDimensionMetadataItemMapReportingRateUsesDataSetLegendSet() {
+    DataSet dataSetA = createDataSet('A');
+    LegendSet legendSet = createLegendSet('A');
+    dataSetA.setLegendSets(List.of(legendSet));
+
+    ReportingRate reportingRate = new ReportingRate(dataSetA, ReportingRateMetric.REPORTING_RATE);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(reportingRate)))
+            .withIncludeMetadataDetails(true)
+            .build();
+
+    MetadataItem item =
+        AnalyticsUtils.getDimensionMetadataItemMap(params).get(reportingRate.getDimensionItem());
+
+    assertEquals(legendSet.getUid(), item.getLegendSet());
+  }
+
+  private List<DimensionalItemObject> createReportingRates(DataSet dataSet) {
+    List<DimensionalItemObject> reportingRates = new ArrayList<>();
+
+    for (ReportingRateMetric metric : ReportingRateMetric.values()) {
+      reportingRates.add(new ReportingRate(dataSet, metric));
+    }
+
+    return reportingRates;
   }
 }
