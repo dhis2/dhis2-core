@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -188,6 +189,12 @@ public abstract class AbstractHibernateListener {
       Property property = properties.get(pName);
 
       if (shouldIgnoreProperty(property)) {
+        continue;
+      }
+
+      // Rule 2: a collection the request did not load is left out, as loading it here would read
+      // every element from the database (hundreds of thousands for large org unit sets)
+      if (value instanceof PersistentCollection collection && !collection.wasInitialized()) {
         continue;
       }
 
