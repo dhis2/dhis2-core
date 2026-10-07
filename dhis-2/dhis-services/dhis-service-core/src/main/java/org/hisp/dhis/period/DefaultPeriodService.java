@@ -266,6 +266,7 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
+  @IndirectTransactional
   public boolean updateRelativePeriodLabel(
       @Nonnull RelativePeriodEnum name, @Nonnull Collection<Translation> translations) {
     PERIOD_TYPES_CACHE.clear();
@@ -273,6 +274,7 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
+  @IndirectTransactional
   public boolean updateRelativePeriodLabel(
       @Nonnull RelativePeriodEnum name, @CheckForNull String label, @CheckForNull Locale locale) {
     PERIOD_TYPES_CACHE.clear();
@@ -280,6 +282,7 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
+  @IndirectTransactional
   public PeriodTypes getDataOutputPeriodTypes(@CheckForNull Locale locale) {
     Configuration conf = configurationService.getConfiguration();
     Set<PeriodTypeEnum> dataOutputTypes = EnumSet.noneOf(PeriodTypeEnum.class);

@@ -72,6 +72,7 @@ public enum PeriodTypeEnum {
   @JsonCreator
   public static PeriodTypeEnum of(@Nonnull String name) {
     for (PeriodTypeEnum e : values) if (e.name.equalsIgnoreCase(name)) return e;
+    for (PeriodTypeEnum e : values) if (e.name().equalsIgnoreCase(name)) return e;
     throw new IllegalArgumentException("Invalid period type name: " + name);
   }
 
