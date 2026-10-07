@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
@@ -61,12 +62,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -78,8 +81,11 @@ import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
 import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlConstants;
+import org.hisp.dhis.analytics.event.data.stage.StageQualifiedName;
+import org.hisp.dhis.analytics.event.data.stage.StageSortField;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -167,9 +173,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       throwIllegalQueryEx(ErrorCode.E7129, request.getProgram());
     }
 
+    validateNoOffsetInValue(request.getValue());
+
     ProgramStage ps =
         programStageService.getProgramStage(
             getStageInValue(request.getValue(), request.getStage()));
+
+    validateStagePrefixInValue(request.getValue(), pr, ps);
 
     if (StringUtils.isNotEmpty(request.getStage()) && ps == null) {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
@@ -191,14 +201,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     addSortToParams(params, request, pr);
 
-    if (request.getAggregationType() != null) {
+    if (request.getAggregationType() != null
+        && request.getAggregationType() != AggregationType.DEFAULT) {
       params.withAggregationType(
           AnalyticsAggregationType.fromAggregationType(request.getAggregationType()));
     }
 
     EventQueryParams.Builder builder =
         params
-            .withValue(getValueDimension(request.getValue()))
+            .withValue(getValueDimension(request.getValue(), pr))
             .withRequestValue(request.getValue())
             .withSkipRounding(request.isSkipRounding())
             .withShowHierarchy(request.isShowHierarchy())
@@ -245,6 +256,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     EventQueryParams eventQueryParams = builder.build();
+
+    if (isAggregateRequest(request)) {
+      validateValueHasAggregationType(eventQueryParams);
+    }
 
     // Partitioning applies only when default period is specified
 
@@ -521,13 +536,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventDataQueryRequest request,
       Program pr,
       Set<String> existingKeys) {
-    if (!isStagePrefixed(header)) {
+    Optional<StageQualifiedName> name = StageQualifiedName.parse(header);
+    if (name.isEmpty()) {
       return false;
     }
 
-    int dot = header.lastIndexOf('.');
-    String prefix = header.substring(0, dot);
-    String suffix = header.substring(dot + 1);
+    String suffix = name.get().suffix();
     boolean enrollment = request.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT;
 
     if (enrollment && isStageOuHelperSuffix(suffix)) {
@@ -535,7 +549,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           params,
           request,
           pr,
-          prefix,
+          name.get(),
           EventAnalyticsColumnName.OU_COLUMN_NAME,
           EventAnalyticsColumnName.OU_COLUMN_NAME,
           existingKeys);
@@ -547,7 +561,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           params,
           request,
           pr,
-          prefix,
+          name.get(),
           EVENT_DATE_DIMENSION,
           EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
           existingKeys);
@@ -559,7 +573,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           params,
           request,
           pr,
-          prefix,
+          name.get(),
           EVENT_STATUS_DIMENSION,
           EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME,
           existingKeys);
@@ -571,7 +585,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           params,
           request,
           pr,
-          prefix,
+          name.get(),
           SCHEDULED_DATE_DIMENSION,
           EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
           existingKeys);
@@ -588,22 +602,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * {@link #handleStagePrefixedSpecialCase}.
    */
   private static boolean shouldSkipHeader(String header, EventDataQueryRequest request) {
-    if (isStagePrefixed(header)) {
+    if (StageQualifiedName.isStageQualified(header)) {
       return false;
     }
     if (request.getEndpointAction() != RequestTypeAware.EndpointAction.QUERY) {
       return true;
     }
     return isStaticColumnSuffix(header);
-  }
-
-  /**
-   * Returns {@code true} when the header has the {@code {stageUid}.{suffix}} shape — i.e. an
-   * interior dot with non-empty text on both sides. A leading or trailing dot doesn't count.
-   */
-  private static boolean isStagePrefixed(String header) {
-    int dot = header.lastIndexOf('.');
-    return dot > 0 && dot < header.length() - 1;
   }
 
   /**
@@ -636,15 +641,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventQueryParams.Builder params,
       EventDataQueryRequest request,
       Program pr,
-      String stagePrefix,
+      StageQualifiedName name,
       String dimensionSuffix,
       String itemIdSuffix,
       Set<String> existingKeys) {
-    String quickKey = stagePrefix + "." + itemIdSuffix;
+    String quickKey = name.withSuffix(itemIdSuffix).toString();
     if (existingKeys.contains(quickKey)) {
       return;
     }
-    String dimension = stagePrefix + "." + dimensionSuffix;
+    String dimension = name.withSuffix(dimensionSuffix).toString();
     try {
       QueryItem item =
           getQueryItem(dimension, pr, request.getOutputType(), request.getRelativePeriodDate());
@@ -694,15 +699,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventQueryParams.Builder params, EventDataQueryRequest request, Program pr) {
     if (request.getAsc() != null) {
       for (String sort : request.getAsc()) {
-        params.addAscSortItem(
-            getSortItem(sort, pr, request.getOutputType(), request.getEndpointItem()));
+        params.addAscSortItem(getSortItem(sort, pr, request));
       }
     }
 
     if (request.getDesc() != null) {
       for (String sort : request.getDesc()) {
-        params.addDescSortItem(
-            getSortItem(sort, pr, request.getOutputType(), request.getEndpointItem()));
+        params.addDescSortItem(getSortItem(sort, pr, request));
       }
     }
   }
@@ -1013,19 +1016,124 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return queryItemLocator.getQueryItemFromDimension(itemId, program, type);
   }
 
-  private QueryItem getSortItem(
-      String item,
-      Program program,
-      EventOutputType type,
-      RequestTypeAware.EndpointItem endpointItem) {
+  private QueryItem getSortItem(String item, Program program, EventDataQueryRequest request) {
+    Optional<QueryItem> stageSort = resolveStageSortItem(item, program, request);
+    if (stageSort.isPresent()) {
+      return stageSort.get();
+    }
+    RequestTypeAware.EndpointItem endpointItem = request.getEndpointItem();
     if (isSortable(item, endpointItem)) {
       return new QueryItem(
           new BaseDimensionalItemObject(translateItemIfNecessary(item, endpointItem)));
     }
-    return getQueryItem(item, program, type, null);
+    return getQueryItem(item, program, request.getOutputType(), null);
   }
 
-  private DimensionalItemObject getValueDimension(String value) {
+  /**
+   * Resolves a {@code <stageUid>.<field>} sort item on the query endpoints, where the field is one
+   * of {@link StageSortField}. The stage is validated by resolving the field's canonical dimension
+   * through {@link #getQueryItem}; a bad stage stays an error.
+   *
+   * <p>An event row carries its own stage, so on the Event endpoint the prefix is dropped and the
+   * event's own column is ordered by. An enrollment row reads stage values from a stage CTE, so on
+   * the Enrollment endpoint the item stays stage-scoped and its id names the field to read from
+   * that CTE. Repeatable-stage offsets are not supported on stage sort fields and are rejected
+   * rather than silently collapsed to the most recent event.
+   *
+   * @return the resolved sort item, or empty when the input is not a stage sort field.
+   */
+  private Optional<QueryItem> resolveStageSortItem(
+      String item, Program program, EventDataQueryRequest request) {
+
+    if (request.getEndpointAction() != RequestTypeAware.EndpointAction.QUERY) {
+      return Optional.empty();
+    }
+    Optional<StageQualifiedName> name = StageQualifiedName.parse(item);
+    if (name.isEmpty()) {
+      return Optional.empty();
+    }
+    Optional<StageSortField> field = StageSortField.forRequestedSuffix(name.get().suffix());
+    if (field.isEmpty()) {
+      return Optional.empty();
+    }
+
+    QueryItem validated =
+        getQueryItem(
+            name.get().withSuffix(field.get().getCanonicalDimension()).toString(),
+            program,
+            request.getOutputType(),
+            null);
+
+    if (request.getEndpointItem() == RequestTypeAware.EndpointItem.EVENT) {
+      return Optional.of(new QueryItem(new BaseDimensionalItemObject(field.get().getItemId())));
+    }
+
+    if (name.get().hasRepeatableStageOffset()) {
+      throwIllegalQueryEx(ErrorCode.E7224, item);
+    }
+    QueryItem sortItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(field.get().getItemId()),
+            program,
+            null,
+            validated.getValueType(),
+            AggregationType.NONE,
+            null);
+    sortItem.setProgramStage(validated.getProgramStage());
+    return Optional.of(sortItem);
+  }
+
+  /**
+   * Rejects a "value" param that carries a repeatable stage offset such as {@code
+   * edqlbukwRfQ[0].vANAXwtLwcT}. Occurrence selection in "value" is not supported; accepting the
+   * offset would silently drop the stage scoping.
+   *
+   * @param value the "value" request param, may be null.
+   */
+  private static void validateNoOffsetInValue(String value) {
+    if (StringUtils.isNotBlank(value)
+        && !RepeatableStageParamsHelper.getRepeatableStageParams(value).isDefaultObject()) {
+      throwIllegalQueryEx(ErrorCode.E7264, value);
+    }
+  }
+
+  /**
+   * Rejects a "value" param whose prefix is neither a stage of the program nor the program itself,
+   * such as a mistyped stage or a stage of another program. Accepting it would silently aggregate
+   * across all stages or return an empty result.
+   *
+   * @param value the "value" request param, may be null.
+   * @param program the {@link Program} of the query.
+   * @param stage the {@link ProgramStage} resolved from the prefix, may be null.
+   */
+  private static void validateStagePrefixInValue(
+      String value, Program program, ProgramStage stage) {
+    if (StringUtils.isBlank(value) || !value.contains(DIMENSION_IDENTIFIER_SEP)) {
+      return;
+    }
+
+    String prefix = substringBefore(value, DIMENSION_IDENTIFIER_SEP);
+
+    if (!prefix.equals(program.getUid())
+        && (stage == null || !program.getProgramStages().contains(stage))) {
+      throwIllegalQueryEx(ErrorCode.E7130, prefix);
+    }
+  }
+
+  /**
+   * Rejects an aggregate query whose "value" resolves to aggregation type NONE, either as the value
+   * element's own aggregation type or as an explicit override. Such a query would select null for
+   * every row.
+   *
+   * @param params the {@link EventQueryParams} built from the request.
+   */
+  private static void validateValueHasAggregationType(EventQueryParams params) {
+    if (params.hasValueDimension() && params.isAggregationType(AggregationType.NONE)) {
+      throwIllegalQueryEx(ErrorCode.E7265, params.getValue().getUid());
+    }
+  }
+
+  private DimensionalItemObject getValueDimension(String value, Program program) {
     if (value == null) {
       return null;
     }
@@ -1034,13 +1142,17 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     DataElement de = dataElementService.getDataElement(dimValue);
 
-    if (de != null && (de.isNumericType() || de.getValueType().isBoolean())) {
+    if (de != null
+        && (de.isNumericType() || de.getValueType().isBoolean())
+        && program.getDataElements().contains(de)) {
       return de;
     }
 
     TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute(dimValue);
 
-    if (at != null && (at.isNumericType() || at.getValueType().isBoolean())) {
+    if (at != null
+        && (at.isNumericType() || at.getValueType().isBoolean())
+        && program.getTrackedEntityAttributes().contains(at)) {
       return at;
     }
 

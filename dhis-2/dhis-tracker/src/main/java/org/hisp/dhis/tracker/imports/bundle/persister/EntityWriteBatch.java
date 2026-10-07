@@ -48,15 +48,15 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  * <p>This class is a thin composite: the per-table SQL, binding and flush mechanics live in the
  * dedicated {@code *Writer} classes ({@link TrackedEntityWriter}, {@link EnrollmentWriter}, {@link
  * TrackerEventWriter}, {@link SingleEventWriter}, {@link RelationshipWriter}, {@link TeavWriter}),
- * with shared helpers in {@link JdbcBatchSupport} and the notes cascade in {@link
- * NoteCascadeWriter}. This class owns only the staging delegation, the composite mark/rollback and
- * the FK-safe flush order. Scope of each writer:
+ * with shared helpers in {@link JdbcBatchSupport} and the notes in {@link NoteWriter}. This class
+ * owns only the staging delegation, the composite mark/rollback and the FK-safe flush order. Scope
+ * of each writer:
  *
  * <ul>
  *   <li>TrackedEntity -- multi-row INSERT + unnest UPDATE on {@code trackedentity} ({@code
  *       trackedentity_sequence}).
  *   <li>Enrollment -- multi-row INSERT + unnest UPDATE on {@code enrollment} ({@code
- *       enrollment_sequence}) plus the notes cascade.
+ *       enrollment_sequence}) plus notes.
  *   <li>TrackerEvent / SingleEvent -- multi-row INSERT + unnest UPDATE on {@code trackerevent} /
  *       {@code singleevent} ({@code eventdatavalues} jsonb keyed by dataElement uid) plus notes.
  *   <li>Relationship -- INSERT-only three-step (parent INSERT with NULL from/to, item INSERT,

@@ -107,7 +107,7 @@ class DefaultProgramMessageServiceTest {
   }
 
   @Test
-  void shouldSendEmailAndDropSmsWhenOrgUnitContactHasEmailButNoPhoneNumber() {
+  void shouldSendEmailAndDiscardSmsWhenOrgUnitContactHasEmailButNoPhoneNumber() {
     OrganisationUnit orgUnit = orgUnitContact(OU_EMAIL, null);
     ProgramMessage message =
         orgUnitContactMessage(orgUnit, DeliveryChannel.SMS, DeliveryChannel.EMAIL);
@@ -117,16 +117,60 @@ class DefaultProgramMessageServiceTest {
 
     service.sendMessages(new ArrayList<>(List.of(message)));
 
-    // SMS is unreachable and must be dropped, leaving only the deliverable EMAIL channel.
-    assertContainsOnly(Set.of(DeliveryChannel.EMAIL), message.getDeliveryChannels());
+    // The channel stays configured on the message: whether a recipient could actually be
+    // resolved for it is decided when the OutboundMessage is built for that channel, not by
+    // removing the channel upfront. This differs from a tracked entity recipient, whose missing
+    // attribute still removes the channel (see DefaultProgramMessageService
+    // #setAttributesBasedOnStrategy).
+    assertContainsOnly(
+        Set.of(DeliveryChannel.SMS, DeliveryChannel.EMAIL), message.getDeliveryChannels());
 
     verify(messageBatchService).sendBatches(batchCaptor.capture());
     List<OutboundMessageBatch> batches = batchCaptor.getValue();
-    assertEquals(1, batches.size(), "only the EMAIL batch should be sent");
-    OutboundMessageBatch emailBatch = batches.get(0);
-    assertEquals(DeliveryChannel.EMAIL, emailBatch.getDeliveryChannel());
+
+    // The org unit has no phone number, so no SMS OutboundMessage is ever built for it and no SMS
+    // batch is created at all -- it's discarded, not sent as a batch that then fails.
+    assertEquals(1, batches.size(), "only the EMAIL batch should be created");
+    OutboundMessageBatch emailBatch = getBatch(batches, DeliveryChannel.EMAIL);
     assertEquals(1, emailBatch.getMessages().size());
     assertContainsOnly(Set.of(OU_EMAIL), emailBatch.getMessages().get(0).getRecipients());
+  }
+
+  @Test
+  void shouldDiscardBothChannelsWhenOrgUnitContactHasNeitherEmailNorPhoneNumber() {
+    OrganisationUnit orgUnit = orgUnitContact(null, null);
+    ProgramMessage message =
+        orgUnitContactMessage(orgUnit, DeliveryChannel.SMS, DeliveryChannel.EMAIL);
+
+    when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
+    when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
+
+    service.sendMessages(new ArrayList<>(List.of(message)));
+
+    // Same outcome as before this behavior was reworked: with no deliverable contact detail at
+    // all, no batch is created for either channel -- nothing is attempted and no FAILED batch is
+    // reported, rather than the whole send being reported as failed.
+    verify(messageBatchService).sendBatches(batchCaptor.capture());
+    List<OutboundMessageBatch> batches = batchCaptor.getValue();
+    assertEquals(0, batches.size(), "no batch should be created for either channel");
+  }
+
+  @Test
+  void shouldDiscardBothChannelsWhenOrgUnitContactHasBlankEmailAndPhoneNumber() {
+    // A blank (non-null, empty/whitespace) contact detail must be treated the same as a missing
+    // one, not added as a recipient.
+    OrganisationUnit orgUnit = orgUnitContact("", " ");
+    ProgramMessage message =
+        orgUnitContactMessage(orgUnit, DeliveryChannel.SMS, DeliveryChannel.EMAIL);
+
+    when(organisationUnitService.getOrganisationUnit(OU_UID)).thenReturn(orgUnit);
+    when(messageBatchService.sendBatches(anyList())).thenReturn(List.of());
+
+    service.sendMessages(new ArrayList<>(List.of(message)));
+
+    verify(messageBatchService).sendBatches(batchCaptor.capture());
+    List<OutboundMessageBatch> batches = batchCaptor.getValue();
+    assertEquals(0, batches.size(), "no batch should be created for either channel");
   }
 
   @Test
@@ -146,6 +190,14 @@ class DefaultProgramMessageServiceTest {
     verify(messageBatchService).sendBatches(batchCaptor.capture());
     List<OutboundMessageBatch> batches = batchCaptor.getValue();
     assertEquals(2, batches.size(), "both the SMS and EMAIL batches should be sent");
+  }
+
+  private static OutboundMessageBatch getBatch(
+      List<OutboundMessageBatch> batches, DeliveryChannel channel) {
+    return batches.stream()
+        .filter(b -> b.getDeliveryChannel() == channel)
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("No batch found for channel " + channel));
   }
 
   private static OrganisationUnit orgUnitContact(String email, String phoneNumber) {

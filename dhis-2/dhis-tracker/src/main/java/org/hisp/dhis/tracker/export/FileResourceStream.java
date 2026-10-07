@@ -35,6 +35,9 @@ import java.io.InputStream;
 import java.util.NoSuchElementException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.deadline.Deadline;
+import org.hisp.dhis.deadline.DeadlineExceededException;
+import org.hisp.dhis.deadline.DeadlineHolder;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
@@ -42,9 +45,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.storage.BlobReadOptions;
 import org.hisp.dhis.storage.BlobReadTimeoutException;
-import org.hisp.dhis.tracker.export.timeout.Deadline;
-import org.hisp.dhis.tracker.export.timeout.DeadlineExceededException;
-import org.hisp.dhis.tracker.export.timeout.DeadlineHolder;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**

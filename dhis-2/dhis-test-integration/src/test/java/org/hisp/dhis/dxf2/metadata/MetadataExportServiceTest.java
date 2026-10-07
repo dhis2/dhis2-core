@@ -186,7 +186,7 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
     // method under test
-    metadataExportService.getMetadataWithDependenciesAsNodeStream(dashboard, params, out);
+    metadataExportService.getMetadataWithDependenciesAsNodeStream(List.of(dashboard), params, out);
 
     // assertions
     ObjectMapper mapper = new ObjectMapper();
