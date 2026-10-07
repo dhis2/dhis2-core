@@ -32,6 +32,7 @@ package org.hisp.dhis.datasource;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
@@ -57,9 +58,12 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUI
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_LIFETIME_SECONDS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MIN_IDLE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MIN_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_NUM_THREADS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN;
@@ -239,6 +243,14 @@ public final class DatabasePoolUtils {
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_SIZE))));
     final String connectionTestQuery =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
+    final int minIdleConnections =
+        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_IDLE)));
+    final int keepAliveTimeSeconds =
+        parseInt(
+            dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS)));
+    final int maxLifetimeSeconds =
+        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_LIFETIME_SECONDS)));
+    final ConfigurationKey maxIdleTimeKey = mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME);
 
     HikariConfig hc = new HikariConfig();
     hc.setPoolName(config.getDataSourceName());
@@ -250,6 +262,22 @@ public final class DatabasePoolUtils {
     hc.addDataSourceProperty("prepStmtCacheSize", "250");
     hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
     hc.setConnectionTestQuery(connectionTestQuery);
+
+    // Configure the pool before constructing the data source: Hikari validates and starts the pool
+    // in the constructor, so pool sizing set afterwards is applied to an already filled pool.
+    hc.setConnectionTimeout(connectionTimeout);
+    hc.setValidationTimeout(validationTimeout);
+    hc.setMaximumPoolSize(maxPoolSize);
+    hc.setMinimumIdle(minIdleConnections);
+    hc.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
+    hc.setMaxLifetime(SECONDS.toMillis(maxLifetimeSeconds));
+
+    // The max idle time default (7200s) is sized for c3p0 and exceeds Hikari's max lifetime, which
+    // would disable idle eviction. Only apply it to Hikari when configured explicitly.
+    if (dhisConfig.hasProperty(maxIdleTimeKey)) {
+      hc.setIdleTimeout(SECONDS.toMillis(parseLong(dhisConfig.getProperty(maxIdleTimeKey))));
+    }
+
     final String leakThresholdStr =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_WARN_MAX_AGE));
 
@@ -280,12 +308,7 @@ public final class DatabasePoolUtils {
       hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
     }
 
-    HikariDataSource ds = new HikariDataSource(hc);
-    ds.setConnectionTimeout(connectionTimeout);
-    ds.setValidationTimeout(validationTimeout);
-    ds.setMaximumPoolSize(maxPoolSize);
-
-    return ds;
+    return new HikariDataSource(hc);
   }
 
   /** Create a data source based on a C3p0 connection pool. */
