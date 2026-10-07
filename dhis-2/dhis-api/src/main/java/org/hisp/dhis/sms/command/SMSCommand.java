@@ -137,7 +137,7 @@ public class SMSCommand extends BaseIdentifiableObject implements MetadataObject
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "dataset", namespace = DxfNamespaces.DXF_2_0)
   public DataSet getDataset() {
     return dataset;
