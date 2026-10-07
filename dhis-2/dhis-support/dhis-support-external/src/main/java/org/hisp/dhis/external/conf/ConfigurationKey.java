@@ -201,6 +201,21 @@ public enum ConfigurationKey {
    */
   ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME("analytics.connection.pool.max_idle_time", "7200", false),
 
+  /** Minimum number of idle connections to maintain, Hikari only (default: 10). */
+  CONNECTION_POOL_MIN_IDLE("connection.pool.min_idle", "10", false),
+
+  /**
+   * Interval to keep idle connections alive. Does not reset idle timeout, Hikari only (default: 2
+   * minutes).
+   */
+  CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS("connection.pool.keep_alive_time_seconds", "120", false),
+
+  /**
+   * Connection max lifetime. An in-use connection will never be retired, only when it is idle will
+   * it be removed. Hikari only (default: 30 minutes).
+   */
+  CONNECTION_POOL_MAX_LIFETIME_SECONDS("connection.pool.max_lifetime_seconds", "1800", false),
+
   /**
    * Number of seconds that Connections in excess of minPoolSize should be permitted to remain idle
    * in the pool before being culled (default: 0).
