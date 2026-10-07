@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -261,13 +261,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             : idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {
-      // A program without a main table yet (e.g. created after the last full rebuild) gets all of
-      // its data, since its staging table becomes the main table when swapped. A window starting
-      // at the last update would leave out its events last updated before then.
-      boolean hasMainTable =
-          tableExists(AnalyticsTable.getTableName(getAnalyticsTableType(), program));
-      Date programStartDate = hasMainTable ? startDate : new Date(0L);
-      Date updatedSince = hasMainTable ? lastAnyTableUpdate : new Date(0L);
+      // On databases which merge the latest partition into the main table (Doris), a program
+      // without a main table yet (e.g. created after the last full rebuild) gets all of its data,
+      // since its staging table becomes the main table and later runs only merge into it. A window
+      // starting at the last update would leave out its events last updated before then. Other
+      // databases replace the latest partition with the same window on every run.
+      boolean fullHistory =
+          sqlBuilder.requiresUniqueKeyAnalyticsTables()
+              && !tableExists(AnalyticsTable.getTableName(getAnalyticsTableType(), program));
+      Date programStartDate = fullHistory ? new Date(0L) : startDate;
+      Date updatedSince = fullHistory ? new Date(0L) : lastAnyTableUpdate;
 
       boolean hasUpdatedData = hasUpdatedLatestData(updatedSince, endDate, program);
 

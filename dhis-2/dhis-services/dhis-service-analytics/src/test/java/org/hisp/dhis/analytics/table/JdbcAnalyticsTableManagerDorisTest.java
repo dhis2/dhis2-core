@@ -73,12 +73,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class JdbcAnalyticsTableManagerDorisTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
@@ -116,8 +113,9 @@ class JdbcAnalyticsTableManagerDorisTest {
 
   @BeforeEach
   void setUp() {
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
-    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
+    // shared by the tests that build tables, not needed by every test
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    lenient().when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
 
   @Test

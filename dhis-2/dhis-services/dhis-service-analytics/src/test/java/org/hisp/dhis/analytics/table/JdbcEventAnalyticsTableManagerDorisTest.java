@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -416,7 +417,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     assertTrue(create.toLowerCase().contains("create table"));
     assertTrue(create.contains("analytics_event_delete_keys"));
     assertTrue(create.contains("`event`"));
-    assertTrue(!create.contains("`year`"));
+    assertFalse(create.contains("`year`"));
 
     String insert = statements.get(2);
     assertTrue(insert.toLowerCase().contains("insert into"));
@@ -435,8 +436,8 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     assertTrue(delete.toLowerCase().contains("using"));
     assertTrue(delete.contains("analytics_event_delete_keys"));
     assertTrue(delete.contains("ax.event=k.event"));
-    assertTrue(!delete.contains("trackerevent"));
-    assertTrue(!delete.contains("enrollment"));
+    assertFalse(delete.contains("trackerevent"));
+    assertFalse(delete.contains("enrollment"));
 
     String drop2 = statements.get(4);
     assertTrue(drop2.toLowerCase().contains("drop table"));
@@ -493,7 +494,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     assertTrue(create.toLowerCase().contains("create table"));
     assertTrue(create.contains("analytics_event_delete_keys"));
     assertTrue(create.contains("`event`"));
-    assertTrue(!create.contains("`year`"));
+    assertFalse(create.contains("`year`"));
 
     String insert = statements.get(2);
     assertTrue(insert.toLowerCase().contains("insert into"));
@@ -511,7 +512,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     assertTrue(delete.toLowerCase().contains("using"));
     assertTrue(delete.contains("analytics_event_delete_keys"));
     assertTrue(delete.contains("ax.event=k.event"));
-    assertTrue(!delete.contains("singleevent"));
+    assertFalse(delete.contains("singleevent"));
 
     String drop2 = statements.get(4);
     assertTrue(drop2.toLowerCase().contains("drop table"));

@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -66,8 +67,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -77,7 +76,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * continuous and a bounded-years update replace the whole main table, as a full rebuild would.
  */
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class JdbcAnalyticsTableManagerClickHouseTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
@@ -113,8 +111,9 @@ class JdbcAnalyticsTableManagerClickHouseTest {
 
   @BeforeEach
   void setUp() {
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
-    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
+    // shared by the tests that build tables, not needed by every test
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    lenient().when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
 
   @Test
@@ -127,7 +126,9 @@ class JdbcAnalyticsTableManagerClickHouseTest {
 
     AnalyticsTable table = dataValueTableFixture();
 
-    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+    // the main table exists; the ClickHouse path replaces it without having to check
+    lenient()
+        .when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
         .thenReturn(List.of(Map.of("table_name", "analytics")));
 
     subject.swapTable(params, table);

@@ -74,14 +74,11 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Lars Helge Overland
  */
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class AnalyticsTableServiceTest {
   @Mock private AnalyticsTableManager tableManager;
 
@@ -296,7 +293,6 @@ class AnalyticsTableServiceTest {
     when(sqlBuilder.supportsAnalyze()).thenReturn(false);
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
     when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(true);
-    when(tableManager.mainTableExists(table)).thenReturn(true);
 
     assertTrue(tableService.create(params, JobProgress.noop()));
 
@@ -316,9 +312,6 @@ class AnalyticsTableServiceTest {
     when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
     when(tableManager.validState()).thenReturn(true);
     when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
-    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
-    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
-    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
     when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(false);
 
@@ -330,12 +323,16 @@ class AnalyticsTableServiceTest {
 
     verify(tableManager, never()).removeUpdatedData(anyList());
     verify(tableManager, never()).swapTable(eq(params), any(AnalyticsTable.class));
+    // Checked before any staging work, so a table type that is not ready does not populate its
+    // staging tables on every scheduled run only to throw them away.
+    verify(tableManager, never()).preCreateTables(any());
+    verify(tableManager, never()).createTable(any());
     // The reason must reach the job log, not only the server log.
     verify(progress).failedStage(contains("Run a full analytics table rebuild"));
   }
 
   @Test
-  void testSwapTableNotRunWhenRemoveUpdatedDataFails() {
+  void testSwapTableNotRunWhenRemoveUpdatedDataFailsOnUniqueKeyDatabase() {
     AnalyticsTable table = latestPartitionTableFixture();
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -353,17 +350,77 @@ class AnalyticsTableServiceTest {
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
     when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(true);
     when(tableManager.mainTableExists(table)).thenReturn(true);
+    when(sqlBuilder.requiresUniqueKeyAnalyticsTables()).thenReturn(true);
     doThrow(new IllegalStateException("Delete failed"))
         .when(tableManager)
         .removeUpdatedData(anyList());
 
-    // removeUpdatedData()'s stage uses FailurePolicy.SKIP_STAGE, so its failure alone does not
-    // cancel the job (other table types must still be able to proceed). The table update must
-    // instead explicitly stop itself before swapping staged data into a main table it was unable
-    // to purge stale/deleted rows from.
+    // The table's staged data must not be swapped into a main table whose stale/deleted rows
+    // could not be removed. The update is reported as incomplete, so the window is not advanced.
     assertFalse(tableService.create(params, JobProgress.noop()));
 
     verify(tableManager, never()).swapTable(eq(params), any(AnalyticsTable.class));
+  }
+
+  @Test
+  void testOtherTablesPublishedWhenOneTableDeleteFailsOnUniqueKeyDatabase() {
+    AnalyticsTable failing = latestPartitionEventTableFixture('A');
+    AnalyticsTable working = latestPartitionEventTableFixture('B');
+    List<AnalyticsTable> tables = List.of(failing, working);
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    stubContinuousUpdate(params, tables);
+    when(tableManager.mainTableExists(failing)).thenReturn(true);
+    when(tableManager.mainTableExists(working)).thenReturn(true);
+    doThrow(new IllegalStateException("Delete failed"))
+        .when(tableManager)
+        .removeUpdatedData(List.of(failing));
+
+    JobProgress progress = spy(JobProgress.noop());
+
+    // The table whose delete failed is not published, the others are. The update is reported as
+    // incomplete, so the window is not advanced and the next run covers the failed table again.
+    assertFalse(tableService.create(params, progress));
+
+    verify(tableManager).removeUpdatedData(List.of(working));
+    verify(tableManager).swapTable(params, working);
+    verify(tableManager, never()).swapTable(params, failing);
+    verify(progress).failedStage(contains(failing.getMainName()));
+  }
+
+  @Test
+  void testTablesSwappedWhenRemoveUpdatedDataFailsWithoutUniqueKeys() {
+    AnalyticsTable table = latestPartitionTableFixture();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType()).thenReturn(AnalyticsTableType.DATA_VALUE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
+    when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+    when(sqlBuilder.requiresUniqueKeyAnalyticsTables()).thenReturn(false);
+    when(tableManager.isReadyForContinuousUpdate(List.of(table))).thenReturn(true);
+    doThrow(new IllegalStateException("Delete failed"))
+        .when(tableManager)
+        .removeUpdatedData(anyList());
+
+    // Postgres: unchanged from before continuous updates on unique-key databases, the tables are
+    // swapped in after the delete whatever its outcome.
+    assertTrue(tableService.create(params, JobProgress.noop()));
+
+    verify(tableManager).removeUpdatedData(List.of(table));
+    verify(tableManager).swapTable(params, table);
   }
 
   @Test
@@ -461,6 +518,7 @@ class AnalyticsTableServiceTest {
     when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
     when(sqlBuilder.supportsAnalyze()).thenReturn(false);
     when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+    when(sqlBuilder.requiresUniqueKeyAnalyticsTables()).thenReturn(true);
     when(tableManager.isReadyForContinuousUpdate(tables)).thenReturn(true);
   }
 

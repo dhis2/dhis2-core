@@ -119,6 +119,14 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       return true;
     }
 
+    boolean continuousUpdate = params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics();
+
+    // Checked before any staging work: a table type that is not ready would otherwise populate
+    // its staging tables in full on every scheduled run, only to throw them away.
+    if (continuousUpdate && !checkContinuousUpdateReadiness(tables, tableType, progress, clock)) {
+      return false;
+    }
+
     clock.logTime(
         "Table update start: {}, earliest: {}, parameters: {}",
         tableType.getTableName(),
@@ -173,13 +181,15 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Analyzed tables");
     }
 
-    if (params.isLatestUpdate()
-        && sqlBuilder.supportsContinuousAnalytics()
-        && !prepareContinuousUpdate(tables, tableType, progress, clock)) {
-      return false;
+    List<AnalyticsTable> publishedTables = tables;
+
+    if (continuousUpdate) {
+      publishedTables = removeUpdatedData(tables, tableType, progress, clock);
     }
 
-    swapTables(params, tables, progress);
+    if (!publishedTables.isEmpty()) {
+      swapTables(params, publishedTables, progress);
+    }
 
     if (params.isPartialUpdate() && !params.isLatestUpdate()) {
       progress.startingStage("Removing latest partition overlap: '{}'", tableType);
@@ -188,7 +198,9 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     clock.logTime("Table update done: '{}'", tableType.getTableName());
-    return true;
+    // Not complete if a table's staged data could not be published, so the update window is not
+    // advanced and the next continuous run covers its changes again
+    return publishedTables.size() == tables.size();
   }
 
   @Override
@@ -326,26 +338,24 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   /**
-   * Prepares the main analytics tables for a continuous update by removing the rows which the
-   * staged data replaces.
+   * Checks that the main analytics tables can take a continuous update. The check is cheap, so it
+   * runs before any staging tables are created and populated.
    *
    * @param tables the list of {@link AnalyticsTable}.
    * @param tableType the {@link AnalyticsTableType}.
    * @param progress the {@link JobProgress}.
    * @param clock the {@link Clock}.
-   * @return true if the staging tables can be swapped in, false if the continuous update must be
-   *     aborted.
+   * @return true if the continuous update can proceed, false if it must be aborted.
    */
-  private boolean prepareContinuousUpdate(
+  private boolean checkContinuousUpdateReadiness(
       List<AnalyticsTable> tables,
       AnalyticsTableType tableType,
       JobProgress progress,
       Clock clock) {
     progress.startingStage(
         format("Validating continuous update readiness: '{}'", tableType), SKIP_STAGE);
-    boolean readyForContinuousUpdate = tableManager.isReadyForContinuousUpdate(tables);
 
-    if (!readyForContinuousUpdate) {
+    if (!tableManager.isReadyForContinuousUpdate(tables)) {
       // A main table predating unique-key analytics tables (or otherwise not in a state that
       // supports a continuous update) must not have the delete step attempted against it, see
       // isReadyForContinuousUpdate() for detail. The stage is reported as failed so the reason
@@ -361,35 +371,79 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     progress.completedStage("Validated continuous update readiness: '{}'", tableType);
+    return true;
+  }
 
-    // A table without a main table yet (e.g. the event table of a program created after the
-    // last full rebuild) has no stale rows to remove, and the delete would fail on the missing
-    // table. Its staging table becomes the main table when swapped.
-    List<AnalyticsTable> existingTables =
-        tables.stream().filter(tableManager::mainTableExists).toList();
-
+  /**
+   * Removes the rows which the staged data replaces from the main analytics tables.
+   *
+   * <p>On databases which require unique-key analytics tables (Doris), each table is handled on its
+   * own: a table whose delete fails keeps its staged data unpublished, while the other tables are
+   * published. Merging a window again is idempotent there, so the next run, which covers the same
+   * window again, publishes the failed table's changes once its delete succeeds.
+   *
+   * <p>On other databases the tables are swapped in after the delete whatever its outcome, as
+   * before continuous updates were supported on unique-key databases.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param progress the {@link JobProgress}.
+   * @param clock the {@link Clock}.
+   * @return the tables whose staged data can be published.
+   */
+  private List<AnalyticsTable> removeUpdatedData(
+      List<AnalyticsTable> tables,
+      AnalyticsTableType tableType,
+      JobProgress progress,
+      Clock clock) {
     progress.startingStage(
         format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
-    boolean removedUpdatedData =
-        existingTables.isEmpty()
-            || progress.runStage(() -> tableManager.removeUpdatedData(existingTables));
-    clock.logTime("Removed updated and deleted data");
 
-    if (!removedUpdatedData) {
-      // Swapping in the staged data without having removed the stale/deleted rows it is meant
-      // to replace would corrupt the main table (duplicate or orphaned rows), so the continuous
-      // update for this table type is aborted here rather than proceeding to swap. A likely
-      // cause is a main table created before unique-key analytics tables were introduced; a
-      // full analytics table rebuild recreates it with the required key type.
-      log.error(
-          "Aborting continuous analytics update for '{}': failed to remove updated and "
-              + "deleted data, see preceding error. A full analytics table rebuild may be "
-              + "required before continuous updates can run for this table.",
-          tableType);
-      return false;
+    if (!sqlBuilder.requiresUniqueKeyAnalyticsTables()) {
+      progress.runStage(() -> tableManager.removeUpdatedData(tables));
+      clock.logTime("Removed updated and deleted data");
+      return tables;
     }
 
-    return true;
+    List<AnalyticsTable> publishedTables = new ArrayList<>();
+    List<String> failedTables = new ArrayList<>();
+
+    for (AnalyticsTable table : tables) {
+      // A table without a main table yet (e.g. the event table of a program created after the
+      // last full rebuild) has no stale rows to remove. Its staging table becomes the main table.
+      if (!tableManager.mainTableExists(table)) {
+        publishedTables.add(table);
+        continue;
+      }
+
+      try {
+        tableManager.removeUpdatedData(List.of(table));
+        publishedTables.add(table);
+      } catch (RuntimeException ex) {
+        // Swapping in the staged data without having removed the rows it replaces would leave
+        // duplicate or orphaned rows, so this table's staged data is not published
+        log.error(
+            "Failed to remove updated and deleted data from '{}', its staged data is not published",
+            table.getMainName(),
+            ex);
+        failedTables.add(table.getMainName());
+      }
+    }
+
+    clock.logTime("Removed updated and deleted data");
+
+    if (failedTables.isEmpty()) {
+      progress.completedStage("Removed updated and deleted data: '{}'", tableType);
+    } else {
+      progress.failedStage(
+          format(
+              "Failed to remove updated and deleted data from {}. Their staged data was not "
+                  + "published and the next continuous update covers it again. If this keeps "
+                  + "failing, a full analytics table rebuild may be required",
+              failedTables));
+    }
+
+    return publishedTables;
   }
 
   /**

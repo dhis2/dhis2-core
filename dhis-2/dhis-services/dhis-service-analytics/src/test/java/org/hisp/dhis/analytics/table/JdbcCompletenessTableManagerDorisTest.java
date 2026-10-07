@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,12 +69,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class JdbcCompletenessTableManagerDorisTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
@@ -187,6 +184,6 @@ class JdbcCompletenessTableManagerDorisTest {
 
     assertTrue(sql.getValue().contains("using"));
     assertTrue(sql.getValue().contains("ax.id ="));
-    assertTrue(!sql.getValue().contains("in ("));
+    assertFalse(sql.getValue().contains("in ("));
   }
 }
