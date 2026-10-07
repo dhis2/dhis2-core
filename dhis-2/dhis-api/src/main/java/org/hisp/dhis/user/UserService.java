@@ -332,6 +332,10 @@ public interface UserService {
   /**
    * Updates the last login date of User with the given username with the current date.
    *
+   * <p>A login is not a change of the user: only the last login date is written, {@code
+   * lastUpdated} is not bumped and no audit entry is produced, see {@link
+   * UserStore#updateLastLogin(long, Date)}.
+   *
    * @param username the username of the User.
    */
   void setLastLogin(String username);

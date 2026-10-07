@@ -383,11 +383,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     return authorities.containsAll(other.getAllAuthorities());
   }
 
-  /** Sets the last login property to the current date. */
-  public void updateLastLogin() {
-    this.lastLogin = new Date();
-  }
-
   /** Returns the dimensions to use as constrains (filters) in data analytics aggregation. */
   public Set<DimensionalObject> getDimensionConstraints() {
     Set<DimensionalObject> constraints = new HashSet<>();
