@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.test.TestBase.createDataSet;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -60,6 +61,7 @@ import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.user.SystemUser;
@@ -72,7 +74,7 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     injectSecurityContextNoSettings(new SystemUser());
   }
 
@@ -319,8 +321,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     targets.put(dataSetA.getUid() + "-" + "201901", 1D);
 
     // Response for COMPLETENESS - set the completeness value to the same
-    // number of
-    // days of the selected month
+    // number of days of the selected month
     Map<String, Object> actuals = new HashMap<>();
     actuals.put(dataSetA.getUid() + "-" + "201901", 31D);
 
@@ -334,6 +335,186 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
 
     Grid grid = target.getAggregatedDataValueGrid(params);
     assertReportingRatesGrid(grid, dataSetA, "201901");
+  }
+
+  @Test
+  void verifyNumDenForRateMetricsHasPercentMultiplierAndDivisor() {
+    DataSet dataSetA = createDataSet('A');
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
+
+    Grid grid =
+        getNumDenGrid(
+            dataSetA,
+            ou,
+            10,
+            true,
+            500D,
+            100D,
+            ReportingRateMetric.REPORTING_RATE,
+            ReportingRateMetric.REPORTING_RATE_ON_TIME);
+
+    for (ReportingRateMetric metric :
+        List.of(ReportingRateMetric.REPORTING_RATE, ReportingRateMetric.REPORTING_RATE_ON_TIME)) {
+      List<Object> row = getRowByDx(grid, makeKey(dataSetA, metric));
+
+      assertEquals(50L, getValue(grid, row, "value"), metric.name());
+      assertEquals(500D, getValue(grid, row, "numerator"), metric.name());
+      assertEquals(1000D, getValue(grid, row, "denominator"), metric.name());
+      assertEquals(100D, getValue(grid, row, "factor"), metric.name());
+      assertEquals(100, getValue(grid, row, "multiplier"), metric.name());
+      assertEquals(1, getValue(grid, row, "divisor"), metric.name());
+    }
+  }
+
+  @Test
+  void verifyNumDenForCountMetricsHasUnitFactorMultiplierAndDivisor() {
+    DataSet dataSetA = createDataSet('A');
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
+
+    Grid grid =
+        getNumDenGrid(
+            dataSetA,
+            ou,
+            10,
+            true,
+            500D,
+            100D,
+            ReportingRateMetric.ACTUAL_REPORTS,
+            ReportingRateMetric.ACTUAL_REPORTS_ON_TIME,
+            ReportingRateMetric.EXPECTED_REPORTS);
+
+    for (ReportingRateMetric metric :
+        List.of(
+            ReportingRateMetric.ACTUAL_REPORTS,
+            ReportingRateMetric.ACTUAL_REPORTS_ON_TIME,
+            ReportingRateMetric.EXPECTED_REPORTS)) {
+      List<Object> row = getRowByDx(grid, makeKey(dataSetA, metric));
+
+      assertEquals(1D, getValue(grid, row, "factor"), metric.name());
+      assertEquals(1, getValue(grid, row, "multiplier"), metric.name());
+      assertEquals(1, getValue(grid, row, "divisor"), metric.name());
+    }
+
+    // Numerator and denominator are always the actual and the expected reports
+    List<Object> expected =
+        getRowByDx(grid, makeKey(dataSetA, ReportingRateMetric.EXPECTED_REPORTS));
+    assertEquals(1000L, getValue(grid, expected, "value"));
+    assertEquals(0D, getValue(grid, expected, "numerator"));
+    assertEquals(1000D, getValue(grid, expected, "denominator"));
+
+    List<Object> actual = getRowByDx(grid, makeKey(dataSetA, ReportingRateMetric.ACTUAL_REPORTS));
+    assertEquals(500L, getValue(grid, actual, "value"));
+    assertEquals(500D, getValue(grid, actual, "numerator"));
+    assertEquals(1000D, getValue(grid, actual, "denominator"));
+  }
+
+  @Test
+  void verifyNumDenWhenReportingRateIsCappedAt100() {
+    DataSet dataSetA = createDataSet('A');
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
+
+    // More actual reports than expected: the rate is capped, numerator and
+    // denominator are not
+    Grid grid =
+        getNumDenGrid(dataSetA, ou, 1, true, 150D, 100D, ReportingRateMetric.REPORTING_RATE);
+
+    List<Object> row = getRowByDx(grid, makeKey(dataSetA, ReportingRateMetric.REPORTING_RATE));
+
+    assertEquals(100L, getValue(grid, row, "value"));
+    assertEquals(150D, getValue(grid, row, "numerator"));
+    assertEquals(100D, getValue(grid, row, "denominator"));
+    assertEquals(100D, getValue(grid, row, "factor"));
+    assertEquals(100, getValue(grid, row, "multiplier"));
+    assertEquals(1, getValue(grid, row, "divisor"));
+  }
+
+  @Test
+  void verifyNoNumDenColumnsWhenIncludeNumDenIsFalse() {
+    DataSet dataSetA = createDataSet('A');
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
+
+    Grid grid =
+        getNumDenGrid(dataSetA, ou, 1, false, 50D, 100D, ReportingRateMetric.REPORTING_RATE);
+
+    assertThat(grid.getHeaders(), hasSize(3));
+    assertThat(grid.getRows(), hasSize(1));
+    assertThat(grid.getRow(0), hasSize(3));
+    assertEquals(-1, getDimensionIndex(grid.getHeaders(), "multiplier"));
+    assertEquals(-1, getDimensionIndex(grid.getHeaders(), "divisor"));
+  }
+
+  /**
+   * Runs an aggregated query for the given reporting rate metrics of a single data set and org
+   * unit, using a period filter with the given number of monthly periods.
+   */
+  private Grid getNumDenGrid(
+      DataSet dataSet,
+      OrganisationUnit ou,
+      int timeUnits,
+      boolean includeNumDen,
+      double actualReports,
+      double expectedReportsPerPeriod,
+      ReportingRateMetric... metrics) {
+    List<DimensionalItemObject> reportingRates = new ArrayList<>();
+
+    for (ReportingRateMetric metric : metrics) {
+      ReportingRate reportingRate = new ReportingRate(dataSet);
+      reportingRate.setMetric(metric);
+      reportingRates.add(reportingRate);
+    }
+
+    List<DimensionalItemObject> periods = new ArrayList<>();
+
+    Stream.iterate(1, i -> i + 1)
+        .limit(timeUnits)
+        .forEach(
+            x ->
+                periods.add(
+                    new Period(
+                        new MonthlyPeriodType()
+                            .createPeriod(new DateTime(2014, x, 1, 0, 0).toDate()))));
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ou)
+            .withDataElements(reportingRates)
+            .withIgnoreLimit(true)
+            .withIncludeNumDen(includeNumDen)
+            .withFilters(List.of(new BaseDimensionalObject("pe", DimensionType.PERIOD, periods)))
+            .build();
+
+    initMock(params);
+
+    Map<String, Object> actuals = new HashMap<>();
+    actuals.put(dataSet.getUid() + "-" + ou.getUid(), actualReports);
+
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(actuals));
+
+    Map<String, Object> targets = new HashMap<>();
+    targets.put(dataSet.getUid() + "-" + ou.getUid(), expectedReportsPerPeriod);
+
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS_TARGET), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(targets));
+
+    return target.getAggregatedDataValueGrid(params);
+  }
+
+  private List<Object> getRowByDx(Grid grid, String dx) {
+    int dxIndex = getDimensionIndex(grid.getHeaders(), "dx");
+
+    return grid.getRows().stream()
+        .filter(row -> dx.equals(row.get(dxIndex)))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("No row found for dx: " + dx));
+  }
+
+  private Object getValue(Grid grid, List<Object> row, String header) {
+    int index = getDimensionIndex(grid.getHeaders(), header);
+    assertNotEquals(-1, index, "Missing header: " + header);
+    return row.get(index);
   }
 
   private void assertReportingRatesGrid(Grid grid, DataSet dataset, String period) {
