@@ -162,7 +162,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         new EventItemSelectColumnResolver(
             sqlBuilder,
             organisationUnitResolver,
-            queryParams -> ANALYTICS_TBL_ALIAS,
             (item, queryParams) -> getColumnAndAlias(item, queryParams, false, false),
             this::handleRowContext);
   }
