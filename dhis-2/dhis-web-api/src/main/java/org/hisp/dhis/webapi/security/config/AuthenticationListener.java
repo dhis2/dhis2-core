@@ -123,6 +123,9 @@ public class AuthenticationListener {
     boolean readOnly = config.isReadOnlyMode();
 
     if (Objects.nonNull(user) && !readOnly) {
+      if (user.isInvitation()) {
+        user.clearInvitation();
+      }
       user.updateLastLogin();
       try {
         userService.updateUser(user, new SystemUser());
