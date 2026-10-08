@@ -620,6 +620,14 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.invitation = invitation;
   }
 
+  /** Ends a pending invitation and clears its restore token, restore expiry, and ID token. */
+  public void clearInvitation() {
+    invitation = false;
+    restoreToken = null;
+    restoreExpiry = null;
+    idToken = null;
+  }
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isDisabled() {
