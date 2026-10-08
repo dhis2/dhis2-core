@@ -356,7 +356,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyGetColumnAndAliasQualifiesStageOuColumnForAggregateWhenEnrollmentOuJoined() {
+  void verifyGetColumnAndAliasReadsStageOuFromEventTableForAggregateWhenEnrollmentOuJoined() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
     QueryItem stageOuItem =
@@ -375,13 +375,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEnrollmentOuDimension(List.of(ouA))
             .build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
-        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     ColumnAndAlias columnAndAlias =
         eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
 
-    assertThat(columnAndAlias.asSql(), is("enrl.\"uidlevel1\" as \"ou\""));
+    assertThat(columnAndAlias.asSql(), is("ax.\"uidlevel1\" as \"ou\""));
   }
 
   @Test
@@ -1686,7 +1686,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testExperimentalSelectClauseQualifiesStageOuLevelWhenEnrollmentOuJoinIsUsed() {
+  void testExperimentalSelectClauseReadsStageOuLevelFromEventTableWhenEnrollmentOuJoinIsUsed() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ProgramStage stage = createProgramStage('B', programA);
     stage.setUid("ZkbAXlQUYJG");
@@ -1710,20 +1710,20 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .addItem(stageOuItem)
             .build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
-        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     SelectBuilder sb = new SelectBuilder();
     eventSubject.addSelectClause(
         sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
     String selectClause = sb.build();
 
-    assertThat(selectClause, containsString("enrl.\"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
+    assertThat(selectClause, containsString("ax.\"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
     assertTrue(!selectClause.contains(", \"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
   }
 
   @Test
-  void testExperimentalSelectClauseQualifiesStageOuHeadersWhenEnrollmentOuJoinIsUsed() {
+  void testExperimentalSelectClauseReadsStageOuHeadersFromEventTableWhenEnrollmentOuJoinIsUsed() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ProgramStage stage = createProgramStage('B', programA);
     stage.setUid("ZkbAXlQUYJG");
@@ -1748,15 +1748,15 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withHeaders(Set.of("enrollmentouname", "ZkbAXlQUYJG.ouname"))
             .build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
-        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     SelectBuilder sb = new SelectBuilder();
     eventSubject.addSelectClause(
         sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
     String selectClause = sb.build();
 
-    assertThat(selectClause, containsString("enrl.\"ouname\" as \"ZkbAXlQUYJG.ouname\""));
+    assertThat(selectClause, containsString("ax.\"ouname\" as \"ZkbAXlQUYJG.ouname\""));
     assertTrue(!selectClause.contains(", \"ouname\" as \"ZkbAXlQUYJG.ouname\""));
   }
 
