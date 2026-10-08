@@ -101,6 +101,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -758,6 +759,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     RegistrationOuSqlCoordinator.baseCteSelectColumn(params, sqlBuilder).ifPresent(sb::addColumn);
 
     addNonDefaultPeriodSourceColumns(sb, params);
+    aggregatedAssembler.valueBaseColumn(params).ifPresent(sb::addColumnIfNotExist);
 
     List<String> programIndicators =
         getProgramIndicators(params).stream().map(QueryItem::getItemId).toList();
@@ -1058,6 +1060,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // 3. Add CTE definitions for program indicators, program stages, etc.
     getCteDefinitions(params, cteContext);
 
+    // 3.1 Add the CTE reading the "value" data element; it reads the base CTE, so it comes after it
+    addEnrollmentValueCte(cteContext, params);
+
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
     List<AggregatedEnrollmentQueryAssembler.PeriodProjection> periodProjections =
@@ -1082,7 +1087,44 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           cteDef.getAlias(),
           tableAlias -> tableAlias + ".enrollment = " + ENROLLMENT_AGGR_BASE_ALIAS + ".enrollment");
     }
+
+    // 3.5: Drop enrollments without a value, so COUNT counts values and empty cells disappear
+    aggregatedAssembler
+        .valueColumn(params)
+        .ifPresent(column -> sb.where(Condition.raw(column + " is not null")));
+
     return sb.build();
+  }
+
+  /**
+   * Registers the CTE reading the "value" data element from the latest event of its stage in each
+   * enrollment. An attribute value needs no CTE: it is a column of the enrollment table.
+   *
+   * @param cteContext the {@link CteContext} to register the CTE in.
+   * @param params the {@link EventQueryParams}.
+   */
+  private void addEnrollmentValueCte(CteContext cteContext, EventQueryParams params) {
+    if (!params.hasValueProgramStage()) {
+      return;
+    }
+
+    DataElement dataElement = (DataElement) params.getValue();
+    QueryItem valueItem =
+        new QueryItem(
+            dataElement,
+            params.getProgram(),
+            null,
+            dataElement.getValueType(),
+            dataElement.getAggregationType(),
+            null);
+    valueItem.setProgramStage(params.getValueProgramStage());
+
+    cteContext.addEnrollmentValueCte(
+        buildAggregatedCteSql(
+            AnalyticsTableNames.eventTable(params.getProgram()),
+            quote(dataElement.getUid()),
+            valueItem,
+            params));
   }
 
   private void addAggregateEnrollmentSelectColumnsInHeaderOrder(
@@ -1092,7 +1134,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       CteContext cteContext,
       List<AggregatedEnrollmentQueryAssembler.PeriodProjection> periodProjections) {
     if (headers.isEmpty()) {
-      aggregatedAssembler.addAggregatedColumns(sb);
+      aggregatedAssembler.addAggregatedColumns(sb, params);
       aggregatedAssembler.addOrgUnitAggregateColumns(sb, params);
       aggregatedAssembler.addPeriodAggregateColumns(params, sb, periodProjections);
       aggregatedAssembler.addHeaderAggregateColumns(
@@ -1118,7 +1160,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       switch (headerType) {
         case VALUE -> {
           if (addedInfrastructureColumns.add(headerType)) {
-            aggregatedAssembler.addAggregatedColumns(sb);
+            aggregatedAssembler.addAggregatedColumns(sb, params);
           }
         }
         case ORG_UNIT -> {
@@ -1201,13 +1243,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
-    if (params.isAggregatedEnrollments()) {
-      aggregatedAssembler.addAggregatedColumns(sb);
-    } else {
-      aggregatedAssembler.addStandardColumns(sb, cteContext, getStandardColumns(params));
+    aggregatedAssembler.addStandardColumns(sb, cteContext, getStandardColumns(params));
 
-      RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder).forEach(sb::addColumn);
-    }
+    RegistrationOuSqlCoordinator.querySelectColumns(params, sqlBuilder).forEach(sb::addColumn);
 
     // Append columns from CTE definitions
     getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
