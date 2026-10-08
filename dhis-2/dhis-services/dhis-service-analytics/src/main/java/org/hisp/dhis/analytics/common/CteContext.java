@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.common;
 
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
+import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_VALUE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 
 import java.util.LinkedHashMap;
@@ -156,6 +157,16 @@ public class CteContext {
    */
   public void addBaseAggregateCte(String cteDefinition, String whereClauses) {
     cteDefinitions.put(ENROLLMENT_AGGR_BASE, new CteDefinition(cteDefinition, whereClauses));
+  }
+
+  /**
+   * Adds the CTE reading the "value" data element of an enrollment aggregate query. It must be
+   * added after the base aggregate CTE, which it reads from.
+   *
+   * @param cteDefinition The CTE definition (the SQL query)
+   */
+  public void addEnrollmentValueCte(String cteDefinition) {
+    cteDefinitions.put(ENROLLMENT_VALUE, CteDefinition.forEnrollmentValue(cteDefinition));
   }
 
   /**
