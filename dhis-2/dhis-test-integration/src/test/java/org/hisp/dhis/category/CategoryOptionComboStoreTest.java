@@ -158,8 +158,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
     assertFalse(real instanceof HibernateProxy);
     assertNotSame(proxy, real);
     assertEquals(proxy.hashCode(), real.hashCode());
-    assertTrue(proxy.equals(real));
-    assertTrue(real.equals(proxy));
+    assertEquals(proxy, real);
+    assertEquals(real, proxy);
   }
 
   @Test
