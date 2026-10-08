@@ -43,6 +43,7 @@ public enum ReportingRateMetric {
 
   ReportingRateMetric(String key, String displayName) {
     this.displayName = displayName;
+    this.key = key;
   }
 
   public String key() {
@@ -51,5 +52,9 @@ public enum ReportingRateMetric {
 
   public String displayName() {
     return displayName;
+  }
+
+  public boolean isSum() {
+    return this == ACTUAL_REPORTS || this == EXPECTED_REPORTS || this == ACTUAL_REPORTS_ON_TIME;
   }
 }
