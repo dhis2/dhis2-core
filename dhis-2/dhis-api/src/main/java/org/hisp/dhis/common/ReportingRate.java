@@ -30,6 +30,8 @@
 package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.TotalAggregationType.AVERAGE;
+import static org.hisp.dhis.common.TotalAggregationType.SUM;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -101,12 +103,38 @@ public class ReportingRate extends BaseDimensionalItemObject implements Embedded
 
   @Override
   public List<LegendSet> getLegendSets() {
-    return dataSet.getLegendSets();
+    if (dataSet != null) {
+      return dataSet.getLegendSets();
+    }
+
+    return List.of();
+  }
+
+  @Override
+  public LegendSet getLegendSet() {
+    if (dataSet != null) {
+      return dataSet.getLegendSet();
+    }
+
+    return null;
+  }
+
+  @Override
+  public boolean hasLegendSet() {
+    if (dataSet != null) {
+      return dataSet.hasLegendSet();
+    }
+
+    return false;
   }
 
   @Override
   public TotalAggregationType getTotalAggregationType() {
-    return TotalAggregationType.AVERAGE;
+    if (metric.isSum()) {
+      return SUM;
+    }
+
+    return AVERAGE;
   }
 
   // -------------------------------------------------------------------------
