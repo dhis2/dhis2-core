@@ -66,6 +66,12 @@ public class S3TestExtension implements Extension {
             .withCommand(
                 "server",
                 "-dir=/data",
+                // The image entrypoint defaults to -volume.max=0, which derives the number of
+                // volume slots from free disk on the Docker host (one per GiB). SeaweedFS creates
+                // 7 volumes for each bucket on its first write, so the test classes sharing this
+                // container run out of slots, and get HTTP 500, on hosts with little free disk. A
+                // fixed count removes that dependency.
+                "-volume.max=100",
                 "-s3",
                 "-s3.port.iceberg=0",
                 "-s3.port.lance=0",

@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,22 +40,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
-import jakarta.persistence.OrderColumn;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
-import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -185,15 +182,8 @@ public class Enrollment extends BaseTrackerObject
   @AuditAttribute
   private OrganisationUnit organisationUnit;
 
-  @JsonProperty
-  @ListIndexBase(1)
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-  @JoinTable(
-      name = "enrollment_notes",
-      joinColumns = @JoinColumn(name = "enrollmentid"),
-      inverseJoinColumns = @JoinColumn(name = "noteid"))
-  @OrderColumn(name = "sort_order")
-  private List<Note> notes = new ArrayList<>();
+  /** Notes are read and written via JDBC, see {@code JdbcNotes} and {@code NoteWriter}. */
+  @JsonProperty @Transient private List<Note> notes = new ArrayList<>();
 
   @JsonProperty
   @ManyToOne(fetch = FetchType.LAZY)

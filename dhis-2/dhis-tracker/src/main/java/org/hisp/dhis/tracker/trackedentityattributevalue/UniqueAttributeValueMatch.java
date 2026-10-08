@@ -27,26 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.note;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
-import jakarta.persistence.EntityManager;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.note.Note;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author David Katuscak
+ * A stored value of a unique tracked entity attribute that matches a value being imported.
+ *
+ * @param trackedEntity the tracked entity owning the value
+ * @param value the stored value, as persisted (not normalized to lower case)
+ * @param orgUnitId the id of the org unit of the tracked entity owning the value, only set for an
+ *     attribute unique within an org unit
  */
-@Repository("org.hisp.dhis.tracker.export.note.NoteStore")
-class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
-  public HibernateNoteStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
-  }
-}
+public record UniqueAttributeValueMatch(
+    @Nonnull UID trackedEntity, @Nonnull String value, @CheckForNull Long orgUnitId) {}

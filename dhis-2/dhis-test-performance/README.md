@@ -234,6 +234,55 @@ Run export only (skip import, DB must be seeded): `-DtestMode=export`
 
 See `TrackerTest.java` javadoc for all available profiles and parameters.
 
+### Unique attribute imports
+
+The Synthea payloads have no unique attribute, so imports barely exercise the uniqueness check.
+`scripts/populate-unique-attribute.sh` creates an org unit scoped unique attribute
+(`PerfUniqOu1`) and stores its values `1..N` in many org units. With
+`-DuniqueAttribute=PerfUniqOu1`, TrackerTest adds a value of it to every imported tracked entity.
+Each value already exists in all populated org units, but not in the org unit the import writes to
+(Ngelehun CHC), so the import still succeeds. Consecutive runs continue the numbering (kept in the
+dataStore), so warmup and measured runs never send the same value twice.
+
+Pass the script as `POPULATE_SCRIPT` to run it after the containers start. It is configured by
+`POPULATE_*` variables, which are saved in `run-simulation.env`:
+
+| Variable | Default | Description |
+|:---|:---|:---|
+| `POPULATE_PROFILE` | `regression` | `regression`: 10 org units x 25000 values. `worst-case`: 200 org units x 25000 values |
+| `POPULATE_ORG_UNITS` | from profile | Number of org units holding every value |
+| `POPULATE_VALUES_PER_ORG_UNIT` | from profile | Values per org unit; must cover all tracked entities imported by warmup and measured runs (smoke: ~170 per run, load: ~11k per run) |
+| `POPULATE_ATTRIBUTE_UID` | `PerfUniqOu1` | UID of the attribute to create |
+| `POPULATE_ATTRIBUTE_ORG_UNIT_SCOPE` | `true` | `false` creates a system wide unique attribute (requires `POPULATE_ORG_UNITS=0`) |
+
+Two ways to use it:
+
+* **Regression check**: same data and test for baseline and candidate, comparing the raw numbers.
+
+  ```sh
+  POPULATE_SCRIPT=scripts/populate-unique-attribute.sh POPULATE_PROFILE=regression \
+  DHIS2_IMAGE=dhis2/core-dev:latest SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \
+  MVN_ARGS="-Dprofile=load -DtestMode=import -DuniqueAttribute=PerfUniqOu1" \
+  ./run-simulation.sh
+  ```
+
+* **Worst case**: every imported value is stored in many other org units, which made the uniqueness
+  check load one tracked entity per stored value before the fix. Raise `POPULATE_ORG_UNITS` to
+  make it worse.
+
+  ```sh
+  POPULATE_SCRIPT=scripts/populate-unique-attribute.sh POPULATE_PROFILE=worst-case \
+  DHIS2_IMAGE=dhis2/core-dev:latest SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \
+  MVN_ARGS="-Dprofile=smoke -DtestMode=import -DuniqueAttribute=PerfUniqOu1" \
+  ./run-simulation.sh
+  ```
+
+Populating the `worst-case` profile (5M tracked entities) takes about 2 minutes. The script can
+also run again against an already running stack from `dhis-test-performance`
+(`./scripts/populate-unique-attribute.sh`): it replaces the previous population, which takes a few
+minutes more for large ones, and continues the numbering after the values already imported. Without `-DuniqueAttribute`, TrackerTest payloads are
+unchanged, so results stay comparable with runs that don't use it.
+
 ## Raw Tests (JSON-driven)
 
 The `raw` package (`org.hisp.dhis.test.raw`) contains JSON-driven performance tests ported from
@@ -321,14 +370,14 @@ for modifying them.
 ### Database Image Caching on CI
 
 Database images are cached on the CI server to avoid restoring dumps on every run. The S3 dumps are
-mutable, so cached images (e.g., `localhost/dhis2-postgres:14-3.5-sierra-leone-dev`) can become
+mutable, so cached images (e.g., `localhost/dhis2-postgres:16-3.5-sierra-leone-dev`) can become
 stale when the source dump is updated.
 
 To refresh a cached image, a `#team-devops` member must run on the CI server:
 
 ```sh
 # Remove the specific cached image (adjust tag as needed)
-docker rmi localhost/dhis2-postgres:14-3.5-sierra-leone-dev
+docker rmi localhost/dhis2-postgres:16-3.5-sierra-leone-dev
 docker builder prune -a
 ```
 
