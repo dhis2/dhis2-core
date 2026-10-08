@@ -68,32 +68,31 @@ class EventItemSelectColumnResolverTest {
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
   @Test
-  void stageOuItemEmitsValueNameAndCodeColumnsWhenHeadersRequestThem() {
+  void stageOuItemEmitsEventTableValueNameAndCodeColumnsWhenHeadersRequestThem() {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .addItem(stageOuItem())
             .withHeaders(Set.of("stageA.ouname", "stageA.oucode"))
             .build();
     when(organisationUnitResolver.buildStageOuCteContext(
-            same(params.getItems().get(0)), same(params), same("enrl")))
-        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+            same(params.getItems().get(0)), same(params), same("ax")))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     List<String> columns =
         resolver(
                 new PostgreSqlAnalyticsSqlBuilder(),
                 (item, queryParams) -> ColumnAndAlias.ofColumnAndAlias("unused", "unused"),
-                (target, queryParams, item, columnAndAlias) -> {},
-                queryParams -> "enrl")
+                (target, queryParams, item, columnAndAlias) -> {})
             .resolve(params, new CteContext(EndpointItem.EVENT));
 
     assertEquals(
         List.of(
-            "enrl.\"uidlevel1\" as \"stageA.ou\"",
-            "enrl.\"ouname\" as \"stageA.ouname\"",
-            "enrl.\"oucode\" as \"stageA.oucode\""),
+            "ax.\"uidlevel1\" as \"stageA.ou\"",
+            "ax.\"ouname\" as \"stageA.ouname\"",
+            "ax.\"oucode\" as \"stageA.oucode\""),
         columns);
     verify(organisationUnitResolver)
-        .buildStageOuCteContext(same(params.getItems().get(0)), same(params), same("enrl"));
+        .buildStageOuCteContext(same(params.getItems().get(0)), same(params), same("ax"));
   }
 
   @Test
@@ -161,8 +160,7 @@ class EventItemSelectColumnResolverTest {
                 new PostgreSqlAnalyticsSqlBuilder(),
                 (queryItem, queryParams) -> ColumnAndAlias.ofColumnAndAlias("select 1", "piCte"),
                 (target, queryParams, queryItem, columnAndAlias) ->
-                    target.add(columnAndAlias.getAlias() + ".status"),
-                queryParams -> "ax")
+                    target.add(columnAndAlias.getAlias() + ".status"))
             .resolve(params, cteContext);
 
     assertEquals(List.of("piCte.status"), columns);
@@ -181,21 +179,15 @@ class EventItemSelectColumnResolverTest {
         (item, queryParams) ->
             ColumnAndAlias.ofColumnAndAlias(
                 '"' + itemAliasResolver.resolve(item) + '"', itemAliasResolver.resolve(item)),
-        appender,
-        queryParams -> "ax");
+        appender);
   }
 
   private EventItemSelectColumnResolver resolver(
       AnalyticsSqlBuilder sqlBuilder,
       EventItemSelectColumnResolver.ColumnResolver columnResolver,
-      EventItemSelectColumnResolver.RowContextAppender rowContextAppender,
-      EventItemSelectColumnResolver.StageOuTableAliasResolver stageOuTableAliasResolver) {
+      EventItemSelectColumnResolver.RowContextAppender rowContextAppender) {
     return new EventItemSelectColumnResolver(
-        sqlBuilder,
-        organisationUnitResolver,
-        stageOuTableAliasResolver,
-        columnResolver,
-        rowContextAppender);
+        sqlBuilder, organisationUnitResolver, columnResolver, rowContextAppender);
   }
 
   private QueryItem stageOuItem() {

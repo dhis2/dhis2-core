@@ -1552,4 +1552,105 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     validateRowExists(
         response, actualHeaders, Map.of("pe", "2021", "ou", "ImspTQPwCqd", "value", "11017"));
   }
+
+  @Test
+  public void stageOuWithEnrollmentOuGroupsByEventOrgUnit() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add(
+                "dimension=pe:2022,regOuStge01.ou:LEVEL-2;ImspTQPwCqd,ENROLLMENT_OU:aBfyTU5Wgds;agEKP19IUKI;a1E6QWBTEwX");
+
+    // When
+    ApiResponse response = actions.aggregate().get("regOuProg01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        3,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"agEKP19IUKI\":{\"name\":\"Tambiama CHC\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"2022\":{\"name\":\"2022\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"wjP19dkFeIk\":{\"name\":\"District\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"enrollmentou\":{\"name\":\"Enrollment org. unit\"},\"pe\":{\"name\":\"Period\"},\"regOuProg01\":{\"name\":\"Registration OU test program\"},\"regOuStge01.ou\":{\"name\":\"Organisation unit\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"regOuStge01\":{\"name\":\"Registration OU test stage\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"enrollmentou\":[\"aBfyTU5Wgds\",\"agEKP19IUKI\",\"a1E6QWBTEwX\"],\"pe\":[\"2022\"],\"regOuStge01.ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "regOuStge01.ou",
+        "Organisation unit",
+        "ORGANISATION_UNIT",
+        "org.hisp.dhis.organisationunit.OrganisationUnit",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentou",
+        "Enrollment org unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "regOuStge01.ou",
+            "fdc6uOvgoji",
+            "pe",
+            "2022",
+            "enrollmentou",
+            "aBfyTU5Wgds",
+            "value",
+            "3"));
+
+    // Validate row exists with values from original row index 2
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "regOuStge01.ou",
+            "O6uvpzGd5pu",
+            "pe",
+            "2022",
+            "enrollmentou",
+            "a1E6QWBTEwX",
+            "value",
+            "2"));
+  }
 }

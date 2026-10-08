@@ -391,6 +391,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "stageOuWithEnrollmentOuGroupsByEventOrgUnit",
+      "query": "/api/analytics/events/aggregate/regOuProg01.json?dimension=pe:2022,regOuStge01.ou:LEVEL-2;ImspTQPwCqd,ENROLLMENT_OU:aBfyTU5Wgds;agEKP19IUKI;a1E6QWBTEwX&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }

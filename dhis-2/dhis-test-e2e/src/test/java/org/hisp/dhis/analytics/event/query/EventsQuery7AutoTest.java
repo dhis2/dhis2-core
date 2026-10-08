@@ -1019,4 +1019,102 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 9, "enrollmentouname", "Motorbong MCHP");
     validateRowValueByName(response, actualHeaders, 9, "ouname", "Ngelehun CHC");
   }
+
+  @Test
+  public void stageOuWithEnrollmentOuReturnsEventOrgUnit() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("asc=enrollmentouname")
+            .add("headers=regOuStge01.ou,regOuStge01.ouname,enrollmentouname")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("pageSize=10")
+            .add("page=1")
+            .add(
+                "dimension=pe:2022,regOuStge01.ou:LEVEL-2;ImspTQPwCqd,ENROLLMENT_OU:aBfyTU5Wgds;agEKP19IUKI;a1E6QWBTEwX");
+
+    // When
+    ApiResponse response = actions.query().get("regOuProg01", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        6,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":10,\"isLastPage\":true},\"items\":{\"eIQbndfxQMb\":{\"code\":\"OU_268149\",\"name\":\"Tonkolili\"},\"jUb8gELQApl\":{\"code\":\"OU_204856\",\"name\":\"Kailahun\"},\"TEQlaapDQoK\":{\"code\":\"OU_254945\",\"name\":\"Port Loko\"},\"Vth0fbpFcsO\":{\"code\":\"OU_233310\",\"name\":\"Kono\"},\"agEKP19IUKI\":{\"name\":\"Tambiama CHC\"},\"PMa2VCrupOd\":{\"code\":\"OU_211212\",\"name\":\"Kambia\"},\"2022\":{\"name\":\"2022\"},\"bL4ooGhyHRQ\":{\"code\":\"OU_260377\",\"name\":\"Pujehun\"},\"O6uvpzGd5pu\":{\"code\":\"OU_264\",\"name\":\"Bo\"},\"kJq2mPyFEHo\":{\"code\":\"OU_222616\",\"name\":\"Kenema\"},\"aBfyTU5Wgds\":{\"name\":\"Nduvuibu MCHP\"},\"wjP19dkFeIk\":{\"name\":\"District\"},\"fdc6uOvgoji\":{\"code\":\"OU_193190\",\"name\":\"Bombali\"},\"a1E6QWBTEwX\":{\"name\":\"Sienga CHP\"},\"at6UHUQatSo\":{\"code\":\"OU_278310\",\"name\":\"Western Area\"},\"enrollmentou\":{\"name\":\"Enrollment org. unit\"},\"pe\":{},\"regOuProg01\":{\"name\":\"Registration OU test program\"},\"regOuStge01.ou\":{\"name\":\"Organisation unit\"},\"lc3eMKXaEfw\":{\"code\":\"OU_197385\",\"name\":\"Bonthe\"},\"regOuStge01\":{\"name\":\"Registration OU test stage\"},\"qhqAxPSTUXp\":{\"code\":\"OU_226213\",\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"code\":\"OU_246990\",\"name\":\"Moyamba\"}},\"dimensions\":{\"enrollmentou\":[\"aBfyTU5Wgds\",\"agEKP19IUKI\",\"a1E6QWBTEwX\"],\"pe\":[],\"regOuStge01.ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "regOuStge01.ou",
+        "Organisation unit",
+        "ORGANISATION_UNIT",
+        "org.hisp.dhis.organisationunit.OrganisationUnit",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "regOuStge01.ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentouname",
+        "Enrollment org unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "regOuStge01.ou", "fdc6uOvgoji");
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentouname", "Nduvuibu MCHP");
+
+    // Validate selected values for row index 2
+    validateRowValueByName(response, actualHeaders, 2, "regOuStge01.ou", "fdc6uOvgoji");
+    validateRowValueByName(response, actualHeaders, 2, "enrollmentouname", "Nduvuibu MCHP");
+
+    // Validate selected values for row index 4
+    validateRowValueByName(response, actualHeaders, 4, "regOuStge01.ou", "O6uvpzGd5pu");
+    validateRowValueByName(response, actualHeaders, 4, "enrollmentouname", "Sienga CHP");
+
+    // Validate selected values for row index 5
+    validateRowValueByName(response, actualHeaders, 5, "regOuStge01.ou", "jUb8gELQApl");
+    validateRowValueByName(response, actualHeaders, 5, "enrollmentouname", "Tambiama CHC");
+  }
 }

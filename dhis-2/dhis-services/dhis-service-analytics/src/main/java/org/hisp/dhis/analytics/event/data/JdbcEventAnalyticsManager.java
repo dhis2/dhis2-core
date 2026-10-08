@@ -67,7 +67,6 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
@@ -164,7 +163,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         new EventItemSelectColumnResolver(
             sqlBuilder,
             organisationUnitResolver,
-            this::getStageOuValueColumnTableAlias,
             (item, queryParams) -> getColumnAndAlias(item, queryParams, false, false),
             this::handleRowContext);
   }
@@ -941,12 +939,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (cteContext.hasCteDefinitions() && sqlBuilder.supportsCorrelatedSubquery()) {
       getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
     }
-  }
-
-  private String getStageOuValueColumnTableAlias(EventQueryParams params) {
-    return params.hasEnrollmentOu()
-        ? OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS
-        : ANALYTICS_TBL_ALIAS;
   }
 
   /**
