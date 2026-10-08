@@ -29,29 +29,18 @@
  */
 package org.hisp.dhis.tracker.imports.preheat;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 
 /**
- * Simple pojo used to store the data for {@link TrackedEntityAttributeValue} that are needed in the
- * Validation phase
+ * Simple record used to store the data for {@link TrackedEntityAttributeValue} that are needed in
+ * the Validation phase
  *
+ * @param orgUnit org unit of the tracked entity owning the value. Null when it is unknown (e.g. an
+ *     enrollment of a tracked entity that does not exist) and for values from the DB of an
+ *     attribute unique in the whole system, where the validation does not use it
  * @author Enrico Colasante
  */
-@Getter
-@AllArgsConstructor
-@EqualsAndHashCode
-public class UniqueAttributeValue {
-
-  private UID te;
-
-  private MetadataIdentifier attribute;
-
-  private String value;
-
-  private MetadataIdentifier orgUnit;
-}
+public record UniqueAttributeValue(
+    UID te, MetadataIdentifier attribute, String value, MetadataIdentifier orgUnit) {}

@@ -191,7 +191,7 @@ public abstract class AbstractHibernateListener {
         continue;
       }
 
-      if (shouldInitializeProxy(value) || property.isEmbeddedObject()) {
+      if (shouldRefetchThroughProxy(value, property)) {
         if (entityProxy == null) {
           entityProxy = createProxy(id, session, persister);
         }
@@ -292,6 +292,18 @@ public abstract class AbstractHibernateListener {
     }
 
     return true;
+  }
+
+  /**
+   * An embedded collection that is already initialized (e.g. an inline {@code state} snapshot
+   * captured at flush time) reflects the current, correct association. Re-resolving it through a
+   * freshly created, uninitialized entity proxy re-queries the collection and can race with the
+   * not-yet-visible write, wiping out data that was already there. Only force the proxy re-fetch
+   * for a singular embedded property or a collection that isn't loaded yet.
+   */
+  private boolean shouldRefetchThroughProxy(Object value, Property property) {
+    return shouldInitializeProxy(value)
+        || (property.isEmbeddedObject() && !property.isCollection());
   }
 
   private Object getId(Object object) {

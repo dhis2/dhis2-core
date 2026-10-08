@@ -35,6 +35,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deadline.DeadlineQueries;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
@@ -86,6 +87,6 @@ public class HibernateProgramTrackedEntityAttributeStore
     query.where(root.get("program").in(programs));
     query.distinct(true);
 
-    return entityManager.createQuery(query).getResultList();
+    return DeadlineQueries.resultList(entityManager.createQuery(query));
   }
 }

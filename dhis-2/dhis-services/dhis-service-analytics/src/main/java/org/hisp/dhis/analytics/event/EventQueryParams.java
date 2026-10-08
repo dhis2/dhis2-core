@@ -163,6 +163,9 @@ public class EventQueryParams extends DataQueryParams {
   /** The incoming "value" param from the request. */
   private String requestValue;
 
+  /** The program stage the "value" data element is read from in enrollment aggregate queries. */
+  private ProgramStage valueProgramStage;
+
   /** Program indicators specified as dimensional items of the data dimension. */
   private List<ProgramIndicator> itemProgramIndicators = new ArrayList<>();
 
@@ -289,6 +292,21 @@ public class EventQueryParams extends DataQueryParams {
   /** Whether ENROLLMENT_OU dimension was requested via relative keywords (e.g. USER_ORGUNIT). */
   private boolean enrollmentOuDimensionHierarchical = false;
 
+  /**
+   * Org units when REGISTRATION_OU is used as a dimension, already expanded from any keyword form
+   * and therefore carrying their hierarchy level.
+   */
+  private List<OrganisationUnit> registrationOuDimensionItems = new ArrayList<>();
+
+  /** Org units when REGISTRATION_OU is used as a filter. */
+  private List<OrganisationUnit> registrationOuFilterItems = new ArrayList<>();
+
+  /**
+   * Whether REGISTRATION_OU was named as a dimension, independently of whether it carries items. A
+   * dimension without items projects the output columns without restricting any rows.
+   */
+  private boolean registrationOuDimensionRequested = false;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -323,6 +341,7 @@ public class EventQueryParams extends DataQueryParams {
     params.itemFilters = new ArrayList<>(this.itemFilters);
     params.value = this.value;
     params.requestValue = this.requestValue;
+    params.valueProgramStage = this.valueProgramStage;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
     params.option = this.option;
@@ -370,6 +389,9 @@ public class EventQueryParams extends DataQueryParams {
     params.enrollmentOuDimensionLevels = new LinkedHashSet<>(this.enrollmentOuDimensionLevels);
     params.enrollmentOuFilterLevels = new LinkedHashSet<>(this.enrollmentOuFilterLevels);
     params.enrollmentOuDimensionHierarchical = this.enrollmentOuDimensionHierarchical;
+    params.registrationOuDimensionItems = new ArrayList<>(this.registrationOuDimensionItems);
+    params.registrationOuFilterItems = new ArrayList<>(this.registrationOuFilterItems);
+    params.registrationOuDimensionRequested = this.registrationOuDimensionRequested;
     return params;
   }
 
@@ -620,8 +642,18 @@ public class EventQueryParams extends DataQueryParams {
     asc.forEach(e -> e.getItem().getUid());
     desc.forEach(e -> e.getItem().getUid());
 
+    // Registration OU selections are stored outside the generic dimensions and filters.
+    if (hasRegistrationOu()) {
+      key.add("registrationOuDimensionRequested", registrationOuDimensionRequested);
+      registrationOuDimensionItems.forEach(
+          ou -> key.add("registrationOuDimension", ou.getUid() + ":" + ou.getLevel()));
+      registrationOuFilterItems.forEach(
+          ou -> key.add("registrationOuFilter", ou.getUid() + ":" + ou.getLevel()));
+    }
+
     return key.addIgnoreNull("value", value, () -> value.getUid())
         .addIgnoreNull("requestValue", requestValue)
+        .addIgnoreNull("valueProgramStage", valueProgramStage, () -> valueProgramStage.getUid())
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())
         .addIgnoreNull("programStage", programStage, () -> programStage.getUid())
         .addIgnoreNull("organisationUnitMode", organisationUnitMode)
@@ -1297,6 +1329,51 @@ public class EventQueryParams extends DataQueryParams {
     return isNotEmpty(enrollmentOuDimensionItems) || !enrollmentOuDimensionLevels.isEmpty();
   }
 
+  /** Returns true if REGISTRATION_OU was named as a dimension, with or without items. */
+  public boolean hasRegistrationOuDimension() {
+    return registrationOuDimensionRequested;
+  }
+
+  public boolean hasRegistrationOuFilter() {
+    return isNotEmpty(registrationOuFilterItems);
+  }
+
+  /** Returns true if REGISTRATION_OU was named at all, as a dimension or as a filter. */
+  public boolean hasRegistrationOu() {
+    return hasRegistrationOuDimension() || hasRegistrationOuFilter();
+  }
+
+  /**
+   * Returns true if the REGISTRATION_OU dimension carries org units, which is the condition for the
+   * aggregate disaggregation column to exist. A dimension named without org units projects the
+   * query output columns but has nothing to group by.
+   */
+  public boolean hasRegistrationOuAggregateColumn() {
+    return isNotEmpty(registrationOuDimensionItems);
+  }
+
+  /**
+   * Returns true if REGISTRATION_OU restricts the query, i.e. carries org units as a dimension or
+   * as a filter. A dimension named without items does not restrict anything and so does not count
+   * as an organisation unit condition.
+   */
+  public boolean hasRegistrationOuRestriction() {
+    return isNotEmpty(registrationOuDimensionItems) || isNotEmpty(registrationOuFilterItems);
+  }
+
+  public List<OrganisationUnit> getRegistrationOuDimensionItems() {
+    return registrationOuDimensionItems;
+  }
+
+  public List<OrganisationUnit> getRegistrationOuFilterItems() {
+    return registrationOuFilterItems;
+  }
+
+  /** Returns the REGISTRATION_OU org units from both the dimension and the filter. */
+  public List<OrganisationUnit> getAllRegistrationOuItems() {
+    return ListUtils.union(registrationOuDimensionItems, registrationOuFilterItems);
+  }
+
   public boolean hasEnrollmentOuFilter() {
     return isNotEmpty(enrollmentOuFilterItems) || !enrollmentOuFilterLevels.isEmpty();
   }
@@ -1415,6 +1492,14 @@ public class EventQueryParams extends DataQueryParams {
 
   public String getRequestValue() {
     return requestValue;
+  }
+
+  public ProgramStage getValueProgramStage() {
+    return valueProgramStage;
+  }
+
+  public boolean hasValueProgramStage() {
+    return valueProgramStage != null;
   }
 
   public List<ProgramIndicator> getItemProgramIndicators() {
@@ -1668,6 +1753,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withRequestValue(String requestValue) {
       this.params.requestValue = requestValue;
+      return this;
+    }
+
+    public Builder withValueProgramStage(ProgramStage valueProgramStage) {
+      this.params.valueProgramStage = valueProgramStage;
       return this;
     }
 
@@ -1956,6 +2046,17 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withEnrollmentOuFilterLevels(Set<Integer> levels) {
       this.params.enrollmentOuFilterLevels = new LinkedHashSet<>(levels);
+      return this;
+    }
+
+    public Builder withRegistrationOuDimension(List<OrganisationUnit> items) {
+      this.params.registrationOuDimensionItems = new ArrayList<>(items);
+      this.params.registrationOuDimensionRequested = true;
+      return this;
+    }
+
+    public Builder withRegistrationOuFilter(List<OrganisationUnit> items) {
+      this.params.registrationOuFilterItems = new ArrayList<>(items);
       return this;
     }
 

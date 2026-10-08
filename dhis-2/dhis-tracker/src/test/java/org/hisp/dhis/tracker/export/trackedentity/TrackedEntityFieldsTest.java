@@ -48,6 +48,7 @@ class TrackedEntityFieldsTest {
 
     assertTrue(fields.isIncludesEnrollments());
     assertTrue(fields.getEnrollmentFields().isIncludesAttributes());
+    assertTrue(fields.getEnrollmentFields().isIncludesNotes());
     assertTrue(fields.getEnrollmentFields().isIncludesRelationships());
     assertRelationshipFields(
         fields.getEnrollmentFields().getRelationshipFields(), Assertions::assertTrue);
@@ -71,6 +72,7 @@ class TrackedEntityFieldsTest {
 
     assertFalse(fields.isIncludesEnrollments());
     assertFalse(fields.getEnrollmentFields().isIncludesAttributes());
+    assertFalse(fields.getEnrollmentFields().isIncludesNotes());
     assertFalse(fields.getEnrollmentFields().isIncludesRelationships());
     assertRelationshipFields(
         fields.getEnrollmentFields().getRelationshipFields(), Assertions::assertFalse);
