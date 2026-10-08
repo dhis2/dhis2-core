@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
- * Service for analytics table generation and analysis.
+ * Generic pair of {@link UID}s that model some form of reference or connection between two
+ * different types of objects.
  *
- * @author Lars Helge Overland
+ * @param from one object
+ * @param to another object
  */
-public interface AnalyticsTableService {
-  /**
-   * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-   *
-   * @return the type of analytics table.
-   */
-  AnalyticsTableType getAnalyticsTableType();
+public record UIDConnection(@Nonnull UID from, @CheckForNull UID to) {
 
-  /**
-   * Creates or updates the analytics tables.
-   *
-   * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param progress job progress tracking and control flow
-   * @return true if the analytics tables reflect all source data changed before the start time of
-   *     the update, false if the update was cancelled or aborted, in which case it must not be
-   *     recorded as a successful update of this table type.
-   */
-  boolean create(AnalyticsTableUpdateParams params, JobProgress progress);
-
-  /** Drops main and staging analytics tables. */
-  void dropTables();
-
-  /** Performs an analyze operation on analytics tables. */
-  void analyzeAnalyticsTables();
+  public UIDConnection {
+    requireNonNull(from);
+  }
 }
