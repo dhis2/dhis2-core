@@ -27,37 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * Service for analytics table generation and analysis.
+ * A stored value of a unique tracked entity attribute that matches a value being imported.
  *
- * @author Lars Helge Overland
+ * @param trackedEntity the tracked entity owning the value
+ * @param value the stored value, as persisted (not normalized to lower case)
+ * @param orgUnitId the id of the org unit of the tracked entity owning the value, only set for an
+ *     attribute unique within an org unit
  */
-public interface AnalyticsTableService {
-  /**
-   * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-   *
-   * @return the type of analytics table.
-   */
-  AnalyticsTableType getAnalyticsTableType();
-
-  /**
-   * Creates or updates the analytics tables.
-   *
-   * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param progress job progress tracking and control flow
-   * @return true if the analytics tables reflect all source data changed before the start time of
-   *     the update, false if the update was cancelled or aborted, in which case it must not be
-   *     recorded as a successful update of this table type.
-   */
-  boolean create(AnalyticsTableUpdateParams params, JobProgress progress);
-
-  /** Drops main and staging analytics tables. */
-  void dropTables();
-
-  /** Performs an analyze operation on analytics tables. */
-  void analyzeAnalyticsTables();
-}
+public record UniqueAttributeValueMatch(
+    @Nonnull UID trackedEntity, @Nonnull String value, @CheckForNull Long orgUnitId) {}
