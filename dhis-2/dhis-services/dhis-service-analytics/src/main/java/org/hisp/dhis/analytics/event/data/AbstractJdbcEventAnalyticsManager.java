@@ -133,13 +133,12 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.InQueryCteFilter;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlFragments;
+import org.hisp.dhis.analytics.event.data.ou.TrackerOrgUnitDimension;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
-import org.hisp.dhis.analytics.event.data.registrationou.RegistrationOuSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageSortField;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
@@ -340,10 +339,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private String getColumnExpression(
       CteContext cteContext, EventQueryParams params, QueryItem item) {
-    // Enrollment org unit columns are read from the joined enrollment analytics table. Everything
+    // Enrollment org unit columns are read from the joined org unit structure table. Everything
     // below resolves columns on the event table.
     Optional<String> enrollmentOuColumn =
-        OrgUnitSqlFragments.sortColumn(item.getItem().getUid(), sqlBuilder);
+        OrgUnitSqlFragments.sortColumn(
+            TrackerOrgUnitDimension.ENROLLMENT_OU, item.getItem().getUid(), sqlBuilder);
 
     if (enrollmentOuColumn.isPresent()) {
       return enrollmentOuColumn.get();
@@ -634,11 +634,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           }
         });
 
-    OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        columns, params, isGroupByClause, isAggregated, getAnalyticsType(), sqlBuilder);
+    // ENROLLMENT_OU is supported on the event endpoints only.
+    if (getAnalyticsType() == AnalyticsType.EVENT) {
+      OrgUnitSqlCoordinator.dimensionSelectColumn(
+              TrackerOrgUnitDimension.ENROLLMENT_OU,
+              params,
+              isGroupByClause,
+              isAggregated,
+              sqlBuilder)
+          .ifPresent(columns::add);
+    }
 
-    RegistrationOuSqlCoordinator.dimensionSelectColumn(
-            params, isGroupByClause, isAggregated, sqlBuilder)
+    OrgUnitSqlCoordinator.dimensionSelectColumn(
+            TrackerOrgUnitDimension.REGISTRATION_OU,
+            params,
+            isGroupByClause,
+            isAggregated,
+            sqlBuilder)
         .ifPresent(columns::add);
 
     if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
@@ -728,11 +740,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     Optional<ColumnAndAlias> stageSelectColumn =
         stageQuerySqlFacade.resolveSelectColumn(
-            queryItem,
-            params,
-            isGroupByClause,
-            isAggregated,
-            getStageOuValueColumnTableAlias(params));
+            queryItem, params, isGroupByClause, isAggregated, ANALYTICS_TBL_ALIAS);
     if (stageSelectColumn.isPresent()) {
       return stageSelectColumn.get();
     } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
@@ -791,8 +799,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())) {
       if (OrganisationUnitResolver.isStageOuDimension(queryItem)) {
         OrganisationUnitResolver.StageOuCteContext stageOuContext =
-            organisationUnitResolver.buildStageOuCteContext(
-                queryItem, params, getStageOuValueColumnTableAlias(params));
+            organisationUnitResolver.buildStageOuCteContext(queryItem, params, ANALYTICS_TBL_ALIAS);
         return ColumnAndAlias.ofColumnAndAlias(
             stageOuContext.valueColumn(), queryItem.getItemName());
       }
@@ -809,17 +816,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .withPostfix(OU_NAME_COL_POSTFIX)
         : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_POSTFIX))
             .withPostfix(OU_NAME_COL_POSTFIX);
-  }
-
-  /**
-   * Returns the table alias to qualify a stage-OU value column with. When ENROLLMENT_OU joins the
-   * enrollment analytics table for an event query, {@code uidlevelN} columns must be read from the
-   * {@code enrl} alias to avoid ambiguity; otherwise the main {@code ax} alias is used.
-   */
-  private String getStageOuValueColumnTableAlias(EventQueryParams params) {
-    return params.hasEnrollmentOu() && getAnalyticsType() == AnalyticsType.EVENT
-        ? OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS
-        : ANALYTICS_TBL_ALIAS;
   }
 
   /**
