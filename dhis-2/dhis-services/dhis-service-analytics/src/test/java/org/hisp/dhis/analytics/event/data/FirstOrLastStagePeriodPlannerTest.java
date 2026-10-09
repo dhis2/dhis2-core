@@ -112,13 +112,31 @@ class FirstOrLastStagePeriodPlannerTest extends TestBase {
   }
 
   @Test
-  void shouldPlanStageDatePeriodsSuppliedAsFilter() {
-    QueryItem dateItem = createStageEventDateItem(stage, "202601", "202602");
+  void shouldPlanOneQueryEndingAtLatestFilterPeriod() {
+    QueryItem dateItem = createStageEventDateItem(stage, "202201", "202202");
     EventQueryParams params = createParams(AggregationType.LAST).addItemFilter(dateItem).build();
 
     List<EventQueryParams> queries = subject.plan(params);
 
-    assertEquals(2, queries.size());
+    assertEquals(1, queries.size());
+    assertEquals("202202", queries.get(0).getFirstOrLastStagePeriod().isoPeriod());
+    assertSame(dateItem, queries.get(0).getFirstOrLastStagePeriod().dateItem());
+    assertTrue(queries.get(0).isSkipPartitioning());
+  }
+
+  @Test
+  void shouldIgnoreGapsBetweenFilterPeriods() {
+    assertEquals("202204", planFilterPeriod("202201", "202204"));
+  }
+
+  @Test
+  void shouldPickLatestEndingFilterPeriodRegardlessOfOrder() {
+    assertEquals("202204", planFilterPeriod("202204", "202201"));
+  }
+
+  @Test
+  void shouldPickLatestEndingFilterPeriodAcrossPeriodTypes() {
+    assertEquals("2022", planFilterPeriod("2022", "202206"));
   }
 
   @ParameterizedTest
@@ -170,6 +188,16 @@ class FirstOrLastStagePeriodPlannerTest extends TestBase {
     EventQueryParams params = createParams(AggregationType.LAST).addItem(dateItem).build();
 
     assertKeepsQuery(params);
+  }
+
+  private String planFilterPeriod(String... periods) {
+    QueryItem dateItem = createStageEventDateItem(stage, periods);
+    EventQueryParams params = createParams(AggregationType.LAST).addItemFilter(dateItem).build();
+
+    List<EventQueryParams> queries = subject.plan(params);
+
+    assertEquals(1, queries.size());
+    return queries.get(0).getFirstOrLastStagePeriod().isoPeriod();
   }
 
   private void assertKeepsQuery(EventQueryParams params) {
