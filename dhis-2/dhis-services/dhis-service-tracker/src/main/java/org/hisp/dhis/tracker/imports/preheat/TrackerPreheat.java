@@ -47,6 +47,7 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
@@ -287,10 +288,19 @@ public class TrackerPreheat {
   private final Map<String, User> users = Maps.newHashMap();
 
   /**
-   * {@link UniqueAttributeValue}s grouped by {@link #caseInsensitiveKey(String)} of their value, so
-   * the validation only compares a value against the few entries sharing it instead of all of them.
+   * Values of attributes unique in the whole system, grouped by {@link #caseInsensitiveKey(String)}
+   * of their value, so the validation only compares a value against the few entries sharing it
+   * instead of all of them.
    */
-  private Map<String, List<UniqueAttributeValue>> uniqueAttributeValuesByValue = Map.of();
+  private Map<String, List<UniqueAttributeValueSystemWide>> systemWideUniqueAttributeValuesByValue =
+      Map.of();
+
+  /**
+   * Values of attributes unique within an org unit, grouped by {@link #caseInsensitiveKey(String)}
+   * of their value, for the same reason.
+   */
+  private Map<String, List<UniqueAttributeValueInOrgUnit>> uniqueAttributeValuesInOrgUnitByValue =
+      Map.of();
 
   /** A list of all Enrollment UID having at least one Event that is not deleted. */
   @Getter @Setter private List<UID> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
@@ -630,19 +640,51 @@ public class TrackerPreheat {
     return this.users.values().stream().filter(u -> Objects.equals(uid, u.getUid())).findAny();
   }
 
-  public void setUniqueAttributeValues(List<UniqueAttributeValue> uniqueAttributeValues) {
-    this.uniqueAttributeValuesByValue =
-        uniqueAttributeValues.stream()
-            .collect(Collectors.groupingBy(v -> caseInsensitiveKey(v.value())));
+  public void setSystemWideUniqueAttributeValues(List<UniqueAttributeValueSystemWide> values) {
+    this.systemWideUniqueAttributeValuesByValue =
+        values.stream().collect(Collectors.groupingBy(v -> caseInsensitiveKey(v.value())));
+  }
+
+  public void setUniqueAttributeValuesInOrgUnit(List<UniqueAttributeValueInOrgUnit> values) {
+    this.uniqueAttributeValuesInOrgUnitByValue =
+        values.stream().collect(Collectors.groupingBy(v -> caseInsensitiveKey(v.value())));
   }
 
   /**
-   * Returns the unique attribute values whose value is equal, ignoring case, to {@code value}. The
-   * entries can belong to any unique attribute and org unit.
+   * Returns true if a tracked entity other than {@code trackedEntity} has a value of {@code
+   * attribute}, unique in the whole system, equal to {@code value} ignoring case. The tracked
+   * entity is the one of the payload, as a new one has its own value in the payload duplicates.
    */
-  @Nonnull
-  public List<UniqueAttributeValue> getUniqueAttributeValues(@Nonnull String value) {
-    return uniqueAttributeValuesByValue.getOrDefault(caseInsensitiveKey(value), List.of());
+  public boolean hasSystemWideDuplicate(
+      @Nonnull TrackedEntityAttribute attribute,
+      @Nonnull String value,
+      @CheckForNull UID trackedEntity) {
+    return systemWideUniqueAttributeValuesByValue
+        .getOrDefault(caseInsensitiveKey(value), List.of())
+        .stream()
+        .anyMatch(
+            v -> v.attribute().isEqualTo(attribute) && !Objects.equals(trackedEntity, v.te()));
+  }
+
+  /**
+   * Returns true if a tracked entity other than {@code trackedEntity} has a value of {@code
+   * attribute}, unique within an org unit, equal to {@code value} ignoring case in {@code orgUnit}.
+   * Never when {@code orgUnit} is unknown. The tracked entity is the one of the payload, as a new
+   * one has its own value in the payload duplicates.
+   */
+  public boolean hasDuplicateInOrgUnit(
+      @Nonnull TrackedEntityAttribute attribute,
+      @Nonnull String value,
+      @CheckForNull OrganisationUnit orgUnit,
+      @CheckForNull UID trackedEntity) {
+    return uniqueAttributeValuesInOrgUnitByValue
+        .getOrDefault(caseInsensitiveKey(value), List.of())
+        .stream()
+        .anyMatch(
+            v ->
+                v.attribute().isEqualTo(attribute)
+                    && v.orgUnit().isEqualTo(orgUnit)
+                    && !Objects.equals(trackedEntity, v.te()));
   }
 
   /**
