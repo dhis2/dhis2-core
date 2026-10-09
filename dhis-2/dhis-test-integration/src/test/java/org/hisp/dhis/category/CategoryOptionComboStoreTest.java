@@ -31,7 +31,9 @@ package org.hisp.dhis.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,6 +42,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hibernate.Hibernate;
+import org.hibernate.proxy.HibernateProxy;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -124,6 +128,40 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
   // Tests
   // -------------------------------------------------------------------------
+  /**
+   * A real category option combo must equal a Hibernate proxy of the same combo, in both
+   * directions. The proxy comes from an earlier persistence context (as when an object loaded in
+   * one session is compared with the same object loaded in another), so the two are different
+   * instances. Before the fix, real.equals(proxy) read the proxy's own fields, which are always
+   * null, and returned false (DHIS2-17719).
+   */
+  @Test
+  @DisplayName("A category option combo equals a Hibernate proxy of itself")
+  void testEqualsHibernateProxy() {
+    categoryOptionComboA = new CategoryOptionCombo();
+    categoryOptionComboA.setCategoryCombo(categoryComboA);
+    categoryOptionComboA.setCategoryOptions(Sets.newHashSet(categoryOptionA, categoryOptionC));
+    categoryOptionComboStore.save(categoryOptionComboA);
+    long id = categoryOptionComboA.getId();
+    entityManager.flush();
+    entityManager.clear();
+
+    CategoryOptionCombo proxy = entityManager.getReference(CategoryOptionCombo.class, id);
+    Hibernate.initialize(proxy);
+    Hibernate.initialize(proxy.getCategoryCombo());
+    Hibernate.initialize(proxy.getCategoryOptions());
+    entityManager.clear();
+
+    CategoryOptionCombo real = entityManager.find(CategoryOptionCombo.class, id);
+
+    assertInstanceOf(HibernateProxy.class, proxy);
+    assertFalse(real instanceof HibernateProxy);
+    assertNotSame(proxy, real);
+    assertEquals(proxy.hashCode(), real.hashCode());
+    assertEquals(proxy, real);
+    assertEquals(real, proxy);
+  }
+
   @Test
   void testAddGetCategoryOptionCombo() {
     categoryOptionComboA = new CategoryOptionCombo();
