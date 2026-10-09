@@ -62,10 +62,12 @@ class AbstractOrganisationUnitAssociationsQueryBuilderTest {
   @Test
   void buildSqlQueryRestrictsJoinedOrgUnitsToUserHierarchy() {
     String sql =
-        builder.buildSqlQuery(
-            Set.of("ds123456789"),
-            Set.of("/AoCaBHBeXTs/qLiKWoddwFu/uid1234567", "/AoCaBHBeXTs/uid7654321"),
-            new User());
+        builder
+            .buildSqlQuery(
+                Set.of("ds123456789"),
+                Set.of("/AoCaBHBeXTs/qLiKWoddwFu/uid1234567", "/AoCaBHBeXTs/uid7654321"),
+                new User())
+            .replaceAll("\\s+", " ");
 
     assertTrue(
         sql.contains(
@@ -78,23 +80,25 @@ class AbstractOrganisationUnitAssociationsQueryBuilderTest {
         () -> "expected only the user org unit UIDs: " + sql);
     assertTrue(
         sql.contains(
-            "(ou.organisationunitid is not null or not exists (select 1 from datasetsource"),
+            "( ou.organisationunitid is not null or not exists ( select 1 from datasetsource"),
         () -> "expected objects without org units to be kept: " + sql);
     assertFalse(sql.contains("path like"), () -> "should not use path like: " + sql);
   }
 
   @Test
   void buildSqlQueryMatchesNoOrgUnitsForUserWithoutOrgUnits() {
-    String sql = builder.buildSqlQuery(Set.of("ds123456789"), Set.of(), new User());
+    String sql =
+        builder.buildSqlQuery(Set.of("ds123456789"), Set.of(), new User()).replaceAll("\\s+", " ");
 
     assertTrue(
-        sql.contains("= ou.organisationunitid and false)"),
+        sql.contains("= ou.organisationunitid and false )"),
         () -> "expected no org units to be joined: " + sql);
   }
 
   @Test
   void buildSqlQueryForRawAssociationJoinsAllOrgUnits() {
-    String sql = builder.buildSqlQueryForRawAssociation(Set.of("ds123456789"));
+    String sql =
+        builder.buildSqlQueryForRawAssociation(Set.of("ds123456789")).replaceAll("\\s+", " ");
 
     assertTrue(
         sql.contains(
