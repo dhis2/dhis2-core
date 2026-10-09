@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.AnalyticsApiTest;
@@ -46,7 +45,6 @@ import org.hisp.dhis.test.e2e.actions.ResourceTableActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.SystemActions;
 import org.hisp.dhis.test.e2e.actions.aggregate.DataValueSetActions;
-import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
@@ -60,18 +58,17 @@ import org.junit.jupiter.api.condition.EnabledIf;
  * are added, updated and deleted after the full analytics export.
  *
  * <p>Unlike the other analytics tests, this test changes data and runs the analytics table export
- * again. It is ordered last, and it only writes data for its own data element and data set, which
- * it imports after the full export, so no other test sees them.
+ * again. It is ordered last, so no other test sees the change, and it writes data for a data
+ * element, org unit and period that have no data value in the database and that no other test
+ * queries.
  *
- * <p>A continuous update does not regenerate the resource tables. This is a known limitation, not
- * what this test checks, so the test keeps clear of it:
- *
- * <ul>
- *   <li>It regenerates the resource tables after importing its metadata. Otherwise the new data
- *       element is missing from them, and its data values are left out of the analytics tables.
- *   <li>It writes data for a period that already exists in the database, so the period resource
- *       tables cover it. A new period would only be added to them by a full update.
- * </ul>
+ * <p>The test uses existing metadata and runs no analytics table update other than continuous ones.
+ * A continuous update does not regenerate the resource tables, so new metadata would be missing
+ * from them, and an update that does regenerate them would also pick up the metadata other tests
+ * import after the full export, giving the tables columns that the existing ones lack. These are
+ * known limitations of continuous updates, not what this test checks. For the same reason, each
+ * continuous update covers the aggregate tables only, and uses the outlier setting of the full
+ * export, so the tables keep the same columns.
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
@@ -80,16 +77,15 @@ import org.junit.jupiter.api.condition.EnabledIf;
     value = "supportsContinuousAnalytics",
     disabledReason = "Continuous analytics is only supported on Postgres and Doris")
 public class ContinuousAnalyticsTest extends AnalyticsApiTest {
-  private static final String METADATA_FILE =
-      "src/test/resources/analytics/continuous-analytics-metadata.json";
+  /** Louse Borne Typhus - Relapsing fever (Deaths &lt; 5 yrs), default category combo. */
+  private static final String DATA_ELEMENT = "NpJtsQkMTm3";
 
-  private static final String DATA_ELEMENT = "caE2eDe0001";
+  /** Mortality &lt; 5 years. */
+  private static final String DATA_SET = "pBOMPrpg1QX";
 
-  private static final String DATA_SET = "caE2eDs0001";
-
+  /** Ngelehun CHC. */
   private static final String ORG_UNIT = "DiszpKrYNg8";
 
-  /** Exists in the Sierra Leone database, see the class comment. */
   private static final String PERIOD = "202201";
 
   private static final long ANALYTICS_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(10);
@@ -102,18 +98,6 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
   public void setup() {
     analyticsActions = new RestApiActions("analytics");
     dataValueSetActions = new DataValueSetActions();
-
-    new MetadataActions()
-        .importMetadata(new File(METADATA_FILE), "async=false")
-        .validate()
-        .body("status", equalTo("OK"))
-        .body("response.stats.ignored", equalTo(0));
-
-    // Skips every table type, so only the resource tables are regenerated, and replicated to the
-    // analytics database where one is used.
-    runAnalyticsTableUpdate(
-        "skipAggregate=true&skipEvents=true&skipEnrollment=true&skipTrackedEntities=true"
-            + "&skipOrgUnitOwnership=true&skipValidationResult=true&skipOutliers=true");
   }
 
   static boolean supportsContinuousAnalytics() {
@@ -124,6 +108,8 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
   @Test
   @Timeout(value = 15, unit = TimeUnit.MINUTES)
   void continuousUpdatePicksUpAddedUpdatedAndDeletedDataValues() {
+    getAnalytics().validate().statusCode(200).body("rows", empty());
+
     // Added after the full export
     importDataValue("11", "CREATE_AND_UPDATE");
     runContinuousUpdate();
@@ -165,15 +151,11 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
         .body("status", equalTo("OK"));
   }
 
+  /** Runs a continuous analytics table update and checks that no stage of it failed. */
   private void runContinuousUpdate() {
-    runAnalyticsTableUpdate("lastYears=0");
-  }
-
-  /** Runs an analytics table update and checks that no stage of it failed. */
-  private void runAnalyticsTableUpdate(String queryParams) {
     String taskId =
         new ResourceTableActions()
-            .post("/analytics?" + queryParams, new JsonObject())
+            .post("/analytics?" + continuousUpdateParams(), new JsonObject())
             .validateStatus(200)
             .extractString("response.id");
 
@@ -182,7 +164,20 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
             .waitUntilTaskCompleted("ANALYTICS_TABLE", taskId, ANALYTICS_TIMEOUT_SECONDS);
 
     List<String> errors = task.extractList("findAll { it.level == 'ERROR' }.message", String.class);
-    assertEquals(List.of(), errors, "Analytics table update reported errors");
+    assertEquals(List.of(), errors, "Continuous analytics update reported errors");
+  }
+
+  /**
+   * Returns the parameters of a continuous update of the aggregate tables, with the outlier setting
+   * of the full export, see the class comment.
+   */
+  private static String continuousUpdateParams() {
+    String exportParams = System.getProperty("analytics.api.query.params", "");
+    boolean skipOutliers = exportParams.contains("skipOutliers=true");
+
+    return "lastYears=0&skipEvents=true&skipEnrollment=true&skipTrackedEntities=true"
+        + "&skipOrgUnitOwnership=true&skipValidationResult=true&skipOutliers="
+        + skipOutliers;
   }
 
   private ApiResponse getAnalytics() {
