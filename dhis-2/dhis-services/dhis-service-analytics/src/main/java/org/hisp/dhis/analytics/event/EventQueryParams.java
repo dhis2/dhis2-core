@@ -146,7 +146,27 @@ public class EventQueryParams extends DataQueryParams {
   public record GeometrySource(String coordinateField, String source) {}
 
   /** The stage date and reporting period for one planned first/last value query. */
-  public record FirstOrLastStagePeriod(QueryItem dateItem, PeriodDimension period) {}
+  public record FirstOrLastStagePeriod(QueryItem dateItem, PeriodDimension period) {
+    /** The analytics column of the stage date, such as occurreddate or scheduleddate. */
+    public String dateColumn() {
+      return dateItem.getItemId();
+    }
+
+    /** The program stage whose events are ranked. */
+    public ProgramStage programStage() {
+      return dateItem.getProgramStage();
+    }
+
+    /** The last day of the reporting period, used as the selection cutoff. */
+    public Date endDate() {
+      return period.getEndDate();
+    }
+
+    /** The ISO identifier of the reporting period, used as the row label. */
+    public String isoPeriod() {
+      return period.getIsoDate();
+    }
+  }
 
   @Getter private FirstOrLastStagePeriod firstOrLastStagePeriod;
 

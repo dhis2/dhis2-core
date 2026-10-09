@@ -111,7 +111,7 @@ public class FirstOrLastValueSubqueryRenderer {
   private String buildTenYearWindowTimeTest(EventQueryParams params) {
     String timeCol = sqlBuilder.quoteAx(getTimeColumn(params));
     if (params.hasFirstOrLastStagePeriod()) {
-      Date end = params.getFirstOrLastStagePeriod().period().getEndDate();
+      Date end = params.getFirstOrLastStagePeriod().endDate();
       return timeCol
           + " >= '"
           + toMediumDate(addYears(end, LAST_VALUE_YEARS_OFFSET))
@@ -239,7 +239,7 @@ public class FirstOrLastValueSubqueryRenderer {
 
   private String getTimeColumn(EventQueryParams params) {
     return params.hasFirstOrLastStagePeriod()
-        ? params.getFirstOrLastStagePeriod().dateItem().getItemId()
+        ? params.getFirstOrLastStagePeriod().dateColumn()
         : params.getTimeFieldAsFieldFallback();
   }
 
@@ -248,7 +248,7 @@ public class FirstOrLastValueSubqueryRenderer {
         params.hasProgramStage()
             ? params.getProgramStage()
             : params.hasFirstOrLastStagePeriod()
-                ? params.getFirstOrLastStagePeriod().dateItem().getProgramStage()
+                ? params.getFirstOrLastStagePeriod().programStage()
                 : null;
     return stage == null ? "" : " and " + sqlBuilder.quoteAx("ps") + " = '" + stage.getUid() + "'";
   }
