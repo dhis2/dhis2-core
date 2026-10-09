@@ -35,9 +35,9 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -68,12 +68,11 @@ class AttributeValidator
     TrackedEntityType trackedEntityType =
         bundle.getPreheat().getTrackedEntityType(trackedEntity.getTrackedEntityType());
 
-    TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
     OrganisationUnit organisationUnit =
         bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
     validateMandatoryAttributes(reporter, bundle, trackedEntity, trackedEntityType);
-    validateAttributes(reporter, bundle, trackedEntity, te, organisationUnit, trackedEntityType);
+    validateAttributes(reporter, bundle, trackedEntity, organisationUnit, trackedEntityType);
   }
 
   private void validateMandatoryAttributes(
@@ -103,7 +102,6 @@ class AttributeValidator
       Reporter reporter,
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
-      TrackedEntity te,
       OrganisationUnit orgUnit,
       TrackedEntityType trackedEntityType) {
     TrackerPreheat preheat = bundle.getPreheat();
@@ -134,7 +132,13 @@ class AttributeValidator
       validateOptionSet(reporter, preheat, trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
-          reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);
+          reporter,
+          preheat,
+          trackedEntity,
+          attribute.getValue(),
+          tea,
+          UID.of(trackedEntity.getUid()),
+          orgUnit);
     }
   }
 }

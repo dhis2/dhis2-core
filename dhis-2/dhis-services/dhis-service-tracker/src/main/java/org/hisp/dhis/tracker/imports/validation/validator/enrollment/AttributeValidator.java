@@ -41,6 +41,7 @@ import com.google.common.collect.Streams;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -73,10 +74,7 @@ class AttributeValidator
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(enrollment.getProgram());
-    TrackedEntity te = bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
-
-    OrganisationUnit orgUnit =
-        preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
+    OrganisationUnit orgUnit = getOrgUnitOfTrackedEntity(bundle, enrollment.getTrackedEntity());
 
     Set<MetadataIdentifier> mandatoryProgramAttributes =
         preheat.getMandatoryProgramAttributes(program);
@@ -100,7 +98,13 @@ class AttributeValidator
         validateOptionSet(reporter, preheat, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
-            reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);
+            reporter,
+            preheat,
+            enrollment,
+            attribute.getValue(),
+            teAttribute,
+            UID.of(enrollment.getTrackedEntity()),
+            orgUnit);
       }
     }
 
@@ -190,10 +194,20 @@ class AttributeValidator
                     enrollment.getEnrollment()));
   }
 
-  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, String teUid) {
+  /**
+   * The org unit of the tracked entity in the payload, or of the one in the DB when only the
+   * enrollment is sent. The org unit of a tracked entity in the DB is taken from the entity, as it
+   * is not preheated when the payload does not reference it.
+   */
+  private OrganisationUnit getOrgUnitOfTrackedEntity(TrackerBundle bundle, String te) {
+    TrackerPreheat preheat = bundle.getPreheat();
     return bundle
-        .findTrackedEntityByUid(teUid)
-        .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit)
-        .orElse(null);
+        .findTrackedEntityByUid(te)
+        .map(t -> preheat.getOrganisationUnit(t.getOrgUnit()))
+        .orElseGet(
+            () -> {
+              TrackedEntity trackedEntity = preheat.getTrackedEntity(te);
+              return trackedEntity == null ? null : trackedEntity.getOrganisationUnit();
+            });
   }
 }

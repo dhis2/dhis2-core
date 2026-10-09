@@ -44,11 +44,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -61,6 +63,8 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueInOrgUnit;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValueSystemWide;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -98,11 +102,11 @@ class AttributeValidatorTest {
 
   @Mock private TrackedEntity trackedEntity;
 
-  private static final String trackedAttribute = "attribute";
+  private static final String TRACKED_ATTRIBUTE = CodeGenerator.generateUid();
 
-  private static final String trackedAttribute1 = "attribute1";
+  private static final String TRACKED_ATTRIBUTE_1 = CodeGenerator.generateUid();
 
-  private static final String trackedAttributeP = "attributeP";
+  private static final String TRACKED_ATTRIBUTE_P = CodeGenerator.generateUid();
 
   private TrackedEntityAttribute trackedEntityAttribute;
 
@@ -117,15 +121,15 @@ class AttributeValidatorTest {
 
     trackedEntityAttribute =
         new TrackedEntityAttribute("name", "description", ValueType.TEXT, false, false);
-    trackedEntityAttribute.setUid(trackedAttribute);
+    trackedEntityAttribute.setUid(TRACKED_ATTRIBUTE);
 
     trackedEntityAttribute1 =
         new TrackedEntityAttribute("name1", "description1", ValueType.TEXT, false, false);
-    trackedEntityAttribute1.setUid(trackedAttribute1);
+    trackedEntityAttribute1.setUid(TRACKED_ATTRIBUTE_1);
 
     trackedEntityAttributeP =
         new TrackedEntityAttribute("percentage", "percent", ValueType.PERCENTAGE, false, false);
-    trackedEntityAttributeP.setUid(trackedAttributeP);
+    trackedEntityAttributeP.setUid(TRACKED_ATTRIBUTE_P);
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
@@ -140,11 +144,11 @@ class AttributeValidatorTest {
                   .collect(Collectors.toUnmodifiableSet());
             });
     when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid("program"));
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(trackedAttribute)))
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE)))
         .thenReturn(trackedEntityAttribute);
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(trackedAttribute1)))
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)))
         .thenReturn(trackedEntityAttribute1);
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(trackedAttributeP)))
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_P)))
         .thenReturn(trackedEntityAttributeP);
 
     when(dhisConfigurationProvider.getEncryptionStatus())
@@ -154,7 +158,7 @@ class AttributeValidatorTest {
     when(enrollment.getUid()).thenReturn(uid);
     when(enrollment.getEnrollment()).thenReturn(uid);
     when(enrollment.getTrackerType()).thenCallRealMethod();
-    enrollment.setTrackedEntity("trackedEntity");
+    when(enrollment.getTrackedEntity()).thenReturn(CodeGenerator.generateUid());
 
     bundle = TrackerBundle.builder().preheat(preheat).build();
 
@@ -174,7 +178,7 @@ class AttributeValidatorTest {
   void shouldPassValidationWhenCreatingEnrollmentAndMandatoryAttributeIsPresentOnlyInTE() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
@@ -205,7 +209,7 @@ class AttributeValidatorTest {
       shouldReturnErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentOrInTrackedEntityOrInDB() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
@@ -231,14 +235,14 @@ class AttributeValidatorTest {
       shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInTrackedEntity() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
 
     Attribute attribute1 =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
@@ -273,7 +277,7 @@ class AttributeValidatorTest {
 
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("wrongCode")
             .build();
@@ -301,7 +305,7 @@ class AttributeValidatorTest {
 
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("CODE")
             .build();
@@ -326,7 +330,7 @@ class AttributeValidatorTest {
       shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInDB() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
@@ -356,7 +360,7 @@ class AttributeValidatorTest {
   void shouldFailValidationWhenCreatingEnrollmentAndValueIsNotPresentAndAttributeIsMandatory() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
@@ -385,13 +389,13 @@ class AttributeValidatorTest {
   void shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
             .valueType(ValueType.TEXT)
             .build();
 
@@ -420,13 +424,13 @@ class AttributeValidatorTest {
   void shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
             .valueType(ValueType.TEXT)
             .build();
 
@@ -455,13 +459,13 @@ class AttributeValidatorTest {
   void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
             .valueType(ValueType.TEXT)
             .build();
 
@@ -489,13 +493,13 @@ class AttributeValidatorTest {
   void shouldFailValidationWhenValueIsInvalidPercentage() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttributeP))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_P))
             .valueType(ValueType.PERCENTAGE)
             .value("1000")
             .build();
@@ -525,13 +529,13 @@ class AttributeValidatorTest {
       shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
             .valueType(ValueType.TEXT)
             .build();
 
@@ -562,13 +566,13 @@ class AttributeValidatorTest {
       shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
             .valueType(ValueType.TEXT)
             .build();
 
@@ -614,6 +618,89 @@ class AttributeValidatorTest {
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, ValidationCode.E1006);
+  }
+
+  @Test
+  void shouldFailValidationWhenOrgUnitScopedValueIsStoredInOrgUnitOfTrackedEntityOnlyInDb() {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("orgUnitUid1");
+
+    enrollOnlyInDbTrackedEntityWithScopedValue(
+        "abc",
+        orgUnit,
+        new UniqueAttributeValueInOrgUnit(
+            UID.of(CodeGenerator.generateUid()),
+            MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE),
+            "ABC",
+            MetadataIdentifier.ofUid(orgUnit)));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldPassValidationWhenOrgUnitScopedValueIsStoredInAnotherOrgUnitThanTrackedEntityInDb() {
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid("orgUnitUid1");
+
+    enrollOnlyInDbTrackedEntityWithScopedValue(
+        "abc",
+        orgUnit,
+        new UniqueAttributeValueInOrgUnit(
+            UID.of(CodeGenerator.generateUid()),
+            MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE),
+            "abc",
+            MetadataIdentifier.ofUid("otherOrgUni")));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  /**
+   * An enrollment sending a value of an org unit scoped unique attribute, for a tracked entity in
+   * {@code orgUnit} that is only in the DB. Its org unit is not preheated, as the payload does not
+   * reference it.
+   */
+  private void enrollOnlyInDbTrackedEntityWithScopedValue(
+      String value, OrganisationUnit orgUnit, UniqueAttributeValueInOrgUnit storedValue) {
+    trackedEntityAttribute.setUnique(true);
+    trackedEntityAttribute.setOrgunitScope(true);
+    when(program.getProgramAttributes())
+        .thenReturn(
+            List.of(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, false)));
+    when(enrollment.getAttributes())
+        .thenReturn(
+            List.of(
+                Attribute.builder()
+                    .attribute(MetadataIdentifier.ofUid(trackedEntityAttribute))
+                    .value(value)
+                    .build()));
+    when(enrollment.getTrackedEntity()).thenReturn(CodeGenerator.generateUid());
+    when(trackedEntity.getOrganisationUnit()).thenReturn(orgUnit);
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    withStoredValues(List.of(), List.of(storedValue));
+  }
+
+  /** Answers the lookups of unique values with the ones of a preheat holding the given values. */
+  private void withStoredValues(
+      List<UniqueAttributeValueSystemWide> systemWide,
+      List<UniqueAttributeValueInOrgUnit> inOrgUnit) {
+    TrackerPreheat stored = new TrackerPreheat();
+    stored.setSystemWideUniqueAttributeValues(systemWide);
+    stored.setUniqueAttributeValuesInOrgUnit(inOrgUnit);
+    when(preheat.hasSystemWideDuplicate(any(), any(), any()))
+        .thenAnswer(
+            i ->
+                stored.hasSystemWideDuplicate(
+                    i.getArgument(0), i.getArgument(1), i.getArgument(2)));
+    when(preheat.hasDuplicateInOrgUnit(any(), any(), any(), any()))
+        .thenAnswer(
+            i ->
+                stored.hasDuplicateInOrgUnit(
+                    i.getArgument(0), i.getArgument(1), i.getArgument(2), i.getArgument(3)));
   }
 
   @ParameterizedTest(name = "Should pass when format={0}")

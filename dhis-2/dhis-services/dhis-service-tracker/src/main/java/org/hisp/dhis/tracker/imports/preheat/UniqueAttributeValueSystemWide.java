@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.tracker.imports.preheat;
 
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
- * Simple record used to store the data for {@link TrackedEntityAttributeValue} that are needed in
- * the Validation phase
+ * A value of an attribute unique in the whole system, either stored in the DB or sent for more than
+ * one tracked entity in the payload. A value of the attribute equal to it, ignoring case, is a
+ * duplicate unless it belongs to the same tracked entity.
  *
- * @param orgUnit org unit of the tracked entity owning the value. Null when it is unknown (e.g. an
- *     enrollment of a tracked entity that does not exist) and for values from the DB of an
- *     attribute unique in the whole system, where the validation does not use it
- * @author Enrico Colasante
+ * @param te the tracked entity owning the value
+ * @param attribute the attribute, in the id scheme of the import
+ * @param value the value
  */
-public record UniqueAttributeValue(
-    String te, MetadataIdentifier attribute, String value, MetadataIdentifier orgUnit) {}
+public record UniqueAttributeValueSystemWide(
+    @Nonnull UID te, @Nonnull MetadataIdentifier attribute, @Nonnull String value) {}
