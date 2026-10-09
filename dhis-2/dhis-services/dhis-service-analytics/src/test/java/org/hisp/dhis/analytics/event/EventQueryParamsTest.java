@@ -230,6 +230,21 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
+  void testFirstOrLastStagePeriodExposesDateColumnStageAndPeriod() {
+    QueryItem dateItem = new QueryItem(new BaseDimensionalItemObject("occurreddate"));
+    dateItem.setProgramStage(psA);
+    PeriodDimension period = PeriodDimension.of("202602");
+
+    EventQueryParams.FirstOrLastStagePeriod stagePeriod =
+        new EventQueryParams.FirstOrLastStagePeriod(dateItem, period);
+
+    assertEquals("occurreddate", stagePeriod.dateColumn());
+    assertEquals(psA, stagePeriod.programStage());
+    assertEquals(period.getEndDate(), stagePeriod.endDate());
+    assertEquals("202602", stagePeriod.isoPeriod());
+  }
+
+  @Test
   void testHasDimensionValue() {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()
