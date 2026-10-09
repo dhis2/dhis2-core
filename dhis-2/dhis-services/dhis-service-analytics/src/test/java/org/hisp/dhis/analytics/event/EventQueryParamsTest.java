@@ -245,6 +245,19 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
+  void testGetLatestEndDateIncludingStageDatesReadsStageDateItemFilters() {
+    QueryItem dateItem = new QueryItem(new BaseDimensionalItemObject("occurreddate"));
+    dateItem.setProgramStage(psA);
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-02-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
+    EventQueryParams params = new EventQueryParams.Builder().addItem(dateItem).build();
+
+    assertEquals(getDate(2026, 2, 28), params.getLatestEndDateIncludingStageDates());
+    assertNull(params.getStartDate());
+    assertNull(params.getEndDate());
+  }
+
+  @Test
   void testHasDimensionValue() {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()
