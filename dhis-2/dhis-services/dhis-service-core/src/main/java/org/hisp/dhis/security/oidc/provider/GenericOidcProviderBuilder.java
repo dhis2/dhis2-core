@@ -49,6 +49,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.KeyStoreUtil;
+import org.hisp.dhis.security.oidc.SupportedJwsAlgorithms;
+import org.hisp.dhis.security.oidc.UserInfoResponseType;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -69,7 +71,8 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
  * AbstractOidcProvider}):
  *
  * <ul>
- *   <li>{@code client_id}, {@code client_secret} (required)
+ *   <li>{@code client_id} (required), {@code client_secret} (required unless {@code
+ *       client_authentication_method} is {@code private_key_jwt})
  *   <li>{@code authorization_uri}, {@code token_uri}, {@code user_info_uri}, {@code jwk_uri},
  *       {@code issuer_uri}
  *   <li>{@code mapping_claim} (defaults to {@link AbstractOidcProvider#DEFAULT_MAPPING_CLAIM})
@@ -83,6 +86,8 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
  *   <li>{@code extra_request_parameters}
  *   <li>Keys for {@code private_key_jwt} client authentication: {@code keystore_path}, {@code
  *       keystore_password}, {@code key_alias}, {@code key_password}, {@code jwk_set_url}
+ *   <li>{@code user_info_response_type} ({@code json} by default, {@code jwt} for a signed JWT
+ *       userinfo response) with {@code user_info_jws_algorithm} (defaults to {@code RS256})
  * </ul>
  *
  * <p>Unknown keys inside a provider block are logged at startup, together with the closest
@@ -104,7 +109,8 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
    *     tokens issued by this provider, keyed by external client id
    * @return the built registration, or {@code null} when the block is effectively empty (missing
    *     {@code provider_id} or {@code client_id})
-   * @throws IllegalArgumentException if {@code client_secret} is missing
+   * @throws IllegalArgumentException if {@code client_secret} is missing and the provider does not
+   *     authenticate with {@code private_key_jwt}
    */
   public static DhisOidcClientRegistration build(
       Map<String, String> config, Map<String, Map<String, String>> externalClients) {
@@ -118,9 +124,12 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
       return null;
     }
 
-    if (clientSecret.isEmpty()) {
+    if ((clientSecret == null || clientSecret.isEmpty()) && !isPrivateKeyJwt(config)) {
       throw new IllegalArgumentException(providerId + " client secret is missing!");
     }
+
+    UserInfoResponseType userInfoResponseType =
+        UserInfoResponseType.fromConfig(config.get(USER_INFO_RESPONSE_TYPE));
 
     return DhisOidcClientRegistration.builder()
         .clientRegistration(buildClientRegistration(config, providerId, clientId, clientSecret))
@@ -134,6 +143,11 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
         .rsaPublicKey(getPublicKey(config))
         .keyId(config.get(JWT_PRIVATE_KEY_ALIAS))
         .jwkSetUrl(config.get(JWK_SET_URL))
+        .userInfoResponseType(userInfoResponseType)
+        .userInfoJwsAlgorithm(
+            userInfoResponseType == UserInfoResponseType.JWT
+                ? SupportedJwsAlgorithms.parseOrDefault(config.get(USER_INFO_JWS_ALGORITHM))
+                : null)
         .build();
   }
 
@@ -170,11 +184,13 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
                 ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue()));
 
     if (clientAuthenticationMethod.equals(ClientAuthenticationMethod.PRIVATE_KEY_JWT)) {
+      String keystorePath = config.get(JWT_PRIVATE_KEY_KEYSTORE_PATH);
+      if (keystorePath == null || keystorePath.isEmpty()) {
+        return null;
+      }
       try {
         KeyStore keyStore =
-            KeyStoreUtil.readKeyStore(
-                config.get(JWT_PRIVATE_KEY_KEYSTORE_PATH),
-                config.get(JWT_PRIVATE_KEY_KEYSTORE_PASSWORD));
+            KeyStoreUtil.readKeyStore(keystorePath, config.get(JWT_PRIVATE_KEY_KEYSTORE_PASSWORD));
 
         return JWK.load(
             keyStore,
@@ -192,12 +208,25 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
     return null;
   }
 
+  /**
+   * @param config per-provider key/value map
+   * @return whether the provider authenticates to the token endpoint with a {@code private_key_jwt}
+   *     client assertion instead of a client secret
+   */
+  public static boolean isPrivateKeyJwt(Map<String, String> config) {
+    return ClientAuthenticationMethod.PRIVATE_KEY_JWT
+        .getValue()
+        .equals(config.get(CLIENT_AUTHENTICATION_METHOD));
+  }
+
   private static ClientRegistration buildClientRegistration(
       Map<String, String> config, String providerId, String clientId, String clientSecret) {
     ClientRegistration.Builder builder = ClientRegistration.withRegistrationId(providerId);
     builder.clientName(providerId);
     builder.clientId(clientId);
-    builder.clientSecret(clientSecret);
+    if (clientSecret != null && !clientSecret.isEmpty()) {
+      builder.clientSecret(clientSecret);
+    }
     builder.clientAuthenticationMethod(
         new ClientAuthenticationMethod(
             StringUtils.defaultIfEmpty(
