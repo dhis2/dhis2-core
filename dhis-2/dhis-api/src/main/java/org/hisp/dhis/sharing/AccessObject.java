@@ -52,10 +52,7 @@ import org.hisp.dhis.common.DxfNamespaces;
  *   <li>1: Metadata Write
  *   <li>2: Data Read
  *   <li>3: Data Write
- *   <li>4: Not used, for future use
- *   <li>5: Not used, for future use
- *   <li>6: Not used, for future use
- *   <li>7: Not used, for future use
+ *   <li>4 - 7: Not used, reserved for future use
  * </ul>
  *
  * <p>An entity can have 1) no sharing 2) metadata sharing or 3) data sharing enabled.
@@ -69,8 +66,8 @@ import org.hisp.dhis.common.DxfNamespaces;
  * <ul>
  *   <li>Metadata read: {@code r-------}
  *   <li>Metadata write: {@code rw------}
- *   <li>Metadata read and data read: {@link r-r-----}
- *   <li>Metadata write and data read: {@link rwr-----}
+ *   <li>Metadata read and data read: {@code r-r-----}
+ *   <li>Metadata write and data read: {@code rwr-----}
  * </ul>
  */
 @NoArgsConstructor

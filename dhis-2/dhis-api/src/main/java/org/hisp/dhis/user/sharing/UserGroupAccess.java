@@ -46,7 +46,7 @@ public class UserGroupAccess extends AccessObject {
    * Constructor.
    *
    * @param access the access string.
-   * @param id the user UID.
+   * @param id the user group UID.
    */
   public UserGroupAccess(String access, String id) {
     super(access, id);
