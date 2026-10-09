@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.table;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -322,7 +323,8 @@ class JdbcAnalyticsTableManagerDorisTest {
                 .selectExpression("dx")
                 .build());
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columns, List.of(), List.of("dx"), Logged.UNLOGGED);
 
     // Main table already exists, and params.isPartialUpdate() (via withLatestPartition()) plus
     // AnalyticsTableType.DATA_VALUE.isLatestPartition()==true together push swapTable() into the
@@ -349,6 +351,52 @@ class JdbcAnalyticsTableManagerDorisTest {
         () ->
             "Staging table reference must not carry the federated catalog prefix, got: "
                 + statements);
+  }
+
+  @Test
+  void testSwapTableKeepsMainTableForContinuousUpdateOfTableWithoutPrimaryKey() {
+    // The tracked entity event tables have no unique key on Doris, so no updated and deleted rows
+    // are removed from them in a continuous update, and merging the staged rows would duplicate
+    // rows. The main table is kept as it is, as before continuous updates were supported.
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("event")
+                .dataType(TEXT)
+                .selectExpression("event")
+                .build());
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS,
+            columns,
+            Logged.UNLOGGED,
+            createTrackedEntityType('A'));
+
+    when(jdbcTemplate.queryForList(sqlBuilder.tableExists(table.getMainName())))
+        .thenReturn(List.of(Map.of("table_name", table.getMainName())));
+
+    subject.swapTable(params, table);
+
+    org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
+    org.mockito.Mockito.verify(jdbcTemplate, org.mockito.Mockito.atLeastOnce())
+        .execute(sql.capture());
+
+    List<String> statements = sql.getAllValues();
+    assertTrue(
+        statements.stream().noneMatch(s -> s.startsWith("insert into")),
+        () -> "A table without a unique key must not be merged into, got: " + statements);
+    assertTrue(
+        statements.stream().noneMatch(s -> s.contains(" rename ")),
+        () -> "The main table must be kept, got: " + statements);
+    assertTrue(
+        statements.stream().anyMatch(s -> s.contains("drop table") && s.contains(table.getName())),
+        () -> "Expected the staging table to be dropped, got: " + statements);
   }
 
   @Test

@@ -231,7 +231,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   private enum TableUpdateAction {
     REPLACE_TABLE,
     REPLACE_PARTITIONS,
-    MERGE_ROWS
+    MERGE_ROWS,
+    KEEP_MAIN_TABLE
   }
 
   @Override
@@ -244,6 +245,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       case REPLACE_TABLE -> replaceMainTable(table);
       case REPLACE_PARTITIONS -> replaceAndAttachPartitions(table);
       case MERGE_ROWS -> mergeIntoMainTable(table);
+      case KEEP_MAIN_TABLE -> dropTable(table);
     }
   }
 
@@ -285,8 +287,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     // Declarative-partitioning engines with no inheritance-based partition attachment (e.g.
     // Doris) publish a continuous update by merging staged rows into the persistent main table.
-    if (params.isLatestUpdate()) {
+    if (params.isLatestUpdate() && table.hasPrimaryKey()) {
       return TableUpdateAction.MERGE_ROWS;
+    }
+
+    // A table without a unique key (e.g. the tracked entity event tables) does not take a
+    // continuous update, as no updated and deleted rows are removed from it, so merging would
+    // duplicate rows. The main table is kept as it is, as before continuous updates were supported.
+    if (params.isLatestUpdate()) {
+      return TableUpdateAction.KEEP_MAIN_TABLE;
     }
 
     // A bounded lastYears update against a main table that already exists. Merging is not an option

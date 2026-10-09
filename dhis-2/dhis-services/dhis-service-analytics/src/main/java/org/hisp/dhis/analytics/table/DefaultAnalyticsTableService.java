@@ -119,7 +119,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       return true;
     }
 
-    boolean continuousUpdate = params.isLatestUpdate() && sqlBuilder.supportsContinuousAnalytics();
+    // Tables which do not support a continuous update (e.g. the tracked entity tables, which have
+    // no unique key on Doris) are updated as before continuous updates were supported.
+    boolean continuousUpdate =
+        params.isLatestUpdate()
+            && sqlBuilder.supportsContinuousAnalytics()
+            && supportsContinuousUpdate(tables);
 
     // Checked before any staging work: a table type that is not ready would otherwise populate
     // its staging tables in full on every scheduled run, only to throw them away.
@@ -144,7 +149,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createTables(tables, progress);
     clock.logTime("Created analytics tables");
 
-    List<AnalyticsTablePartition> partitions = getTablePartitions(tables, params.isLatestUpdate());
+    List<AnalyticsTablePartition> partitions = getTablePartitions(tables, continuousUpdate);
     int partitionSize = partitions.size();
 
     progress.startingStage(
@@ -338,6 +343,20 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   /**
+   * Indicates whether the given tables support a continuous update. On databases which require
+   * unique-key analytics tables (Doris), the delete step of a continuous update needs a unique key,
+   * so a table type whose tables have no primary key is not supported, and is updated as it was
+   * before continuous updates were supported on such databases.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @return true if the tables support a continuous update.
+   */
+  private boolean supportsContinuousUpdate(List<AnalyticsTable> tables) {
+    return !sqlBuilder.requiresUniqueKeyAnalyticsTables()
+        || tables.stream().allMatch(Table::hasPrimaryKey);
+  }
+
+  /**
    * Checks that the main analytics tables can take a continuous update. The check is cheap, so it
    * runs before any staging tables are created and populated.
    *
@@ -470,10 +489,11 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * no partitions, a fake partition representing the master table is used.
    *
    * @param tables the list of {@link AnalyticsTable}.
+   * @param continuousUpdate whether the tables are updated by a continuous update.
    * @return a list of {@link AnalyticsTablePartition}.
    */
   List<AnalyticsTablePartition> getTablePartitions(
-      List<AnalyticsTable> tables, boolean isLatestUpdate) {
+      List<AnalyticsTable> tables, boolean continuousUpdate) {
     List<AnalyticsTablePartition> partitions = new ArrayList<>();
 
     for (AnalyticsTable table : tables) {
@@ -481,7 +501,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         // Each partition is its own physical table, so its own real date range and name apply.
         partitions.addAll(table.getTablePartitions());
       } else if (table.hasTablePartitions()
-          && isLatestUpdate
+          && continuousUpdate
           && sqlBuilder.supportsContinuousAnalytics()) {
         // A single physical table serves every logical partition on this engine (CREATE only
         // ever builds the master table's name), so the continuous/latest-update partition must

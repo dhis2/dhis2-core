@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -508,6 +509,49 @@ class AnalyticsTableServiceTest {
     verify(tableManager).swapTable(params, created);
   }
 
+  @Test
+  void testTablesWithoutPrimaryKeyNotUpdatedContinuouslyOnUniqueKeyDatabase() {
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE,
+            List.of(
+                AnalyticsTableColumn.builder()
+                    .name("trackedentity")
+                    .dataType(TEXT)
+                    .selectExpression("trackedentity")
+                    .build()),
+            Logged.UNLOGGED,
+            createTrackedEntityType('A'));
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .startTime(new DateTime(2020, 3, 1, 10, 0).toDate())
+            .build()
+            .withLatestPartition();
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(tableManager.getAnalyticsTableType())
+        .thenReturn(AnalyticsTableType.TRACKED_ENTITY_INSTANCE);
+    when(tableManager.validState()).thenReturn(true);
+    when(tableManager.getAnalyticsTables(params)).thenReturn(List.of(table));
+    when(sqlBuilder.requiresIndexesForAnalytics()).thenReturn(false);
+    when(sqlBuilder.supportsAnalyze()).thenReturn(false);
+    when(sqlBuilder.supportsContinuousAnalytics()).thenReturn(true);
+    when(sqlBuilder.requiresUniqueKeyAnalyticsTables()).thenReturn(true);
+
+    JobProgress progress = spy(JobProgress.noop());
+
+    assertTrue(tableService.create(params, progress));
+
+    // The tracked entity tables have no unique key on Doris, and a rebuild does not change that, so
+    // the readiness check (which reports a failure asking for one) and the delete step must not
+    // run. The table is updated as before continuous updates were supported.
+    verify(tableManager, never()).isReadyForContinuousUpdate(anyList());
+    verify(progress, never()).failedStage(any(String.class));
+    verify(tableManager, never()).removeUpdatedData(anyList());
+    verify(tableManager).createTable(table);
+    verify(tableManager).swapTable(params, table);
+  }
+
   private void stubContinuousUpdate(
       AnalyticsTableUpdateParams params, List<AnalyticsTable> tables) {
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
@@ -532,7 +576,11 @@ class AnalyticsTableServiceTest {
                 .build());
     AnalyticsTable table =
         new AnalyticsTable(
-            AnalyticsTableType.EVENT, columns, Logged.UNLOGGED, createProgram(programCharacter));
+            AnalyticsTableType.EVENT,
+            columns,
+            List.of("event"),
+            Logged.UNLOGGED,
+            createProgram(programCharacter));
     table.addTablePartition(
         List.of(),
         AnalyticsTablePartition.LATEST_PARTITION,
@@ -550,7 +598,8 @@ class AnalyticsTableServiceTest {
                 .selectExpression("dx")
                 .build());
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columns, List.of(), List.of("dx"), Logged.UNLOGGED);
     table.addTablePartition(
         List.of(),
         AnalyticsTablePartition.LATEST_PARTITION,
