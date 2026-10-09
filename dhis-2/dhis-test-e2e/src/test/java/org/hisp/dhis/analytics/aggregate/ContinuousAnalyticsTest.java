@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.AnalyticsApiTest;
@@ -45,6 +46,7 @@ import org.hisp.dhis.test.e2e.actions.ResourceTableActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.SystemActions;
 import org.hisp.dhis.test.e2e.actions.aggregate.DataValueSetActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
@@ -58,8 +60,12 @@ import org.junit.jupiter.api.condition.EnabledIf;
  * are added, updated and deleted after the full analytics export.
  *
  * <p>Unlike the other analytics tests, this test changes data and runs the analytics table export
- * again. It is ordered last, and it only writes data for the data element and data set created by
- * {@code db/seed/050-continuous-analytics.sql}, which no other test queries.
+ * again. It is ordered last, and it only writes data for its own data element and data set, which
+ * it imports after the full export, so no other test sees them.
+ *
+ * <p>A continuous update does not regenerate the resource tables, so the test regenerates them
+ * after importing its metadata. Otherwise the new data element is missing from them, and its data
+ * values are left out of the analytics tables.
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
@@ -68,6 +74,9 @@ import org.junit.jupiter.api.condition.EnabledIf;
     value = "supportsContinuousAnalytics",
     disabledReason = "Continuous analytics is only supported on Postgres and Doris")
 public class ContinuousAnalyticsTest extends AnalyticsApiTest {
+  private static final String METADATA_FILE =
+      "src/test/resources/analytics/continuous-analytics-metadata.json";
+
   private static final String DATA_ELEMENT = "caE2eDe0001";
 
   private static final String DATA_SET = "caE2eDs0001";
@@ -86,6 +95,18 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
   public void setup() {
     analyticsActions = new RestApiActions("analytics");
     dataValueSetActions = new DataValueSetActions();
+
+    new MetadataActions()
+        .importMetadata(new File(METADATA_FILE), "async=false")
+        .validate()
+        .body("status", equalTo("OK"))
+        .body("response.stats.ignored", equalTo(0));
+
+    // Skips every table type, so only the resource tables are regenerated, and replicated to the
+    // analytics database where one is used.
+    runAnalyticsTableUpdate(
+        "skipAggregate=true&skipEvents=true&skipEnrollment=true&skipTrackedEntities=true"
+            + "&skipOrgUnitOwnership=true&skipValidationResult=true&skipOutliers=true");
   }
 
   static boolean supportsContinuousAnalytics() {
@@ -137,11 +158,15 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
         .body("status", equalTo("OK"));
   }
 
-  /** Runs a continuous analytics table update and checks that no stage of it failed. */
   private void runContinuousUpdate() {
+    runAnalyticsTableUpdate("lastYears=0");
+  }
+
+  /** Runs an analytics table update and checks that no stage of it failed. */
+  private void runAnalyticsTableUpdate(String queryParams) {
     String taskId =
         new ResourceTableActions()
-            .post("/analytics?lastYears=0", new JsonObject())
+            .post("/analytics?" + queryParams, new JsonObject())
             .validateStatus(200)
             .extractString("response.id");
 
@@ -150,7 +175,7 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
             .waitUntilTaskCompleted("ANALYTICS_TABLE", taskId, ANALYTICS_TIMEOUT_SECONDS);
 
     List<String> errors = task.extractList("findAll { it.level == 'ERROR' }.message", String.class);
-    assertEquals(List.of(), errors, "Continuous analytics update reported errors");
+    assertEquals(List.of(), errors, "Analytics table update reported errors");
   }
 
   private ApiResponse getAnalytics() {
