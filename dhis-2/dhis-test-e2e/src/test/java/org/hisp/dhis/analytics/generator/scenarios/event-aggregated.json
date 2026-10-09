@@ -454,6 +454,13 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "enrollmentDateInMetadata",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,ENROLLMENT_DATE:LAST_12_MONTHS&skipMeta=false&skipData=false&relativePeriodDate=2026-10-08",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }
