@@ -55,6 +55,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -333,7 +334,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeStore.save(tea);
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(value);
-    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
+    TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue(entityManager, teav);
     return teav;
   }
 

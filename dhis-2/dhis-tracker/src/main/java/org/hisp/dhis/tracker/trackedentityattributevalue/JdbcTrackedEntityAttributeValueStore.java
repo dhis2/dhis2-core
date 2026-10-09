@@ -30,68 +30,96 @@
 package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import com.google.common.collect.Lists;
-import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * Reads and deletes {@link TrackedEntityAttributeValue}s via JDBC, bypassing the Hibernate
+ * persistence context. Values are written by the tracker importer (see {@code TeavWriter}).
+ */
 // This class is annotated with @Component instead of @Repository because @Repository creates a
 // proxy that can't be used to inject the class.
-@Component("org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueStore")
-class HibernateTrackedEntityAttributeValueStore
-    extends HibernateGenericStore<TrackedEntityAttributeValue> {
+@Component
+@RequiredArgsConstructor
+class JdbcTrackedEntityAttributeValueStore {
   /**
    * Upper bound of values (or org unit/value pairs) bound in one query. A scoped query binds up to
    * three parameters per pair, which keeps it below the Postgres limit of 32767 bind parameters.
    */
   private static final int MAX_VALUES_PER_QUERY = 10_000;
 
-  /**
-   * Selects only the columns the uniqueness validation needs. Selecting entities instead would load
-   * one tracked entity per matching row (the association from {@code TrackedEntityAttributeValue}
-   * is eager) and the users referenced by each org unit.
-   */
-  private static final String SELECT_UNIQUE_VALUES =
+  private static final String SELECT_BY_TRACKED_ENTITY =
       """
-      select te.uid, v.value, te.organisationUnit.id
-      from TrackedEntityAttributeValue v
-      join v.trackedEntity te
-      where v.attribute = :attribute
+      select trackedentityattributeid, value, created, lastupdated, updatedby
+      from trackedentityattributevalue
+      where trackedentityid = :trackedEntityId
       """;
 
-  public HibernateTrackedEntityAttributeValueStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, TrackedEntityAttributeValue.class, false);
-  }
+  private static final String DELETE_BY_TRACKED_ENTITY =
+      """
+      delete from trackedentityattributevalue
+      where trackedentityid = :trackedEntityId
+      """;
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+  /** Selects only the columns the uniqueness validation needs. */
+  private static final String SELECT_UNIQUE_VALUES =
+      """
+      select te.uid, v.value, te.organisationunitid
+      from trackedentityattributevalue v
+      join trackedentity te on te.trackedentityid = v.trackedentityid
+      where v.trackedentityattributeid = :attributeId
+      and lower(v.value) in (:values)
+      """;
 
-  public void saveVoid(TrackedEntityAttributeValue attributeValue) {
-    getSession().save(attributeValue);
-  }
+  private static final RowMapper<UniqueAttributeValueMatch> UNIQUE_VALUE_MATCH_MAPPER =
+      (rs, rowNum) ->
+          new UniqueAttributeValueMatch(UID.of(rs.getString(1)), rs.getString(2), rs.getLong(3));
 
+  private final NamedParameterJdbcTemplate jdbcTemplate;
+
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+  /**
+   * Returns the values of {@code trackedEntity}. The values are not managed by Hibernate: changing
+   * them has no effect on the database.
+   */
   public List<TrackedEntityAttributeValue> get(TrackedEntity trackedEntity) {
-    String query = " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity";
+    return jdbcTemplate.query(
+        SELECT_BY_TRACKED_ENTITY,
+        new MapSqlParameterSource("trackedEntityId", trackedEntity.getId()),
+        (rs, rowNum) -> {
+          TrackedEntityAttributeValue value =
+              new TrackedEntityAttributeValue(
+                  trackedEntityAttributeService.getTrackedEntityAttribute(rs.getLong(1)),
+                  trackedEntity,
+                  rs.getString(2));
+          value.setCreated(rs.getTimestamp(3));
+          value.setLastUpdated(rs.getTimestamp(4));
+          value.setUpdatedBy(rs.getString(5));
+          return value;
+        });
+  }
 
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query).setParameter("trackedEntity", trackedEntity);
-
-    return getList(typedQuery);
+  /** Deletes all the values of {@code trackedEntity}. */
+  public void delete(TrackedEntity trackedEntity) {
+    jdbcTemplate.update(
+        DELETE_BY_TRACKED_ENTITY,
+        new MapSqlParameterSource("trackedEntityId", trackedEntity.getId()));
   }
 
   /**
@@ -102,17 +130,13 @@ class HibernateTrackedEntityAttributeValueStore
       TrackedEntityAttribute attribute, Set<String> values) {
     List<UniqueAttributeValueMatch> matches = new ArrayList<>();
     for (List<String> partition : Lists.partition(lowerCase(values), MAX_VALUES_PER_QUERY)) {
-      String hql = SELECT_UNIQUE_VALUES + " and lower(v.value) in (:values)";
-      getSession()
-          .createQuery(hql, Object[].class)
-          .setParameter("attribute", attribute)
-          .setParameterList("values", partition)
-          .list()
-          .forEach(
-              row ->
-                  matches.add(
-                      new UniqueAttributeValueMatch(
-                          UID.of((String) row[0]), (String) row[1], (Long) row[2])));
+      matches.addAll(
+          jdbcTemplate.query(
+              SELECT_UNIQUE_VALUES,
+              new MapSqlParameterSource()
+                  .addValue("attributeId", attribute.getId())
+                  .addValue("values", partition),
+              UNIQUE_VALUE_MATCH_MAPPER));
     }
     return matches;
   }
@@ -128,6 +152,12 @@ class HibernateTrackedEntityAttributeValueStore
    */
   public List<UniqueAttributeValueMatch> getUniqueAttributeValues(
       TrackedEntityAttribute attribute, Map<Long, Set<String>> valuesByOrgUnitId) {
+    String sql =
+        SELECT_UNIQUE_VALUES
+            + """
+            and te.organisationunitid in (:orgUnitIds)
+            and lower(v.value) || '|' || te.organisationunitid in (:keys)
+            """;
     List<UniqueAttributeValueMatch> matches = new ArrayList<>();
     for (Map<Long, Set<String>> partition : partition(valuesByOrgUnitId)) {
       Set<String> values = new HashSet<>();
@@ -139,25 +169,15 @@ class HibernateTrackedEntityAttributeValueStore
         }
       }
 
-      String hql =
-          SELECT_UNIQUE_VALUES
-              + """
-               and lower(v.value) in (:values)
-               and te.organisationUnit.id in (:orgUnitIds)
-               and concat(lower(v.value), '|', str(te.organisationUnit.id)) in (:keys)
-              """;
-      getSession()
-          .createQuery(hql, Object[].class)
-          .setParameter("attribute", attribute)
-          .setParameterList("values", values)
-          .setParameterList("orgUnitIds", partition.keySet())
-          .setParameterList("keys", keys)
-          .list()
-          .forEach(
-              row ->
-                  matches.add(
-                      new UniqueAttributeValueMatch(
-                          UID.of((String) row[0]), (String) row[1], (Long) row[2])));
+      matches.addAll(
+          jdbcTemplate.query(
+              sql,
+              new MapSqlParameterSource()
+                  .addValue("attributeId", attribute.getId())
+                  .addValue("values", values)
+                  .addValue("orgUnitIds", partition.keySet())
+                  .addValue("keys", keys),
+              UNIQUE_VALUE_MATCH_MAPPER));
     }
     return matches;
   }

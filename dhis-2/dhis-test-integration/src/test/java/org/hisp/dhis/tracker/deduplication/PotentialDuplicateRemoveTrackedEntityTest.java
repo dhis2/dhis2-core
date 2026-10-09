@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackedEntityAttributeValueUtils.saveTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -140,7 +141,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     TrackedEntity trackedEntity = createTrackedEntityFromAttribute(trackedEntityAttribute);
     trackedEntity
         .getTrackedEntityAttributeValues()
-        .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
+        .forEach(value -> saveTrackedEntityAttributeValue(entityManager, value));
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     removeTrackedEntity(trackedEntity);
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
