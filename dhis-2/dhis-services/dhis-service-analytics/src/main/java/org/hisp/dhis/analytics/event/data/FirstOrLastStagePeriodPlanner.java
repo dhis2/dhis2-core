@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -41,9 +42,11 @@ import org.hisp.dhis.period.PeriodDimension;
 import org.springframework.stereotype.Component;
 
 /**
- * Plans a separate first/last value query for each requested stage date period, such as {@code
- * stageUid.EVENT_DATE:202601;202602}. Each planned query carries its period as a {@link
- * EventQueryParams.FirstOrLastStagePeriod}.
+ * Plans first/last value queries over stage date periods, such as {@code
+ * stageUid.EVENT_DATE:202601;202602}. A stage date dimension gets a separate query for each period.
+ * A stage date filter gets one query ending at its latest period, since first/last values look back
+ * from the period end and do not use the period start. Each planned query carries its period as a
+ * {@link EventQueryParams.FirstOrLastStagePeriod}.
  */
 @Component
 @RequiredArgsConstructor
@@ -51,8 +54,9 @@ public class FirstOrLastStagePeriodPlanner {
   private final StageQueryItemClassifier stageQueryItemClassifier;
 
   /**
-   * Returns one query per stage date period, or the given query when it is not a first/last value
-   * query over stage date periods.
+   * Returns one query per period of a stage date dimension, one query for the latest period of a
+   * stage date filter, or the given query when it is not a first/last value query over stage date
+   * periods.
    *
    * @param params the event query parameters.
    * @return a list of {@link EventQueryParams}.
@@ -62,8 +66,13 @@ public class FirstOrLastStagePeriodPlanner {
       return List.of(params);
     }
 
-    return findStageDateItem(params)
-        .map(item -> planEachPeriod(params, item))
+    Optional<QueryItem> dimension = findStageDateItem(params, params.getItems());
+    if (dimension.isPresent()) {
+      return planEachPeriod(params, dimension.get());
+    }
+
+    return findStageDateItem(params, params.getItemFilters())
+        .map(filter -> List.of(planLatestPeriod(params, filter)))
         .orElse(List.of(params));
   }
 
@@ -73,8 +82,9 @@ public class FirstOrLastStagePeriodPlanner {
         && params.isFirstOrLastPeriodAggregationType();
   }
 
-  private Optional<QueryItem> findStageDateItem(EventQueryParams params) {
-    return params.getItemsAndItemFilters().stream()
+  private Optional<QueryItem> findStageDateItem(
+      EventQueryParams params, List<QueryItem> candidates) {
+    return candidates.stream()
         .filter(stageQueryItemClassifier::isStageDate)
         .filter(item -> !item.getDimensionValues().isEmpty())
         .filter(item -> isInRequestedStage(params, item))
@@ -91,6 +101,15 @@ public class FirstOrLastStagePeriodPlanner {
         .map(PeriodDimension::of)
         .map(period -> planPeriod(params, item, period))
         .toList();
+  }
+
+  private EventQueryParams planLatestPeriod(EventQueryParams params, QueryItem item) {
+    PeriodDimension latest =
+        item.getDimensionValues().stream()
+            .map(PeriodDimension::of)
+            .max(Comparator.comparing(PeriodDimension::getEndDate))
+            .orElseThrow();
+    return planPeriod(params, item, latest);
   }
 
   private EventQueryParams planPeriod(

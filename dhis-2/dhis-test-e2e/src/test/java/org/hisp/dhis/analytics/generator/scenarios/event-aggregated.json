@@ -482,6 +482,27 @@
       "version": {
         "min": 44
       }
+    },
+    {
+      "name": "lastBirthValueWithStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202202&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "lastBirthValueWithNonConsecutiveStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202204&aggregationType=LAST",
+      "version": {
+        "min": 44
+      }
+    },
+    {
+      "name": "firstBirthValueWithStagePeriodFilters",
+      "query": "/api/analytics/events/aggregate/flProg00001.json?dimension=ou:Zoy23SSHCPs&value=flBirth0001.flWeight001&filter=flBirth0001.EVENT_DATE:202201;202202&aggregationType=FIRST",
+      "version": {
+        "min": 44
+      }
     }
   ]
 }
