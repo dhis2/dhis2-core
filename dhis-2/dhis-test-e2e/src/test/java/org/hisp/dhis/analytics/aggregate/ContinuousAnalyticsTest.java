@@ -63,9 +63,15 @@ import org.junit.jupiter.api.condition.EnabledIf;
  * again. It is ordered last, and it only writes data for its own data element and data set, which
  * it imports after the full export, so no other test sees them.
  *
- * <p>A continuous update does not regenerate the resource tables, so the test regenerates them
- * after importing its metadata. Otherwise the new data element is missing from them, and its data
- * values are left out of the analytics tables.
+ * <p>A continuous update does not regenerate the resource tables. This is a known limitation, not
+ * what this test checks, so the test keeps clear of it:
+ *
+ * <ul>
+ *   <li>It regenerates the resource tables after importing its metadata. Otherwise the new data
+ *       element is missing from them, and its data values are left out of the analytics tables.
+ *   <li>It writes data for a period that already exists in the database, so the period resource
+ *       tables cover it. A new period would only be added to them by a full update.
+ * </ul>
  *
  * @author Jason P. Pickering <jason@dhis2.org>
  */
@@ -83,6 +89,7 @@ public class ContinuousAnalyticsTest extends AnalyticsApiTest {
 
   private static final String ORG_UNIT = "DiszpKrYNg8";
 
+  /** Exists in the Sierra Leone database, see the class comment. */
   private static final String PERIOD = "202201";
 
   private static final long ANALYTICS_TIMEOUT_SECONDS = TimeUnit.MINUTES.toSeconds(10);
