@@ -60,8 +60,6 @@ import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
@@ -77,8 +75,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
@@ -114,8 +112,6 @@ public class DataValueController {
   private final FileResourceService fileResourceService;
 
   private final FileResourceUtils fileResourceUtils;
-
-  private final DhisConfigurationProvider dhisConfig;
 
   // ---------------------------------------------------------------------
   // POST
@@ -317,6 +313,7 @@ public class DataValueController {
   // ---------------------------------------------------------------------
 
   @OpenApi.Response(byte[].class)
+  @CspUserUploadedContent
   @GetMapping("/files")
   public void getDataValueFile(
       DataValueQueryParams params,
@@ -362,8 +359,6 @@ public class DataValueController {
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
 
-    HeaderUtils.setSecurityHeaders(
-        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
     setNoStore(response);
 
     try {
