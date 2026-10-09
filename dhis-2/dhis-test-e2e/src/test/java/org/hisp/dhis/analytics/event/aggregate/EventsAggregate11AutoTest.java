@@ -1552,4 +1552,900 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     validateRowExists(
         response, actualHeaders, Map.of("pe", "2021", "ou", "ImspTQPwCqd", "value", "11017"));
   }
+
+  @Test
+  public void firstBirthValueAtStagePeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=FIRST")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.EVENT_DATE:202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.eventdate",
+        "Report date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202202", "ou", "Zoy23SSHCPs", "value", "3000.0"));
+  }
+
+  @Test
+  public void firstAverageBirthValueAtStagePeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=FIRST_AVERAGE_ORG_UNIT")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.EVENT_DATE:202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.eventdate",
+        "Report date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202202", "ou", "Zoy23SSHCPs", "value", "1500.0"));
+  }
+
+  @Test
+  public void firstFirstBirthValueAtStagePeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=FIRST_FIRST_ORG_UNIT")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.EVENT_DATE:202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.eventdate",
+        "Report date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202202", "ou", "Zoy23SSHCPs", "value", "1000.0"));
+  }
+
+  @Test
+  public void lastBirthValueAtStagePeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=LAST")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.EVENT_DATE:202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.eventdate",
+        "Report date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202202", "ou", "Zoy23SSHCPs", "value", "6755.0"));
+  }
+
+  @Test
+  public void lastAverageBirthValueAtStagePeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=LAST_AVERAGE_ORG_UNIT")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.EVENT_DATE:202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.eventdate",
+        "Report date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202202", "ou", "Zoy23SSHCPs", "value", "3377.5"));
+  }
+
+  @Test
+  public void lastLastBirthValueAtStagePeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=LAST_LAST_ORG_UNIT")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.EVENT_DATE:202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.eventdate",
+        "Report date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202202", "ou", "Zoy23SSHCPs", "value", "3180.0"));
+  }
+
+  @Test
+  public void firstBirthValueWithStagePeriodFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=flBirth0001.EVENT_DATE:202202")
+            .add("aggregationType=FIRST")
+            .add("dimension=ou:Zoy23SSHCPs")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("ou", "Zoy23SSHCPs", "value", "3000.0"));
+  }
+
+  @Test
+  public void lastBirthValueWithStagePeriodFilter() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=flBirth0001.EVENT_DATE:202202")
+            .add("aggregationType=LAST")
+            .add("dimension=ou:Zoy23SSHCPs")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(response, actualHeaders, Map.of("ou", "Zoy23SSHCPs", "value", "6755.0"));
+  }
+
+  @Test
+  public void firstBirthValueWithScheduledPeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=FIRST")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.SCHEDULED_DATE:202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.scheduleddate\":{\"name\":\"Scheduled date\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.scheduleddate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.scheduleddate",
+        "Scheduled date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.scheduleddate", "202202", "ou", "Zoy23SSHCPs", "value", "3000.0"));
+  }
+
+  @Test
+  public void lastBirthValueWithScheduledPeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=LAST")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.SCHEDULED_DATE:202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"flProg00001\":{\"name\":\"First last stage period program\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.scheduleddate\":{\"name\":\"Scheduled date\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.scheduleddate\":[\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.scheduleddate",
+        "Scheduled date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.scheduleddate", "202202", "ou", "Zoy23SSHCPs", "value", "6755.0"));
+  }
+
+  @Test
+  public void lastBirthValueForEachStagePeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=LAST")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.EVENT_DATE:202201;202202")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        2,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"202201\":{\"name\":\"January 2022\"},\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"},\"202202\":{\"name\":\"February 2022\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202201\",\"202202\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.eventdate",
+        "Report date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202201", "ou", "Zoy23SSHCPs", "value", "6675.0"));
+
+    // Validate row exists with values from original row index 1
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202202", "ou", "Zoy23SSHCPs", "value", "6755.0"));
+  }
+
+  @Test
+  public void sumBirthValuesWithinStagePeriod() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("aggregationType=SUM")
+            .add("dimension=ou:Zoy23SSHCPs,flBirth0001.EVENT_DATE:202201")
+            .add("value=flBirth0001.flWeight001");
+
+    // When
+    ApiResponse response = actions.aggregate().get("flProg00001", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"202201\":{\"name\":\"January 2022\"},\"flProg00001\":{\"name\":\"First last stage period program\"},\"flBirth0001.eventdate\":{\"name\":\"Report date\"},\"Zoy23SSHCPs\":{\"name\":\"Gbane Kandor\"},\"ou\":{\"name\":\"Organisation unit\"},\"flBirth0001\":{\"name\":\"First last Birth\"},\"flBirth0001.flWeight001\":{\"name\":\"First last regression weight\"}},\"dimensions\":{\"flBirth0001.eventdate\":[\"202201\"],\"pe\":[],\"ou\":[\"Zoy23SSHCPs\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Dimension values must retain their requested order.
+    assertEquals(
+        new JSONObject(expectedMetaData).getJSONObject("dimensions").toString(),
+        new JSONObject(actualMetaData).getJSONObject("dimensions").toString(),
+        true);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "flBirth0001.eventdate",
+        "Report date",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("flBirth0001.eventdate", "202201", "ou", "Zoy23SSHCPs", "value", "6675.0"));
+  }
 }

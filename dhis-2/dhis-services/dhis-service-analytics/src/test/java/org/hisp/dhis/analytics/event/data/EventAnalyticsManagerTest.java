@@ -51,6 +51,7 @@ import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -112,6 +113,9 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -877,6 +881,137 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
     verifyFirstOrLastAggregationTypeSubquery(AnalyticsAggregationType.LAST);
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "FIRST,occurreddate,false",
+    "FIRST,occurreddate,true",
+    "LAST,occurreddate,false",
+    "LAST,occurreddate,true",
+    "FIRST,scheduleddate,false",
+    "FIRST,scheduleddate,true",
+    "LAST,scheduleddate,false",
+    "LAST,scheduleddate,true"
+  })
+  void verifyFirstOrLastAggregationResolvesEndDateFromStageDateItem(
+      AggregationType aggregationType, String dateColumn, boolean dateAsFilter) {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    QueryItem stageDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(dateColumn),
+            programA,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageDateItem.setProgramStage(programStage);
+    stageDateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-02-01"));
+    stageDateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
+    stageDateItem.addDimensionValue("202602");
+
+    EventQueryParams.Builder builder =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withProgramStage(programStage)
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .withValue(createDataElement('U'))
+            .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+            .withAggregateData(true)
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withTableName(getTable(programA.getUid()));
+    if (dateAsFilter) {
+      builder.addItemFilter(stageDateItem);
+    } else {
+      builder.addItem(stageDateItem);
+    }
+    EventQueryParams params = builder.build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "where ax.\"occurreddate\" >= '2016-02-28' and ax.\"occurreddate\" <= '2026-02-28'"));
+    assertNull(params.getStartDate());
+    assertNull(params.getEndDate());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = AggregationType.class,
+      names = {
+        "FIRST", "FIRST_AVERAGE_ORG_UNIT", "FIRST_FIRST_ORG_UNIT",
+        "LAST", "LAST_AVERAGE_ORG_UNIT", "LAST_LAST_ORG_UNIT"
+      })
+  void verifyStagePeriodFirstOrLastAggregation(AggregationType aggregationType) {
+    verifyStagePeriodFirstOrLastAggregation(aggregationType, "occurreddate", false);
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "FIRST,occurreddate,true", "LAST,occurreddate,true",
+    "FIRST,scheduleddate,false", "LAST,scheduleddate,false",
+    "FIRST,scheduleddate,true", "LAST,scheduleddate,true"
+  })
+  void verifyStagePeriodFirstOrLastAggregation(
+      AggregationType aggregationType, String dateColumn, boolean dateAsFilter) {
+    mockEmptyRowSet();
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    QueryItem dateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(dateColumn),
+            programA,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    dateItem.setProgramStage(programStage);
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-02-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-02-28"));
+    dateItem.addDimensionValue("202602");
+    EventQueryParams.Builder builder =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withProgramStage(programStage)
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .withValue(createDataElement('U'))
+            .withAggregationType(AnalyticsAggregationType.fromAggregationType(aggregationType))
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(AGGREGATE)
+            .withTableName(getTable(programA.getUid()))
+            .withFirstOrLastStagePeriod(dateItem, PeriodDimension.of("202602"));
+    if (dateAsFilter) {
+      builder.addItemFilter(dateItem);
+    } else {
+      builder.addItem(dateItem);
+    }
+    EventQueryParams params = builder.build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+    String query = sql.getValue();
+    String innerQuery = query.substring(query.indexOf("row_number()"), query.indexOf(") as ax"));
+    assertThat(innerQuery, containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
+    assertThat(innerQuery, containsString("ax.\"" + dateColumn + "\" >= '2016-02-28'"));
+    assertThat(innerQuery, containsString("ax.\"" + dateColumn + "\" < '2026-03-01'"));
+    String order = aggregationType.isFirst() ? "asc" : "desc";
+    assertThat(innerQuery, containsString("order by ax.\"" + dateColumn + "\" " + order));
+    assertThat(query, not(containsString("2026-02-01")));
+    assertThat(query, not(containsString("dps_stage")));
+    if (!dateAsFilter) {
+      assertThat(query, containsString("'202602'::text as \"" + dateColumn + "\""));
+    }
+    assertNull(params.getStartDate());
+    assertNull(params.getEndDate());
+    assertEquals(2, dateItem.getFilters().size());
   }
 
   @Test
@@ -1727,7 +1862,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String expectedFirstOrLastSubquery =
         "from (select \"event\",ax.\""
             + deU.getUid()
-            + "\",\"quarterly\",\"ou\","
+            + "\",\"quarterly\",\"ou\",\"fWIAEtYVEGk\","
             + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"occurreddate\" "
             + order
             + ", ax.\"created\" "

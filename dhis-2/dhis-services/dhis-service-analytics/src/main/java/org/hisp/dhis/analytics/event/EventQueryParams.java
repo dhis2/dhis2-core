@@ -145,6 +145,11 @@ public class EventQueryParams extends DataQueryParams {
 
   public record GeometrySource(String coordinateField, String source) {}
 
+  /** The stage date and reporting period for one planned first/last value query. */
+  public record FirstOrLastStagePeriod(QueryItem dateItem, PeriodDimension period) {}
+
+  @Getter private FirstOrLastStagePeriod firstOrLastStagePeriod;
+
   /** The query items. */
   private List<QueryItem> items = new ArrayList<>();
 
@@ -342,6 +347,7 @@ public class EventQueryParams extends DataQueryParams {
     params.value = this.value;
     params.requestValue = this.requestValue;
     params.valueProgramStage = this.valueProgramStage;
+    params.firstOrLastStagePeriod = this.firstOrLastStagePeriod;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
     params.option = this.option;
@@ -743,7 +749,7 @@ public class EventQueryParams extends DataQueryParams {
    * operator filters (GE, GT, LE, LT, EQ). This is needed for partition selection.
    */
   private void extractDatesFromStageDateItems() {
-    for (QueryItem item : items) {
+    for (QueryItem item : getItemsAndItemFilters()) {
       if (item.hasProgramStage() && isStageDateItem(item)) {
         Date start = null;
         Date end = null;
@@ -1951,6 +1957,16 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withStartEndDatesForPeriods() {
       this.params.replacePeriodsWithDates();
+      return this;
+    }
+
+    public Builder withStartEndDatesForStageDateItems() {
+      this.params.extractDatesFromStageDateItems();
+      return this;
+    }
+
+    public Builder withFirstOrLastStagePeriod(QueryItem dateItem, PeriodDimension period) {
+      this.params.firstOrLastStagePeriod = new FirstOrLastStagePeriod(dateItem, period);
       return this;
     }
 

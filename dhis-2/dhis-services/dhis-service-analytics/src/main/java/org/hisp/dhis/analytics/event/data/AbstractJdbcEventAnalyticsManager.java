@@ -956,7 +956,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getAdditionalQueryItemWhereClause(
       EventQueryParams params, String existingWhereClause) {
 
-    String queryItemFilterClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+    Set<QueryItem> exclude =
+        params.getFirstOrLastStagePeriod() == null
+            ? Set.of()
+            : Set.of(params.getFirstOrLastStagePeriod().dateItem());
+    String queryItemFilterClause =
+        getQueryItemsAndFiltersWhereClause(params, exclude, new SqlHelper());
 
     if (StringUtils.isBlank(queryItemFilterClause)) {
       return StringUtils.EMPTY;

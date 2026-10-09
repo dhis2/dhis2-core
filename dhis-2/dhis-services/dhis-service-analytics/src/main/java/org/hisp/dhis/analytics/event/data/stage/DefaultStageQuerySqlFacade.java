@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data.stage;
 
+import static org.hisp.dhis.analytics.DataType.TEXT;
+
 import java.util.Optional;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.ColumnAndAlias;
@@ -84,6 +86,14 @@ public class DefaultStageQuerySqlFacade implements StageQuerySqlFacade {
     }
 
     if (isAggregated && classifier.isStageDate(item)) {
+      EventQueryParams.FirstOrLastStagePeriod stagePeriod = params.getFirstOrLastStagePeriod();
+      if (stagePeriod != null && stagePeriod.dateItem().equals(item)) {
+        String expression = sqlBuilder.cast("'" + stagePeriod.period().getIsoDate() + "'", TEXT);
+        return Optional.of(
+            isGroupByClause
+                ? ColumnAndAlias.ofColumn(expression)
+                : ColumnAndAlias.ofColumnAndAlias(expression, item.getItemName()));
+      }
       Optional<String> periodBucket = dateRenderer.resolvePeriodBucketColumn(item);
       if (periodBucket.isPresent()) {
         String expression =
