@@ -120,6 +120,7 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
   }
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return PROGRAM_ATTRIBUTE_OPTION;
   }

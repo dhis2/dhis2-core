@@ -97,6 +97,7 @@ public class ReportingRate extends BaseDimensionalItemObject implements Embedded
   }
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.REPORTING_RATE;
   }

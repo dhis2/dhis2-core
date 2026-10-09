@@ -27,45 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.imports.preheat;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.io.Serial;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
- * Represents a light version of the Pager object. This should be used in cases where we do not need
- * to represent page count and total of pages.
+ * A value of an attribute unique in the whole system, either stored in the DB or sent for more than
+ * one tracked entity in the payload. A value of the attribute equal to it, ignoring case, is a
+ * duplicate unless it belongs to the same tracked entity.
+ *
+ * @param te the tracked entity owning the value
+ * @param attribute the attribute, in the id scheme of the import
+ * @param value the value
  */
-@JsonIgnoreProperties(value = {"total", "pageCount"})
-@JsonInclude(NON_NULL)
-public class SlimPager extends Pager {
-  @Serial private static final long serialVersionUID = 1L;
-
-  public static final int FIRST_PAGE = 1;
-
-  private Boolean lastPage;
-
-  public SlimPager(int page, int pageSize, Boolean lastPage) {
-    // Total is always ZERO, as the main goal of this object it to never
-    // count the total of pages.
-    force(page, pageSize);
-    this.lastPage = lastPage;
-  }
-
-  /**
-   * Store a boolean value to indicate if this is the last page or not.
-   *
-   * @return true if this is the last page, false otherwise
-   */
-  @JsonProperty("isLastPage")
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public Boolean isLastPage() {
-    return lastPage;
-  }
-}
+public record UniqueAttributeValueSystemWide(
+    @Nonnull UID te, @Nonnull MetadataIdentifier attribute, @Nonnull String value) {}

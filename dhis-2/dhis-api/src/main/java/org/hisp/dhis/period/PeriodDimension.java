@@ -121,6 +121,7 @@ public class PeriodDimension extends BaseDimensionalItemObject {
   }
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.PERIOD;
   }
