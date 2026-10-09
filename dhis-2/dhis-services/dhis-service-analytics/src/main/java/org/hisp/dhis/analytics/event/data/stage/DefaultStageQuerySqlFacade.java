@@ -86,9 +86,10 @@ public class DefaultStageQuerySqlFacade implements StageQuerySqlFacade {
     }
 
     if (isAggregated && classifier.isStageDate(item)) {
-      EventQueryParams.FirstOrLastStagePeriod stagePeriod = params.getFirstOrLastStagePeriod();
-      if (stagePeriod != null && stagePeriod.dateItem().equals(item)) {
-        String expression = sqlBuilder.cast("'" + stagePeriod.period().getIsoDate() + "'", TEXT);
+      if (params.hasFirstOrLastStagePeriod()
+          && params.getFirstOrLastStagePeriod().dateItem().equals(item)) {
+        String isoPeriod = params.getFirstOrLastStagePeriod().period().getIsoDate();
+        String expression = sqlBuilder.cast("'" + isoPeriod + "'", TEXT);
         return Optional.of(
             isGroupByClause
                 ? ColumnAndAlias.ofColumn(expression)
