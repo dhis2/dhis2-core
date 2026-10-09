@@ -121,11 +121,7 @@ public class FirstOrLastValueSubqueryRenderer {
           + toMediumDate(addDays(end, 1))
           + "'";
     }
-    Date latest =
-        new EventQueryParams.Builder(params)
-            .withStartEndDatesForStageDateItems()
-            .build()
-            .getLatestEndDate();
+    Date latest = params.getLatestEndDateIncludingStageDates();
     Date earliest = addYears(latest, LAST_VALUE_YEARS_OFFSET);
     return timeCol
         + " >= '"

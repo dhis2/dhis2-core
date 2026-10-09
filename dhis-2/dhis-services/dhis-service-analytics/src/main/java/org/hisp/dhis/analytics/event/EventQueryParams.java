@@ -797,6 +797,16 @@ public class EventQueryParams extends DataQueryParams {
   }
 
   /**
+   * Returns the latest end date, including the end dates of stage date item filters. The dates are
+   * resolved on a copy, so this object is left unchanged.
+   */
+  public Date getLatestEndDateIncludingStageDates() {
+    EventQueryParams copy = new Builder(this).build();
+    copy.extractDatesFromStageDateItems();
+    return copy.getLatestEndDate();
+  }
+
+  /**
    * Checks if the QueryItem is a stage date item (EVENT_DATE or SCHEDULED_DATE).
    *
    * @param item the QueryItem to check
@@ -1981,11 +1991,6 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withStartEndDatesForPeriods() {
       this.params.replacePeriodsWithDates();
-      return this;
-    }
-
-    public Builder withStartEndDatesForStageDateItems() {
-      this.params.extractDatesFromStageDateItems();
       return this;
     }
 
