@@ -78,7 +78,6 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserGroup;
@@ -660,13 +659,22 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     List<User> linkedUserAccounts = getLinkedUserAccounts(actionUser);
     for (User user : linkedUserAccounts) {
-      user.setLastLogin(
+      updateLastLogin(
+          user.getId(),
           user.getUsername().equals(activeUsername)
               ? Date.from(oneHourInTheFuture)
               : Date.from(oneHourAgo));
-
-      update(user, new SystemUser());
     }
+  }
+
+  @Override
+  public void updateLastLogin(long userId, @Nonnull Date lastLogin) {
+    jdbcTemplate.update(
+        "UPDATE userinfo SET lastlogin = ? WHERE userinfoid = ?", lastLogin, userId);
+    // Bypasses Hibernate on purpose (no lastUpdated bump, no audit, no cache invalidation
+    // message), so evict the stale L2 entry ourselves. Other cluster nodes keep their cached
+    // last login until their L2 entry expires, see HibernateUserGroupStore#updateLastUpdated.
+    getSession().getSessionFactory().getCache().evictEntityData(User.class, userId);
   }
 
   @Override

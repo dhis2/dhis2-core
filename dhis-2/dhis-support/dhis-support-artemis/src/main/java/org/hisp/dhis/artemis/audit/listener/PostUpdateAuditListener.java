@@ -30,10 +30,12 @@
 package org.hisp.dhis.artemis.audit.listener;
 
 import java.time.LocalDateTime;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.event.spi.PostCommitUpdateEventListener;
+import java.util.Set;
+import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.event.spi.PostUpdateEvent;
+import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.Type;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
@@ -41,16 +43,36 @@ import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 /**
+ * Audits entity updates.
+ *
+ * <p>Runs at flush time, when Hibernate still knows what changed, and sends the audit after the
+ * transaction committed. The decision whether an update is worth an audit entry can only be made at
+ * flush time: a collection changed in place is not part of {@link
+ * PostUpdateEvent#getDirtyProperties()}, and it is no longer dirty once the transaction committed.
+ *
  * @author Luciano Fiandesio
  */
-@Slf4j
 @Component
 public class PostUpdateAuditListener extends AbstractHibernateListener
-    implements PostCommitUpdateEventListener {
+    implements PostUpdateEventListener {
+
+  /**
+   * Bookkeeping properties: they record that something happened (a login, a write), they are not
+   * data or metadata. An update that changes only these properties, and no collection, is not
+   * audited. Matched by Hibernate property name on every auditable entity. Keep this set small: a
+   * property listed here can never be the reason for an audit entry.
+   *
+   * <p>The properties stay in the payload of updates that are audited, as that payload is a
+   * snapshot of the full state.
+   */
+  static final Set<String> AUDIT_IGNORED_PROPERTIES =
+      Set.of("lastUpdated", "lastUpdatedBy", "lastLogin", "lastCheckedInterpretations");
+
   public PostUpdateAuditListener(
       AuditManager auditManager,
       AuditObjectFactory auditObjectFactory,
@@ -68,34 +90,80 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
   @Override
   public void onPostUpdate(PostUpdateEvent postUpdateEvent) {
     getAuditable(postUpdateEvent.getEntity(), "update")
+        .filter(auditable -> !isBookkeepingOnlyUpdate(postUpdateEvent))
         .ifPresent(
             auditable ->
-                auditManager.send(
-                    Audit.builder()
-                        .auditType(getAuditType())
-                        .auditScope(auditable.scope())
-                        .createdAt(LocalDateTime.now())
-                        .createdBy(getCreatedBy())
-                        .object(postUpdateEvent.getEntity())
-                        .attributes(
-                            auditManager.collectAuditAttributes(
-                                postUpdateEvent.getEntity(),
-                                postUpdateEvent.getEntity().getClass()))
-                        .auditableEntity(
-                            new AuditableEntity(
-                                postUpdateEvent.getEntity().getClass(),
-                                createAuditEntry(postUpdateEvent)))
-                        .build()));
+                postUpdateEvent
+                    .getSession()
+                    .getActionQueue()
+                    .registerProcess(
+                        (success, session) -> {
+                          if (success) {
+                            sendAudit(postUpdateEvent, auditable);
+                          }
+                        }));
   }
 
+  /** The audit is sent by the process registered in {@link #onPostUpdate(PostUpdateEvent)}. */
   @Override
   public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
+    return false;
+  }
+
+  /**
+   * Returns true if the update changed only {@link #AUDIT_IGNORED_PROPERTIES} and no collection.
+   * When Hibernate does not know which properties changed (an entity reattached without a dirty
+   * check), the update counts as a real change.
+   */
+  static boolean isBookkeepingOnlyUpdate(PostUpdateEvent postUpdateEvent) {
+    int[] dirtyProperties = postUpdateEvent.getDirtyProperties();
+    Object[] oldState = postUpdateEvent.getOldState();
+
+    if (dirtyProperties == null || oldState == null) {
+      return false;
+    }
+
+    String[] propertyNames = postUpdateEvent.getPersister().getPropertyNames();
+
+    for (int index : dirtyProperties) {
+      if (!AUDIT_IGNORED_PROPERTIES.contains(propertyNames[index])) {
+        return false;
+      }
+    }
+
+    Type[] propertyTypes = postUpdateEvent.getPersister().getPropertyTypes();
+    Object[] state = postUpdateEvent.getState();
+
+    for (int i = 0; i < propertyTypes.length; i++) {
+      if (propertyTypes[i].isCollectionType() && isChangedCollection(oldState[i], state[i])) {
+        return false;
+      }
+    }
+
     return true;
   }
 
-  @Override
-  public void onPostUpdateCommitFailed(PostUpdateEvent event) {
-    log.debug("onPostUpdateCommitFailed: " + event);
+  /** A collection that was replaced, removed or changed in place. */
+  private static boolean isChangedCollection(Object oldValue, Object newValue) {
+    return oldValue != newValue
+        || (newValue instanceof PersistentCollection collection && collection.isDirty());
+  }
+
+  private void sendAudit(PostUpdateEvent postUpdateEvent, Auditable auditable) {
+    auditManager.send(
+        Audit.builder()
+            .auditType(getAuditType())
+            .auditScope(auditable.scope())
+            .createdAt(LocalDateTime.now())
+            .createdBy(getCreatedBy())
+            .object(postUpdateEvent.getEntity())
+            .attributes(
+                auditManager.collectAuditAttributes(
+                    postUpdateEvent.getEntity(), postUpdateEvent.getEntity().getClass()))
+            .auditableEntity(
+                new AuditableEntity(
+                    postUpdateEvent.getEntity().getClass(), createAuditEntry(postUpdateEvent)))
+            .build());
   }
 
   /** Create Audit entry for update event */

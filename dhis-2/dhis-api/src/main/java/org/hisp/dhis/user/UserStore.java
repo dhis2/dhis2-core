@@ -254,6 +254,20 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
 
+  /**
+   * Writes the last login date of the user with the given ID, and nothing else. This is the only
+   * way to change the last login date of an existing user: entity updates do not write it.
+   *
+   * <p>This is a single column update outside the entity lifecycle: it does not bump {@code
+   * lastUpdated} and fires no Hibernate events, so it produces no audit entry and no cache
+   * invalidation message. Only the second-level cache entry of this user is evicted. A {@link User}
+   * already loaded in the current session keeps its previous last login date in memory.
+   *
+   * @param userId the ID of the user
+   * @param lastLogin the last login date to write
+   */
+  void updateLastLogin(long userId, @Nonnull Date lastLogin);
+
   User getUserByEmailVerificationToken(String token);
 
   User getUserByVerifiedEmail(String email);
