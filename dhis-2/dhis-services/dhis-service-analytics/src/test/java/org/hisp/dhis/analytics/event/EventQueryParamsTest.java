@@ -217,6 +217,19 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
+  void testHasFirstOrLastStagePeriod() {
+    EventQueryParams withoutStagePeriod = new EventQueryParams.Builder().build();
+    EventQueryParams withStagePeriod =
+        new EventQueryParams.Builder()
+            .withFirstOrLastStagePeriod(
+                new QueryItem(createDataElement('A')), PeriodDimension.of("202602"))
+            .build();
+
+    assertFalse(withoutStagePeriod.hasFirstOrLastStagePeriod());
+    assertTrue(withStagePeriod.hasFirstOrLastStagePeriod());
+  }
+
+  @Test
   void testHasDimensionValue() {
     EventQueryParams paramsA =
         new EventQueryParams.Builder()

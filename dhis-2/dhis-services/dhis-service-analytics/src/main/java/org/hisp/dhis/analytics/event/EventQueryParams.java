@@ -1077,6 +1077,10 @@ public class EventQueryParams extends DataQueryParams {
     return piDisagInfo != null;
   }
 
+  public boolean hasFirstOrLastStagePeriod() {
+    return firstOrLastStagePeriod != null;
+  }
+
   public boolean isPiDisagDimension(String dimension) {
     return hasPiDisagInfo() && piDisagInfo.isPiDisagDimension(dimension);
   }

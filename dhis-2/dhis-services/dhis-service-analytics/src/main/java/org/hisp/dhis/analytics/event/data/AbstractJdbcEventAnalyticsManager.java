@@ -957,9 +957,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params, String existingWhereClause) {
 
     Set<QueryItem> exclude =
-        params.getFirstOrLastStagePeriod() == null
-            ? Set.of()
-            : Set.of(params.getFirstOrLastStagePeriod().dateItem());
+        params.hasFirstOrLastStagePeriod()
+            ? Set.of(params.getFirstOrLastStagePeriod().dateItem())
+            : Set.of();
     String queryItemFilterClause =
         getQueryItemsAndFiltersWhereClause(params, exclude, new SqlHelper());
 
