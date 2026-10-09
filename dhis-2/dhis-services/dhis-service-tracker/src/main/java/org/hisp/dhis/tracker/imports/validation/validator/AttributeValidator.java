@@ -32,15 +32,13 @@ package org.hisp.dhis.tracker.imports.validation.validator;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1077;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1112;
 
-import java.util.Objects;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -83,27 +81,18 @@ public abstract class AttributeValidator {
       TrackerDto dto,
       String value,
       TrackedEntityAttribute trackedEntityAttribute,
-      TrackedEntity trackedEntity,
+      UID trackedEntity,
       OrganisationUnit organisationUnit) {
     if (Boolean.FALSE.equals(trackedEntityAttribute.isUnique())) return;
 
-    for (UniqueAttributeValue uniqueAttributeValue : preheat.getUniqueAttributeValues(value)) {
-      boolean isTheSameTea = uniqueAttributeValue.attribute().isEqualTo(trackedEntityAttribute);
-      boolean hasTheSameValue = value.equalsIgnoreCase(uniqueAttributeValue.value());
-      boolean isNotSameTe =
-          trackedEntity == null
-              || !Objects.equals(trackedEntity.getUid(), uniqueAttributeValue.te().getValue());
+    boolean isDuplicate =
+        trackedEntityAttribute.getOrgUnitScopeNullSafe()
+            ? preheat.hasDuplicateInOrgUnit(
+                trackedEntityAttribute, value, organisationUnit, trackedEntity)
+            : preheat.hasSystemWideDuplicate(trackedEntityAttribute, value, trackedEntity);
 
-      // the org unit is only compared for entries of this attribute, as values of an attribute
-      // unique in the whole system have none
-      if (isTheSameTea
-          && hasTheSameValue
-          && isNotSameTe
-          && (!trackedEntityAttribute.getOrgunitScope()
-              || uniqueAttributeValue.orgUnit().isEqualTo(organisationUnit))) {
-        reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);
-        return;
-      }
+    if (isDuplicate) {
+      reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);
     }
   }
 }
