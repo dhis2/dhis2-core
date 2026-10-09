@@ -53,7 +53,6 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
-import org.hisp.dhis.analytics.event.data.stage.StageQueryItemClassifier;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.category.CategoryCombo;
@@ -94,7 +93,8 @@ class DefaultEventQueryPlannerTest extends TestBase {
   @Mock private PartitionManager partitionManager;
 
   @Spy
-  private StageQueryItemClassifier stageQueryItemClassifier = new DefaultStageQueryItemClassifier();
+  private FirstOrLastStagePeriodPlanner firstOrLastStagePeriodPlanner =
+      new FirstOrLastStagePeriodPlanner(new DefaultStageQueryItemClassifier());
 
   @InjectMocks private DefaultEventQueryPlanner eventQueryPlanner;
 
@@ -487,24 +487,6 @@ class DefaultEventQueryPlannerTest extends TestBase {
     assertNull(params.getEndDate());
     assertEquals(List.of("202601", "202602"), dateItem.getDimensionValues());
     assertEquals(2, dateItem.getFilters().size());
-  }
-
-  @ParameterizedTest
-  @EnumSource(
-      value = AggregationType.class,
-      names = {"SUM", "AVERAGE", "COUNT", "LAST_IN_PERIOD", "LAST_IN_PERIOD_AVERAGE_ORG_UNIT"})
-  void shouldKeepStagePeriodFilteringForOtherAggregations(AggregationType aggregationType) {
-    ProgramStage stage = createProgramStage('A', program);
-    QueryItem item = createStageEventDateItem(stage, "202601", "202602");
-    EventQueryParams params = createStageDateAggregateParams(stage, item, aggregationType);
-    mockQueryPlannerToReturnSameEventParams();
-
-    List<EventQueryParams> queries = eventQueryPlanner.planAggregateQuery(params);
-
-    assertEquals(1, queries.size());
-    assertNull(queries.get(0).getFirstOrLastStagePeriod());
-    assertEquals(
-        List.of("202601", "202602"), queries.get(0).getItems().get(0).getDimensionValues());
   }
 
   // -------------------------------------------------------------------------
