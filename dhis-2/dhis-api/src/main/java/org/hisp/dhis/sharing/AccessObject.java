@@ -35,6 +35,41 @@ import java.io.Serializable;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 
+/**
+ * Representing access to objects. The {@code access} string format is eight characters. Allowed
+ * characters are:
+ *
+ * <ul>
+ *   <li>{@code -}: None
+ *   <li>{@code r}: Read
+ *   <li>{@code w}: Write
+ * </ul>
+ *
+ * The meaning of each string index position:
+ *
+ * <ul>
+ *   <li>0: Metadata Read
+ *   <li>1: Metadata Write
+ *   <li>2: Data Read
+ *   <li>3: Data Write
+ *   <li>4 - 7: Not used, reserved for future use
+ * </ul>
+ *
+ * <p>An entity can have 1) no sharing 2) metadata sharing or 3) data sharing enabled.
+ *
+ * <p>The {@code write} operation implies the {@code read} operation and is represented by
+ * characters {@code rw}. The read operation implies read-only and is represented by characters
+ * {@code r-}.
+ *
+ * <p>Examples:
+ *
+ * <ul>
+ *   <li>Metadata read: {@code r-------}
+ *   <li>Metadata write: {@code rw------}
+ *   <li>Metadata read and data read: {@code r-r-----}
+ *   <li>Metadata write and data read: {@code rwr-----}
+ * </ul>
+ */
 @NoArgsConstructor
 public abstract class AccessObject implements Serializable {
   protected String displayName;
