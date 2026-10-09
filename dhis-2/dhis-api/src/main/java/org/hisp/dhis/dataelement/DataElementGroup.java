@@ -64,7 +64,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -134,7 +133,7 @@ public class DataElementGroup extends BaseMetadataObject
 
   /**
    * Inverse side of {@code dataelementgroupsetmembers}. The owning side is {@link
-   * DataElementGroupSet#members}, which is still Hibernate HBM-mapped as an ordered {@code <list>}.
+   * DataElementGroupSet#members}, mapped as an ordered list.
    */
   @ManyToMany(fetch = FetchType.LAZY, mappedBy = "members")
   @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -369,7 +368,7 @@ public class DataElementGroup extends BaseMetadataObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "groupSets", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "groupSet", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataElementGroupSet> getGroupSets() {
