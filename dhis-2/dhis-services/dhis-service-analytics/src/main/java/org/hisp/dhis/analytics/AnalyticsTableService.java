@@ -49,8 +49,11 @@ public interface AnalyticsTableService {
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param progress job progress tracking and control flow
+   * @return true if the analytics tables reflect all source data changed before the start time of
+   *     the update, false if the update was cancelled or aborted, in which case it must not be
+   *     recorded as a successful update of this table type.
    */
-  void create(AnalyticsTableUpdateParams params, JobProgress progress);
+  boolean create(AnalyticsTableUpdateParams params, JobProgress progress);
 
   /** Drops main and staging analytics tables. */
   void dropTables();

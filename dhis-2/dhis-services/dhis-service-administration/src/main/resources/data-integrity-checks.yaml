@@ -96,3 +96,4 @@ checks:
   - tracked_entity_attributes/tracked_entity_attributes_invalid_trigram_search_configuration.yaml
   - tracked_entity_attributes/tracked_entity_attributes_trigram_index_out_of_sync.yaml
   - tracked_entity_attributes/tracked_entity_attributes_trigram_index_overview.yaml
+  - tracked_entity_attributes/tracked_entity_attributes_duplicated_unique_values_in_org_unit.yaml

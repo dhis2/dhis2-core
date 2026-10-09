@@ -96,7 +96,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.8.3</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.8.5</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -124,7 +124,7 @@
     <lettuce.version>6.8.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>13.7.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>13.9.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.12.0</ehcache3.version>
     <jaxb-runtime.version>4.0.9</jaxb-runtime.version>
@@ -158,7 +158,7 @@
     <xercesImpl.version>2.12.2</xercesImpl.version>
 
     <!-- AWS SDK for Java v2 -->
-    <aws-sdk.version>2.44.4</aws-sdk.version>
+    <aws-sdk.version>2.55.11</aws-sdk.version>
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
@@ -190,13 +190,13 @@
     <jsoup.version>1.23.2</jsoup.version>
 
     <!-- Div. utils -->
-    <guava.version>33.7.1-jre</guava.version>
+    <guava.version>33.7.2-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.9.1</google-api-client.version>
     <lombok.version>1.18.48</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.14.4</joda-time.version>
+    <joda-time.version>2.15.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.6.0</commons-collections4.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
@@ -210,7 +210,7 @@
     <commons-email.version>1.6.0</commons-email.version>
     <commons-logging.version>1.4.0</commons-logging.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
-    <httpcomponents-core.version>5.4.3</httpcomponents-core.version>
+    <httpcomponents-core.version>5.4.4</httpcomponents-core.version>
     <httpcomponents-client5.version>5.6.4</httpcomponents-client5.version>
     <kafka.version>4.3.1</kafka.version>
 
@@ -234,7 +234,7 @@
     <swagger.version>2.1.48</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
-    <h2.version>2.5.250</h2.version>
+    <h2.version>2.5.252</h2.version>
     <jmh.version>1.37</jmh.version>
     <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
 
@@ -253,7 +253,7 @@
     <versions-maven-plugin.version>2.22.0</versions-maven-plugin.version>
     <dependency-check-maven.version>13.0.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.10.4.1</spotbugs-maven-plugin.version>
-    <spotless.version>3.10.2</spotless.version>
+    <spotless.version>3.10.3</spotless.version>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.39</dhis-antlr-expression-parser.version>

@@ -139,6 +139,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.INDICATOR;
   }

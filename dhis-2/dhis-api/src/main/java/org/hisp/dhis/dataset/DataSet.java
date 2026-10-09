@@ -647,6 +647,7 @@ public class DataSet extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.REPORTING_RATE;
   }

@@ -166,6 +166,7 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
   }
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return PROGRAM_DATA_ELEMENT_OPTION;
   }
