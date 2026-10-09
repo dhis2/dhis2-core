@@ -110,7 +110,7 @@ public class FirstOrLastValueSubqueryRenderer {
 
   private String buildTenYearWindowTimeTest(EventQueryParams params) {
     String timeCol = sqlBuilder.quoteAx(getTimeColumn(params));
-    if (params.getFirstOrLastStagePeriod() != null) {
+    if (params.hasFirstOrLastStagePeriod()) {
       Date end = params.getFirstOrLastStagePeriod().period().getEndDate();
       return timeCol
           + " >= '"
@@ -222,11 +222,11 @@ public class FirstOrLastValueSubqueryRenderer {
         .map(QueryItem::getItemId)
         .forEach(columns::add);
     if (params.hasProgramStage()
-        || params.getFirstOrLastStagePeriod() != null
+        || params.hasFirstOrLastStagePeriod()
         || params.getItemsAndItemFilters().stream().anyMatch(QueryItem::hasProgramStage)) {
       columns.add("ps");
     }
-    if (params.hasTimeField() || params.getFirstOrLastStagePeriod() != null) {
+    if (params.hasTimeField() || params.hasFirstOrLastStagePeriod()) {
       columns.add(getTimeColumn(params));
     }
     if (params.hasTimeField()) {
@@ -238,18 +238,18 @@ public class FirstOrLastValueSubqueryRenderer {
   }
 
   private String getTimeColumn(EventQueryParams params) {
-    return params.getFirstOrLastStagePeriod() == null
-        ? params.getTimeFieldAsFieldFallback()
-        : params.getFirstOrLastStagePeriod().dateItem().getItemId();
+    return params.hasFirstOrLastStagePeriod()
+        ? params.getFirstOrLastStagePeriod().dateItem().getItemId()
+        : params.getTimeFieldAsFieldFallback();
   }
 
   private String getStageTest(EventQueryParams params) {
     ProgramStage stage =
         params.hasProgramStage()
             ? params.getProgramStage()
-            : params.getFirstOrLastStagePeriod() == null
-                ? null
-                : params.getFirstOrLastStagePeriod().dateItem().getProgramStage();
+            : params.hasFirstOrLastStagePeriod()
+                ? params.getFirstOrLastStagePeriod().dateItem().getProgramStage()
+                : null;
     return stage == null ? "" : " and " + sqlBuilder.quoteAx("ps") + " = '" + stage.getUid() + "'";
   }
 
